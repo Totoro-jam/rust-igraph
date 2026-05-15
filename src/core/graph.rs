@@ -367,7 +367,7 @@ impl Graph {
                 ))
             })
             .collect::<Result<_, _>>()?;
-        tuples.sort_unstable_by(|a, b| (a.0, a.1).cmp(&(b.0, b.1)));
+        tuples.sort_unstable_by_key(|a| (a.0, a.1));
         self.oi = tuples.iter().map(|t| t.2).collect();
         // os[v] = number of entries with primary_key < v.
         self.os = vec![0u32; n + 1];
@@ -393,7 +393,7 @@ impl Graph {
                 ))
             })
             .collect::<Result<_, _>>()?;
-        tuples.sort_unstable_by(|a, b| (a.0, a.1).cmp(&(b.0, b.1)));
+        tuples.sort_unstable_by_key(|a| (a.0, a.1));
         self.ii = tuples.iter().map(|t| t.2).collect();
         self.is = vec![0u32; n + 1];
         for &(v, _, _) in &tuples {
