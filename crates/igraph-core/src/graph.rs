@@ -3,7 +3,7 @@
 //! Only undirected, unweighted graphs with `u32` vertex ids. Adjacency stored as
 //! `Vec<Vec<u32>>`. This will be replaced by the full `igraph_t`-equivalent
 //! structure in Phase 1 (see `ALGO-CORE-001`); the public surface kept here is
-//! the strict subset BFS / EdgeList / oracle tests need to compile.
+//! the strict subset that `bfs`, `read_edgelist`, and the oracle tests need.
 
 use crate::error::{IgraphError, IgraphResult};
 

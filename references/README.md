@@ -22,8 +22,9 @@ references/
 cd references
 
 # === igraph (C 核心) ===
-# 选项 A：本地已克隆，使用符号链接（节省磁盘 + 不重复下载）
-ln -s /Users/dovchen/code/igraph igraph
+# 选项 A：本地已克隆 igraph，使用符号链接（节省磁盘）
+# 把 <PATH-TO-LOCAL-IGRAPH> 替换为本地 igraph 仓库的绝对路径
+ln -s <PATH-TO-LOCAL-IGRAPH> igraph
 # 锁定到稳定版（如未完成 submodule，下行不可省）
 ( cd igraph && git checkout v1.0.0 && git submodule update --init --recursive )
 

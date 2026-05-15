@@ -1376,7 +1376,8 @@ mkdir -p references
 cd references
 
 # === 选项 A：本地已有 igraph，使用符号链接（节省磁盘）===
-ln -s /Users/dovchen/code/igraph igraph
+# 把 <PATH-TO-LOCAL-IGRAPH> 替换为本地 igraph 仓库的绝对路径
+ln -s <PATH-TO-LOCAL-IGRAPH> igraph
 git -C igraph checkout v1.0.0       # 锁定到 1.0.x 稳定版
 git -C igraph submodule update --init --recursive
 
