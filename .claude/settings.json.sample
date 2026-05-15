@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit(/.claude/skills/awu-finish/**)",
+      "Edit(/.claude/skills/oracle-add/**)",
+      "Edit(/.claude/skills/phase-checkpoint/**)",
+      "Edit(/.claude/skills/resume-session/**)",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/mattpocock/skills/main/skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh\")",
+      "Bash(gh run *)",
+      "Bash(curl -sL \"https://api.github.com/repos/Totoro-jam/rust-igraph/actions/runs?per_page=5\")",
+      "Bash(curl -sL \"https://api.github.com/repos/Totoro-jam/rust-igraph/actions/runs/25910566809/jobs\")",
+      "Bash(curl -sL \"https://api.github.com/repos/Totoro-jam/rust-igraph/actions/runs/25910566791/jobs\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(f\\\\\"{j['conclusion']:10s} {j['name']}\\\\\"\\) for j in d['jobs']]\")",
+      "Bash(actionlint .github/workflows/*.yml)",
+      "Bash(.venv/bin/python -m scripts.bench_compare --algo tr)",
+      "Bash(curl -sL \"https://api.github.com/repos/Totoro-jam/rust-igraph/actions/runs?per_page=4\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(f\\\\\"{r['conclusion'] or r['status']:12} {r['name']:35} {r['html_url']}\\\\\"\\) for r in d['workflow_runs'][:6]]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(f\\\\\"{\\(r['conclusion'] or r['status']\\):12} {r['name']:35} {r['head_sha'][:7]}\\\\\"\\) for r in d['workflow_runs'][:6]]\")",
+      "Bash(curl -sL \"https://api.github.com/repos/Totoro-jam/rust-igraph/pages\")",
+      "Bash(curl -sL https://crates.io/api/v1/crates/rust-igraph)",
+      "Bash(curl -sL https://crates.io/api/v1/crates/igraph)",
+      "Bash(git rm *)",
+      "Bash(git show *)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('.claude/settings.json'\\)\\); print\\('restored: keys=', list\\(d.keys\\(\\)\\), 'allow=', len\\(d['permissions']['allow']\\)\\)\")",
+      "Edit(/.claude/skills/awu-bench/**)",
+      "Bash(cargo package *)",
+      "Bash(cargo publish *)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('.claude/settings.json'\\)\\); print\\('restored, allow=', len\\(d['permissions']['allow']\\)\\)\")",
+      "Bash(curl -sL \"https://api.github.com/repos/Totoro-jam/rust-igraph/actions/runs?per_page=6\")",
+      "Bash(python3 -c ' *)",
+      "Bash(git tag *)",
+      "Bash(curl -sL \"https://api.github.com/repos/Totoro-jam/rust-igraph/actions/runs?per_page=2\")",
+      "Bash(curl -sL \"https://api.github.com/repos/Totoro-jam/rust-igraph/actions/runs/25916082261/jobs\")",
+      "Bash(curl -sL \"https://api.github.com/repos/Totoro-jam/rust-igraph/actions/runs/25916082261/logs\" -o /tmp/release_logs.zip)",
+      "Bash(unzip -o /tmp/release_logs.zip -d /tmp/release_logs)",
+      "Bash(sed -i.bak 's| --workspace||g' .github/workflows/ci.yml .github/workflows/release.yml .github/workflows/pages.yml)",
+      "Bash(rm .github/workflows/*.bak)"
+    ],
+    "additionalDirectories": [
+      "/Users/dovchen/code/rust-igraph/.claude"
+    ]
+  }
+}

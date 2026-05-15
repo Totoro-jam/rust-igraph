@@ -24,11 +24,11 @@ jobs:
       - name: Build rustdoc
         env:
           RUSTDOCFLAGS: "-D warnings"
-        run: cargo doc --workspace --no-deps
+        run: cargo doc --no-deps
       - name: Add index.html redirect
-        # crates.io-style redirect from / to the main `igraph` crate.
+        # crates.io-style redirect from / to the rust_igraph crate's docs.
         run: |
-          echo '<meta http-equiv="refresh" content="0; url=igraph/index.html">' > target/doc/index.html
+          echo '<meta http-equiv="refresh" content="0; url=rust_igraph/index.html">' > target/doc/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -41,9 +41,9 @@ jobs:
       - name: Pre-flight gate (mirrors `phase-checkpoint`)
         run: |
           cargo fmt --all --check
-          cargo clippy --workspace --all-targets -- -D warnings
-          cargo test  --workspace --all-features --no-fail-fast
-          cargo doc   --workspace --no-deps
+          cargo clippy --all-targets -- -D warnings
+          cargo test  --all-features --no-fail-fast
+          cargo doc   --no-deps
           cargo check --target wasm32-unknown-unknown --no-default-features
 
       - name: Verify package contents

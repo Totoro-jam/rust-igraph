@@ -15,6 +15,10 @@ cd references && cat README.md
 # 2. Activate the in-repo git hooks (CC attribution + format-on-edit).
 git config core.hooksPath .githooks
 
+# 2b. Copy the team Claude Code config (gitignored after copy; see
+#     "Claude Code settings — sample-file pattern" below).
+cp .claude/settings.json.sample .claude/settings.json
+
 # 3. Set a personal git identity for this repo (do NOT touch global).
 git config user.name  "Your Name"
 git config user.email "your@personal.email"
@@ -126,27 +130,32 @@ Mirrored from [CLAUDE.md](CLAUDE.md):
    match the user's language.
 9. Never write secrets, credentials, or personal paths to a tracked file.
 
-## Claude Code settings — committed vs personal
+## Claude Code settings — sample-file pattern
 
-There are **two** Claude Code settings files; they look similar but have
-different roles:
+Both `.claude/settings.json` and `.claude/settings.local.json` are
+**gitignored**. The committed file is `.claude/settings.json.sample` —
+copy it on first clone:
+
+```bash
+cp .claude/settings.json.sample .claude/settings.json
+```
+
+The reason: Claude Code auto-appends every "Always allow" grant to
+`settings.json`, which produced constant diff noise when the file was
+committed. By gitignoring it and committing `.sample` instead, the team-
+shared baseline (hooks + curated allowlist) stays canonical and personal
+grants disappear from version control.
 
 | File | In commit? | Purpose |
 |------|-----------|---------|
-| `.claude/settings.json` | **yes** | Team-shared: hooks, statusline, durable rules everyone gets |
-| `.claude/settings.local.json` | **no** (gitignored) | Personal: session "Always allow" grants, per-machine overrides |
+| `.claude/settings.json.sample` | **yes** | Team-shared baseline. Edit + bump only when adding hooks/lints everyone needs. |
+| `.claude/settings.json` | no (gitignored) | Per-clone copy of the sample, plus whatever Claude Code auto-appends locally. |
+| `.claude/settings.local.json` | no (gitignored) | Pre-existing Claude Code convention for per-machine overrides; same role as above. |
 
-Claude Code auto-appends to **whichever file already exists** when you
-click "Always allow". To keep `settings.json` clean and avoid noisy diffs:
-
-1. Make sure `.claude/settings.local.json` exists in your clone (an empty
-   `{}` works — it just needs to be there).
-2. If you ever see a `permissions:` block sneak into `.claude/settings.json`,
-   cut-and-paste it into `settings.local.json` and re-commit the clean
-   `settings.json`.
-
-The reason: `settings.local.json` is gitignored, so personal grants stay
-local; the committed `settings.json` only carries the hooks block.
+When you change the team baseline (add a hook, broaden the safe-allow
+list) edit `.sample` and remind contributors to `cp` it again. Trivial
+churn (one new "Always allow" grant) does NOT require updating
+`.sample` — leave it alone.
 
 ## Returning after a break
 

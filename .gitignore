@@ -10,7 +10,11 @@ Cargo.lock
 references/*
 !references/README.md
 
-# Local-only Claude Code config
+# Claude Code config
+# settings.json is generated per-clone from settings.json.sample (committed).
+# settings.local.json holds personal grants. Both are gitignored to stop the
+# IDE-auto-edit churn — see CONTRIBUTING.md "Claude Code settings".
+.claude/settings.json
 .claude/settings.local.json
 
 # Direnv / shell
