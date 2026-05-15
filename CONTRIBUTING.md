@@ -126,6 +126,28 @@ Mirrored from [CLAUDE.md](CLAUDE.md):
    match the user's language.
 9. Never write secrets, credentials, or personal paths to a tracked file.
 
+## Claude Code settings — committed vs personal
+
+There are **two** Claude Code settings files; they look similar but have
+different roles:
+
+| File | In commit? | Purpose |
+|------|-----------|---------|
+| `.claude/settings.json` | **yes** | Team-shared: hooks, statusline, durable rules everyone gets |
+| `.claude/settings.local.json` | **no** (gitignored) | Personal: session "Always allow" grants, per-machine overrides |
+
+Claude Code auto-appends to **whichever file already exists** when you
+click "Always allow". To keep `settings.json` clean and avoid noisy diffs:
+
+1. Make sure `.claude/settings.local.json` exists in your clone (an empty
+   `{}` works — it just needs to be there).
+2. If you ever see a `permissions:` block sneak into `.claude/settings.json`,
+   cut-and-paste it into `settings.local.json` and re-commit the clean
+   `settings.json`.
+
+The reason: `settings.local.json` is gitignored, so personal grants stay
+local; the committed `settings.json` only carries the hooks block.
+
 ## Returning after a break
 
 If it's been more than a few days, run the `resume-session` skill (or read
