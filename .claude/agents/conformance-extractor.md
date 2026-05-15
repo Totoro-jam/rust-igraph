@@ -33,7 +33,7 @@ Workflow:
 4. Register the algo in `ALGO_MANIFESTS` if new.
 5. Run all three extractors; confirm files land under
    `tests/conformance/{c,py,r}/<algo>/`.
-6. Run `cargo test -p igraph --test conformance`. Must pass.
+6. Run `cargo test --test conformance`. Must pass.
 7. Report counts written to each source.
 
 Hard constraints:

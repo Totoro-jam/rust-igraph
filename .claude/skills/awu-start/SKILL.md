@@ -62,7 +62,7 @@ Once approved:
 2. Copy `templates/test.rs.tpl` to the test path. Empty test bodies.
 3. Add a placeholder branch (commented out) in `scripts/oracle.py` so the
    user remembers to wire it in `/awu-conformance`.
-4. Run `cargo build -p igraph-algorithms`. Must compile.
+4. Run `cargo build`. Must compile.
 
 ### 5. Update tracking
 

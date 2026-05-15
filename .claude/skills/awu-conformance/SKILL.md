@@ -38,7 +38,7 @@ and runs each extractor.
 .venv/bin/python -m scripts.test_extract.from_py --algo <slug>
 .venv/bin/python -m scripts.test_extract.from_r  --algo <slug>
 ls tests/conformance/{c,py,r}/<slug>/
-cargo test -p igraph --test conformance
+cargo test --test conformance
 ```
 
 Hard requirement: **at least one fixture from each of the three sources**

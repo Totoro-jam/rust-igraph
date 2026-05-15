@@ -5,7 +5,7 @@
 //! structure in Phase 1 (see `ALGO-CORE-001`); the public surface kept here is
 //! the strict subset that `bfs`, `read_edgelist`, and the oracle tests need.
 
-use crate::error::{IgraphError, IgraphResult};
+use super::error::{IgraphError, IgraphResult};
 
 /// Vertex id. Phase 0 fixes this to `u32`; Phase 1 may switch to a generic
 /// integer type behind a feature flag. See plan §3.3.

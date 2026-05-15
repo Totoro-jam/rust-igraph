@@ -11,23 +11,12 @@ if [ -z "$FILE" ] || [[ "$FILE" != *.rs ]]; then
   exit 0
 fi
 
-# Identify affected crate.
-case "$FILE" in
-  */crates/igraph-core/*)        CRATE="igraph-core" ;;
-  */crates/igraph-algorithms/*)  CRATE="igraph-algorithms" ;;
-  */crates/igraph/*)             CRATE="igraph" ;;
-  *)                             CRATE="" ;;
-esac
-
-# Run fmt + clippy on the affected crate (best-effort, do not propagate
-# errors — Edit already succeeded; user just gets a heads-up).
+# Single-crate layout: any *.rs in src/ / tests/ / benches/ / examples/
+# means the rust-igraph crate. Run fmt + clippy best-effort; never propagate
+# errors — Edit already succeeded, this is just a heads-up.
 {
-  if [ -n "$CRATE" ]; then
-    cargo fmt --package "$CRATE" 2>&1 || true
-    cargo clippy --package "$CRATE" --quiet --all-targets 2>&1 | tail -5 || true
-  else
-    cargo fmt --all 2>&1 || true
-  fi
+  cargo fmt 2>&1 || true
+  cargo clippy --quiet --all-targets 2>&1 | tail -5 || true
 } >&2
 
 exit 0

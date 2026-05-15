@@ -1,40 +1,58 @@
-[workspace]
-resolver = "2"
-members = [
-    "crates/igraph-core",
-    "crates/igraph-algorithms",
-    "crates/igraph",
-]
-
-[workspace.package]
-version = "0.0.1"
+[package]
+name = "rust-igraph"
+version = "0.0.1-alpha.0"
 edition = "2024"
 rust-version = "1.85"
 license = "GPL-2.0-or-later"
-repository = "https://github.com/dovchen/rust-igraph"
+description = "Pure-Rust port of the igraph network analysis library (alpha — Phase 0)."
+repository = "https://github.com/Totoro-jam/rust-igraph"
+homepage = "https://Totoro-jam.github.io/rust-igraph"
+documentation = "https://docs.rs/rust-igraph"
+readme = "README.md"
+keywords = ["graph", "network", "igraph", "algorithm"]
+categories = ["data-structures", "science", "mathematics"]
 authors = ["rust-igraph contributors"]
+include = [
+    "/src/**/*.rs",
+    "/Cargo.toml",
+    "/README.md",
+    "/LICENSE",
+]
 
-[workspace.dependencies]
-# Internal
-igraph-core = { path = "crates/igraph-core", version = "0.0.1" }
-igraph-algorithms = { path = "crates/igraph-algorithms", version = "0.0.1" }
+[features]
+default = []
+# Enable to run the live python-igraph oracle integration tests.
+# Requires .venv/ at the repo root with python-igraph installed
+# (see scripts/requirements.txt).
+oracle-tests = []
+# Marker-only feature: proptest is always in dev-dependencies; this gates
+# the test bodies so plain `cargo test` stays fast.
+proptest-harness = []
 
-# Errors
+[dependencies]
 thiserror = "2"
 
-# Tests / harness
-proptest = "1"
-criterion = "0.5"
+[dev-dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+proptest = "1"
+criterion = "0.5"
 
-[workspace.lints.rust]
+[[example]]
+name = "bfs_karate"
+path = "examples/bfs_karate.rs"
+
+[[bench]]
+name = "bench_bfs"
+path = "benches/bench_bfs.rs"
+harness = false
+
+[lints.rust]
 unsafe_code = "deny"
 
-[workspace.lints.clippy]
+[lints.clippy]
 all = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
-# Allow some pedantic lints that are too noisy for now
 module_name_repetitions = "allow"
 must_use_candidate = "allow"
 missing_errors_doc = "allow"

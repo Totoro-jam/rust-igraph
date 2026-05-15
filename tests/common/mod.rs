@@ -23,7 +23,7 @@ pub struct GraphPayload {
 }
 
 impl GraphPayload {
-    pub fn from_graph(g: &igraph_core::Graph) -> Self {
+    pub fn from_graph(g: &rust_igraph::Graph) -> Self {
         let mut edges: Vec<(u32, u32)> = Vec::new();
         for u in 0..g.vcount() {
             for &v in g.neighbors(u).expect("vertex in range") {
@@ -59,18 +59,12 @@ pub struct OracleResponse {
 
 /// Resolve the path to the Python interpreter inside `.venv/`.
 ///
-/// Looks one level up from `igraph` crate's manifest dir to the workspace
-/// root, then `.venv/bin/python`. Tests panic with an actionable message if
-/// the venv is missing.
+/// `CARGO_MANIFEST_DIR` is the repo root, so `.venv/bin/python` sits right
+/// next to it. Tests panic with an actionable message if the venv is missing.
 pub fn venv_python() -> &'static Path {
     static PATH: OnceLock<PathBuf> = OnceLock::new();
     PATH.get_or_init(|| {
-        let workspace_root = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .ancestors()
-            .nth(2)
-            .expect("workspace root above crates/igraph")
-            .to_path_buf();
-        let p = workspace_root.join(".venv/bin/python");
+        let p = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(".venv/bin/python");
         if !p.exists() {
             panic!(
                 "Python venv not found at {}. Run:\n  python3 -m venv .venv\n  .venv/bin/pip install -r scripts/requirements.txt",
@@ -84,17 +78,13 @@ pub fn venv_python() -> &'static Path {
 
 /// Resolve the path to `scripts/oracle.py`.
 pub fn oracle_script() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(2)
-        .expect("workspace root above crates/igraph")
-        .join("scripts/oracle.py")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("scripts/oracle.py")
 }
 
 /// Call the oracle and return the parsed response. Panics if the subprocess
 /// exits abnormally or returns malformed JSON; tests should use [`run_ok`]
 /// for the common success path.
-pub fn run<P: Serialize>(algo: &str, graph: &igraph_core::Graph, params: P) -> OracleResponse {
+pub fn run<P: Serialize>(algo: &str, graph: &rust_igraph::Graph, params: P) -> OracleResponse {
     let req = OracleRequest {
         graph: GraphPayload::from_graph(graph),
         algo,
@@ -132,7 +122,7 @@ pub fn run<P: Serialize>(algo: &str, graph: &igraph_core::Graph, params: P) -> O
 /// JSON value of `result`.
 pub fn run_ok<P: Serialize>(
     algo: &str,
-    graph: &igraph_core::Graph,
+    graph: &rust_igraph::Graph,
     params: P,
 ) -> serde_json::Value {
     let resp = run(algo, graph, params);

@@ -16,17 +16,17 @@ Spawn the `awu-tester` agent. It writes:
 - A `#[cfg(test)] mod tests` block in the algorithm file with at least:
   empty graph, single vertex, complete K5, error path, and any algorithm-
   specific edge cases.
-- 1-2 proptest invariants in `crates/igraph/tests/property.rs`.
+- 1-2 proptest invariants in `tests/property.rs`.
 
 Verify both run:
 ```
-cargo test -p igraph-algorithms <algo_name>
-cargo test -p igraph --features proptest-harness --test property
+cargo test <algo_name>
+cargo test --features proptest-harness --test property
 ```
 
 ### 2. Live oracle test (main agent — do NOT delegate)
 
-Add a test to `crates/igraph/tests/oracle.rs`:
+Add a test to `tests/oracle.rs`:
 
 ```rust
 #[test]
@@ -45,7 +45,7 @@ Then add the corresponding branch in `scripts/oracle.py` if not yet present
 
 Verify:
 ```
-cargo test -p igraph --features oracle-tests --test oracle <algo>
+cargo test --features oracle-tests --test oracle <algo>
 ```
 
 ### 3. Diagnose mismatches with discipline

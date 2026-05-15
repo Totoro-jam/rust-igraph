@@ -9,10 +9,10 @@ rust-igraph/
 ├── README.md                          high-level overview
 ├── deny.toml                          cargo-deny: license + security policy
 │
-├── crates/
-│   ├── igraph-core/                   Graph, Vector, Matrix, error types
-│   ├── igraph-algorithms/             every algorithm implementation
-│   └── igraph/                        high-level facade + integration tests
+├── src/
+│   ├── lib.rs                         crate root + re-exports
+│   ├── core/                          Graph, Vector, Matrix, error types
+│   └── algorithms/                    every algorithm implementation
 │
 ├── tests/
 │   └── conformance/{c,py,r}/<algo>/   3-source fixtures (gitignored: no, tracked)

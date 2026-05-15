@@ -23,13 +23,14 @@ before the code that depends on them lands.
 | ID | Title | Status | Source |
 |----|-------|--------|--------|
 | ADR-0001 | License: GPL-2.0-or-later, matching igraph | accepted | [#below](#adr-0001) |
-| ADR-0002 | 3-crate workspace: core / algorithms / facade | accepted | [#below](#adr-0002) |
+| ADR-0002 | 3-crate workspace: core / algorithms / facade | superseded by ADR-0009 | [#below](#adr-0002) |
 | ADR-0003 | Linear algebra backend: faer + self-rolled IRLM/IRAM | accepted | [#below](#adr-0003) |
 | ADR-0004 | Isomorphism: VF2 first, BLISS C++ → Rust translation, optional nauty FFI | accepted | [#below](#adr-0004) |
 | ADR-0005 | Test conformance: integrate all three official test suites | accepted | [#below](#adr-0005) |
 | ADR-0006 | AI workflow: AWU SOP + skills + agents + hooks committed in repo | accepted | [#below](#adr-0006) |
 | ADR-0007 | Phase 0 Graph<u32> is throwaway; Phase 1 brings the real `igraph_t`-equivalent | accepted | [#below](#adr-0007) |
 | ADR-0008 | Banned dependencies: petgraph, graphalgs, scirs2-sparse | accepted | [#below](#adr-0008) |
+| ADR-0009 | Single published crate `rust-igraph` (supersedes ADR-0002) | accepted | [#below](#adr-0009) |
 
 ---
 
@@ -62,9 +63,15 @@ LICENSE file itself is the unmodified GPL v2 text from the GitHub template.
 
 ---
 
-## ADR-0002 — Three-crate workspace
+## ADR-0002 — Three-crate workspace (superseded by ADR-0009)
 
-**Status**: accepted (2026-05-14, fixed in `2ce55aa`).
+**Status**: superseded by [ADR-0009](#adr-0009) on 2026-05-15.
+
+> Original text retained below for historical context. The 3-crate split
+> conflicted with the "single externally-published package" goal that
+> arrived after the project owner reviewed the crates.io publishing path.
+
+**Status (originally)**: accepted (2026-05-14, fixed in `2ce55aa`).
 
 **Context**: We need data structures that the algorithm crate can depend on
 without cycles, and a facade crate that gives end-users a `use igraph::*`
@@ -252,3 +259,59 @@ stance or with our intent to mirror igraph's API.
 - `cargo-deny check` fails CI if any of these sneak in transitively. The
   `bans.deny` block in `deny.toml` enforces this.
 - Future ADRs can lift these on a per-dep basis with explicit reasoning.
+
+---
+
+## ADR-0009 — Single published crate `rust-igraph`
+
+**Status**: accepted (2026-05-15). Supersedes [ADR-0002](#adr-0002).
+
+**Context**: ADR-0002 split the project into three workspace crates
+(`igraph-core` / `igraph-algorithms` / `igraph`) for incremental-build and
+dependency-hygiene reasons. When the publishing path was reviewed, the
+project owner asked for a single user-facing package on crates.io. Three
+options were considered:
+
+- **A. Collapse to one crate** — internal `mod core`, `mod algorithms`.
+- **B. Workspace + only the façade published** — cargo refuses, since
+  publishing requires real dependencies, not workspace-internal `path` deps.
+- **C. Three crates published** — leaks internal organization to users
+  (three doc sites, three READMEs, three changelogs to chase). Conflicts
+  with the stated goal.
+
+**Decision**: Collapse to one crate named `rust-igraph` (option A).
+
+```
+src/
+├── lib.rs              # crate root + top-level re-exports
+├── core/               # was igraph-core
+└── algorithms/         # was igraph-algorithms
+```
+
+Tests, benches, examples sit at the repo root — the standard Cargo single-
+crate layout.
+
+**Consequences**:
+- One package on crates.io. `[dependencies] rust-igraph = "..."` is all a
+  user needs.
+- Loses ADR-0002's compile-time isolation between layers; rely on
+  `pub(crate)` / `pub(super)` discipline + clippy lints to keep the
+  intent. The structural distinction is preserved at the *module* level
+  (`crate::core` vs `crate::algorithms`) even if not at the crate level.
+- All `-p igraph-*` flags removed from CI and skill scripts.
+- `igraph_core::Foo` → `rust_igraph::Foo` (or `crate::core::Foo` from
+  inside the crate).
+- Single Cargo.toml, single `Cargo.lock` (still gitignored per ADR-0001
+  fallout).
+
+**What did NOT change**:
+- Module organization (`core` vs `algorithms`) — same boundaries, just
+  modules now.
+- Test layering (oracle / proptest / conformance / unit) — still the
+  three-layer integration suite, just under top-level `tests/`.
+- Hooks, skills, agents, AWU SOP — unchanged in spirit; only the paths
+  in their docs were edited.
+
+**Why "rust-igraph", not "igraph"**: `igraph` on crates.io is an
+unrelated 162-line 2021 experiment by another author. `rust-igraph`
+matches the repo name and is self-explanatory: `[dependencies] rust-igraph = "..."`.

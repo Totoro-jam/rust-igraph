@@ -10,7 +10,7 @@
 
 use std::io::{BufRead, BufReader, Read};
 
-use igraph_core::{Graph, IgraphError, IgraphResult, VertexId};
+use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
 /// Read an edge list from any [`Read`] into a fresh [`Graph`].
 pub fn read_edgelist<R: Read>(input: R) -> IgraphResult<Graph> {

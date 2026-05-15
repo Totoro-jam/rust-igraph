@@ -1,12 +1,12 @@
 //! Property-based invariants.
 //!
-//! Run with: `cargo test --features proptest-harness -p igraph --test property`.
+//! Run with: `cargo test --features proptest-harness --test property`.
 //! Without the feature this file is empty so plain `cargo test` stays fast.
 
 #![cfg(feature = "proptest-harness")]
 
-use igraph_core::Graph;
 use proptest::prelude::*;
+use rust_igraph::Graph;
 
 /// Build an arbitrary undirected graph on `0..n` vertices with each candidate
 /// edge appearing independently with probability ~0.3.
@@ -31,7 +31,7 @@ proptest! {
     /// BFS visits each vertex at most once, and every visited vertex is in range.
     #[test]
     fn bfs_visits_each_vertex_at_most_once(g in arb_graph(20)) {
-        let order = igraph::bfs(&g, 0).expect("root 0 is valid for n>=1");
+        let order = rust_igraph::bfs(&g, 0).expect("root 0 is valid for n>=1");
         let mut sorted = order.clone();
         sorted.sort_unstable();
         sorted.dedup();
@@ -46,10 +46,10 @@ proptest! {
     #[test]
     fn bfs_reachability_is_symmetric(g in arb_graph(15)) {
         let from_zero: std::collections::HashSet<u32> =
-            igraph::bfs(&g, 0).unwrap().into_iter().collect();
+            rust_igraph::bfs(&g, 0).unwrap().into_iter().collect();
         for v in 1..g.vcount() {
             let from_v: std::collections::HashSet<u32> =
-                igraph::bfs(&g, v).unwrap().into_iter().collect();
+                rust_igraph::bfs(&g, v).unwrap().into_iter().collect();
             let v_in_zero = from_zero.contains(&v);
             let zero_in_v = from_v.contains(&0);
             prop_assert_eq!(

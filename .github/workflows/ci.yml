@@ -61,7 +61,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p igraph --test conformance
+      - run: cargo test --test conformance
 
   oracle:
     name: oracle (vs python-igraph)
@@ -79,7 +79,7 @@ jobs:
           .venv/bin/pip install -r scripts/requirements.txt
           .venv/bin/python -c "import igraph; print('python-igraph', igraph.__version__)"
       - name: Run oracle tests
-        run: cargo test -p igraph --features oracle-tests --test oracle
+        run: cargo test --features oracle-tests --test oracle
 
   proptest:
     name: proptest invariants
@@ -88,7 +88,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p igraph --features proptest-harness --test property
+      - run: cargo test --features proptest-harness --test property
 
   deny:
     name: cargo-deny (license + advisories)

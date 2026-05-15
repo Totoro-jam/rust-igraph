@@ -24,39 +24,38 @@ of the C source. See [LICENSE](LICENSE).
 
 ```
 rust-igraph/
-├── crates/
-│   ├── igraph-core/           # data structures (Graph, Vector, Matrix, ...)
-│   ├── igraph-algorithms/     # algorithm implementations
-│   └── igraph/                # high-level API (semantic return types)
+├── src/
+│   ├── lib.rs                 # crate root, re-exports
+│   ├── core/                  # data structures (Graph, Vector, Matrix, ...)
+│   └── algorithms/            # algorithm implementations
 ├── tests/
-│   ├── oracle/                # live python-igraph oracle tests
-│   ├── conformance/           # static fixtures from igraph C / py / R
-│   └── property/              # proptest invariants
+│   ├── oracle.rs              # live python-igraph oracle
+│   ├── conformance.rs         # static fixtures from igraph C / py / R
+│   ├── property.rs            # proptest invariants
+│   └── conformance/{c,py,r}/  # extracted upstream test fixtures (JSON)
 ├── benches/                   # criterion benchmarks
 ├── examples/                  # usage examples
 ├── fixtures/                  # standard graph data (karate, dolphins, ...)
 ├── scripts/                   # oracle.py + test extractors
 ├── templates/                 # AWU templates (Step 3 skeleton source)
+├── book/                      # mdBook source for the docs site
 ├── docs/
 │   └── plans/MASTER_PLAN.md   # the engineering plan (single source of truth)
 ├── references/                # gitignored; clone igraph/python-igraph/rigraph here
 └── .codefuse/tracking/        # ALGORITHMS.md, ARCHITECTURE.md, CONFORMANCE.md, ...
 ```
 
-## Quick start (after Phase 0 completes)
+## Quick start
 
 ```bash
-# clone references for AWU work (one-time setup)
-cd references && cat README.md   # follow clone instructions
-
-# build everything
-cargo build --workspace
+# build the crate (Phase 0 alpha — only Graph/read_edgelist/bfs ship today)
+cargo build
 
 # run the smoke-test example
 cargo run --example bfs_karate
 
 # run all tests including oracle (requires python-igraph installed)
-cargo test --workspace --features oracle-tests
+cargo test --features oracle-tests
 ```
 
 ## Development workflow

@@ -7,7 +7,7 @@
 
 use std::collections::VecDeque;
 
-use igraph_core::{Graph, IgraphResult, VertexId};
+use crate::core::{Graph, IgraphResult, VertexId};
 
 /// Visit order of vertices reachable from `root`, in BFS order.
 ///
@@ -17,8 +17,7 @@ use igraph_core::{Graph, IgraphResult, VertexId};
 /// # Examples
 ///
 /// ```
-/// use igraph_core::Graph;
-/// use igraph_algorithms::traversal::bfs;
+/// use rust_igraph::{Graph, bfs};
 ///
 /// // 0 - 1 - 3
 /// // |
@@ -75,7 +74,7 @@ mod tests {
         let err = bfs(&g, 0).unwrap_err();
         assert!(matches!(
             err,
-            igraph_core::IgraphError::VertexOutOfRange { id: 0, n: 0 }
+            crate::core::IgraphError::VertexOutOfRange { id: 0, n: 0 }
         ));
     }
 
@@ -123,7 +122,7 @@ mod tests {
         let g = Graph::with_vertices(2);
         let err = bfs(&g, 5).unwrap_err();
         match err {
-            igraph_core::IgraphError::VertexOutOfRange { id, n } => {
+            crate::core::IgraphError::VertexOutOfRange { id, n } => {
                 assert_eq!(id, 5);
                 assert_eq!(n, 2);
             }

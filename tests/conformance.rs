@@ -9,7 +9,7 @@
 //! external dependency is the JSON fixtures, which live in-tree.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use serde::Deserialize;
 
@@ -34,11 +34,7 @@ struct Conformance {
 }
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(2)
-        .expect("workspace root")
-        .to_path_buf()
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn load_all(algo: &str) -> Vec<(PathBuf, Conformance)> {
@@ -65,8 +61,8 @@ fn load_all(algo: &str) -> Vec<(PathBuf, Conformance)> {
     out
 }
 
-fn build_graph(payload: &GraphPayload) -> igraph_core::Graph {
-    let mut g = igraph_core::Graph::with_vertices(payload.n);
+fn build_graph(payload: &GraphPayload) -> rust_igraph::Graph {
+    let mut g = rust_igraph::Graph::with_vertices(payload.n);
     for &(u, v) in &payload.edges {
         g.add_edge(u, v).expect("edge in range");
     }
@@ -93,7 +89,7 @@ fn bfs_three_source_conformance() {
         )
         .expect("root fits in u32");
         let g = build_graph(&case.graph);
-        let actual = igraph_algorithms::traversal::bfs(&g, root)
+        let actual = rust_igraph::bfs(&g, root)
             .unwrap_or_else(|e| panic!("bfs failed for {}: {e:?}", path.display()));
         let expected: Vec<u32> = serde_json::from_value(case.expected.clone())
             .unwrap_or_else(|e| panic!("expected vec<u32> in {}: {e}", path.display()));

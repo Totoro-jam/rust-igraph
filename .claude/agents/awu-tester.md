@@ -18,7 +18,7 @@ Coverage you must produce:
 - `weighted_vs_unweighted` (if applicable)
 - `error_path` for invalid inputs (out-of-range vertices, etc.)
 
-**Step 7 — Property tests** (in `crates/igraph/tests/property.rs` under the
+**Step 7 — Property tests** (in `tests/property.rs` under the
 `#[cfg(feature = "proptest-harness")]` gate):
 - 1-2 invariants that should hold on *any* generated graph. Examples:
   - shortest_paths(u,v) == shortest_paths(v,u) on undirected graphs
@@ -32,7 +32,7 @@ Hard constraints:
 - Tests compile under both `--features oracle-tests proptest-harness` and
   plain `cargo test`.
 - After writing: run `cargo test -p igraph` (default) and
-  `cargo test -p igraph --features proptest-harness`. Both must be green.
+  `cargo test --features proptest-harness`. Both must be green.
 
 Do NOT:
 - Write the live oracle test (that goes in `tests/oracle.rs`; main agent

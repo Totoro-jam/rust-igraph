@@ -1,6 +1,6 @@
 # Three-source conformance coverage
 
-Auto-checked by `crates/igraph/tests/conformance.rs`. Each row is one
+Auto-checked by `tests/conformance.rs`. Each row is one
 algorithm; columns are fixture counts per source plus the Rust pass rate.
 
 > Phase-0 invariant: every `done` AWU must contribute ≥ 1 fixture from

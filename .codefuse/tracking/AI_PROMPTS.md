@@ -118,7 +118,7 @@ For each source:
 3) Use the upstream test's expected value verbatim
 4) For R: subtract 1 from all vertex ids (1-based -> 0-based)
 
-Run all three extractors. Run cargo test -p igraph --test conformance.
+Run all three extractors. Run cargo test --test conformance.
 Both must be green. Report fixture counts per source.
 
 If a source's test does not have a clean equivalent in our minimal API,

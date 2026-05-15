@@ -76,7 +76,7 @@ Skills live under `.claude/skills/` and delegate to focused sub-agents in
 Read [`docs/plans/MASTER_PLAN.md` §4](docs/plans/MASTER_PLAN.md) and copy the
 templates under [`templates/`](templates/) into the right module:
 
-- [`templates/algo.rs.tpl`](templates/algo.rs.tpl) → `crates/igraph-algorithms/src/...`
+- [`templates/algo.rs.tpl`](templates/algo.rs.tpl) → `src/algorithms/...`
 - [`templates/test.rs.tpl`](templates/test.rs.tpl) → unit / oracle / proptest
 - [`templates/oracle.py.tpl`](templates/oracle.py.tpl) → branch in `scripts/oracle.py`
 - [`templates/bench.rs.tpl`](templates/bench.rs.tpl) → `benches/bench_<algo>.rs`

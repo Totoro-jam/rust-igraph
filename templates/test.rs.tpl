@@ -1,7 +1,7 @@
 //! TEMPLATE: AWU test scaffold (unit + oracle + proptest in one place).
 //!
-//! Copy into `crates/igraph-algorithms/src/<group>/<name>_tests.rs` (or a
-//! sibling module) for unit tests, OR into `crates/igraph/tests/` for
+//! Copy into `src/algorithms/<group>/<name>_tests.rs` (or a
+//! sibling module) for unit tests, OR into `tests/` for
 //! oracle + proptest blocks. The awu-tester skill fills in the bodies.
 //!
 //! Placeholders:
@@ -11,8 +11,8 @@
 
 #![allow(unused_imports)]
 
-use igraph_algorithms::/* TODO({{ALGO_ID}}): module path */::{{FN_NAME}};
-use igraph_core::Graph;
+use rust_igraph::/* TODO({{ALGO_ID}}): module path */::{{FN_NAME}};
+use rust_igraph::Graph;
 
 // ===================================================================
 // Step 5 — Unit tests (in the algorithm crate)
@@ -51,7 +51,7 @@ fn error_path_for_invalid_input() {
 }
 
 // ===================================================================
-// Step 6 — Live oracle (in crates/igraph/tests/oracle.rs)
+// Step 6 — Live oracle (in tests/oracle.rs)
 //   Cut the block below into oracle.rs; do NOT compile it here.
 // ===================================================================
 //
@@ -73,7 +73,7 @@ fn error_path_for_invalid_input() {
 // }
 
 // ===================================================================
-// Step 7 — Property tests (in crates/igraph/tests/property.rs)
+// Step 7 — Property tests (in tests/property.rs)
 // ===================================================================
 //
 // proptest! {

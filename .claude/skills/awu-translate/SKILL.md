@@ -24,10 +24,10 @@ Use the `awu-translator` agent. Brief it with **only**:
 - Path + line range to the C source (do not paste the C inline; let the
   agent read it)
 - Path to the target Rust file (already has the frozen signature)
-- Path to `crates/igraph-core/src/error.rs` so it knows the IgraphError
+- Path to `src/core/error.rs` so it knows the IgraphError
   variants
 - Names of 1-2 already-merged AWU files for style reference (e.g.
-  `crates/igraph-algorithms/src/traversal/bfs.rs`)
+  `src/algorithms/traversal/bfs.rs`)
 
 Do NOT pass: full ALGORITHMS.md, other AWU sources, the entire MASTER_PLAN.
 
@@ -53,7 +53,7 @@ to Step 5 testing.
 
 Tell the user:
 
-> Implementation landed. Smoke: `cargo test -p igraph-algorithms`. Next:
+> Implementation landed. Smoke: `cargo test`. Next:
 > `/awu-test ALGO-XXX-NNN`
 
 ## When the agent gets stuck

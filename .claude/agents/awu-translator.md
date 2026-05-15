@@ -24,8 +24,8 @@ Workflow:
 3. Replace the `unimplemented!()` body with a faithful Rust translation.
    Preserve igraph's algorithmic structure; deviate only when Rust ownership
    forces it, and note the deviation in a brief comment.
-4. Run `cargo build -p igraph-algorithms`.
-5. Run `cargo clippy -p igraph-algorithms -- -D warnings`. Fix all.
+4. Run `cargo build`.
+5. Run `cargo clippy -- -D warnings`. Fix all.
 6. Output a 5-line summary: chosen data structures, allocations, deviations
    from C, anything that needs review.
 

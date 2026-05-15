@@ -13,7 +13,7 @@ are detected automatically.
 ### 1. Delegate to `perf-bencher`
 
 The agent adds `benches/bench_<algo>.rs` (or extends an existing module),
-registers a `[[bench]]` entry in `crates/igraph/Cargo.toml`, and runs a
+registers a `[[bench]]` entry in `Cargo.toml`, and runs a
 `--quick` smoke.
 
 ### 2. Capture the baseline

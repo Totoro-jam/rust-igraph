@@ -1,7 +1,7 @@
 //! TEMPLATE: criterion benchmark for one AWU.
 //!
 //! Copy into `benches/bench_<algo>.rs` and add a `[[bench]]` entry to
-//! `crates/igraph/Cargo.toml`:
+//! `Cargo.toml`:
 //!
 //!     [[bench]]
 //!     name = "bench_{{ALGO_SLUG}}"

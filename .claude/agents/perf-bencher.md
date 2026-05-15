@@ -17,8 +17,8 @@ Workflow:
    - **synthetic small** (n=100, sparse)
    - **synthetic medium** (n=1_000)
    - **synthetic large** (n=10_000) — only if the algorithm is sub-quadratic
-3. Add a `[[bench]]` entry to `crates/igraph/Cargo.toml` with `harness = false`.
-4. Run a quick smoke (`cargo bench -p igraph --bench bench_<algo> -- --quick`)
+3. Add a `[[bench]]` entry to `Cargo.toml` with `harness = false`.
+4. Run a quick smoke (`cargo bench --bench bench_<algo> -- --quick`)
    to confirm it compiles and produces numbers. Skip the full statistically-
    robust run unless explicitly requested — that is for nightly CI.
 5. Capture the karate timing into

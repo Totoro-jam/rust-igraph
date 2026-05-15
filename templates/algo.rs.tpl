@@ -1,6 +1,6 @@
 //! TEMPLATE: Step-3 skeleton for one Algorithm Work Unit (AWU).
 //!
-//! Copy this file into `crates/igraph-algorithms/src/<group>/<name>.rs`,
+//! Copy this file into `src/algorithms/<group>/<name>.rs`,
 //! replace every `{{...}}` placeholder, and leave the body as
 //! `unimplemented!()`. The `awu-translate` skill takes over from here.
 //!
@@ -16,7 +16,7 @@
 //! Delete this header block once the file is real (do not commit the template
 //! comment as live documentation).
 
-use igraph_core::{Graph, IgraphError, IgraphResult};
+use rust_igraph::{Graph, IgraphError, IgraphResult};
 
 /// {{ALGO_TITLE}}.
 ///

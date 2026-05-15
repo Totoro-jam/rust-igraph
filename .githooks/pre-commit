@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# pre-commit: stop noisy churn in .claude/settings.json (team-shared config).
+#
+# Claude Code auto-appends every "Always allow" grant to
+# .claude/settings.json, even though .claude/settings.local.json
+# (gitignored) is the right home for personal grants. This hook compares
+# the staged file against HEAD and refuses to commit if the staged version
+# has *new* entries in `permissions.allow`.
+#
+# What to do when blocked:
+#   1. Open .claude/settings.json
+#   2. Cut the new entries out of `permissions.allow`
+#   3. Paste them into .claude/settings.local.json (gitignored)
+#   4. `git add .claude/settings.json && git commit ...`
+#
+# If the new entries genuinely belong to every contributor (rare), commit
+# them with `--no-verify` and add a one-line justification in the commit
+# body.
+
+set -euo pipefail
+
+FILE=".claude/settings.json"
+
+# Only check when this file is in the staging area.
+if ! git diff --cached --name-only | grep -qx "$FILE"; then
+  exit 0
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+  echo "pre-commit: jq not found; skipping settings.json guard." >&2
+  exit 0
+fi
+
+# Pull the staged content + HEAD content as JSON arrays.
+HEAD_ALLOW=$(git show "HEAD:$FILE" 2>/dev/null \
+  | jq -r '.permissions.allow // [] | sort | .[]' 2>/dev/null || true)
+STAGED_ALLOW=$(git show ":$FILE" 2>/dev/null \
+  | jq -r '.permissions.allow // [] | sort | .[]' 2>/dev/null || true)
+
+# Diff: lines added in staged but not in HEAD.
+ADDED=$(comm -13 <(printf '%s\n' "$HEAD_ALLOW") <(printf '%s\n' "$STAGED_ALLOW") | sed '/^$/d')
+
+if [ -z "$ADDED" ]; then
+  exit 0
+fi
+
+cat >&2 <<EOF
+======================================================================
+pre-commit BLOCKED: .claude/settings.json gained new permissions.allow
+entries since HEAD.
+
+  $FILE is team-shared and committed. Per CONTRIBUTING.md, new "Always
+  allow" grants belong in .claude/settings.local.json (gitignored).
+
+New entries in this commit:
+$(printf '  - %s\n' $ADDED)
+
+What to do:
+  1. Open $FILE
+  2. Remove the entries above from \`permissions.allow\`
+  3. Add them to .claude/settings.local.json (\`permissions.allow\`)
+  4. \`git add $FILE && git commit ...\`
+
+If these entries genuinely apply to every contributor (rare), bypass
+this guard with \`git commit --no-verify\` and explain in the body.
+======================================================================
+EOF
+exit 1

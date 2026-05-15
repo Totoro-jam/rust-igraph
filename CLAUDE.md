@@ -22,7 +22,7 @@ focused: rules, conventions, and pointers — not narrative.
    Forbidden: `petgraph` (API mismatch), `graphalgs` (GPL-3 license
    incompatibility), `scirs2-sparse` (heavy dep tree).
 4. **Floating-point comparisons** use tolerance helpers
-   (`igraph_core::testutil` once it lands), never `==`.
+   (`rust_igraph::testutil` once it lands), never `==`.
 5. **Integer arithmetic** uses `checked_*` / `try_from` to avoid silent
    overflow.
 6. **Public API** requires rustdoc with at least one doctest.
@@ -98,9 +98,9 @@ cargo check --target wasm32-unknown-unknown --no-default-features \
 ## Where files live
 
 ```
-crates/igraph-core/         # data structures (Graph, Vector, Matrix, ...)
-crates/igraph-algorithms/   # algorithm implementations
-crates/igraph/              # high-level facade + integration tests
+src/core/                   # data structures (Graph, Vector, Matrix, ...)
+src/algorithms/             # algorithm implementations
+tests/                      # integration tests (oracle / conformance / property)
 docs/plans/MASTER_PLAN.md   # the plan (this is THE source of truth)
 .codefuse/tracking/         # ALGORITHMS.md, ARCHITECTURE.md, CONFORMANCE.md, ...
 .claude/                    # AI infrastructure (agents, skills, hooks)

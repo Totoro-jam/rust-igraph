@@ -16,7 +16,7 @@ present-you across an unknown gap.**
 **What landed this session**:
 - Walking skeleton (BOOT-01..08): cargo workspace, Graph<u32>, EdgeList, BFS,
   karate fixture, bfs_karate example.
-- Live oracle (BOOT-09..11): `scripts/oracle.py` + `crates/igraph/tests/oracle.rs`
+- Live oracle (BOOT-09..11): `scripts/oracle.py` + `tests/oracle.rs`
   + Python venv, BFS karate ↔ python-igraph 0.11.9 numerically equal.
 - proptest (BOOT-12) + criterion bench (BOOT-13).
 - Three-source conformance (BOOT-29..32): igraph C / python-igraph / R-igraph

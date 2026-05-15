@@ -100,90 +100,86 @@ AWU 是本计划的"工作原子"。所有计时、跟踪、AI 调度都以 AWU 
 | BLISS 替代 | 直接翻译 igraph 内嵌 BLISS C++→Rust（约 9500 行） | GPL 许可证允许；100% API 兼容 |
 | 同构兜底 | 阶段 1 用 VF2 + isoclass 查表覆盖主要路径 | BLISS 翻译完成前 isomorphic() 仍可用 |
 | nauty C FFI | 可选 feature（`nauty-backend`），默认关闭 | 极大规模图性能优化；不影响 WASM 主路径 |
-| crate 结构 | workspace 3 crate：`igraph-core` + `igraph-algorithms` + `igraph` | 模块化，核心层薄、算法层厚、高层 API 可选 |
+| crate 结构 | **单 crate `rust-igraph`** + 内部 `mod core` / `mod algorithms`（ADR-0009 取代 ADR-0002 的 3-crate workspace） | 对外只发一个包；模块层级仍区分 core vs algorithms |
 
 ### 2.2 Crate 结构
 
+> ADR-0009（2026-05-15）：从 3-crate workspace 合并为单 crate `rust-igraph`，
+> 保留模块层级区分。详见 `.codefuse/tracking/ARCHITECTURE.md`。
+
 ```
-rust-igraph/                              # workspace root
-├── Cargo.toml
-├── crates/
-│   ├── igraph-core/                      # 数据结构 + 错误 + 迭代器 + RNG
-│   │   ├── src/
-│   │   │   ├── lib.rs
-│   │   │   ├── graph.rs                  # Graph (igraph_t)
-│   │   │   ├── vector.rs                 # Vector / VectorInt / VectorBool
-│   │   │   ├── matrix.rs                 # Matrix / MatrixInt
-│   │   │   ├── sparsemat.rs              # SparseMatrix (CSR/CSC)
-│   │   │   ├── strvector.rs              # StringVector
-│   │   │   ├── selectors.rs              # VertexSelector / EdgeSelector
-│   │   │   ├── error.rs                  # IgraphError + IgraphErrorCode
-│   │   │   ├── rng.rs                    # 对标 igraph_rng_t
-│   │   │   ├── attributes.rs             # 属性系统
-│   │   │   ├── iterators.rs
-│   │   │   └── internal/                 # heap, dqueue, stack, set, psumtree
-│   │   └── Cargo.toml
+rust-igraph/                              # 单 crate 仓库根
+├── Cargo.toml                            # name = "rust-igraph"
+├── src/
+│   ├── lib.rs                            # crate 根 + 顶层 re-exports
+│   ├── core/                             # 数据结构 + 错误 + 迭代器 + RNG
+│   │   ├── mod.rs
+│   │   ├── graph.rs                      # Graph (igraph_t)
+│   │   ├── vector.rs                     # Vector / VectorInt / VectorBool
+│   │   ├── matrix.rs                     # Matrix / MatrixInt
+│   │   ├── sparsemat.rs                  # SparseMatrix (CSR/CSC)
+│   │   ├── strvector.rs                  # StringVector
+│   │   ├── selectors.rs                  # VertexSelector / EdgeSelector
+│   │   ├── error.rs                      # IgraphError + IgraphResult
+│   │   ├── rng.rs                        # 对标 igraph_rng_t
+│   │   ├── attributes.rs                 # 属性系统
+│   │   ├── iterators.rs
+│   │   └── internal/                     # heap, dqueue, stack, set, psumtree (pub(crate))
 │   │
-│   ├── igraph-algorithms/                # 算法层（按 igraph/src/ 子目录对标）
-│   │   ├── src/
-│   │   │   ├── lib.rs
-│   │   │   ├── traversal/                # bfs, dfs, random_walk
-│   │   │   ├── shortest_paths/           # dijkstra, bf, johnson, fw, astar, widest
-│   │   │   ├── connectivity/             # cc, scc, biconn, articulation, bridges
-│   │   │   ├── centrality/               # bc, cc, ec, pagerank, hits, katz, harmonic
-│   │   │   ├── community/                # louvain, leiden, walktrap, fg, lpa, infomap, spinglass, eb, leading_ev, fluid, voronoi
-│   │   │   ├── flow/                     # maxflow (PR/EK/Dinic), mincut, gomory_hu, dominators, all_st_cuts
-│   │   │   ├── spanning/                 # mst (prim/kruskal)
-│   │   │   ├── isomorphism/              # vf2, lad, isoclasses, simplify_and_colorize
-│   │   │   │   └── bliss/                # bliss 翻译
-│   │   │   ├── coloring/                 # dsatur, greedy
-│   │   │   ├── matching/                 # bipartite, hungarian
-│   │   │   ├── generators/               # er, ba, ws, sbm, lattice, tree, famous, ...
-│   │   │   ├── layout/                   # fr, kk, mds, sugiyama, umap, drl, gem, dh, random/circle/grid
-│   │   │   ├── cliques/                  # cliquer 翻译
-│   │   │   ├── motifs/                   # randesu, dyad, triad, graphlets
-│   │   │   ├── cycles/                   # simple_cycles, feedback_arc, eulerian
-│   │   │   ├── spectral/                 # laplacian, embedding
-│   │   │   ├── operators/                # union, intersection, complementer, linegraph, simplify
-│   │   │   ├── transforms/               # to_directed/undirected, permute, decompose
-│   │   │   ├── similarity/               # cocitation, jaccard, dice, bibcoupling
-│   │   │   ├── degree_seq/               # is_graphical, realize_degree_sequence
-│   │   │   ├── epidemics/                # sir, percolation
-│   │   │   ├── hrg/                      # hrg_*
-│   │   │   ├── spatial/                  # delaunay, beta_skeletons
-│   │   │   ├── scan/                     # scan_*
-│   │   │   ├── linalg/                   # arpack (IRLM/IRAM), eigen 高层、blas/lapack 桥接
-│   │   │   └── io/                       # edgelist, ncol, lgl, pajek, gml, graphml, dot, dimacs, leda, dl
-│   │   └── Cargo.toml
-│   │
-│   └── igraph/                           # 高层 API（语义返回类型）
-│       ├── src/
-│       │   ├── lib.rs
-│       │   ├── graph.rs                  # 聚合所有方法（对标 python-igraph Graph）
-│       │   ├── vertex_clustering.rs
-│       │   ├── vertex_dendrogram.rs
-│       │   ├── layout.rs
-│       │   ├── cut.rs / flow.rs
-│       │   ├── seq.rs                    # VertexSeq / EdgeSeq
-│       │   └── operators.rs              # 运算符重载
-│       └── Cargo.toml
+│   └── algorithms/                       # 算法层（按 igraph/src/ 子目录对标）
+│       ├── mod.rs
+│       ├── traversal/                    # bfs, dfs, random_walk
+│       ├── shortest_paths/               # dijkstra, bf, johnson, fw, astar, widest
+│       ├── connectivity/                 # cc, scc, biconn, articulation, bridges
+│       ├── centrality/                   # bc, cc, ec, pagerank, hits, katz, harmonic
+│       ├── community/                    # louvain, leiden, walktrap, fg, lpa, infomap, spinglass, eb, leading_ev, fluid, voronoi
+│       ├── flow/                         # maxflow (PR/EK/Dinic), mincut, gomory_hu, dominators, all_st_cuts
+│       ├── spanning/                     # mst (prim/kruskal)
+│       ├── isomorphism/                  # vf2, lad, isoclasses, simplify_and_colorize
+│       │   └── bliss/                    # bliss 翻译
+│       ├── coloring/                     # dsatur, greedy
+│       ├── matching/                     # bipartite, hungarian
+│       ├── generators/                   # er, ba, ws, sbm, lattice, tree, famous, ...
+│       ├── layout/                       # fr, kk, mds, sugiyama, umap, drl, gem, dh, random/circle/grid
+│       ├── cliques/                      # cliquer 翻译
+│       ├── motifs/                       # randesu, dyad, triad, graphlets
+│       ├── cycles/                       # simple_cycles, feedback_arc, eulerian
+│       ├── spectral/                     # laplacian, embedding
+│       ├── operators/                    # union, intersection, complementer, linegraph, simplify
+│       ├── transforms/                   # to_directed/undirected, permute, decompose
+│       ├── similarity/                   # cocitation, jaccard, dice, bibcoupling
+│       ├── degree_seq/                   # is_graphical, realize_degree_sequence
+│       ├── epidemics/                    # sir, percolation
+│       ├── hrg/                          # hrg_*
+│       ├── spatial/                      # delaunay, beta_skeletons
+│       ├── scan/                         # scan_*
+│       ├── linalg/                       # arpack (IRLM/IRAM), eigen 高层、blas/lapack 桥接
+│       └── io/                           # edgelist, ncol, lgl, pajek, gml, graphml, dot, dimacs, leda, dl
 │
 ├── tests/
-│   ├── oracle/                           # python-igraph oracle 测试集
-│   ├── conformance/                      # 从 igraph C tests/ 提取的 fixture
-│   └── property/                         # proptest 不变量
+│   ├── oracle.rs                         # python-igraph live oracle
+│   ├── conformance.rs                    # 三源 conformance fixture 加载
+│   ├── property.rs                       # proptest 不变量
+│   ├── common/mod.rs                     # 共用 helper
+│   └── conformance/{c,py,r}/             # JSON fixture 数据（按算法分子目录）
 │
 ├── benches/                              # criterion
 ├── examples/                             # 示例代码
 ├── fixtures/                             # 标准图数据（karate, dolphins, ...）
-├── scripts/                              # oracle.py, c_test_extract.py, bench_compare.py
+├── scripts/                              # oracle.py, test_extract/, bench_compare.py
 ├── templates/                            # AWU 模板（algo.rs.tpl, test.rs.tpl, ...）
-├── docs/                                 # mdBook 站
-└── .codefuse/
-    ├── plans/
-    └── tracking/
-        ├── ALGORITHMS.md                 # 单一真相源（AWU 状态表）
-        └── ARCHITECTURE.md
+├── book/                                 # mdBook 站
+├── docs/plans/MASTER_PLAN.md             # 本文件
+└── .codefuse/tracking/                   # ALGORITHMS.md, ARCHITECTURE.md, CONFORMANCE.md, ...
+```
+
+**对外用法**（任何用户）：
+```toml
+[dependencies]
+rust-igraph = "..."
+```
+```rust
+use rust_igraph::{Graph, bfs};
 ```
 
 ### 2.3 依赖清单
@@ -410,7 +406,7 @@ WASM 验证目标：`cargo check --target wasm32-unknown-unknown --no-default-fe
 //! 对标 igraph C: `<src/.../foo.c>`
 //! 参考论文/文档: <可选>
 
-use igraph_core::{Graph, IgraphError, IgraphResult};
+use rust_igraph::{Graph, IgraphError, IgraphResult};
 
 /// <一句话功能描述>
 ///
@@ -823,7 +819,7 @@ pub fn load_conformance(source: &str, algo: &str) -> Vec<ConformanceCase> {
 fn conformance_c_betweenness() {
     for case in load_conformance("c", "betweenness") {
         let g = case.graph.to_graph();
-        let result = igraph_algorithms::centrality::betweenness(&g, &case.params).unwrap();
+        let result = rust_igraph::centrality::betweenness(&g, &case.params).unwrap();
         case.assert_matches(&result);  // 容差按 6.3 节
     }
 }
@@ -1081,7 +1077,7 @@ Hard constraints (NEVER violate):
 2. No `unwrap()` / `expect()` outside tests.
 3. No new dependencies unless listed in ARCHITECTURE.md.
 4. Match igraph C error codes to IgraphError variants.
-5. Floating-point comparisons use tolerance helpers from `igraph_core::testutil`, never `==`.
+5. Floating-point comparisons use tolerance helpers from `rust_igraph::testutil`, never `==`.
 6. Public API requires rustdoc with at least one doctest.
 7. Do not modify `templates/`, `scripts/`, `.github/`, or other AWUs' code.
 
@@ -1089,8 +1085,8 @@ Workflow:
 1. Read the C source range provided in your task prompt.
 2. Read the frozen Rust signature from the target file (already created from `templates/algo.rs.tpl`).
 3. Replace the `unimplemented!()` body with a faithful Rust translation.
-4. Run `cargo build -p igraph-algorithms` to confirm it compiles.
-5. Run `cargo clippy -p igraph-algorithms -- -D warnings` and fix.
+4. Run `cargo build` to confirm it compiles.
+5. Run `cargo clippy -- -D warnings` and fix.
 6. Output a 5-line summary of the translation choices (data structures, allocations, deviations from C).
 
 Do NOT:
@@ -1121,7 +1117,7 @@ When the user invokes /awu-start ALGO-XXX-NNN:
 5. After confirmation: copy `templates/algo.rs.tpl` to the target module path, fill in name/doc/signature, leave body as `unimplemented!()`.
 6. Copy `templates/test.rs.tpl` to the test path with empty test bodies.
 7. Append the new AWU to `scripts/oracle.py` skeleton (commented placeholder).
-8. Run `cargo build -p igraph-algorithms` to confirm skeleton compiles.
+8. Run `cargo build` to confirm skeleton compiles.
 9. Update ALGORITHMS.md row status: todo → wip, with date.
 10. Print next-step suggestion: "Run /awu-translate ALGO-XXX-NNN once interface is approved."
 ```
@@ -1174,8 +1170,8 @@ When the user invokes /awu-start ALGO-XXX-NNN:
 # 编辑 *.rs 后自动跑 fmt + clippy on 受影响 crate
 file="$1"
 case "$file" in
-    crates/igraph-core/*.rs)       cargo fmt -p igraph-core; cargo clippy -p igraph-core -- -D warnings ;;
-    crates/igraph-algorithms/*.rs) cargo fmt -p igraph-algorithms; cargo clippy -p igraph-algorithms -- -D warnings ;;
+    src/core/*.rs)       cargo fmt; cargo clippy -- -D warnings ;;
+    src/algorithms/*.rs) cargo fmt; cargo clippy -- -D warnings ;;
     *.rs)                          cargo fmt --all ;;
 esac
 ```

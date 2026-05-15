@@ -21,7 +21,7 @@ Workflow:
 2. Run `cargo test --doc -p igraph-algorithms`. The doctest must pass.
 3. If the AWU introduces a notable user-facing capability, add a runnable
    binary under `examples/<algo>_demo.rs`. For internal helpers, skip.
-4. Update `crates/igraph/src/lib.rs` re-exports if the AWU exposes
+4. Update `src/lib.rs` re-exports if the AWU exposes
    something new at the top level.
 
 Hard constraints:

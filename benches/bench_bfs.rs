@@ -1,19 +1,18 @@
 //! BFS baseline benchmarks.
 //!
-//! Run: `cargo bench -p igraph --bench bench_bfs`.
+//! Run: `cargo bench --bench bench_bfs`.
 //! Results land under `target/criterion/`. Numbers are committed to
-//! `.codefuse/tracking/perf/ALGO-TR-001.json` once the perf tracking
-//! infrastructure (BOOT-27) is in place.
+//! `.codefuse/tracking/perf/ALGO-TR-001.json` (Phase 0 baseline).
 
 use std::fs::File;
 use std::path::PathBuf;
 
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use igraph::{Graph, bfs, read_edgelist};
+use rust_igraph::{Graph, bfs, read_edgelist};
 
 fn karate() -> Graph {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push("../../fixtures/karate.edges");
+    path.push("fixtures/karate.edges");
     read_edgelist(File::open(path).expect("open karate fixture")).expect("parse karate")
 }
 
