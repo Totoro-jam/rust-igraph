@@ -1,0 +1,63 @@
+{
+  "source": "c",
+  "origin": "bfs_simple.c:igraph_ring(10, circular=0) BFS root=0  [== path of 10]",
+  "graph": {
+    "n": 10,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bfs",
+  "params": {
+    "root": 0
+  },
+  "expected": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ]
+}

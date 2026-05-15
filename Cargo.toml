@@ -22,9 +22,11 @@ igraph-algorithms = { path = "crates/igraph-algorithms", version = "0.0.1" }
 # Errors
 thiserror = "2"
 
-# Tests
+# Tests / harness
 proptest = "1"
 criterion = "0.5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 
 [workspace.lints.rust]
 unsafe_code = "deny"

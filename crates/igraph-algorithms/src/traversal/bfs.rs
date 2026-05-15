@@ -13,6 +13,24 @@ use igraph_core::{Graph, IgraphResult, VertexId};
 ///
 /// Vertices unreachable from `root` are not included. Errors if `root` is not
 /// a valid vertex.
+///
+/// # Examples
+///
+/// ```
+/// use igraph_core::Graph;
+/// use igraph_algorithms::traversal::bfs;
+///
+/// // 0 - 1 - 3
+/// // |
+/// // 2
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(1, 3).unwrap();
+///
+/// let order = bfs(&g, 0).unwrap();
+/// assert_eq!(order, vec![0, 1, 2, 3]);
+/// ```
 pub fn bfs(graph: &Graph, root: VertexId) -> IgraphResult<Vec<VertexId>> {
     // Validate root via the neighbor lookup; this surfaces VertexOutOfRange.
     graph.neighbors(root)?;

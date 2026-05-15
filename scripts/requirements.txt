@@ -1,0 +1,4 @@
+# Pinned for reproducible oracle results.
+# Bump together with .codefuse/tracking/REFERENCES.md when upgrading the
+# python-igraph reference clone in references/python-igraph.
+igraph>=0.11,<0.12
