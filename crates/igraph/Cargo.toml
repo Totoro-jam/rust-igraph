@@ -1,0 +1,20 @@
+[package]
+name = "igraph"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "rust-igraph: pure-Rust port of the igraph network analysis library"
+
+[dependencies]
+igraph-core.workspace = true
+igraph-algorithms.workspace = true
+
+[[example]]
+name = "bfs_karate"
+path = "../../examples/bfs_karate.rs"
+
+[lints]
+workspace = true

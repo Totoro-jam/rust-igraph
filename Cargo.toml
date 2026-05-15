@@ -1,0 +1,43 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/igraph-core",
+    "crates/igraph-algorithms",
+    "crates/igraph",
+]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.85"
+license = "GPL-2.0-or-later"
+repository = "https://github.com/dovchen/rust-igraph"
+authors = ["rust-igraph contributors"]
+
+[workspace.dependencies]
+# Internal
+igraph-core = { path = "crates/igraph-core", version = "0.0.1" }
+igraph-algorithms = { path = "crates/igraph-algorithms", version = "0.0.1" }
+
+# Errors
+thiserror = "2"
+
+# Tests
+proptest = "1"
+criterion = "0.5"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# Allow some pedantic lints that are too noisy for now
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

@@ -1,0 +1,52 @@
+# Rust build artifacts
+target/
+**/*.rs.bk
+*.pdb
+
+# Library: do not track Cargo.lock (applications should)
+Cargo.lock
+
+# Reference source clones (see references/README.md)
+references/*
+!references/README.md
+
+# Local-only Claude Code config
+.claude/settings.local.json
+
+# Direnv / shell
+.envrc
+.direnv/
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test / coverage artifacts
+*.profraw
+tarpaulin-report.html
+lcov.info
+target-cov/
+
+# Python (oracle.py environment)
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Doc build output
+book/
+docs/_build/
+
+# Hook log (not committed)
+.codefuse/tracking/agent_actions.log
+
+# Misc temporary
+*.tmp
+*.bak

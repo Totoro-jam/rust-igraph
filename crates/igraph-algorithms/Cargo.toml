@@ -1,0 +1,16 @@
+[package]
+name = "igraph-algorithms"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Algorithm implementations for rust-igraph"
+
+[dependencies]
+igraph-core.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true
