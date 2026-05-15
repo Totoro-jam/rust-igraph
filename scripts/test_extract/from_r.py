@@ -79,9 +79,31 @@ DFS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "two_K5_components",
+        # test-components.R:'biconnected_components works' uses
+        # `make_full_graph(5) + make_full_graph(5)` which is two
+        # disjoint K5s and runs `components(g)$membership`. We mirror
+        # the implied components() expectation: weak count = 2,
+        # vertices 0-4 → component 0, vertices 5-9 → component 1.
+        "origin": "test-components.R:'biconnected_components works' setup line "
+        "`make_full_graph(5) + make_full_graph(5)` then `components(g)$membership`",
+        "graph_factory": lambda: ig.Graph.Full(n=5, directed=False)
+        + ig.Graph.Full(n=5, directed=False),
+        "algo": "connected_components",
+        "params": {},
+        "expected": {
+            "membership": [0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+            "count": 2,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "dfs": DFS_MANIFEST,
+    "connected_components": CC_MANIFEST,
 }
 
 

@@ -66,6 +66,33 @@ proptest! {
         prop_assert_eq!(bfs_set, dfs_set);
     }
 
+    /// `connected_components`'s membership has length `vcount`, and
+    /// the component ids are dense 0..count (no gaps).
+    #[test]
+    fn cc_membership_is_dense_and_correct_length(g in arb_graph(20)) {
+        let cc = rust_igraph::connected_components(&g).unwrap();
+        prop_assert_eq!(cc.membership.len(), g.vcount() as usize);
+        if cc.count == 0 {
+            prop_assert!(cc.membership.is_empty());
+        } else {
+            let max = *cc.membership.iter().max().unwrap();
+            prop_assert_eq!(max + 1, cc.count, "membership ids must be dense 0..count");
+        }
+    }
+
+    /// CC reachability matches BFS: vertex 0's component contains
+    /// exactly the BFS-reachable set from 0 (undirected).
+    #[test]
+    fn cc_component_of_zero_equals_bfs_reachable(g in arb_graph(15)) {
+        let cc = rust_igraph::connected_components(&g).unwrap();
+        let bfs_reachable: std::collections::BTreeSet<u32> =
+            rust_igraph::bfs(&g, 0).unwrap().into_iter().collect();
+        let cc_reachable: std::collections::BTreeSet<u32> = (0..g.vcount())
+            .filter(|&v| cc.membership[v as usize] == cc.membership[0])
+            .collect();
+        prop_assert_eq!(bfs_reachable, cc_reachable);
+    }
+
     /// BFS-reachable set from `root` is symmetric on undirected graphs:
     /// `v` reachable from `0` ⇔ `0` reachable from `v`.
     #[test]

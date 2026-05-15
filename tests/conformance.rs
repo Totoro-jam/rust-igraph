@@ -70,10 +70,16 @@ fn build_graph(payload: &GraphPayload) -> rust_igraph::Graph {
 }
 
 /// Run every fixture under `tests/conformance/{c,py,r}/<algo>/` through
-/// `runner` and assert equality with the upstream expected value. Also
-/// asserts the per-AWU invariant that all three sources contribute at
-/// least one fixture (Phase-0 guarantee).
-fn run_conformance(algo: &str, runner: impl Fn(&rust_igraph::Graph, u32) -> Vec<u32>) {
+/// `runner` and assert equality with the upstream expected JSON value.
+/// Also asserts the per-AWU invariant that all three sources contribute
+/// at least one fixture (Phase-0 guarantee).
+///
+/// `runner` receives the full graph and the fixture's `params` JSON
+/// object; it returns a JSON value to compare against `expected`.
+fn run_conformance(
+    algo: &str,
+    runner: impl Fn(&rust_igraph::Graph, &serde_json::Value) -> serde_json::Value,
+) {
     let cases = load_all(algo);
     assert!(
         !cases.is_empty(),
@@ -84,20 +90,11 @@ fn run_conformance(algo: &str, runner: impl Fn(&rust_igraph::Graph, u32) -> Vec<
     let mut counts = std::collections::HashMap::<&'static str, usize>::new();
     for (path, case) in cases {
         assert_eq!(case.algo, algo);
-        let root = u32::try_from(
-            case.params
-                .get("root")
-                .and_then(serde_json::Value::as_u64)
-                .expect("`root` param required"),
-        )
-        .expect("root fits in u32");
         let g = build_graph(&case.graph);
-        let actual = runner(&g, root);
-        let expected: Vec<u32> = serde_json::from_value(case.expected.clone())
-            .unwrap_or_else(|e| panic!("expected vec<u32> in {}: {e}", path.display()));
+        let actual = runner(&g, &case.params);
         assert_eq!(
             actual,
-            expected,
+            case.expected,
             "conformance failure\n  fixture: {}\n  source:  {}\n  origin:  {}",
             path.display(),
             case.source,
@@ -119,12 +116,39 @@ fn run_conformance(algo: &str, runner: impl Fn(&rust_igraph::Graph, u32) -> Vec<
     }
 }
 
+fn root_param(params: &serde_json::Value) -> u32 {
+    u32::try_from(
+        params
+            .get("root")
+            .and_then(serde_json::Value::as_u64)
+            .expect("`root` param required"),
+    )
+    .expect("root fits in u32")
+}
+
 #[test]
 fn bfs_three_source_conformance() {
-    run_conformance("bfs", |g, root| rust_igraph::bfs(g, root).expect("bfs"));
+    run_conformance("bfs", |g, params| {
+        let order = rust_igraph::bfs(g, root_param(params)).expect("bfs");
+        serde_json::json!(order)
+    });
 }
 
 #[test]
 fn dfs_three_source_conformance() {
-    run_conformance("dfs", |g, root| rust_igraph::dfs(g, root).expect("dfs"));
+    run_conformance("dfs", |g, params| {
+        let order = rust_igraph::dfs(g, root_param(params)).expect("dfs");
+        serde_json::json!(order)
+    });
+}
+
+#[test]
+fn connected_components_three_source_conformance() {
+    run_conformance("connected_components", |g, _params| {
+        let cc = rust_igraph::connected_components(g).expect("cc");
+        serde_json::json!({
+            "membership": cc.membership,
+            "count": cc.count,
+        })
+    });
 }

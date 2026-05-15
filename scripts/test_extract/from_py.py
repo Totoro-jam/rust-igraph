@@ -58,9 +58,28 @@ DFS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "two_K3_components",
+        # No verbatim test in test_decomposition.py — uses random graphs.
+        # Hand-crafted but classic: two K3 cliques, weakly disconnected.
+        # Verifies dense-id assignment in vertex-id order.
+        "origin": "constructed: two disjoint K3 cliques; verified via python-igraph 0.11",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5)],
+            directed=False,
+        ),
+        "algo": "connected_components",
+        "params": {},
+        "expected": {"membership": [0, 0, 0, 1, 1, 1], "count": 2},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "dfs": DFS_MANIFEST,
+    "connected_components": CC_MANIFEST,
 }
 
 

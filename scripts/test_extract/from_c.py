@@ -82,9 +82,33 @@ DFS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "components_two_isolated_vertices",
+        # components.c tests singleton + null + connected; we mirror the
+        # "n vertices, no edges" case which gives n components, ids 0..n-1.
+        "origin": "components.c:'Singleton graph (connected)' adapted; 2 isolated vertices",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[], directed=False),
+        "algo": "connected_components",
+        "params": {},
+        "expected": {"membership": [0, 1], "count": 2},
+    },
+    {
+        "case": "components_path5_one_component",
+        "origin": "components.c-style: a 5-vertex path is one weakly-connected component",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "algo": "connected_components",
+        "params": {},
+        "expected": {"membership": [0, 0, 0, 0, 0], "count": 1},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "dfs": DFS_MANIFEST,
+    "connected_components": CC_MANIFEST,
 }
 
 

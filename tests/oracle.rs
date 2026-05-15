@@ -10,7 +10,7 @@ mod common;
 use std::fs::File;
 
 use common::{OracleResponse, run_ok};
-use rust_igraph::{Graph, bfs, dfs, read_edgelist};
+use rust_igraph::{Graph, bfs, connected_components, dfs, read_edgelist};
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -70,6 +70,50 @@ fn dfs_karate_matches_python_igraph() {
     // The reverse-on-push step in `dfs.rs` matches upstream igraph's
     // lazy-adjlist behaviour (see comment there).
     assert_eq!(rust_order, py_order, "DFS visit order mismatch");
+}
+
+#[test]
+fn connected_components_karate_matches_python_igraph() {
+    // Karate is a single connected component; verifies degenerate
+    // n=1 result and BFS-based traversal correctness.
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let rust_cc = connected_components(&g).expect("rust cc");
+
+    #[derive(serde::Deserialize)]
+    struct PyCc {
+        membership: Vec<u32>,
+        count: u32,
+    }
+    let py_cc: PyCc =
+        serde_json::from_value(run_ok("connected_components", &g, serde_json::json!({})))
+            .expect("decode python cc");
+    assert_eq!(rust_cc.membership, py_cc.membership);
+    assert_eq!(rust_cc.count, py_cc.count);
+    assert_eq!(rust_cc.count, 1);
+}
+
+#[test]
+fn connected_components_two_components() {
+    // 5 vertices, 2 components: {0,1,2}, {3,4}.
+    let mut g = Graph::with_vertices(5);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(3, 4).unwrap();
+    let rust_cc = connected_components(&g).expect("rust cc");
+
+    #[derive(serde::Deserialize)]
+    struct PyCc {
+        membership: Vec<u32>,
+        count: u32,
+    }
+    let py_cc: PyCc =
+        serde_json::from_value(run_ok("connected_components", &g, serde_json::json!({})))
+            .expect("decode python cc");
+    assert_eq!(rust_cc.membership, py_cc.membership);
+    assert_eq!(rust_cc.count, py_cc.count);
+    assert_eq!(rust_cc.count, 2);
 }
 
 #[test]

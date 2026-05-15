@@ -1,0 +1,48 @@
+{
+  "source": "py",
+  "origin": "constructed: two disjoint K3 cliques; verified via python-igraph 0.11",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "connected_components",
+  "params": {},
+  "expected": {
+    "membership": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+    ],
+    "count": 2
+  }
+}

@@ -56,6 +56,15 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         order, _layers, _parents = g.bfs(root)
         return list(order)
 
+    if algo == "connected_components":
+        # Counterpart of igraph_connected_components(_, _, _, _, IGRAPH_WEAK).
+        # python-igraph's Graph.connected_components(mode='weak') returns
+        # a VertexClustering whose .membership is the per-vertex component id.
+        # Component ids are dense (0..count) but assigned in vertex-id order
+        # by both implementations.
+        cc = g.connected_components(mode="weak")
+        return {"membership": list(cc.membership), "count": len(cc)}
+
     if algo == "dfs":
         # Counterpart of igraph_dfs(). ALGO-TR-002 returns only the
         # pre-order visit list (single root, unreachable=False).

@@ -1,0 +1,11 @@
+{
+  "awu": "ALGO-CC-001",
+  "rust_karate_ns": 4135,
+  "rust_synthetic_n100_ns": null,
+  "rust_synthetic_n1000_ns": null,
+  "rust_synthetic_n10000_ns": null,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-16",
+  "git_commit": "66cc8b4",
+  "notes": "Phase 1 weak connected components via src/algorithms/connectivity/components.rs. BFS-based per upstream igraph_i_connected_components_weak. ~6x slower than BFS alone (BFS = 693 ns) — three observed sources: per-vertex Vec alloc in neighbors() (the standing CORE-001a perf-todo), the membership scan to find next unvisited start, and the queue allocation per component. CC has 1 component for karate so the third doesn't bite there."
+}

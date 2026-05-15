@@ -32,6 +32,7 @@ pub mod algorithms;
 pub mod core;
 
 // Top-level re-exports for the common case.
+pub use crate::algorithms::connectivity::{ConnectedComponents, connected_components};
 pub use crate::algorithms::io::read_edgelist;
 pub use crate::algorithms::traversal::{bfs, dfs};
 pub use crate::core::error::{IgraphError, IgraphResult};

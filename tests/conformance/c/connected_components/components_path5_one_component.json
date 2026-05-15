@@ -1,0 +1,39 @@
+{
+  "source": "c",
+  "origin": "components.c-style: a 5-vertex path is one weakly-connected component",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "connected_components",
+  "params": {},
+  "expected": {
+    "membership": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "count": 1
+  }
+}

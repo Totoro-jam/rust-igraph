@@ -11,6 +11,26 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(connectivity)* **ALGO-CC-001**: weakly connected components
+  (`connected_components`). Returns `ConnectedComponents { membership,
+  count }`. Counterpart of
+  `igraph_connected_components(_, _, _, _, IGRAPH_WEAK)` —
+  BFS-based per-component scan, dense ids assigned in vertex-id order.
+  Full 9-step SOP: 7 unit tests (empty / isolated / path / disjoint /
+  self-loop / directed-weak / dense-ids invariant), 2 oracle tests
+  against python-igraph (karate single component, two-disjoint), 4
+  three-source conformance fixtures (igraph C: 2 isolated + path-5;
+  python-igraph: two K3 cliques; R-igraph: two K5 cliques from
+  test-components.R), 2 proptest invariants
+  (membership length + dense ids; CC component of vertex 0 == BFS
+  reachable set), criterion baseline ≈ 4.1 µs on karate.
+
+- *(test-helpers)* `tests/conformance.rs::run_conformance` now takes
+  a `serde_json::Value` for both `actual` and `expected` so non-list
+  result shapes compare structurally. The previous BFS/DFS Vec<u32>
+  shape is wrapped via `serde_json::json!(order)` in the per-test
+  closure. CC is the first AWU with `{membership, count}` result.
+
 - *(traversal)* **ALGO-TR-002**: depth-first search (`dfs`). Pre-order
   visit, single root, reachable component only. Counterpart of
   `igraph_dfs()` in `references/igraph/src/graph/visitors.c:479`. Full

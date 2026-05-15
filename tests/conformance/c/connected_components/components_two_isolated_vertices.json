@@ -1,0 +1,19 @@
+{
+  "source": "c",
+  "origin": "components.c:'Singleton graph (connected)' adapted; 2 isolated vertices",
+  "graph": {
+    "n": 2,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "connected_components",
+  "params": {},
+  "expected": {
+    "membership": [
+      0,
+      1
+    ],
+    "count": 2
+  }
+}

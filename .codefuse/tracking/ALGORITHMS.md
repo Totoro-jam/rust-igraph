@@ -87,7 +87,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-SP-006 | BFS shortest paths (unweighted) | shortest_paths*.c | 703 | adapt | TR-001 | todo | - | - | - |
 | ALGO-SP-010..014 | Widest paths | widest_paths*.c | 741 | adapt | - | todo | - | - | - |
 | ALGO-SP-020..023 | Diameter / eccentricity / radius | diameter.c, eccentricity.c | ~400 | adapt | - | todo | - | - | - |
-| ALGO-CC-001..003 | Connected components (weak/strong) | components.c | 1608 | adapt | TR-001 | todo | - | - | - |
+| ALGO-CC-001 | Weakly connected components | components.c:82-180 | 100 | adapt | TR-001 | done | (next) | 4.1 µs/karate | C:2 / py:1 / R:1 |
+| ALGO-CC-002..003 | Connected components (strong, decompose) | components.c | 1500 | adapt | CC-001 | todo | - | - | - |
 | ALGO-CC-010..014 | Biconnected / articulation / bridges | biconnected*.c | ~600 | adapt | TR-002 | todo | - | - | - |
 | ALGO-CC-020..022 | Reachability | reachability.c | 257 | adapt | TR-001 | todo | - | - | - |
 | ALGO-CC-030..032 | Percolation | percolation.c | 404 | adapt | - | todo | - | - | - |
@@ -110,7 +111,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 3 | 0 | ~82 | ~85 | dfs: 3 (C:1, py:1, R:1) |
+| 1 | 4 | 0 | ~81 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1) |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
 **Phase 0 — complete (37/37)**. **Phase 1 underway**: ALGO-CORE-001a +
