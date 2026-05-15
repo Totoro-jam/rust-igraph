@@ -11,15 +11,35 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
-- *(documentation)* `CHANGELOG.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`,
-  `CITATION.cff`, `.editorconfig`, GitHub issue templates, Dependabot
-  config, `CODEOWNERS`. README gains crates.io / docs.rs / CI / license
-  badges.
+- *(documentation)* `CHANGELOG.md` (Keep a Changelog 1.1.0).
+- *(documentation)* `SECURITY.md` — vulnerability reporting via GitHub
+  Security Advisory or email. Slim, alpha-appropriate scope.
+- *(documentation)* `DEVELOPMENT.md` — maintainer + AI-agent setup notes
+  (renamed from the original `CONTRIBUTING.md`, which was honestly never
+  an external-contributor guide).
+- *(documentation)* New minimal `CONTRIBUTING.md` — "alpha; not accepting
+  external PRs yet; here is when that opens up".
+- *(tooling)* `.editorconfig` — cross-IDE consistency for files cargo fmt
+  does not touch (md / yml / toml / py / sh).
+- *(ci)* `.github/dependabot.yml` — weekly cargo + GitHub Actions + pip
+  updates; minor/patch grouped, breaking changes split.
+- *(documentation)* README badges: crates.io / docs.rs / CI / license / MSRV.
 
 ### Changed
 - *(claude-code)* `.claude/settings.json` is committed again (Anthropic's
-  intended pattern). The `.sample` workaround is removed; the pre-commit
-  hook in `.githooks/` is the safety net for accidental personal grants.
+  intended pattern). The `.sample` workaround attempted earlier is
+  removed; the `.githooks/pre-commit` hook is the safety net against
+  accidental personal-grant commits.
+- *(claude-code)* `.githooks/pre-commit` output bug fixed (entries with
+  spaces no longer split into multiple "lines"); reference now points to
+  DEVELOPMENT.md.
+
+### Explicitly deferred
+- `CODE_OF_CONDUCT.md`, `CITATION.cff`, `.github/ISSUE_TEMPLATE/`,
+  `.github/CODEOWNERS`, `SUPPORT.md`. These artifacts presume an external
+  community / academic citations / multiple reviewers; none of those
+  exist at 0.0.1-alpha.0. Add when the corresponding signal arrives.
+
 
 ## [0.0.1-alpha.0] — 2026-05-15
 

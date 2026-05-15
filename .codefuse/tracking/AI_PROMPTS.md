@@ -169,3 +169,66 @@ Stop. Do not retry. Report:
 **踩过的坑**: letting the agent retry the same approach 5+ times burns
 context and produces increasingly desperate code. Three strikes and you
 escalate.
+
+---
+
+## Pre-prepared Phase-1 entry: ALGO-CORE-001 recon brief
+
+**Status**: not yet executed; ready for next session.
+**Skill to invoke**: `/awu-start ALGO-CORE-001`.
+
+When the user types that, the recon delegate (`igraph-c-recon` agent,
+haiku) should be briefed with:
+
+```
+You are doing recon for ALGO-CORE-001: real Graph (igraph_t equivalent).
+
+This is the foundational AWU of Phase 1. It replaces the throwaway
+Graph<u32> currently sitting in src/core/graph.rs (Phase-0 placeholder
+per ADR-0007). Most subsequent algorithm AWUs depend on this.
+
+Read these files (do NOT inline; quote line numbers):
+- C source:   references/igraph/src/graph/type_indexededgelist.c (2013 lines)
+- Header:     references/igraph/include/igraph_datatype.h  (struct igraph_t)
+- Interface:  references/igraph/include/igraph_interface.h (ops on igraph_t)
+- Tests:      references/igraph/tests/unit/igraph_create.c
+              references/igraph/tests/unit/igraph_add_*.c
+              references/igraph/tests/unit/igraph_delete_*.c
+
+Output ≤500 words (this AWU is bigger than the per-AWU 300-word cap):
+1) Recommended Rust struct shape — fields, ownership model. Compare to
+   the C `igraph_t` (n, directed, from, to, oi, ii, os, is, attr,
+   cached_props).
+2) Boundaries for what THIS AWU covers vs what splits into follow-up
+   AWUs. Suggested split: ALGO-CORE-001 = struct + create/destroy/copy +
+   add/delete vertices/edges; ALGO-CORE-002+ = degree/neighbors/incident
+   queries; ALGO-CORE-010+ = property queries (is_directed/is_simple/...).
+3) Public API list for ALGO-CORE-001 with proposed Rust signatures.
+   Show every method's igraph_t-equivalent and whether it currently
+   exists on the Phase-0 `Graph<u32>` placeholder.
+4) Storage choice rationale: CSR vs adjacency-list-of-Vec. C uses an
+   indexed edge list (`from` / `to` / `os` / `is`). What's the Rust
+   equivalent? Trade-offs.
+5) Edge cases to test: empty / single / self-loop / parallel edges /
+   directed-with-reverse / very-large.
+6) Numerical concerns (none expected; confirm).
+7) `.out` files relevant for conformance extraction once the AWU lands.
+8) Migration plan: how Phase-0 callers (only BFS today) get re-pointed
+   from the placeholder to the new Graph without churn during the AWU's
+   `wip` window.
+
+If the AWU clearly should be split into multiple, recommend the split
+and DO NOT proceed past Step 1. The user will then create the sub-AWUs
+in ALGORITHMS.md.
+```
+
+**踩过的坑**: ALGO-CORE-001 is the only AWU big enough that the recon
+should bust the 300-word cap (raised to 500). Subsequent AWUs go back
+to 300.
+
+**踩过的坑**: the Phase-0 `Graph<u32>` placeholder has only 5 methods
+(`with_vertices`, `add_edge`, `add_edges`, `vcount`, `ecount`,
+`neighbors`, `degree`). Any new public surface in ALGO-CORE-001 that
+collides will need a deprecation shim or an `unimplemented!()` placeholder
+to keep BFS / EdgeList / oracle tests compiling during the AWU's `wip`
+window.
