@@ -220,9 +220,90 @@ impl Graph {
         }
     }
 
+    // ---------------------------------------------------------------
+    // ALGO-CORE-001b: edge-id helpers + incident edges.
+    // ---------------------------------------------------------------
+
+    /// Source endpoint of edge `eid`. Counterpart of `IGRAPH_FROM`
+    /// (`igraph_interface.h:115`).
+    pub fn edge_source(&self, eid: EdgeId) -> IgraphResult<VertexId> {
+        self.check_edge(eid)?;
+        Ok(self.from[eid as usize])
+    }
+
+    /// Target endpoint of edge `eid`. Counterpart of `IGRAPH_TO`
+    /// (`igraph_interface.h:128`).
+    pub fn edge_target(&self, eid: EdgeId) -> IgraphResult<VertexId> {
+        self.check_edge(eid)?;
+        Ok(self.to[eid as usize])
+    }
+
+    /// Both endpoints of edge `eid`, ordered as `(from, to)`. Counterpart
+    /// of `igraph_edge` (`igraph_interface.h:71`).
+    pub fn edge(&self, eid: EdgeId) -> IgraphResult<(VertexId, VertexId)> {
+        self.check_edge(eid)?;
+        let i = eid as usize;
+        Ok((self.from[i], self.to[i]))
+    }
+
+    /// The other endpoint of `eid` given one endpoint `vid`. Counterpart
+    /// of `IGRAPH_OTHER` (`igraph_interface.h:145`). Errors if `vid` is
+    /// not actually an endpoint of `eid`.
+    pub fn edge_other(&self, eid: EdgeId, vid: VertexId) -> IgraphResult<VertexId> {
+        let (u, v) = self.edge(eid)?;
+        if vid == u {
+            Ok(v)
+        } else if vid == v {
+            Ok(u)
+        } else {
+            Err(IgraphError::InvalidArgument(format!(
+                "vertex {vid} is not an endpoint of edge {eid} ({u}, {v})"
+            )))
+        }
+    }
+
+    /// Edge ids incident to vertex `v`, in the same iteration order as
+    /// [`Graph::neighbors`].
+    ///
+    /// For undirected graphs returns the union of out-side (`oi`) and
+    /// in-side (`ii`) edges — every edge incident to `v` once, except
+    /// self-loops which appear twice (matching `igraph_neighbors` /
+    /// `igraph_degree`'s `IGRAPH_LOOPS_TWICE` default at
+    /// `type_indexededgelist.c:1162`).
+    ///
+    /// For directed graphs returns out-edges only, mirroring this AWU's
+    /// `neighbors()` choice. (The full mode-aware variant lands later
+    /// alongside `igraph_neighbors(mode = IN/OUT/ALL)`.)
+    ///
+    /// Counterpart of `igraph_incident(_, _, v, IGRAPH_ALL, IGRAPH_LOOPS_TWICE)`
+    /// for undirected; `IGRAPH_OUT` mode for directed.
+    pub fn incident(&self, v: VertexId) -> IgraphResult<Vec<EdgeId>> {
+        self.check_vertex(v)?;
+        let v_idx = v as usize;
+        let out_range = self.os[v_idx] as usize..self.os[v_idx + 1] as usize;
+        if self.directed {
+            Ok(self.oi[out_range].to_vec())
+        } else {
+            let in_range = self.is[v_idx] as usize..self.is[v_idx + 1] as usize;
+            let mut out = Vec::with_capacity(out_range.len() + in_range.len());
+            out.extend_from_slice(&self.oi[out_range]);
+            out.extend_from_slice(&self.ii[in_range]);
+            Ok(out)
+        }
+    }
+
     fn check_vertex(&self, v: VertexId) -> IgraphResult<()> {
         if v >= self.n {
             return Err(IgraphError::VertexOutOfRange { id: v, n: self.n });
+        }
+        Ok(())
+    }
+
+    fn check_edge(&self, eid: EdgeId) -> IgraphResult<()> {
+        let m = self.ecount();
+        let m_u32 = u32::try_from(m).unwrap_or(u32::MAX);
+        if (eid as usize) >= m {
+            return Err(IgraphError::EdgeOutOfRange { id: eid, m: m_u32 });
         }
         Ok(())
     }
@@ -428,5 +509,70 @@ mod tests {
         assert!(matches!(e, IgraphError::VertexOutOfRange { id: 2, n: 2 }));
         // Graph state must be unchanged after the failed add.
         assert_eq!(g.ecount(), 0);
+    }
+
+    // -------- ALGO-CORE-001b: edge-id helpers + incident --------
+
+    #[test]
+    fn edge_endpoints_round_trip() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edges(vec![(0, 1), (2, 0), (1, 2)]).unwrap();
+        // Directed: order preserved. edge_id == position in from/to.
+        assert_eq!(g.edge(0).unwrap(), (0, 1));
+        assert_eq!(g.edge(1).unwrap(), (2, 0));
+        assert_eq!(g.edge(2).unwrap(), (1, 2));
+        assert_eq!(g.edge_source(1).unwrap(), 2);
+        assert_eq!(g.edge_target(1).unwrap(), 0);
+    }
+
+    #[test]
+    fn edge_other_endpoint() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 2).unwrap();
+        assert_eq!(g.edge_other(0, 0).unwrap(), 2);
+        assert_eq!(g.edge_other(0, 2).unwrap(), 0);
+        // Vertex not on the edge: error.
+        let err = g.edge_other(0, 1).unwrap_err();
+        assert!(matches!(err, IgraphError::InvalidArgument(_)));
+    }
+
+    #[test]
+    fn edge_out_of_range() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        let err = g.edge(5).unwrap_err();
+        assert!(matches!(err, IgraphError::EdgeOutOfRange { id: 5, m: 1 }));
+    }
+
+    #[test]
+    fn incident_returns_edge_ids_matching_neighbors_order() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edges(vec![(0, 1), (0, 2), (3, 0)]).unwrap();
+        let eids = g.incident(0).unwrap();
+        // Expect three incident edges; resolving back to neighbours
+        // must equal `neighbors(0)` exactly (same iteration order).
+        let resolved: Vec<u32> = eids.iter().map(|&e| g.edge_other(e, 0).unwrap()).collect();
+        assert_eq!(resolved, g.neighbors(0).unwrap());
+    }
+
+    #[test]
+    fn incident_self_loop_appears_twice_undirected() {
+        let mut g = Graph::with_vertices(1);
+        g.add_edge(0, 0).unwrap();
+        let eids = g.incident(0).unwrap();
+        // Undirected self-loop appears once on the out side and once on
+        // the in side — same edge id, twice. Mirrors `neighbors`.
+        assert_eq!(eids, vec![0, 0]);
+        assert_eq!(g.degree(0).unwrap(), 2);
+    }
+
+    #[test]
+    fn incident_directed_returns_outgoing_only() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edges(vec![(0, 1), (2, 0)]).unwrap();
+        // Directed `incident` mirrors directed `neighbors` (out only).
+        assert_eq!(g.incident(0).unwrap(), vec![0]);
+        assert_eq!(g.incident(2).unwrap(), vec![1]);
+        assert!(g.incident(1).unwrap().is_empty());
     }
 }

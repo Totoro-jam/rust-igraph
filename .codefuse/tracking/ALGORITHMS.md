@@ -61,7 +61,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ID | Task | C source | Lines | Cx | Deps | Status | Commit | Bench | Conformance |
 |----|------|----------|-------|----|------|--------|--------|-------|-------------|
 | ALGO-CORE-001a | Graph struct + new/with_vertices + add_{vertices,edges,edge} + vcount/ecount/is_directed + neighbors/degree + Clone | type_indexededgelist.c (lines 99-413, 829-1265) | ~700 | adapt | - | done | (next) | - | - |
-| ALGO-CORE-001b | incident + edge-id helpers (IGRAPH_FROM/TO/OTHER) | type_indexededgelist.c (lines 1775-1947) | ~250 | adapt | CORE-001a | todo | - | - | - |
+| ALGO-CORE-001b | incident + edge-id helpers (edge / edge_source / edge_target / edge_other) | type_indexededgelist.c (lines 1775-1912) | ~250 | adapt | CORE-001a | done | (next) | - | - |
 | ALGO-CORE-001c | delete_edges + delete_vertices + delete_vertices_map | type_indexededgelist.c (lines 500-825) | ~400 | adapt | CORE-001a | todo | - | - | - |
 | ALGO-CORE-001d | edge/edges + get_eid/get_eids/get_all_eids_between | type_indexededgelist.c (lines 1522-1773) | ~250 | adapt | CORE-001a | todo | - | - | - |
 | ALGO-CORE-001e | is_same_graph + property cache subsystem | type_indexededgelist.c + cache_*.c | ~200 | adapt | CORE-001a..d | todo | - | - | - |
@@ -110,12 +110,12 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 1 | 0 | ~84 | ~85 | - |
+| 1 | 2 | 0 | ~83 | ~85 | - |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: ALGO-CORE-001a
-(real igraph_t equivalent) merged. Next: ALGO-CORE-001b (incident +
-edge-id helpers) or ALGO-DS-V-001 (Vector wrapper) — both unblock
-multiple downstream AWUs.
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: ALGO-CORE-001a +
+001b merged (Graph struct + edge-id helpers). Next options: 001c
+(deletion), 001d (edge-list queries `get_eid` etc.), or jump to
+ALGO-TR-002 (DFS) to put a second algorithm through the full 9-step SOP.
 
 > Update the counters after every PR merge.

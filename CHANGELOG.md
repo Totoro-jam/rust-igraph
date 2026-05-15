@@ -11,6 +11,16 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(core)* **ALGO-CORE-001b**: edge-id helpers and incident-edges query.
+  `edge(eid)` / `edge_source(eid)` / `edge_target(eid)` / `edge_other(eid, vid)`
+  / `incident(v)`. Counterparts of `igraph_edge` and the `IGRAPH_FROM` /
+  `IGRAPH_TO` / `IGRAPH_OTHER` macros from `igraph_interface.h`, and a
+  simplified `igraph_incident` (default `IGRAPH_LOOPS_TWICE` semantics
+  matching `neighbors`). `IgraphError::EdgeOutOfRange` surfaces invalid
+  edge ids; `edge_other` errors with `InvalidArgument` when the supplied
+  vertex is not actually an endpoint. The full mode-aware `incident`
+  (IGRAPH_IN / IGRAPH_OUT / IGRAPH_ALL) ships in a later AWU once
+  algorithms need it.
 - *(core)* **ALGO-CORE-001a**: real `Graph` (replaces the Phase-0 throwaway
   `Graph<u32>`). Indexed-edgelist storage matching upstream igraph's
   `igraph_t` (`from`/`to`/`oi`/`ii`/`os`/`is`). New surface: `Graph::new(n,
