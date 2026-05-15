@@ -38,23 +38,23 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | BOOT-11 | First oracle test: BFS on karate | done | 5779a31 |
 | BOOT-12 | proptest skeleton + BFS invariant | done | 5779a31 |
 | BOOT-13 | criterion bench skeleton + BFS baseline | done | 5779a31 |
-| BOOT-14..18 | GitHub Actions CI matrix | wip | - |
-| BOOT-19..22 | templates/ (algo, test, oracle, bench) | todo | - |
-| BOOT-23 | ALGORITHMS.md (this file) | done | (current) |
-| BOOT-24 | ARCHITECTURE.md | todo | - |
-| BOOT-25 | CONTRIBUTING.md (AWU workflow + PR conventions) | todo | - |
-| BOOT-26 | mdBook docs scaffold | todo | - |
-| BOOT-27 | scripts/bench_compare.py (perf baseline) | todo | - |
-| BOOT-28 | RESUME.md (part-time resumability) | todo | - |
+| BOOT-14..18 | GitHub Actions CI matrix | done | 8d688d8, a6b1cf8 |
+| BOOT-19..22 | templates/ (algo, test, oracle, bench) | done | (next) |
+| BOOT-23 | ALGORITHMS.md (this file) | done | 8d688d8 |
+| BOOT-24 | ARCHITECTURE.md | done | (next) |
+| BOOT-25 | CONTRIBUTING.md (AWU workflow + PR conventions) | done | (next) |
+| BOOT-26 | mdBook docs scaffold | done | (next) |
+| BOOT-27 | scripts/bench_compare.py (perf baseline) | done | (next) |
+| BOOT-28 | RESUME.md (part-time resumability) | done | (next) |
 | BOOT-29 | scripts/test_extract/from_c.py | done | 5779a31 |
 | BOOT-30 | scripts/test_extract/from_py.py | done | 5779a31 |
 | BOOT-31 | scripts/test_extract/from_r.{R,py} | done | 5779a31 |
 | BOOT-32 | tests/conformance/ + three-source BFS test | done | 5779a31 |
-| BOOT-33 | CLAUDE.md | wip | - |
-| BOOT-34 | .claude/agents/ (6 agents) | wip | - |
-| BOOT-35 | .claude/skills/ (9 skills) | wip | - |
-| BOOT-36 | .claude/hooks/ + settings.json | wip | - |
-| BOOT-37 | AI_PROMPTS.md | wip | - |
+| BOOT-33 | CLAUDE.md | done | 8d688d8 |
+| BOOT-34 | .claude/agents/ (7 agents) | done | 8d688d8 |
+| BOOT-35 | .claude/skills/ (9 skills) | done | 8d688d8 |
+| BOOT-36 | .claude/hooks/ + settings.json | done | 8d688d8 |
+| BOOT-37 | AI_PROMPTS.md | done | 8d688d8 |
 
 ## Phase 1 — Data structures (~80 AWU)
 
@@ -105,8 +105,11 @@ Each phase's per-AWU table is materialized here as work approaches.
 
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
-| 0 (BOOT) | 19 | 9 | 9 | 37 | bfs: 4 (C:2, py:1, R:1) |
+| 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
 | 1 | 0 | 1 | 7 | ~80 | - |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-> Update the counters after every PR merge. Phase 0 considered "complete" at ≥35/37 done.
+**Phase 0 — complete (37/37)**. Next: Phase 1 entry via
+`/awu-start ALGO-CORE-001` (real `igraph_t`-equivalent Graph).
+
+> Update the counters after every PR merge.

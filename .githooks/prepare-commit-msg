@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# prepare-commit-msg: append a Co-Authored-By trailer for Claude Code so
+# AI-assisted commits in this repo are attributable.
+#
+# Skips when:
+# - the commit type is `merge` / `squash` / `commit` (rebase replays etc.)
+# - the message already contains the trailer (idempotent)
+# - the message is empty (e.g., commit aborted)
+#
+# Enable per-clone with:    git config core.hooksPath .githooks
+# (Documented in CONTRIBUTING.md.)
+
+set -euo pipefail
+
+MSG_FILE="$1"
+SOURCE="${2-}"
+
+case "$SOURCE" in
+  merge|squash|commit) exit 0 ;;
+esac
+
+TRAILER="Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
+
+if [ ! -s "$MSG_FILE" ]; then
+  exit 0
+fi
+
+if grep -qF "$TRAILER" "$MSG_FILE"; then
+  exit 0
+fi
+
+# Use git interpret-trailers so the trailer block stays valid.
+TMP=$(mktemp)
+git interpret-trailers --trailer "$TRAILER" --in-place "$MSG_FILE" 2>/dev/null \
+  || printf '\n%s\n' "$TRAILER" >> "$MSG_FILE"
+
+rm -f "$TMP"
+exit 0

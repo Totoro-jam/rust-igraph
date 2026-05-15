@@ -41,7 +41,7 @@ __pycache__/
 venv/
 
 # Doc build output
-book/
+book/book/                  # mdbook output dir (book/src/ source is tracked)
 docs/_build/
 
 # Hook log (not committed)

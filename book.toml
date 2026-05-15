@@ -1,0 +1,19 @@
+[book]
+title = "rust-igraph"
+description = "Pure-Rust port of the igraph network analysis library"
+authors = ["rust-igraph contributors"]
+language = "en"
+src = "book/src"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/Totoro-jam/rust-igraph"
+edit-url-template = "https://github.com/Totoro-jam/rust-igraph/edit/main/{path}"
+
+# rustdoc lives at the same site under /api/; book sits at the root.
+# CI publishes rustdoc today; mdBook publishing is a future enhancement.
+
+[output.html.fold]
+enable = true
+level = 1

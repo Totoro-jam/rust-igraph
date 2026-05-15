@@ -32,5 +32,17 @@
         ]
       }
     ]
+  },
+  "permissions": {
+    "_comment": "Auto-allowlist commands the AI runs frequently for this repo. Add personal/private grants to .claude/settings.local.json (gitignored) instead of here.",
+    "allow": [
+      "Bash(actionlint .github/workflows/*.yml)",
+      "Bash(gh run *)",
+      "Bash(.venv/bin/python -m scripts.bench_compare *)",
+      "Bash(.venv/bin/python -m scripts.test_extract.from_c *)",
+      "Bash(.venv/bin/python -m scripts.test_extract.from_py *)",
+      "Bash(.venv/bin/python -m scripts.test_extract.from_r *)",
+      "Bash(.venv/bin/python scripts/oracle.py)"
+    ]
   }
 }

@@ -1,0 +1,12 @@
+{
+  "awu": "ALGO-TR-001",
+  "rust_karate_ns": 693,
+  "rust_synthetic_n100_ns": null,
+  "rust_synthetic_n1000_ns": null,
+  "rust_synthetic_n10000_ns": null,
+  "py_karate_ns": null,
+  "py_synthetic_n1000_ns": null,
+  "captured_at": "2026-05-15",
+  "git_commit": "a6b1cf8",
+  "notes": "Phase 0 BFS placeholder via crates/igraph-algorithms/src/traversal/bfs.rs. The full ALGO-TR-001 implementation (callback-driven BFS with vids/layers/parents/dist/order/pred/succ) replaces this in Phase 2; numbers will be re-captured then."
+}
