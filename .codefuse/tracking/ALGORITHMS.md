@@ -1,0 +1,112 @@
+# rust-igraph Algorithm Work Unit (AWU) tracker
+
+Single source of truth for per-algorithm progress. **Update on every PR.**
+See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
+9-step SOP and §5.2 for the full Phase 1-10 algorithm catalog.
+
+## Status legend
+
+- `todo` — not started
+- `wip` — implementation in progress (not on `main`)
+- `review` — PR open, waiting for review
+- `done` — merged to `main`, all 9 steps green
+- `verified` — passed nightly full-conformance for ≥7 days
+- `blocked` — waiting on a prerequisite AWU or external decision
+- `perf-todo` — functionally `done` but performance > python-igraph × 3
+
+## Complexity legend
+
+- `copy` — 1:1 translation from igraph C, ~30 LOC/h with AI
+- `adapt` — needs Rust ownership/lifetimes adaptation, ~20 LOC/h
+- `rewrite` — algorithmic re-design (e.g. C++ class hierarchies), ~12 LOC/h
+- `novel` — no C reference, design from scratch, ~8 LOC/h
+
+## Phase 0 — Walking skeleton + infrastructure (37 BOOT tasks)
+
+| ID | Task | Status | Commit |
+|----|------|--------|--------|
+| BOOT-01 | git init + LICENSE + README skeleton | done | 2ce55aa |
+| BOOT-02 | Cargo workspace + 3 crate skeleton | done | 2ce55aa |
+| BOOT-03 | IgraphError + IgraphResult | done | 2ce55aa |
+| BOOT-04 | Minimal Graph<u32> | done | 2ce55aa |
+| BOOT-05 | EdgeList reader | done | 2ce55aa |
+| BOOT-06 | Minimal BFS | done | 2ce55aa |
+| BOOT-07 | example bfs_karate.rs | done | 2ce55aa |
+| BOOT-08 | karate.edges fixture | done | 2ce55aa |
+| BOOT-09 | scripts/oracle.py + Python venv + requirements.txt | done | 5779a31 |
+| BOOT-10 | tests/oracle/ harness (Rust subprocess wrapper) | done | 5779a31 |
+| BOOT-11 | First oracle test: BFS on karate | done | 5779a31 |
+| BOOT-12 | proptest skeleton + BFS invariant | done | 5779a31 |
+| BOOT-13 | criterion bench skeleton + BFS baseline | done | 5779a31 |
+| BOOT-14..18 | GitHub Actions CI matrix | wip | - |
+| BOOT-19..22 | templates/ (algo, test, oracle, bench) | todo | - |
+| BOOT-23 | ALGORITHMS.md (this file) | done | (current) |
+| BOOT-24 | ARCHITECTURE.md | todo | - |
+| BOOT-25 | CONTRIBUTING.md (AWU workflow + PR conventions) | todo | - |
+| BOOT-26 | mdBook docs scaffold | todo | - |
+| BOOT-27 | scripts/bench_compare.py (perf baseline) | todo | - |
+| BOOT-28 | RESUME.md (part-time resumability) | todo | - |
+| BOOT-29 | scripts/test_extract/from_c.py | done | 5779a31 |
+| BOOT-30 | scripts/test_extract/from_py.py | done | 5779a31 |
+| BOOT-31 | scripts/test_extract/from_r.{R,py} | done | 5779a31 |
+| BOOT-32 | tests/conformance/ + three-source BFS test | done | 5779a31 |
+| BOOT-33 | CLAUDE.md | wip | - |
+| BOOT-34 | .claude/agents/ (6 agents) | wip | - |
+| BOOT-35 | .claude/skills/ (9 skills) | wip | - |
+| BOOT-36 | .claude/hooks/ + settings.json | wip | - |
+| BOOT-37 | AI_PROMPTS.md | wip | - |
+
+## Phase 1 — Data structures (~80 AWU)
+
+| ID | Task | C source | Lines | Cx | Deps | Status | Commit | Bench | Conformance |
+|----|------|----------|-------|----|------|--------|--------|-------|-------------|
+| ALGO-CORE-001 | Graph (igraph_t equivalent) | type_indexededgelist.c | 2013 | adapt | - | wip(skel) | 2ce55aa | - | - |
+| ALGO-CORE-010 | basic queries (vcount, ecount, degree, ...) | basic_query.c | 406 | copy | CORE-001 | partial | 2ce55aa | - | - |
+| ALGO-DS-V-001..030 | Vector / VectorInt / VectorBool | vector.c | ~2500 | adapt | - | todo | - | - | - |
+| ALGO-DS-M-001..020 | Matrix / MatrixInt | matrix.c | ~1500 | adapt | - | todo | - | - | - |
+| ALGO-DS-S-001..010 | SparseMatrix CSR/CSC | sparsemat.c | 3251 | rewrite | - | todo | - | - | - |
+| ALGO-DS-SEL-001..010 | VertexSelector / EdgeSelector | iterators.c | 2048 | adapt | - | todo | - | - | - |
+| ALGO-DS-ADJ-001..005 | Adjacency lists | adjlist.c | 1328 | adapt | - | todo | - | - | - |
+
+## Phase 2 — Traversal + Shortest Paths + Connectivity (~45 AWU)
+
+| ID | Task | C source | Lines | Cx | Deps | Status | Commit | Bench | Conformance |
+|----|------|----------|-------|----|------|--------|--------|-------|-------------|
+| ALGO-TR-001 | BFS (full callback variant) | bfs.c | 300 | adapt | CORE-001 | partial | 5779a31 | 693 ns/karate | C:2 / py:1 / R:1 |
+| ALGO-TR-002 | DFS | dfs.c | 200 | adapt | CORE-001 | todo | - | - | - |
+| ALGO-TR-003 | Random walk | random_walk.c | 340 | adapt | CORE-001 | todo | - | - | - |
+| ALGO-SP-001 | Dijkstra | distances_dijkstra*.c | 1235 | adapt | TR-001 | todo | - | - | - |
+| ALGO-SP-002 | Bellman-Ford | distances_bellman_ford*.c | 591 | adapt | TR-001 | todo | - | - | - |
+| ALGO-SP-003 | Johnson | distances_johnson.c | 254 | adapt | SP-001,002 | todo | - | - | - |
+| ALGO-SP-004 | Floyd-Warshall | distances_floyd_warshall.c | 365 | adapt | - | todo | - | - | - |
+| ALGO-SP-005 | A* | astar.c | 273 | adapt | TR-001 | todo | - | - | - |
+| ALGO-SP-006 | BFS shortest paths (unweighted) | shortest_paths*.c | 703 | adapt | TR-001 | todo | - | - | - |
+| ALGO-SP-010..014 | Widest paths | widest_paths*.c | 741 | adapt | - | todo | - | - | - |
+| ALGO-SP-020..023 | Diameter / eccentricity / radius | diameter.c, eccentricity.c | ~400 | adapt | - | todo | - | - | - |
+| ALGO-CC-001..003 | Connected components (weak/strong) | components.c | 1608 | adapt | TR-001 | todo | - | - | - |
+| ALGO-CC-010..014 | Biconnected / articulation / bridges | biconnected*.c | ~600 | adapt | TR-002 | todo | - | - | - |
+| ALGO-CC-020..022 | Reachability | reachability.c | 257 | adapt | TR-001 | todo | - | - | - |
+| ALGO-CC-030..032 | Percolation | percolation.c | 404 | adapt | - | todo | - | - | - |
+| ALGO-CC-040..042 | Eulerian paths/cycles | eulerian*.c | 681 | adapt | - | todo | - | - | - |
+
+## Phase 3 — Centrality + Eigensolver (~65 AWU)
+
+> Eigensolver scaffolding (ALGO-LA-*) is the prerequisite for the starred (★)
+> centrality algorithms. Full per-AWU table to be expanded when Phase 2 nears
+> completion. See MASTER_PLAN.md §5.2 Phase 3.
+
+## Phase 4-10 — see MASTER_PLAN.md
+
+Each phase's per-AWU table is materialized here as work approaches.
+
+---
+
+## Counters
+
+| Phase | done | wip | todo | total | Conformance fixtures |
+|-------|------|-----|------|-------|----------------------|
+| 0 (BOOT) | 19 | 9 | 9 | 37 | bfs: 4 (C:2, py:1, R:1) |
+| 1 | 0 | 1 | 7 | ~80 | - |
+| 2-10 | 0 | 0 | ~543 | ~543 | - |
+
+> Update the counters after every PR merge. Phase 0 considered "complete" at ≥35/37 done.

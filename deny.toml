@@ -1,0 +1,57 @@
+# cargo-deny configuration. See https://embarkstudios.github.io/cargo-deny/.
+# Run locally:  cargo install --locked cargo-deny && cargo deny check
+
+[graph]
+# All Tier-1 + WASM targets we care about today. Phase 0 has no platform-
+# specific deps so this is mostly future-proofing.
+targets = [
+  { triple = "x86_64-unknown-linux-gnu" },
+  { triple = "x86_64-apple-darwin" },
+  { triple = "aarch64-apple-darwin" },
+  { triple = "x86_64-pc-windows-msvc" },
+  { triple = "wasm32-unknown-unknown" },
+]
+
+# ---------- License check ----------
+[licenses]
+# rust-igraph itself is GPL-2.0-or-later. We only consume dependencies whose
+# license is GPL-2-compatible. GPL-3 is *not* compatible with GPL-2-only,
+# but is compatible with GPL-2-or-later — we still ban it to keep options
+# open and to match the upstream igraph project's stance.
+allow = [
+  "MIT",
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "Zlib",
+  "Unicode-3.0",
+  "Unicode-DFS-2016",
+  "MPL-2.0",
+  "CC0-1.0",
+  # rust-igraph itself + GPL-2 deps (currently none) would land here:
+  "GPL-2.0",
+  "GPL-2.0-or-later",
+]
+confidence-threshold = 0.93
+
+# ---------- Security advisories ----------
+[advisories]
+yanked = "warn"
+ignore = []
+
+# ---------- Banned crates ----------
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+deny = [
+  # Wrong license stance for our project.
+  { name = "graphalgs", reason = "GPL-3.0-only is incompatible with our GPL-2.0+ stance (see CLAUDE.md)" },
+]
+
+# ---------- Source registry pinning ----------
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
