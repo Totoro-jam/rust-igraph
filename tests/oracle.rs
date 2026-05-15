@@ -10,7 +10,7 @@ mod common;
 use std::fs::File;
 
 use common::{OracleResponse, run_ok};
-use rust_igraph::{Graph, bfs, read_edgelist};
+use rust_igraph::{Graph, bfs, dfs, read_edgelist};
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -52,4 +52,40 @@ fn bfs_karate_matches_python_igraph() {
     // exact equality on this fixture. If a future change permutes neighbor
     // order, relax this to a layer-equivalence check.
     assert_eq!(rust_order, py_order, "BFS visit order mismatch");
+}
+
+#[test]
+fn dfs_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+
+    let rust_order = dfs(&g, 0).expect("rust dfs");
+    let py_order: Vec<u32> =
+        serde_json::from_value(run_ok("dfs", &g, serde_json::json!({"root": 0})))
+            .expect("decode python order");
+
+    // DFS pre-order parity. Like BFS, both implementations consume the
+    // same neighbour iteration order; equality holds on this fixture.
+    // The reverse-on-push step in `dfs.rs` matches upstream igraph's
+    // lazy-adjlist behaviour (see comment there).
+    assert_eq!(rust_order, py_order, "DFS visit order mismatch");
+}
+
+#[test]
+fn dfs_small_synthetic_matches_python_igraph() {
+    // Small handcrafted regression case from the AWU:
+    // edges (0,1)(0,2)(1,3) — caught the original neighbour-iteration
+    // direction mismatch when DFS first landed.
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 3).unwrap();
+
+    let rust_order = dfs(&g, 0).expect("rust dfs");
+    let py_order: Vec<u32> =
+        serde_json::from_value(run_ok("dfs", &g, serde_json::json!({"root": 0})))
+            .expect("decode python order");
+
+    assert_eq!(rust_order, py_order);
 }

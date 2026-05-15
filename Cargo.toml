@@ -47,6 +47,11 @@ name = "bench_bfs"
 path = "benches/bench_bfs.rs"
 harness = false
 
+[[bench]]
+name = "bench_dfs"
+path = "benches/bench_dfs.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

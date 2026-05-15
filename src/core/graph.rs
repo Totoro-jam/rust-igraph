@@ -176,22 +176,45 @@ impl Graph {
         self.check_vertex(v)?;
         let v_idx = v as usize;
         if self.directed {
-            // Directed: only outgoing neighbours (matches Phase-0 default).
-            let mut out = Vec::with_capacity((self.os[v_idx + 1] - self.os[v_idx]) as usize);
-            for &e in &self.oi[self.os[v_idx] as usize..self.os[v_idx + 1] as usize] {
-                out.push(self.to[e as usize]);
-            }
+            // Directed: only outgoing neighbours; oi sorted by (from, to)
+            // so the out-neighbour list is already sorted ascending.
+            let out_range = self.os[v_idx] as usize..self.os[v_idx + 1] as usize;
+            let out: Vec<VertexId> = self.oi[out_range]
+                .iter()
+                .map(|&e| self.to[e as usize])
+                .collect();
             Ok(out)
         } else {
-            // Undirected: out-neighbours + in-neighbours of the canonical edge list.
-            let out_range = self.os[v_idx] as usize..self.os[v_idx + 1] as usize;
-            let in_range = self.is[v_idx] as usize..self.is[v_idx + 1] as usize;
-            let mut out = Vec::with_capacity(out_range.len() + in_range.len());
-            for &e in &self.oi[out_range] {
-                out.push(self.to[e as usize]);
+            // Undirected: merge the two already-sorted sublists from oi
+            // (out-side, ascending in `to`) and ii (in-side, ascending
+            // in `from`) into one ascending neighbour list. Matches
+            // upstream `igraph_neighbors(_, _, _, IGRAPH_ALL)` and
+            // python-igraph's `Graph.neighbors(v)` exactly.
+            let out_start = self.os[v_idx] as usize;
+            let out_end = self.os[v_idx + 1] as usize;
+            let in_start = self.is[v_idx] as usize;
+            let in_end = self.is[v_idx + 1] as usize;
+            let mut out = Vec::with_capacity((out_end - out_start) + (in_end - in_start));
+            let mut out_idx = out_start;
+            let mut in_idx = in_start;
+            while out_idx < out_end && in_idx < in_end {
+                let a = self.to[self.oi[out_idx] as usize];
+                let b = self.from[self.ii[in_idx] as usize];
+                if a <= b {
+                    out.push(a);
+                    out_idx += 1;
+                } else {
+                    out.push(b);
+                    in_idx += 1;
+                }
             }
-            for &e in &self.ii[in_range] {
-                out.push(self.from[e as usize]);
+            while out_idx < out_end {
+                out.push(self.to[self.oi[out_idx] as usize]);
+                out_idx += 1;
+            }
+            while in_idx < in_end {
+                out.push(self.from[self.ii[in_idx] as usize]);
+                in_idx += 1;
             }
             Ok(out)
         }
@@ -309,7 +332,18 @@ impl Graph {
     }
 
     /// Recompute `oi`, `ii`, `os`, `is` from `from`/`to`. Called after
-    /// any structural change. O(|V| + |E|) via counting sort.
+    /// any structural change.
+    ///
+    /// Each side does a stable lexicographic sort: `oi` orders edges by
+    /// `(from[e], to[e])`, `ii` by `(to[e], from[e])`. Time complexity
+    /// is `O(|V| + |E| log |E|)` (Rust stable sort) — same asymptotic
+    /// as upstream's `igraph_vector_int_pair_order`.
+    ///
+    /// The within-bucket secondary sort matches upstream igraph; without
+    /// it, `neighbors(v)` for an unsorted-edge-input graph diverges from
+    /// `python-igraph`'s output and breaks DFS order parity. (Counted
+    /// for an oracle-test failure during ALGO-TR-002 — see
+    /// `tests/oracle.rs::dfs_small_synthetic_matches_python_igraph`.)
     ///
     /// Counterpart of `igraph_i_create_start_vectors` + the
     /// `igraph_vector_int_pair_order` calls in
@@ -318,55 +352,60 @@ impl Graph {
         let m = self.ecount();
         let n = self.n as usize;
 
-        // ---- Out-side indexing (oi sorts by from). ----
-        // Counting sort on `from`.
-        let mut bucket_out = vec![0u32; n + 1];
-        for &u in &self.from {
-            bucket_out[u as usize + 1] = bucket_out[u as usize + 1]
+        // Build (primary_key, secondary_key, edge_id) tuples for each
+        // side, sort them lexicographically, then extract edge ids and
+        // the offset array.
+
+        // ---- Out-side: sort by (from, to). ----
+        let mut tuples: Vec<(VertexId, VertexId, u32)> = (0..m)
+            .map(|e| {
+                Ok::<_, IgraphError>((
+                    self.from[e],
+                    self.to[e],
+                    u32::try_from(e)
+                        .map_err(|_| IgraphError::Internal("edge id exceeds u32::MAX"))?,
+                ))
+            })
+            .collect::<Result<_, _>>()?;
+        tuples.sort_unstable_by(|a, b| (a.0, a.1).cmp(&(b.0, b.1)));
+        self.oi = tuples.iter().map(|t| t.2).collect();
+        // os[v] = number of entries with primary_key < v.
+        self.os = vec![0u32; n + 1];
+        for &(u, _, _) in &tuples {
+            self.os[u as usize + 1] = self.os[u as usize + 1]
                 .checked_add(1)
                 .ok_or(IgraphError::Internal("degree overflow in rebuild_indexes"))?;
         }
         for i in 1..=n {
-            bucket_out[i] = bucket_out[i]
-                .checked_add(bucket_out[i - 1])
+            self.os[i] = self.os[i]
+                .checked_add(self.os[i - 1])
                 .ok_or(IgraphError::Internal("offset overflow in rebuild_indexes"))?;
         }
-        // bucket_out[v] now == number of edges with from < v == os[v].
-        self.os.clone_from(&bucket_out);
 
-        let mut oi = vec![0u32; m];
-        let mut cursor = bucket_out.clone();
-        for (e, &u) in self.from.iter().enumerate() {
-            let slot = cursor[u as usize] as usize;
-            oi[slot] =
-                u32::try_from(e).map_err(|_| IgraphError::Internal("edge id exceeds u32::MAX"))?;
-            cursor[u as usize] += 1;
-        }
-        self.oi = oi;
-
-        // ---- In-side indexing (ii sorts by to). ----
-        let mut bucket_in = vec![0u32; n + 1];
-        for &v in &self.to {
-            bucket_in[v as usize + 1] = bucket_in[v as usize + 1]
+        // ---- In-side: sort by (to, from). ----
+        let mut tuples: Vec<(VertexId, VertexId, u32)> = (0..m)
+            .map(|e| {
+                Ok::<_, IgraphError>((
+                    self.to[e],
+                    self.from[e],
+                    u32::try_from(e)
+                        .map_err(|_| IgraphError::Internal("edge id exceeds u32::MAX"))?,
+                ))
+            })
+            .collect::<Result<_, _>>()?;
+        tuples.sort_unstable_by(|a, b| (a.0, a.1).cmp(&(b.0, b.1)));
+        self.ii = tuples.iter().map(|t| t.2).collect();
+        self.is = vec![0u32; n + 1];
+        for &(v, _, _) in &tuples {
+            self.is[v as usize + 1] = self.is[v as usize + 1]
                 .checked_add(1)
                 .ok_or(IgraphError::Internal("degree overflow in rebuild_indexes"))?;
         }
         for i in 1..=n {
-            bucket_in[i] = bucket_in[i]
-                .checked_add(bucket_in[i - 1])
+            self.is[i] = self.is[i]
+                .checked_add(self.is[i - 1])
                 .ok_or(IgraphError::Internal("offset overflow in rebuild_indexes"))?;
         }
-        self.is.clone_from(&bucket_in);
-
-        let mut ii = vec![0u32; m];
-        let mut cursor = bucket_in;
-        for (e, &v) in self.to.iter().enumerate() {
-            let slot = cursor[v as usize] as usize;
-            ii[slot] =
-                u32::try_from(e).map_err(|_| IgraphError::Internal("edge id exceeds u32::MAX"))?;
-            cursor[v as usize] += 1;
-        }
-        self.ii = ii;
 
         Ok(())
     }

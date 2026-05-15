@@ -11,6 +11,26 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(traversal)* **ALGO-TR-002**: depth-first search (`dfs`). Pre-order
+  visit, single root, reachable component only. Counterpart of
+  `igraph_dfs()` in `references/igraph/src/graph/visitors.c:479`. Full
+  9-step AWU SOP run: 7 unit tests, 2 oracle tests against
+  python-igraph 0.11.x (synthetic 4-node + karate full match), 3-source
+  conformance (igraph C kary_tree(20,2) / python-igraph testDFS
+  Tree(10,2) / R-igraph make_star(3) directed), 2 proptest invariants
+  (no-duplicate visit, BFS/DFS reach the same set), criterion baseline
+  ≈ 1.84 µs on karate.
+- *(core)* `Graph::neighbors(v)` now returns neighbours sorted
+  ascending by id, matching upstream igraph's
+  `igraph_neighbors(_, _, _, IGRAPH_ALL)` and python-igraph's
+  `Graph.neighbors(v)`. Implementation: `rebuild_indexes` does a stable
+  pair-sort `(from, to)` (was counting-sort by `from` only), and the
+  undirected branch of `neighbors()` does a merge over the two
+  pre-sorted sublists. Caught by the DFS oracle test on the synthetic
+  4-vertex case during the AWU.
+- *(test-helper)* `tests/conformance.rs::build_graph` now honours
+  `payload.directed` (was always undirected). Caught by R's
+  `make_star(3)` DFS fixture.
 - *(core)* **ALGO-CORE-001b**: edge-id helpers and incident-edges query.
   `edge(eid)` / `edge_source(eid)` / `edge_target(eid)` / `edge_other(eid, vid)`
   / `incident(v)`. Counterparts of `igraph_edge` and the `IGRAPH_FROM` /

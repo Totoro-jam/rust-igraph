@@ -77,7 +77,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ID | Task | C source | Lines | Cx | Deps | Status | Commit | Bench | Conformance |
 |----|------|----------|-------|----|------|--------|--------|-------|-------------|
 | ALGO-TR-001 | BFS (full callback variant) | bfs.c | 300 | adapt | CORE-001 | partial | 5779a31 | 693 ns/karate | C:2 / py:1 / R:1 |
-| ALGO-TR-002 | DFS | dfs.c | 200 | adapt | CORE-001 | todo | - | - | - |
+| ALGO-TR-002 | DFS (single-root pre-order) | visitors.c:479 | 200 | adapt | CORE-001a/b | done | (next) | 1.84 µs/karate | C:1 / py:1 / R:1 |
 | ALGO-TR-003 | Random walk | random_walk.c | 340 | adapt | CORE-001 | todo | - | - | - |
 | ALGO-SP-001 | Dijkstra | distances_dijkstra*.c | 1235 | adapt | TR-001 | todo | - | - | - |
 | ALGO-SP-002 | Bellman-Ford | distances_bellman_ford*.c | 591 | adapt | TR-001 | todo | - | - | - |
@@ -110,7 +110,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 2 | 0 | ~83 | ~85 | - |
+| 1 | 3 | 0 | ~82 | ~85 | dfs: 3 (C:1, py:1, R:1) |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
 **Phase 0 — complete (37/37)**. **Phase 1 underway**: ALGO-CORE-001a +

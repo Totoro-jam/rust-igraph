@@ -33,6 +33,6 @@ pub mod core;
 
 // Top-level re-exports for the common case.
 pub use crate::algorithms::io::read_edgelist;
-pub use crate::algorithms::traversal::bfs;
+pub use crate::algorithms::traversal::{bfs, dfs};
 pub use crate::core::error::{IgraphError, IgraphResult};
 pub use crate::core::graph::{Graph, VertexId};

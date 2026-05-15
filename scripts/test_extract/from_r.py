@@ -32,6 +32,17 @@ def _ring(n: int) -> ig.Graph:
     return ig.Graph.Ring(n=n, directed=False, mutual=False, circular=True)
 
 
+def _star(n: int) -> ig.Graph:
+    # R's `make_star(n)` defaults to mode='in' (directed star with edges
+    # pointing INTO the centre) and centre = vertex 1 (R-1-indexed) =
+    # our vertex 0. The R test does `dfs(g, root=2, unreachable=FALSE)`
+    # whose `c(2, 1)` result depends on mode='in': from R-vertex-2 the
+    # only out-edge points to R-vertex-1 (the centre). With centre=0 in
+    # our 0-based world: vertex 1 has out-edge to vertex 0; vertex 0 has
+    # only IN edges, so DFS from root=1 visits [1, 0] and stops.
+    return ig.Graph.Star(n=n, mode="in", center=0)
+
+
 # Each entry mirrors one expect_equal in a testthat file. Vertex ids
 # translated from 1-based (R) to 0-based (Rust). Verify against upstream when
 # adding a row.
@@ -51,8 +62,26 @@ BFS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DFS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "structural_star3_root1",
+        "origin": (
+            "test-structural-properties.R:'dfs() does not pad order' "
+            "make_star(3) dfs(root=2, unreachable=FALSE) — "
+            "1-based c(2, 1) -> 0-based [1, 0]. With our centre=0 star "
+            "convention, R's vertex 2 is our vertex 1; the star centre "
+            "(R's vertex 1, our 0) is reached via the only edge from 1."
+        ),
+        "graph_factory": lambda: _star(3),
+        "algo": "dfs",
+        "params": {"root": 1},
+        "expected": [1, 0],
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
+    "dfs": DFS_MANIFEST,
 }
 
 

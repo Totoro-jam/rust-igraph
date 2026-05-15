@@ -62,35 +62,37 @@ fn load_all(algo: &str) -> Vec<(PathBuf, Conformance)> {
 }
 
 fn build_graph(payload: &GraphPayload) -> rust_igraph::Graph {
-    let mut g = rust_igraph::Graph::with_vertices(payload.n);
+    let mut g = rust_igraph::Graph::new(payload.n, payload.directed).expect("graph init");
     for &(u, v) in &payload.edges {
         g.add_edge(u, v).expect("edge in range");
     }
     g
 }
 
-#[test]
-fn bfs_three_source_conformance() {
-    let cases = load_all("bfs");
+/// Run every fixture under `tests/conformance/{c,py,r}/<algo>/` through
+/// `runner` and assert equality with the upstream expected value. Also
+/// asserts the per-AWU invariant that all three sources contribute at
+/// least one fixture (Phase-0 guarantee).
+fn run_conformance(algo: &str, runner: impl Fn(&rust_igraph::Graph, u32) -> Vec<u32>) {
+    let cases = load_all(algo);
     assert!(
         !cases.is_empty(),
-        "no BFS conformance fixtures found — did you run \
-         `.venv/bin/python -m scripts.test_extract.from_c --algo bfs` (and from_py / from_r)?"
+        "no {algo} conformance fixtures found — did you run \
+         `.venv/bin/python -m scripts.test_extract.from_c --algo {algo}` (and from_py / from_r)?"
     );
 
     let mut counts = std::collections::HashMap::<&'static str, usize>::new();
     for (path, case) in cases {
-        assert_eq!(case.algo, "bfs");
+        assert_eq!(case.algo, algo);
         let root = u32::try_from(
             case.params
                 .get("root")
                 .and_then(serde_json::Value::as_u64)
-                .expect("bfs param `root`"),
+                .expect("`root` param required"),
         )
         .expect("root fits in u32");
         let g = build_graph(&case.graph);
-        let actual = rust_igraph::bfs(&g, root)
-            .unwrap_or_else(|e| panic!("bfs failed for {}: {e:?}", path.display()));
+        let actual = runner(&g, root);
         let expected: Vec<u32> = serde_json::from_value(case.expected.clone())
             .unwrap_or_else(|e| panic!("expected vec<u32> in {}: {e}", path.display()));
         assert_eq!(
@@ -109,11 +111,20 @@ fn bfs_three_source_conformance() {
         };
         *counts.entry(key).or_default() += 1;
     }
-    // Phase 0 guarantee: at least one fixture from each of the three sources.
     for source in ["c", "py", "r"] {
         assert!(
             counts.get(source).copied().unwrap_or(0) > 0,
-            "no fixtures from source {source}"
+            "no {algo} fixtures from source {source}"
         );
     }
+}
+
+#[test]
+fn bfs_three_source_conformance() {
+    run_conformance("bfs", |g, root| rust_igraph::bfs(g, root).expect("bfs"));
+}
+
+#[test]
+fn dfs_three_source_conformance() {
+    run_conformance("dfs", |g, root| rust_igraph::dfs(g, root).expect("dfs"));
 }

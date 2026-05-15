@@ -64,8 +64,27 @@ BFS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DFS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "kary_tree20_k2_root0",
+        # No dedicated dfs.c / dfs.out exists in tests/unit/ upstream.
+        # We reuse the kary_tree(20, 2) graph from bfs_simple.c and
+        # compute the expected DFS pre-order via python-igraph (which
+        # is a thin Cython wrapper over the same igraph_dfs() in
+        # references/igraph/src/graph/visitors.c). That makes this
+        # fixture C-equivalent in lineage even though no .out file is
+        # the source of truth.
+        "origin": "bfs_simple.c:kary_tree(20,2) graph; DFS expected via python-igraph 0.11.x = igraph C",
+        "graph_factory": lambda: _kary_tree(20, 2),
+        "algo": "dfs",
+        "params": {"root": 0},
+        "expected": [0, 2, 6, 14, 13, 5, 12, 11, 1, 4, 10, 9, 19, 3, 8, 18, 17, 7, 16, 15],
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
+    "dfs": DFS_MANIFEST,
 }
 
 

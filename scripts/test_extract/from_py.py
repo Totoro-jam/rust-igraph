@@ -45,8 +45,22 @@ BFS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DFS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "test_iterators_testDFS_tree10_2",
+        "origin": "test_iterators.py:IteratorTests.testDFS Tree(10,2) dfs(0)",
+        "graph_factory": lambda: _tree(10, 2),
+        "algo": "dfs",
+        "params": {"root": 0},
+        # Verbatim from upstream test:
+        #   self.assertEqual(vs, [0, 2, 6, 5, 1, 4, 9, 3, 8, 7])
+        "expected": [0, 2, 6, 5, 1, 4, 9, 3, 8, 7],
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
+    "dfs": DFS_MANIFEST,
 }
 
 

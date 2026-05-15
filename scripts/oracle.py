@@ -56,6 +56,19 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         order, _layers, _parents = g.bfs(root)
         return list(order)
 
+    if algo == "dfs":
+        # Counterpart of igraph_dfs(). ALGO-TR-002 returns only the
+        # pre-order visit list (single root, unreachable=False).
+        # python-igraph's Graph.dfs returns (vids, parents) for the
+        # `mode='all'` default we use on undirected graphs. Convert
+        # the AttributeList to a plain list of ints.
+        root = int(params["root"])
+        result = g.dfs(root)
+        # Older python-igraph returns 2-tuple (vids, parents); newer
+        # may return more — guard by indexing.
+        order = result[0] if isinstance(result, tuple) else result
+        return [int(v) for v in order]
+
     raise NotImplementedError(f"oracle has no branch for algo={algo!r}")
 
 

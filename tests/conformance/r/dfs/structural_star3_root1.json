@@ -1,0 +1,27 @@
+{
+  "source": "r",
+  "origin": "test-structural-properties.R:'dfs() does not pad order' make_star(3) dfs(root=2, unreachable=FALSE) \u2014 1-based c(2, 1) -> 0-based [1, 0]. With our centre=0 star convention, R's vertex 2 is our vertex 1; the star centre (R's vertex 1, our 0) is reached via the only edge from 1.",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "dfs",
+  "params": {
+    "root": 1
+  },
+  "expected": [
+    1,
+    0
+  ]
+}

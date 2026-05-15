@@ -1,0 +1,12 @@
+{
+  "awu": "ALGO-TR-002",
+  "rust_karate_ns": 1841,
+  "rust_synthetic_n100_ns": null,
+  "rust_synthetic_n1000_ns": null,
+  "rust_synthetic_n10000_ns": null,
+  "py_karate_ns": null,
+  "py_synthetic_n1000_ns": null,
+  "captured_at": "2026-05-16",
+  "git_commit": "06e0474",
+  "notes": "Phase 1 DFS via src/algorithms/traversal/dfs.rs. Pre-order, single-root, no callbacks. ~2.7x slower than BFS on the same fixture (BFS = 693 ns) — expected given the Vec-allocation per-frame for the reversed neighbour list. Future optimisation: track cursor only and iterate `oi`/`ii` ranges in reverse without copying."
+}

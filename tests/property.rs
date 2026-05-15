@@ -41,6 +41,31 @@ proptest! {
         }
     }
 
+    /// DFS shares the same per-vertex invariants as BFS: every visited
+    /// vertex is in range, and no vertex is visited twice.
+    #[test]
+    fn dfs_visits_each_vertex_at_most_once(g in arb_graph(20)) {
+        let order = rust_igraph::dfs(&g, 0).expect("root 0 is valid for n>=1");
+        let mut sorted = order.clone();
+        sorted.sort_unstable();
+        sorted.dedup();
+        prop_assert_eq!(sorted.len(), order.len(), "duplicate vertex in DFS order");
+        for &v in &order {
+            prop_assert!(v < g.vcount(), "DFS produced an out-of-range vertex");
+        }
+    }
+
+    /// BFS and DFS reach the same set of vertices from the same root —
+    /// both compute the connected component (for undirected graphs).
+    #[test]
+    fn bfs_and_dfs_visit_the_same_set(g in arb_graph(15)) {
+        let bfs_set: std::collections::BTreeSet<u32> =
+            rust_igraph::bfs(&g, 0).unwrap().into_iter().collect();
+        let dfs_set: std::collections::BTreeSet<u32> =
+            rust_igraph::dfs(&g, 0).unwrap().into_iter().collect();
+        prop_assert_eq!(bfs_set, dfs_set);
+    }
+
     /// BFS-reachable set from `root` is symmetric on undirected graphs:
     /// `v` reachable from `0` ⇔ `0` reachable from `v`.
     #[test]
