@@ -24,12 +24,21 @@ pub struct GraphPayload {
 
 impl GraphPayload {
     pub fn from_graph(g: &rust_igraph::Graph) -> Self {
+        // Reconstruct the edge list by walking neighbors. After ALGO-CORE-001a
+        // (indexed-edgelist backend), an undirected self-loop is reported
+        // twice by neighbors(); divide the count to recover edge multiplicity.
         let mut edges: Vec<(u32, u32)> = Vec::new();
         for u in 0..g.vcount() {
-            for &v in g.neighbors(u).expect("vertex in range") {
-                if u <= v {
+            let mut self_loops = 0;
+            for v in g.neighbors(u).expect("vertex in range") {
+                if u == v {
+                    self_loops += 1;
+                } else if u < v {
                     edges.push((u, v));
                 }
+            }
+            for _ in 0..(self_loops / 2) {
+                edges.push((u, u));
             }
         }
         Self {

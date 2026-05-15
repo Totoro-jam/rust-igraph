@@ -44,7 +44,9 @@ pub fn bfs(graph: &Graph, root: VertexId) -> IgraphResult<Vec<VertexId>> {
     queue.push_back(root);
 
     while let Some(v) = queue.pop_front() {
-        for &w in graph.neighbors(v)? {
+        // `neighbors` returns Vec<VertexId> on the new indexed-edgelist
+        // backend (ALGO-CORE-001a); a contiguous slice is not free anymore.
+        for w in graph.neighbors(v)? {
             if !visited[w as usize] {
                 visited[w as usize] = true;
                 order.push(w);

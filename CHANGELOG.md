@@ -11,6 +11,31 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(core)* **ALGO-CORE-001a**: real `Graph` (replaces the Phase-0 throwaway
+  `Graph<u32>`). Indexed-edgelist storage matching upstream igraph's
+  `igraph_t` (`from`/`to`/`oi`/`ii`/`os`/`is`). New surface: `Graph::new(n,
+  directed)`, `is_directed()`. Phase-0 method signatures
+  (`with_vertices` / `add_edge` / `add_edges` / `vcount` / `ecount` /
+  `neighbors` / `degree`) preserved so existing callers compile unchanged.
+- *(core)* `Graph` derives `Clone` (deep) and `Default`.
+- *(core)* Phase-0 split for `igraph_t`: ALGO-CORE-001a..e tracked in
+  `.codefuse/tracking/ALGORITHMS.md`. Subsequent AWUs add `incident`,
+  edge-id helpers, deletion, edge-list queries, and the property cache.
+
+### Changed
+- *(core)* `Graph::neighbors(v)` now returns `Vec<VertexId>` instead of
+  `&[VertexId]`. The indexed-edgelist backend cannot offer a contiguous
+  slice cheaply (out-neighbours live in `to[oi[os[v]..os[v+1]]]`).
+  Iteration call sites no longer use the `&w` pattern; `for w in
+  graph.neighbors(v)?` is the new shape. Affects `bfs` and the test
+  helper in `tests/common/mod.rs`.
+- *(core)* `Graph::degree(v)` for undirected graphs now counts
+  self-loops as 2 (matching upstream `IGRAPH_LOOPS_TWICE` default at
+  `type_indexededgelist.c:1162`). Phase-0 counted them as 1.
+- *(test-helper)* `tests/common/mod.rs::GraphPayload::from_graph`
+  rebuilds the edge list from `neighbors()` correctly when self-loops are
+  present (was correct before only because `Graph::neighbors` returned a
+  single entry per self-loop; the new backend reports 2).
 - *(documentation)* `CHANGELOG.md` (Keep a Changelog 1.1.0).
 - *(documentation)* `SECURITY.md` — vulnerability reporting via GitHub
   Security Advisory or email. Slim, alpha-appropriate scope.

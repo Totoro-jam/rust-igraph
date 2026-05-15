@@ -60,8 +60,12 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 
 | ID | Task | C source | Lines | Cx | Deps | Status | Commit | Bench | Conformance |
 |----|------|----------|-------|----|------|--------|--------|-------|-------------|
-| ALGO-CORE-001 | Graph (igraph_t equivalent) | type_indexededgelist.c | 2013 | adapt | - | wip(skel) | 2ce55aa | - | - |
-| ALGO-CORE-010 | basic queries (vcount, ecount, degree, ...) | basic_query.c | 406 | copy | CORE-001 | partial | 2ce55aa | - | - |
+| ALGO-CORE-001a | Graph struct + new/with_vertices + add_{vertices,edges,edge} + vcount/ecount/is_directed + neighbors/degree + Clone | type_indexededgelist.c (lines 99-413, 829-1265) | ~700 | adapt | - | done | (next) | - | - |
+| ALGO-CORE-001b | incident + edge-id helpers (IGRAPH_FROM/TO/OTHER) | type_indexededgelist.c (lines 1775-1947) | ~250 | adapt | CORE-001a | todo | - | - | - |
+| ALGO-CORE-001c | delete_edges + delete_vertices + delete_vertices_map | type_indexededgelist.c (lines 500-825) | ~400 | adapt | CORE-001a | todo | - | - | - |
+| ALGO-CORE-001d | edge/edges + get_eid/get_eids/get_all_eids_between | type_indexededgelist.c (lines 1522-1773) | ~250 | adapt | CORE-001a | todo | - | - | - |
+| ALGO-CORE-001e | is_same_graph + property cache subsystem | type_indexededgelist.c + cache_*.c | ~200 | adapt | CORE-001a..d | todo | - | - | - |
+| ALGO-CORE-010 | basic queries (vcount, ecount, degree, ...) | basic_query.c | 406 | copy | CORE-001a | partial | 2ce55aa | - | - |
 | ALGO-DS-V-001..030 | Vector / VectorInt / VectorBool | vector.c | ~2500 | adapt | - | todo | - | - | - |
 | ALGO-DS-M-001..020 | Matrix / MatrixInt | matrix.c | ~1500 | adapt | - | todo | - | - | - |
 | ALGO-DS-S-001..010 | SparseMatrix CSR/CSC | sparsemat.c | 3251 | rewrite | - | todo | - | - | - |
@@ -106,10 +110,12 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 0 | 1 | 7 | ~80 | - |
+| 1 | 1 | 0 | ~84 | ~85 | - |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. Next: Phase 1 entry via
-`/awu-start ALGO-CORE-001` (real `igraph_t`-equivalent Graph).
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: ALGO-CORE-001a
+(real igraph_t equivalent) merged. Next: ALGO-CORE-001b (incident +
+edge-id helpers) or ALGO-DS-V-001 (Vector wrapper) — both unblock
+multiple downstream AWUs.
 
 > Update the counters after every PR merge.
