@@ -10,11 +10,10 @@ Cargo.lock
 references/*
 !references/README.md
 
-# Claude Code config
-# settings.json is generated per-clone from settings.json.sample (committed).
-# settings.local.json holds personal grants. Both are gitignored to stop the
-# IDE-auto-edit churn — see CONTRIBUTING.md "Claude Code settings".
-.claude/settings.json
+# Claude Code: only the per-machine local file is gitignored.
+# .claude/settings.json IS committed (Anthropic's intended pattern); the
+# pre-commit hook in .githooks/ blocks accidental noise from auto-allow
+# grants. See CONTRIBUTING.md "Claude Code settings" for the discipline.
 .claude/settings.local.json
 
 # Direnv / shell

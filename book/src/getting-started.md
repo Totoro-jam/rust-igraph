@@ -35,5 +35,7 @@ cargo test -p igraph --features oracle-tests --test oracle
   planned, in what order, with what trade-offs.
 - [`.codefuse/tracking/ALGORITHMS.md`](../../.codefuse/tracking/ALGORITHMS.md)
   — per-algorithm status; this is where new contributions get listed.
-- [`CONTRIBUTING.md`](../../CONTRIBUTING.md) — the AWU workflow and the
+- [`DEVELOPMENT.md`](../../DEVELOPMENT.md) — the AWU workflow and the
   one-time setup steps.
+- [`CONTRIBUTING.md`](../../CONTRIBUTING.md) — alpha-stage external
+  contribution policy (currently: not accepting external PRs).

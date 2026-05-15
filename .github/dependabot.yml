@@ -1,0 +1,45 @@
+# Dependabot — https://docs.github.com/en/code-security/dependabot
+#
+# Three ecosystems are watched:
+# - cargo (the crate's own deps + dev-deps)
+# - github-actions (workflows under .github/workflows/)
+# - pip (the venv used by the live oracle, pinned in scripts/requirements.txt)
+
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    # Group lockstep updates so the bot opens one PR for non-breaking patches.
+    groups:
+      cargo-minor-and-patch:
+        update-types: ["minor", "patch"]
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - rust
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      gha-minor-and-patch:
+        update-types: ["minor", "patch"]
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - ci
+
+  - package-ecosystem: pip
+    directory: "/scripts"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+      - python

@@ -42,7 +42,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | BOOT-19..22 | templates/ (algo, test, oracle, bench) | done | (next) |
 | BOOT-23 | ALGORITHMS.md (this file) | done | 8d688d8 |
 | BOOT-24 | ARCHITECTURE.md | done | (next) |
-| BOOT-25 | CONTRIBUTING.md (AWU workflow + PR conventions) | done | (next) |
+| BOOT-25 | DEVELOPMENT.md (maintainer setup + AWU SOP) + CONTRIBUTING.md (alpha external policy) | done | (next) |
 | BOOT-26 | mdBook docs scaffold | done | (next) |
 | BOOT-27 | scripts/bench_compare.py (perf baseline) | done | (next) |
 | BOOT-28 | RESUME.md (part-time resumability) | done | (next) |

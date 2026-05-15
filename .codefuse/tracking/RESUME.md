@@ -42,7 +42,8 @@ present-you across an unknown gap.**
 **What's still pending in Phase 0** (not blocking any AWU):
 - BOOT-19..22: 4 templates under `templates/` — DONE in this session.
 - BOOT-24: ARCHITECTURE.md (ADR index) — DONE in this session.
-- BOOT-25: CONTRIBUTING.md — DONE in this session.
+- BOOT-25: DEVELOPMENT.md (maintainer setup + AWU SOP) + minimal CONTRIBUTING.md
+  (alpha-stage external policy) — DONE in this session.
 - BOOT-26: mdBook scaffold — TODO (CI already publishes rustdoc).
 - BOOT-27: scripts/bench_compare.py — DONE in this session.
 - BOOT-28: this RESUME.md — DONE.

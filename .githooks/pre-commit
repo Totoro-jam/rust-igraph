@@ -49,11 +49,11 @@ cat >&2 <<EOF
 pre-commit BLOCKED: .claude/settings.json gained new permissions.allow
 entries since HEAD.
 
-  $FILE is team-shared and committed. Per CONTRIBUTING.md, new "Always
+  $FILE is team-shared and committed. Per DEVELOPMENT.md, new "Always
   allow" grants belong in .claude/settings.local.json (gitignored).
 
 New entries in this commit:
-$(printf '  - %s\n' $ADDED)
+$(echo "$ADDED" | sed 's/^/  - /')
 
 What to do:
   1. Open $FILE

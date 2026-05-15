@@ -252,7 +252,7 @@ WASM 验证目标：`cargo check --target wasm32-unknown-unknown --no-default-fe
 - [ ] `cargo bench` 至少 1 个 baseline 基准跑通（BFS）
 - [ ] ALGORITHMS.md 创建并填入完整 AWU 编号表（状态全部 `todo` 除 BFS）
 - [ ] templates/ 下 4 个模板文件就绪（algo.rs.tpl / test.rs.tpl / oracle.py.tpl / bench.rs.tpl）
-- [ ] CONTRIBUTING.md 描述 AWU 工作流
+- [ ] DEVELOPMENT.md 描述 AWU 工作流（CONTRIBUTING.md 是 alpha 阶段对外声明）
 - [ ] mdBook 文档站编译并部署到 GitHub Pages（或本地 build 通过）
 
 ### 3.2 Phase 0 任务清单（编号 BOOT-NN）
@@ -283,7 +283,7 @@ WASM 验证目标：`cargo check --target wasm32-unknown-unknown --no-default-fe
 | BOOT-22 | 模板：`templates/bench.rs.tpl` | novel | 0.5h | BOOT-13 |
 | BOOT-23 | `.codefuse/tracking/ALGORITHMS.md`（带全部 ALGO-NNN 编号、初始状态 todo） | novel | 3h | - |
 | BOOT-24 | `.codefuse/tracking/ARCHITECTURE.md`（关键决策与 ADR 索引） | novel | 1h | - |
-| BOOT-25 | CONTRIBUTING.md（AWU 工作流、PR 模板、commit 规范） | novel | 1.5h | BOOT-19, BOOT-23 |
+| BOOT-25 | DEVELOPMENT.md（AWU 工作流、PR 模板、commit 规范）+ minimal CONTRIBUTING.md（alpha 阶段对外声明） | novel | 1.5h | BOOT-19, BOOT-23 |
 | BOOT-26 | mdBook 骨架（src/SUMMARY.md、第一章 "Hello rust-igraph"） | novel | 1h | - |
 | BOOT-27 | 性能基线脚本：`scripts/bench_compare.py`（criterion JSON + python-igraph 时间对比） | novel | 2h | BOOT-13 |
 | BOOT-28 | session 恢复指南：`.codefuse/tracking/RESUME.md`（兼职断档后如何继续） | novel | 0.5h | BOOT-25 |

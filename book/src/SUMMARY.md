@@ -16,7 +16,8 @@
 
 # Contributing
 
-- [Contributing](../../CONTRIBUTING.md)
+- [Contributing (alpha policy)](../../CONTRIBUTING.md)
+- [Development notes](../../DEVELOPMENT.md)
 - [AI workflow](../../CLAUDE.md)
 - [Resume after a break](../../.codefuse/tracking/RESUME.md)
 

@@ -1,9 +1,19 @@
 # rust-igraph
 
+[![crates.io](https://img.shields.io/crates/v/rust-igraph.svg?label=crates.io)](https://crates.io/crates/rust-igraph)
+[![docs.rs](https://img.shields.io/docsrs/rust-igraph?label=docs.rs)](https://docs.rs/rust-igraph)
+[![CI](https://github.com/Totoro-jam/rust-igraph/actions/workflows/ci.yml/badge.svg)](https://github.com/Totoro-jam/rust-igraph/actions/workflows/ci.yml)
+[![License: GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
+[![MSRV](https://img.shields.io/badge/MSRV-1.85-orange.svg)](Cargo.toml)
+
 A pure-Rust port of [igraph](https://igraph.org/) — the network analysis library.
 Targets full API parity with igraph C v1.0.x (~850 public functions).
 
-> **Status**: Phase 0 (walking skeleton). Not yet usable as a library. See [docs/plans/MASTER_PLAN.md](docs/plans/MASTER_PLAN.md).
+> **Status**: `0.0.1-alpha.0` — Phase 0 walking skeleton; only `Graph`,
+> `read_edgelist`, and `bfs` ship. Not yet usable as a library. See
+> [docs/plans/MASTER_PLAN.md](docs/plans/MASTER_PLAN.md) for the roadmap
+> and [.codefuse/tracking/ALGORITHMS.md](.codefuse/tracking/ALGORITHMS.md)
+> for per-algorithm progress.
 
 ## Goals
 

@@ -4,7 +4,10 @@
 rust-igraph/
 ├── Cargo.toml                         workspace root
 ├── CLAUDE.md                          project-level rules for AI agents
-├── CONTRIBUTING.md                    setup + AWU workflow
+├── CONTRIBUTING.md                    alpha-stage external policy
+├── DEVELOPMENT.md                     setup + AWU workflow (maintainer notes)
+├── CHANGELOG.md                       Keep a Changelog
+├── SECURITY.md                        vulnerability reporting
 ├── LICENSE                            GPL-2.0-or-later
 ├── README.md                          high-level overview
 ├── deny.toml                          cargo-deny: license + security policy
