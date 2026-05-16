@@ -161,6 +161,20 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+RECIP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "reciprocity_undirected_is_one",
+        # Per upstream: undirected graphs have reciprocity 1.0 unconditionally.
+        "origin": "undirected graphs: reciprocity = 1.0 by definition",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "reciprocity",
+        "params": {},
+        "expected": 1.0,
+    },
+]
+
 REACH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "count_reachable_R_path_3_undirected",
@@ -413,6 +427,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mean_distance": MEANDIST_MANIFEST,
     "eulerian_path": EUL_PATH_MANIFEST,
     "count_reachable": REACH_MANIFEST,
+    "reciprocity": RECIP_MANIFEST,
 }
 
 

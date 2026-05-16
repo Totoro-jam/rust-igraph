@@ -90,6 +90,20 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+RECIP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "reciprocity_mutual_pair",
+        # Two mutual edges 0<->1: reciprocity 1.0.
+        "origin": "constructed: mutual pair — reciprocity 1.0",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (1, 0)], directed=True
+        ),
+        "algo": "reciprocity",
+        "params": {},
+        "expected": 1.0,
+    },
+]
+
 REACH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "count_reachable_two_components",
@@ -311,6 +325,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
     "count_reachable": REACH_MANIFEST,
+    "reciprocity": RECIP_MANIFEST,
 }
 
 

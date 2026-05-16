@@ -1,0 +1,22 @@
+{
+  "source": "py",
+  "origin": "constructed: mutual pair \u2014 reciprocity 1.0",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "reciprocity",
+  "params": {},
+  "expected": 1.0
+}

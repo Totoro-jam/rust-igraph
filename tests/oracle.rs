@@ -13,7 +13,7 @@ use common::{OracleResponse, run_ok};
 use rust_igraph::{
     Graph, articulation_points, bfs, bridges, connected_components, count_reachable,
     count_triangles, density, dfs, diameter, distances, eccentricity, girth, is_biconnected,
-    mean_distance, radius, read_edgelist, strongly_connected_components,
+    mean_distance, radius, read_edgelist, reciprocity, strongly_connected_components,
     transitivity_local_undirected, transitivity_undirected,
 };
 
@@ -516,6 +516,24 @@ fn count_reachable_directed_chain_matches_python_igraph() {
         .expect("decode python count_reachable");
     assert_eq!(rust, py);
     assert_eq!(rust, vec![4, 3, 2, 1]);
+}
+
+#[test]
+fn reciprocity_directed_chain_with_partial_back_matches_python_igraph() {
+    // 0 -> 1, 1 -> 0, 0 -> 2: 3 edges, 2 reciprocal → 2/3.
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 0).unwrap();
+    g.add_edge(0, 2).unwrap();
+    let rust_r = reciprocity(&g).unwrap();
+    let py_r: Option<f64> =
+        serde_json::from_value(run_ok("reciprocity", &g, serde_json::json!({})))
+            .expect("decode python reciprocity");
+    match (rust_r, py_r) {
+        (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "rust={r} py={p}"),
+        (None, None) => {}
+        (a, b) => panic!("rust={a:?} py={b:?}"),
+    }
 }
 
 #[test]

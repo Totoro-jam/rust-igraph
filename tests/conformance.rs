@@ -258,6 +258,17 @@ fn transitivity_local_undirected_three_source_conformance() {
 }
 
 #[test]
+fn reciprocity_three_source_conformance() {
+    run_conformance("reciprocity", |g, _params| {
+        let r = rust_igraph::reciprocity(g).expect("reciprocity");
+        match r {
+            Some(v) => serde_json::json!(v),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
 fn count_reachable_three_source_conformance() {
     run_conformance("count_reachable", |g, _params| {
         let r = rust_igraph::count_reachable(g).expect("count_reachable");

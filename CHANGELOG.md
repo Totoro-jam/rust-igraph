@@ -11,6 +11,18 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-004**: reciprocity (`reciprocity`). Returns
+  `Option<f64>` — `None` for graphs with no edges (matches upstream's
+  `IGRAPH_NAN`), `Some(1.0)` for undirected graphs (by definition),
+  otherwise (number of edges with a reverse counterpart) / (total edges).
+  Counterpart of `igraph_reciprocity(_, _, false, IGRAPH_RECIPROCITY_DEFAULT)`
+  from `references/igraph/src/properties/basic_properties.c:325`.
+  Two-pointer merge over sorted in/out neighbour lists per vertex.
+  Self-loops counted as mutual (matches `ignore_loops=false`).
+  9-step SOP minus bench: 8 unit tests, 1 oracle test (3v partial
+  reciprocity → 2/3), 3 three-source conformance fixtures.
+  Ratio mode + `ignore_loops=true` ship as PR-004b.
+
 - *(paths)* **ALGO-CC-042**: directed Eulerian path/cycle construction.
   Folded into the existing `eulerian_path` function — directed graphs
   now use out-edges only, traverse via `edge_target` (always points

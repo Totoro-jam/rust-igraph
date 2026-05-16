@@ -106,6 +106,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-002b | Local transitivity per-vertex (`transitivity_local_undirected`) | properties/triangles.c:330+185-280 | ~150 | adapt | PR-002 | done | (next) | (shares PR-002 baseline) | C:1 / py:1 / R:1 |
 | ALGO-PR-002c | Barrat weighted transitivity | properties/triangles.c:632 | ~150 | adapt | PR-002b | todo | - | - | - |
 | ALGO-PR-003 | Density + mean shortest-path length (unweighted) | basic_properties.c:71, shortest_paths.c:329 | ~150 | adapt | SP-006 | done | (next) | density O(1); mean_distance ≈ ecc | C:2 / py:2 / R:2 |
+| ALGO-PR-004 | Reciprocity (default mode) | basic_properties.c:325 | ~80 | adapt | - | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
+| ALGO-PR-004b | Reciprocity ratio mode + ignore_loops | basic_properties.c:325 | ~30 | adapt | PR-004 | todo | - | - | - |
 
 ## Phase 3 — Centrality + Eigensolver (~65 AWU)
 
@@ -124,18 +126,18 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 18 | 0 | ~67 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3 |
+| 1 | 19 | 0 | ~66 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 18/85 done — Graph
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 19/85 done — Graph
 core (CORE-001a/b), DFS (TR-002), weak CC (CC-001), strong CC (CC-002),
 unweighted distances (SP-006), Eulerian existence (CC-040), articulation
 points (CC-010), bridges (CC-014), is_biconnected (CC-013), girth
 (PR-001), eccentricity/radius/diameter (SP-020), triangle count + global
 transitivity (PR-002), local transitivity per-vertex (PR-002b), density +
 mean_distance (PR-003), Eulerian path/cycle construction undirected +
-directed (CC-041 + CC-042), reachability counts (CC-020). Next options:
-SP-001 (Dijkstra), CC-011 (full biconnected components), TR-001 (full
-BFS callback variant), PR-002c (Barrat), assortativity.
+directed (CC-041 + CC-042), reachability counts (CC-020), reciprocity
+(PR-004). Next options: SP-001 (Dijkstra), CC-011 (full biconnected
+components), TR-001 (full BFS callback variant), PR-002c (Barrat).
 
 > Update the counters after every PR merge.

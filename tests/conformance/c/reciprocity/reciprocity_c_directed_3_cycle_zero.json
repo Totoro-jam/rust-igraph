@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "directed 3-cycle has no reciprocal edges \u2192 0.0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "reciprocity",
+  "params": {},
+  "expected": 0.0
+}

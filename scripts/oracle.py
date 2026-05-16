@@ -89,6 +89,18 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         # triangle. Length of that list is the count.
         return len(g.list_triangles())
 
+    if algo == "reciprocity":
+        # Counterpart of igraph_reciprocity(_, _, /*ignore_loops=*/false,
+        # IGRAPH_RECIPROCITY_DEFAULT). python-igraph's `Graph.reciprocity(
+        # ignore_loops=False, mode='default')` returns NaN for graphs
+        # with no edges; we encode that as None.
+        if g.ecount() == 0:
+            return None
+        v = g.reciprocity(ignore_loops=False, mode="default")
+        if v != v:
+            return None
+        return float(v)
+
     if algo == "count_reachable":
         # Counterpart of igraph_count_reachable(_, _, IGRAPH_OUT).
         # python-igraph 0.11 has no direct count_reachable, but

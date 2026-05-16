@@ -119,6 +119,19 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+RECIP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "reciprocity_c_directed_3_cycle_zero",
+        "origin": "directed 3-cycle has no reciprocal edges → 0.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "reciprocity",
+        "params": {},
+        "expected": 0.0,
+    },
+]
+
 REACH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "count_reachable_c_directed_chain",
@@ -488,6 +501,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mean_distance": MEANDIST_MANIFEST,
     "eulerian_path": EUL_PATH_MANIFEST,
     "count_reachable": REACH_MANIFEST,
+    "reciprocity": RECIP_MANIFEST,
 }
 
 

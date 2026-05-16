@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "undirected graphs: reciprocity = 1.0 by definition",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "reciprocity",
+  "params": {},
+  "expected": 1.0
+}
