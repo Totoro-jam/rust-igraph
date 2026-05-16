@@ -5,4 +5,4 @@ pub mod girth;
 pub mod triangles;
 
 pub use girth::girth;
-pub use triangles::{count_triangles, transitivity_undirected};
+pub use triangles::{count_triangles, transitivity_local_undirected, transitivity_undirected};

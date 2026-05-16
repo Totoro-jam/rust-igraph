@@ -40,7 +40,9 @@ pub use crate::algorithms::io::read_edgelist;
 pub use crate::algorithms::paths::{
     EulerianClassification, diameter, distances, eccentricity, is_eulerian, radius,
 };
-pub use crate::algorithms::properties::{count_triangles, girth, transitivity_undirected};
+pub use crate::algorithms::properties::{
+    count_triangles, girth, transitivity_local_undirected, transitivity_undirected,
+};
 pub use crate::algorithms::traversal::{bfs, dfs};
 pub use crate::core::error::{IgraphError, IgraphResult};
 pub use crate::core::graph::{Graph, VertexId};

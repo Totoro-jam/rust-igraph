@@ -1,0 +1,31 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-vertex star \u2014 centre 0.0, leaves None (deg<2)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "transitivity_local_undirected",
+  "params": {},
+  "expected": [
+    0.0,
+    null,
+    null,
+    null
+  ]
+}

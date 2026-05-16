@@ -89,6 +89,13 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         # triangle. Length of that list is the count.
         return len(g.list_triangles())
 
+    if algo == "transitivity_local_undirected":
+        # Counterpart of igraph_transitivity_local_undirected(_, _, igraph_vss_all(),
+        # IGRAPH_TRANSITIVITY_NAN). python-igraph returns a list of floats (NaN for
+        # degree<2). Map NaN to None for `Vec<Option<f64>>` parity.
+        vals = g.transitivity_local_undirected(mode="nan")
+        return [None if (v != v) else float(v) for v in vals]
+
     if algo == "transitivity_undirected":
         # Counterpart of igraph_transitivity_undirected(_, &result, IGRAPH_TRANSITIVITY_NAN).
         # python-igraph returns NaN if there are no connected triples;

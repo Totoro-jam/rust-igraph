@@ -11,6 +11,23 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-002b**: local transitivity per-vertex
+  (`transitivity_local_undirected`). Returns `Vec<Option<f64>>` —
+  `None` when a vertex has simple-degree < 2 (matches upstream's
+  `IGRAPH_TRANSITIVITY_NAN` mode). Counterpart of
+  `igraph_transitivity_local_undirected()` from
+  `references/igraph/src/properties/triangles.c:369`.
+  Implementation reuses the PR-002 acyclic-orientation triangle scan
+  but tallies `+1` to all three vertices on each detected triangle,
+  divided afterwards by `d * (d - 1) / 2` per vertex.
+  Full 9-step SOP: 4 unit tests (triangle / star / isolated /
+  diamond), 1 oracle test on karate (with 1e-12 tolerance to absorb
+  JSON f64 round-trip), 3 three-source conformance fixtures (igraph C
+  K4 → all 1.0; python-igraph star → centre 0, leaves None; R triangle
+  → all 1.0), 1 proptest invariant (sum of per-vertex triangle counts
+  equals `3 * total_triangles`), no separate bench (shares PR-002's
+  helper).
+
 - *(properties)* **ALGO-PR-002**: triangle count + global transitivity
   (`count_triangles`, `transitivity_undirected`). Counterparts of
   `igraph_count_triangles()` and `igraph_transitivity_undirected()` from

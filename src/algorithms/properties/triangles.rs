@@ -75,6 +75,114 @@ pub fn transitivity_undirected(graph: &Graph) -> IgraphResult<Option<f64>> {
     Ok(Some(t))
 }
 
+/// Local transitivity (clustering coefficient) per vertex.
+///
+/// For vertex `v` with simple-degree `d` and `t` adjacent triangles,
+/// returns `2t / (d * (d - 1))`. `None` when `d < 2` (no closed triple
+/// possible — upstream's `IGRAPH_TRANSITIVITY_NAN` mode); use
+/// `result.iter().map(|o| o.unwrap_or(0.0))` for `IGRAPH_TRANSITIVITY_ZERO`
+/// behaviour.
+///
+/// Counterpart of `igraph_transitivity_local_undirected()` from
+/// `references/igraph/src/properties/triangles.c:369`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, transitivity_local_undirected};
+///
+/// // Triangle: every vertex has clustering 1.0.
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// assert_eq!(
+///     transitivity_local_undirected(&g).unwrap(),
+///     vec![Some(1.0), Some(1.0), Some(1.0)],
+/// );
+///
+/// // Star centre: 3 neighbours but 0 triangles → 0.0.
+/// // Leaves: degree 1 → None (no closed triple possible).
+/// let mut g = Graph::with_vertices(4);
+/// for v in 1..4 { g.add_edge(0, v).unwrap(); }
+/// let r = transitivity_local_undirected(&g).unwrap();
+/// assert_eq!(r, vec![Some(0.0), None, None, None]);
+/// ```
+pub fn transitivity_local_undirected(graph: &Graph) -> IgraphResult<Vec<Option<f64>>> {
+    let n = graph.vcount();
+    let n_us = n as usize;
+    let (per_vertex_triangles, simple_degrees) = per_vertex_triangle_stats(graph)?;
+    let mut out: Vec<Option<f64>> = Vec::with_capacity(n_us);
+    for v in 0..n_us {
+        let d = simple_degrees[v];
+        if d < 2 {
+            out.push(None);
+            continue;
+        }
+        let t = per_vertex_triangles[v];
+        // d ≤ n ≤ 2^32; t ≤ n^2; both fit in f64 exactly for any
+        // graph that survives u32 vertex ids in practice.
+        #[allow(clippy::cast_precision_loss)]
+        let val = 2.0 * (t as f64) / ((d as f64) * ((d - 1) as f64));
+        out.push(Some(val));
+    }
+    Ok(out)
+}
+
+/// Adjacent-triangle count per vertex (length `vcount`) plus the simple
+/// degree (no loops, no multi) of each vertex.
+fn per_vertex_triangle_stats(graph: &Graph) -> IgraphResult<(Vec<u64>, Vec<u64>)> {
+    let n = graph.vcount();
+    let n_us = n as usize;
+
+    let mut adj: Vec<Vec<VertexId>> = Vec::with_capacity(n_us);
+    for v in 0..n {
+        let raw = graph.neighbors(v)?;
+        let mut simple: Vec<VertexId> = raw.into_iter().filter(|&u| u != v).collect();
+        simple.sort_unstable();
+        simple.dedup();
+        adj.push(simple);
+    }
+
+    let degrees: Vec<u64> = adj.iter().map(|nei| nei.len() as u64).collect();
+    let mut tri_counts: Vec<u64> = vec![0; n_us];
+    let mut mark: Vec<u32> = vec![0; n_us];
+
+    for v1 in 0..n {
+        let nei1 = &adj[v1 as usize];
+        if nei1.len() < 2 {
+            continue;
+        }
+        let v1_mark = v1
+            .checked_add(1)
+            .ok_or(IgraphError::Internal("vertex id overflow"))?;
+        for &v2 in nei1 {
+            if v2 >= v1 {
+                break;
+            }
+            mark[v2 as usize] = v1_mark;
+        }
+        for &v2 in nei1 {
+            if v2 >= v1 {
+                break;
+            }
+            let nei2 = &adj[v2 as usize];
+            for &v3 in nei2 {
+                if v3 >= v2 {
+                    break;
+                }
+                if mark[v3 as usize] == v1_mark {
+                    tri_counts[v1 as usize] += 1;
+                    tri_counts[v2 as usize] += 1;
+                    tri_counts[v3 as usize] += 1;
+                }
+            }
+        }
+    }
+
+    Ok((tri_counts, degrees))
+}
+
 fn triangles_and_triples(graph: &Graph) -> IgraphResult<(u64, u64)> {
     let n = graph.vcount();
     let n_us = n as usize;
@@ -243,6 +351,60 @@ mod tests {
         assert_eq!(count_triangles(&g).unwrap(), 2);
         // Each component contributes 3 triples → 6 triples, 2 triangles → 1.0.
         assert_eq!(transitivity_undirected(&g).unwrap(), Some(1.0));
+    }
+
+    #[test]
+    fn local_transitivity_triangle_is_all_ones() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        assert_eq!(
+            transitivity_local_undirected(&g).unwrap(),
+            vec![Some(1.0), Some(1.0), Some(1.0)]
+        );
+    }
+
+    #[test]
+    fn local_transitivity_star_centre_zero_leaves_none() {
+        let mut g = Graph::with_vertices(4);
+        for v in 1..4 {
+            g.add_edge(0, v).unwrap();
+        }
+        assert_eq!(
+            transitivity_local_undirected(&g).unwrap(),
+            vec![Some(0.0), None, None, None]
+        );
+    }
+
+    #[test]
+    fn local_transitivity_isolated_vertices_all_none() {
+        let g = Graph::with_vertices(3);
+        assert_eq!(
+            transitivity_local_undirected(&g).unwrap(),
+            vec![None, None, None]
+        );
+    }
+
+    #[test]
+    fn local_transitivity_diamond_per_vertex() {
+        // K4 minus edge (0,3). Adjacent triangles per vertex: 0→1, 1→2, 2→2, 3→1.
+        // Simple degrees: 0→2, 1→3, 2→3, 3→2.
+        // Expected: 2*1/(2*1)=1.0; 2*2/(3*2)=2/3; 2*2/(3*2)=2/3; 2*1/(2*1)=1.0.
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let r = transitivity_local_undirected(&g).unwrap();
+        assert_eq!(r[0], Some(1.0));
+        assert_eq!(r[3], Some(1.0));
+        // 2/3 isn't exactly representable; compare via approximate equality
+        // with f64 epsilon (matches python-igraph's exact computation).
+        let two_thirds = 2.0_f64 / 3.0;
+        assert_eq!(r[1], Some(two_thirds));
+        assert_eq!(r[2], Some(two_thirds));
     }
 
     #[test]

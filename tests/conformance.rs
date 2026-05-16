@@ -199,6 +199,21 @@ fn radius_three_source_conformance() {
 }
 
 #[test]
+fn transitivity_local_undirected_three_source_conformance() {
+    run_conformance("transitivity_local_undirected", |g, _params| {
+        let v = rust_igraph::transitivity_local_undirected(g).expect("local transitivity");
+        let arr: Vec<serde_json::Value> = v
+            .into_iter()
+            .map(|o| match o {
+                Some(x) => serde_json::json!(x),
+                None => serde_json::Value::Null,
+            })
+            .collect();
+        serde_json::Value::Array(arr)
+    });
+}
+
+#[test]
 fn count_triangles_three_source_conformance() {
     run_conformance("count_triangles", |g, _params| {
         let n = rust_igraph::count_triangles(g).expect("count_triangles");

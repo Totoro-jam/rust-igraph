@@ -154,6 +154,42 @@ proptest! {
         }
     }
 
+    /// Local transitivity sum equals 3 * (count_triangles divided by ...).
+    /// The simpler invariant: sum of (per-vertex adjacent-triangle count)
+    /// over all vertices equals 3 * total triangles. We back this out by
+    /// pulling per-vertex `t = clustering * d * (d - 1) / 2` from the
+    /// clustering vector and degrees.
+    #[test]
+    fn local_transitivity_back_solves_to_total_triangles(g in arb_graph(8)) {
+        let local = rust_igraph::transitivity_local_undirected(&g).unwrap();
+        let total = rust_igraph::count_triangles(&g).unwrap();
+
+        // Sum per-vertex triangle counts. For deg<2 (None entries) the
+        // contribution is 0.
+        let mut sum_per_vertex_triangles: f64 = 0.0;
+        for v in 0..g.vcount() {
+            // Compute simple-degree.
+            let raw = g.neighbors(v).unwrap();
+            let mut simple: Vec<u32> = raw.into_iter().filter(|&u| u != v).collect();
+            simple.sort_unstable();
+            simple.dedup();
+            let d = u32::try_from(simple.len()).expect("simple-degree fits in u32 for proptest");
+            if let Some(c) = local[v as usize] {
+                let pairs = f64::from(d) * f64::from(d.saturating_sub(1)) / 2.0;
+                sum_per_vertex_triangles += c * pairs;
+            }
+        }
+        // Each undirected triangle contributes +1 to three vertices' counts,
+        // so the sum is 3 * triangles. Allow a small float tolerance.
+        #[allow(clippy::cast_precision_loss)]
+        let expected = 3.0 * (total as f64);
+        prop_assert!(
+            (sum_per_vertex_triangles - expected).abs() < 1e-9,
+            "sum local triangles {} != 3 * total {}",
+            sum_per_vertex_triangles, expected
+        );
+    }
+
     /// Triangle count / transitivity coherence: transitivity equals
     /// `3 * triangles / triples`. Triples can be brute-forced as
     /// `sum_v C(deg_simple(v), 2)`. Triangle count must be ≤ triples / 3.

@@ -13,7 +13,7 @@ use common::{OracleResponse, run_ok};
 use rust_igraph::{
     Graph, articulation_points, bfs, bridges, connected_components, count_triangles, dfs, diameter,
     distances, eccentricity, girth, is_biconnected, radius, read_edgelist,
-    strongly_connected_components, transitivity_undirected,
+    strongly_connected_components, transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -437,6 +437,31 @@ fn count_triangles_and_transitivity_karate_match_python_igraph() {
     // Both impls compute 3 * triangles / triples on the same graph; the
     // operands are integers, so the f64 result is exactly representable.
     assert_eq!(rust_t, py_t);
+}
+
+#[test]
+fn transitivity_local_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+
+    let rust = transitivity_local_undirected(&g).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok(
+        "transitivity_local_undirected",
+        &g,
+        serde_json::json!({}),
+    ))
+    .expect("decode python local transitivity");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(rr), Some(pp)) => {
+                assert!((rr - pp).abs() < 1e-12, "vertex {i}: rust={rr} python={pp}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} python={b:?}"),
+        }
+    }
 }
 
 #[test]

@@ -161,6 +161,20 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+LTRANS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "transitivity_local_R_triangle",
+        # test-aaa-auto.R-style: a triangle has clustering 1.0 at each vertex.
+        "origin": "R-style — triangle has clustering 1.0 at each vertex",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "transitivity_local_undirected",
+        "params": {},
+        "expected": [1.0, 1.0, 1.0],
+    },
+]
+
 TRANS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_undirected_R_path3",
@@ -337,6 +351,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "radius": RAD_MANIFEST,
     "count_triangles": TRI_MANIFEST,
     "transitivity_undirected": TRANS_MANIFEST,
+    "transitivity_local_undirected": LTRANS_MANIFEST,
 }
 
 

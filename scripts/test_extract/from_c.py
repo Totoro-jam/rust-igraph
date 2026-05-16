@@ -119,6 +119,18 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+LTRANS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "transitivity_local_c_K4",
+        # K4: every vertex has clustering 1.0.
+        "origin": "K4 — every vertex has 2 neighbours that are adjacent → 1.0",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "transitivity_local_undirected",
+        "params": {},
+        "expected": [1.0, 1.0, 1.0, 1.0],
+    },
+]
+
 TRANS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_undirected_c_zachary",
@@ -407,6 +419,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "radius": RAD_MANIFEST,
     "count_triangles": TRI_MANIFEST,
     "transitivity_undirected": TRANS_MANIFEST,
+    "transitivity_local_undirected": LTRANS_MANIFEST,
 }
 
 

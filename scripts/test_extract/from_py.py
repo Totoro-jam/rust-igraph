@@ -90,6 +90,20 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+LTRANS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "transitivity_local_star",
+        # Star: centre has clustering 0; leaves have None (degree<2).
+        "origin": "constructed: 4-vertex star — centre 0.0, leaves None (deg<2)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "transitivity_local_undirected",
+        "params": {},
+        "expected": [0.0, None, None, None],
+    },
+]
+
 TRANS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_diamond_K4_minus_edge",
@@ -253,6 +267,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "radius": RAD_MANIFEST,
     "count_triangles": TRI_MANIFEST,
     "transitivity_undirected": TRANS_MANIFEST,
+    "transitivity_local_undirected": LTRANS_MANIFEST,
 }
 
 
