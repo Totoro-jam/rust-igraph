@@ -44,6 +44,6 @@ pub use crate::algorithms::properties::{
     count_triangles, density, girth, mean_distance, reciprocity, transitivity_local_undirected,
     transitivity_undirected,
 };
-pub use crate::algorithms::traversal::{bfs, dfs};
+pub use crate::algorithms::traversal::{BfsTree, bfs, bfs_tree, dfs};
 pub use crate::core::error::{IgraphError, IgraphResult};
 pub use crate::core::graph::{Graph, VertexId};

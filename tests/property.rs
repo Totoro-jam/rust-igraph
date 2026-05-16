@@ -154,6 +154,37 @@ proptest! {
         }
     }
 
+    /// `bfs_tree` consistency: order matches `bfs`, distances match
+    /// `distances`, parents form a valid tree (`parents[parents[v]] != v`
+    /// is implied by tree structure), and `parents[v] is Some` iff `v`
+    /// is reachable and not the root.
+    #[test]
+    fn bfs_tree_is_consistent_with_bfs_and_distances(g in arb_graph(10)) {
+        let r = rust_igraph::bfs_tree(&g, 0).unwrap();
+        let order = rust_igraph::bfs(&g, 0).unwrap();
+        let dist = rust_igraph::distances(&g, 0).unwrap();
+        prop_assert_eq!(&r.order, &order);
+        prop_assert_eq!(&r.distances, &dist);
+        // Root has no parent; reachable non-root has a parent; unreachable has None.
+        prop_assert_eq!(r.parents[0], None);
+        for v in 1..g.vcount() {
+            let dv = r.distances[v as usize];
+            let pv = r.parents[v as usize];
+            match (dv, pv) {
+                (Some(_), Some(p)) => {
+                    prop_assert!(p < g.vcount(), "parent out of range");
+                    // The parent should be one step closer to the root.
+                    let dp = r.distances[p as usize].expect("parent must be reachable");
+                    prop_assert!(dp + 1 == dv.unwrap(),
+                                 "parent({})={} dist({}) != dist({}) - 1", v, p, p, v);
+                }
+                (None, None) => {}
+                (a, b) => prop_assert!(false,
+                                       "vertex {}: dist={:?} but parent={:?}", v, a, b),
+            }
+        }
+    }
+
     /// Reachability counts: every vertex reaches at least itself
     /// (count[v] >= 1) and at most vcount() vertices. For undirected
     /// graphs, count[v] equals the size of v's connected component.

@@ -1,13 +1,95 @@
 //! Breadth-first search.
 //!
 //! Counterpart of `igraph_bfs()` from `references/igraph/src/properties/bfs.c`.
-//! Phase 0 ships the simplest variant: from one root, returning the visit
-//! order. Full callback-driven BFS (vids/layers/parents/dist/order/pred/succ)
-//! lands in `ALGO-TR-001`.
+//! - Phase 0 [`bfs`]: simplest variant, returns the visit order.
+//! - Phase 1 [`bfs_tree`] (ALGO-TR-001): full multi-output variant,
+//!   returns the visit order + per-vertex distance + BFS-tree parent.
 
 use std::collections::VecDeque;
 
 use crate::core::{Graph, IgraphResult, VertexId};
+
+/// Result of a multi-output BFS scan from a single root. Returned by
+/// [`bfs_tree`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BfsTree {
+    /// Vertices reachable from the root, in BFS visit order.
+    pub order: Vec<VertexId>,
+    /// `distances[v] == Some(d)` if `v` is reachable from the root in
+    /// `d` edges (`d == 0` for the root); `None` if unreachable.
+    pub distances: Vec<Option<u32>>,
+    /// `parents[v] == Some(p)` if `v` was BFS-discovered via `p`; `None`
+    /// for the root and for unreachable vertices.
+    pub parents: Vec<Option<VertexId>>,
+}
+
+/// Multi-output BFS from `root`. Returns visit order, per-vertex
+/// distances, and per-vertex BFS-tree parent in a single pass.
+///
+/// Counterpart of `igraph_bfs(_, root, _, _, &order, _, &father, &dist, _, _)`
+/// — the common subset of the upstream callback-driven variant.
+///
+/// For directed graphs traversal follows out-edges (matching upstream's
+/// `IGRAPH_OUT` mode default). Errors if `root` is out of range.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, bfs_tree};
+///
+/// // Tree:
+/// //     0
+/// //    / \
+/// //   1   2
+/// //   |
+/// //   3
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(1, 3).unwrap();
+///
+/// let r = bfs_tree(&g, 0).unwrap();
+/// assert_eq!(r.order, vec![0, 1, 2, 3]);
+/// assert_eq!(r.distances, vec![Some(0), Some(1), Some(1), Some(2)]);
+/// assert_eq!(r.parents, vec![None, Some(0), Some(0), Some(1)]);
+/// ```
+pub fn bfs_tree(graph: &Graph, root: VertexId) -> IgraphResult<BfsTree> {
+    graph.neighbors(root)?; // surface VertexOutOfRange
+
+    let n = graph.vcount();
+    let n_us = n as usize;
+    let mut distances: Vec<Option<u32>> = vec![None; n_us];
+    let mut parents: Vec<Option<VertexId>> = vec![None; n_us];
+    let mut order: Vec<VertexId> = Vec::with_capacity(n_us);
+    let mut queue: VecDeque<VertexId> = VecDeque::new();
+
+    distances[root as usize] = Some(0);
+    order.push(root);
+    queue.push_back(root);
+
+    while let Some(v) = queue.pop_front() {
+        let v_dist = distances[v as usize].expect("dequeued vertex is visited");
+        let next_dist = v_dist
+            .checked_add(1)
+            .ok_or(crate::core::IgraphError::Internal(
+                "BFS distance overflow (graph diameter exceeds u32::MAX)",
+            ))?;
+        for w in graph.neighbors(v)? {
+            if distances[w as usize].is_none() {
+                distances[w as usize] = Some(next_dist);
+                parents[w as usize] = Some(v);
+                order.push(w);
+                queue.push_back(w);
+            }
+        }
+    }
+
+    Ok(BfsTree {
+        order,
+        distances,
+        parents,
+    })
+}
 
 /// Visit order of vertices reachable from `root`, in BFS order.
 ///
@@ -130,5 +212,65 @@ mod tests {
             }
             other => panic!("unexpected error: {other:?}"),
         }
+    }
+
+    #[test]
+    fn bfs_tree_returns_full_state_for_a_tree() {
+        // Star centred at 0, leaves 1, 2, 3.
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        let r = bfs_tree(&g, 0).unwrap();
+        assert_eq!(r.order, vec![0, 1, 2, 3]);
+        assert_eq!(r.distances, vec![Some(0), Some(1), Some(1), Some(1)]);
+        assert_eq!(r.parents, vec![None, Some(0), Some(0), Some(0)]);
+    }
+
+    #[test]
+    fn bfs_tree_path_5_is_chain() {
+        let g = path_graph(5);
+        let r = bfs_tree(&g, 0).unwrap();
+        assert_eq!(r.order, vec![0, 1, 2, 3, 4]);
+        assert_eq!(
+            r.distances,
+            vec![Some(0), Some(1), Some(2), Some(3), Some(4)]
+        );
+        assert_eq!(r.parents, vec![None, Some(0), Some(1), Some(2), Some(3)]);
+    }
+
+    #[test]
+    fn bfs_tree_unreachable_vertices_have_none() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        // 2 and 3 isolated.
+        let r = bfs_tree(&g, 0).unwrap();
+        assert_eq!(r.order, vec![0, 1]);
+        assert_eq!(r.distances, vec![Some(0), Some(1), None, None]);
+        assert_eq!(r.parents, vec![None, Some(0), None, None]);
+    }
+
+    #[test]
+    fn bfs_tree_invalid_root_errors() {
+        let g = Graph::with_vertices(3);
+        assert!(bfs_tree(&g, 7).is_err());
+    }
+
+    #[test]
+    fn bfs_tree_directed_uses_out_edges() {
+        // 0 -> 1 -> 2, 1 -> 3: from 0, all 4 reachable.
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        let r = bfs_tree(&g, 0).unwrap();
+        assert_eq!(r.distances, vec![Some(0), Some(1), Some(2), Some(2)]);
+        assert_eq!(r.parents[0], None);
+        assert_eq!(r.parents[1], Some(0));
+        assert_eq!(r.parents[2], Some(1));
+        assert_eq!(r.parents[3], Some(1));
+        // From vertex 2, only 2 is reachable (no out-edges).
+        let r2 = bfs_tree(&g, 2).unwrap();
+        assert_eq!(r2.order, vec![2]);
     }
 }

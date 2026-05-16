@@ -76,7 +76,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 
 | ID | Task | C source | Lines | Cx | Deps | Status | Commit | Bench | Conformance |
 |----|------|----------|-------|----|------|--------|--------|-------|-------------|
-| ALGO-TR-001 | BFS (full callback variant) | bfs.c | 300 | adapt | CORE-001 | partial | 5779a31 | 693 ns/karate | C:2 / py:1 / R:1 |
+| ALGO-TR-001 | BFS multi-output (`bfs_tree`: order + distances + parents) | bfs.c | 300 | adapt | CORE-001 | done | (next) | (BFS + bookkeeping) | C:2 / py:1 / R:1 (Phase 0 BFS fixtures cover) |
 | ALGO-TR-002 | DFS (single-root pre-order) | visitors.c:479 | 200 | adapt | CORE-001a/b | done | (next) | 1.84 µs/karate | C:1 / py:1 / R:1 |
 | ALGO-TR-003 | Random walk | random_walk.c | 340 | adapt | CORE-001 | todo | - | - | - |
 | ALGO-SP-001 | Dijkstra | distances_dijkstra*.c | 1235 | adapt | TR-001 | todo | - | - | - |
@@ -126,10 +126,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 19 | 0 | ~66 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3 |
+| 1 | 20 | 0 | ~65 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3 (TR-001 inherits BFS fixtures) |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 19/85 done — Graph
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 20/85 done — Graph
 core (CORE-001a/b), DFS (TR-002), weak CC (CC-001), strong CC (CC-002),
 unweighted distances (SP-006), Eulerian existence (CC-040), articulation
 points (CC-010), bridges (CC-014), is_biconnected (CC-013), girth
@@ -137,7 +137,8 @@ points (CC-010), bridges (CC-014), is_biconnected (CC-013), girth
 transitivity (PR-002), local transitivity per-vertex (PR-002b), density +
 mean_distance (PR-003), Eulerian path/cycle construction undirected +
 directed (CC-041 + CC-042), reachability counts (CC-020), reciprocity
-(PR-004). Next options: SP-001 (Dijkstra), CC-011 (full biconnected
-components), TR-001 (full BFS callback variant), PR-002c (Barrat).
+(PR-004), BFS multi-output (TR-001 `bfs_tree`). Next options: SP-001
+(Dijkstra), CC-011 (full biconnected components), assortativity_degree,
+PR-002c (Barrat).
 
 > Update the counters after every PR merge.

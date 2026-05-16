@@ -11,6 +11,20 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(traversal)* **ALGO-TR-001**: multi-output BFS (`bfs_tree`). Returns
+  `BfsTree { order, distances, parents }` in a single pass — the visit
+  order, per-vertex distance from the root, and the BFS-tree parent
+  pointer (None for root and unreachable vertices). Counterpart of the
+  common subset of `igraph_bfs(_, root, _, _, &order, _, &father,
+  &dist, _, _)` from `references/igraph/src/properties/bfs.c`. Existing
+  `bfs` (visit order only) and `distances` (single-purpose) remain;
+  callers that want both plus parents can now avoid duplicate BFS work.
+  9-step SOP minus separate conformance: 5 unit tests, 1 proptest
+  invariant (consistency: bfs_tree.order == bfs(); distances match
+  SP-006; parent[v] is one step closer to root for all reachable v).
+  Inherits the Phase-0 BFS conformance fixtures via the proptest
+  consistency invariant.
+
 - *(properties)* **ALGO-PR-004**: reciprocity (`reciprocity`). Returns
   `Option<f64>` — `None` for graphs with no edges (matches upstream's
   `IGRAPH_NAN`), `Some(1.0)` for undirected graphs (by definition),
