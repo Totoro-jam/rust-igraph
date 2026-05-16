@@ -147,6 +147,20 @@ EUL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+GIRTH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "girth_R_make_ring_100",
+        # test-structural-properties.R:'girth() works' make_ring(100) → 100.
+        "origin": "test-structural-properties.R:'girth() works' — make_ring(100) → girth 100",
+        "graph_factory": lambda: ig.Graph.Ring(
+            n=100, directed=False, mutual=False, circular=True
+        ),
+        "algo": "girth",
+        "params": {},
+        "expected": 100,
+    },
+]
+
 ISBI_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_biconnected_path_3",
@@ -240,6 +254,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "articulation_points": AP_MANIFEST,
     "bridges": BRIDGE_MANIFEST,
     "is_biconnected": ISBI_MANIFEST,
+    "girth": GIRTH_MANIFEST,
 }
 
 

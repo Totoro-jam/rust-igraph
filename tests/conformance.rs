@@ -180,6 +180,19 @@ fn strongly_connected_components_three_source_conformance() {
 }
 
 #[test]
+fn girth_three_source_conformance() {
+    run_conformance("girth", |g, _params| {
+        let g_val = rust_igraph::girth(g).expect("girth");
+        // Map `Option<u32>` to JSON `null` / integer for stable comparison
+        // with the fixtures (which encode `inf` as JSON null).
+        match g_val {
+            Some(n) => serde_json::json!(n),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
 fn is_biconnected_three_source_conformance() {
     run_conformance("is_biconnected", |g, _params| {
         let r = rust_igraph::is_biconnected(g).expect("is_biconnected");

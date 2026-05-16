@@ -11,8 +11,8 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
-    Graph, articulation_points, bfs, bridges, connected_components, dfs, distances, is_biconnected,
-    read_edgelist, strongly_connected_components,
+    Graph, articulation_points, bfs, bridges, connected_components, dfs, distances, girth,
+    is_biconnected, read_edgelist, strongly_connected_components,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -326,6 +326,73 @@ fn is_biconnected_matches_python_igraph_on_several_graphs() {
         assert_eq!(rust, py, "rust vs python disagreed on graph");
         assert_eq!(rust, expected, "rust mismatch with expected");
     }
+}
+
+#[test]
+fn girth_matches_python_igraph_on_several_graphs() {
+    // Triangle (3), 4-cycle (4), 5-cycle (5), tree (None).
+    let cases: Vec<(rust_igraph::Graph, Option<u32>)> = vec![
+        (
+            {
+                let mut g = Graph::with_vertices(3);
+                g.add_edge(0, 1).unwrap();
+                g.add_edge(1, 2).unwrap();
+                g.add_edge(2, 0).unwrap();
+                g
+            },
+            Some(3),
+        ),
+        (
+            {
+                let mut g = Graph::with_vertices(4);
+                for i in 0..4u32 {
+                    g.add_edge(i, (i + 1) % 4).unwrap();
+                }
+                g
+            },
+            Some(4),
+        ),
+        (
+            {
+                let mut g = Graph::with_vertices(5);
+                for i in 0..5u32 {
+                    g.add_edge(i, (i + 1) % 5).unwrap();
+                }
+                g
+            },
+            Some(5),
+        ),
+        (
+            {
+                let mut g = Graph::with_vertices(4);
+                g.add_edge(0, 1).unwrap();
+                g.add_edge(1, 2).unwrap();
+                g.add_edge(2, 3).unwrap();
+                g
+            },
+            None,
+        ),
+    ];
+    for (g, expected) in cases {
+        let rust = girth(&g).unwrap();
+        let py: Option<u32> = serde_json::from_value(run_ok("girth", &g, serde_json::json!({})))
+            .expect("decode python girth");
+        assert_eq!(rust, py, "rust vs python disagreed on a girth case");
+        assert_eq!(rust, expected, "rust mismatch with expected");
+    }
+}
+
+#[test]
+fn girth_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let rust = girth(&g).unwrap();
+    let py: Option<u32> = serde_json::from_value(run_ok("girth", &g, serde_json::json!({})))
+        .expect("decode python girth");
+    assert_eq!(rust, py);
+    // Karate has many triangles → girth 3.
+    assert_eq!(rust, Some(3));
 }
 
 #[test]

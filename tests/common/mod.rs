@@ -139,7 +139,9 @@ pub fn run<P: Serialize>(algo: &str, graph: &rust_igraph::Graph, params: P) -> O
 }
 
 /// Convenience wrapper: panic if the oracle reports failure, else return the
-/// JSON value of `result`.
+/// JSON value of `result`. A `null` result is a valid value (returned as
+/// `serde_json::Value::Null`) — algorithms like `girth` use it to encode
+/// "no cycle" / "infinity".
 pub fn run_ok<P: Serialize>(
     algo: &str,
     graph: &rust_igraph::Graph,
@@ -151,5 +153,8 @@ pub fn run_ok<P: Serialize>(
         "oracle reported failure: {:?}",
         resp.error.unwrap_or_default()
     );
-    resp.result.expect("oracle ok response missing result")
+    // serde_json deserialises `result: null` as `Option<Value>::None`;
+    // a missing `result` key would also be `None`. Treat both as JSON Null
+    // so call sites can decode `Option<T>` directly.
+    resp.result.unwrap_or(serde_json::Value::Null)
 }

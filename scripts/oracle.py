@@ -65,6 +65,15 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         cc = g.connected_components(mode="weak")
         return {"membership": list(cc.membership), "count": len(cc)}
 
+    if algo == "girth":
+        # Counterpart of igraph_girth(_, &result, NULL). python-igraph
+        # returns float('inf') for acyclic graphs; we encode that as None
+        # to match the Rust `Option<u32>` shape.
+        v = g.girth()
+        if v == float("inf"):
+            return None
+        return int(v)
+
     if algo == "is_biconnected":
         # Counterpart of igraph_is_biconnected(_, &result).
         return bool(g.is_biconnected())

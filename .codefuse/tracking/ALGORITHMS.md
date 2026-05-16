@@ -98,6 +98,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-CC-030..032 | Percolation | percolation.c | 404 | adapt | - | todo | - | - | - |
 | ALGO-CC-040 | Eulerian existence (`is_eulerian`) | eulerian.c:333 (incl. directed/undirected helpers) | ~280 | adapt | CC-001 | done | (next) | 4.7 µs/karate | C:3 / py:0 / R:2 (py skipped — see CONFORMANCE.md) |
 | ALGO-CC-041..042 | Eulerian path/cycle construction (Hierholzer) | eulerian.c:345-682 | ~400 | adapt | CC-040 | todo | - | - | - |
+| ALGO-PR-001 | Girth (shortest cycle length) | properties/girth.c:73 | ~200 | adapt | CC-001 | done | (next) | 2.6 µs/karate | C:2 / py:1 / R:1 |
 
 ## Phase 3 — Centrality + Eigensolver (~65 AWU)
 
@@ -116,15 +117,16 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 10 | 0 | ~75 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1); scc: 4 (C:2, py:1, R:1); distances: 3 (C:1, py:1, R:1); is_eulerian: 5 (C:3, py:0, R:2); articulation: 3 (C:1, py:1, R:1); bridges: 4 (C:2, py:1, R:1); is_biconnected: 4 (C:2, py:1, R:1) |
+| 1 | 11 | 0 | ~74 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1); scc: 4 (C:2, py:1, R:1); distances: 3 (C:1, py:1, R:1); is_eulerian: 5 (C:3, py:0, R:2); articulation: 3 (C:1, py:1, R:1); bridges: 4 (C:2, py:1, R:1); is_biconnected: 4 (C:2, py:1, R:1); girth: 4 (C:2, py:1, R:1) |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 10/85 done — Graph
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 11/85 done — Graph
 core (CORE-001a/b), DFS (TR-002), weak CC (CC-001), strong CC (CC-002),
 unweighted distances (SP-006), Eulerian existence (CC-040), articulation
-points (CC-010), bridges (CC-014), is_biconnected (CC-013). Next options:
-SP-001 (Dijkstra; needs weighted-edge extension to Graph), CC-003
-(decompose), CC-011 (full biconnected components — vertex/edge sets),
-CC-041/042 (Eulerian path/cycle construction via Hierholzer).
+points (CC-010), bridges (CC-014), is_biconnected (CC-013), girth
+(PR-001). Next options: SP-001 (Dijkstra; needs weighted-edge extension
+to Graph), CC-003 (decompose), CC-011 (full biconnected components —
+vertex/edge sets), CC-041/042 (Eulerian path/cycle construction via
+Hierholzer).
 
 > Update the counters after every PR merge.

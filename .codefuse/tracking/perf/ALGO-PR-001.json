@@ -1,0 +1,9 @@
+{
+  "awu": "ALGO-PR-001",
+  "rust_karate_ns": 2595,
+  "rust_ring_100_ns": 79381,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-16",
+  "git_commit": "713ea6b",
+  "notes": "Phase 1 girth via src/algorithms/properties/girth.rs. Itai-Rodeh BFS-from-every-vertex with early termination once a triangle is found. Karate 2.6 µs — graph is small and a triangle is found on the first start vertex (BFS-3-layer scan); ring-100 is the worst case (BFS from every vertex up to half the cycle length) at 79 µs ≈ 800 ns/vertex. Per-vertex Vec alloc in neighbors() pre-cache + per-start vector zeroing is the main overhead; addressable by a future neighbours-as-slice API + arena-allocated state."
+}

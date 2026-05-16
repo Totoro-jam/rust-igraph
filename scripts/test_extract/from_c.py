@@ -105,6 +105,32 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+GIRTH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "girth_c_ring100_with_chord_0_50",
+        # examples/simple/igraph_girth.c lines 25-43: ring(100) + chord 0-50
+        # → expected girth 51 (chord shortcut creates a 51-cycle).
+        "origin": "examples/simple/igraph_girth.c — ring(100) plus chord (0,50); expected girth 51",
+        "graph_factory": lambda: ig.Graph.Ring(
+            n=100, directed=False, mutual=False, circular=True
+        )
+        + [(0, 50)],
+        "algo": "girth",
+        "params": {},
+        "expected": 51,
+    },
+    {
+        "case": "girth_c_null_graph_infinity",
+        # examples/simple/igraph_girth.c lines 45-57: ring(0) → IGRAPH_INFINITY.
+        # We encode that as null in JSON / None in Rust.
+        "origin": "examples/simple/igraph_girth.c — null graph yields IGRAPH_INFINITY",
+        "graph_factory": lambda: ig.Graph(n=0, edges=[], directed=False),
+        "algo": "girth",
+        "params": {},
+        "expected": None,
+    },
+]
+
 ISBI_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_biconnected_c_two_triangles_share_vertex_2",
@@ -294,6 +320,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "articulation_points": AP_MANIFEST,
     "bridges": BRIDGE_MANIFEST,
     "is_biconnected": ISBI_MANIFEST,
+    "girth": GIRTH_MANIFEST,
 }
 
 

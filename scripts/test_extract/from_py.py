@@ -76,6 +76,21 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+GIRTH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "girth_petersen_like_pentagon",
+        # python-igraph's Famous("Petersen") is too big for a fixture;
+        # use a 5-cycle which trivially has girth 5.
+        "origin": "constructed: 5-cycle via python-igraph; girth = 5",
+        "graph_factory": lambda: ig.Graph.Ring(
+            n=5, directed=False, mutual=False, circular=True
+        ),
+        "algo": "girth",
+        "params": {},
+        "expected": 5,
+    },
+]
+
 ISBI_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_biconnected_k4",
@@ -160,6 +175,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "articulation_points": AP_MANIFEST,
     "bridges": BRIDGE_MANIFEST,
     "is_biconnected": ISBI_MANIFEST,
+    "girth": GIRTH_MANIFEST,
 }
 
 

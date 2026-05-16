@@ -11,6 +11,26 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-001**: girth (`girth`). Returns `Option<u32>` —
+  `None` for acyclic graphs (mapped from upstream's `IGRAPH_INFINITY`),
+  `Some(k)` for the shortest cycle length. Counterpart of
+  `igraph_girth()` from `references/igraph/src/properties/girth.c:73`.
+  Itai-Rodeh BFS-from-every-vertex with early termination on triangle
+  (girth = 3). Self-loops and parallel edges ignored.
+  Full 9-step SOP: 12 unit tests (empty / singleton / isolated / tree
+  / triangle / 4-cycle / pentagon / K4 / self-loop / parallel-edges /
+  two-components / pendant), 2 oracle tests against python-igraph 0.11
+  (small sweep + karate), 4 three-source conformance fixtures
+  (igraph C examples/simple/igraph_girth.c ring(100)+chord and
+  null-graph; python-igraph 5-cycle; R `test-structural-properties.R`
+  make_ring(100)), 1 proptest bounds-and-forest invariant, criterion
+  baseline ≈ 2.6 µs on karate, ≈ 79 µs on ring-100 (worst case).
+  New top-level module `src/algorithms/properties/`.
+- *(test-helpers)* `tests/common::run_ok` now returns `Value::Null` when
+  the oracle's `result` field is JSON `null` (previously panicked via
+  `Option::expect`). First needed by girth's "no cycle" → `null` wire
+  format; future `Option<T>`-returning AWUs benefit automatically.
+
 - *(connectivity)* **ALGO-CC-013**: `is_biconnected`. Returns `bool`.
   Counterpart of `igraph_is_biconnected()` from
   `references/igraph/src/connectivity/components.c:1254-1379`.

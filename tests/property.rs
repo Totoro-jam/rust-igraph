@@ -154,6 +154,45 @@ proptest! {
         }
     }
 
+    /// Girth lower bound: if `girth(g) == Some(k)`, no BFS tree from any
+    /// vertex can find a cycle shorter than k. We sanity-check that the
+    /// reported girth is consistent with each vertex's BFS depth — every
+    /// neighbour pair (u, v) on the same BFS level L from some root forces
+    /// `girth <= 2L + 1`, neighbours on adjacent levels force `girth <= 2L`.
+    /// (Equivalently: girth ≤ shortest cycle found by Itai-Rodeh BFS from
+    /// any vertex, which is exactly what the algorithm computes.)
+    /// Bounded brute-force: just check the result is plausible — `girth >= 3`
+    /// (no loops/multi-edges count) and `<= vcount`.
+    #[test]
+    fn girth_is_within_bounds(g in arb_graph(8)) {
+        let n = g.vcount();
+        if let Some(k) = rust_igraph::girth(&g).unwrap() {
+            prop_assert!(k >= 3, "girth {} is too small (loops/multi shouldn't count)", k);
+            prop_assert!(k <= n, "girth {} exceeds vcount {}", k, n);
+        }
+        // Acyclic graph (a forest): girth must be None.
+        // Cheap check via edge-count: a forest has at most `n - components`
+        // edges. We use cc to detect this.
+        let cc = rust_igraph::connected_components(&g).unwrap();
+        // Filter out loops/parallels — actual cycles are independent of them.
+        let mut simple_edges: std::collections::BTreeSet<(u32, u32)> =
+            std::collections::BTreeSet::new();
+        let m = u32::try_from(g.ecount()).expect("edge count fits in u32");
+        for e in 0..m {
+            let (u, v) = g.edge(e).unwrap();
+            if u == v { continue; }
+            simple_edges.insert(if u < v { (u, v) } else { (v, u) });
+        }
+        // Tree-edge count = n - components. If equal, the graph is a forest
+        // and has no cycles.
+        let simple_count = u32::try_from(simple_edges.len())
+            .expect("simple edge count fits in u32 for proptest");
+        if simple_count + cc.count == n {
+            prop_assert_eq!(rust_igraph::girth(&g).unwrap(), None,
+                            "forest reported girth Some");
+        }
+    }
+
     /// `is_biconnected` consistency: a graph with vcount >= 3 is biconnected
     /// iff `connected_components.count == 1` AND `articulation_points` is
     /// empty. (Two-vertex and trivial cases excluded — they have their own

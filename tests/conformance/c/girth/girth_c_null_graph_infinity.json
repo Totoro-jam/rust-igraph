@@ -1,0 +1,13 @@
+{
+  "source": "c",
+  "origin": "examples/simple/igraph_girth.c \u2014 null graph yields IGRAPH_INFINITY",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "girth",
+  "params": {},
+  "expected": null
+}
