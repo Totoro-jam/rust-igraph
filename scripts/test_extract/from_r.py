@@ -161,6 +161,22 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+KNN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knn_R_star_4",
+        # Star with centre 0 and 3 leaves: centre's neighbours have degree 1
+        # each → knn[0] = 1. Leaves' single neighbour (centre) has deg 3 →
+        # knn[leaf] = 3.
+        "origin": "constructed (R-style): star-3 knn = [1, 3, 3, 3]",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "avg_nearest_neighbor_degree",
+        "params": {},
+        "expected": [1.0, 3.0, 3.0, 3.0],
+    },
+]
+
 RECIP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_undirected_is_one",
@@ -428,6 +444,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "eulerian_path": EUL_PATH_MANIFEST,
     "count_reachable": REACH_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
+    "avg_nearest_neighbor_degree": KNN_MANIFEST,
 }
 
 

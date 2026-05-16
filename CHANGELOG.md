@@ -11,6 +11,20 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-005**: average nearest-neighbour degree
+  (`avg_nearest_neighbor_degree`). Returns `Vec<Option<f64>>` —
+  `result[v]` is the mean degree over `v`'s neighbours, or `None` if
+  `v` is isolated. Counterpart of
+  `igraph_avg_nearest_neighbor_degree(_, vss_all(), IGRAPH_ALL,
+  IGRAPH_ALL, &knn, NULL, NULL)` from
+  `references/igraph/src/properties/degrees.c:263`. Self-loops counted
+  per upstream's `IGRAPH_LOOPS` (each loop contributes twice to
+  undirected degree). Phase-1 minimal slice: unweighted, undirected
+  (or `IGRAPH_ALL` mode for directed input). The per-degree aggregate
+  (upstream's `knnk`) and weighted/mode-aware variants ship as PR-005b.
+  9-step SOP minus bench: 6 unit tests, 1 oracle test on karate
+  (1e-12 tolerance), 3 three-source conformance fixtures.
+
 - *(traversal)* **ALGO-TR-001**: multi-output BFS (`bfs_tree`). Returns
   `BfsTree { order, distances, parents }` in a single pass — the visit
   order, per-vertex distance from the root, and the BFS-tree parent

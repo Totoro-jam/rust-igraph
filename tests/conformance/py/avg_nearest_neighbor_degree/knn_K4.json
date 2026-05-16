@@ -1,0 +1,43 @@
+{
+  "source": "py",
+  "origin": "constructed: K4 \u2014 knn = [3, 3, 3, 3]",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "avg_nearest_neighbor_degree",
+  "params": {},
+  "expected": [
+    3.0,
+    3.0,
+    3.0,
+    3.0
+  ]
+}

@@ -90,6 +90,18 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+KNN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knn_K4",
+        # K4: every vertex has 3 neighbours each of degree 3 → knn = [3,3,3,3].
+        "origin": "constructed: K4 — knn = [3, 3, 3, 3]",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "avg_nearest_neighbor_degree",
+        "params": {},
+        "expected": [3.0, 3.0, 3.0, 3.0],
+    },
+]
+
 RECIP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_mutual_pair",
@@ -326,6 +338,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mean_distance": MEANDIST_MANIFEST,
     "count_reachable": REACH_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
+    "avg_nearest_neighbor_degree": KNN_MANIFEST,
 }
 
 

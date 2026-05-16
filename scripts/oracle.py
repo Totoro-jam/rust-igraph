@@ -89,6 +89,13 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         # triangle. Length of that list is the count.
         return len(g.list_triangles())
 
+    if algo == "avg_nearest_neighbor_degree":
+        # Counterpart of igraph_avg_nearest_neighbor_degree(_, vss_all(),
+        # IGRAPH_ALL, IGRAPH_ALL, &knn, NULL, NULL). python-igraph's
+        # `g.knn()` returns a tuple (knn_per_vertex, knn_per_degree).
+        knn_per_vertex, _ = g.knn()
+        return [None if (v != v) else float(v) for v in knn_per_vertex]
+
     if algo == "reciprocity":
         # Counterpart of igraph_reciprocity(_, _, /*ignore_loops=*/false,
         # IGRAPH_RECIPROCITY_DEFAULT). python-igraph's `Graph.reciprocity(

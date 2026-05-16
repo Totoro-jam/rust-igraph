@@ -119,6 +119,20 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+KNN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knn_c_path_5",
+        # Path 0-1-2-3-4: knn = [2, 1.5, 2, 1.5, 2] (verified above).
+        "origin": "constructed: 5-path knn vector",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "algo": "avg_nearest_neighbor_degree",
+        "params": {},
+        "expected": [2.0, 1.5, 2.0, 1.5, 2.0],
+    },
+]
+
 RECIP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_c_directed_3_cycle_zero",
@@ -502,6 +516,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "eulerian_path": EUL_PATH_MANIFEST,
     "count_reachable": REACH_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
+    "avg_nearest_neighbor_degree": KNN_MANIFEST,
 }
 
 

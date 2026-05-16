@@ -11,10 +11,10 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
-    Graph, articulation_points, bfs, bridges, connected_components, count_reachable,
-    count_triangles, density, dfs, diameter, distances, eccentricity, girth, is_biconnected,
-    mean_distance, radius, read_edgelist, reciprocity, strongly_connected_components,
-    transitivity_local_undirected, transitivity_undirected,
+    Graph, articulation_points, avg_nearest_neighbor_degree, bfs, bridges, connected_components,
+    count_reachable, count_triangles, density, dfs, diameter, distances, eccentricity, girth,
+    is_biconnected, mean_distance, radius, read_edgelist, reciprocity,
+    strongly_connected_components, transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -533,6 +533,30 @@ fn reciprocity_directed_chain_with_partial_back_matches_python_igraph() {
         (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "rust={r} py={p}"),
         (None, None) => {}
         (a, b) => panic!("rust={a:?} py={b:?}"),
+    }
+}
+
+#[test]
+fn knn_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let rust = avg_nearest_neighbor_degree(&g).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok(
+        "avg_nearest_neighbor_degree",
+        &g,
+        serde_json::json!({}),
+    ))
+    .expect("decode python knn");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(a), Some(b)) => {
+                assert!((a - b).abs() < 1e-12, "vertex {i}: rust={a} py={b}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
     }
 }
 

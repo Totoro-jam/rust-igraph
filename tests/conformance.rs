@@ -258,6 +258,21 @@ fn transitivity_local_undirected_three_source_conformance() {
 }
 
 #[test]
+fn avg_nearest_neighbor_degree_three_source_conformance() {
+    run_conformance("avg_nearest_neighbor_degree", |g, _params| {
+        let v = rust_igraph::avg_nearest_neighbor_degree(g).expect("knn");
+        let arr: Vec<serde_json::Value> = v
+            .into_iter()
+            .map(|o| match o {
+                Some(x) => serde_json::json!(x),
+                None => serde_json::Value::Null,
+            })
+            .collect();
+        serde_json::Value::Array(arr)
+    });
+}
+
+#[test]
 fn reciprocity_three_source_conformance() {
     run_conformance("reciprocity", |g, _params| {
         let r = rust_igraph::reciprocity(g).expect("reciprocity");

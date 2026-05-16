@@ -1,0 +1,36 @@
+{
+  "source": "c",
+  "origin": "constructed: 5-path knn vector",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "avg_nearest_neighbor_degree",
+  "params": {},
+  "expected": [
+    2.0,
+    1.5,
+    2.0,
+    1.5,
+    2.0
+  ]
+}
