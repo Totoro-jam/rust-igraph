@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: 5-path; mean distance 2.0",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mean_distance",
+  "params": {},
+  "expected": 2.0
+}

@@ -89,6 +89,21 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         # triangle. Length of that list is the count.
         return len(g.list_triangles())
 
+    if algo == "density":
+        # Counterpart of igraph_density(_, NULL_weights, _, /*loops=*/false).
+        if g.vcount() < 2:
+            return None
+        return float(g.density(loops=False))
+
+    if algo == "mean_distance":
+        # Counterpart of igraph_average_path_length(_, NULL_weights, _, _,
+        # /*directed=*/true, /*unconn=*/true). python-igraph 0.11 returns
+        # NaN if no connected pairs exist.
+        v = g.average_path_length(directed=True, unconn=True)
+        if v != v:  # NaN check
+            return None
+        return float(v)
+
     if algo == "transitivity_local_undirected":
         # Counterpart of igraph_transitivity_local_undirected(_, _, igraph_vss_all(),
         # IGRAPH_TRANSITIVITY_NAN). python-igraph returns a list of floats (NaN for

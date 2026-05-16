@@ -24,6 +24,8 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | count_triangles | 1 | 1 | 1 | 3/3 | `u64`. python-igraph 0.11 has no direct `count_triangles`; oracle uses `len(g.list_triangles())`. Fixtures: igraph C K4 → 4, python-igraph 5-cycle → 0, R path(3) → 0. |
 | transitivity_undirected | 2 | 1 | 1 | 4/4 | `Option<f64>` encoded as JSON null (no triples) or float. The 3*triangles/triples ratio is exactly representable as f64 for integer operands at any practical scale, so direct `==` comparison holds. Fixtures: igraph C `global_transitivity.c` Famous("Zachary") → 0.255681818..., K4 → 1.0; python-igraph K4-minus-edge → 0.75; R path(3) → 0.0. |
 | transitivity_local_undirected | 1 | 1 | 1 | 3/3 | Per-vertex `Vec<Option<f64>>`; `None` when degree<2 (matches NaN in upstream's `IGRAPH_TRANSITIVITY_NAN` mode). Karate oracle uses 1e-12 tolerance to absorb f64 round-trip through JSON. Fixtures with rationals that fit exactly use `==`. |
+| density | 1 | 1 | 1 | 3/3 | `Option<f64>`. **Triggered the conformance runner's float-tolerance overhaul**: the same f64 `0x1.1cbfa862911ccp-3` round-trips as 17-digit "0.13903743315508021" via Rust's serde_json but as the 16-digit "0.1390374331550802" via Python's `json.dumps`, which serde_json then re-parses as the ULP-different f64. Solution: `tests/conformance::json_approx_eq` does relative-1e-12 comparison on numbers, exact on everything else. |
+| mean_distance | 1 | 1 | 1 | 3/3 | `Option<f64>` — None for n<2 or no connected pairs. Same float-tolerance comparison as density. |
 
 ## How to add a row
 
@@ -37,4 +39,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 15 (+ local-transitivity) | 53 | 23 / 14 / 16 |
+| 1     | 17 (+ density, mean_distance) | 59 | 25 / 16 / 18 |

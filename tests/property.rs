@@ -154,6 +154,33 @@ proptest! {
         }
     }
 
+    /// Density bounds: 0 ≤ density ≤ 1 for graphs without parallel edges
+    /// (proptest's arb_graph allows multigraphs, so density may exceed 1
+    /// — only check the lower bound). Empty/singleton: None.
+    #[test]
+    fn density_is_non_negative(g in arb_graph(10)) {
+        let n = g.vcount();
+        let d = rust_igraph::density(&g).unwrap();
+        if n < 2 {
+            prop_assert_eq!(d, None);
+        } else {
+            let v = d.expect("density should be Some for n>=2");
+            prop_assert!(v >= 0.0, "density {} is negative", v);
+            prop_assert!(v.is_finite(), "density should be finite");
+        }
+    }
+
+    /// Mean-distance lower bound: ≥ 1.0 when at least one edge exists in
+    /// a connected pair (since shortest distance is at least 1). When
+    /// there are no connected pairs, returns None.
+    #[test]
+    fn mean_distance_is_at_least_one(g in arb_graph(10)) {
+        if let Some(md) = rust_igraph::mean_distance(&g).unwrap() {
+            prop_assert!(md >= 1.0, "mean_distance {} < 1.0", md);
+            prop_assert!(md.is_finite(), "mean_distance should be finite");
+        }
+    }
+
     /// Local transitivity sum equals 3 * (count_triangles divided by ...).
     /// The simpler invariant: sum of (per-vertex adjacent-triangle count)
     /// over all vertices equals 3 * total triangles. We back this out by

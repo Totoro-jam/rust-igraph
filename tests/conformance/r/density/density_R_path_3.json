@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "test-aaa-auto.R-style \u2014 path_graph(n=3); density 2/3",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "density",
+  "params": {},
+  "expected": 0.6666666666666666
+}

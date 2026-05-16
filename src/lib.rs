@@ -41,7 +41,8 @@ pub use crate::algorithms::paths::{
     EulerianClassification, diameter, distances, eccentricity, is_eulerian, radius,
 };
 pub use crate::algorithms::properties::{
-    count_triangles, girth, transitivity_local_undirected, transitivity_undirected,
+    count_triangles, density, girth, mean_distance, transitivity_local_undirected,
+    transitivity_undirected,
 };
 pub use crate::algorithms::traversal::{bfs, dfs};
 pub use crate::core::error::{IgraphError, IgraphResult};

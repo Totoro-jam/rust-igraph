@@ -161,6 +161,34 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DENSITY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "density_R_path_3",
+        # path_graph(n=3): 2 edges of 3 possible → 2/3.
+        "origin": "test-aaa-auto.R-style — path_graph(n=3); density 2/3",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "density",
+        "params": {},
+        "expected": 0.6666666666666666,
+    },
+]
+
+MEANDIST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "mean_distance_R_triangle",
+        # Triangle: all pairs at distance 1; mean = 1.0.
+        "origin": "constructed (R-style): triangle; mean distance 1.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "mean_distance",
+        "params": {},
+        "expected": 1.0,
+    },
+]
+
 LTRANS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_local_R_triangle",
@@ -352,6 +380,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_triangles": TRI_MANIFEST,
     "transitivity_undirected": TRANS_MANIFEST,
     "transitivity_local_undirected": LTRANS_MANIFEST,
+    "density": DENSITY_MANIFEST,
+    "mean_distance": MEANDIST_MANIFEST,
 }
 
 

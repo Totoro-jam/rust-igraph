@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "constructed (R-style): triangle; mean distance 1.0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mean_distance",
+  "params": {},
+  "expected": 1.0
+}

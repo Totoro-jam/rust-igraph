@@ -90,6 +90,32 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DENSITY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "density_K4",
+        # K4: 6 edges among 6 possible → 1.0.
+        "origin": "constructed: K4; density 1.0",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "density",
+        "params": {},
+        "expected": 1.0,
+    },
+]
+
+MEANDIST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "mean_distance_path_5",
+        # Path 0-1-2-3-4: mean = 2.0 (computed above).
+        "origin": "constructed: 5-path; mean distance 2.0",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "algo": "mean_distance",
+        "params": {},
+        "expected": 2.0,
+    },
+]
+
 LTRANS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_local_star",
@@ -268,6 +294,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_triangles": TRI_MANIFEST,
     "transitivity_undirected": TRANS_MANIFEST,
     "transitivity_local_undirected": LTRANS_MANIFEST,
+    "density": DENSITY_MANIFEST,
+    "mean_distance": MEANDIST_MANIFEST,
 }
 
 

@@ -37,6 +37,49 @@ fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
+/// Approximate JSON equality. Integers and bools must match exactly;
+/// floats compare with a relative+absolute tolerance to absorb the
+/// 1-ULP differences that appear when the same f64 round-trips through
+/// Python's `json.dumps` and Rust's `serde_json` with different
+/// shortest-repr digit counts. Recurses into arrays and objects.
+fn json_approx_eq(a: &serde_json::Value, b: &serde_json::Value) -> bool {
+    use serde_json::Value as V;
+    match (a, b) {
+        (V::Null, V::Null) => true,
+        (V::Bool(x), V::Bool(y)) => x == y,
+        (V::String(x), V::String(y)) => x == y,
+        (V::Number(x), V::Number(y)) => {
+            if let (Some(xi), Some(yi)) = (x.as_i64(), y.as_i64()) {
+                return xi == yi;
+            }
+            if let (Some(xu), Some(yu)) = (x.as_u64(), y.as_u64()) {
+                return xu == yu;
+            }
+            match (x.as_f64(), y.as_f64()) {
+                (Some(xf), Some(yf)) => {
+                    if xf.is_nan() && yf.is_nan() {
+                        return true;
+                    }
+                    let abs = (xf - yf).abs();
+                    let scale = xf.abs().max(yf.abs()).max(1.0);
+                    abs <= 1e-12_f64 * scale
+                }
+                _ => false,
+            }
+        }
+        (V::Array(xs), V::Array(ys)) => {
+            xs.len() == ys.len() && xs.iter().zip(ys.iter()).all(|(x, y)| json_approx_eq(x, y))
+        }
+        (V::Object(xs), V::Object(ys)) => {
+            xs.len() == ys.len()
+                && xs
+                    .iter()
+                    .all(|(k, v)| ys.get(k).is_some_and(|w| json_approx_eq(v, w)))
+        }
+        _ => false,
+    }
+}
+
 fn load_all(algo: &str) -> Vec<(PathBuf, Conformance)> {
     let mut out = Vec::new();
     for source in &["c", "py", "r"] {
@@ -104,13 +147,14 @@ fn run_conformance_with_skip(
         assert_eq!(case.algo, algo);
         let g = build_graph(&case.graph);
         let actual = runner(&g, &case.params);
-        assert_eq!(
-            actual,
-            case.expected,
-            "conformance failure\n  fixture: {}\n  source:  {}\n  origin:  {}",
+        assert!(
+            json_approx_eq(&actual, &case.expected),
+            "conformance failure\n  fixture: {}\n  source:  {}\n  origin:  {}\n  actual:   {}\n  expected: {}",
             path.display(),
             case.source,
-            case.origin
+            case.origin,
+            actual,
+            case.expected,
         );
         let key: &'static str = match case.source.as_str() {
             "c" => "c",
@@ -210,6 +254,28 @@ fn transitivity_local_undirected_three_source_conformance() {
             })
             .collect();
         serde_json::Value::Array(arr)
+    });
+}
+
+#[test]
+fn density_three_source_conformance() {
+    run_conformance("density", |g, _params| {
+        let d = rust_igraph::density(g).expect("density");
+        match d {
+            Some(v) => serde_json::json!(v),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
+fn mean_distance_three_source_conformance() {
+    run_conformance("mean_distance", |g, _params| {
+        let d = rust_igraph::mean_distance(g).expect("mean_distance");
+        match d {
+            Some(v) => serde_json::json!(v),
+            None => serde_json::Value::Null,
+        }
     });
 }
 

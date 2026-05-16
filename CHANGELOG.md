@@ -11,6 +11,27 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-003**: density and mean shortest-path length
+  (`density`, `mean_distance`). Counterparts of `igraph_density()`
+  (`basic_properties.c:71`) and `igraph_average_path_length()`
+  (`shortest_paths.c:329`). Both return `Option<f64>` — `None` when
+  the value is undefined (n<2 for density without loops, no connected
+  pairs for mean_distance). Density's float-arithmetic ordering exactly
+  matches upstream's `m / n * 2 / (n - 1)` form so f64 results agree
+  bit-for-bit with python-igraph.
+  Full 9-step SOP: 12 unit tests (mostly small-graph corner cases),
+  1 oracle test on karate (density ≈ 0.139, mean ≈ 2.408), 6
+  three-source conformance fixtures, 2 proptest invariants
+  (`density >= 0`, `mean_distance >= 1.0`).
+- *(test-helpers)* `tests/conformance::json_approx_eq` replaces the
+  strict `assert_eq!` on `serde_json::Value`. Number nodes compare with
+  a 1e-12 relative-or-absolute tolerance; everything else (booleans,
+  arrays, objects, strings) still compares exactly. Resolves a
+  cross-language f64 JSON round-trip mismatch where the same f64
+  prints as 17 digits via Rust serde_json and 16 digits via Python
+  `json.dumps`, with the 16-digit form re-parsing to a ULP-different
+  f64. Caught by density's Zachary fixture.
+
 - *(properties)* **ALGO-PR-002b**: local transitivity per-vertex
   (`transitivity_local_undirected`). Returns `Vec<Option<f64>>` —
   `None` when a vertex has simple-degree < 2 (matches upstream's

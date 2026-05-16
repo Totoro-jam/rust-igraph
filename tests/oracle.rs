@@ -11,8 +11,8 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
-    Graph, articulation_points, bfs, bridges, connected_components, count_triangles, dfs, diameter,
-    distances, eccentricity, girth, is_biconnected, radius, read_edgelist,
+    Graph, articulation_points, bfs, bridges, connected_components, count_triangles, density, dfs,
+    diameter, distances, eccentricity, girth, is_biconnected, mean_distance, radius, read_edgelist,
     strongly_connected_components, transitivity_local_undirected, transitivity_undirected,
 };
 
@@ -461,6 +461,33 @@ fn transitivity_local_karate_matches_python_igraph() {
             (None, None) => {}
             (a, b) => panic!("vertex {i}: rust={a:?} python={b:?}"),
         }
+    }
+}
+
+#[test]
+fn density_and_mean_distance_karate_match_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+
+    let rust_density = density(&g).unwrap();
+    let py_density: Option<f64> =
+        serde_json::from_value(run_ok("density", &g, serde_json::json!({})))
+            .expect("decode python density");
+    match (rust_density, py_density) {
+        (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "density rust={r} py={p}"),
+        (None, None) => {}
+        (a, b) => panic!("density rust={a:?} py={b:?}"),
+    }
+
+    let rust_mean = mean_distance(&g).unwrap();
+    let py_mean: Option<f64> =
+        serde_json::from_value(run_ok("mean_distance", &g, serde_json::json!({})))
+            .expect("decode python mean_distance");
+    match (rust_mean, py_mean) {
+        (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "mean_distance rust={r} py={p}"),
+        (None, None) => {}
+        (a, b) => panic!("mean_distance rust={a:?} py={b:?}"),
     }
 }
 
