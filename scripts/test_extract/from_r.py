@@ -161,6 +161,21 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EUL_PATH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "eulerian_path_R_4cycle_walk_len_4",
+        # test-eulerian.R:'has_eulerian_path works' — graph_from_literal
+        # A-B-C-D-A. 4-cycle has Eulerian cycle; walk length 4.
+        "origin": "test-eulerian.R:'has_eulerian_path works' — 4-cycle, walk has 4 edges",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=False
+        ),
+        "algo": "eulerian_path",
+        "params": {},
+        "expected": 4,
+    },
+]
+
 DENSITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "density_R_path_3",
@@ -382,6 +397,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitivity_local_undirected": LTRANS_MANIFEST,
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
+    "eulerian_path": EUL_PATH_MANIFEST,
 }
 
 

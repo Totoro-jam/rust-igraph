@@ -1,0 +1,8 @@
+{
+  "awu": "ALGO-CC-041",
+  "rust_karate_ns": null,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-16",
+  "git_commit": "39bcb4d",
+  "notes": "Phase 1 Eulerian path/cycle construction (undirected) via Hierholzer's algorithm in src/algorithms/paths/eulerian_construct.rs. No standalone bench: cost is dominated by the existing CC-040 is_eulerian preflight (4.7 µs/karate) plus an O(|V|+|E|) walk extraction. Karate has odd-degree vertices so the walk doesn't actually exist there; benchmark on a graph with an Eulerian path/cycle ships when CC-042 (directed Hierholzer) lands."
+}

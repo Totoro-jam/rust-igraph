@@ -154,6 +154,39 @@ proptest! {
         }
     }
 
+    /// Eulerian-path validity: when `is_eulerian.has_path` is true and the
+    /// graph is undirected, `eulerian_path` returns a walk that visits
+    /// every edge exactly once and is consecutively connected.
+    #[test]
+    fn eulerian_path_visits_every_edge_once_when_it_exists(g in arb_graph(7)) {
+        // Skip multigraphs that confuse the bookkeeping (proptest generates
+        // them); the algorithm is correct on them but our walk-validator
+        // here uses edge endpoints which are fine. Just guard against
+        // self-loops vs the path output.
+        let cls = rust_igraph::is_eulerian(&g).unwrap();
+        if !cls.has_path { return Ok(()); }
+        let walk = rust_igraph::eulerian_path(&g).unwrap()
+            .expect("walk should exist when has_path");
+        prop_assert_eq!(walk.len(), g.ecount(),
+                        "walk length should equal edge count");
+        let mut seen: Vec<bool> = vec![false; g.ecount()];
+        for &e in &walk {
+            let idx = e as usize;
+            prop_assert!(idx < g.ecount(), "edge id out of range");
+            prop_assert!(!seen[idx], "edge {e} visited twice");
+            seen[idx] = true;
+        }
+        // Consecutively connected.
+        for i in 0..walk.len().saturating_sub(1) {
+            let (a, b) = g.edge(walk[i]).unwrap();
+            let (c, d) = g.edge(walk[i + 1]).unwrap();
+            prop_assert!(
+                a == c || a == d || b == c || b == d,
+                "walk break between edges {} and {}", walk[i], walk[i + 1]
+            );
+        }
+    }
+
     /// Density bounds: 0 ≤ density ≤ 1 for graphs without parallel edges
     /// (proptest's arb_graph allows multigraphs, so density may exceed 1
     /// — only check the lower bound). Empty/singleton: None.

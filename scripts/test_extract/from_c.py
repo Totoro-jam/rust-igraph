@@ -119,6 +119,23 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EUL_PATH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "eulerian_path_c_triangle_walk_len_3",
+        # Triangle has Eulerian cycle; the walk must have length 3.
+        # We compare only `len(walk)` since multiple valid walks exist —
+        # encode the expected length and let the conformance test runner
+        # fall back to length-only check via a bespoke runner.
+        "origin": "constructed: triangle — Eulerian cycle exists, walk has length 3",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "eulerian_path",
+        "params": {},
+        "expected": 3,
+    },
+]
+
 DENSITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "density_c_zachary",
@@ -444,6 +461,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitivity_local_undirected": LTRANS_MANIFEST,
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
+    "eulerian_path": EUL_PATH_MANIFEST,
 }
 
 

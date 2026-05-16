@@ -38,7 +38,7 @@ pub use crate::algorithms::connectivity::{
 };
 pub use crate::algorithms::io::read_edgelist;
 pub use crate::algorithms::paths::{
-    EulerianClassification, diameter, distances, eccentricity, is_eulerian, radius,
+    EulerianClassification, diameter, distances, eccentricity, eulerian_path, is_eulerian, radius,
 };
 pub use crate::algorithms::properties::{
     count_triangles, density, girth, mean_distance, transitivity_local_undirected,

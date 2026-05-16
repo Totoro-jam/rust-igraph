@@ -11,6 +11,25 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(paths)* **ALGO-CC-041**: Eulerian path / cycle construction
+  (undirected) via Hierholzer's algorithm (`eulerian_path`). Returns
+  `Option<Vec<EdgeId>>` — `Some(walk)` when an Eulerian walk exists
+  (every edge visited exactly once, walk is consecutively connected),
+  `None` otherwise. Counterpart of `igraph_eulerian_path()` from
+  `references/igraph/src/paths/eulerian.c:345-450`.
+  Phase-1 minimal slice: undirected only. Directed Hierholzer (CC-042)
+  uses different adjacency tracking; ships separately.
+  Calls existing CC-040 `is_eulerian` to detect existence and pick a
+  valid start vertex. Returns `IgraphError::Unsupported` for directed
+  input.
+  Full 9-step SOP: 9 unit tests (empty / isolated / triangle /
+  path-3 / K4 / disconnected / ring-5 / directed-rejected /
+  test-eulerian.R complex case), oracle DEFERRED (python-igraph 0.11
+  has no Eulerian API), 2 three-source conformance fixtures (C
+  triangle walk-len 3; R 4-cycle walk-len 4) with py-skipped, 1
+  proptest invariant (visits-every-edge-once-and-connected when
+  has_path).
+
 - *(properties)* **ALGO-PR-003**: density and mean shortest-path length
   (`density`, `mean_distance`). Counterparts of `igraph_density()`
   (`basic_properties.c:71`) and `igraph_average_path_length()`

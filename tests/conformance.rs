@@ -355,6 +355,20 @@ fn articulation_points_three_source_conformance() {
 }
 
 #[test]
+fn eulerian_path_three_source_conformance() {
+    // python-igraph 0.11 has no Eulerian API at all; py-skip per CC-040 lineage.
+    // Each fixture's `expected` is the walk length (multiple valid walks
+    // exist — we don't pin a specific edge sequence). The runner compares
+    // `len(walk)` directly.
+    run_conformance_with_skip("eulerian_path", &["py"], |g, _params| {
+        let walk = rust_igraph::eulerian_path(g)
+            .expect("eulerian_path")
+            .expect("walk should exist for these fixtures");
+        serde_json::json!(walk.len())
+    });
+}
+
+#[test]
 fn is_eulerian_three_source_conformance() {
     // python-igraph 0.11.x exposes no Eulerian API (verified — no
     // Graph.is_eulerian / has_eulerian_path); skip the "py" source
