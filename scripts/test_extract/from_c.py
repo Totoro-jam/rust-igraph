@@ -119,6 +119,20 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+REACH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_reachable_c_directed_chain",
+        # Directed chain 0->1->2->3: counts = [4, 3, 2, 1].
+        "origin": "constructed: directed chain 0->1->2->3; per-vertex reachable counts",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=True
+        ),
+        "algo": "count_reachable",
+        "params": {},
+        "expected": [4, 3, 2, 1],
+    },
+]
+
 EUL_PATH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "eulerian_path_c_triangle_walk_len_3",
@@ -462,6 +476,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
     "eulerian_path": EUL_PATH_MANIFEST,
+    "count_reachable": REACH_MANIFEST,
 }
 
 

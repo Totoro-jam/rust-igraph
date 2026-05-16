@@ -89,6 +89,14 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         # triangle. Length of that list is the count.
         return len(g.list_triangles())
 
+    if algo == "count_reachable":
+        # Counterpart of igraph_count_reachable(_, _, IGRAPH_OUT).
+        # python-igraph 0.11 has no direct count_reachable, but
+        # `subcomponent(v, mode='out')` returns the reachable vertex
+        # list — count its length.
+        mode = "all" if not g.is_directed() else "out"
+        return [len(g.subcomponent(v, mode=mode)) for v in range(g.vcount())]
+
     if algo == "density":
         # Counterpart of igraph_density(_, NULL_weights, _, /*loops=*/false).
         if g.vcount() < 2:

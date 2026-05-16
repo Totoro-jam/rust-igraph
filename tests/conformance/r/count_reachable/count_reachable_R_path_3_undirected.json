@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "constructed (R-style): path_graph(3); count_reachable = [3, 3, 3]",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_reachable",
+  "params": {},
+  "expected": [
+    3,
+    3,
+    3
+  ]
+}

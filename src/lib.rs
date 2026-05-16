@@ -33,8 +33,8 @@ pub mod core;
 
 // Top-level re-exports for the common case.
 pub use crate::algorithms::connectivity::{
-    ConnectedComponents, articulation_points, bridges, connected_components, is_biconnected,
-    strongly_connected_components,
+    ConnectedComponents, articulation_points, bridges, connected_components, count_reachable,
+    is_biconnected, strongly_connected_components,
 };
 pub use crate::algorithms::io::read_edgelist;
 pub use crate::algorithms::paths::{

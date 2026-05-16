@@ -27,6 +27,7 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | density | 1 | 1 | 1 | 3/3 | `Option<f64>`. **Triggered the conformance runner's float-tolerance overhaul**: the same f64 `0x1.1cbfa862911ccp-3` round-trips as 17-digit "0.13903743315508021" via Rust's serde_json but as the 16-digit "0.1390374331550802" via Python's `json.dumps`, which serde_json then re-parses as the ULP-different f64. Solution: `tests/conformance::json_approx_eq` does relative-1e-12 comparison on numbers, exact on everything else. |
 | mean_distance | 1 | 1 | 1 | 3/3 | `Option<f64>` — None for n<2 or no connected pairs. Same float-tolerance comparison as density. |
 | eulerian_path | 1 | 0 | 1 | 2/2 | py-skipped (python-igraph 0.11.x has no Eulerian API). Multiple valid walks exist for a given graph; conformance fixtures compare `len(walk)` only — proptest `eulerian_path_visits_every_edge_once_when_it_exists` enforces the actual structural correctness. |
+| count_reachable | 1 | 1 | 1 | 3/3 | `Vec<u32>`. python-igraph 0.11 lacks `count_reachable` directly; oracle uses `len(g.subcomponent(v, mode='out'))` per vertex. |
 
 ## How to add a row
 
@@ -40,4 +41,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 18 (+ eulerian_path, py-skipped) | 61 | 26 / 16 / 19 |
+| 1     | 19 (+ count_reachable) | 64 | 27 / 17 / 20 |

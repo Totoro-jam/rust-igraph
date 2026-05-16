@@ -154,6 +154,30 @@ proptest! {
         }
     }
 
+    /// Reachability counts: every vertex reaches at least itself
+    /// (count[v] >= 1) and at most vcount() vertices. For undirected
+    /// graphs, count[v] equals the size of v's connected component.
+    #[test]
+    fn count_reachable_is_within_bounds(g in arb_graph(10)) {
+        let counts = rust_igraph::count_reachable(&g).unwrap();
+        let n = g.vcount();
+        prop_assert_eq!(counts.len(), n as usize);
+        for &c in &counts {
+            prop_assert!(c >= 1, "count {} < 1", c);
+            prop_assert!(c <= n, "count {} > vcount {}", c, n);
+        }
+        // Undirected check: count[v] == component_size(v).
+        let cc = rust_igraph::connected_components(&g).unwrap();
+        let mut comp_sizes = vec![0u32; cc.count as usize];
+        for v in 0..n {
+            comp_sizes[cc.membership[v as usize] as usize] += 1;
+        }
+        for v in 0..n {
+            prop_assert_eq!(counts[v as usize], comp_sizes[cc.membership[v as usize] as usize],
+                            "vertex {} count != its component size", v);
+        }
+    }
+
     /// Eulerian-path validity: when `is_eulerian.has_path` is true and the
     /// graph is undirected, `eulerian_path` returns a walk that visits
     /// every edge exactly once and is consecutively connected.

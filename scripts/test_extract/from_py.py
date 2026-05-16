@@ -90,6 +90,20 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+REACH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_reachable_two_components",
+        # Undirected two components {0,1,2} and {3,4}: counts [3,3,3,2,2].
+        "origin": "constructed: two components — counts = component sizes",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (3, 4)], directed=False
+        ),
+        "algo": "count_reachable",
+        "params": {},
+        "expected": [3, 3, 3, 2, 2],
+    },
+]
+
 DENSITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "density_K4",
@@ -296,6 +310,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitivity_local_undirected": LTRANS_MANIFEST,
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
+    "count_reachable": REACH_MANIFEST,
 }
 
 

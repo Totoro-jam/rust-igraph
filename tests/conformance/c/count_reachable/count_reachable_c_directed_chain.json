@@ -1,0 +1,31 @@
+{
+  "source": "c",
+  "origin": "constructed: directed chain 0->1->2->3; per-vertex reachable counts",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "count_reachable",
+  "params": {},
+  "expected": [
+    4,
+    3,
+    2,
+    1
+  ]
+}

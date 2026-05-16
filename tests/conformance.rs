@@ -258,6 +258,14 @@ fn transitivity_local_undirected_three_source_conformance() {
 }
 
 #[test]
+fn count_reachable_three_source_conformance() {
+    run_conformance("count_reachable", |g, _params| {
+        let r = rust_igraph::count_reachable(g).expect("count_reachable");
+        serde_json::json!(r)
+    });
+}
+
+#[test]
 fn density_three_source_conformance() {
     run_conformance("density", |g, _params| {
         let d = rust_igraph::density(g).expect("density");

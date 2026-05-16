@@ -161,6 +161,20 @@ TRI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+REACH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_reachable_R_path_3_undirected",
+        # Path 0-1-2 undirected: every vertex reaches all 3.
+        "origin": "constructed (R-style): path_graph(3); count_reachable = [3, 3, 3]",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "count_reachable",
+        "params": {},
+        "expected": [3, 3, 3],
+    },
+]
+
 EUL_PATH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "eulerian_path_R_4cycle_walk_len_4",
@@ -398,6 +412,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
     "eulerian_path": EUL_PATH_MANIFEST,
+    "count_reachable": REACH_MANIFEST,
 }
 
 

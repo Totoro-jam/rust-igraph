@@ -11,6 +11,21 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(connectivity)* **ALGO-CC-020**: reachability counts
+  (`count_reachable`). Returns `Vec<u32>` where `result[v]` is the
+  number of vertices reachable from `v` (including `v` itself).
+  Counterpart of `igraph_count_reachable()` from
+  `references/igraph/src/connectivity/reachability.c:179`.
+  Phase-1 minimal slice does BFS-from-each-vertex via the existing
+  SP-006 `distances` primitive — O(|V|*(|V|+|E|)). Upstream's
+  SCC-condensation approach (O(|C||V|/w + |V| + |E|)) is a future perf
+  pass once `igraph_reachability` lands as CC-021.
+  9-step SOP: 7 unit tests, 2 oracle tests against python-igraph
+  (using `len(g.subcomponent(v, mode='out'))` since python-igraph 0.11
+  doesn't expose `count_reachable` directly), 3 three-source
+  conformance fixtures, 1 proptest invariant (count[v] == size of v's
+  weak component, on undirected graphs).
+
 - *(paths)* **ALGO-CC-041**: Eulerian path / cycle construction
   (undirected) via Hierholzer's algorithm (`eulerian_path`). Returns
   `Option<Vec<EdgeId>>` — `Some(walk)` when an Eulerian walk exists

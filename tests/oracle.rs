@@ -11,9 +11,10 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
-    Graph, articulation_points, bfs, bridges, connected_components, count_triangles, density, dfs,
-    diameter, distances, eccentricity, girth, is_biconnected, mean_distance, radius, read_edgelist,
-    strongly_connected_components, transitivity_local_undirected, transitivity_undirected,
+    Graph, articulation_points, bfs, bridges, connected_components, count_reachable,
+    count_triangles, density, dfs, diameter, distances, eccentricity, girth, is_biconnected,
+    mean_distance, radius, read_edgelist, strongly_connected_components,
+    transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -489,6 +490,32 @@ fn density_and_mean_distance_karate_match_python_igraph() {
         (None, None) => {}
         (a, b) => panic!("mean_distance rust={a:?} py={b:?}"),
     }
+}
+
+#[test]
+fn count_reachable_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let rust = count_reachable(&g).unwrap();
+    let py: Vec<u32> = serde_json::from_value(run_ok("count_reachable", &g, serde_json::json!({})))
+        .expect("decode python count_reachable");
+    assert_eq!(rust, py);
+    // Karate is fully connected → every vertex reaches all 34.
+    assert_eq!(rust, vec![34; 34]);
+}
+
+#[test]
+fn count_reachable_directed_chain_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let rust = count_reachable(&g).unwrap();
+    let py: Vec<u32> = serde_json::from_value(run_ok("count_reachable", &g, serde_json::json!({})))
+        .expect("decode python count_reachable");
+    assert_eq!(rust, py);
+    assert_eq!(rust, vec![4, 3, 2, 1]);
 }
 
 #[test]
