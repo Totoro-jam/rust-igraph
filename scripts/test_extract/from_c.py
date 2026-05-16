@@ -105,10 +105,43 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+SCC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "components_c_two_disjoint_3_cycles",
+        # components.c:'Two disjoint 3-cycles' (lines 85-92).
+        # Upstream prints the membership AFTER `igraph_reindex_membership`
+        # (canonicalised to first-seen order). Both python-igraph and our
+        # Rust skip that reindex, so the natural Kosaraju order is what
+        # we compare against.
+        "origin": "components.c:'Two disjoint 3-cycles' two directed 3-cycles SCC, "
+        "natural Kosaraju label order (matches python-igraph 0.11)",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)],
+            directed=True,
+        ),
+        "algo": "strongly_connected_components",
+        "params": {},
+        "expected": {"membership": [1, 1, 1, 0, 0, 0], "count": 2},
+    },
+    {
+        "case": "components_c_directed_2_path",
+        # components.c:'Directed 2-path' (lines 76-83). Upstream output
+        # `( 0 1 )` is post-reindex; pre-reindex (and python-igraph) it's
+        # also `[0, 1]` because each vertex is its own SCC.
+        "origin": "components.c:'Directed 2-path' SCC: every vertex its own component",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[(0, 1)], directed=True),
+        "algo": "strongly_connected_components",
+        "params": {},
+        "expected": {"membership": [0, 1], "count": 2},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
+    "strongly_connected_components": SCC_MANIFEST,
 }
 
 

@@ -76,10 +76,30 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+SCC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "directed_4cycle_with_tail",
+        # No verbatim test in test_decomposition.py; constructed to
+        # exercise the post-order pass-2 distinction (cycle vs dangling
+        # vertex). Expected pulled from python-igraph 0.11 directly.
+        "origin": "constructed: directed 4-cycle 0->1->2->3->0 plus 3->4 tail; "
+        "expected verified against python-igraph 0.11 connected_components(mode='strong')",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 0), (3, 4)],
+            directed=True,
+        ),
+        "algo": "strongly_connected_components",
+        "params": {},
+        "expected": {"membership": [0, 0, 0, 0, 1], "count": 2},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
+    "strongly_connected_components": SCC_MANIFEST,
 }
 
 

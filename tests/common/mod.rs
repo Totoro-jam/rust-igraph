@@ -24,27 +24,39 @@ pub struct GraphPayload {
 
 impl GraphPayload {
     pub fn from_graph(g: &rust_igraph::Graph) -> Self {
-        // Reconstruct the edge list by walking neighbors. After ALGO-CORE-001a
-        // (indexed-edgelist backend), an undirected self-loop is reported
-        // twice by neighbors(); divide the count to recover edge multiplicity.
+        // Reconstruct the edge list by walking neighbors. Directed graphs
+        // emit each (u, v) edge once via out-neighbours; undirected graphs
+        // emit each pair once via the canonical `u < v` rule. Self-loops
+        // on undirected graphs are reported twice by `neighbors()` after
+        // ALGO-CORE-001a's indexed-edgelist backend (LOOPS_TWICE default);
+        // divide that count to recover the edge multiplicity.
+        let directed = g.is_directed();
         let mut edges: Vec<(u32, u32)> = Vec::new();
         for u in 0..g.vcount() {
-            let mut self_loops = 0;
-            for v in g.neighbors(u).expect("vertex in range") {
-                if u == v {
-                    self_loops += 1;
-                } else if u < v {
+            if directed {
+                // Out-neighbours only; each directed edge appears exactly
+                // once across the whole loop.
+                for v in g.neighbors(u).expect("vertex in range") {
                     edges.push((u, v));
                 }
-            }
-            for _ in 0..(self_loops / 2) {
-                edges.push((u, u));
+            } else {
+                let mut self_loops = 0;
+                for v in g.neighbors(u).expect("vertex in range") {
+                    if u == v {
+                        self_loops += 1;
+                    } else if u < v {
+                        edges.push((u, v));
+                    }
+                }
+                for _ in 0..(self_loops / 2) {
+                    edges.push((u, u));
+                }
             }
         }
         Self {
             n: g.vcount(),
             edges,
-            directed: false,
+            directed,
             weights: None,
         }
     }
@@ -74,12 +86,11 @@ pub fn venv_python() -> &'static Path {
     static PATH: OnceLock<PathBuf> = OnceLock::new();
     PATH.get_or_init(|| {
         let p = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(".venv/bin/python");
-        if !p.exists() {
-            panic!(
-                "Python venv not found at {}. Run:\n  python3 -m venv .venv\n  .venv/bin/pip install -r scripts/requirements.txt",
-                p.display()
-            );
-        }
+        assert!(
+            p.exists(),
+            "Python venv not found at {}. Run:\n  python3 -m venv .venv\n  .venv/bin/pip install -r scripts/requirements.txt",
+            p.display()
+        );
         p
     })
     .as_path()

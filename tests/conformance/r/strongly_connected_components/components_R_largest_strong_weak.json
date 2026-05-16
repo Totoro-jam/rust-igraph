@@ -1,0 +1,39 @@
+{
+  "source": "r",
+  "origin": "test-components.R:'largest strongly and weakly components are correct' graph_from_literal(A-+B, B-+C, C-+A, C-+D, E); SCC labels via python-igraph 0.11",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "strongly_connected_components",
+  "params": {},
+  "expected": {
+    "membership": [
+      1,
+      1,
+      1,
+      2,
+      0
+    ],
+    "count": 3
+  }
+}

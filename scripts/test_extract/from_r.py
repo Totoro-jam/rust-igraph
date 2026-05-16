@@ -100,10 +100,32 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+SCC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "components_R_largest_strong_weak",
+        # test-components.R:'largest strongly and weakly components are correct'
+        # (lines 102-125): graph_from_literal A-+B, B-+C, C-+A, C-+D, E
+        # (5 vertices, 1-based labels A=1, B=2, C=3, D=4, E=5).
+        # Translated to 0-based: 0->1, 1->2, 2->0, 2->3, isolate 4.
+        # Strong components: {0,1,2}, {3}, {4}. Label order matches python-igraph.
+        "origin": "test-components.R:'largest strongly and weakly components are correct' "
+        "graph_from_literal(A-+B, B-+C, C-+A, C-+D, E); SCC labels via python-igraph 0.11",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (1, 2), (2, 0), (2, 3)],
+            directed=True,
+        ),
+        "algo": "strongly_connected_components",
+        "params": {},
+        "expected": {"membership": [1, 1, 1, 2, 0], "count": 3},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
+    "strongly_connected_components": SCC_MANIFEST,
 }
 
 

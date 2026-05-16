@@ -65,6 +65,15 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         cc = g.connected_components(mode="weak")
         return {"membership": list(cc.membership), "count": len(cc)}
 
+    if algo == "strongly_connected_components":
+        # Counterpart of igraph_connected_components(_, _, _, _, IGRAPH_STRONG).
+        # python-igraph returns membership ids in Kosaraju grandfather-pop
+        # order (NOT canonicalized to first-seen vertex). The Rust
+        # implementation matches the same order line-for-line, so we can
+        # compare label vectors directly.
+        cc = g.connected_components(mode="strong")
+        return {"membership": list(cc.membership), "count": len(cc)}
+
     if algo == "dfs":
         # Counterpart of igraph_dfs(). ALGO-TR-002 returns only the
         # pre-order visit list (single root, unreachable=False).

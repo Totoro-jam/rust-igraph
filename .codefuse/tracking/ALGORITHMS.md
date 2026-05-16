@@ -88,7 +88,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-SP-010..014 | Widest paths | widest_paths*.c | 741 | adapt | - | todo | - | - | - |
 | ALGO-SP-020..023 | Diameter / eccentricity / radius | diameter.c, eccentricity.c | ~400 | adapt | - | todo | - | - | - |
 | ALGO-CC-001 | Weakly connected components | components.c:82-180 | 100 | adapt | TR-001 | done | (next) | 4.1 µs/karate | C:2 / py:1 / R:1 |
-| ALGO-CC-002..003 | Connected components (strong, decompose) | components.c | 1500 | adapt | CC-001 | todo | - | - | - |
+| ALGO-CC-002 | Strongly connected components (Kosaraju) | components.c:203-386 | 184 | adapt | CC-001 | done | (next) | 4.49 µs/karate-dir | C:2 / py:1 / R:1 |
+| ALGO-CC-003 | Decompose graph by components | components.c:566-732 | 350 | adapt | CC-001,002 | todo | - | - | - |
 | ALGO-CC-010..014 | Biconnected / articulation / bridges | biconnected*.c | ~600 | adapt | TR-002 | todo | - | - | - |
 | ALGO-CC-020..022 | Reachability | reachability.c | 257 | adapt | TR-001 | todo | - | - | - |
 | ALGO-CC-030..032 | Percolation | percolation.c | 404 | adapt | - | todo | - | - | - |
@@ -111,12 +112,13 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 4 | 0 | ~81 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1) |
+| 1 | 5 | 0 | ~80 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1); scc: 4 (C:2, py:1, R:1) |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: ALGO-CORE-001a +
-001b merged (Graph struct + edge-id helpers). Next options: 001c
-(deletion), 001d (edge-list queries `get_eid` etc.), or jump to
-ALGO-TR-002 (DFS) to put a second algorithm through the full 9-step SOP.
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 5/85 done — Graph
+core (CORE-001a/b), DFS (TR-002), weak CC (CC-001), strong CC (CC-002).
+Next options: SP-001 (Dijkstra; needs weighted-edge extension to Graph),
+CC-003 (decompose), or CC-010 (biconnected components, builds on TR-002
+DFS).
 
 > Update the counters after every PR merge.

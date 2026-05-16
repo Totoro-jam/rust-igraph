@@ -315,6 +315,39 @@ impl Graph {
         }
     }
 
+    /// Out-neighbours of `v` (always — directed or undirected). Each
+    /// edge contributes one entry, in `oi[os[v]..os[v+1]]` order
+    /// (lex by `(from, to)`). Self-loops appear once.
+    ///
+    /// Internal helper used by direction-aware algorithms (e.g.
+    /// strongly connected components). The full mode-aware public
+    /// surface ships with the next `igraph_neighbors` AWU.
+    pub(crate) fn out_neighbors_vec(&self, v: VertexId) -> IgraphResult<Vec<VertexId>> {
+        self.check_vertex(v)?;
+        let v_idx = v as usize;
+        let range = self.os[v_idx] as usize..self.os[v_idx + 1] as usize;
+        Ok(self.oi[range]
+            .iter()
+            .map(|&e| self.to[e as usize])
+            .collect())
+    }
+
+    /// In-neighbours of `v` (always — directed or undirected). Each
+    /// edge contributes one entry, in `ii[is[v]..is[v+1]]` order
+    /// (lex by `(to, from)`). Self-loops appear once.
+    ///
+    /// Companion to [`out_neighbors_vec`](Self::out_neighbors_vec); see
+    /// its doc for context on visibility.
+    pub(crate) fn in_neighbors_vec(&self, v: VertexId) -> IgraphResult<Vec<VertexId>> {
+        self.check_vertex(v)?;
+        let v_idx = v as usize;
+        let range = self.is[v_idx] as usize..self.is[v_idx + 1] as usize;
+        Ok(self.ii[range]
+            .iter()
+            .map(|&e| self.from[e as usize])
+            .collect())
+    }
+
     fn check_vertex(&self, v: VertexId) -> IgraphResult<()> {
         if v >= self.n {
             return Err(IgraphError::VertexOutOfRange { id: v, n: self.n });

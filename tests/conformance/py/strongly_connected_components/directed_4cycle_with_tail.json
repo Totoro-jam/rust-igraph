@@ -1,0 +1,43 @@
+{
+  "source": "py",
+  "origin": "constructed: directed 4-cycle 0->1->2->3->0 plus 3->4 tail; expected verified against python-igraph 0.11 connected_components(mode='strong')",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "strongly_connected_components",
+  "params": {},
+  "expected": {
+    "membership": [
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "count": 2
+  }
+}

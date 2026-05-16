@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "components.c:'Directed 2-path' SCC: every vertex its own component",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "strongly_connected_components",
+  "params": {},
+  "expected": {
+    "membership": [
+      0,
+      1
+    ],
+    "count": 2
+  }
+}

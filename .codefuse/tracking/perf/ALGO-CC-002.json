@@ -1,0 +1,12 @@
+{
+  "awu": "ALGO-CC-002",
+  "rust_karate_undirected_ns": 2442,
+  "rust_karate_directed_ns": 4493,
+  "rust_directed_cycle_n100_ns": 9623,
+  "rust_directed_cycle_n1000_ns": 85256,
+  "rust_directed_cycle_n10000_ns": 855480,
+  "py_karate_directed_ns": null,
+  "captured_at": "2026-05-16",
+  "git_commit": "a30c792",
+  "notes": "Phase 1 strongly connected components via src/algorithms/connectivity/strong.rs. Iterative two-pass Kosaraju mirroring igraph_i_connected_components_strong. Karate-undirected (2.44 µs) is the SCC->WCC delegate path; karate-directed (4.49 µs) is the actual two-pass DFS. Linear scan on directed cycles: 96 ns/vertex at n=100, 85 ns/vertex at n=1000, 86 ns/vertex at n=10000 — confirms O(V+E) asymptotic with constant per-vertex cost. Like CC-001 the dominant overhead is per-vertex Vec alloc in out_neighbors_vec/in_neighbors_vec, addressable via slice-returning APIs in a future CORE-001 perf pass."
+}

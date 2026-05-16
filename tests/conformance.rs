@@ -152,3 +152,14 @@ fn connected_components_three_source_conformance() {
         })
     });
 }
+
+#[test]
+fn strongly_connected_components_three_source_conformance() {
+    run_conformance("strongly_connected_components", |g, _params| {
+        let scc = rust_igraph::strongly_connected_components(g).expect("scc");
+        serde_json::json!({
+            "membership": scc.membership,
+            "count": scc.count,
+        })
+    });
+}

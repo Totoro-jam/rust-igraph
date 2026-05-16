@@ -1,0 +1,48 @@
+{
+  "source": "c",
+  "origin": "components.c:'Two disjoint 3-cycles' two directed 3-cycles SCC, natural Kosaraju label order (matches python-igraph 0.11)",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "strongly_connected_components",
+  "params": {},
+  "expected": {
+    "membership": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      0
+    ],
+    "count": 2
+  }
+}

@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc c18b1e00de236c2a4140c4403af4192208150ed41edc67c514086beab4c4e6cc # shrinks to g = Graph { n: 3, directed: true, from: [2, 1, 0], to: [1, 0, 2], oi: [2, 1, 0], ii: [1, 0, 2], os: [0, 1, 2, 3], is: [0, 1, 2, 3] }

@@ -11,6 +11,34 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(connectivity)* **ALGO-CC-002**: strongly connected components
+  (`strongly_connected_components`). Returns the same
+  `ConnectedComponents { membership, count }` shape as weak components.
+  Counterpart of
+  `igraph_connected_components(_, _, _, _, IGRAPH_STRONG)` from
+  `references/igraph/src/connectivity/components.c:203-386` —
+  iterative two-pass Kosaraju (forward DFS → post-order; reverse via
+  in-edges → SCCs). Membership labels match
+  `python-igraph.connected_components(mode='strong')` exactly because
+  both implementations follow Kosaraju's natural grandfather-pop order.
+  Undirected graphs delegate to `connected_components` (their SCCs equal
+  their WCCs). Full 9-step SOP: 11 unit tests, 2 oracle tests
+  (two-disjoint-3-cycles + cycle-with-tail), 4 three-source conformance
+  fixtures (igraph C: components.c two-3-cycles + directed-2-path;
+  python-igraph: directed-4cycle-with-tail; R-igraph: test-components.R
+  literal-graph A→B→C→A→D, isolate E), 2 proptest invariants (dense
+  ids; SCC partition refines the underlying weak components), criterion
+  baseline ≈ 4.49 µs on karate-as-directed, 2.44 µs on karate-undirected
+  (delegate path), ≈ 86 ns/vertex on directed cycles up to n=10000.
+- *(test-helper)* `tests/common/mod.rs::GraphPayload::from_graph` now
+  honours `g.is_directed()` and reconstructs directed edge lists via
+  out-neighbours (was hardcoded `directed=false`, dropping reverse
+  edges). Caught by SCC's first oracle run.
+- *(core)* internal helpers `Graph::out_neighbors_vec(v)` /
+  `Graph::in_neighbors_vec(v)` (`pub(crate)`) used by direction-aware
+  algorithms. Public mode-aware `neighbors(_, mode)` ships in a future
+  AWU.
+
 - *(connectivity)* **ALGO-CC-001**: weakly connected components
   (`connected_components`). Returns `ConnectedComponents { membership,
   count }`. Counterpart of

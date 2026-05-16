@@ -25,6 +25,22 @@ fn arb_graph(max_n: u32) -> impl Strategy<Value = Graph> {
         })
 }
 
+/// Same as [`arb_graph`] but builds a directed graph. Used by SCC properties.
+fn arb_directed_graph(max_n: u32) -> impl Strategy<Value = Graph> {
+    (1u32..=max_n)
+        .prop_flat_map(|n| {
+            let edges = proptest::collection::vec((0u32..n, 0u32..n), 0..=(n as usize * 2));
+            (Just(n), edges)
+        })
+        .prop_map(|(n, edges)| {
+            let mut g = Graph::new(n, true).expect("directed init");
+            for (u, v) in edges {
+                g.add_edge(u, v).expect("indices in range");
+            }
+            g
+        })
+}
+
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(64))]
 
@@ -91,6 +107,51 @@ proptest! {
             .filter(|&v| cc.membership[v as usize] == cc.membership[0])
             .collect();
         prop_assert_eq!(bfs_reachable, cc_reachable);
+    }
+
+    /// SCC membership has length `vcount` and dense ids `0..count`. The
+    /// number of SCCs is at least the number of weak components (every
+    /// SCC is contained in some weak component) and at most `vcount`.
+    #[test]
+    fn scc_membership_is_dense_and_bounded(g in arb_directed_graph(15)) {
+        let scc = rust_igraph::strongly_connected_components(&g).unwrap();
+        prop_assert_eq!(scc.membership.len(), g.vcount() as usize);
+        if scc.count == 0 {
+            prop_assert!(scc.membership.is_empty());
+        } else {
+            let max = *scc.membership.iter().max().unwrap();
+            prop_assert_eq!(max + 1, scc.count, "SCC ids must be dense 0..count");
+            prop_assert!(scc.count <= g.vcount(), "SCC count cannot exceed vcount");
+        }
+    }
+
+    /// SCC partition is a refinement of the underlying-undirected weak
+    /// connected components: every SCC is fully contained inside one
+    /// weak component (`u, v` in same SCC ⇒ `u, v` in same WCC after
+    /// dropping edge directions).
+    #[test]
+    fn scc_refines_weak_components(g in arb_directed_graph(15)) {
+        let scc = rust_igraph::strongly_connected_components(&g).unwrap();
+        // Build the same graph as undirected (every directed edge becomes
+        // an undirected edge) and take its weak components. Iterate by
+        // edge-id so reverse edges aren't dropped.
+        let mut undirected = Graph::with_vertices(g.vcount());
+        let m = u32::try_from(g.ecount()).expect("edge count fits in u32 for proptest");
+        for e in 0..m {
+            let (u, v) = g.edge(e).unwrap();
+            undirected.add_edge(u, v).unwrap();
+        }
+        let wcc = rust_igraph::connected_components(&undirected).unwrap();
+        for u in 0..g.vcount() {
+            for v in (u + 1)..g.vcount() {
+                if scc.membership[u as usize] == scc.membership[v as usize] {
+                    prop_assert_eq!(
+                        wcc.membership[u as usize], wcc.membership[v as usize],
+                        "{} and {} share an SCC but not a weak component", u, v
+                    );
+                }
+            }
+        }
     }
 
     /// BFS-reachable set from `root` is symmetric on undirected graphs:

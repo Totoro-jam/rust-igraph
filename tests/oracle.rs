@@ -10,12 +10,23 @@ mod common;
 use std::fs::File;
 
 use common::{OracleResponse, run_ok};
-use rust_igraph::{Graph, bfs, connected_components, dfs, read_edgelist};
+use rust_igraph::{
+    Graph, bfs, connected_components, dfs, read_edgelist, strongly_connected_components,
+};
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("fixtures")
         .join(name)
+}
+
+/// Wire-format payload returned by the oracle for both weak (`cc`) and
+/// strong (`scc`) connected-components algos: the result is structurally
+/// identical (`{"membership": [...], "count": N}`).
+#[derive(serde::Deserialize)]
+struct PyComponents {
+    membership: Vec<u32>,
+    count: u32,
 }
 
 #[test]
@@ -81,12 +92,7 @@ fn connected_components_karate_matches_python_igraph() {
         .expect("parse karate edgelist");
     let rust_cc = connected_components(&g).expect("rust cc");
 
-    #[derive(serde::Deserialize)]
-    struct PyCc {
-        membership: Vec<u32>,
-        count: u32,
-    }
-    let py_cc: PyCc =
+    let py_cc: PyComponents =
         serde_json::from_value(run_ok("connected_components", &g, serde_json::json!({})))
             .expect("decode python cc");
     assert_eq!(rust_cc.membership, py_cc.membership);
@@ -103,17 +109,54 @@ fn connected_components_two_components() {
     g.add_edge(3, 4).unwrap();
     let rust_cc = connected_components(&g).expect("rust cc");
 
-    #[derive(serde::Deserialize)]
-    struct PyCc {
-        membership: Vec<u32>,
-        count: u32,
-    }
-    let py_cc: PyCc =
+    let py_cc: PyComponents =
         serde_json::from_value(run_ok("connected_components", &g, serde_json::json!({})))
             .expect("decode python cc");
     assert_eq!(rust_cc.membership, py_cc.membership);
     assert_eq!(rust_cc.count, py_cc.count);
     assert_eq!(rust_cc.count, 2);
+}
+
+#[test]
+fn strongly_connected_components_two_disjoint_cycles_matches_python_igraph() {
+    // Two disjoint directed 3-cycles: 0->1->2->0 and 3->4->5->3.
+    // SCC count = 2; rust + python-igraph follow the same Kosaraju
+    // grandfather-pop labelling so membership vectors must agree exactly.
+    let mut g = Graph::new(6, true).expect("new directed");
+    for (u, v) in [(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)] {
+        g.add_edge(u, v).expect("add edge");
+    }
+    let rust_scc = strongly_connected_components(&g).expect("rust scc");
+
+    let py_scc: PyComponents = serde_json::from_value(run_ok(
+        "strongly_connected_components",
+        &g,
+        serde_json::json!({}),
+    ))
+    .expect("decode python scc");
+    assert_eq!(rust_scc.membership, py_scc.membership);
+    assert_eq!(rust_scc.count, py_scc.count);
+    assert_eq!(rust_scc.count, 2);
+}
+
+#[test]
+fn strongly_connected_components_cycle_with_chain_matches_python_igraph() {
+    // 0 -> 1 -> 2 -> 0 forms a cycle; 2 -> 3 -> 4 are dangling singletons.
+    let mut g = Graph::new(5, true).expect("new directed");
+    for (u, v) in [(0, 1), (1, 2), (2, 0), (2, 3), (3, 4)] {
+        g.add_edge(u, v).expect("add edge");
+    }
+    let rust_scc = strongly_connected_components(&g).expect("rust scc");
+
+    let py_scc: PyComponents = serde_json::from_value(run_ok(
+        "strongly_connected_components",
+        &g,
+        serde_json::json!({}),
+    ))
+    .expect("decode python scc");
+    assert_eq!(rust_scc.membership, py_scc.membership);
+    assert_eq!(rust_scc.count, py_scc.count);
+    assert_eq!(rust_scc.count, 3);
 }
 
 #[test]
