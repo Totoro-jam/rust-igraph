@@ -87,6 +87,11 @@ name = "bench_girth"
 path = "benches/bench_girth.rs"
 harness = false
 
+[[bench]]
+name = "bench_radii"
+path = "benches/bench_radii.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

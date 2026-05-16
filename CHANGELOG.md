@@ -11,6 +11,24 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(paths)* **ALGO-SP-020**: eccentricity / radius / diameter (unweighted,
+  undirected or `IGRAPH_OUT` mode). Returns `Vec<u32>` / `Option<u32>` /
+  `Option<u32>` respectively. Counterparts of `igraph_eccentricity()`
+  (`distances.c:257`), `igraph_radius()` (`distances.c:345`), and
+  `igraph_diameter()` (`shortest_paths.c:1259`). All three are
+  BFS-from-each-vertex driven by the existing SP-006 `distances`
+  primitive; unreachable pairs ignored (upstream's `unconn=true` default).
+  Full 9-step SOP: 9 unit tests (empty / singleton / isolated /
+  path-5 / cycle-4 / star / disconnected / directed-path /
+  self-loop), 1 oracle test sweeping eccentricity/radius/diameter on
+  karate against python-igraph 0.11, 9 three-source conformance
+  fixtures (3 algos × 3 sources, including igraph C
+  `igraph_diameter.c` directed-ring(10) and R `test-structural-properties.R`
+  disjoint-trees `unconnected=TRUE` case), 1 proptest coherence
+  invariant (`radius == min(ecc) ∧ diameter == max(ecc)`), criterion
+  baselines ≈ 92 µs / 88 µs on karate (34 calls to `distances` at
+  ~2.5 µs each).
+
 - *(properties)* **ALGO-PR-001**: girth (`girth`). Returns `Option<u32>` —
   `None` for acyclic graphs (mapped from upstream's `IGRAPH_INFINITY`),
   `Some(k)` for the shortest cycle length. Counterpart of

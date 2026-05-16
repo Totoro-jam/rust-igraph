@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-cycle via python-igraph; diameter 2",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "diameter",
+  "params": {},
+  "expected": 2
+}

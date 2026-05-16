@@ -105,6 +105,49 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIAM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "diameter_c_ring10_directed",
+        # igraph_diameter.c lines 46-49: directed ring(10) with no mutual
+        # arcs has diameter 9 (longest geodesic 0 → 9 via 9 edges).
+        "origin": "igraph_diameter.c:lines 46-49 — directed ring(10) diameter 9",
+        "graph_factory": lambda: ig.Graph.Ring(
+            n=10, directed=True, mutual=False, circular=True
+        ),
+        "algo": "diameter",
+        "params": {},
+        "expected": 9,
+    },
+]
+
+ECC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ecc_c_path5",
+        # examples/simple/igraph_eccentricity.c uses a hand-built graph.
+        # Use a simple 5-path so the expected vector is unambiguous.
+        "origin": "constructed: 5-path; expected via python-igraph 0.11 eccentricity()",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "algo": "eccentricity",
+        "params": {},
+        "expected": [4, 3, 2, 3, 4],
+    },
+]
+
+RAD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "radius_c_path5",
+        "origin": "constructed: 5-path; radius = 2 (centre vertex 2)",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "algo": "radius",
+        "params": {},
+        "expected": 2,
+    },
+]
+
 GIRTH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "girth_c_ring100_with_chord_0_50",
@@ -321,6 +364,9 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bridges": BRIDGE_MANIFEST,
     "is_biconnected": ISBI_MANIFEST,
     "girth": GIRTH_MANIFEST,
+    "diameter": DIAM_MANIFEST,
+    "eccentricity": ECC_MANIFEST,
+    "radius": RAD_MANIFEST,
 }
 
 

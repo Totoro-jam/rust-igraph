@@ -65,6 +65,24 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         cc = g.connected_components(mode="weak")
         return {"membership": list(cc.membership), "count": len(cc)}
 
+    if algo == "eccentricity":
+        # Counterpart of igraph_eccentricity(_, NULL_weights, _, igraph_vss_all(), IGRAPH_OUT).
+        # python-igraph returns floats; cast to int.
+        return [int(x) for x in g.eccentricity()]
+
+    if algo == "radius":
+        # Counterpart of igraph_radius(_, NULL_weights, _, IGRAPH_OUT).
+        # Empty graph returns NaN upstream; we map to None.
+        if g.vcount() == 0:
+            return None
+        return int(g.radius())
+
+    if algo == "diameter":
+        # Counterpart of igraph_diameter(_, NULL, _, NULL, NULL, NULL, NULL, _, true).
+        if g.vcount() == 0:
+            return None
+        return int(g.diameter())
+
     if algo == "girth":
         # Counterpart of igraph_girth(_, &result, NULL). python-igraph
         # returns float('inf') for acyclic graphs; we encode that as None

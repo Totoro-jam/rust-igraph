@@ -76,6 +76,47 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIAM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "diameter_4_cycle",
+        # 4-cycle has diameter 2 (longest geodesic between opposite vertices).
+        "origin": "constructed: 4-cycle via python-igraph; diameter 2",
+        "graph_factory": lambda: ig.Graph.Ring(
+            n=4, directed=False, mutual=False, circular=True
+        ),
+        "algo": "diameter",
+        "params": {},
+        "expected": 2,
+    },
+]
+
+ECC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ecc_star_4",
+        # Star with centre 0 and 3 leaves: ecc = [1, 2, 2, 2].
+        "origin": "constructed: 4-vertex star via python-igraph; eccentricity vector",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "eccentricity",
+        "params": {},
+        "expected": [1, 2, 2, 2],
+    },
+]
+
+RAD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "radius_star_4",
+        "origin": "constructed: 4-vertex star — radius 1 (centre)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "radius",
+        "params": {},
+        "expected": 1,
+    },
+]
+
 GIRTH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "girth_petersen_like_pentagon",
@@ -176,6 +217,9 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bridges": BRIDGE_MANIFEST,
     "is_biconnected": ISBI_MANIFEST,
     "girth": GIRTH_MANIFEST,
+    "diameter": DIAM_MANIFEST,
+    "eccentricity": ECC_MANIFEST,
+    "radius": RAD_MANIFEST,
 }
 
 

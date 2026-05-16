@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "test-aaa-auto.R-style \u2014 path_graph(n=3); eccentricity vector",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "eccentricity",
+  "params": {},
+  "expected": [
+    2,
+    1,
+    2
+  ]
+}

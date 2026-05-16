@@ -86,7 +86,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-SP-005 | A* | astar.c | 273 | adapt | TR-001 | todo | - | - | - |
 | ALGO-SP-006 | BFS distances (single-source, unweighted, OUT mode) | unweighted.c:273-325 | 240 | adapt | TR-001 | done | (next) | 2.5 µs/karate | C:1 / py:1 / R:1 |
 | ALGO-SP-010..014 | Widest paths | widest_paths*.c | 741 | adapt | - | todo | - | - | - |
-| ALGO-SP-020..023 | Diameter / eccentricity / radius | diameter.c, eccentricity.c | ~400 | adapt | - | todo | - | - | - |
+| ALGO-SP-020 | Eccentricity / radius / diameter (unweighted) | distances.c:257-363, shortest_paths.c:1259 | ~250 | adapt | SP-006 | done | (next) | ecc 92 µs / rad 88 µs / karate | C:3 / py:3 / R:3 (3 algos × 3 sources) |
+| ALGO-SP-021..023 | Mode-aware + weighted (Dijkstra) eccentricity/radius/diameter | distances.c, shortest_paths.c | ~250 | adapt | SP-001, SP-020 | todo | - | - | - |
 | ALGO-CC-001 | Weakly connected components | components.c:82-180 | 100 | adapt | TR-001 | done | (next) | 4.1 µs/karate | C:2 / py:1 / R:1 |
 | ALGO-CC-002 | Strongly connected components (Kosaraju) | components.c:203-386 | 184 | adapt | CC-001 | done | (next) | 4.49 µs/karate-dir | C:2 / py:1 / R:1 |
 | ALGO-CC-003 | Decompose graph by components | components.c:566-732 | 350 | adapt | CC-001,002 | todo | - | - | - |
@@ -117,16 +118,16 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 11 | 0 | ~74 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1); scc: 4 (C:2, py:1, R:1); distances: 3 (C:1, py:1, R:1); is_eulerian: 5 (C:3, py:0, R:2); articulation: 3 (C:1, py:1, R:1); bridges: 4 (C:2, py:1, R:1); is_biconnected: 4 (C:2, py:1, R:1); girth: 4 (C:2, py:1, R:1) |
+| 1 | 12 | 0 | ~73 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; eccentricity/radius/diameter: 9 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 11/85 done — Graph
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 12/85 done — Graph
 core (CORE-001a/b), DFS (TR-002), weak CC (CC-001), strong CC (CC-002),
 unweighted distances (SP-006), Eulerian existence (CC-040), articulation
 points (CC-010), bridges (CC-014), is_biconnected (CC-013), girth
-(PR-001). Next options: SP-001 (Dijkstra; needs weighted-edge extension
-to Graph), CC-003 (decompose), CC-011 (full biconnected components —
-vertex/edge sets), CC-041/042 (Eulerian path/cycle construction via
-Hierholzer).
+(PR-001), eccentricity/radius/diameter (SP-020). Next options: SP-001
+(Dijkstra; needs weighted-edge extension to Graph), CC-003 (decompose),
+CC-011 (full biconnected components — vertex/edge sets), CC-041/042
+(Eulerian path/cycle construction via Hierholzer).
 
 > Update the counters after every PR merge.

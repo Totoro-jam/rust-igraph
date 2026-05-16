@@ -1,0 +1,36 @@
+{
+  "source": "c",
+  "origin": "constructed: 5-path; expected via python-igraph 0.11 eccentricity()",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "eccentricity",
+  "params": {},
+  "expected": [
+    4,
+    3,
+    2,
+    3,
+    4
+  ]
+}

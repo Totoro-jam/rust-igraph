@@ -1,0 +1,10 @@
+{
+  "awu": "ALGO-SP-020",
+  "rust_eccentricity_karate_ns": 92658,
+  "rust_radius_karate_ns": 87579,
+  "rust_diameter_karate_ns": null,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-16",
+  "git_commit": "9cf3133",
+  "notes": "Phase 1 eccentricity/radius/diameter via src/algorithms/paths/radii.rs. All three are BFS-from-every-vertex (calling existing SP-006 `distances`). Karate (34v): eccentricity ≈ 92.7 µs (34 calls to distances at ~2.5 µs each = ~85 µs + overhead, lines up). Radius/diameter share the eccentricity scan plus a single min/max. A bespoke single-pass would shave ~3-5 µs but Phase-1 minimal favours simplicity. Mode-aware (`IGRAPH_IN/OUT/ALL`) variant and a Dijkstra-weighted version land with SP-001."
+}

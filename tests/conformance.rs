@@ -180,6 +180,36 @@ fn strongly_connected_components_three_source_conformance() {
 }
 
 #[test]
+fn eccentricity_three_source_conformance() {
+    run_conformance("eccentricity", |g, _params| {
+        let ecc = rust_igraph::eccentricity(g).expect("eccentricity");
+        serde_json::json!(ecc)
+    });
+}
+
+#[test]
+fn radius_three_source_conformance() {
+    run_conformance("radius", |g, _params| {
+        let r = rust_igraph::radius(g).expect("radius");
+        match r {
+            Some(n) => serde_json::json!(n),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
+fn diameter_three_source_conformance() {
+    run_conformance("diameter", |g, _params| {
+        let d = rust_igraph::diameter(g).expect("diameter");
+        match d {
+            Some(n) => serde_json::json!(n),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
 fn girth_three_source_conformance() {
     run_conformance("girth", |g, _params| {
         let g_val = rust_igraph::girth(g).expect("girth");

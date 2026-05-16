@@ -11,8 +11,8 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
-    Graph, articulation_points, bfs, bridges, connected_components, dfs, distances, girth,
-    is_biconnected, read_edgelist, strongly_connected_components,
+    Graph, articulation_points, bfs, bridges, connected_components, dfs, diameter, distances,
+    eccentricity, girth, is_biconnected, radius, read_edgelist, strongly_connected_components,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -393,6 +393,29 @@ fn girth_karate_matches_python_igraph() {
     assert_eq!(rust, py);
     // Karate has many triangles → girth 3.
     assert_eq!(rust, Some(3));
+}
+
+#[test]
+fn eccentricity_radius_diameter_karate_match_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+
+    let rust_ecc = eccentricity(&g).unwrap();
+    let py_ecc: Vec<u32> =
+        serde_json::from_value(run_ok("eccentricity", &g, serde_json::json!({})))
+            .expect("decode python eccentricity");
+    assert_eq!(rust_ecc, py_ecc);
+
+    let rust_r = radius(&g).unwrap();
+    let py_r: Option<u32> = serde_json::from_value(run_ok("radius", &g, serde_json::json!({})))
+        .expect("decode python radius");
+    assert_eq!(rust_r, py_r);
+
+    let rust_d = diameter(&g).unwrap();
+    let py_d: Option<u32> = serde_json::from_value(run_ok("diameter", &g, serde_json::json!({})))
+        .expect("decode python diameter");
+    assert_eq!(rust_d, py_d);
 }
 
 #[test]

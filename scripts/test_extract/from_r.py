@@ -147,6 +147,52 @@ EUL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIAM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "diameter_R_disjoint_trees",
+        # test-structural-properties.R:'diameter() correctly handles
+        # disconnected graphs' make_tree(7,2) %du% make_tree(4,3) →
+        # diameter(unconnected=TRUE) = 4 (longest geodesic in larger
+        # tree, ignoring the disconnect).
+        "origin": "test-structural-properties.R:'diameter() correctly handles disconnected graphs' "
+        "make_tree(7,2) %du% make_tree(4,3); diameter(unconnected=TRUE) = 4",
+        "graph_factory": lambda: ig.Graph.Tree(n=7, children=2, mode="undirected").disjoint_union(
+            ig.Graph.Tree(n=4, children=3, mode="undirected")
+        ),
+        "algo": "diameter",
+        "params": {},
+        "expected": 4,
+    },
+]
+
+ECC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ecc_R_path_graph_3",
+        # test-aaa-auto.R uses path_graph_impl(n=3) for many basic tests.
+        # 0-1-2: ecc = [2, 1, 2].
+        "origin": "test-aaa-auto.R-style — path_graph(n=3); eccentricity vector",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "eccentricity",
+        "params": {},
+        "expected": [2, 1, 2],
+    },
+]
+
+RAD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "radius_R_path_graph_3",
+        "origin": "test-aaa-auto.R-style — path_graph(n=3); radius = 1 (centre)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "radius",
+        "params": {},
+        "expected": 1,
+    },
+]
+
 GIRTH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "girth_R_make_ring_100",
@@ -255,6 +301,9 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bridges": BRIDGE_MANIFEST,
     "is_biconnected": ISBI_MANIFEST,
     "girth": GIRTH_MANIFEST,
+    "diameter": DIAM_MANIFEST,
+    "eccentricity": ECC_MANIFEST,
+    "radius": RAD_MANIFEST,
 }
 
 

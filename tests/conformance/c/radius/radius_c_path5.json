@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "constructed: 5-path; radius = 2 (centre vertex 2)",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "radius",
+  "params": {},
+  "expected": 2
+}

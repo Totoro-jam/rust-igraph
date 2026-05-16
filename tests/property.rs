@@ -154,6 +154,26 @@ proptest! {
         }
     }
 
+    /// Radius / diameter / eccentricity coherence: `radius == min(ecc)`,
+    /// `diameter == max(ecc)`, all entries non-negative, all bounded by
+    /// `vcount`. (Sanity invariants since the three functions share the
+    /// same `distances` inner loop.)
+    #[test]
+    fn radii_are_coherent(g in arb_graph(10)) {
+        let ecc = rust_igraph::eccentricity(&g).unwrap();
+        let r = rust_igraph::radius(&g).unwrap();
+        let d = rust_igraph::diameter(&g).unwrap();
+        let n = g.vcount();
+        prop_assert_eq!(ecc.len(), n as usize);
+        for &e in &ecc {
+            prop_assert!(e <= n, "eccentricity {} exceeds vcount {}", e, n);
+        }
+        let derived_r = ecc.iter().copied().min();
+        let derived_d = ecc.iter().copied().max();
+        prop_assert_eq!(r, derived_r);
+        prop_assert_eq!(d, derived_d);
+    }
+
     /// Girth lower bound: if `girth(g) == Some(k)`, no BFS tree from any
     /// vertex can find a cycle shorter than k. We sanity-check that the
     /// reported girth is consistent with each vertex's BFS depth — every

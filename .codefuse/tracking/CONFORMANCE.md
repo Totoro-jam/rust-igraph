@@ -18,6 +18,9 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | bridges | 2 | 1 | 1 | 4/4 | Edge-id outputs sorted before comparison (DFS discovery order varies). Conformance runs against the fixture's edge-list ordering, so edge ids are stable across the test runner; oracle tests use a `(min,max)` endpoint-pair canonicalisation because `GraphPayload::from_graph` rebuilds python's edge list in a different order. Fixtures: igraph C `igraph_bridges.c` 7v two-triangles + multigraph cases; python-igraph 4-path; R `make_graph("krackhardt_kite")` from `test-components.R`. |
 | is_biconnected | 2 | 1 | 1 | 4/4 | Boolean output, no canonicalisation needed. Fixtures: igraph C `igraph_is_biconnected.c` (4-cycle + 3-cycle sharing vertex 2 → false; ring(10) → true); python-igraph K4 → true; R `path_graph(n=3)` from `test-aaa-auto.R` → false. |
 | girth | 2 | 1 | 1 | 4/4 | `Option<u32>` encoded as JSON `null` (no cycle) / integer. First fixture suite with a `null`-valued expected — the `tests/common::run_ok` helper was generalised to return `Value::Null` when the oracle's `result` field is null (previously panicked). Fixtures: igraph C `examples/simple/igraph_girth.c` ring(100)+chord and null-graph; python-igraph 5-cycle; R `test-structural-properties.R:'girth() works'` make_ring(100). |
+| eccentricity | 1 | 1 | 1 | 3/3 | `Vec<u32>` (per-vertex). Fixtures: 5-path, 4-vertex star, 3-path. All BFS-from-each-vertex consuming SP-006. |
+| radius | 1 | 1 | 1 | 3/3 | `Option<u32>` (None for null graph). Fixtures: 5-path → 2, 4-vertex star → 1, 3-path → 1. |
+| diameter | 1 | 1 | 1 | 3/3 | `Option<u32>`. Fixtures: directed ring(10) → 9 (igraph_diameter.c); 4-cycle → 2; R disjoint trees (make_tree(7,2) ∪ make_tree(4,3), unconnected=TRUE) → 4. |
 
 ## How to add a row
 
@@ -31,4 +34,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 9 (dfs, cc, scc, distances, is_eulerian, articulation, bridges, is_biconnected, girth) | 34 | 16 / 8 / 10 |
+| 1     | 12 (dfs, cc, scc, distances, is_eulerian, articulation, bridges, is_biconnected, girth, ecc, radius, diameter) | 43 | 19 / 11 / 13 |

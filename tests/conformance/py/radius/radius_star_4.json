@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-vertex star \u2014 radius 1 (centre)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "radius",
+  "params": {},
+  "expected": 1
+}
