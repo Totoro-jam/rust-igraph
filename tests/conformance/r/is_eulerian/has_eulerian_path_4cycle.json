@@ -1,0 +1,33 @@
+{
+  "source": "r",
+  "origin": "test-eulerian.R:'has_eulerian_path works' line 2 \u2014 graph_from_literal(A - B - C - D - A); 4-cycle has both path and cycle",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_eulerian",
+  "params": {},
+  "expected": {
+    "has_path": true,
+    "has_cycle": true
+  }
+}

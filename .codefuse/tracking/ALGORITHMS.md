@@ -93,7 +93,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-CC-010..014 | Biconnected / articulation / bridges | biconnected*.c | ~600 | adapt | TR-002 | todo | - | - | - |
 | ALGO-CC-020..022 | Reachability | reachability.c | 257 | adapt | TR-001 | todo | - | - | - |
 | ALGO-CC-030..032 | Percolation | percolation.c | 404 | adapt | - | todo | - | - | - |
-| ALGO-CC-040..042 | Eulerian paths/cycles | eulerian*.c | 681 | adapt | - | todo | - | - | - |
+| ALGO-CC-040 | Eulerian existence (`is_eulerian`) | eulerian.c:333 (incl. directed/undirected helpers) | ~280 | adapt | CC-001 | done | (next) | 4.7 µs/karate | C:3 / py:0 / R:2 (py skipped — see CONFORMANCE.md) |
+| ALGO-CC-041..042 | Eulerian path/cycle construction (Hierholzer) | eulerian.c:345-682 | ~400 | adapt | CC-040 | todo | - | - | - |
 
 ## Phase 3 — Centrality + Eigensolver (~65 AWU)
 
@@ -112,13 +113,14 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 6 | 0 | ~79 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1); scc: 4 (C:2, py:1, R:1); distances: 3 (C:1, py:1, R:1) |
+| 1 | 7 | 0 | ~78 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1); scc: 4 (C:2, py:1, R:1); distances: 3 (C:1, py:1, R:1); is_eulerian: 5 (C:3, py:0, R:2) |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 6/85 done — Graph
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 7/85 done — Graph
 core (CORE-001a/b), DFS (TR-002), weak CC (CC-001), strong CC (CC-002),
-unweighted distances (SP-006). Next options: SP-001 (Dijkstra; needs
-weighted-edge extension to Graph), CC-003 (decompose), CC-010
-(biconnected components, builds on TR-002 DFS), CC-040 (Eulerian path).
+unweighted distances (SP-006), Eulerian existence (CC-040). Next options:
+SP-001 (Dijkstra; needs weighted-edge extension to Graph), CC-003
+(decompose), CC-010 (biconnected components, builds on TR-002 DFS),
+CC-041/042 (Eulerian path/cycle construction via Hierholzer).
 
 > Update the counters after every PR merge.

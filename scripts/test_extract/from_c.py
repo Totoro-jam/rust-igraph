@@ -105,6 +105,42 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EUL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_eulerian_undirected_path_3",
+        # igraph_is_eulerian.c line 12: small(IGRAPH_UNDIRECTED, 0,1, 1,2)
+        # → "1 0" (line 1 of .out): has_path && !has_cycle.
+        "origin": "igraph_is_eulerian.c:line 12 undirected path 0-1-2",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "is_eulerian",
+        "params": {},
+        "expected": {"has_path": True, "has_cycle": False},
+    },
+    {
+        "case": "is_eulerian_undirected_triangle",
+        # igraph_is_eulerian.c line 22: triangle 1,2 / 2,3 / 3,1 — same as
+        # vertices 0,1,2 in 0-based world. Expected line 3 of .out: "1 1".
+        "origin": "igraph_is_eulerian.c:line 22 undirected triangle (0-based: 0-1-2-0)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "is_eulerian",
+        "params": {},
+        "expected": {"has_path": True, "has_cycle": True},
+    },
+    {
+        "case": "is_eulerian_directed_2_disconnected_edges",
+        # igraph_is_eulerian.c line 71-ish: undirected (0,1) + (2,3) two
+        # disconnected edges → "0 0" (no path, no cycle). Translated to a
+        # directed analog via 0->1, 2->3.
+        "origin": "igraph_is_eulerian.c:line 71 two disconnected edges (directed adaption)",
+        "graph_factory": lambda: ig.Graph(n=4, edges=[(0, 1), (2, 3)], directed=True),
+        "algo": "is_eulerian",
+        "params": {},
+        "expected": {"has_path": False, "has_cycle": False},
+    },
+]
+
 DIST_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "kary_tree20_k2_source0",
@@ -157,6 +193,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
     "distances": DIST_MANIFEST,
+    "is_eulerian": EUL_MANIFEST,
 }
 
 

@@ -1,0 +1,57 @@
+{
+  "source": "r",
+  "origin": "test-eulerian.R:'has_eulerian_cycle works' graph_from_literal(A - B - C - D - E - A - F - D - B - F - E, simplify = FALSE)",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_eulerian",
+  "params": {},
+  "expected": {
+    "has_path": true,
+    "has_cycle": false
+  }
+}

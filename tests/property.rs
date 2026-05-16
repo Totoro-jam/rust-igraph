@@ -154,6 +154,18 @@ proptest! {
         }
     }
 
+    /// Eulerian classification monotonicity: if `has_cycle` then
+    /// `has_path`, on every graph. (A closed Eulerian walk is also a
+    /// valid open Eulerian walk.)
+    #[test]
+    fn is_eulerian_cycle_implies_path(g in arb_graph(10)) {
+        let r = rust_igraph::is_eulerian(&g).unwrap();
+        if r.has_cycle {
+            prop_assert!(r.has_path,
+                         "graph reports Eulerian cycle but no Eulerian path");
+        }
+    }
+
     /// `distances(g, 0)` is consistent with `bfs(g, 0)`: every BFS-visited
     /// vertex has `Some(_)` distance and every unvisited vertex has `None`.
     /// Source's own distance is always `Some(0)`.

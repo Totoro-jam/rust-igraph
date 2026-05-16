@@ -1,0 +1,25 @@
+{
+  "source": "c",
+  "origin": "igraph_is_eulerian.c:line 71 two disconnected edges (directed adaption)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_eulerian",
+  "params": {},
+  "expected": {
+    "has_path": false,
+    "has_cycle": false
+  }
+}

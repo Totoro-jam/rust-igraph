@@ -100,6 +100,53 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EUL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "has_eulerian_path_4cycle",
+        # test-eulerian.R:'has_eulerian_path works' line 2:
+        #   graph_from_literal(A - B - C - D - A) → 4-cycle, expects TRUE.
+        "origin": "test-eulerian.R:'has_eulerian_path works' line 2 — "
+        "graph_from_literal(A - B - C - D - A); 4-cycle has both path and cycle",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=False
+        ),
+        "algo": "is_eulerian",
+        "params": {},
+        # 4-cycle: every vertex has even degree → both true.
+        "expected": {"has_path": True, "has_cycle": True},
+    },
+    {
+        "case": "has_eulerian_path_complex_no_cycle",
+        # test-eulerian.R:'has_eulerian_cycle works' line 48-49:
+        #   graph_from_literal(A - B - C - D - E - A - F - D - B - F - E,
+        #                      simplify = FALSE)
+        # has_eulerian_path = TRUE, has_eulerian_cycle = FALSE.
+        # Translated to 0-based vertex ids A=0, B=1, C=2, D=3, E=4, F=5.
+        # Edges (in literal order): A-B, B-C, C-D, D-E, E-A, A-F, F-D, D-B, B-F, F-E.
+        "origin": "test-eulerian.R:'has_eulerian_cycle works' "
+        "graph_from_literal(A - B - C - D - E - A - F - D - B - F - E, simplify = FALSE)",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[
+                (0, 1),  # A-B
+                (1, 2),  # B-C
+                (2, 3),  # C-D
+                (3, 4),  # D-E
+                (4, 0),  # E-A
+                (0, 5),  # A-F
+                (5, 3),  # F-D
+                (3, 1),  # D-B
+                (1, 5),  # B-F
+                (5, 4),  # F-E
+            ],
+            directed=False,
+        ),
+        "algo": "is_eulerian",
+        "params": {},
+        "expected": {"has_path": True, "has_cycle": False},
+    },
+]
+
 DIST_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "ring10_source0",
@@ -143,6 +190,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
     "distances": DIST_MANIFEST,
+    "is_eulerian": EUL_MANIFEST,
 }
 
 

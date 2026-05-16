@@ -80,6 +80,18 @@ fn run_conformance(
     algo: &str,
     runner: impl Fn(&rust_igraph::Graph, &serde_json::Value) -> serde_json::Value,
 ) {
+    run_conformance_with_skip(algo, &[], runner);
+}
+
+/// Same as [`run_conformance`] but allows naming sources that genuinely
+/// don't expose the algorithm (e.g. python-igraph 0.11 lacks
+/// `is_eulerian`). `skip_sources` entries must be one of
+/// `"c"`, `"py"`, `"r"`. Document the skip in CONFORMANCE.md.
+fn run_conformance_with_skip(
+    algo: &str,
+    skip_sources: &[&str],
+    runner: impl Fn(&rust_igraph::Graph, &serde_json::Value) -> serde_json::Value,
+) {
     let cases = load_all(algo);
     assert!(
         !cases.is_empty(),
@@ -109,6 +121,9 @@ fn run_conformance(
         *counts.entry(key).or_default() += 1;
     }
     for source in ["c", "py", "r"] {
+        if skip_sources.contains(&source) {
+            continue;
+        }
         assert!(
             counts.get(source).copied().unwrap_or(0) > 0,
             "no {algo} fixtures from source {source}"
@@ -160,6 +175,20 @@ fn strongly_connected_components_three_source_conformance() {
         serde_json::json!({
             "membership": scc.membership,
             "count": scc.count,
+        })
+    });
+}
+
+#[test]
+fn is_eulerian_three_source_conformance() {
+    // python-igraph 0.11.x exposes no Eulerian API (verified — no
+    // Graph.is_eulerian / has_eulerian_path); skip the "py" source
+    // requirement until a future python-igraph release adds it.
+    run_conformance_with_skip("is_eulerian", &["py"], |g, _params| {
+        let r = rust_igraph::is_eulerian(g).expect("is_eulerian");
+        serde_json::json!({
+            "has_path": r.has_path,
+            "has_cycle": r.has_cycle,
         })
     });
 }

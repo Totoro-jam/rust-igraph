@@ -65,6 +65,24 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         cc = g.connected_components(mode="weak")
         return {"membership": list(cc.membership), "count": len(cc)}
 
+    if algo == "is_eulerian":
+        # Counterpart of igraph_is_eulerian(_, &has_path, &has_cycle).
+        # python-igraph exposes Graph.is_eulerian(); newer versions return
+        # an EulerianResult-like object — fall back to the C-bound helpers.
+        try:
+            res = g.is_eulerian()
+            # python-igraph 0.11 returns 0 / 1 / 2:
+            #   0 = neither, 1 = path only, 2 = path + cycle
+            if isinstance(res, int):
+                return {"has_path": res >= 1, "has_cycle": res == 2}
+            return {"has_path": bool(res.has_path), "has_cycle": bool(res.has_cycle)}
+        except AttributeError:
+            # Very old python-igraph: only is_eulerian_path / cycle helpers.
+            return {
+                "has_path": bool(g.is_eulerian_path()),
+                "has_cycle": bool(g.is_eulerian_cycle()),
+            }
+
     if algo == "distances":
         # Counterpart of igraph_distances(_, NULL, _, single_from, all_to, IGRAPH_OUT).
         # python-igraph returns a list of lists; we ask for a single source so

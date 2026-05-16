@@ -1,0 +1,29 @@
+{
+  "source": "c",
+  "origin": "igraph_is_eulerian.c:line 22 undirected triangle (0-based: 0-1-2-0)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_eulerian",
+  "params": {},
+  "expected": {
+    "has_path": true,
+    "has_cycle": true
+  }
+}

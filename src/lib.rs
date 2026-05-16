@@ -36,7 +36,7 @@ pub use crate::algorithms::connectivity::{
     ConnectedComponents, connected_components, strongly_connected_components,
 };
 pub use crate::algorithms::io::read_edgelist;
-pub use crate::algorithms::paths::distances;
+pub use crate::algorithms::paths::{EulerianClassification, distances, is_eulerian};
 pub use crate::algorithms::traversal::{bfs, dfs};
 pub use crate::core::error::{IgraphError, IgraphResult};
 pub use crate::core::graph::{Graph, VertexId};

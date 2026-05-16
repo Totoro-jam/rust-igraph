@@ -11,6 +11,28 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(paths)* **ALGO-CC-040**: Eulerian path/cycle existence test
+  (`is_eulerian`). Returns `EulerianClassification { has_path, has_cycle }`.
+  Counterpart of `igraph_is_eulerian()` from
+  `references/igraph/src/paths/eulerian.c:333` (incl. its undirected /
+  directed helpers). Per-vertex degree balance + weak-connectivity
+  precondition; correctly handles isolated vertices, singletons with
+  self-loops, parallel edges, multiple disconnected self-loops, etc.
+  Full 9-step SOP: 11 unit tests (empty / single / isolated / undirected
+  path / triangle / disconnected components / K4 / triangle-with-self-loop
+  / directed cycle / directed path / directed imbalanced), oracle
+  **deferred** because python-igraph 0.11.x exposes no Eulerian API at
+  all, 5 three-source conformance fixtures (igraph C: undirected path-3 /
+  triangle / two disconnected directed edges from `igraph_is_eulerian.c`;
+  R-igraph: 4-cycle and 6-vertex non-cycle from `test-eulerian.R`),
+  1 proptest invariant (cycle ⇒ path), criterion baseline ≈ 4.7 µs on
+  karate, ≈ 94 µs on a 1000-vertex cycle.
+  Concrete path/cycle construction (Hierholzer) is deferred to CC-041/042.
+- *(test-helpers)* `tests/conformance.rs::run_conformance_with_skip`
+  allows omitting a specific source from the "all three sources must
+  contribute" assertion. Used by CC-040 (`skip_sources = ["py"]`)
+  and documented in `.codefuse/tracking/CONFORMANCE.md`.
+
 - *(paths)* **ALGO-SP-006**: single-source unweighted shortest-path
   distances (`distances`). Returns `Vec<Option<u32>>` where `None`
   corresponds to upstream's `IGRAPH_INFINITY` (vertex unreachable).

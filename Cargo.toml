@@ -67,6 +67,11 @@ name = "bench_distances"
 path = "benches/bench_distances.rs"
 harness = false
 
+[[bench]]
+name = "bench_eulerian"
+path = "benches/bench_eulerian.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 
