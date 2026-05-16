@@ -180,6 +180,18 @@ fn strongly_connected_components_three_source_conformance() {
 }
 
 #[test]
+fn bridges_three_source_conformance() {
+    run_conformance("bridges", |g, _params| {
+        let mut br = rust_igraph::bridges(g).expect("bridges");
+        // Sort to canonicalise (DFS-discovery order is impl-dependent).
+        // Edge ids match the fixture's `edges` order — `build_graph` adds
+        // them in that order so ids are stable.
+        br.sort_unstable();
+        serde_json::json!(br)
+    });
+}
+
+#[test]
 fn articulation_points_three_source_conformance() {
     run_conformance("articulation_points", |g, _params| {
         let mut ap = rust_igraph::articulation_points(g).expect("articulation");

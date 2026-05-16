@@ -77,6 +77,11 @@ name = "bench_articulation"
 path = "benches/bench_articulation.rs"
 harness = false
 
+[[bench]]
+name = "bench_bridges"
+path = "benches/bench_bridges.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

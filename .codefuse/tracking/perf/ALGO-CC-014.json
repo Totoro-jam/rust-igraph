@@ -1,0 +1,9 @@
+{
+  "awu": "ALGO-CC-014",
+  "rust_karate_ns": 3844,
+  "rust_path_n1000_ns": 72824,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-16",
+  "git_commit": "0612426",
+  "notes": "Phase 1 bridges via src/algorithms/connectivity/bridges.rs. Iterative DFS with low-link tracking + per-vertex incoming-edge tracking (to support multigraphs without misclassifying parallel parent edges). Karate 3.8 µs ≈ articulation 3.2 µs (same Tarjan-style DFS). Path-1000 at 73 µs scales linearly. Per-vertex Vec alloc in incident() pre-cache is the main overhead; addressable via a future neighbours-as-slice API."
+}

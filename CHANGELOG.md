@@ -11,6 +11,31 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(connectivity)* **ALGO-CC-014**: bridges (`bridges`). Returns
+  `Vec<EdgeId>` of edges whose removal would increase the number of
+  weak connected components. Counterpart of `igraph_bridges()` from
+  `references/igraph/src/connectivity/components.c:1400-1504`.
+  Tarjan-style iterative DFS with low-link tracking + per-vertex
+  *incoming-edge* tracking (rather than parent-vertex), so multigraphs
+  with parallel edges are handled correctly. Treats input as
+  undirected (matches upstream `IGRAPH_ALL` mode default).
+  Full 9-step SOP: 10 unit tests (empty / isolated / cycle / path /
+  cycle-with-pendant / parallel-edges / self-loop / two-components /
+  two-triangles-joined-by-bridge / star), 2 oracle tests against
+  python-igraph 0.11 (karate, two-triangles-joined), 4 three-source
+  conformance fixtures (igraph C `igraph_bridges.c` 7v two-triangles
+  + multigraph; python-igraph 4-path; R
+  `make_graph("krackhardt_kite")` from `test-components.R`),
+  1 brute-force proptest invariant (an edge is a bridge iff removing
+  it splits its endpoints across distinct weak components on small
+  random graphs), criterion baseline ≈ 3.8 µs on karate, ≈ 73 µs on
+  path-1k.
+
+  Oracle helper: `rust_bridge_pairs` / `py_bridge_pairs` in
+  `tests/oracle.rs` resolve edge ids to canonical `(min, max)`
+  endpoint pairs because `GraphPayload::from_graph` re-numbers edges
+  on the wire.
+
 - *(connectivity)* **ALGO-CC-010**: articulation points
   (`articulation_points`). Iterative DFS with low-link tracking,
   mirroring `igraph_articulation_points()` (which itself reduces to

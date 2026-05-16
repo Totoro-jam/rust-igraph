@@ -1,0 +1,32 @@
+{
+  "source": "c",
+  "origin": "igraph_bridges.c:lines 47-52 \u2014 multi-edges + self-loop, bridge is the unique 1-2",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bridges",
+  "params": {},
+  "expected": [
+    2
+  ]
+}

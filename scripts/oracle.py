@@ -65,6 +65,11 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         cc = g.connected_components(mode="weak")
         return {"membership": list(cc.membership), "count": len(cc)}
 
+    if algo == "bridges":
+        # Counterpart of igraph_bridges(_, &result). python-igraph returns
+        # a list of edge ids; sort here for stable comparison.
+        return sorted(int(e) for e in g.bridges())
+
     if algo == "articulation_points":
         # Counterpart of igraph_articulation_points(_, &result).
         # python-igraph's `Graph.articulation_points()` returns a list of

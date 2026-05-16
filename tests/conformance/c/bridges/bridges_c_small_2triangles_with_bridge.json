@@ -1,0 +1,49 @@
+{
+  "source": "c",
+  "origin": "igraph_bridges.c:lines 33-37 \u2014 7v, two triangles joined by bridge edge 0-3 plus pendant 4-6",
+  "graph": {
+    "n": 7,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        6
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bridges",
+  "params": {},
+  "expected": [
+    3,
+    7
+  ]
+}

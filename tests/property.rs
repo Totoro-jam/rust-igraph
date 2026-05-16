@@ -154,6 +154,40 @@ proptest! {
         }
     }
 
+    /// Brute-force bridge invariant: an edge is a bridge iff its endpoints
+    /// land in different weak components after the edge is removed (and
+    /// neither endpoint had any other path to the other side).
+    /// Tested by direct edge removal + recount on small graphs.
+    #[test]
+    fn bridges_match_brute_force_definition(g in arb_graph(7)) {
+        let computed: std::collections::BTreeSet<u32> =
+            rust_igraph::bridges(&g).unwrap().into_iter().collect();
+        let m = u32::try_from(g.ecount()).expect("edge count fits in u32");
+        for e in 0..m {
+            let (u, v) = g.edge(e).unwrap();
+            // Self-loops are never bridges.
+            if u == v {
+                prop_assert!(!computed.contains(&e),
+                             "self-loop {} reported as bridge", e);
+                continue;
+            }
+            // Build g - e: same edges minus this one.
+            let mut h = rust_igraph::Graph::with_vertices(g.vcount());
+            for f in 0..m {
+                if f == e { continue; }
+                let (a, b) = g.edge(f).unwrap();
+                h.add_edge(a, b).unwrap();
+            }
+            let cc_h = rust_igraph::connected_components(&h).unwrap();
+            let split = cc_h.membership[u as usize] != cc_h.membership[v as usize];
+            prop_assert_eq!(
+                computed.contains(&e), split,
+                "edge {} ({},{}) bridge-status mismatch (computed={}, brute={})",
+                e, u, v, computed.contains(&e), split
+            );
+        }
+    }
+
     /// Brute-force articulation invariant: a vertex `v` is an articulation
     /// point iff removing all edges incident to it (and `v` itself) increases
     /// the number of weakly connected components on the remaining vertices.

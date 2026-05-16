@@ -76,6 +76,22 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BRIDGE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "bridges_4_path_all_edges",
+        # No verbatim test in test_decomposition.py. Constructed: a 4-vertex
+        # path 0-1-2-3 has all 3 edges as bridges. Verified via
+        # python-igraph 0.11 g.bridges() returning [0, 1, 2].
+        "origin": "constructed: 4-vertex path; expected via python-igraph 0.11 Graph.bridges()",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "bridges",
+        "params": {},
+        "expected": [0, 1, 2],
+    },
+]
+
 AP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "tree_5_2_articulation",
@@ -130,6 +146,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "strongly_connected_components": SCC_MANIFEST,
     "distances": DIST_MANIFEST,
     "articulation_points": AP_MANIFEST,
+    "bridges": BRIDGE_MANIFEST,
 }
 
 

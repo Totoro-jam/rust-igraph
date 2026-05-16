@@ -15,6 +15,7 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | distances | 1 | 1 | 1 | 3/3 | Single-source unweighted BFS distances. First AWU returning `Vec<Option<u32>>` — `None` corresponds to upstream's `IGRAPH_INFINITY`. Oracle/wire format encodes `None` as JSON `null` and `Some(d)` as integer. |
 | is_eulerian | 3 | 0 | 2 | 5/5 | **Per-source skip**: python-igraph 0.11.x exposes no Eulerian API at all (no `g.is_eulerian` / `has_eulerian_path` etc.) — verified by `[m for m in dir(g) if 'euler' in m.lower()]` returning empty. The conformance harness gained `run_conformance_with_skip(algo, &["py"], …)` for this and similar future cases. Fixtures are pulled from upstream igraph C `tests/unit/igraph_is_eulerian.c` (3) and rigraph `tests/testthat/test-eulerian.R` (2). Re-add `py` once a future python-igraph release exposes the API. |
 | articulation_points | 1 | 1 | 1 | 3/3 | DFS-discovery order is implementation-dependent across the three reference impls; the conformance runner sorts the AP vector before comparing. Fixtures: igraph C `igraph_biconnected_components.c` test graph (10v with isolated/disconnected components, expected APs [2,5]); python-igraph `Graph.Tree(5,2)` (APs [0,1]); R `path_graph_impl(n=3)` from `test-aaa-auto.R` (AP [1]). |
+| bridges | 2 | 1 | 1 | 4/4 | Edge-id outputs sorted before comparison (DFS discovery order varies). Conformance runs against the fixture's edge-list ordering, so edge ids are stable across the test runner; oracle tests use a `(min,max)` endpoint-pair canonicalisation because `GraphPayload::from_graph` rebuilds python's edge list in a different order. Fixtures: igraph C `igraph_bridges.c` 7v two-triangles + multigraph cases; python-igraph 4-path; R `make_graph("krackhardt_kite")` from `test-components.R`. |
 
 ## How to add a row
 
@@ -28,4 +29,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 6 (dfs, cc, scc, distances, is_eulerian, articulation) | 22 | 10 / 5 / 7 |
+| 1     | 7 (dfs, cc, scc, distances, is_eulerian, articulation, bridges) | 26 | 12 / 6 / 8 |

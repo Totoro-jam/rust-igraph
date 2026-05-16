@@ -105,6 +105,45 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BRIDGE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "bridges_c_small_2triangles_with_bridge",
+        # igraph_bridges.c lines 33-37: 7 vertices, edges
+        #   0-1, 1-2, 0-2, 0-3, 3-4, 4-5, 3-5, 4-6
+        # → bridges = (3, 7), i.e. edges 0-3 and 4-6.
+        "origin": "igraph_bridges.c:lines 33-37 — 7v, two triangles joined by bridge edge 0-3 plus pendant 4-6",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 1),
+                (1, 2),
+                (0, 2),
+                (0, 3),
+                (3, 4),
+                (4, 5),
+                (3, 5),
+                (4, 6),
+            ],
+            directed=False,
+        ),
+        "algo": "bridges",
+        "params": {},
+        "expected": [3, 7],
+    },
+    {
+        "case": "bridges_c_multiedge_selfloop_keeps_one",
+        # igraph_bridges.c lines 47-52: 3v, edges
+        #   0-1, 0-1, 1-2, 2-2 → bridge = edge 2 (the unique 1-2).
+        "origin": "igraph_bridges.c:lines 47-52 — multi-edges + self-loop, bridge is the unique 1-2",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 1), (1, 2), (2, 2)], directed=False
+        ),
+        "algo": "bridges",
+        "params": {},
+        "expected": [2],
+    },
+]
+
 AP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "biconnected_components_c_fixture",
@@ -224,6 +263,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "distances": DIST_MANIFEST,
     "is_eulerian": EUL_MANIFEST,
     "articulation_points": AP_MANIFEST,
+    "bridges": BRIDGE_MANIFEST,
 }
 
 

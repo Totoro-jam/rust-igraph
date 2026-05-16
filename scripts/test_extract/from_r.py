@@ -147,6 +147,21 @@ EUL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BRIDGE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "bridges_krackhardt_kite",
+        # test-components.R:'bridges works' uses make_graph("krackhardt_kite")
+        # and expects bridges = (ecount-1):(ecount) → in 0-based, edges 16
+        # and 17. Construct the same graph via python-igraph.Famous so
+        # edge indexing matches.
+        "origin": "test-components.R:'bridges works' — make_graph('krackhardt_kite') bridges = (ecount-1):ecount",
+        "graph_factory": lambda: ig.Graph.Famous("krackhardt_kite"),
+        "algo": "bridges",
+        "params": {},
+        "expected": [16, 17],
+    },
+]
+
 AP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "path_graph_3_articulation",
@@ -208,6 +223,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "distances": DIST_MANIFEST,
     "is_eulerian": EUL_MANIFEST,
     "articulation_points": AP_MANIFEST,
+    "bridges": BRIDGE_MANIFEST,
 }
 
 

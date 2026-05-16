@@ -11,7 +11,7 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
-    Graph, articulation_points, bfs, connected_components, dfs, distances, read_edgelist,
+    Graph, articulation_points, bfs, bridges, connected_components, dfs, distances, read_edgelist,
     strongly_connected_components,
 };
 
@@ -217,6 +217,62 @@ fn articulation_points_cycle_with_pendant_matches_python_igraph() {
             .expect("decode python articulation");
     assert_eq!(rust, py);
     assert_eq!(rust, vec![2, 3]);
+}
+
+/// Resolve a graph's bridges to canonicalised endpoint pairs `(min, max)`.
+/// Edge ids aren't stable across the python wire format
+/// (`GraphPayload::from_graph` rebuilds the edge list via
+/// `neighbors()` iteration), so we compare endpoint sets — the two
+/// impls' bridge *edge ids* may differ but the underlying edges (as
+/// vertex pairs) must agree.
+fn rust_bridge_pairs(g: &rust_igraph::Graph) -> Vec<(u32, u32)> {
+    let mut pairs: Vec<(u32, u32)> = bridges(g)
+        .expect("rust bridges")
+        .into_iter()
+        .map(|e| {
+            let (u, v) = g.edge(e).expect("edge id valid");
+            if u <= v { (u, v) } else { (v, u) }
+        })
+        .collect();
+    pairs.sort_unstable();
+    pairs
+}
+
+fn py_bridge_pairs(g: &rust_igraph::Graph) -> Vec<(u32, u32)> {
+    let py_ids: Vec<u32> = serde_json::from_value(run_ok("bridges", g, serde_json::json!({})))
+        .expect("decode python bridges");
+    // Reconstruct the same edge list python sees on the wire, then
+    // resolve ids → pairs through it.
+    let payload = common::GraphPayload::from_graph(g);
+    let mut pairs: Vec<(u32, u32)> = py_ids
+        .iter()
+        .map(|&e| {
+            let (u, v) = payload.edges[e as usize];
+            if u <= v { (u, v) } else { (v, u) }
+        })
+        .collect();
+    pairs.sort_unstable();
+    pairs
+}
+
+#[test]
+fn bridges_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    assert_eq!(rust_bridge_pairs(&g), py_bridge_pairs(&g));
+}
+
+#[test]
+fn bridges_two_triangles_via_bridge_matches_python_igraph() {
+    // Triangles {0,1,2}, {3,4,5} joined by edge 2-3.
+    let mut g = Graph::with_vertices(6);
+    for &(u, v) in &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (2, 3)] {
+        g.add_edge(u, v).unwrap();
+    }
+    let rust = rust_bridge_pairs(&g);
+    assert_eq!(rust, py_bridge_pairs(&g));
+    assert_eq!(rust, vec![(2, 3)]);
 }
 
 #[test]
