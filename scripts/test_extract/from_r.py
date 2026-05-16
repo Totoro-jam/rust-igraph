@@ -147,6 +147,37 @@ EUL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+TRI_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_triangles_R_path3",
+        # path_graph(n=3) has no triangles.
+        "origin": "test-aaa-auto.R-style — path_graph(n=3); 0 triangles",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "count_triangles",
+        "params": {},
+        "expected": 0,
+    },
+]
+
+TRANS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "transitivity_undirected_R_path3",
+        # test-aaa-auto.R:#103 transitivity_undirected_impl basic uses
+        # path_graph(n=3). With 1 connected triple and 0 triangles,
+        # mode='nan' default → 0 (no triangles → 0/1 = 0).
+        # Wait: 3*0/1 = 0. So expected is 0.0.
+        "origin": "test-aaa-auto.R:#103 transitivity_undirected_impl basic — path_graph(n=3) → 0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "transitivity_undirected",
+        "params": {},
+        "expected": 0.0,
+    },
+]
+
 DIAM_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "diameter_R_disjoint_trees",
@@ -304,6 +335,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "diameter": DIAM_MANIFEST,
     "eccentricity": ECC_MANIFEST,
     "radius": RAD_MANIFEST,
+    "count_triangles": TRI_MANIFEST,
+    "transitivity_undirected": TRANS_MANIFEST,
 }
 
 

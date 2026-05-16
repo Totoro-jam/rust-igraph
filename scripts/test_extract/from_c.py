@@ -105,6 +105,44 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+TRI_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_triangles_c_K4",
+        # global_transitivity.c lines 51-56 use Full(3) → 1 triangle.
+        # We use K4 (Full(4)) for a slightly less degenerate fixture
+        # → 4 triangles.
+        "origin": "global_transitivity.c-style: K4 has 4 triangles",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "count_triangles",
+        "params": {},
+        "expected": 4,
+    },
+]
+
+TRANS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "transitivity_undirected_c_zachary",
+        # global_transitivity.c line 65-69: famous("Zachary").
+        # Expected from .out line 11: 0.255682 (printed at %g precision;
+        # actual = 0.25568181818181815). Use the high-precision value.
+        "origin": "global_transitivity.c:line 67 — Famous('Zachary') transitivity",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "transitivity_undirected",
+        "params": {},
+        "expected": 0.2556818181818182,
+    },
+    {
+        "case": "transitivity_undirected_c_K4",
+        # global_transitivity.c line 51-56: Full(3) → 1.
+        # K4 also has full transitivity 1.0.
+        "origin": "global_transitivity.c-style: K4 transitivity = 1.0",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "transitivity_undirected",
+        "params": {},
+        "expected": 1.0,
+    },
+]
+
 DIAM_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "diameter_c_ring10_directed",
@@ -367,6 +405,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "diameter": DIAM_MANIFEST,
     "eccentricity": ECC_MANIFEST,
     "radius": RAD_MANIFEST,
+    "count_triangles": TRI_MANIFEST,
+    "transitivity_undirected": TRANS_MANIFEST,
 }
 
 

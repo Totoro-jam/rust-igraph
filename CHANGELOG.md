@@ -11,6 +11,28 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-002**: triangle count + global transitivity
+  (`count_triangles`, `transitivity_undirected`). Counterparts of
+  `igraph_count_triangles()` and `igraph_transitivity_undirected()` from
+  `references/igraph/src/properties/triangles.c`. Acyclic-orientation
+  algorithm (`v < u` trick) counts each triangle exactly once in
+  `O(|V|*d^2)`. Self-loops, parallel edges, and edge directions ignored
+  (matches upstream `IGRAPH_NO_LOOPS, IGRAPH_NO_MULTIPLE` adjlist).
+  `transitivity_undirected` returns `Option<f64>` — `None` for "no
+  connected triples" (upstream's `IGRAPH_TRANSITIVITY_NAN` mode); the
+  `IGRAPH_TRANSITIVITY_ZERO` behaviour is `result.unwrap_or(0.0)`.
+  Full 9-step SOP: 11 unit tests (empty / isolated / triangle / K4 /
+  cycle-4 / star / path / self-loop / parallel-edges / disjoint-pair /
+  diamond), 1 oracle test on karate (`triangles == 45`,
+  `transitivity ≈ 0.2557`) against python-igraph 0.11
+  (using `len(g.list_triangles())` since `count_triangles` isn't
+  exposed), 7 three-source conformance fixtures (igraph C K4 + Zachary
+  karate from `global_transitivity.c`; python-igraph 5-cycle, K4-minus-edge;
+  R path-3 from `test-aaa-auto.R`), 1 proptest coherence invariant
+  (`3 * triangles == 3 * triangles ≤ triples` and
+  `transitivity == 3 * triangles / triples`), criterion baseline
+  ≈ 2.7 µs on karate.
+
 - *(paths)* **ALGO-SP-020**: eccentricity / radius / diameter (unweighted,
   undirected or `IGRAPH_OUT` mode). Returns `Vec<u32>` / `Option<u32>` /
   `Option<u32>` respectively. Counterparts of `igraph_eccentricity()`

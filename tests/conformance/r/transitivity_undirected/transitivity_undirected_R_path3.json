@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "test-aaa-auto.R:#103 transitivity_undirected_impl basic \u2014 path_graph(n=3) \u2192 0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "transitivity_undirected",
+  "params": {},
+  "expected": 0.0
+}

@@ -1,0 +1,34 @@
+{
+  "source": "py",
+  "origin": "constructed: 5-cycle via python-igraph; 0 triangles",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_triangles",
+  "params": {},
+  "expected": 0
+}

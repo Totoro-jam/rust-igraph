@@ -11,8 +11,9 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
-    Graph, articulation_points, bfs, bridges, connected_components, dfs, diameter, distances,
-    eccentricity, girth, is_biconnected, radius, read_edgelist, strongly_connected_components,
+    Graph, articulation_points, bfs, bridges, connected_components, count_triangles, dfs, diameter,
+    distances, eccentricity, girth, is_biconnected, radius, read_edgelist,
+    strongly_connected_components, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -416,6 +417,26 @@ fn eccentricity_radius_diameter_karate_match_python_igraph() {
     let py_d: Option<u32> = serde_json::from_value(run_ok("diameter", &g, serde_json::json!({})))
         .expect("decode python diameter");
     assert_eq!(rust_d, py_d);
+}
+
+#[test]
+fn count_triangles_and_transitivity_karate_match_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+
+    let rust_n = count_triangles(&g).unwrap();
+    let py_n: u64 = serde_json::from_value(run_ok("count_triangles", &g, serde_json::json!({})))
+        .expect("decode python count_triangles");
+    assert_eq!(rust_n, py_n);
+
+    let rust_t = transitivity_undirected(&g).unwrap();
+    let py_t: Option<f64> =
+        serde_json::from_value(run_ok("transitivity_undirected", &g, serde_json::json!({})))
+            .expect("decode python transitivity");
+    // Both impls compute 3 * triangles / triples on the same graph; the
+    // operands are integers, so the f64 result is exactly representable.
+    assert_eq!(rust_t, py_t);
 }
 
 #[test]

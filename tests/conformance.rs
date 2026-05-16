@@ -199,6 +199,25 @@ fn radius_three_source_conformance() {
 }
 
 #[test]
+fn count_triangles_three_source_conformance() {
+    run_conformance("count_triangles", |g, _params| {
+        let n = rust_igraph::count_triangles(g).expect("count_triangles");
+        serde_json::json!(n)
+    });
+}
+
+#[test]
+fn transitivity_undirected_three_source_conformance() {
+    run_conformance("transitivity_undirected", |g, _params| {
+        let t = rust_igraph::transitivity_undirected(g).expect("transitivity");
+        match t {
+            Some(v) => serde_json::json!(v),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
 fn diameter_three_source_conformance() {
     run_conformance("diameter", |g, _params| {
         let d = rust_igraph::diameter(g).expect("diameter");

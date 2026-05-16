@@ -83,6 +83,22 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return int(g.diameter())
 
+    if algo == "count_triangles":
+        # python-igraph 0.11 doesn't expose `count_triangles` directly;
+        # it offers `list_triangles()` which returns one tuple per
+        # triangle. Length of that list is the count.
+        return len(g.list_triangles())
+
+    if algo == "transitivity_undirected":
+        # Counterpart of igraph_transitivity_undirected(_, &result, IGRAPH_TRANSITIVITY_NAN).
+        # python-igraph returns NaN if there are no connected triples;
+        # we encode that as None to match `Option<f64>`.
+        v = g.transitivity_undirected(mode="nan")
+        # `v != v` detects NaN.
+        if v != v:
+            return None
+        return float(v)
+
     if algo == "girth":
         # Counterpart of igraph_girth(_, &result, NULL). python-igraph
         # returns float('inf') for acyclic graphs; we encode that as None

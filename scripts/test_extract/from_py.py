@@ -76,6 +76,37 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+TRI_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "triangle_5_cycle_zero",
+        # 5-cycle has zero triangles.
+        "origin": "constructed: 5-cycle via python-igraph; 0 triangles",
+        "graph_factory": lambda: ig.Graph.Ring(
+            n=5, directed=False, mutual=False, circular=True
+        ),
+        "algo": "count_triangles",
+        "params": {},
+        "expected": 0,
+    },
+]
+
+TRANS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "transitivity_diamond_K4_minus_edge",
+        # K4 minus edge (0,3): triangles=2, triples=8, transitivity=6/8=0.75.
+        # Verified directly via python-igraph 0.11.
+        "origin": "constructed: K4 minus edge (0,3); transitivity = 0.75",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "algo": "transitivity_undirected",
+        "params": {},
+        "expected": 0.75,
+    },
+]
+
 DIAM_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "diameter_4_cycle",
@@ -220,6 +251,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "diameter": DIAM_MANIFEST,
     "eccentricity": ECC_MANIFEST,
     "radius": RAD_MANIFEST,
+    "count_triangles": TRI_MANIFEST,
+    "transitivity_undirected": TRANS_MANIFEST,
 }
 
 

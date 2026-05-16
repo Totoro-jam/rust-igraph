@@ -1,0 +1,9 @@
+{
+  "awu": "ALGO-PR-002",
+  "rust_count_triangles_karate_ns": 2710,
+  "rust_transitivity_karate_ns": 2664,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-16",
+  "git_commit": "4c1c30a",
+  "notes": "Phase 1 triangles + global transitivity via src/algorithms/properties/triangles.rs. Acyclic-orientation algorithm (`v < u` trick) — counts each triangle exactly once with O(|V|*d^2) complexity. Karate (34v, 78e, 45 triangles) at 2.7 µs lines up well; the algorithm is essentially one adjlist build + one mark/scan pass. Both `count_triangles` and `transitivity_undirected` go through the same private helper `triangles_and_triples`, so their timings are nearly identical."
+}

@@ -154,6 +154,39 @@ proptest! {
         }
     }
 
+    /// Triangle count / transitivity coherence: transitivity equals
+    /// `3 * triangles / triples`. Triples can be brute-forced as
+    /// `sum_v C(deg_simple(v), 2)`. Triangle count must be ≤ triples / 3.
+    #[test]
+    fn triangle_count_and_transitivity_are_coherent(g in arb_graph(8)) {
+        let triangles = rust_igraph::count_triangles(&g).unwrap();
+        let trans = rust_igraph::transitivity_undirected(&g).unwrap();
+
+        // Recompute simple-degree for each vertex (no self-loops, no parallels).
+        let n = g.vcount();
+        let mut triples: u64 = 0;
+        for v in 0..n {
+            let raw = g.neighbors(v).unwrap();
+            let mut simple: Vec<u32> = raw.into_iter().filter(|&u| u != v).collect();
+            simple.sort_unstable();
+            simple.dedup();
+            let d = simple.len() as u64;
+            if d >= 2 { triples += d * (d - 1) / 2; }
+        }
+        // Each triangle contributes 3 closed triples (one per vertex).
+        prop_assert!(triangles * 3 <= triples,
+                     "3 * triangles ({}) > triples ({})", triangles * 3, triples);
+        if triples == 0 {
+            prop_assert_eq!(trans, None);
+            prop_assert_eq!(triangles, 0);
+        } else {
+            // Small proptest graphs (≤ 8 vertices); counts fit in f64 exactly.
+            #[allow(clippy::cast_precision_loss)]
+            let expected = (triangles as f64) * 3.0 / (triples as f64);
+            prop_assert_eq!(trans, Some(expected));
+        }
+    }
+
     /// Radius / diameter / eccentricity coherence: `radius == min(ecc)`,
     /// `diameter == max(ecc)`, all entries non-negative, all bounded by
     /// `vcount`. (Sanity invariants since the three functions share the
