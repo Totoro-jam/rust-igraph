@@ -51,12 +51,6 @@ use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 /// assert_eq!(eulerian_path(&g).unwrap(), None);
 /// ```
 pub fn eulerian_path(graph: &Graph) -> IgraphResult<Option<Vec<EdgeId>>> {
-    if graph.is_directed() {
-        return Err(IgraphError::Unsupported(
-            "directed eulerian_path is CC-042 (Hierholzer directed); not yet ported",
-        ));
-    }
-
     let cls = is_eulerian(graph)?;
     if !cls.has_path {
         return Ok(None);
@@ -71,24 +65,29 @@ pub fn eulerian_path(graph: &Graph) -> IgraphResult<Option<Vec<EdgeId>>> {
 
     let n_us = n as usize;
     let m_us = m;
+    let directed = graph.is_directed();
 
-    // Per-vertex incident-edge lists. Self-loops appear once per upstream
-    // `IGRAPH_LOOPS_ONCE` (each loop is a single traversable edge here).
+    // Per-vertex incident-edge lists. For undirected graphs `incident()`
+    // returns LOOPS_TWICE (self-loops appear twice); upstream's Hierholzer
+    // uses LOOPS_ONCE so we dedupe. For directed graphs we use the `oi`-side
+    // out-edges directly via `incident()`'s directed branch (same semantics
+    // as upstream's `IGRAPH_OUT` mode).
     let mut inc: Vec<Vec<EdgeId>> = Vec::with_capacity(n_us);
     for v in 0..n {
         let raw = graph.incident(v)?;
-        // Convert LOOPS_TWICE → LOOPS_ONCE: each self-loop appears twice in
-        // `incident()`'s default; keep only one copy.
-        // Simple dedupe by counting; for self-loops the edge id repeats.
-        let mut seen: std::collections::HashSet<EdgeId> = std::collections::HashSet::new();
-        let mut out: Vec<EdgeId> = Vec::with_capacity(raw.len());
-        for e in raw {
-            // Keep first occurrence of every edge id.
-            if seen.insert(e) {
-                out.push(e);
+        if directed {
+            // Already out-only and one entry per edge.
+            inc.push(raw);
+        } else {
+            let mut seen: std::collections::HashSet<EdgeId> = std::collections::HashSet::new();
+            let mut out: Vec<EdgeId> = Vec::with_capacity(raw.len());
+            for e in raw {
+                if seen.insert(e) {
+                    out.push(e);
+                }
             }
+            inc.push(out);
         }
-        inc.push(out);
     }
 
     // Track simple "remaining degree" per vertex via the count of unvisited
@@ -128,7 +127,12 @@ pub fn eulerian_path(graph: &Graph) -> IgraphResult<Option<Vec<EdgeId>>> {
             next_idx[curr_us] += 1;
             tracker.push(curr);
             edge_tracker.push(edge);
-            curr = graph.edge_other(edge, curr)?;
+            curr = if directed {
+                // Directed: edge always points from curr → to[edge].
+                graph.edge_target(edge)?
+            } else {
+                graph.edge_other(edge, curr)?
+            };
         } else {
             // Dead end at `curr`: pop the walk.
             path.push(curr);
@@ -157,20 +161,37 @@ fn pick_start_vertex(
     cls: crate::algorithms::paths::eulerian::EulerianClassification,
 ) -> IgraphResult<VertexId> {
     let n = graph.vcount();
+    let directed = graph.is_directed();
     if cls.has_cycle {
-        // Any vertex with non-zero degree (skip the all-isolated case which
-        // is caught earlier by `m == 0`).
+        // Any vertex with non-zero (out-)degree.
         for v in 0..n {
-            if !graph.neighbors(v)?.is_empty() {
+            let has_edges = if directed {
+                !graph.incident(v)?.is_empty()
+            } else {
+                !graph.neighbors(v)?.is_empty()
+            };
+            if has_edges {
                 return Ok(v);
             }
         }
         // Should be unreachable since `m == 0` returns early above.
         Err(IgraphError::Internal("no edges but cls.has_cycle"))
+    } else if directed {
+        // Directed path: pick the vertex with `out_degree - in_degree == 1`
+        // (the unique source per is_eulerian's outgoing_excess accounting).
+        for v in 0..n {
+            let out_deg = graph.incident(v)?.len();
+            // in-degree via the in-side
+            let in_deg = compute_in_degree(graph, v)?;
+            if out_deg > in_deg && (out_deg - in_deg) == 1 {
+                return Ok(v);
+            }
+        }
+        Err(IgraphError::Internal(
+            "directed path: no vertex with outgoing_excess == 1",
+        ))
     } else {
-        // Path-but-not-cycle: there are exactly two odd-degree vertices in
-        // the non-singleton component (per is_eulerian undirected logic).
-        // Pick the smallest-id odd-degree vertex.
+        // Undirected path: smallest-id odd-degree vertex.
         for v in 0..n {
             let deg = graph.degree(v)?;
             if deg % 2 != 0 {
@@ -181,6 +202,20 @@ fn pick_start_vertex(
             "has_path && !has_cycle but no odd-degree vertex found",
         ))
     }
+}
+
+fn compute_in_degree(graph: &Graph, v: VertexId) -> IgraphResult<usize> {
+    // Total degree via undirected `degree` would mix in/out; use a fresh
+    // count via in-side inferred from edges (n times m worst case is fine
+    // here — only called once per vertex during start selection).
+    let mut count = 0usize;
+    let m = u32::try_from(graph.ecount()).expect("edge count fits in u32");
+    for e in 0..m {
+        if graph.edge_target(e)? == v {
+            count += 1;
+        }
+    }
+    Ok(count)
 }
 
 #[cfg(test)]
@@ -275,12 +310,34 @@ mod tests {
     }
 
     #[test]
-    fn directed_graph_returns_unsupported_error() {
+    fn directed_3_cycle_yields_3_edge_walk() {
+        // 0 -> 1 -> 2 -> 0: directed cycle, has Eulerian cycle.
         let mut g = Graph::new(3, true).unwrap();
         g.add_edge(0, 1).unwrap();
         g.add_edge(1, 2).unwrap();
         g.add_edge(2, 0).unwrap();
-        assert!(eulerian_path(&g).is_err());
+        let walk = eulerian_path(&g).unwrap().unwrap();
+        assert_eq!(walk.len(), 3);
+    }
+
+    #[test]
+    fn directed_path_yields_chain_walk() {
+        // 0 -> 1 -> 2: directed Eulerian path (out_excess at 0 = 1).
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let walk = eulerian_path(&g).unwrap().unwrap();
+        assert_eq!(walk, vec![0, 1]); // edges traversed in order
+    }
+
+    #[test]
+    fn directed_no_eulerian_returns_none() {
+        // 0 -> 1 -> 2 plus 0 -> 2: two out-edges from 0, two in to 2 → no path.
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(0, 2).unwrap();
+        assert_eq!(eulerian_path(&g).unwrap(), None);
     }
 
     #[test]

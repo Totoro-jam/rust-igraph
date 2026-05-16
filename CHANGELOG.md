@@ -11,6 +11,15 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(paths)* **ALGO-CC-042**: directed Eulerian path/cycle construction.
+  Folded into the existing `eulerian_path` function — directed graphs
+  now use out-edges only, traverse via `edge_target` (always points
+  away from `curr`), and pick the start vertex by `out_degree -
+  in_degree == 1` for a path or any non-isolated vertex for a cycle.
+  3 new unit tests (directed 3-cycle, directed path, directed
+  no-Eulerian), 1 new conformance fixture (directed 3-cycle, walk
+  length 3). The `Unsupported` error path on directed input is gone.
+
 - *(connectivity)* **ALGO-CC-020**: reachability counts
   (`count_reachable`). Returns `Vec<u32>` where `result[v]` is the
   number of vertices reachable from `v` (including `v` itself).

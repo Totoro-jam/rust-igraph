@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "directed 3-cycle \u2014 Eulerian cycle, walk has length 3",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "eulerian_path",
+  "params": {},
+  "expected": 3
+}

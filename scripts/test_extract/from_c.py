@@ -148,6 +148,17 @@ EUL_PATH_MANIFEST: List[Dict[str, Any]] = [
         "params": {},
         "expected": 3,
     },
+    {
+        "case": "eulerian_path_c_directed_3_cycle_walk_len_3",
+        # Directed 3-cycle 0->1->2->0: Eulerian cycle exists, walk len 3.
+        "origin": "directed 3-cycle — Eulerian cycle, walk has length 3",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "eulerian_path",
+        "params": {},
+        "expected": 3,
+    },
 ]
 
 DENSITY_MANIFEST: List[Dict[str, Any]] = [

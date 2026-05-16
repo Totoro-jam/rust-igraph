@@ -100,7 +100,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-CC-030..032 | Percolation | percolation.c | 404 | adapt | - | todo | - | - | - |
 | ALGO-CC-040 | Eulerian existence (`is_eulerian`) | eulerian.c:333 (incl. directed/undirected helpers) | ~280 | adapt | CC-001 | done | (next) | 4.7 µs/karate | C:3 / py:0 / R:2 (py skipped — see CONFORMANCE.md) |
 | ALGO-CC-041 | Eulerian path/cycle construction, undirected (Hierholzer) | eulerian.c:345-450 | ~200 | adapt | CC-040 | done | (next) | (CC-040 + O(V+E)) | C:1 / py:0 / R:1 (py skipped) |
-| ALGO-CC-042 | Eulerian path/cycle construction, directed (Hierholzer) | eulerian.c:453-560 | ~200 | adapt | CC-041 | todo | - | - | - |
+| ALGO-CC-042 | Eulerian path/cycle construction, directed (Hierholzer) | eulerian.c:453-560 | (folded into CC-041 module) | adapt | CC-041 | done | (next) | (CC-040 + O(V+E)) | C:1 / py:0 / R:0 (py skipped) |
 | ALGO-PR-001 | Girth (shortest cycle length) | properties/girth.c:73 | ~200 | adapt | CC-001 | done | (next) | 2.6 µs/karate | C:2 / py:1 / R:1 |
 | ALGO-PR-002 | Triangle count + global transitivity | properties/triangles.c:405-630 | ~250 | adapt | - | done | (next) | 2.7 µs/karate | C:3 / py:2 / R:2 (2 algos × 3 sources) |
 | ALGO-PR-002b | Local transitivity per-vertex (`transitivity_local_undirected`) | properties/triangles.c:330+185-280 | ~150 | adapt | PR-002 | done | (next) | (shares PR-002 baseline) | C:1 / py:1 / R:1 |
@@ -124,18 +124,18 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 17 | 0 | ~68 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 2 (py skipped); count_reachable: 3 |
+| 1 | 18 | 0 | ~67 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 17/85 done — Graph
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 18/85 done — Graph
 core (CORE-001a/b), DFS (TR-002), weak CC (CC-001), strong CC (CC-002),
 unweighted distances (SP-006), Eulerian existence (CC-040), articulation
 points (CC-010), bridges (CC-014), is_biconnected (CC-013), girth
 (PR-001), eccentricity/radius/diameter (SP-020), triangle count + global
 transitivity (PR-002), local transitivity per-vertex (PR-002b), density +
-mean_distance (PR-003), Eulerian path/cycle construction undirected
-(CC-041), reachability counts (CC-020). Next options: SP-001 (Dijkstra),
-CC-042 (directed Hierholzer), CC-011 (full biconnected components),
-TR-001 (full BFS callback variant), PR-002c (Barrat).
+mean_distance (PR-003), Eulerian path/cycle construction undirected +
+directed (CC-041 + CC-042), reachability counts (CC-020). Next options:
+SP-001 (Dijkstra), CC-011 (full biconnected components), TR-001 (full
+BFS callback variant), PR-002c (Barrat), assortativity.
 
 > Update the counters after every PR merge.
