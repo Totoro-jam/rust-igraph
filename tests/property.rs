@@ -154,6 +154,51 @@ proptest! {
         }
     }
 
+    /// `distances(g, 0)` is consistent with `bfs(g, 0)`: every BFS-visited
+    /// vertex has `Some(_)` distance and every unvisited vertex has `None`.
+    /// Source's own distance is always `Some(0)`.
+    #[test]
+    fn distances_match_bfs_reachability(g in arb_graph(15)) {
+        let d = rust_igraph::distances(&g, 0).unwrap();
+        let bfs_set: std::collections::BTreeSet<u32> =
+            rust_igraph::bfs(&g, 0).unwrap().into_iter().collect();
+        prop_assert_eq!(d.len(), g.vcount() as usize);
+        prop_assert_eq!(d[0], Some(0));
+        for v in 0..g.vcount() {
+            if bfs_set.contains(&v) {
+                prop_assert!(d[v as usize].is_some(),
+                             "vertex {} reachable but distance is None", v);
+            } else {
+                prop_assert_eq!(d[v as usize], None,
+                                "vertex {} unreachable but distance is Some", v);
+            }
+        }
+    }
+
+    /// Triangle inequality: for any edge (u, v) in an undirected graph,
+    /// `|d[u] - d[v]| <= 1` whenever both are reachable from the source.
+    #[test]
+    fn distances_obey_triangle_inequality(g in arb_graph(15)) {
+        let d = rust_igraph::distances(&g, 0).unwrap();
+        let m = u32::try_from(g.ecount()).expect("edge count fits in u32 for proptest");
+        for e in 0..m {
+            let (u, v) = g.edge(e).unwrap();
+            if let (Some(du), Some(dv)) = (d[u as usize], d[v as usize]) {
+                let diff = du.abs_diff(dv);
+                prop_assert!(diff <= 1,
+                             "edge ({},{}) violates triangle inequality: d[{}]={}, d[{}]={}",
+                             u, v, u, du, v, dv);
+            } else {
+                // Either both unreachable, or one of them is unreachable
+                // because they're on different sides of the BFS frontier
+                // (impossible — adjacency means same component). Force
+                // both to be Some or both to be None.
+                prop_assert_eq!(d[u as usize].is_some(), d[v as usize].is_some(),
+                                "endpoints of edge ({},{}) have mixed reachability", u, v);
+            }
+        }
+    }
+
     /// BFS-reachable set from `root` is symmetric on undirected graphs:
     /// `v` reachable from `0` ⇔ `0` reachable from `v`.
     #[test]

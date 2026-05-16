@@ -84,7 +84,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-SP-003 | Johnson | distances_johnson.c | 254 | adapt | SP-001,002 | todo | - | - | - |
 | ALGO-SP-004 | Floyd-Warshall | distances_floyd_warshall.c | 365 | adapt | - | todo | - | - | - |
 | ALGO-SP-005 | A* | astar.c | 273 | adapt | TR-001 | todo | - | - | - |
-| ALGO-SP-006 | BFS shortest paths (unweighted) | shortest_paths*.c | 703 | adapt | TR-001 | todo | - | - | - |
+| ALGO-SP-006 | BFS distances (single-source, unweighted, OUT mode) | unweighted.c:273-325 | 240 | adapt | TR-001 | done | (next) | 2.5 µs/karate | C:1 / py:1 / R:1 |
 | ALGO-SP-010..014 | Widest paths | widest_paths*.c | 741 | adapt | - | todo | - | - | - |
 | ALGO-SP-020..023 | Diameter / eccentricity / radius | diameter.c, eccentricity.c | ~400 | adapt | - | todo | - | - | - |
 | ALGO-CC-001 | Weakly connected components | components.c:82-180 | 100 | adapt | TR-001 | done | (next) | 4.1 µs/karate | C:2 / py:1 / R:1 |
@@ -112,13 +112,13 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 5 | 0 | ~80 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1); scc: 4 (C:2, py:1, R:1) |
+| 1 | 6 | 0 | ~79 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1); scc: 4 (C:2, py:1, R:1); distances: 3 (C:1, py:1, R:1) |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 5/85 done — Graph
-core (CORE-001a/b), DFS (TR-002), weak CC (CC-001), strong CC (CC-002).
-Next options: SP-001 (Dijkstra; needs weighted-edge extension to Graph),
-CC-003 (decompose), or CC-010 (biconnected components, builds on TR-002
-DFS).
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 6/85 done — Graph
+core (CORE-001a/b), DFS (TR-002), weak CC (CC-001), strong CC (CC-002),
+unweighted distances (SP-006). Next options: SP-001 (Dijkstra; needs
+weighted-edge extension to Graph), CC-003 (decompose), CC-010
+(biconnected components, builds on TR-002 DFS), CC-040 (Eulerian path).
 
 > Update the counters after every PR merge.

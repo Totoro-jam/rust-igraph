@@ -65,6 +65,15 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         cc = g.connected_components(mode="weak")
         return {"membership": list(cc.membership), "count": len(cc)}
 
+    if algo == "distances":
+        # Counterpart of igraph_distances(_, NULL, _, single_from, all_to, IGRAPH_OUT).
+        # python-igraph returns a list of lists; we ask for a single source so
+        # we return the first (and only) row, mapping `inf` -> None to match
+        # the Rust `Vec<Option<u32>>` return shape.
+        source = int(params["source"])
+        row = g.distances(source=source)[0]
+        return [None if x == float("inf") else int(x) for x in row]
+
     if algo == "strongly_connected_components":
         # Counterpart of igraph_connected_components(_, _, _, _, IGRAPH_STRONG).
         # python-igraph returns membership ids in Kosaraju grandfather-pop

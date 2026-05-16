@@ -11,7 +11,7 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
-    Graph, bfs, connected_components, dfs, read_edgelist, strongly_connected_components,
+    Graph, bfs, connected_components, dfs, distances, read_edgelist, strongly_connected_components,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -157,6 +157,34 @@ fn strongly_connected_components_cycle_with_chain_matches_python_igraph() {
     assert_eq!(rust_scc.membership, py_scc.membership);
     assert_eq!(rust_scc.count, py_scc.count);
     assert_eq!(rust_scc.count, 3);
+}
+
+#[test]
+fn distances_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+
+    let rust = distances(&g, 0).expect("rust distances");
+    let py: Vec<Option<u32>> =
+        serde_json::from_value(run_ok("distances", &g, serde_json::json!({"source": 0})))
+            .expect("decode python distances");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn distances_directed_chain_matches_python_igraph() {
+    // Directed 0 -> 1 -> 2 -> 3; from 1 distances [inf, 0, 1, 2].
+    let mut g = Graph::new(4, true).expect("new directed");
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let rust = distances(&g, 1).expect("rust distances");
+    let py: Vec<Option<u32>> =
+        serde_json::from_value(run_ok("distances", &g, serde_json::json!({"source": 1})))
+            .expect("decode python distances");
+    assert_eq!(rust, py);
+    assert_eq!(rust, vec![None, Some(0), Some(1), Some(2)]);
 }
 
 #[test]

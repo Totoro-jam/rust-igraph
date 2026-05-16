@@ -1,0 +1,11 @@
+{
+  "awu": "ALGO-SP-006",
+  "rust_karate_ns": 2528,
+  "rust_path_n100_ns": 5437,
+  "rust_path_n1000_ns": 52228,
+  "rust_path_n10000_ns": 512950,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-16",
+  "git_commit": "03ea202",
+  "notes": "Phase 1 single-source unweighted distances via src/algorithms/paths/distances.rs. BFS-based scan; first-pop = shortest distance. ~3.6x slower than plain BFS (BFS karate = 693 ns) which is expected because each pop now also does a checked_add and writes Some(d+1). Linear scaling: ~52 ns/vertex on path graphs (n=1k → 52 µs; n=10k → 513 µs). Same per-vertex Vec alloc overhead as bfs/cc — fixable by a future neighbours-as-slice API."
+}

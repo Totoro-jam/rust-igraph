@@ -76,6 +76,21 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "tree10_2_source0",
+        # python-igraph's test_iterators.testBFS uses Tree(10, 2) as the
+        # canonical small BFS fixture. We re-use it for distances; the
+        # expected vector is just the BFS layer index of each vertex.
+        "origin": "test_iterators.py:IteratorTests.testBFS Tree(10,2) — "
+        "distances(source=0) layer indices, verified against python-igraph 0.11",
+        "graph_factory": lambda: _tree(10, 2),
+        "algo": "distances",
+        "params": {"source": 0},
+        "expected": [0, 1, 1, 2, 2, 2, 2, 3, 3, 3],
+    },
+]
+
 SCC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "directed_4cycle_with_tail",
@@ -100,6 +115,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
+    "distances": DIST_MANIFEST,
 }
 
 

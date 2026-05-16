@@ -11,6 +11,25 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(paths)* **ALGO-SP-006**: single-source unweighted shortest-path
+  distances (`distances`). Returns `Vec<Option<u32>>` where `None`
+  corresponds to upstream's `IGRAPH_INFINITY` (vertex unreachable).
+  Counterpart of
+  `igraph_distances(_, NULL_weights, _, single_from, all_to, IGRAPH_OUT)`
+  from `references/igraph/src/paths/unweighted.c:273-325` — BFS scan
+  where the first dequeue of a vertex records its shortest-path length.
+  Full 9-step SOP: 9 unit tests (empty / single / invalid-source / path
+  / disjoint-components / self-loop / parallel edges / directed-out /
+  cycle minimum), 2 oracle tests (karate single-source + directed
+  3-chain), 3 three-source conformance fixtures (igraph C: kary_tree
+  20/2 from bfs_simple.c; python-igraph: Tree(10,2) from
+  test_iterators.testBFS; R-igraph: ring(10) from
+  test-structural-properties.R), 2 proptest invariants (BFS-reachability
+  parity; triangle inequality on every edge), criterion baseline
+  ≈ 2.5 µs on karate, ~52 ns/vertex on path graphs to n=10k.
+- *(module)* `src/algorithms/paths/` — new top-level subtree mirroring
+  upstream `references/igraph/src/paths/`. Houses SP-* AWUs.
+
 - *(connectivity)* **ALGO-CC-002**: strongly connected components
   (`strongly_connected_components`). Returns the same
   `ConnectedComponents { membership, count }` shape as weak components.

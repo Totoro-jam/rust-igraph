@@ -62,6 +62,11 @@ name = "bench_scc"
 path = "benches/bench_scc.rs"
 harness = false
 
+[[bench]]
+name = "bench_distances"
+path = "benches/bench_distances.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

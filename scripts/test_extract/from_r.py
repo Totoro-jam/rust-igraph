@@ -100,6 +100,22 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ring10_source0",
+        # test-structural-properties.R uses make_ring(10) for the BFS
+        # multi-root test. Distances from vertex 0 on an undirected 10-cycle
+        # rise from 0 then mirror back: 0,1,2,3,4,5,4,3,2,1.
+        "origin": "test-structural-properties.R:make_ring(10) — distances "
+        "from vertex 0; expected via python-igraph 0.11 distances() "
+        "(matches igraph C unweighted BFS)",
+        "graph_factory": lambda: _ring(10),
+        "algo": "distances",
+        "params": {"source": 0},
+        "expected": [0, 1, 2, 3, 4, 5, 4, 3, 2, 1],
+    },
+]
+
 SCC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "components_R_largest_strong_weak",
@@ -126,6 +142,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
+    "distances": DIST_MANIFEST,
 }
 
 

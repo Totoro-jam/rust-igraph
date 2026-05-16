@@ -105,6 +105,20 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "kary_tree20_k2_source0",
+        # Same graph as bfs_simple.c's kary_tree(20, 2). Expected = BFS
+        # distances from vertex 0 (root): 0, then layer-by-layer.
+        "origin": "bfs_simple.c:kary_tree(20,2) distances from vertex 0; "
+        "expected via python-igraph 0.11 distances() (= igraph C unweighted BFS)",
+        "graph_factory": lambda: _kary_tree(20, 2),
+        "algo": "distances",
+        "params": {"source": 0},
+        "expected": [0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4],
+    },
+]
+
 SCC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "components_c_two_disjoint_3_cycles",
@@ -142,6 +156,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
+    "distances": DIST_MANIFEST,
 }
 
 

@@ -6,4 +6,5 @@
 
 pub mod connectivity;
 pub mod io;
+pub mod paths;
 pub mod traversal;

@@ -163,3 +163,18 @@ fn strongly_connected_components_three_source_conformance() {
         })
     });
 }
+
+#[test]
+fn distances_three_source_conformance() {
+    run_conformance("distances", |g, params| {
+        let source = u32::try_from(
+            params
+                .get("source")
+                .and_then(serde_json::Value::as_u64)
+                .expect("`source` param required"),
+        )
+        .expect("source fits in u32");
+        let d = rust_igraph::distances(g, source).expect("distances");
+        serde_json::json!(d)
+    });
+}
