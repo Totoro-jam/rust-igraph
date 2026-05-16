@@ -105,6 +105,35 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+AP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "biconnected_components_c_fixture",
+        # igraph_biconnected_components.c: 10 vertices (extra isolated 9),
+        # edges 0-1, 1-2, 2-3, 3-0, 2-4, 4-5, 5-2, 5-6, 7-8.
+        # Articulation points per .out: ( 5 2 ) — sorted = [2, 5].
+        "origin": "igraph_biconnected_components.c articulation-points sub-test",
+        "graph_factory": lambda: ig.Graph(
+            n=10,
+            edges=[
+                (0, 1),
+                (1, 2),
+                (2, 3),
+                (3, 0),
+                (2, 4),
+                (4, 5),
+                (5, 2),
+                (5, 6),
+                (7, 8),
+            ],
+            directed=False,
+        ),
+        "algo": "articulation_points",
+        "params": {},
+        # Sorted to match the runner's contract (we sort both sides).
+        "expected": [2, 5],
+    },
+]
+
 EUL_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_eulerian_undirected_path_3",
@@ -194,6 +223,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "strongly_connected_components": SCC_MANIFEST,
     "distances": DIST_MANIFEST,
     "is_eulerian": EUL_MANIFEST,
+    "articulation_points": AP_MANIFEST,
 }
 
 

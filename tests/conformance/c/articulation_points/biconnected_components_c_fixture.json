@@ -1,0 +1,53 @@
+{
+  "source": "c",
+  "origin": "igraph_biconnected_components.c articulation-points sub-test",
+  "graph": {
+    "n": 10,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        7,
+        8
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "articulation_points",
+  "params": {},
+  "expected": [
+    2,
+    5
+  ]
+}

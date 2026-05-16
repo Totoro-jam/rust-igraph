@@ -76,6 +76,19 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+AP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "tree_5_2_articulation",
+        # python-igraph's Tree(5,2) yields edges (0,1),(0,2),(1,3),(1,4) →
+        # AP = {0, 1}. Verified directly against python-igraph 0.11.
+        "origin": "constructed: python-igraph Tree(5,2); AP via Graph.articulation_points()",
+        "graph_factory": lambda: _tree(5, 2),
+        "algo": "articulation_points",
+        "params": {},
+        "expected": [0, 1],
+    },
+]
+
 DIST_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "tree10_2_source0",
@@ -116,6 +129,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
     "distances": DIST_MANIFEST,
+    "articulation_points": AP_MANIFEST,
 }
 
 

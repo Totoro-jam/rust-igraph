@@ -11,7 +11,8 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
-    Graph, bfs, connected_components, dfs, distances, read_edgelist, strongly_connected_components,
+    Graph, articulation_points, bfs, connected_components, dfs, distances, read_edgelist,
+    strongly_connected_components,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -185,6 +186,37 @@ fn distances_directed_chain_matches_python_igraph() {
             .expect("decode python distances");
     assert_eq!(rust, py);
     assert_eq!(rust, vec![None, Some(0), Some(1), Some(2)]);
+}
+
+#[test]
+fn articulation_points_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let mut rust = articulation_points(&g).expect("rust articulation");
+    rust.sort_unstable();
+    let py: Vec<u32> =
+        serde_json::from_value(run_ok("articulation_points", &g, serde_json::json!({})))
+            .expect("decode python articulation");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn articulation_points_cycle_with_pendant_matches_python_igraph() {
+    // Cycle 0-1-2-0 plus pendant 2-3-4: expected articulation = {2, 3}.
+    let mut g = Graph::with_vertices(5);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 0).unwrap();
+    g.add_edge(2, 3).unwrap();
+    g.add_edge(3, 4).unwrap();
+    let mut rust = articulation_points(&g).expect("rust articulation");
+    rust.sort_unstable();
+    let py: Vec<u32> =
+        serde_json::from_value(run_ok("articulation_points", &g, serde_json::json!({})))
+            .expect("decode python articulation");
+    assert_eq!(rust, py);
+    assert_eq!(rust, vec![2, 3]);
 }
 
 #[test]

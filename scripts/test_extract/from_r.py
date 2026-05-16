@@ -147,6 +147,22 @@ EUL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+AP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "path_graph_3_articulation",
+        # test-aaa-auto.R:#175 articulation_points_impl basic uses
+        # path_graph_impl(n=3) — undirected path 0-1-2. The middle vertex
+        # is the only articulation point.
+        "origin": "test-aaa-auto.R:#175 articulation_points_impl basic — path_graph(n=3)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "articulation_points",
+        "params": {},
+        "expected": [1],
+    },
+]
+
 DIST_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "ring10_source0",
@@ -191,6 +207,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "strongly_connected_components": SCC_MANIFEST,
     "distances": DIST_MANIFEST,
     "is_eulerian": EUL_MANIFEST,
+    "articulation_points": AP_MANIFEST,
 }
 
 

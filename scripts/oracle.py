@@ -65,6 +65,14 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         cc = g.connected_components(mode="weak")
         return {"membership": list(cc.membership), "count": len(cc)}
 
+    if algo == "articulation_points":
+        # Counterpart of igraph_articulation_points(_, &result).
+        # python-igraph's `Graph.articulation_points()` returns a list of
+        # vertex ids. Order may differ from upstream C — we sort both
+        # before comparing in the oracle test (as we do for non-canonical
+        # outputs).
+        return sorted(int(v) for v in g.articulation_points())
+
     if algo == "is_eulerian":
         # Counterpart of igraph_is_eulerian(_, &has_path, &has_cycle).
         # python-igraph exposes Graph.is_eulerian(); newer versions return

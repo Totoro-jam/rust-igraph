@@ -154,6 +154,72 @@ proptest! {
         }
     }
 
+    /// Brute-force articulation invariant: a vertex `v` is an articulation
+    /// point iff removing all edges incident to it (and `v` itself) increases
+    /// the number of weakly connected components on the remaining vertices.
+    /// We verify on a small graph by direct removal + recount.
+    #[test]
+    fn articulation_points_match_brute_force_definition(g in arb_graph(7)) {
+        let computed: std::collections::BTreeSet<u32> =
+            rust_igraph::articulation_points(&g).unwrap().into_iter().collect();
+
+        // Baseline: number of WCCs on `g`'s non-isolated vertices.
+        let baseline_cc = rust_igraph::connected_components(&g).unwrap();
+        let baseline_nontrivial = (0..g.vcount())
+            .filter(|&v| g.degree(v).unwrap() > 0)
+            .count();
+        let baseline_components_with_edges = (0..baseline_cc.count)
+            .filter(|&cid| {
+                (0..g.vcount()).any(|v| baseline_cc.membership[v as usize] == cid
+                                          && g.degree(v).unwrap() > 0)
+            })
+            .count();
+        let _ = (baseline_nontrivial, baseline_components_with_edges);
+
+        for v in 0..g.vcount() {
+            // An isolated vertex is never an articulation point.
+            if g.degree(v).unwrap() == 0 {
+                prop_assert!(!computed.contains(&v),
+                             "isolated vertex {} reported as articulation", v);
+                continue;
+            }
+
+            // Build g - v: rebuild the edge list, dropping edges incident to v
+            // (and the vertex itself by mapping ids around v).
+            let mut h = rust_igraph::Graph::with_vertices(g.vcount());
+            let m = u32::try_from(g.ecount()).expect("edge count fits in u32");
+            for e in 0..m {
+                let (u, w) = g.edge(e).unwrap();
+                if u == v || w == v { continue; }
+                h.add_edge(u, w).unwrap();
+            }
+            // Count components on h, ignoring v's own component (it's
+            // isolated in h since we removed all its incident edges).
+            let cc_h = rust_igraph::connected_components(&h).unwrap();
+            // For each non-v vertex, group by component id; count groups
+            // that contain at least one of v's original neighbours.
+            let neighbours: std::collections::BTreeSet<u32> =
+                g.neighbors(v).unwrap().into_iter().filter(|&w| w != v).collect();
+            if neighbours.len() <= 1 {
+                // Pendant vertex (degree 1 modulo self-loops): never articulation.
+                prop_assert!(!computed.contains(&v),
+                             "pendant vertex {} reported as articulation", v);
+                continue;
+            }
+            let nbr_components: std::collections::BTreeSet<u32> = neighbours
+                .iter()
+                .map(|&w| cc_h.membership[w as usize])
+                .collect();
+
+            let v_is_articulation = nbr_components.len() > 1;
+            prop_assert_eq!(
+                computed.contains(&v), v_is_articulation,
+                "vertex {} articulation-status mismatch (computed={}, brute={})",
+                v, computed.contains(&v), v_is_articulation
+            );
+        }
+    }
+
     /// Eulerian classification monotonicity: if `has_cycle` then
     /// `has_path`, on every graph. (A closed Eulerian walk is also a
     /// valid open Eulerian walk.)

@@ -11,6 +11,29 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(connectivity)* **ALGO-CC-010**: articulation points
+  (`articulation_points`). Iterative DFS with low-link tracking,
+  mirroring `igraph_articulation_points()` (which itself reduces to
+  `igraph_biconnected_components(_, NULL, NULL, NULL, NULL, &result)`)
+  from `references/igraph/src/connectivity/components.c:969-1209`.
+  Treats input as undirected (matches `IGRAPH_ALL` mode default at
+  `components.c:1060`). Returns vertex ids in upstream's
+  DFS-discovery order; conformance runner sorts before comparing
+  because the order differs across reference impls.
+  Full 9-step SOP: 11 unit tests (empty / isolated / cycle / path /
+  star / cycle-with-pendant / multi-component / upstream
+  biconnected_components fixture / self-loop / parallel edges /
+  two-triangles-sharing-vertex), 2 oracle tests against python-igraph
+  0.11 (karate + cycle-with-pendant), 3 three-source conformance
+  fixtures (igraph C `igraph_biconnected_components.c` 10-vertex
+  graph; python-igraph Tree(5,2); R `path_graph(n=3)` from
+  `test-aaa-auto.R`), 1 brute-force proptest invariant (a vertex is
+  an articulation point iff removing it splits its neighbourhood
+  across multiple weak components), criterion baseline ≈ 3.2 µs on
+  karate, ≈ 71 µs on a 1000-path. Full multi-output
+  biconnected_components (vertex sets, edge sets, spanning trees)
+  ships separately as CC-011.
+
 - *(paths)* **ALGO-CC-040**: Eulerian path/cycle existence test
   (`is_eulerian`). Returns `EulerianClassification { has_path, has_cycle }`.
   Counterpart of `igraph_is_eulerian()` from

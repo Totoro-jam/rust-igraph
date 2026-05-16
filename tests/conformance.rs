@@ -180,6 +180,18 @@ fn strongly_connected_components_three_source_conformance() {
 }
 
 #[test]
+fn articulation_points_three_source_conformance() {
+    run_conformance("articulation_points", |g, _params| {
+        let mut ap = rust_igraph::articulation_points(g).expect("articulation");
+        // Sort to match the fixture's canonicalised representation
+        // (DFS-discovery order is implementation-dependent across the
+        // three reference impls).
+        ap.sort_unstable();
+        serde_json::json!(ap)
+    });
+}
+
+#[test]
 fn is_eulerian_three_source_conformance() {
     // python-igraph 0.11.x exposes no Eulerian API (verified — no
     // Graph.is_eulerian / has_eulerian_path); skip the "py" source

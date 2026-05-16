@@ -1,0 +1,9 @@
+{
+  "awu": "ALGO-CC-010",
+  "rust_karate_ns": 3238,
+  "rust_path_n1000_ns": 71151,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-16",
+  "git_commit": "8827c82",
+  "notes": "Phase 1 articulation points via src/algorithms/connectivity/articulation.rs. Iterative DFS with low-link tracking, mirroring igraph's biconnected-components driver but emitting only the AP vector. Karate 3.2 µs is in line with comparable single-DFS algos (BFS=693 ns, DFS=1.84 µs); per-vertex incident-list pre-cache adds ~2x over a one-pass DFS. Linear scaling at ~71 ns/vertex on 1000-path. Full biconnected_components (component vertex/edge sets, spanning-tree edges) ships separately as CC-011."
+}
