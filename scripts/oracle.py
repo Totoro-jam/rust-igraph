@@ -65,6 +65,10 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         cc = g.connected_components(mode="weak")
         return {"membership": list(cc.membership), "count": len(cc)}
 
+    if algo == "is_biconnected":
+        # Counterpart of igraph_is_biconnected(_, &result).
+        return bool(g.is_biconnected())
+
     if algo == "bridges":
         # Counterpart of igraph_bridges(_, &result). python-igraph returns
         # a list of edge ids; sort here for stable comparison.

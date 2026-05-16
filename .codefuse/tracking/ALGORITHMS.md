@@ -92,7 +92,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-CC-003 | Decompose graph by components | components.c:566-732 | 350 | adapt | CC-001,002 | todo | - | - | - |
 | ALGO-CC-010 | Articulation points (`articulation_points`) | components.c:969-972 (driver at 1085-1209) | ~250 | adapt | TR-002 | done | (next) | 3.2 µs/karate | C:1 / py:1 / R:1 |
 | ALGO-CC-014 | Bridges (`bridges`) | components.c:1400-1504 | ~200 | adapt | TR-002 | done | (next) | 3.8 µs/karate | C:2 / py:1 / R:1 |
-| ALGO-CC-011..013 | Biconnected_components multi-output / is_biconnected | biconnected*.c | ~350 | adapt | CC-010 | todo | - | - | - |
+| ALGO-CC-013 | `is_biconnected` (delegate to CC-001 + CC-010) | components.c:1254-1379 | ~80 | copy | CC-001, CC-010 | done | (next) | (delegate; ≈7.3 µs/karate) | C:2 / py:1 / R:1 |
+| ALGO-CC-011..012 | Biconnected_components multi-output (vertex sets / edges / spanning trees) | biconnected*.c | ~270 | adapt | CC-010 | todo | - | - | - |
 | ALGO-CC-020..022 | Reachability | reachability.c | 257 | adapt | TR-001 | todo | - | - | - |
 | ALGO-CC-030..032 | Percolation | percolation.c | 404 | adapt | - | todo | - | - | - |
 | ALGO-CC-040 | Eulerian existence (`is_eulerian`) | eulerian.c:333 (incl. directed/undirected helpers) | ~280 | adapt | CC-001 | done | (next) | 4.7 µs/karate | C:3 / py:0 / R:2 (py skipped — see CONFORMANCE.md) |
@@ -115,15 +116,15 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 9 | 0 | ~76 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1); scc: 4 (C:2, py:1, R:1); distances: 3 (C:1, py:1, R:1); is_eulerian: 5 (C:3, py:0, R:2); articulation: 3 (C:1, py:1, R:1); bridges: 4 (C:2, py:1, R:1) |
+| 1 | 10 | 0 | ~75 | ~85 | dfs: 3 (C:1, py:1, R:1); cc: 4 (C:2, py:1, R:1); scc: 4 (C:2, py:1, R:1); distances: 3 (C:1, py:1, R:1); is_eulerian: 5 (C:3, py:0, R:2); articulation: 3 (C:1, py:1, R:1); bridges: 4 (C:2, py:1, R:1); is_biconnected: 4 (C:2, py:1, R:1) |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 9/85 done — Graph
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 10/85 done — Graph
 core (CORE-001a/b), DFS (TR-002), weak CC (CC-001), strong CC (CC-002),
 unweighted distances (SP-006), Eulerian existence (CC-040), articulation
-points (CC-010), bridges (CC-014). Next options: SP-001 (Dijkstra; needs
-weighted-edge extension to Graph), CC-003 (decompose), CC-011 (full
-biconnected components — vertex/edge sets), CC-041/042 (Eulerian
-path/cycle construction via Hierholzer).
+points (CC-010), bridges (CC-014), is_biconnected (CC-013). Next options:
+SP-001 (Dijkstra; needs weighted-edge extension to Graph), CC-003
+(decompose), CC-011 (full biconnected components — vertex/edge sets),
+CC-041/042 (Eulerian path/cycle construction via Hierholzer).
 
 > Update the counters after every PR merge.

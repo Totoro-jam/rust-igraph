@@ -147,6 +147,21 @@ EUL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ISBI_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_biconnected_path_3",
+        # test-aaa-auto.R:#178 is_biconnected_impl basic uses path_graph(3).
+        # 3-vertex undirected path is NOT biconnected (vertex 1 is articulation).
+        "origin": "test-aaa-auto.R:#178 is_biconnected_impl basic — path_graph(n=3)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "is_biconnected",
+        "params": {},
+        "expected": False,
+    },
+]
+
 BRIDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "bridges_krackhardt_kite",
@@ -224,6 +239,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_eulerian": EUL_MANIFEST,
     "articulation_points": AP_MANIFEST,
     "bridges": BRIDGE_MANIFEST,
+    "is_biconnected": ISBI_MANIFEST,
 }
 
 

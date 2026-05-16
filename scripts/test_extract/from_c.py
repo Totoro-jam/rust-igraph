@@ -105,6 +105,35 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ISBI_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_biconnected_c_two_triangles_share_vertex_2",
+        # igraph_is_biconnected.c lines 50-57: 6 vertices, two triangles
+        # 0-1-2-3-0 (4-cycle) and 2-4-5-2 (3-cycle). Vertex 2 is articulation
+        # → not biconnected.
+        "origin": "igraph_is_biconnected.c:lines 50-57 — 4-cycle and 3-cycle share vertex 2",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 0), (2, 4), (4, 5), (5, 2)],
+            directed=False,
+        ),
+        "algo": "is_biconnected",
+        "params": {},
+        "expected": False,
+    },
+    {
+        "case": "is_biconnected_c_ring_10",
+        # igraph_is_biconnected.c lines 60-63: ring(10) is biconnected.
+        "origin": "igraph_is_biconnected.c:lines 60-63 — ring(10) biconnected",
+        "graph_factory": lambda: ig.Graph.Ring(
+            n=10, directed=False, mutual=False, circular=True
+        ),
+        "algo": "is_biconnected",
+        "params": {},
+        "expected": True,
+    },
+]
+
 BRIDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "bridges_c_small_2triangles_with_bridge",
@@ -264,6 +293,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_eulerian": EUL_MANIFEST,
     "articulation_points": AP_MANIFEST,
     "bridges": BRIDGE_MANIFEST,
+    "is_biconnected": ISBI_MANIFEST,
 }
 
 

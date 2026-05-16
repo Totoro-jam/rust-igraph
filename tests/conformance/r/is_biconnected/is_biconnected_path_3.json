@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "test-aaa-auto.R:#178 is_biconnected_impl basic \u2014 path_graph(n=3)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_biconnected",
+  "params": {},
+  "expected": false
+}

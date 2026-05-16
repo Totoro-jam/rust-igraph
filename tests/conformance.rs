@@ -180,6 +180,14 @@ fn strongly_connected_components_three_source_conformance() {
 }
 
 #[test]
+fn is_biconnected_three_source_conformance() {
+    run_conformance("is_biconnected", |g, _params| {
+        let r = rust_igraph::is_biconnected(g).expect("is_biconnected");
+        serde_json::json!(r)
+    });
+}
+
+#[test]
 fn bridges_three_source_conformance() {
     run_conformance("bridges", |g, _params| {
         let mut br = rust_igraph::bridges(g).expect("bridges");

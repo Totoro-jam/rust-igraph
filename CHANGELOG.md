@@ -11,6 +11,23 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(connectivity)* **ALGO-CC-013**: `is_biconnected`. Returns `bool`.
+  Counterpart of `igraph_is_biconnected()` from
+  `references/igraph/src/connectivity/components.c:1254-1379`.
+  Phase-1 minimal slice delegates to existing `connected_components` +
+  `articulation_points` for n ≥ 3, with explicit n < 2 / n == 2 special
+  cases (matches upstream's "two-vertex graph with one connecting edge
+  is biconnected" convention).
+  Full 9-step SOP: 12 unit tests (empty / singleton / two-no-edge /
+  two-with-edge / triangle / path-3 / 4-cycle / K4 / disconnected /
+  star / cycle+pendant / triangle+isolate), 1 oracle test sweeping
+  4 graphs against python-igraph 0.11, 4 three-source conformance
+  fixtures (igraph C `igraph_is_biconnected.c` two-triangles-share-vertex
+  + ring-10; python-igraph K4; R `path_graph(n=3)` from `test-aaa-auto.R`),
+  1 proptest invariant (n ≥ 3: `is_biconnected ≡ cc.count == 1 ∧ aps.is_empty()`),
+  no standalone bench (cost is sum of CC-001 + CC-010 ≈ 7.3 µs on karate).
+  A bespoke single-DFS-with-early-exit ports later as a perf pass.
+
 - *(connectivity)* **ALGO-CC-014**: bridges (`bridges`). Returns
   `Vec<EdgeId>` of edges whose removal would increase the number of
   weak connected components. Counterpart of `igraph_bridges()` from

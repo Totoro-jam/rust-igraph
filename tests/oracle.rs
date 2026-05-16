@@ -11,8 +11,8 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
-    Graph, articulation_points, bfs, bridges, connected_components, dfs, distances, read_edgelist,
-    strongly_connected_components,
+    Graph, articulation_points, bfs, bridges, connected_components, dfs, distances, is_biconnected,
+    read_edgelist, strongly_connected_components,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -273,6 +273,59 @@ fn bridges_two_triangles_via_bridge_matches_python_igraph() {
     let rust = rust_bridge_pairs(&g);
     assert_eq!(rust, py_bridge_pairs(&g));
     assert_eq!(rust, vec![(2, 3)]);
+}
+
+#[test]
+fn is_biconnected_matches_python_igraph_on_several_graphs() {
+    // Triangle (true), path-3 (false), 4-cycle (true), star (false).
+    let cases: Vec<(rust_igraph::Graph, bool)> = vec![
+        (
+            {
+                let mut g = Graph::with_vertices(3);
+                g.add_edge(0, 1).unwrap();
+                g.add_edge(1, 2).unwrap();
+                g.add_edge(2, 0).unwrap();
+                g
+            },
+            true,
+        ),
+        (
+            {
+                let mut g = Graph::with_vertices(3);
+                g.add_edge(0, 1).unwrap();
+                g.add_edge(1, 2).unwrap();
+                g
+            },
+            false,
+        ),
+        (
+            {
+                let mut g = Graph::with_vertices(4);
+                for i in 0..4u32 {
+                    g.add_edge(i, (i + 1) % 4).unwrap();
+                }
+                g
+            },
+            true,
+        ),
+        (
+            {
+                let mut g = Graph::with_vertices(4);
+                for v in 1..4u32 {
+                    g.add_edge(0, v).unwrap();
+                }
+                g
+            },
+            false,
+        ),
+    ];
+    for (g, expected) in cases {
+        let rust = is_biconnected(&g).unwrap();
+        let py: bool = serde_json::from_value(run_ok("is_biconnected", &g, serde_json::json!({})))
+            .expect("decode python is_biconnected");
+        assert_eq!(rust, py, "rust vs python disagreed on graph");
+        assert_eq!(rust, expected, "rust mismatch with expected");
+    }
 }
 
 #[test]

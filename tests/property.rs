@@ -154,6 +154,23 @@ proptest! {
         }
     }
 
+    /// `is_biconnected` consistency: a graph with vcount >= 3 is biconnected
+    /// iff `connected_components.count == 1` AND `articulation_points` is
+    /// empty. (Two-vertex and trivial cases excluded — they have their own
+    /// special-case logic.)
+    #[test]
+    fn is_biconnected_matches_aps_and_connectivity(g in arb_graph(10)) {
+        let n = g.vcount();
+        if n < 3 { return Ok(()); }
+        let computed = rust_igraph::is_biconnected(&g).unwrap();
+        let cc = rust_igraph::connected_components(&g).unwrap();
+        let aps = rust_igraph::articulation_points(&g).unwrap();
+        let derived = cc.count == 1 && aps.is_empty();
+        prop_assert_eq!(computed, derived,
+                        "is_biconnected={} but cc.count={} aps={:?}",
+                        computed, cc.count, aps);
+    }
+
     /// Brute-force bridge invariant: an edge is a bridge iff its endpoints
     /// land in different weak components after the edge is removed (and
     /// neither endpoint had any other path to the other side).

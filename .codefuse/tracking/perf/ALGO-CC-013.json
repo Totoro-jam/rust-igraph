@@ -1,0 +1,8 @@
+{
+  "awu": "ALGO-CC-013",
+  "rust_karate_ns": null,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-16",
+  "git_commit": "2499b15",
+  "notes": "Phase 1 is_biconnected via src/algorithms/connectivity/is_biconnected.rs. Implementation delegates to existing connected_components + articulation_points primitives for n>=3 (with explicit n<2 / n==2 special cases). No standalone bench: cost is dominated by the two delegate calls (sum of CC-001 4.1µs + CC-010 3.2µs ≈ 7.3µs on karate). A bespoke single-DFS-with-early-exit (matching upstream's algorithm) is possible but deferred — measure as part of a future perf pass."
+}

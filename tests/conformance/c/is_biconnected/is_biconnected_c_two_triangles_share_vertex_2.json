@@ -1,0 +1,42 @@
+{
+  "source": "c",
+  "origin": "igraph_is_biconnected.c:lines 50-57 \u2014 4-cycle and 3-cycle share vertex 2",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        2,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_biconnected",
+  "params": {},
+  "expected": false
+}

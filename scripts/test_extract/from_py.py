@@ -76,6 +76,18 @@ CC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ISBI_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_biconnected_k4",
+        # K4 (complete graph on 4 vertices): biconnected.
+        "origin": "constructed: K4 via python-igraph; biconnected per Graph.is_biconnected()",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "is_biconnected",
+        "params": {},
+        "expected": True,
+    },
+]
+
 BRIDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "bridges_4_path_all_edges",
@@ -147,6 +159,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "distances": DIST_MANIFEST,
     "articulation_points": AP_MANIFEST,
     "bridges": BRIDGE_MANIFEST,
+    "is_biconnected": ISBI_MANIFEST,
 }
 
 
