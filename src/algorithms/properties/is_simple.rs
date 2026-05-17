@@ -4,7 +4,7 @@
 //! `references/igraph/src/properties/multiplicity.c`. A graph is *simple*
 //! if it has no self-loops and no parallel edges. Useful as a fast
 //! predicate before algorithms that assume simplicity (or to short-circuit
-//! [`crate::simplify`] when nothing needs to change).
+//! [`crate::simplify()`] when nothing needs to change).
 //!
 //! Phase-1 minimal slice: undirected and directed graphs (the latter
 //! treated structurally — `(a, b)` and `(b, a)` are considered distinct
