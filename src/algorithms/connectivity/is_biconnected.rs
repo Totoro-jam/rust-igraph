@@ -15,9 +15,11 @@
 //!   points.
 //!
 //! Phase-1 minimal slice delegates to the existing
-//! [`connected_components`] and [`articulation_points`] primitives
-//! for n ≥ 3. Upstream's bespoke single-DFS-with-early-exit (faster
-//! on large graphs that aren't biconnected) ships in a future perf pass.
+//! [`crate::algorithms::connectivity::components::connected_components`]
+//! and [`crate::algorithms::connectivity::articulation::articulation_points`]
+//! primitives for n ≥ 3. Upstream's bespoke single-DFS-with-early-exit
+//! (faster on large graphs that aren't biconnected) ships in a future
+//! perf pass.
 
 use crate::core::{Graph, IgraphResult};
 

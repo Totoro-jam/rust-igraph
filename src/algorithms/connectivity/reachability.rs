@@ -6,7 +6,7 @@
 //! reachable from `v`.
 //!
 //! Phase-1 minimal slice: BFS-from-each-vertex via the existing
-//! [`distances`](crate::algorithms::paths::distances) primitive. The
+//! [`crate::algorithms::paths::distances::distances`] primitive. The
 //! O(|V|*(|V|+|E|)) cost is simpler to maintain than upstream's
 //! SCC-condensation approach (O(|C||V|/w + |V| + |E|), where |C| is
 //! the number of strongly connected components and w is the word size).
