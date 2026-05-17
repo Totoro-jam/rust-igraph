@@ -94,7 +94,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-CC-010 | Articulation points (`articulation_points`) | components.c:969-972 (driver at 1085-1209) | ~250 | adapt | TR-002 | done | (next) | 3.2 µs/karate | C:1 / py:1 / R:1 |
 | ALGO-CC-014 | Bridges (`bridges`) | components.c:1400-1504 | ~200 | adapt | TR-002 | done | (next) | 3.8 µs/karate | C:2 / py:1 / R:1 |
 | ALGO-CC-013 | `is_biconnected` (delegate to CC-001 + CC-010) | components.c:1254-1379 | ~80 | copy | CC-001, CC-010 | done | (next) | (delegate; ≈7.3 µs/karate) | C:2 / py:1 / R:1 |
-| ALGO-CC-011..012 | Biconnected_components multi-output (vertex sets / edges / spanning trees) | biconnected*.c | ~270 | adapt | CC-010 | todo | - | - | - |
+| ALGO-CC-011 | Biconnected components multi-output (`biconnected_components`) | components.c:1032-1227 | ~250 | adapt | CC-010 | done | (next) | O(V+E) DFS | C:1 / py:1 / R:1 |
+| ALGO-CC-012 | Biconnected components: explicit `component_edges` output | components.c:1176-1195 | ~80 | adapt | CC-011 | todo | - | - | - |
 | ALGO-CC-020 | Reachability counts (`count_reachable`) | reachability.c:179 | ~80 | adapt | SP-006 | done | (next) | (BFS-from-each, ≈ vcount * SP-006) | C:1 / py:1 / R:1 |
 | ALGO-CC-021 | Reachability matrix (`reachability_matrix`) | reachability.c:72-148 | ~80 | adapt | SP-006 | done | (next) | O(V*(V+E)) BFS-from-each | C:1 / py:1 / R:1 |
 | ALGO-CC-022 | Transitive closure (`transitive_closure`) | reachability.c:225-257 | ~80 | adapt | CC-021 | done | (next) | (CC-021 + closure ctor) | C:1 / py:1 / R:1 |
@@ -140,7 +141,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 30 | 0 | ~55 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3 |
+| 1 | 31 | 0 | ~54 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
 **Phase 0 — complete (37/37)**. **Phase 1 underway**: 27/85 done —
@@ -155,9 +156,9 @@ reachability matrix (CC-021), transitive closure (CC-022),
 reciprocity (PR-004), BFS multi-output (TR-001), knn (PR-005),
 degree assortativity (PR-006), edge query helpers (CORE-001d),
 closeness centrality (PR-007), harmonic centrality (PR-009), betweenness
-centrality (PR-008), edge betweenness (PR-010), PageRank (PR-011). Next
-options: SP-001 (Dijkstra), CC-011 (biconnected components
-multi-output), CORE-001c (deletion), eigenvector centrality, hub/auth
+centrality (PR-008), edge betweenness (PR-010), PageRank (PR-011),
+biconnected components multi-output (CC-011). Next options: SP-001
+(Dijkstra), CORE-001c (deletion), eigenvector centrality, hub/auth
 scores.
 
 > Update the counters after every PR merge.

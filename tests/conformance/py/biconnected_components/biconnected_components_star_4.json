@@ -1,0 +1,45 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-star; 3 components, 1 articulation point",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "biconnected_components",
+  "params": {},
+  "expected": {
+    "count": 3,
+    "components": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "articulation_points": [
+      0
+    ]
+  }
+}

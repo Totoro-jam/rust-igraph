@@ -300,6 +300,31 @@ fn reachability_matrix_three_source_conformance() {
 }
 
 #[test]
+fn biconnected_components_three_source_conformance() {
+    run_conformance("biconnected_components", |g, _params| {
+        let bc = rust_igraph::biconnected_components(g).expect("biconnected_components");
+        // Canonicalise: each component sorted, list of components sorted.
+        let mut comps: Vec<Vec<u32>> = bc
+            .components
+            .iter()
+            .map(|c| {
+                let mut v = c.clone();
+                v.sort_unstable();
+                v
+            })
+            .collect();
+        comps.sort();
+        let mut aps = bc.articulation_points.clone();
+        aps.sort_unstable();
+        serde_json::json!({
+            "count": bc.count,
+            "components": comps,
+            "articulation_points": aps,
+        })
+    });
+}
+
+#[test]
 fn pagerank_three_source_conformance() {
     run_conformance("pagerank", |g, _params| {
         let pr = rust_igraph::pagerank(g).expect("pagerank");

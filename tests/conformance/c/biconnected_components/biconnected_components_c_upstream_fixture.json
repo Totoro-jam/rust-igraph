@@ -1,0 +1,77 @@
+{
+  "source": "c",
+  "origin": "igraph_biconnected_components.c upstream test fixture",
+  "graph": {
+    "n": 10,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        7,
+        8
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "biconnected_components",
+  "params": {},
+  "expected": {
+    "count": 4,
+    "components": [
+      [
+        0,
+        1,
+        2,
+        3
+      ],
+      [
+        2,
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        7,
+        8
+      ]
+    ],
+    "articulation_points": [
+      2,
+      5
+    ]
+  }
+}

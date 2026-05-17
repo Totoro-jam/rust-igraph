@@ -242,6 +242,30 @@ proptest! {
         }
     }
 
+    /// Biconnected components invariants:
+    /// - count equals components.len() == tree_edges.len()
+    /// - the AP set from `biconnected_components` matches CC-010 `articulation_points`
+    /// - each component has at least 2 vertices (singletons aren't components)
+    #[test]
+    fn biconnected_components_consistent_with_articulation(g in arb_graph(8)) {
+        let bc = rust_igraph::biconnected_components(&g).unwrap();
+        prop_assert_eq!(bc.count as usize, bc.components.len());
+        prop_assert_eq!(bc.count as usize, bc.tree_edges.len());
+
+        // Component sizes ≥ 2.
+        for comp in &bc.components {
+            prop_assert!(comp.len() >= 2,
+                         "biconnected component has fewer than 2 vertices: {:?}", comp);
+        }
+
+        // AP set matches CC-010.
+        let mut bc_aps = bc.articulation_points.clone();
+        bc_aps.sort_unstable();
+        let mut std_aps = rust_igraph::articulation_points(&g).unwrap();
+        std_aps.sort_unstable();
+        prop_assert_eq!(bc_aps, std_aps);
+    }
+
     /// PageRank invariants: nonneg, finite, sums to 1 (for n >= 1),
     /// length equals vcount.
     #[test]

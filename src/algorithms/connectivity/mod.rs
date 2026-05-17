@@ -5,6 +5,7 @@
 //! ALGO-CC-022 (transitive closure).
 
 pub mod articulation;
+pub mod biconnected;
 pub mod bridges;
 pub mod components;
 pub mod is_biconnected;
@@ -14,6 +15,7 @@ pub mod strong;
 pub mod transitive_closure;
 
 pub use articulation::articulation_points;
+pub use biconnected::{BiconnectedComponents, biconnected_components};
 pub use bridges::bridges;
 pub use components::{ConnectedComponents, connected_components};
 pub use is_biconnected::is_biconnected;

@@ -146,6 +146,43 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "biconnected_components_c_upstream_fixture",
+        # From references/igraph/tests/unit/igraph_biconnected_components.c.
+        # 10v graph (vertex 9 isolated), 9 edges. Expected 4 components with
+        # APs {2, 5}.
+        "origin": "igraph_biconnected_components.c upstream test fixture",
+        "graph_factory": lambda: ig.Graph(
+            n=10,
+            edges=[
+                (0, 1),
+                (1, 2),
+                (2, 3),
+                (3, 0),
+                (2, 4),
+                (4, 5),
+                (5, 2),
+                (5, 6),
+                (7, 8),
+            ],
+            directed=False,
+        ),
+        "algo": "biconnected_components",
+        "params": {},
+        "expected": {
+            "count": 4,
+            "components": [
+                [0, 1, 2, 3],
+                [2, 4, 5],
+                [5, 6],
+                [7, 8],
+            ],
+            "articulation_points": [2, 5],
+        },
+    },
+]
+
 PAGERANK_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "pagerank_c_directed_4cycle",
@@ -643,6 +680,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "betweenness": BETW_MANIFEST,
     "edge_betweenness": EDGE_BETW_MANIFEST,
     "pagerank": PAGERANK_MANIFEST,
+    "biconnected_components": BC_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

@@ -191,6 +191,24 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "biconnected_components_R_triangle",
+        # K3: a single biconnected component with no APs.
+        "origin": "constructed (R-style): triangle; 1 component, no APs",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "biconnected_components",
+        "params": {},
+        "expected": {
+            "count": 1,
+            "components": [[0, 1, 2]],
+            "articulation_points": [],
+        },
+    },
+]
+
 PAGERANK_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "pagerank_R_K4",
@@ -571,6 +589,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "betweenness": BETW_MANIFEST,
     "edge_betweenness": EDGE_BETW_MANIFEST,
     "pagerank": PAGERANK_MANIFEST,
+    "biconnected_components": BC_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

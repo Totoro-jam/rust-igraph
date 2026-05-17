@@ -1,0 +1,36 @@
+{
+  "source": "r",
+  "origin": "constructed (R-style): triangle; 1 component, no APs",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "biconnected_components",
+  "params": {},
+  "expected": {
+    "count": 1,
+    "components": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "articulation_points": []
+  }
+}

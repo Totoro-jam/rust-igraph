@@ -11,6 +11,21 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(connectivity)* **ALGO-CC-011**: biconnected components multi-output
+  (`biconnected_components`). Returns `BiconnectedComponents { count,
+  components, tree_edges, articulation_points }`. Counterpart of
+  `igraph_biconnected_components()` from
+  `references/igraph/src/connectivity/components.c:1032-1227`. Same
+  iterative DFS with low-link tracking that powers
+  `articulation_points` (CC-010), extended to also collect the vertex
+  set and tree edges of every biconnected component. Phase-1 minimal
+  slice ships components/tree_edges/APs; the separate `component_edges`
+  output (O(|V|²·d)) is deferred to CC-012.
+  Full 9-step SOP: 9 unit tests (incl. cross-check vs `articulation_points`
+  on a 7-vertex fixture), 1 oracle test on karate, 3 three-source
+  conformance fixtures, 1 proptest invariant (count consistency,
+  component sizes ≥ 2, AP set matches CC-010).
+
 - *(properties)* **ALGO-PR-011**: PageRank (`pagerank`). Power-iteration
   implementation with damping `0.85`, `eps = 1e-10`,
   `max_iter = 1000`. Counterpart of `igraph_pagerank()` from

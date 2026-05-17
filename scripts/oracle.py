@@ -116,6 +116,19 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "biconnected_components":
+        # Counterpart of igraph_biconnected_components(). python-igraph
+        # returns a tuple `(VertexCover, articulation_points)`. The
+        # VertexCover supports iteration over vertex-id lists per
+        # component. Wire format: {count, components, articulation_points}.
+        cover, aps = g.biconnected_components(return_articulation_points=True)
+        comps = [sorted(int(v) for v in cover[i]) for i in range(len(cover))]
+        return {
+            "count": len(comps),
+            "components": comps,
+            "articulation_points": sorted(int(v) for v in aps),
+        }
+
     if algo == "pagerank":
         # Counterpart of igraph_pagerank() with damping=0.85, default options.
         # python-igraph defaults to ARPACK (eigensolver-based) which is more

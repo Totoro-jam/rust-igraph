@@ -12,11 +12,11 @@ use std::fs::File;
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
-    bfs, bridges, closeness, connected_components, count_reachable, count_triangles, density, dfs,
-    diameter, distances, eccentricity, edge_betweenness, girth, harmonic_centrality,
-    is_biconnected, mean_distance, pagerank, radius, reachability_matrix, read_edgelist,
-    reciprocity, strongly_connected_components, transitive_closure, transitivity_local_undirected,
-    transitivity_undirected,
+    bfs, biconnected_components, bridges, closeness, connected_components, count_reachable,
+    count_triangles, density, dfs, diameter, distances, eccentricity, edge_betweenness, girth,
+    harmonic_centrality, is_biconnected, mean_distance, pagerank, radius, reachability_matrix,
+    read_edgelist, reciprocity, strongly_connected_components, transitive_closure,
+    transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -665,6 +665,49 @@ fn transitive_closure_undirected_two_components_matches_python_igraph() {
 struct PyEdgeBetweenness {
     edges: Vec<[u32; 2]>,
     values: Vec<f64>,
+}
+
+/// Wire-format payload returned by the `biconnected_components` oracle.
+#[derive(serde::Deserialize)]
+struct PyBiconnectedComponents {
+    count: u32,
+    components: Vec<Vec<u32>>,
+    articulation_points: Vec<u32>,
+}
+
+#[test]
+fn biconnected_components_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let rust_bc = biconnected_components(&g).unwrap();
+
+    let py: PyBiconnectedComponents =
+        serde_json::from_value(run_ok("biconnected_components", &g, serde_json::json!({})))
+            .expect("decode python biconnected_components");
+
+    assert_eq!(rust_bc.count, py.count);
+    let mut rust_aps = rust_bc.articulation_points.clone();
+    rust_aps.sort_unstable();
+    assert_eq!(rust_aps, py.articulation_points);
+
+    // Compare component vertex sets (order doesn't matter; canonical form).
+    let mut rust_set: Vec<Vec<u32>> = rust_bc
+        .components
+        .iter()
+        .map(|c| {
+            let mut v = c.clone();
+            v.sort_unstable();
+            v
+        })
+        .collect();
+    rust_set.sort();
+    let mut py_set: Vec<Vec<u32>> = py.components.clone();
+    for c in &mut py_set {
+        c.sort_unstable();
+    }
+    py_set.sort();
+    assert_eq!(rust_set, py_set);
 }
 
 #[test]
