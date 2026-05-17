@@ -15,9 +15,9 @@ use rust_igraph::{
     bfs, biconnected_components, bridges, closeness, connected_components, count_reachable,
     count_triangles, density, dfs, diameter, distances, eccentricity, edge_betweenness,
     eigenvector_centrality, girth, harmonic_centrality, has_loop, has_multiple, is_biconnected,
-    is_simple, mean_distance, modularity, pagerank, radius, reachability_matrix, read_edgelist,
-    reciprocity, simplify, strongly_connected_components, transitive_closure,
-    transitivity_local_undirected, transitivity_undirected,
+    is_loop, is_multiple, is_simple, mean_distance, modularity, pagerank, radius,
+    reachability_matrix, read_edgelist, reciprocity, simplify, strongly_connected_components,
+    transitive_closure, transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -1086,4 +1086,45 @@ fn has_multiple_with_parallel_matches_python_igraph() {
         .expect("decode python has_multiple");
     assert_eq!(rust, py);
     assert!(rust);
+}
+
+#[test]
+fn is_loop_per_edge_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(2, 2).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let rust = is_loop(&g).unwrap();
+    // Edge ids differ after wire round-trip (the Python side rebuilds
+    // the graph in vertex-ascending order); compare as multisets.
+    let mut rust_sorted = rust;
+    rust_sorted.sort_unstable();
+    let mut py: Vec<bool> = serde_json::from_value(run_ok("is_loop", &g, serde_json::json!({})))
+        .expect("decode python is_loop");
+    py.sort_unstable();
+    assert_eq!(rust_sorted, py);
+}
+
+#[test]
+fn is_multiple_per_edge_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let rust = is_multiple(&g).unwrap();
+    let py: Vec<bool> = serde_json::from_value(run_ok("is_multiple", &g, serde_json::json!({})))
+        .expect("decode python is_multiple");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn is_multiple_three_copies_matches_python_igraph() {
+    let mut g = Graph::with_vertices(2);
+    for _ in 0..3 {
+        g.add_edge(0, 1).unwrap();
+    }
+    let rust = is_multiple(&g).unwrap();
+    let py: Vec<bool> = serde_json::from_value(run_ok("is_multiple", &g, serde_json::json!({})))
+        .expect("decode python is_multiple");
+    assert_eq!(rust, py);
 }

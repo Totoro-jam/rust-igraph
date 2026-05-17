@@ -1,0 +1,30 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): 3 parallel edges; first canonical False, remaining True",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_multiple",
+  "params": {},
+  "expected": [
+    false,
+    true,
+    true
+  ]
+}

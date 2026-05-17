@@ -290,6 +290,38 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_loop_R_directed_two_self_loops",
+        "origin": "constructed (rigraph-style): directed with 2 self-loops; "
+        "per-edge is_loop has 2 True / 1 False",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 0), (1, 2), (2, 2)], directed=True
+        ),
+        "algo": "is_loop",
+        "params": {},
+        # Wire round-trip preserves directed edge order via vertex
+        # iteration; we record the canonical sorted form (multiset).
+        "expected": [False, True, True],
+    },
+]
+
+IS_MULTIPLE_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_multiple_R_three_parallel",
+        # rigraph mirrors igraph_is_multiple's "second-or-more" contract:
+        # first occurrence canonical-False, the rest True.
+        "origin": "constructed (rigraph-style): 3 parallel edges; "
+        "first canonical False, remaining True",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1), (0, 1)], directed=False
+        ),
+        "algo": "is_multiple",
+        "params": {},
+        "expected": [False, True, True],
+    },
+]
+
 HAS_LOOP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "has_loop_R_directed_self_loops",
@@ -681,6 +713,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,
     "has_multiple": HAS_MULTIPLE_MANIFEST,
+    "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
+    "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

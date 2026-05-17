@@ -1,0 +1,30 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed with 2 self-loops; per-edge is_loop has 2 True / 1 False",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_loop",
+  "params": {},
+  "expected": [
+    false,
+    true,
+    true
+  ]
+}

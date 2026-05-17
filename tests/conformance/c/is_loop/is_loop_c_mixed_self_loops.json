@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "constructed: 3 edges with one self-loop in the middle",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_loop",
+  "params": {},
+  "expected": [
+    false,
+    false,
+    true
+  ]
+}

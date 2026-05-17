@@ -46,8 +46,8 @@ pub use crate::algorithms::paths::{
 pub use crate::algorithms::properties::{
     assortativity_degree, avg_nearest_neighbor_degree, betweenness, closeness, count_triangles,
     density, edge_betweenness, eigenvector_centrality, girth, harmonic_centrality, has_loop,
-    has_multiple, is_simple, mean_distance, pagerank, reciprocity, transitivity_local_undirected,
-    transitivity_undirected,
+    has_multiple, is_loop, is_multiple, is_simple, mean_distance, pagerank, reciprocity,
+    transitivity_local_undirected, transitivity_undirected,
 };
 pub use crate::algorithms::traversal::{BfsTree, bfs, bfs_tree, dfs};
 pub use crate::core::error::{IgraphError, IgraphResult};

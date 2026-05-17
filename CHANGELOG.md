@@ -11,6 +11,19 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-014b**: per-edge `is_loop` + `is_multiple`.
+  `is_loop[e]` is the trivial self-loop check; `is_multiple[e]` is
+  `true` only for the **second-or-more** appearances of a parallel
+  pair (the canonical/first edge id stays `false`) — matches upstream
+  contract from `igraph_is_multiple()` (loops.c:230). Sort by
+  canonical (from, to) with edge-id tiebreaker to assign the
+  "canonical" status to the lowest id in each group.
+  Full 9-step SOP: 6 unit tests, 3 oracle tests (multiset-compared
+  since edge ids reorder over the wire), 6 three-source conformance
+  fixtures (2 algos × 3 sources, multiset compare), 1 proptest
+  invariant cross-checking length, per-edge correctness, the algebraic
+  link to PR-014's bulk predicates, and the count-of-trues identity.
+
 - *(properties)* **ALGO-PR-014**: `has_loop` + `has_multiple`
   companion predicates. `has_loop` is the O(|E|) self-loop scan;
   `has_multiple` sorts canonicalised endpoint pairs and looks for

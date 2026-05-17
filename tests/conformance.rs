@@ -422,6 +422,27 @@ fn has_multiple_three_source_conformance() {
 }
 
 #[test]
+fn is_loop_three_source_conformance() {
+    // Edge ids change after wire round-trip, so compare as a sorted
+    // multiset (count of true and false matters; per-edge alignment
+    // does not).
+    run_conformance("is_loop", |g, _params| {
+        let mut v = rust_igraph::is_loop(g).expect("is_loop");
+        v.sort_unstable();
+        serde_json::json!(v)
+    });
+}
+
+#[test]
+fn is_multiple_three_source_conformance() {
+    run_conformance("is_multiple", |g, _params| {
+        let mut v = rust_igraph::is_multiple(g).expect("is_multiple");
+        v.sort_unstable();
+        serde_json::json!(v)
+    });
+}
+
+#[test]
 fn modularity_three_source_conformance() {
     run_conformance("modularity", |g, params| {
         let membership: Vec<u32> = params

@@ -273,6 +273,41 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_loop_c_mixed_self_loops",
+        # From references/igraph/examples/simple/igraph_is_loop.c style.
+        "origin": "constructed: 3 edges with one self-loop in the middle",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (2, 2), (1, 2)], directed=False
+        ),
+        "algo": "is_loop",
+        "params": {},
+        # Per-edge result depends on the wire-format edge order. After
+        # round-trip the edges become [(0,1),(1,2),(2,2)] so the loop
+        # mask is [F, F, T]. Conformance compares as a multiset though,
+        # so we record the canonical sorted form: one True, two False.
+        "expected": [False, False, True],
+    },
+]
+
+IS_MULTIPLE_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_multiple_c_two_parallels",
+        # Two parallel edges + one normal: only the second-or-more
+        # appearance is True. After wire round-trip edges become
+        # [(0,1),(0,1),(1,2)]; canonical first→False, dup→True, lone→False.
+        # Conformance compares sorted multisets, so we record [F, F, T].
+        "origin": "constructed: two parallel (0,1) + one (1,2); two False / one True",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 1), (1, 2)], directed=False
+        ),
+        "algo": "is_multiple",
+        "params": {},
+        "expected": [False, False, True],
+    },
+]
+
 HAS_LOOP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "has_loop_c_self_loop_present",
@@ -772,6 +807,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,
     "has_multiple": HAS_MULTIPLE_MANIFEST,
+    "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
+    "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

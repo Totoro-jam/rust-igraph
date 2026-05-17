@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: 3-edge simple path; is_multiple all False",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_multiple",
+  "params": {},
+  "expected": [
+    false,
+    false,
+    false
+  ]
+}

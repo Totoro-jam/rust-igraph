@@ -42,6 +42,8 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | modularity | 1 | 1 | 1 | 3/3 | `Option<f64>` (None for ecount==0). Phase-1 minimal: undirected, unweighted; resolution γ configurable. Fixtures: C K3 ∪ K3 + bridge with hand-checked Q = 6/7 − 1/2 (exact rational, 1e-12 tol); python-igraph `test_structural.py:127 testModularity` K5 ∪ K5 + bridge → 0.45238095238095233; rigraph-style `path_graph_impl(n=3)` with membership [1,2,1] → Q = -0.5 (also exact). |
 | is_simple | 1 | 1 | 1 | 3/3 | `bool`. Phase-1 directed-as-directed slice: `(a,b)` and `(b,a)` are distinct in directed graphs (mutual pairs stay simple). Fixtures: C 4-path → true; py self-loop → false; rigraph-style two parallel undirected → false. |
 | has_loop / has_multiple | 2 | 2 | 2 | 6/6 | Two predicates × three sources. `has_loop` is the trivial O(\|E\|) self-loop scan; `has_multiple` collapses canonicalised `(from, to)` pairs and looks for adjacent duplicates (so two self-loops at the same vertex correctly flag as multi). Fixtures cover positive + negative cases for both. |
+| is_loop / is_multiple | 2 | 2 | 2 | 6/6 | Per-edge `Vec<bool>`. Edge ids reorder over the wire (Python's `make_graph` rebuilds in vertex-ascending order), so the conformance runner sorts the bool vector before comparing — this turns the comparison into a multiset check that is robust to edge-id permutations. `is_multiple` follows upstream's "second-or-more" contract: the canonical/lowest-id edge in each parallel group stays `false`, the rest flip to `true`. |
+| is_loop / is_multiple | 2 | 2 | 2 | 6/6 | Per-edge `Vec<bool>`. Edge ids reorder over the wire (Python's `make_graph` rebuilds in vertex-ascending order), so the conformance runner sorts the bool vector before comparing — this turns the comparison into a multiset check that is robust to edge-id permutations. `is_multiple` follows upstream's "second-or-more" contract: the canonical/lowest-id edge in each parallel group stays `false`, the rest flip to `true`. |
 
 ## How to add a row
 
@@ -55,4 +57,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 34 (+ has_loop, has_multiple) | 109 | 42 / 32 / 35 |
+| 1     | 36 (+ is_loop, is_multiple) | 115 | 44 / 34 / 37 |

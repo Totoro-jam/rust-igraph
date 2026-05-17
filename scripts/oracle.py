@@ -174,6 +174,16 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "is_loop":
+        # Counterpart of igraph_is_loop(_, _, igraph_ess_all()).
+        # python-igraph 0.11 exposes Edge.is_loop() per-edge.
+        return [bool(e.is_loop()) for e in g.es]
+
+    if algo == "is_multiple":
+        # Counterpart of igraph_is_multiple(_, _, igraph_ess_all()).
+        # python-igraph's Graph.is_multiple() returns the per-edge mask.
+        return [bool(x) for x in g.is_multiple()]
+
     if algo == "has_loop":
         # Counterpart of igraph_has_loop(). python-igraph 0.11 has no
         # direct API; emulate via `any(e.is_loop() for e in g.es)`.

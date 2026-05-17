@@ -224,6 +224,32 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_loop_py_no_self_loops",
+        "origin": "constructed: 3-edge path; per-edge is_loop all False",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "is_loop",
+        "params": {},
+        "expected": [False, False, False],
+    },
+]
+
+IS_MULTIPLE_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_multiple_py_simple_path",
+        "origin": "constructed: 3-edge simple path; is_multiple all False",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "is_multiple",
+        "params": {},
+        "expected": [False, False, False],
+    },
+]
+
 HAS_LOOP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "has_loop_py_simple_path_no_loop",
@@ -577,6 +603,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,
     "has_multiple": HAS_MULTIPLE_MANIFEST,
+    "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
+    "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

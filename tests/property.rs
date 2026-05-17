@@ -332,6 +332,39 @@ proptest! {
         prop_assert!(q_each.abs() <= 1.0 + 1e-9, "Q(singletons)={} > 1", q_each);
     }
 
+    /// Per-edge `is_loop` / `is_multiple` invariants:
+    /// - lengths equal `ecount`
+    /// - `is_loop[e] == (g.edge(e).0 == g.edge(e).1)`
+    /// - `has_loop ⇔ any(is_loop)`
+    /// - `has_multiple ⇔ any(is_multiple)`
+    /// - count of trues in `is_multiple` equals (multi-edge group size − 1)
+    ///   summed across groups (one canonical edge stays false per group).
+    #[test]
+    fn is_loop_and_is_multiple_per_edge_consistency(g in arb_graph(10)) {
+        let m = u32::try_from(g.ecount()).unwrap();
+        let il = rust_igraph::is_loop(&g).unwrap();
+        let im = rust_igraph::is_multiple(&g).unwrap();
+        prop_assert_eq!(il.len(), g.ecount());
+        prop_assert_eq!(im.len(), g.ecount());
+
+        for e in 0..m {
+            let (u, v) = g.edge(e).unwrap();
+            prop_assert_eq!(il[e as usize], u == v);
+        }
+
+        prop_assert_eq!(rust_igraph::has_loop(&g).unwrap(), il.iter().any(|&b| b));
+        prop_assert_eq!(rust_igraph::has_multiple(&g).unwrap(), im.iter().any(|&b| b));
+
+        // multi-mask count = total parallel-edge copies = m − distinct
+        // canonical pairs.
+        let mut pairs: Vec<(u32, u32)> = (0..m).map(|e| g.edge(e).unwrap()).collect();
+        pairs.sort_unstable();
+        pairs.dedup();
+        let distinct_pairs = pairs.len();
+        let true_count = im.iter().filter(|&&b| b).count();
+        prop_assert_eq!(true_count, g.ecount() - distinct_pairs);
+    }
+
     /// `has_loop` and `has_multiple` invariants:
     /// - `has_loop ⇔ ∃ edge (u, u)`
     /// - `is_simple ⇔ ¬has_loop ∧ ¬has_multiple`

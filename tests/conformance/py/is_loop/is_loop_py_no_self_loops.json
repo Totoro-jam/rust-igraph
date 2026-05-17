@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: 3-edge path; per-edge is_loop all False",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_loop",
+  "params": {},
+  "expected": [
+    false,
+    false,
+    false
+  ]
+}
