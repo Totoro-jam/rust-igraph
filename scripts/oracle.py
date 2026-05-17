@@ -116,6 +116,13 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "harmonic_centrality":
+        # Counterpart of igraph_harmonic_centrality(_, _, vss_all(), IGRAPH_OUT,
+        # NULL_weights, /*normalized=*/true).
+        mode = "out" if g.is_directed() else "all"
+        vals = g.harmonic_centrality(mode=mode, normalized=True)
+        return [float(v) for v in vals]
+
     if algo == "closeness":
         # Counterpart of igraph_closeness(_, _, _, _, vss_all(), IGRAPH_OUT,
         # NULL_weights, /*normalized=*/true).

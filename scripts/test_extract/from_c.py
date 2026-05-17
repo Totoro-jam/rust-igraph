@@ -146,6 +146,26 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HARMONIC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "harmonic_c_path5",
+        # Path 0-1-2-3-4 — symmetric profile peaking at the centre.
+        "origin": "constructed: 5-path; harmonic centrality via python-igraph 0.11",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "algo": "harmonic_centrality",
+        "params": {},
+        "expected": [
+            0.5208333333333333,
+            0.7083333333333334,
+            0.75,
+            0.7083333333333334,
+            0.5208333333333333,
+        ],
+    },
+]
+
 CLOSE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "closeness_c_path5",
@@ -577,6 +597,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
     "closeness": CLOSE_MANIFEST,
+    "harmonic_centrality": HARMONIC_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

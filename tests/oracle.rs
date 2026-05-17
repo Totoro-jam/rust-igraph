@@ -13,9 +13,9 @@ use common::{OracleResponse, run_ok};
 use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, bfs, bridges,
     closeness, connected_components, count_reachable, count_triangles, density, dfs, diameter,
-    distances, eccentricity, girth, is_biconnected, mean_distance, radius, reachability_matrix,
-    read_edgelist, reciprocity, strongly_connected_components, transitive_closure,
-    transitivity_local_undirected, transitivity_undirected,
+    distances, eccentricity, girth, harmonic_centrality, is_biconnected, mean_distance, radius,
+    reachability_matrix, read_edgelist, reciprocity, strongly_connected_components,
+    transitive_closure, transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -657,6 +657,21 @@ fn transitive_closure_undirected_two_components_matches_python_igraph() {
     assert_eq!(tc.vcount(), py.vcount);
     assert_eq!(tc.is_directed(), py.directed);
     assert_eq!(rust_tc_pairs(&tc), py_tc_pairs(&py));
+}
+
+#[test]
+fn harmonic_centrality_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let rust = harmonic_centrality(&g).unwrap();
+    let py: Vec<f64> =
+        serde_json::from_value(run_ok("harmonic_centrality", &g, serde_json::json!({})))
+            .expect("decode python harmonic");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-12, "vertex {i}: rust={r} py={p}");
+    }
 }
 
 #[test]

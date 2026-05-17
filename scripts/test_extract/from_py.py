@@ -116,6 +116,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HARMONIC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "harmonic_star_4",
+        # 4-star: centre 1.0, leaves 2/3.
+        "origin": "constructed: 4-vertex star; harmonic centre 1.0, leaves 2/3",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "harmonic_centrality",
+        "params": {},
+        "expected": [1.0, 2.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0],
+    },
+]
+
 CLOSE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "closeness_star_4",
@@ -401,6 +415,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
     "closeness": CLOSE_MANIFEST,
+    "harmonic_centrality": HARMONIC_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

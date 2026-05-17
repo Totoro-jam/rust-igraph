@@ -1,0 +1,36 @@
+{
+  "source": "c",
+  "origin": "constructed: 5-path; harmonic centrality via python-igraph 0.11",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "harmonic_centrality",
+  "params": {},
+  "expected": [
+    0.5208333333333333,
+    0.7083333333333334,
+    0.75,
+    0.7083333333333334,
+    0.5208333333333333
+  ]
+}

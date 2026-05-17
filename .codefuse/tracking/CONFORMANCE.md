@@ -32,6 +32,7 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | reachability_matrix | 1 | 1 | 1 | 3/3 | `Vec<Vec<bool>>` dense matrix. Fixtures: directed 3-cycle → all true; undirected path-3 → all true (single component); 2 disjoint edges → block-diagonal. python-igraph 0.11 lacks the API directly; oracle uses per-vertex `g.subcomponent(v, mode='out')`. |
 | transitive_closure | 1 | 1 | 1 | 3/3 | New `Graph` with all reachability edges (no self-loops; undirected dedups symmetric pairs). Wire format `{vcount, directed, edges}`; runner sorts edges before comparison. python-igraph 0.11 has no API; oracle emulates via per-vertex `subcomponent`. |
 | closeness | 1 | 1 | 1 | 3/3 | `Vec<Option<f64>>` per-vertex closeness (normalized: `reach / sum_dist`). `None` for isolated. Karate oracle uses 1e-12 tolerance. Fixtures: 5-path → end 0.4, centre 4/6; 4-star → centre 1.0, leaves 0.6; triangle → all 1.0. |
+| harmonic_centrality | 1 | 1 | 1 | 3/3 | `Vec<f64>` per-vertex (unreachable contributes 0; 0.0 for isolated, no NaN). Defined on disconnected graphs. Fixtures: 5-path symmetric profile, 4-star (centre 1.0, leaves 2/3), triangle 1.0. |
 
 ## How to add a row
 
@@ -45,4 +46,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 23 (+ closeness) | 76 | 31 / 21 / 24 |
+| 1     | 24 (+ harmonic_centrality) | 79 | 32 / 22 / 25 |

@@ -242,6 +242,19 @@ proptest! {
         }
     }
 
+    /// Harmonic centrality bounds: 0 ≤ h ≤ 1 (max when every other
+    /// vertex is at distance 1; sum_inv = n-1, /(n-1) = 1).
+    /// Always finite (no NaN since unreachable contributes 0).
+    #[test]
+    fn harmonic_centrality_in_zero_to_one(g in arb_graph(8)) {
+        let h = rust_igraph::harmonic_centrality(&g).unwrap();
+        for (v, &x) in h.iter().enumerate() {
+            prop_assert!(x.is_finite(), "harmonic[{}] = {} not finite", v, x);
+            prop_assert!((0.0 - 1e-9..=1.0 + 1e-9).contains(&x),
+                         "harmonic[{}] = {} outside [0, 1]", v, x);
+        }
+    }
+
     /// Closeness centrality bounds: when `Some(x)`, `0 < x <= 1` for
     /// connected components (since reach >= 1 and sum_dist >= reach).
     /// `None` only for isolated vertices.

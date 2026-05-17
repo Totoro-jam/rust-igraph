@@ -1,0 +1,31 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-vertex star; harmonic centre 1.0, leaves 2/3",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "harmonic_centrality",
+  "params": {},
+  "expected": [
+    1.0,
+    0.6666666666666666,
+    0.6666666666666666,
+    0.6666666666666666
+  ]
+}

@@ -191,6 +191,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HARMONIC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "harmonic_R_triangle",
+        # K3: every vertex has harmonic 1.0.
+        "origin": "constructed (R-style): triangle; harmonic 1.0 each",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "harmonic_centrality",
+        "params": {},
+        "expected": [1.0, 1.0, 1.0],
+    },
+]
+
 CLOSE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "closeness_R_triangle",
@@ -512,6 +526,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
     "closeness": CLOSE_MANIFEST,
+    "harmonic_centrality": HARMONIC_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

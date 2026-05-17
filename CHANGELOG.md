@@ -11,6 +11,15 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-009**: harmonic centrality
+  (`harmonic_centrality`). Returns `Vec<f64>` — `(1/(n-1)) * sum 1/d`
+  with `1/inf == 0` for unreachable pairs (always finite, defined on
+  disconnected graphs). Counterpart of `igraph_harmonic_centrality()`
+  from `references/igraph/src/centrality/closeness.c:800`. Phase-1
+  minimal slice: undirected/IGRAPH_OUT, unweighted, normalized.
+  Full 9-step SOP: 8 unit tests, 1 oracle test, 3 three-source
+  conformance fixtures, 1 proptest invariant (0 ≤ h ≤ 1).
+
 - *(properties)* **ALGO-PR-007**: closeness centrality (`closeness`).
   Returns `Vec<Option<f64>>` — `None` for isolated vertices, otherwise
   the normalized `reach / sum_dist` score (matches upstream's
