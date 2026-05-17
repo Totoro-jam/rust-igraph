@@ -9,15 +9,16 @@ mod common;
 
 use std::fs::File;
 
-use common::{OracleResponse, run_ok};
+use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
     bfs, biconnected_components, bridges, closeness, connected_components, count_reachable,
-    count_triangles, density, dfs, diameter, disjoint_union, distances, eccentricity,
-    edge_betweenness, eigenvector_centrality, girth, harmonic_centrality, has_loop, has_multiple,
-    is_biconnected, is_loop, is_multiple, is_simple, mean_distance, modularity, pagerank, radius,
-    reachability_matrix, read_edgelist, reciprocity, simplify, strongly_connected_components,
-    transitive_closure, transitivity_local_undirected, transitivity_undirected,
+    count_triangles, density, dfs, diameter, dijkstra_distances, disjoint_union, distances,
+    eccentricity, edge_betweenness, eigenvector_centrality, girth, harmonic_centrality, has_loop,
+    has_multiple, is_biconnected, is_loop, is_multiple, is_simple, mean_distance, modularity,
+    pagerank, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
+    strongly_connected_components, transitive_closure, transitivity_local_undirected,
+    transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -1222,4 +1223,76 @@ fn disjoint_union_with_isolated_vertices_matches_python_igraph() {
     assert_eq!(rust.vcount(), py.vcount);
     assert_eq!(rust.ecount(), 1);
     assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
+}
+
+#[test]
+fn dijkstra_distances_triangle_with_shortcut_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 4.0, 2.0];
+    let rust = dijkstra_distances(&g, 0, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "dijkstra_distances",
+        &g,
+        Some(weights.clone()),
+        serde_json::json!({"source": 0}),
+    ))
+    .expect("decode python dijkstra_distances");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(rr), Some(pp)) => {
+                assert!((rr - pp).abs() < 1e-12, "vertex {i}: rust={rr} py={pp}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn dijkstra_distances_with_unreachable_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let weights = vec![1.0_f64, 2.5];
+    let rust = dijkstra_distances(&g, 0, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "dijkstra_distances",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0}),
+    ))
+    .expect("decode python dijkstra_distances");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn dijkstra_distances_directed_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    g.add_edge(0, 3).unwrap();
+    let weights = vec![1.0_f64, 1.0, 1.0, 5.0];
+    let rust = dijkstra_distances(&g, 0, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "dijkstra_distances",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0}),
+    ))
+    .expect("decode python dijkstra_distances");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(rr), Some(pp)) => {
+                assert!((rr - pp).abs() < 1e-12, "vertex {i}: rust={rr} py={pp}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
 }

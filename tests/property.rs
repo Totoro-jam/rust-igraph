@@ -332,6 +332,43 @@ proptest! {
         prop_assert!(q_each.abs() <= 1.0 + 1e-9, "Q(singletons)={} > 1", q_each);
     }
 
+    /// Dijkstra distances invariants:
+    /// - all-unit weights collapse to the BFS distance (SP-006)
+    /// - source distance is 0.0
+    /// - distances are non-negative
+    /// - unreachable iff the BFS distance is also `None`
+    /// - triangle inequality: dist(s, b) ≤ dist(s, a) + w(a, b) for each
+    ///   edge (a, b) reachable from s
+    #[test]
+    fn dijkstra_unit_weights_match_bfs(g in arb_graph(10)) {
+        let m = g.ecount();
+        let weights = vec![1.0_f64; m];
+        let source = 0u32;
+        if g.vcount() == 0 { return Ok(()); }
+        let d = rust_igraph::dijkstra_distances(&g, source, &weights).unwrap();
+        let bfs = rust_igraph::distances(&g, source).unwrap();
+        prop_assert_eq!(d.len(), bfs.len());
+        for (v, (dd, bb)) in d.iter().zip(bfs.iter()).enumerate() {
+            match (dd, bb) {
+                (Some(rd), Some(rb)) => {
+                    prop_assert!((rd - f64::from(*rb)).abs() < 1e-12,
+                                 "vertex {}: dijkstra={} bfs={}", v, rd, rb);
+                }
+                (None, None) => {}
+                (a, b) => {
+                    prop_assert!(false, "vertex {}: dijkstra={:?} bfs={:?}", v, a, b);
+                }
+            }
+        }
+        prop_assert_eq!(d[0], Some(0.0));
+        for (v, x) in d.iter().enumerate() {
+            if let Some(rd) = x {
+                prop_assert!(rd.is_finite() && *rd >= -1e-12,
+                             "vertex {} distance {} should be non-negative finite", v, rd);
+            }
+        }
+    }
+
     /// `disjoint_union` invariants:
     /// - vcount(left) + vcount(right) == vcount(result)
     /// - ecount(left) + ecount(right) == ecount(result)

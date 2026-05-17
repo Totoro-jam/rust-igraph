@@ -105,8 +105,37 @@ pub fn oracle_script() -> PathBuf {
 /// exits abnormally or returns malformed JSON; tests should use [`run_ok`]
 /// for the common success path.
 pub fn run<P: Serialize>(algo: &str, graph: &rust_igraph::Graph, params: P) -> OracleResponse {
+    run_with_weights(algo, graph, None, params)
+}
+
+/// Variant that lets tests attach a per-edge `weights` vector to the
+/// request. Required for Dijkstra-style algorithms where the graph
+/// payload alone doesn't carry weights — `python-igraph` reads them
+/// from `graph["weight"]` (we set the attribute on the rebuilt graph
+/// via the wire format's `weights` field). When `weights` is `Some`,
+/// the `GraphPayload` is built in **stored edge order** (`g.edge(0..m)`)
+/// rather than the default by-vertex traversal, so that `weights[e]`
+/// stays paired with the right edge across the wire.
+pub fn run_with_weights<P: Serialize>(
+    algo: &str,
+    graph: &rust_igraph::Graph,
+    weights: Option<Vec<f64>>,
+    params: P,
+) -> OracleResponse {
+    let payload = if weights.is_some() {
+        let m = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+        let edges: Vec<(u32, u32)> = (0..m).map(|e| graph.edge(e).expect("edge ok")).collect();
+        GraphPayload {
+            n: graph.vcount(),
+            edges,
+            directed: graph.is_directed(),
+            weights,
+        }
+    } else {
+        GraphPayload::from_graph(graph)
+    };
     let req = OracleRequest {
-        graph: GraphPayload::from_graph(graph),
+        graph: payload,
         algo,
         params,
     };
@@ -147,7 +176,17 @@ pub fn run_ok<P: Serialize>(
     graph: &rust_igraph::Graph,
     params: P,
 ) -> serde_json::Value {
-    let resp = run(algo, graph, params);
+    run_ok_with_weights(algo, graph, None, params)
+}
+
+/// Weight-aware variant of [`run_ok`]. See [`run_with_weights`].
+pub fn run_ok_with_weights<P: Serialize>(
+    algo: &str,
+    graph: &rust_igraph::Graph,
+    weights: Option<Vec<f64>>,
+    params: P,
+) -> serde_json::Value {
+    let resp = run_with_weights(algo, graph, weights, params);
     assert!(
         resp.ok,
         "oracle reported failure: {:?}",

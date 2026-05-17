@@ -273,6 +273,24 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_c_triangle_with_shortcut",
+        # Standard "shortcut" case from references/igraph/examples/simple/
+        # igraph_distances_dijkstra.c style: triangle with weights 1, 4, 2
+        # so the path 0->1->2 (cost 3) is shorter than the direct 0-2
+        # edge (cost 4).
+        "origin": "constructed: triangle (1,4,2) with shortcut via vertex 1",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "dijkstra_distances",
+        "params": {"source": 0},
+        "expected": [0.0, 1.0, 3.0],
+    },
+]
+
 DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "disjoint_union_c_two_triangles",
@@ -837,6 +855,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
+    "dijkstra_distances": DIJKSTRA_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
@@ -865,10 +884,13 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
     written = 0
     for entry in manifest:
         g: ig.Graph = entry["graph_factory"]()
+        graph_payload = graph_to_payload(g)
+        if "graph_weights" in entry:
+            graph_payload["weights"] = list(entry["graph_weights"])
         payload = {
             "source": "c",
             "origin": entry["origin"],
-            "graph": graph_to_payload(g),
+            "graph": graph_payload,
             "algo": algo,
             "params": entry["params"],
             "expected": entry["expected"],

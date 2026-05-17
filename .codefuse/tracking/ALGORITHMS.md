@@ -79,7 +79,9 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-TR-001 | BFS multi-output (`bfs_tree`: order + distances + parents) | bfs.c | 300 | adapt | CORE-001 | done | (next) | (BFS + bookkeeping) | C:2 / py:1 / R:1 (Phase 0 BFS fixtures cover) |
 | ALGO-TR-002 | DFS (single-root pre-order) | visitors.c:479 | 200 | adapt | CORE-001a/b | done | (next) | 1.84 µs/karate | C:1 / py:1 / R:1 |
 | ALGO-TR-003 | Random walk | random_walk.c | 340 | adapt | CORE-001 | todo | - | - | - |
-| ALGO-SP-001 | Dijkstra | distances_dijkstra*.c | 1235 | adapt | TR-001 | todo | - | - | - |
+| ALGO-SP-001 | Dijkstra single-source distances (`dijkstra_distances`, OUT mode) | paths/dijkstra.c:322-331 | ~250 | adapt | TR-001 | done | (next) | O(E log V + V) heap | C:1 / py:1 / R:1 |
+| ALGO-SP-001b | Dijkstra paths/parents + multi-source + cutoff | paths/dijkstra.c | ~400 | adapt | SP-001 | todo | - | - | - |
+| ALGO-SP-001c | Dijkstra IN/ALL mode + all-shortest-paths | paths/dijkstra.c | ~250 | adapt | SP-001b | todo | - | - | - |
 | ALGO-SP-002 | Bellman-Ford | distances_bellman_ford*.c | 591 | adapt | TR-001 | todo | - | - | - |
 | ALGO-SP-003 | Johnson | distances_johnson.c | 254 | adapt | SP-001,002 | todo | - | - | - |
 | ALGO-SP-004 | Floyd-Warshall | distances_floyd_warshall.c | 365 | adapt | - | todo | - | - | - |
@@ -153,10 +155,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 38 | 0 | ~47 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3 |
+| 1 | 39 | 0 | ~46 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 38/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 39/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -172,9 +174,11 @@ centrality (PR-008), edge betweenness (PR-010), PageRank (PR-011),
 biconnected components multi-output (CC-011), eigenvector centrality
 (PR-012), simplify (OP-001), modularity (CO-001), is_simple
 (PR-013), has_loop + has_multiple (PR-014), per-edge is_loop +
-is_multiple (PR-014b), disjoint_union (OP-002). Next options:
-SP-001 (Dijkstra), CORE-001c (deletion), hub/auth scores, more
-operators (union/intersection/difference/complementer),
-`count_multiple` per-edge.
+is_multiple (PR-014b), disjoint_union (OP-002), dijkstra_distances (SP-001). Next options:
+SP-001b (Dijkstra paths+parents), CORE-001c (deletion), hub/auth
+scores, more operators (union/intersection/difference/
+complementer), SP-002 Bellman-Ford (handles negative weights),
+weighted variants of closeness/betweenness/edge_betweenness
+(PR-007b / PR-008b / PR-010b) now unblocked by SP-001.
 
 > Update the counters after every PR merge.

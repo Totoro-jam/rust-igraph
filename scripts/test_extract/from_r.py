@@ -290,6 +290,24 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_R_undirected_partial_unreachable",
+        # rigraph's `distances(graph, v=, weights=, mode='all')` mirrors
+        # igraph_distances_dijkstra. Two disconnected weighted edges →
+        # one unreachable vertex from source.
+        "origin": "constructed (rigraph-style): 4-vertex with two disconnected "
+        "weighted edges; unreachable yields Inf",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 2.5],
+        "algo": "dijkstra_distances",
+        "params": {"source": 0},
+        "expected": [0.0, 1.0, None, None],
+    },
+]
+
 DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "disjoint_union_R_directed_two_paths",
@@ -742,6 +760,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
+    "dijkstra_distances": DIJKSTRA_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
@@ -770,10 +789,13 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
     written = 0
     for entry in manifest:
         g: ig.Graph = entry["graph_factory"]()
+        graph_payload = graph_to_payload(g)
+        if "graph_weights" in entry:
+            graph_payload["weights"] = list(entry["graph_weights"])
         payload = {
             "source": "r",
             "origin": entry["origin"],
-            "graph": graph_to_payload(g),
+            "graph": graph_payload,
             "algo": algo,
             "params": entry["params"],
             "expected": entry["expected"],

@@ -224,6 +224,26 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_py_directed_path_with_shortcut",
+        # Mirrors python-igraph's `Graph.distances(weights=...)` smoke
+        # test: directed 4-vertex graph with a long direct edge that
+        # gets shortcut by the chain.
+        "origin": "constructed: directed 4-vertex chain with shortcut "
+        "0->3 (5.0) vs 0->1->2->3 (3.0)",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3), (0, 3)],
+            directed=True,
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 5.0],
+        "algo": "dijkstra_distances",
+        "params": {"source": 0},
+        "expected": [0.0, 1.0, 2.0, 3.0],
+    },
+]
+
 DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "disjoint_union_py_path_plus_path",
@@ -631,6 +651,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
+    "dijkstra_distances": DIJKSTRA_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
@@ -659,10 +680,13 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
     written = 0
     for entry in manifest:
         g: ig.Graph = entry["graph_factory"]()
+        graph_payload = graph_to_payload(g)
+        if "graph_weights" in entry:
+            graph_payload["weights"] = list(entry["graph_weights"])
         payload = {
             "source": "py",
             "origin": entry["origin"],
-            "graph": graph_to_payload(g),
+            "graph": graph_payload,
             "algo": algo,
             "params": entry["params"],
             "expected": entry["expected"],

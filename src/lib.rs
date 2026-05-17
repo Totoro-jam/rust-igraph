@@ -41,7 +41,8 @@ pub use crate::algorithms::connectivity::{
 pub use crate::algorithms::io::read_edgelist;
 pub use crate::algorithms::operators::{disjoint_union, simplify};
 pub use crate::algorithms::paths::{
-    EulerianClassification, diameter, distances, eccentricity, eulerian_path, is_eulerian, radius,
+    EulerianClassification, diameter, dijkstra_distances, distances, eccentricity, eulerian_path,
+    is_eulerian, radius,
 };
 pub use crate::algorithms::properties::{
     assortativity_degree, avg_nearest_neighbor_degree, betweenness, closeness, count_triangles,

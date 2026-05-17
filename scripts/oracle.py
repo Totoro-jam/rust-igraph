@@ -174,6 +174,24 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "dijkstra_distances":
+        # Counterpart of igraph_distances_dijkstra(_, _, single source,
+        # to=igraph_vss_all(), &weights, IGRAPH_OUT). The wire payload
+        # already carries `weights` (top-level field). python-igraph's
+        # `g.distances(source, weights="weight", mode='out')` returns
+        # a list-of-lists; we flatten and translate inf → None.
+        source = int(params["source"])
+        mode = "out" if g.is_directed() else "all"
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            rows = g.distances(source=source, weights="weight", mode=mode)
+        else:
+            rows = g.distances(source=source, mode=mode)
+        out = []
+        for v in rows[0]:
+            f = float(v)
+            out.append(None if f == float("inf") else f)
+        return out
+
     if algo == "disjoint_union":
         # Counterpart of igraph_disjoint_union(_, &left, &right). The
         # request graph carries `left`; `right` is encoded inside

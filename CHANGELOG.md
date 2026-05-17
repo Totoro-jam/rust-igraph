@@ -11,6 +11,29 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(paths)* **ALGO-SP-001**: `dijkstra_distances` — single-source
+  weighted shortest distances via Dijkstra's algorithm with a binary
+  heap. Returns `Vec<Option<f64>>` (None = unreachable). Counterpart
+  of `igraph_distances_dijkstra()` from
+  `references/igraph/src/paths/dijkstra.c`. Phase-1 minimal slice:
+  single source, `IGRAPH_OUT` mode (directed); paths / parents /
+  cutoff / multi-source / `IN` / `ALL` variants ship later
+  (SP-001b/c). Weights must be non-negative, finite, and exactly
+  `ecount()` long; violations return
+  [`IgraphError::InvalidArgument`](crate::IgraphError).
+  Adds `tests/common::run_with_weights` (and `run_ok_with_weights`)
+  for oracle requests that carry a per-edge weights vector; aligned
+  to **stored edge order** so `weights[e]` stays paired with the
+  right edge after the python-igraph round-trip. Also extends the
+  three-source extractors with a `graph_weights` manifest key.
+  Full 9-step SOP: 12 unit tests (shortcut paths, unreachable,
+  negative/NaN/infinity rejection, BFS equivalence at unit weights,
+  parallel-min-weight, directed mode), 3 oracle tests, 3 three-source
+  conformance fixtures (C triangle shortcut, py directed chain
+  shortcut, R disconnected pair with unreachable), 1 proptest
+  invariant cross-checking BFS equivalence at unit weights +
+  source-distance-zero + non-negativity.
+
 - *(operators)* **ALGO-OP-002**: `disjoint_union` (two-graph variant).
   Counterpart of `igraph_disjoint_union()` from
   `references/igraph/src/operators/disjoint_union.c`. Vertices of
