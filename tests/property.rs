@@ -242,6 +242,23 @@ proptest! {
         }
     }
 
+    /// Eigenvector centrality bounds: nonneg, finite, max == 1 (for
+    /// undirected graphs where the dominant eigenvector is positive
+    /// or trivially 1.0 for the no-edge case).
+    #[test]
+    fn eigenvector_centrality_max_is_one(g in arb_graph(8)) {
+        let ec = rust_igraph::eigenvector_centrality(&g).unwrap();
+        if ec.is_empty() { return Ok(()); }
+        let mut maxabs = 0.0_f64;
+        for (v, &x) in ec.iter().enumerate() {
+            prop_assert!(x.is_finite(), "ec[{}] = {} not finite", v, x);
+            prop_assert!(x >= -1e-9, "ec[{}] = {} negative", v, x);
+            maxabs = maxabs.max(x.abs());
+        }
+        prop_assert!((maxabs - 1.0).abs() < 1e-6,
+                     "max(ec) = {} should be 1.0 (within fp tol)", maxabs);
+    }
+
     /// Biconnected components invariants:
     /// - count equals components.len() == tree_edges.len()
     /// - the AP set from `biconnected_components` matches CC-010 `articulation_points`

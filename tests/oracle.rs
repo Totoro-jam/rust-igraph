@@ -13,10 +13,10 @@ use common::{OracleResponse, run_ok};
 use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
     bfs, biconnected_components, bridges, closeness, connected_components, count_reachable,
-    count_triangles, density, dfs, diameter, distances, eccentricity, edge_betweenness, girth,
-    harmonic_centrality, is_biconnected, mean_distance, pagerank, radius, reachability_matrix,
-    read_edgelist, reciprocity, strongly_connected_components, transitive_closure,
-    transitivity_local_undirected, transitivity_undirected,
+    count_triangles, density, dfs, diameter, distances, eccentricity, edge_betweenness,
+    eigenvector_centrality, girth, harmonic_centrality, is_biconnected, mean_distance, pagerank,
+    radius, reachability_matrix, read_edgelist, reciprocity, strongly_connected_components,
+    transitive_closure, transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -673,6 +673,23 @@ struct PyBiconnectedComponents {
     count: u32,
     components: Vec<Vec<u32>>,
     articulation_points: Vec<u32>,
+}
+
+#[test]
+fn eigenvector_centrality_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let rust = eigenvector_centrality(&g).unwrap();
+    let py: Vec<f64> =
+        serde_json::from_value(run_ok("eigenvector_centrality", &g, serde_json::json!({})))
+            .expect("decode python eigenvector_centrality");
+    assert_eq!(rust.len(), py.len());
+    // python-igraph uses ARPACK (LAPACK eigensolver); our shifted power
+    // iteration converges to the same eigenvector but with O(eps) drift.
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-6, "vertex {i}: rust={r} py={p}");
+    }
 }
 
 #[test]

@@ -116,6 +116,11 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "eigenvector_centrality":
+        # Counterpart of igraph_eigenvector_centrality(_, _, NULL_eval,
+        # /*directed=*/false, /*scale=*/true, NULL_weights, NULL_options).
+        return [float(v) for v in g.eigenvector_centrality(directed=False, scale=True)]
+
     if algo == "biconnected_components":
         # Counterpart of igraph_biconnected_components(). python-igraph
         # returns a tuple `(VertexCover, articulation_points)`. The

@@ -11,6 +11,22 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-012**: eigenvector centrality
+  (`eigenvector_centrality`, undirected). Returns `Vec<f64>` —
+  dominant-eigenvector entries normalized so `max == 1`. Implemented
+  via shifted power iteration `(A + I) · x` to break the `±λ` symmetry
+  of bipartite adjacency matrices that would trap plain power
+  iteration in a 2-cycle (caught by 4-star unit test). Tighter
+  convergence (`eps = 1e-14`, max 5000 iter) so f64 results match
+  python-igraph's ARPACK output within 1e-12 relative tolerance.
+  Counterpart of `igraph_eigenvector_centrality()` from
+  `references/igraph/src/centrality/eigenvector.c`. Phase-1 minimal
+  slice: undirected, unweighted; directed mode returns
+  `IgraphError::Unsupported` until PR-012b lands.
+  Full 9-step SOP: 7 unit tests, 1 oracle test on karate (1e-6 tol),
+  3 three-source conformance fixtures, 1 proptest invariant
+  (max == 1, nonneg, finite).
+
 - *(connectivity)* **ALGO-CC-011**: biconnected components multi-output
   (`biconnected_components`). Returns `BiconnectedComponents { count,
   components, tree_edges, articulation_points }`. Counterpart of

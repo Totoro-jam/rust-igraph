@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "constructed: triangle; uniform eigenvector centrality 1.0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "eigenvector_centrality",
+  "params": {},
+  "expected": [
+    1.0,
+    1.0,
+    1.0
+  ]
+}

@@ -116,6 +116,25 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EIGEN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "eigenvector_star_4",
+        # 4-star: centre 1.0, leaves 1/sqrt(3).
+        "origin": "constructed: 4-star; centre 1.0, leaves 1/sqrt(3)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "eigenvector_centrality",
+        "params": {},
+        "expected": [
+            1.0,
+            0.5773502691896258,
+            0.5773502691896258,
+            0.5773502691896258,
+        ],
+    },
+]
+
 BC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "biconnected_components_star_4",
@@ -481,6 +500,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_betweenness": EDGE_BETW_MANIFEST,
     "pagerank": PAGERANK_MANIFEST,
     "biconnected_components": BC_MANIFEST,
+    "eigenvector_centrality": EIGEN_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

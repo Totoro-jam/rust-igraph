@@ -191,6 +191,18 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EIGEN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "eigenvector_R_K4",
+        # K4 complete: uniform eigenvector centrality 1.0.
+        "origin": "constructed (R-style): K4; uniform eigenvector 1.0",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "eigenvector_centrality",
+        "params": {},
+        "expected": [1.0, 1.0, 1.0, 1.0],
+    },
+]
+
 BC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "biconnected_components_R_triangle",
@@ -590,6 +602,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_betweenness": EDGE_BETW_MANIFEST,
     "pagerank": PAGERANK_MANIFEST,
     "biconnected_components": BC_MANIFEST,
+    "eigenvector_centrality": EIGEN_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

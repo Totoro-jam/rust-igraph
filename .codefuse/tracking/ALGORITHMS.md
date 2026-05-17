@@ -123,6 +123,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-010b | Weighted edge betweenness | centrality/betweenness.c | ~150 | adapt | PR-010, SP-001 | todo | - | - | - |
 | ALGO-PR-011 | PageRank (`pagerank`, power iteration, damping=0.85) | centrality/pagerank.c | ~180 | adapt | - | done | (next) | O(iter*(V+E)) power | C:1 / py:1 / R:1 |
 | ALGO-PR-011b | PageRank ARPACK + weighted | centrality/pagerank.c | ~250 | rewrite | PR-011 | todo | - | - | - |
+| ALGO-PR-012 | Eigenvector centrality (`eigenvector_centrality`, undirected) | centrality/eigenvector.c | ~120 | adapt | - | done | (next) | shifted power | C:1 / py:1 / R:1 |
+| ALGO-PR-012b | Directed eigenvector + ARPACK + weighted | centrality/eigenvector.c | ~250 | rewrite | PR-012 | todo | - | - | - |
 
 ## Phase 3 — Centrality + Eigensolver (~65 AWU)
 
@@ -141,7 +143,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 31 | 0 | ~54 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3 |
+| 1 | 32 | 0 | ~53 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
 **Phase 0 — complete (37/37)**. **Phase 1 underway**: 27/85 done —
@@ -157,8 +159,8 @@ reciprocity (PR-004), BFS multi-output (TR-001), knn (PR-005),
 degree assortativity (PR-006), edge query helpers (CORE-001d),
 closeness centrality (PR-007), harmonic centrality (PR-009), betweenness
 centrality (PR-008), edge betweenness (PR-010), PageRank (PR-011),
-biconnected components multi-output (CC-011). Next options: SP-001
-(Dijkstra), CORE-001c (deletion), eigenvector centrality, hub/auth
-scores.
+biconnected components multi-output (CC-011), eigenvector centrality
+(PR-012). Next options: SP-001 (Dijkstra), CORE-001c (deletion),
+hub/auth scores, modularity, simplification (`simplify`).
 
 > Update the counters after every PR merge.

@@ -300,6 +300,14 @@ fn reachability_matrix_three_source_conformance() {
 }
 
 #[test]
+fn eigenvector_centrality_three_source_conformance() {
+    run_conformance("eigenvector_centrality", |g, _params| {
+        let ec = rust_igraph::eigenvector_centrality(g).expect("eigenvector_centrality");
+        serde_json::json!(ec)
+    });
+}
+
+#[test]
 fn biconnected_components_three_source_conformance() {
     run_conformance("biconnected_components", |g, _params| {
         let bc = rust_igraph::biconnected_components(g).expect("biconnected_components");

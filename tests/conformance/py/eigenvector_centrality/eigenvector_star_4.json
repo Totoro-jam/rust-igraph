@@ -1,0 +1,31 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-star; centre 1.0, leaves 1/sqrt(3)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "eigenvector_centrality",
+  "params": {},
+  "expected": [
+    1.0,
+    0.5773502691896258,
+    0.5773502691896258,
+    0.5773502691896258
+  ]
+}
