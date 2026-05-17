@@ -174,6 +174,16 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "has_loop":
+        # Counterpart of igraph_has_loop(). python-igraph 0.11 has no
+        # direct API; emulate via `any(e.is_loop() for e in g.es)`.
+        return any(e.is_loop() for e in g.es)
+
+    if algo == "has_multiple":
+        # Counterpart of igraph_has_multiple(). python-igraph 0.11 has no
+        # direct API; emulate via `any(g.is_multiple())`.
+        return any(g.is_multiple())
+
     if algo == "is_simple":
         # Counterpart of igraph_is_simple(_, &res, /*directed=*/true).
         # python-igraph's `g.is_simple()` honours the graph's own

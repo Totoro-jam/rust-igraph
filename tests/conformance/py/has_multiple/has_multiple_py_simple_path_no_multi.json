@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-path no multi-edges; has_multiple=false",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "has_multiple",
+  "params": {},
+  "expected": false
+}

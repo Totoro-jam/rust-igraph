@@ -332,6 +332,29 @@ proptest! {
         prop_assert!(q_each.abs() <= 1.0 + 1e-9, "Q(singletons)={} > 1", q_each);
     }
 
+    /// `has_loop` and `has_multiple` invariants:
+    /// - `has_loop ⇔ ∃ edge (u, u)`
+    /// - `is_simple ⇔ ¬has_loop ∧ ¬has_multiple`
+    /// - simplify(g, true, true) makes both predicates false
+    #[test]
+    fn has_loop_and_has_multiple_match_definition(g in arb_graph(10)) {
+        let m = u32::try_from(g.ecount()).unwrap();
+        let any_self_loop = (0..m).any(|e| {
+            let (u, v) = g.edge(e).unwrap();
+            u == v
+        });
+        prop_assert_eq!(rust_igraph::has_loop(&g).unwrap(), any_self_loop);
+
+        let hl = rust_igraph::has_loop(&g).unwrap();
+        let hm = rust_igraph::has_multiple(&g).unwrap();
+        let simple = rust_igraph::is_simple(&g).unwrap();
+        prop_assert_eq!(simple, !hl && !hm);
+
+        let s = rust_igraph::simplify(&g, true, true).unwrap();
+        prop_assert!(!rust_igraph::has_loop(&s).unwrap());
+        prop_assert!(!rust_igraph::has_multiple(&s).unwrap());
+    }
+
     /// `is_simple` invariants:
     /// - returns the same boolean as the conjunction of "no self-loops"
     ///   and "no parallel edges across the canonicalised endpoint set"

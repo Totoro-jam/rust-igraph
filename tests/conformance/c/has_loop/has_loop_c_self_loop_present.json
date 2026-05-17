@@ -1,0 +1,22 @@
+{
+  "source": "c",
+  "origin": "constructed: graph with one self-loop; has_loop=true",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "has_loop",
+  "params": {},
+  "expected": true
+}

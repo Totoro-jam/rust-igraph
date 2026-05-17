@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed: two parallel undirected edges; has_multiple=true",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "has_multiple",
+  "params": {},
+  "expected": true
+}

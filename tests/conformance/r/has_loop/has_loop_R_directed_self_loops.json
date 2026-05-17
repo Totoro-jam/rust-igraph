@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed self-loops; has_loop=true",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "has_loop",
+  "params": {},
+  "expected": true
+}

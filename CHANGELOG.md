@@ -11,6 +11,20 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-014**: `has_loop` + `has_multiple`
+  companion predicates. `has_loop` is the O(|E|) self-loop scan;
+  `has_multiple` sorts canonicalised endpoint pairs and looks for
+  adjacent duplicates (O(|E| log |E|)). Counterparts of
+  `igraph_has_loop()` / `igraph_has_multiple()` from
+  `references/igraph/src/properties/loops.c` /
+  `properties/multiplicity.c`. Two self-loops at the same vertex
+  count as parallel (matches upstream).
+  Full 9-step SOP: 10 unit tests (incl. directed mutual pair, two
+  self-loops at same vertex), 4 oracle tests, 6 three-source
+  conformance fixtures (2 algos × 3 sources), 1 proptest invariant
+  cross-checking against the structural definition + the
+  `is_simple ⇔ ¬has_loop ∧ ¬has_multiple` algebraic identity.
+
 - *(properties)* **ALGO-PR-013**: `is_simple` (predicate — no self-loops
   and no parallel edges). Counterpart of `igraph_is_simple()` from
   `references/igraph/src/properties/multiplicity.c`. Phase-1 minimal

@@ -41,6 +41,7 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | simplify  | 1 | 1 | 1 | 3/3  | Multi-output `Graph` (returns a copy; upstream igraph mutates in place). Wire format `{vcount, directed, edges}`; runner sorts edges before comparison and the oracle test canonicalises endpoints to handle python-igraph's reordering of (a,b) ⇄ (b,a) for undirected graphs. Fixtures exercise all three flag combos: igraph C `igraph_simplify.c` 5x parallel undirected with `(remove_multiple=true, remove_loops=true)`; python-igraph `test_operators.py:432 simplify(loops=False)` (multi only); rigraph-style directed `(remove_multiple=false, remove_loops=true)` to verify directed (a,b) and (b,a) survive when only loops are stripped. |
 | modularity | 1 | 1 | 1 | 3/3 | `Option<f64>` (None for ecount==0). Phase-1 minimal: undirected, unweighted; resolution γ configurable. Fixtures: C K3 ∪ K3 + bridge with hand-checked Q = 6/7 − 1/2 (exact rational, 1e-12 tol); python-igraph `test_structural.py:127 testModularity` K5 ∪ K5 + bridge → 0.45238095238095233; rigraph-style `path_graph_impl(n=3)` with membership [1,2,1] → Q = -0.5 (also exact). |
 | is_simple | 1 | 1 | 1 | 3/3 | `bool`. Phase-1 directed-as-directed slice: `(a,b)` and `(b,a)` are distinct in directed graphs (mutual pairs stay simple). Fixtures: C 4-path → true; py self-loop → false; rigraph-style two parallel undirected → false. |
+| has_loop / has_multiple | 2 | 2 | 2 | 6/6 | Two predicates × three sources. `has_loop` is the trivial O(\|E\|) self-loop scan; `has_multiple` collapses canonicalised `(from, to)` pairs and looks for adjacent duplicates (so two self-loops at the same vertex correctly flag as multi). Fixtures cover positive + negative cases for both. |
 
 ## How to add a row
 
@@ -54,4 +55,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 32 (+ is_simple) | 103 | 40 / 30 / 33 |
+| 1     | 34 (+ has_loop, has_multiple) | 109 | 42 / 32 / 35 |

@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed parallel pair; has_multiple=true",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "has_multiple",
+  "params": {},
+  "expected": true
+}

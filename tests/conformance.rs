@@ -408,6 +408,20 @@ fn is_simple_three_source_conformance() {
 }
 
 #[test]
+fn has_loop_three_source_conformance() {
+    run_conformance("has_loop", |g, _params| {
+        serde_json::json!(rust_igraph::has_loop(g).expect("has_loop"))
+    });
+}
+
+#[test]
+fn has_multiple_three_source_conformance() {
+    run_conformance("has_multiple", |g, _params| {
+        serde_json::json!(rust_igraph::has_multiple(g).expect("has_multiple"))
+    });
+}
+
+#[test]
 fn modularity_three_source_conformance() {
     run_conformance("modularity", |g, params| {
         let membership: Vec<u32> = params

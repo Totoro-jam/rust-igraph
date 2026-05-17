@@ -273,6 +273,34 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HAS_LOOP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "has_loop_c_self_loop_present",
+        # From references/igraph/examples/simple/igraph_is_loop.c style:
+        # tiny graph with one self-loop should report has_loop=true.
+        "origin": "constructed: graph with one self-loop; has_loop=true",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 0), (1, 2)], directed=False
+        ),
+        "algo": "has_loop",
+        "params": {},
+        "expected": True,
+    },
+]
+
+HAS_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "has_multiple_c_two_parallel_edges",
+        "origin": "constructed: two parallel undirected edges; has_multiple=true",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 1), (1, 2)], directed=False
+        ),
+        "algo": "has_multiple",
+        "params": {},
+        "expected": True,
+    },
+]
+
 IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_simple_c_path_is_simple",
@@ -742,6 +770,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "simplify": SIMPLIFY_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
+    "has_loop": HAS_LOOP_MANIFEST,
+    "has_multiple": HAS_MULTIPLE_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

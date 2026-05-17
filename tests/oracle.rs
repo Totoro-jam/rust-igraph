@@ -14,10 +14,10 @@ use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
     bfs, biconnected_components, bridges, closeness, connected_components, count_reachable,
     count_triangles, density, dfs, diameter, distances, eccentricity, edge_betweenness,
-    eigenvector_centrality, girth, harmonic_centrality, is_biconnected, is_simple, mean_distance,
-    modularity, pagerank, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
-    strongly_connected_components, transitive_closure, transitivity_local_undirected,
-    transitivity_undirected,
+    eigenvector_centrality, girth, harmonic_centrality, has_loop, has_multiple, is_biconnected,
+    is_simple, mean_distance, modularity, pagerank, radius, reachability_matrix, read_edgelist,
+    reciprocity, simplify, strongly_connected_components, transitive_closure,
+    transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -1039,4 +1039,51 @@ fn modularity_resolution_zero_matches_python_igraph() {
     ))
     .expect("decode python modularity");
     assert!((rust_q - py).abs() < 1e-12, "rust={rust_q} py={py}");
+}
+
+#[test]
+fn has_loop_simple_graph_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let rust = has_loop(&g).unwrap();
+    let py: bool = serde_json::from_value(run_ok("has_loop", &g, serde_json::json!({})))
+        .expect("decode python has_loop");
+    assert_eq!(rust, py);
+    assert!(!rust);
+}
+
+#[test]
+fn has_loop_with_self_loop_matches_python_igraph() {
+    let mut g = Graph::with_vertices(2);
+    g.add_edge(0, 0).unwrap();
+    let rust = has_loop(&g).unwrap();
+    let py: bool = serde_json::from_value(run_ok("has_loop", &g, serde_json::json!({})))
+        .expect("decode python has_loop");
+    assert_eq!(rust, py);
+    assert!(rust);
+}
+
+#[test]
+fn has_multiple_simple_graph_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let rust = has_multiple(&g).unwrap();
+    let py: bool = serde_json::from_value(run_ok("has_multiple", &g, serde_json::json!({})))
+        .expect("decode python has_multiple");
+    assert_eq!(rust, py);
+    assert!(!rust);
+}
+
+#[test]
+fn has_multiple_with_parallel_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 1).unwrap();
+    let rust = has_multiple(&g).unwrap();
+    let py: bool = serde_json::from_value(run_ok("has_multiple", &g, serde_json::json!({})))
+        .expect("decode python has_multiple");
+    assert_eq!(rust, py);
+    assert!(rust);
 }

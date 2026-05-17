@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-path no loops; has_loop=false",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "has_loop",
+  "params": {},
+  "expected": false
+}

@@ -224,6 +224,32 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HAS_LOOP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "has_loop_py_simple_path_no_loop",
+        "origin": "constructed: 4-path no loops; has_loop=false",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "has_loop",
+        "params": {},
+        "expected": False,
+    },
+]
+
+HAS_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "has_multiple_py_simple_path_no_multi",
+        "origin": "constructed: 4-path no multi-edges; has_multiple=false",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "has_multiple",
+        "params": {},
+        "expected": False,
+    },
+]
+
 IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_simple_py_self_loop_not_simple",
@@ -549,6 +575,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "simplify": SIMPLIFY_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
+    "has_loop": HAS_LOOP_MANIFEST,
+    "has_multiple": HAS_MULTIPLE_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
