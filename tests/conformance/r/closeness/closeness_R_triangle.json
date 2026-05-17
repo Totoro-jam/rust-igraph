@@ -1,0 +1,30 @@
+{
+  "source": "r",
+  "origin": "constructed (R-style): triangle; closeness 1.0 each",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "closeness",
+  "params": {},
+  "expected": [
+    1.0,
+    1.0,
+    1.0
+  ]
+}

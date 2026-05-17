@@ -41,7 +41,7 @@ pub use crate::algorithms::paths::{
     EulerianClassification, diameter, distances, eccentricity, eulerian_path, is_eulerian, radius,
 };
 pub use crate::algorithms::properties::{
-    assortativity_degree, avg_nearest_neighbor_degree, count_triangles, density, girth,
+    assortativity_degree, avg_nearest_neighbor_degree, closeness, count_triangles, density, girth,
     mean_distance, reciprocity, transitivity_local_undirected, transitivity_undirected,
 };
 pub use crate::algorithms::traversal::{BfsTree, bfs, bfs_tree, dfs};

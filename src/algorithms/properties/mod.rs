@@ -6,6 +6,7 @@
 
 pub mod assortativity;
 pub mod basic;
+pub mod closeness;
 pub mod girth;
 pub mod knn;
 pub mod reciprocity;
@@ -13,6 +14,7 @@ pub mod triangles;
 
 pub use assortativity::assortativity_degree;
 pub use basic::{density, mean_distance};
+pub use closeness::closeness;
 pub use girth::girth;
 pub use knn::avg_nearest_neighbor_degree;
 pub use reciprocity::reciprocity;

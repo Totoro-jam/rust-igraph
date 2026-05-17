@@ -300,6 +300,21 @@ fn reachability_matrix_three_source_conformance() {
 }
 
 #[test]
+fn closeness_three_source_conformance() {
+    run_conformance("closeness", |g, _params| {
+        let c = rust_igraph::closeness(g).expect("closeness");
+        let arr: Vec<serde_json::Value> = c
+            .into_iter()
+            .map(|o| match o {
+                Some(x) => serde_json::json!(x),
+                None => serde_json::Value::Null,
+            })
+            .collect();
+        serde_json::Value::Array(arr)
+    });
+}
+
+#[test]
 fn transitive_closure_three_source_conformance() {
     run_conformance("transitive_closure", |g, _params| {
         let tc = rust_igraph::transitive_closure(g).expect("transitive_closure");

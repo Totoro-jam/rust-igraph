@@ -116,6 +116,15 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "closeness":
+        # Counterpart of igraph_closeness(_, _, _, _, vss_all(), IGRAPH_OUT,
+        # NULL_weights, /*normalized=*/true).
+        # python-igraph's `g.closeness(mode='out', normalized=True)` returns
+        # NaN for isolated vertices; encode as None.
+        mode = "out" if g.is_directed() else "all"
+        vals = g.closeness(mode=mode, normalized=True)
+        return [None if (v != v) else float(v) for v in vals]
+
     if algo == "transitive_closure":
         # Counterpart of igraph_transitive_closure(). python-igraph 0.11
         # has no direct API; emulate by computing per-vertex reachable sets

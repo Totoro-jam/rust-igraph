@@ -11,6 +11,17 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-007**: closeness centrality (`closeness`).
+  Returns `Vec<Option<f64>>` — `None` for isolated vertices, otherwise
+  the normalized `reach / sum_dist` score (matches upstream's
+  `normalized=true` default). Counterpart of `igraph_closeness()` from
+  `references/igraph/src/centrality/closeness.c:33+`. Phase-1 minimal
+  slice: undirected/IGRAPH_OUT, unweighted; weighted Dijkstra version
+  ships in PR-007b.
+  Full 9-step SOP: 8 unit tests, 1 oracle test on karate, 3
+  three-source conformance fixtures, 1 proptest invariant
+  (`0 < x ≤ 1` when defined).
+
 - *(connectivity)* **ALGO-CC-022**: transitive closure
   (`transitive_closure`). Returns a new `Graph` with the same vcount
   and directedness, edges added for every off-diagonal reachable pair

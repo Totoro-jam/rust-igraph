@@ -146,6 +146,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CLOSE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "closeness_c_path5",
+        # Path 0-1-2-3-4: ends 0.4, near-ends 4/7, centre 4/6.
+        "origin": "constructed: 5-path; closeness via python-igraph 0.11",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "algo": "closeness",
+        "params": {},
+        "expected": [0.4, 4.0 / 7.0, 4.0 / 6.0, 4.0 / 7.0, 0.4],
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_c_directed_path3",
@@ -562,6 +576,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
+    "closeness": CLOSE_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

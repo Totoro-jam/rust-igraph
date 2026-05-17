@@ -1,0 +1,36 @@
+{
+  "source": "c",
+  "origin": "constructed: 5-path; closeness via python-igraph 0.11",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "closeness",
+  "params": {},
+  "expected": [
+    0.4,
+    0.5714285714285714,
+    0.6666666666666666,
+    0.5714285714285714,
+    0.4
+  ]
+}

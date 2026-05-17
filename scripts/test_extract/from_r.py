@@ -191,6 +191,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CLOSE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "closeness_R_triangle",
+        # Triangle: every vertex has closeness 1.0.
+        "origin": "constructed (R-style): triangle; closeness 1.0 each",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "closeness",
+        "params": {},
+        "expected": [1.0, 1.0, 1.0],
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_R_undirected_path3",
@@ -497,6 +511,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
+    "closeness": CLOSE_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

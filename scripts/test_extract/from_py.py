@@ -116,6 +116,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CLOSE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "closeness_star_4",
+        # Star with centre 0: centre 1.0, leaves 0.6.
+        "origin": "constructed: 4-vertex star; centre 1.0, leaves 0.6",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "closeness",
+        "params": {},
+        "expected": [1.0, 0.6, 0.6, 0.6],
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_py_undirected_path2",
@@ -386,6 +400,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
+    "closeness": CLOSE_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

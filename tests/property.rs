@@ -242,6 +242,21 @@ proptest! {
         }
     }
 
+    /// Closeness centrality bounds: when `Some(x)`, `0 < x <= 1` for
+    /// connected components (since reach >= 1 and sum_dist >= reach).
+    /// `None` only for isolated vertices.
+    #[test]
+    fn closeness_in_zero_to_one(g in arb_graph(8)) {
+        let c = rust_igraph::closeness(&g).unwrap();
+        for (v, val) in c.iter().enumerate() {
+            if let Some(x) = val {
+                prop_assert!(*x > 0.0 && *x <= 1.0,
+                             "closeness[{}] = {} outside (0, 1]", v, x);
+                prop_assert!(x.is_finite());
+            }
+        }
+    }
+
     /// Transitive closure invariants:
     /// - same vcount and directedness as input
     /// - closure edge set equals reachability matrix off-diagonal pairs

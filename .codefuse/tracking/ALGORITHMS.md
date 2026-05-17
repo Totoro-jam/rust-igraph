@@ -113,6 +113,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-005b | knn weighted + per-degree aggregate (`knnk`) | properties/degrees.c:263 | ~120 | adapt | PR-005 | todo | - | - | - |
 | ALGO-PR-006 | Degree assortativity (`assortativity_degree`, undirected) | misc/mixing.c:443 + 273 | ~150 | adapt | - | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
 | ALGO-PR-006b | Directed + weighted assortativity | misc/mixing.c:351-405 | ~150 | adapt | PR-006 | todo | - | - | - |
+| ALGO-PR-007 | Closeness centrality (`closeness`, unweighted, IGRAPH_OUT/ALL) | centrality/closeness.c:33+ | ~120 | adapt | SP-006 | done | (next) | O(V*(V+E)) BFS | C:1 / py:1 / R:1 |
+| ALGO-PR-007b | Weighted closeness (Dijkstra) + harmonic_centrality | centrality/closeness.c, harmonic.c | ~200 | adapt | PR-007, SP-001 | todo | - | - | - |
 
 ## Phase 3 — Centrality + Eigensolver (~65 AWU)
 
@@ -131,10 +133,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 25 | 0 | ~60 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3 |
+| 1 | 26 | 0 | ~59 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 25/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 26/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -144,9 +146,9 @@ per-vertex (PR-002b), density + mean_distance (PR-003), Eulerian
 path/cycle (CC-041 + CC-042), reachability counts (CC-020),
 reachability matrix (CC-021), transitive closure (CC-022),
 reciprocity (PR-004), BFS multi-output (TR-001), knn (PR-005),
-degree assortativity (PR-006), edge query helpers (CORE-001d). Next
-options: SP-001 (Dijkstra), CC-011 (biconnected components
-multi-output), CORE-001c (deletion), PR-002c (Barrat weighted),
-PR-006b (directed assortativity).
+degree assortativity (PR-006), edge query helpers (CORE-001d),
+closeness centrality (PR-007). Next options: SP-001 (Dijkstra),
+CC-011 (biconnected components multi-output), CORE-001c (deletion),
+betweenness centrality, harmonic centrality.
 
 > Update the counters after every PR merge.
