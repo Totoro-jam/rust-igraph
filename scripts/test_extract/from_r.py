@@ -290,6 +290,22 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_simple_R_parallel_edges_not_simple",
+        # rigraph mirrors igraph's `is_simple()`: parallel edges flip the
+        # answer to FALSE. We seed (0,1)(0,1)(1,2) — undirected — to
+        # exercise that path.
+        "origin": "constructed (rigraph-style): two parallel undirected edges; not simple",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 1), (1, 2)], directed=False
+        ),
+        "algo": "is_simple",
+        "params": {},
+        "expected": False,
+    },
+]
+
 MODULARITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_R_path3_split_endpoints",
@@ -634,6 +650,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
+    "is_simple": IS_SIMPLE_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

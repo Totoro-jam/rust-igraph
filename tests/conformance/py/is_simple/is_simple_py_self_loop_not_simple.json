@@ -1,0 +1,22 @@
+{
+  "source": "py",
+  "origin": "constructed: graph with one self-loop; not simple",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_simple",
+  "params": {},
+  "expected": false
+}

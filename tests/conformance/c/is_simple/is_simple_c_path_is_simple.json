@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed: undirected 4-path; simple",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_simple",
+  "params": {},
+  "expected": true
+}

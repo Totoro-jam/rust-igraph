@@ -14,8 +14,8 @@ use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
     bfs, biconnected_components, bridges, closeness, connected_components, count_reachable,
     count_triangles, density, dfs, diameter, distances, eccentricity, edge_betweenness,
-    eigenvector_centrality, girth, harmonic_centrality, is_biconnected, mean_distance, modularity,
-    pagerank, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
+    eigenvector_centrality, girth, harmonic_centrality, is_biconnected, is_simple, mean_distance,
+    modularity, pagerank, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
     strongly_connected_components, transitive_closure, transitivity_local_undirected,
     transitivity_undirected,
 };
@@ -946,6 +946,43 @@ fn dfs_small_synthetic_matches_python_igraph() {
             .expect("decode python order");
 
     assert_eq!(rust_order, py_order);
+}
+
+#[test]
+fn is_simple_path_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let rust = is_simple(&g).unwrap();
+    let py: bool = serde_json::from_value(run_ok("is_simple", &g, serde_json::json!({})))
+        .expect("decode python is_simple");
+    assert_eq!(rust, py);
+    assert!(rust);
+}
+
+#[test]
+fn is_simple_with_self_loop_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 0).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let rust = is_simple(&g).unwrap();
+    let py: bool = serde_json::from_value(run_ok("is_simple", &g, serde_json::json!({})))
+        .expect("decode python is_simple");
+    assert_eq!(rust, py);
+    assert!(!rust);
+}
+
+#[test]
+fn is_simple_with_parallel_edges_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 1).unwrap();
+    let rust = is_simple(&g).unwrap();
+    let py: bool = serde_json::from_value(run_ok("is_simple", &g, serde_json::json!({})))
+        .expect("decode python is_simple");
+    assert_eq!(rust, py);
+    assert!(!rust);
 }
 
 #[test]

@@ -273,6 +273,20 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_simple_c_path_is_simple",
+        # Plain undirected path → simple (no loops, no parallels).
+        "origin": "constructed: undirected 4-path; simple",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "is_simple",
+        "params": {},
+        "expected": True,
+    },
+]
+
 MODULARITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_c_two_triangles_bridge_split",
@@ -727,6 +741,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
+    "is_simple": IS_SIMPLE_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

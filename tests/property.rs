@@ -332,6 +332,35 @@ proptest! {
         prop_assert!(q_each.abs() <= 1.0 + 1e-9, "Q(singletons)={} > 1", q_each);
     }
 
+    /// `is_simple` invariants:
+    /// - returns the same boolean as the conjunction of "no self-loops"
+    ///   and "no parallel edges across the canonicalised endpoint set"
+    /// - `simplify(g, true, true)` is always simple
+    /// - already-simple graphs are no-op simplified (ecount unchanged)
+    #[test]
+    fn is_simple_agrees_with_structural_definition(g in arb_graph(10)) {
+        let m = u32::try_from(g.ecount()).unwrap();
+        let mut seen = std::collections::BTreeSet::<(u32, u32)>::new();
+        let mut found_loop_or_parallel = false;
+        for e in 0..m {
+            let (u, v) = g.edge(e).unwrap();
+            if u == v { found_loop_or_parallel = true; break; }
+            // Graph storage already canonicalises undirected (u <= v).
+            if !seen.insert((u, v)) { found_loop_or_parallel = true; break; }
+        }
+        let expected_simple = !found_loop_or_parallel;
+        prop_assert_eq!(rust_igraph::is_simple(&g).unwrap(), expected_simple);
+
+        // simplify(g) is always simple.
+        let s = rust_igraph::simplify(&g, true, true).unwrap();
+        prop_assert!(rust_igraph::is_simple(&s).unwrap());
+
+        // Already-simple graphs are unchanged by simplify.
+        if expected_simple {
+            prop_assert_eq!(s.ecount(), g.ecount());
+        }
+    }
+
     /// `simplify` invariants:
     /// - vcount unchanged
     /// - directedness unchanged

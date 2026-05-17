@@ -11,6 +11,21 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-013**: `is_simple` (predicate — no self-loops
+  and no parallel edges). Counterpart of `igraph_is_simple()` from
+  `references/igraph/src/properties/multiplicity.c`. Phase-1 minimal
+  slice treats directed graphs structurally — `(a,b)` and `(b,a)` are
+  distinct, matching upstream's `directed=IGRAPH_DIRECTED`. The
+  "treat directed graph as undirected" mode (mutual pairs flag as
+  parallel) ships in PR-013b. O(|V| + |E|) using the already-sorted
+  out-neighbour lists exposed by `Graph::neighbors`.
+  Full 9-step SOP: 10 unit tests (incl. directed mutual pair stays
+  simple, simplify makes any graph simple), 3 oracle tests (path,
+  self-loop, parallels), 3 three-source conformance fixtures, 1
+  proptest invariant cross-checking against the structural definition
+  + asserting simplify(g) is always simple + idempotence on
+  already-simple graphs.
+
 - *(community)* **ALGO-CO-001**: `modularity` (Newman-Girvan modularity
   of a partition). Returns `Option<f64>` — `None` for graphs with no
   edges (matches upstream's NaN). Counterpart of `igraph_modularity()`

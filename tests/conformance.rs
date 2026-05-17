@@ -400,6 +400,14 @@ fn transitive_closure_three_source_conformance() {
 }
 
 #[test]
+fn is_simple_three_source_conformance() {
+    run_conformance("is_simple", |g, _params| {
+        let s = rust_igraph::is_simple(g).expect("is_simple");
+        serde_json::json!(s)
+    });
+}
+
+#[test]
 fn modularity_three_source_conformance() {
     run_conformance("modularity", |g, params| {
         let membership: Vec<u32> = params

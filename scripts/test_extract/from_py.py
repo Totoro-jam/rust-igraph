@@ -224,6 +224,21 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_simple_py_self_loop_not_simple",
+        # Self-loop disqualifies → not simple. Mirrors the trivial case
+        # asserted throughout python-igraph's structural test suite.
+        "origin": "constructed: graph with one self-loop; not simple",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 0), (1, 2)], directed=False
+        ),
+        "algo": "is_simple",
+        "params": {},
+        "expected": False,
+    },
+]
+
 MODULARITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_py_full5_full5_bridge",
@@ -533,6 +548,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
+    "is_simple": IS_SIMPLE_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

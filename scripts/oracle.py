@@ -174,6 +174,13 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "is_simple":
+        # Counterpart of igraph_is_simple(_, &res, /*directed=*/true).
+        # python-igraph's `g.is_simple()` honours the graph's own
+        # directedness (no separate flag), which matches our directed
+        # phase-1 slice exactly.
+        return bool(g.is_simple())
+
     if algo == "modularity":
         # Counterpart of igraph_modularity(_, &membership, NULL_weights,
         # /*resolution=*/1.0, /*directed=*/false, &result).

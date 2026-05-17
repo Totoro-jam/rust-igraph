@@ -40,6 +40,7 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | eigenvector_centrality | 1 | 1 | 1 | 3/3 | `Vec<f64>` via shifted power iteration `(A+I)·x` (breaks ±λ symmetry on bipartite graphs); normalized so max=1. Tighter eps (1e-14) than other centrality AWUs to match python-igraph's ARPACK precision. Karate oracle uses 1e-6 tolerance. Fixtures: triangle uniform 1.0; 4-star centre 1, leaves 1/√3; K4 uniform 1.0. |
 | simplify  | 1 | 1 | 1 | 3/3  | Multi-output `Graph` (returns a copy; upstream igraph mutates in place). Wire format `{vcount, directed, edges}`; runner sorts edges before comparison and the oracle test canonicalises endpoints to handle python-igraph's reordering of (a,b) ⇄ (b,a) for undirected graphs. Fixtures exercise all three flag combos: igraph C `igraph_simplify.c` 5x parallel undirected with `(remove_multiple=true, remove_loops=true)`; python-igraph `test_operators.py:432 simplify(loops=False)` (multi only); rigraph-style directed `(remove_multiple=false, remove_loops=true)` to verify directed (a,b) and (b,a) survive when only loops are stripped. |
 | modularity | 1 | 1 | 1 | 3/3 | `Option<f64>` (None for ecount==0). Phase-1 minimal: undirected, unweighted; resolution γ configurable. Fixtures: C K3 ∪ K3 + bridge with hand-checked Q = 6/7 − 1/2 (exact rational, 1e-12 tol); python-igraph `test_structural.py:127 testModularity` K5 ∪ K5 + bridge → 0.45238095238095233; rigraph-style `path_graph_impl(n=3)` with membership [1,2,1] → Q = -0.5 (also exact). |
+| is_simple | 1 | 1 | 1 | 3/3 | `bool`. Phase-1 directed-as-directed slice: `(a,b)` and `(b,a)` are distinct in directed graphs (mutual pairs stay simple). Fixtures: C 4-path → true; py self-loop → false; rigraph-style two parallel undirected → false. |
 
 ## How to add a row
 
@@ -53,4 +54,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 31 (+ modularity) | 100 | 39 / 29 / 32 |
+| 1     | 32 (+ is_simple) | 103 | 40 / 30 / 33 |
