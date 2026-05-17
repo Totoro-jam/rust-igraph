@@ -116,6 +116,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+PAGERANK_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "pagerank_triangle",
+        # Triangle: uniform 1/3.
+        "origin": "constructed: triangle; uniform PageRank 1/3",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "pagerank",
+        "params": {},
+        "expected": [1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0],
+    },
+]
+
 EDGE_BETW_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "edge_betweenness_star_4",
@@ -447,6 +461,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
     "edge_betweenness": EDGE_BETW_MANIFEST,
+    "pagerank": PAGERANK_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

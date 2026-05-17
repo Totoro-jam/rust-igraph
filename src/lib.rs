@@ -42,7 +42,7 @@ pub use crate::algorithms::paths::{
 };
 pub use crate::algorithms::properties::{
     assortativity_degree, avg_nearest_neighbor_degree, betweenness, closeness, count_triangles,
-    density, edge_betweenness, girth, harmonic_centrality, mean_distance, reciprocity,
+    density, edge_betweenness, girth, harmonic_centrality, mean_distance, pagerank, reciprocity,
     transitivity_local_undirected, transitivity_undirected,
 };
 pub use crate::algorithms::traversal::{BfsTree, bfs, bfs_tree, dfs};

@@ -116,6 +116,13 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "pagerank":
+        # Counterpart of igraph_pagerank() with damping=0.85, default options.
+        # python-igraph defaults to ARPACK (eigensolver-based) which is more
+        # accurate than power iteration; oracle tolerance accounts for that.
+        directed = g.is_directed()
+        return [float(v) for v in g.pagerank(damping=0.85, directed=directed)]
+
     if algo == "edge_betweenness":
         # Counterpart of igraph_edge_betweenness(_, NULL_weights, _, ALL_eids,
         # /*directed=*/g.is_directed(), /*normalized=*/false). Returns a

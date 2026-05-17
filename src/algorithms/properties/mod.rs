@@ -12,6 +12,7 @@ pub mod edge_betweenness;
 pub mod girth;
 pub mod harmonic;
 pub mod knn;
+pub mod pagerank;
 pub mod reciprocity;
 pub mod triangles;
 
@@ -23,5 +24,6 @@ pub use edge_betweenness::edge_betweenness;
 pub use girth::girth;
 pub use harmonic::harmonic_centrality;
 pub use knn::avg_nearest_neighbor_degree;
+pub use pagerank::pagerank;
 pub use reciprocity::reciprocity;
 pub use triangles::{count_triangles, transitivity_local_undirected, transitivity_undirected};

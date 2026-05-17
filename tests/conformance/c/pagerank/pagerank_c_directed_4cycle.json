@@ -1,0 +1,35 @@
+{
+  "source": "c",
+  "origin": "constructed: directed 4-cycle; uniform PageRank 0.25",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "pagerank",
+  "params": {},
+  "expected": [
+    0.25,
+    0.25,
+    0.25,
+    0.25
+  ]
+}

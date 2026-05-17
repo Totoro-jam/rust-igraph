@@ -242,6 +242,24 @@ proptest! {
         }
     }
 
+    /// PageRank invariants: nonneg, finite, sums to 1 (for n >= 1),
+    /// length equals vcount.
+    #[test]
+    fn pagerank_is_a_probability_distribution(g in arb_graph(8)) {
+        let pr = rust_igraph::pagerank(&g).unwrap();
+        let n = g.vcount() as usize;
+        prop_assert_eq!(pr.len(), n);
+        if n == 0 { return Ok(()); }
+        let mut sum: f64 = 0.0;
+        for (v, &x) in pr.iter().enumerate() {
+            prop_assert!(x.is_finite(), "pr[{}] = {} not finite", v, x);
+            prop_assert!(x >= -1e-12, "pr[{}] = {} negative", v, x);
+            sum += x;
+        }
+        prop_assert!((sum - 1.0).abs() < 1e-6,
+                     "pagerank does not sum to 1 (got {})", sum);
+    }
+
     /// Edge betweenness invariants: nonneg, finite, length equals ecount.
     /// Sum of edge_betweenness across edges of an undirected geodesic
     /// equals (vertex sum of dependencies / 2) — a weak but useful

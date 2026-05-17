@@ -300,6 +300,14 @@ fn reachability_matrix_three_source_conformance() {
 }
 
 #[test]
+fn pagerank_three_source_conformance() {
+    run_conformance("pagerank", |g, _params| {
+        let pr = rust_igraph::pagerank(g).expect("pagerank");
+        serde_json::json!(pr)
+    });
+}
+
+#[test]
 fn edge_betweenness_three_source_conformance() {
     run_conformance("edge_betweenness", |g, _params| {
         let eb = rust_igraph::edge_betweenness(g).expect("edge_betweenness");

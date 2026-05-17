@@ -14,8 +14,8 @@ use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
     bfs, bridges, closeness, connected_components, count_reachable, count_triangles, density, dfs,
     diameter, distances, eccentricity, edge_betweenness, girth, harmonic_centrality,
-    is_biconnected, mean_distance, radius, reachability_matrix, read_edgelist, reciprocity,
-    strongly_connected_components, transitive_closure, transitivity_local_undirected,
+    is_biconnected, mean_distance, pagerank, radius, reachability_matrix, read_edgelist,
+    reciprocity, strongly_connected_components, transitive_closure, transitivity_local_undirected,
     transitivity_undirected,
 };
 
@@ -665,6 +665,25 @@ fn transitive_closure_undirected_two_components_matches_python_igraph() {
 struct PyEdgeBetweenness {
     edges: Vec<[u32; 2]>,
     values: Vec<f64>,
+}
+
+#[test]
+fn pagerank_karate_matches_python_igraph_within_tolerance() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let rust = pagerank(&g).unwrap();
+    let py: Vec<f64> = serde_json::from_value(run_ok("pagerank", &g, serde_json::json!({})))
+        .expect("decode python pagerank");
+    assert_eq!(rust.len(), py.len());
+    // python-igraph defaults to ARPACK; our power-iteration converges to
+    // the same fixed point but with O(eps) numerical drift.
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-6, "vertex {i}: rust={r} py={p}");
+    }
+    // Both impls must sum to 1 (within fp).
+    let total: f64 = rust.iter().sum();
+    assert!((total - 1.0).abs() < 1e-9);
 }
 
 #[test]

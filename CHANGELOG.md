@@ -11,6 +11,21 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-011**: PageRank (`pagerank`). Power-iteration
+  implementation with damping `0.85`, `eps = 1e-10`,
+  `max_iter = 1000`. Counterpart of `igraph_pagerank()` from
+  `references/igraph/src/centrality/pagerank.c` (the
+  `IGRAPH_PAGERANK_ALGO_POWER` branch). Handles dangling vertices via
+  uniform redistribution. Phase-1 minimal slice: undirected/IGRAPH_OUT,
+  unweighted, default damping; ARPACK-based variant + weighted ship in
+  PR-011b.
+  Full 9-step SOP: 8 unit tests, 1 oracle test on karate (1e-6
+  tolerance — python-igraph defaults to ARPACK so fp drift differs but
+  both converge to the same fixed point), 3 three-source conformance
+  fixtures (directed 4-cycle uniform 0.25; triangle uniform 1/3; K4
+  uniform 0.25), 1 proptest invariant (probability distribution:
+  nonneg, finite, sums to 1).
+
 - *(properties)* **ALGO-PR-010**: edge betweenness centrality
   (`edge_betweenness`). Brandes' framework but accumulates dependency
   on edges. Counterpart of `igraph_edge_betweenness()` from

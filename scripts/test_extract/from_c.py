@@ -146,6 +146,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+PAGERANK_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "pagerank_c_directed_4cycle",
+        # Directed 4-cycle: every vertex has identical PageRank = 0.25.
+        "origin": "constructed: directed 4-cycle; uniform PageRank 0.25",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=True
+        ),
+        "algo": "pagerank",
+        "params": {},
+        "expected": [0.25, 0.25, 0.25, 0.25],
+    },
+]
+
 EDGE_BETW_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "edge_betweenness_c_path4",
@@ -628,6 +642,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
     "edge_betweenness": EDGE_BETW_MANIFEST,
+    "pagerank": PAGERANK_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

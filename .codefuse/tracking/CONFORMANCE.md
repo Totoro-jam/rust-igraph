@@ -35,6 +35,7 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | harmonic_centrality | 1 | 1 | 1 | 3/3 | `Vec<f64>` per-vertex (unreachable contributes 0; 0.0 for isolated, no NaN). Defined on disconnected graphs. Fixtures: 5-path symmetric profile, 4-star (centre 1.0, leaves 2/3), triangle 1.0. |
 | betweenness | 1 | 1 | 1 | 3/3 | `Vec<f64>` per-vertex Brandes betweenness (unweighted, raw counts). Karate oracle uses 1e-10 tolerance because Zachary has betweenness ≈ 231 (larger magnitudes amplify f64 round-trip noise). Fixtures: 5-path classic [0,3,4,3,0], 4-star centre 3.0, 4-cycle uniform 0.5. |
 | edge_betweenness | 1 | 1 | 1 | 3/3 | `Vec<f64>` per-edge Brandes (deposits dependency on edges instead of vertices). Karate oracle compares via `(min,max)` endpoint-pair canonicalisation since edge ids change across the wire format. Fixtures: 4-path [3,4,3], 4-star uniform 3.0, triangle uniform 1.0. |
+| pagerank | 1 | 1 | 1 | 3/3 | `Vec<f64>` PageRank via power iteration (damping=0.85, eps=1e-10, max_iter=1000). Karate oracle uses 1e-6 tolerance because python-igraph defaults to ARPACK (eigensolver), which converges to the same fixed point but with different fp drift. Fixtures: directed 4-cycle uniform 0.25, triangle uniform 1/3, K4 uniform 0.25. |
 
 ## How to add a row
 
@@ -48,4 +49,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 26 (+ edge_betweenness) | 85 | 34 / 24 / 27 |
+| 1     | 27 (+ pagerank) | 88 | 35 / 25 / 28 |
