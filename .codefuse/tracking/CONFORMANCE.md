@@ -34,6 +34,7 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | closeness | 1 | 1 | 1 | 3/3 | `Vec<Option<f64>>` per-vertex closeness (normalized: `reach / sum_dist`). `None` for isolated. Karate oracle uses 1e-12 tolerance. Fixtures: 5-path → end 0.4, centre 4/6; 4-star → centre 1.0, leaves 0.6; triangle → all 1.0. |
 | harmonic_centrality | 1 | 1 | 1 | 3/3 | `Vec<f64>` per-vertex (unreachable contributes 0; 0.0 for isolated, no NaN). Defined on disconnected graphs. Fixtures: 5-path symmetric profile, 4-star (centre 1.0, leaves 2/3), triangle 1.0. |
 | betweenness | 1 | 1 | 1 | 3/3 | `Vec<f64>` per-vertex Brandes betweenness (unweighted, raw counts). Karate oracle uses 1e-10 tolerance because Zachary has betweenness ≈ 231 (larger magnitudes amplify f64 round-trip noise). Fixtures: 5-path classic [0,3,4,3,0], 4-star centre 3.0, 4-cycle uniform 0.5. |
+| edge_betweenness | 1 | 1 | 1 | 3/3 | `Vec<f64>` per-edge Brandes (deposits dependency on edges instead of vertices). Karate oracle compares via `(min,max)` endpoint-pair canonicalisation since edge ids change across the wire format. Fixtures: 4-path [3,4,3], 4-star uniform 3.0, triangle uniform 1.0. |
 
 ## How to add a row
 
@@ -47,4 +48,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 25 (+ betweenness) | 82 | 33 / 23 / 26 |
+| 1     | 26 (+ edge_betweenness) | 85 | 34 / 24 / 27 |

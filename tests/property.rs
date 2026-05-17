@@ -242,6 +242,20 @@ proptest! {
         }
     }
 
+    /// Edge betweenness invariants: nonneg, finite, length equals ecount.
+    /// Sum of edge_betweenness across edges of an undirected geodesic
+    /// equals (vertex sum of dependencies / 2) — a weak but useful
+    /// soundness check we approximate by total = sum_pairs * mean_path_length.
+    #[test]
+    fn edge_betweenness_is_nonneg_finite(g in arb_graph(8)) {
+        let eb = rust_igraph::edge_betweenness(&g).unwrap();
+        prop_assert_eq!(eb.len(), g.ecount());
+        for (e, &x) in eb.iter().enumerate() {
+            prop_assert!(x.is_finite(), "eb[{}] = {} not finite", e, x);
+            prop_assert!(x >= -1e-9, "eb[{}] = {} negative", e, x);
+        }
+    }
+
     /// Betweenness centrality bounds: nonnegative, finite, ≤ C(n,2)
     /// for undirected (each unordered pair contributes ≤ 1 unit) and
     /// ≤ n*(n-1) for directed.

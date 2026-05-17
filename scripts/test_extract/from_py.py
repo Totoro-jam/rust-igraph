@@ -116,6 +116,21 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EDGE_BETW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edge_betweenness_star_4",
+        # Star centre: each edge serves 3 pairs (centre+leaf, plus 2 leaf-leaf
+        # pairs that traverse this edge).
+        "origin": "constructed: 4-star; each edge betweenness = 3.0",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "edge_betweenness",
+        "params": {},
+        "expected": [3.0, 3.0, 3.0],
+    },
+]
+
 BETW_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "betweenness_star_4",
@@ -431,6 +446,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
+    "edge_betweenness": EDGE_BETW_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

@@ -116,6 +116,17 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "edge_betweenness":
+        # Counterpart of igraph_edge_betweenness(_, NULL_weights, _, ALL_eids,
+        # /*directed=*/g.is_directed(), /*normalized=*/false). Returns a
+        # parallel `{edges: [(u,v),...], values: [...]}` payload so the
+        # oracle test can match by endpoint pair (edge ids vary across
+        # the wire-format reconstruction).
+        directed = g.is_directed()
+        vals = g.edge_betweenness(directed=directed)
+        edges = [list(e.tuple) for e in g.es]
+        return {"edges": edges, "values": [float(v) for v in vals]}
+
     if algo == "betweenness":
         # Counterpart of igraph_betweenness(_, _, vss_all(),
         # /*directed=*/g.is_directed(), NULL_weights).

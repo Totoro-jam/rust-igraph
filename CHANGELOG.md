@@ -11,6 +11,16 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-010**: edge betweenness centrality
+  (`edge_betweenness`). Brandes' framework but accumulates dependency
+  on edges. Counterpart of `igraph_edge_betweenness()` from
+  `references/igraph/src/centrality/betweenness.c:766+`. Phase-1
+  minimal slice: undirected/IGRAPH_OUT, unweighted, raw counts.
+  Full 9-step SOP: 8 unit tests, 1 oracle test (uses endpoint-pair
+  canonicalisation since edge ids change across the wire), 3
+  three-source conformance fixtures, 1 proptest invariant
+  (nonneg + finite + length match).
+
 - *(properties)* **ALGO-PR-008**: betweenness centrality (`betweenness`).
   Returns `Vec<f64>` — Brandes' (2001) BFS-based algorithm for the
   unweighted case. Counterpart of `igraph_betweenness()` from

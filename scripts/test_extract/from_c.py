@@ -146,6 +146,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EDGE_BETW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edge_betweenness_c_path4",
+        # Path 0-1-2-3 (3 edges): textbook edge betweenness 3, 4, 3.
+        "origin": "constructed: 4-path; edge_betweenness via python-igraph 0.11",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "edge_betweenness",
+        "params": {},
+        "expected": [3.0, 4.0, 3.0],
+    },
+]
+
 BETW_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "betweenness_c_path5",
@@ -613,6 +627,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
+    "edge_betweenness": EDGE_BETW_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

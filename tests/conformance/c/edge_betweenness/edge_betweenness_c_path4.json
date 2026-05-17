@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "constructed: 4-path; edge_betweenness via python-igraph 0.11",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "edge_betweenness",
+  "params": {},
+  "expected": [
+    3.0,
+    4.0,
+    3.0
+  ]
+}

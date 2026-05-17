@@ -191,6 +191,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EDGE_BETW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edge_betweenness_R_triangle",
+        # Triangle: each direct edge (u,v) covers exactly the (u,v) pair → 1.0 each.
+        "origin": "constructed (R-style): triangle; each edge betweenness = 1.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "edge_betweenness",
+        "params": {},
+        "expected": [1.0, 1.0, 1.0],
+    },
+]
+
 BETW_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "betweenness_R_4cycle",
@@ -543,6 +557,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
+    "edge_betweenness": EDGE_BETW_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

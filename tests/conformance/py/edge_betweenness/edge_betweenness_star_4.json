@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-star; each edge betweenness = 3.0",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "edge_betweenness",
+  "params": {},
+  "expected": [
+    3.0,
+    3.0,
+    3.0
+  ]
+}

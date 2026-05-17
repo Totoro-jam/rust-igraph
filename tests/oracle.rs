@@ -13,9 +13,10 @@ use common::{OracleResponse, run_ok};
 use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
     bfs, bridges, closeness, connected_components, count_reachable, count_triangles, density, dfs,
-    diameter, distances, eccentricity, girth, harmonic_centrality, is_biconnected, mean_distance,
-    radius, reachability_matrix, read_edgelist, reciprocity, strongly_connected_components,
-    transitive_closure, transitivity_local_undirected, transitivity_undirected,
+    diameter, distances, eccentricity, edge_betweenness, girth, harmonic_centrality,
+    is_biconnected, mean_distance, radius, reachability_matrix, read_edgelist, reciprocity,
+    strongly_connected_components, transitive_closure, transitivity_local_undirected,
+    transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -657,6 +658,49 @@ fn transitive_closure_undirected_two_components_matches_python_igraph() {
     assert_eq!(tc.vcount(), py.vcount);
     assert_eq!(tc.is_directed(), py.directed);
     assert_eq!(rust_tc_pairs(&tc), py_tc_pairs(&py));
+}
+
+/// Wire-format payload returned by the `edge_betweenness` oracle.
+#[derive(serde::Deserialize)]
+struct PyEdgeBetweenness {
+    edges: Vec<[u32; 2]>,
+    values: Vec<f64>,
+}
+
+#[test]
+fn edge_betweenness_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+
+    // Rust: build (canonical pair, score) map.
+    let rust_eb = edge_betweenness(&g).unwrap();
+    let m = u32::try_from(g.ecount()).expect("ecount fits");
+    let mut rust_map: std::collections::BTreeMap<(u32, u32), f64> =
+        std::collections::BTreeMap::new();
+    for e in 0..m {
+        let (u, v) = g.edge(e).unwrap();
+        let key = if u <= v { (u, v) } else { (v, u) };
+        // Same pair could appear twice in a multigraph; sum the scores.
+        *rust_map.entry(key).or_insert(0.0) += rust_eb[e as usize];
+    }
+
+    // Python: pull `(edges, values)` and build the same map.
+    let py: PyEdgeBetweenness =
+        serde_json::from_value(run_ok("edge_betweenness", &g, serde_json::json!({})))
+            .expect("decode python edge_betweenness");
+    let mut py_map: std::collections::BTreeMap<(u32, u32), f64> = std::collections::BTreeMap::new();
+    for (pair, &val) in py.edges.iter().zip(py.values.iter()) {
+        let (u, v) = (pair[0], pair[1]);
+        let key = if u <= v { (u, v) } else { (v, u) };
+        *py_map.entry(key).or_insert(0.0) += val;
+    }
+
+    assert_eq!(rust_map.len(), py_map.len(), "edge count mismatch");
+    for ((rk, rv), (pk, pv)) in rust_map.iter().zip(py_map.iter()) {
+        assert_eq!(rk, pk);
+        assert!((rv - pv).abs() < 1e-9, "edge {rk:?}: rust={rv} py={pv}");
+    }
 }
 
 #[test]

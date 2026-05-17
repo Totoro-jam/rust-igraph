@@ -300,6 +300,14 @@ fn reachability_matrix_three_source_conformance() {
 }
 
 #[test]
+fn edge_betweenness_three_source_conformance() {
+    run_conformance("edge_betweenness", |g, _params| {
+        let eb = rust_igraph::edge_betweenness(g).expect("edge_betweenness");
+        serde_json::json!(eb)
+    });
+}
+
+#[test]
 fn betweenness_three_source_conformance() {
     run_conformance("betweenness", |g, _params| {
         let b = rust_igraph::betweenness(g).expect("betweenness");
