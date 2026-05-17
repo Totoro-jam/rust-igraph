@@ -292,6 +292,17 @@ fn count_reachable_three_source_conformance() {
 }
 
 #[test]
+fn assortativity_degree_three_source_conformance() {
+    run_conformance("assortativity_degree", |g, _params| {
+        let r = rust_igraph::assortativity_degree(g).expect("assortativity");
+        match r {
+            Some(v) => serde_json::json!(v),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
 fn density_three_source_conformance() {
     run_conformance("density", |g, _params| {
         let d = rust_igraph::density(g).expect("density");

@@ -11,6 +11,24 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-006**: degree assortativity coefficient
+  (`assortativity_degree`). Returns `Option<f64>` — Pearson
+  correlation of endpoint degrees over the edge list, or `None` for
+  regular graphs (variance denominator zero, matching upstream NaN).
+  Counterpart of `igraph_assortativity_degree(_, _, /*directed=*/false)`
+  from `references/igraph/src/misc/mixing.c:443` and the underlying
+  `igraph_assortativity()` (`mixing.c:273`). Single O(V+E) pass:
+  build degree[], sum num1/num2/den1 over edges. Phase-1 minimal:
+  undirected, unweighted only — directed input returns
+  `IgraphError::Unsupported`. Float-arithmetic ordering matches
+  upstream so f64 results agree to the bit with python-igraph.
+  Full 9-step SOP: 10 unit tests (empty / isolated / regular / K4 /
+  path-3 / star / disjoint pair / directed-rejected / diamond /
+  two-triangles-bridge), 1 oracle test on karate (matches python),
+  3 three-source conformance fixtures (igraph C Zachary → -0.4756,
+  python-igraph K4-minus-edge → -2/3, R path(3) → -1.0), 1 proptest
+  bounds invariant (-1 ≤ r ≤ 1).
+
 - *(properties)* **ALGO-PR-005**: average nearest-neighbour degree
   (`avg_nearest_neighbor_degree`). Returns `Vec<Option<f64>>` —
   `result[v]` is the mean degree over `v`'s neighbours, or `None` if

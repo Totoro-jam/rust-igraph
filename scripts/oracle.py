@@ -83,6 +83,14 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return int(g.diameter())
 
+    if algo == "assortativity_degree":
+        # Counterpart of igraph_assortativity_degree(_, _, /*directed=*/false).
+        # python-igraph returns NaN for regular graphs; we encode as None.
+        v = g.assortativity_degree(directed=False)
+        if v != v:
+            return None
+        return float(v)
+
     if algo == "count_triangles":
         # python-igraph 0.11 doesn't expose `count_triangles` directly;
         # it offers `list_triangles()` which returns one tuple per

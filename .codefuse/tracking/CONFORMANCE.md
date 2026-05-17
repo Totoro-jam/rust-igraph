@@ -28,6 +28,7 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | mean_distance | 1 | 1 | 1 | 3/3 | `Option<f64>` — None for n<2 or no connected pairs. Same float-tolerance comparison as density. |
 | eulerian_path | 1 | 0 | 1 | 2/2 | py-skipped (python-igraph 0.11.x has no Eulerian API). Multiple valid walks exist for a given graph; conformance fixtures compare `len(walk)` only — proptest `eulerian_path_visits_every_edge_once_when_it_exists` enforces the actual structural correctness. |
 | count_reachable | 1 | 1 | 1 | 3/3 | `Vec<u32>`. python-igraph 0.11 lacks `count_reachable` directly; oracle uses `len(g.subcomponent(v, mode='out'))` per vertex. |
+| assortativity_degree | 1 | 1 | 1 | 3/3 | `Option<f64>`; `None` for regular graphs (variance denominator zero — matches upstream NaN). Fixtures: igraph C Famous("Zachary") → -0.4756, python-igraph K4-minus-edge → -2/3, R path(3) → -1.0 (perfectly disassortative). Phase-1 minimal: undirected, unweighted only. |
 
 ## How to add a row
 
@@ -41,4 +42,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 19 (+ count_reachable) | 64 | 27 / 17 / 20 |
+| 1     | 20 (+ assortativity_degree) | 67 | 28 / 18 / 21 |

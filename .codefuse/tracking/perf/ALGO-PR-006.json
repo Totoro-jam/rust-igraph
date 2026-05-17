@@ -1,0 +1,8 @@
+{
+  "awu": "ALGO-PR-006",
+  "rust_karate_ns": null,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-17",
+  "git_commit": "408531b",
+  "notes": "Phase 1 degree assortativity via src/algorithms/properties/assortativity.rs. Single O(V+E) pass: build degree[] (V calls), then sum num1/num2/den1 over edges (E calls). No standalone bench: cost is dominated by graph.degree() (V calls) + graph.edge() (E calls) — no nontrivial inner work. Karate ~ 34*0.3µs + 78*0.1µs ≈ 18 µs estimated. Mode-aware (IGRAPH_OUT/IN) and weighted variants ship in PR-006b/c."
+}

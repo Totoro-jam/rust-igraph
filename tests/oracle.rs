@@ -11,9 +11,9 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok};
 use rust_igraph::{
-    Graph, articulation_points, avg_nearest_neighbor_degree, bfs, bridges, connected_components,
-    count_reachable, count_triangles, density, dfs, diameter, distances, eccentricity, girth,
-    is_biconnected, mean_distance, radius, read_edgelist, reciprocity,
+    Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, bfs, bridges,
+    connected_components, count_reachable, count_triangles, density, dfs, diameter, distances,
+    eccentricity, girth, is_biconnected, mean_distance, radius, read_edgelist, reciprocity,
     strongly_connected_components, transitivity_local_undirected, transitivity_undirected,
 };
 
@@ -557,6 +557,22 @@ fn knn_karate_matches_python_igraph() {
             (None, None) => {}
             (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
         }
+    }
+}
+
+#[test]
+fn assortativity_degree_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let rust = assortativity_degree(&g).unwrap();
+    let py: Option<f64> =
+        serde_json::from_value(run_ok("assortativity_degree", &g, serde_json::json!({})))
+            .expect("decode python assortativity");
+    match (rust, py) {
+        (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "rust={r} py={p}"),
+        (None, None) => {}
+        (a, b) => panic!("rust={a:?} py={b:?}"),
     }
 }
 

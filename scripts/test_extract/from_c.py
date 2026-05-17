@@ -188,6 +188,19 @@ EUL_PATH_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ASSORT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assortativity_c_zachary",
+        # Famous("Zachary") is the canonical example for degree
+        # assortativity (negative — high-deg core attached to low-deg leaves).
+        "origin": "Famous('Zachary'); assortativity_degree via python-igraph 0.11",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "assortativity_degree",
+        "params": {},
+        "expected": -0.47561309768461435,
+    },
+]
+
 DENSITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "density_c_zachary",
@@ -517,6 +530,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_reachable": REACH_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
+    "assortativity_degree": ASSORT_MANIFEST,
 }
 
 

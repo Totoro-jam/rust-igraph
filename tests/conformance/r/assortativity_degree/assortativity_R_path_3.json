@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "test-aaa-auto.R-style \u2014 path_graph(n=3); assortativity_degree = -1.0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "assortativity_degree",
+  "params": {},
+  "expected": -1.0
+}

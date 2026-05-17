@@ -242,6 +242,18 @@ proptest! {
         }
     }
 
+    /// Assortativity bounds: when defined, the Pearson correlation lies
+    /// in [-1, 1] (with small float slack at the boundaries). Skip the
+    /// directed-error case via try_into. None for regular graphs.
+    #[test]
+    fn assortativity_in_minus_one_to_one(g in arb_graph(8)) {
+        if let Some(r) = rust_igraph::assortativity_degree(&g).unwrap() {
+            prop_assert!((-1.0 - 1e-9..=1.0 + 1e-9).contains(&r),
+                         "assortativity {r} outside [-1, 1]");
+            prop_assert!(r.is_finite());
+        }
+    }
+
     /// Density bounds: 0 ≤ density ≤ 1 for graphs without parallel edges
     /// (proptest's arb_graph allows multigraphs, so density may exceed 1
     /// — only check the lower bound). Empty/singleton: None.

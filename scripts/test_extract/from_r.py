@@ -220,6 +220,21 @@ EUL_PATH_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ASSORT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assortativity_R_path_3",
+        # R-style basic test: path_graph(3) — the canonical -1.0
+        # disassortative case (deg=[1,2,1]).
+        "origin": "test-aaa-auto.R-style — path_graph(n=3); assortativity_degree = -1.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "assortativity_degree",
+        "params": {},
+        "expected": -1.0,
+    },
+]
+
 DENSITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "density_R_path_3",
@@ -445,6 +460,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_reachable": REACH_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
+    "assortativity_degree": ASSORT_MANIFEST,
 }
 
 
