@@ -11,6 +11,22 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(core)* **ALGO-CORE-001d**: edge query helpers on `Graph`:
+  - `get_eid(from, to) -> IgraphResult<EdgeId>` — error if no edge.
+  - `find_eid(from, to) -> IgraphResult<Option<EdgeId>>` — None if no edge.
+  - `get_all_eids_between(from, to) -> IgraphResult<Vec<EdgeId>>` —
+    all parallel edges, sorted ascending.
+  Counterparts of `igraph_get_eid()` / `igraph_get_eids()` /
+  `igraph_get_all_eids_between()` from
+  `references/igraph/src/graph/type_indexededgelist.c:1522-1773`.
+  Phase-1 minimal slice: linear scan across the from-bucket
+  (O(deg(from))). Upstream's binary-search optimisation lands in a
+  perf pass.
+  Undirected lookup canonicalises the pair to (min, max) and searches
+  the bucket of the smaller endpoint. Self-loops handled correctly.
+  7 new unit tests (undirected/directed lookup, parallel edges,
+  self-loop, missing-edge None/err, deg-direction respected).
+
 - *(properties)* **ALGO-PR-006**: degree assortativity coefficient
   (`assortativity_degree`). Returns `Option<f64>` — Pearson
   correlation of endpoint degrees over the edge list, or `None` for

@@ -315,6 +315,88 @@ impl Graph {
         }
     }
 
+    /// Edge id between `from` and `to`, if any.
+    ///
+    /// On undirected graphs `(u, v)` and `(v, u)` are equivalent.
+    /// On directed graphs the search follows the edge direction
+    /// `from -> to`. Returns [`crate::IgraphError::InvalidArgument`]
+    /// when no such edge exists; for the "no error, return None" variant
+    /// use [`Self::find_eid`].
+    ///
+    /// Counterpart of
+    /// `igraph_get_eid(_, _, from, to, /*directed=*/true, /*error=*/true)`
+    /// from `references/igraph/src/graph/type_indexededgelist.c:1522-1555`.
+    /// Phase-1 minimal slice: linear scan across the from-bucket; the
+    /// upstream binary-search optimisation lands in a perf pass.
+    pub fn get_eid(&self, from: VertexId, to: VertexId) -> IgraphResult<EdgeId> {
+        self.find_eid(from, to)?
+            .ok_or_else(|| IgraphError::InvalidArgument(format!("no edge between {from} and {to}")))
+    }
+
+    /// Edge id between `from` and `to`, or `None` if not connected.
+    ///
+    /// Same semantics as [`Self::get_eid`] but no-error variant
+    /// matching upstream's `error=false` mode. When parallel edges
+    /// exist, returns the lowest edge id (matching upstream's
+    /// "always returns the same edge ID" guarantee).
+    pub fn find_eid(&self, from: VertexId, to: VertexId) -> IgraphResult<Option<EdgeId>> {
+        self.check_vertex(from)?;
+        self.check_vertex(to)?;
+        if self.directed {
+            // Search out-bucket of `from` for `to[e] == to`.
+            let range = self.os[from as usize] as usize..self.os[from as usize + 1] as usize;
+            for &e in &self.oi[range] {
+                if self.to[e as usize] == to {
+                    return Ok(Some(e));
+                }
+            }
+            Ok(None)
+        } else {
+            // Undirected: edges canonicalised so `from[e] <= to[e]`.
+            // Search the bucket of the smaller endpoint for the larger.
+            let (lo, hi) = if from <= to { (from, to) } else { (to, from) };
+            let range = self.os[lo as usize] as usize..self.os[lo as usize + 1] as usize;
+            for &e in &self.oi[range] {
+                if self.to[e as usize] == hi {
+                    return Ok(Some(e));
+                }
+            }
+            Ok(None)
+        }
+    }
+
+    /// All edge ids between `from` and `to`, including parallel edges
+    /// and (for self-loops) the loop edge once.
+    ///
+    /// Counterpart of
+    /// `igraph_get_all_eids_between()` from
+    /// `references/igraph/src/graph/type_indexededgelist.c:~1700`.
+    /// On undirected graphs `(u, v)` and `(v, u)` are equivalent. The
+    /// returned vector is sorted ascending by edge id.
+    pub fn get_all_eids_between(&self, from: VertexId, to: VertexId) -> IgraphResult<Vec<EdgeId>> {
+        self.check_vertex(from)?;
+        self.check_vertex(to)?;
+        let mut out = Vec::new();
+        if self.directed {
+            let range = self.os[from as usize] as usize..self.os[from as usize + 1] as usize;
+            for &e in &self.oi[range] {
+                if self.to[e as usize] == to {
+                    out.push(e);
+                }
+            }
+        } else {
+            let (lo, hi) = if from <= to { (from, to) } else { (to, from) };
+            let range = self.os[lo as usize] as usize..self.os[lo as usize + 1] as usize;
+            for &e in &self.oi[range] {
+                if self.to[e as usize] == hi {
+                    out.push(e);
+                }
+            }
+        }
+        out.sort_unstable();
+        Ok(out)
+    }
+
     /// Out-neighbours of `v` (always — directed or undirected). Each
     /// edge contributes one entry, in `oi[os[v]..os[v+1]]` order
     /// (lex by `(from, to)`). Self-loops appear once.
@@ -646,5 +728,75 @@ mod tests {
         assert_eq!(g.incident(0).unwrap(), vec![0]);
         assert_eq!(g.incident(2).unwrap(), vec![1]);
         assert!(g.incident(1).unwrap().is_empty());
+    }
+
+    #[test]
+    fn get_eid_undirected_finds_edge_either_way() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap(); // edge 0
+        g.add_edge(1, 2).unwrap(); // edge 1
+        assert_eq!(g.get_eid(0, 1).unwrap(), 0);
+        assert_eq!(g.get_eid(1, 0).unwrap(), 0);
+        assert_eq!(g.get_eid(1, 2).unwrap(), 1);
+        assert_eq!(g.get_eid(2, 1).unwrap(), 1);
+    }
+
+    #[test]
+    fn get_eid_directed_respects_direction() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap(); // edge 0
+        assert_eq!(g.get_eid(0, 1).unwrap(), 0);
+        assert!(g.get_eid(1, 0).is_err()); // reverse direction has no edge
+    }
+
+    #[test]
+    fn find_eid_returns_none_for_missing() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        assert_eq!(g.find_eid(0, 2).unwrap(), None);
+        assert!(g.find_eid(0, 99).is_err()); // out-of-range vertex
+    }
+
+    #[test]
+    fn get_eid_self_loop() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 0).unwrap(); // self-loop, edge 0
+        g.add_edge(0, 1).unwrap(); // edge 1
+        assert_eq!(g.get_eid(0, 0).unwrap(), 0);
+        assert_eq!(g.get_eid(0, 1).unwrap(), 1);
+    }
+
+    #[test]
+    fn get_all_eids_between_returns_all_parallel() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap(); // edge 0
+        g.add_edge(0, 1).unwrap(); // edge 1
+        g.add_edge(0, 1).unwrap(); // edge 2
+        let eids = g.get_all_eids_between(0, 1).unwrap();
+        assert_eq!(eids, vec![0, 1, 2]);
+        // Reverse direction yields the same edges on undirected.
+        let eids = g.get_all_eids_between(1, 0).unwrap();
+        assert_eq!(eids, vec![0, 1, 2]);
+    }
+
+    #[test]
+    fn get_all_eids_between_directed_one_way_only() {
+        let mut g = Graph::new(2, true).unwrap();
+        g.add_edge(0, 1).unwrap(); // edge 0
+        g.add_edge(0, 1).unwrap(); // edge 1 (parallel)
+        assert_eq!(g.get_all_eids_between(0, 1).unwrap(), vec![0, 1]);
+        // Reverse direction has no edges in directed graph.
+        assert_eq!(g.get_all_eids_between(1, 0).unwrap(), Vec::<EdgeId>::new());
+    }
+
+    #[test]
+    fn get_eid_returns_lowest_id_for_parallel() {
+        // Spec: with multiple edges, get_eid always returns the same
+        // edge id (matches upstream's "ignored multi-edges" guarantee).
+        // Our impl returns the lowest from the bucket.
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap(); // edge 0
+        g.add_edge(0, 1).unwrap(); // edge 1
+        assert_eq!(g.get_eid(0, 1).unwrap(), 0);
     }
 }
