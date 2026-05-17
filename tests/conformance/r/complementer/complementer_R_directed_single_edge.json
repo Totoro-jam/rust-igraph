@@ -1,0 +1,45 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed single edge; complementer (loops=False) adds 5 reverse/missing pairs",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "complementer",
+  "params": {
+    "loops": false
+  },
+  "expected": {
+    "vcount": 3,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ]
+    ]
+  }
+}

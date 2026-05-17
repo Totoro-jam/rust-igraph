@@ -174,6 +174,14 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "complementer":
+        # Counterpart of igraph_complementer(_, &graph, loops).
+        # python-igraph's `g.complementer(loops=...)` returns a new Graph.
+        loops = bool(params.get("loops", False))
+        c = g.complementer(loops=loops)
+        edges = [list(e.tuple) for e in c.es]
+        return {"vcount": c.vcount(), "directed": c.is_directed(), "edges": edges}
+
     if algo == "dijkstra_distances":
         # Counterpart of igraph_distances_dijkstra(_, _, single source,
         # to=igraph_vss_all(), &weights, IGRAPH_OUT). The wire payload

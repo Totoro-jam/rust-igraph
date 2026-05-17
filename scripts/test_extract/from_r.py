@@ -290,6 +290,26 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COMPLEMENTER_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "complementer_R_directed_single_edge",
+        # rigraph mirrors igraph_complementer; directed (0,1) on 3
+        # vertices, loops=False → 5 missing directed edges.
+        "origin": "constructed (rigraph-style): directed single edge; complementer "
+        "(loops=False) adds 5 reverse/missing pairs",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1)], directed=True
+        ),
+        "algo": "complementer",
+        "params": {"loops": False},
+        "expected": {
+            "vcount": 3,
+            "directed": True,
+            "edges": [[0, 2], [1, 0], [1, 2], [2, 0], [2, 1]],
+        },
+    },
+]
+
 DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "dijkstra_R_undirected_partial_unreachable",
@@ -761,6 +781,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
+    "complementer": COMPLEMENTER_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

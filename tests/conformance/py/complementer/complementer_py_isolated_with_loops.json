@@ -1,0 +1,44 @@
+{
+  "source": "py",
+  "origin": "constructed: 3 isolated vertices; complementer(loops=True) is K3 + self-loops",
+  "graph": {
+    "n": 3,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "complementer",
+  "params": {
+    "loops": true
+  },
+  "expected": {
+    "vcount": 3,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ]
+  }
+}

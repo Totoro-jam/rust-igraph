@@ -11,6 +11,22 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(operators)* **ALGO-OP-003**: `complementer`. Returns a new graph
+  containing every `(u, v)` edge the input does not. Toggles
+  self-loops via the `loops` flag. Counterpart of
+  `igraph_complementer()` from
+  `references/igraph/src/operators/complementer.c`. Phase-1 minimal
+  slice drops attributes. Uses a sorted-set lookup for O(|V|² log |V|)
+  in the worst case; complete graphs short-circuit quickly because
+  the iteration only touches `n²` candidate pairs.
+  Full 9-step SOP: 11 unit tests (incl. K_n round-trip, double-complement
+  identity, directed with loops, parallel-edge collapse), 3 oracle
+  tests, 3 three-source conformance fixtures (C 3-path no-loops, py
+  3 isolated with loops, R directed single edge), 1 proptest
+  invariant cross-checking the edge-count identity `m + m_complement
+  = n(n-1)/2` for simple inputs and that double-complement of
+  `simplify(g)` recovers it.
+
 - *(paths)* **ALGO-SP-001**: `dijkstra_distances` — single-source
   weighted shortest distances via Dijkstra's algorithm with a binary
   heap. Returns `Vec<Option<f64>>` (None = unreachable). Counterpart

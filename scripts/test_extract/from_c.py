@@ -273,6 +273,25 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COMPLEMENTER_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "complementer_c_path_three_no_loops",
+        # From references/igraph/examples/simple/igraph_complementer.c style:
+        # 3-path complementer (no loops) is the single missing chord (0,2).
+        "origin": "constructed: 3-path; complementer (no loops) = single chord (0,2)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "complementer",
+        "params": {"loops": False},
+        "expected": {
+            "vcount": 3,
+            "directed": False,
+            "edges": [[0, 2]],
+        },
+    },
+]
+
 DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "dijkstra_c_triangle_with_shortcut",
@@ -856,6 +875,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
+    "complementer": COMPLEMENTER_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

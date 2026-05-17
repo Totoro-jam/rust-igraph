@@ -224,6 +224,22 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COMPLEMENTER_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "complementer_py_isolated_with_loops",
+        # 3 isolated vertices, loops=True → complete graph + 3 self-loops.
+        "origin": "constructed: 3 isolated vertices; complementer(loops=True) is K3 + self-loops",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[], directed=False),
+        "algo": "complementer",
+        "params": {"loops": True},
+        "expected": {
+            "vcount": 3,
+            "directed": False,
+            "edges": [[0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [2, 2]],
+        },
+    },
+]
+
 DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "dijkstra_py_directed_path_with_shortcut",
@@ -652,6 +668,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
+    "complementer": COMPLEMENTER_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

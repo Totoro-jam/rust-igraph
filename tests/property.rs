@@ -332,6 +332,46 @@ proptest! {
         prop_assert!(q_each.abs() <= 1.0 + 1e-9, "Q(singletons)={} > 1", q_each);
     }
 
+    /// `complementer` invariants (undirected, simple input):
+    /// - vcount preserved
+    /// - for a simple graph (no loops, no parallel edges):
+    ///   ecount(original) + ecount(complement(loops=false)) ==
+    ///   n*(n-1)/2 (the complete-graph edge count for undirected)
+    /// - complement(complement(g, false), false) == g (double-complement
+    ///   is identity for simple undirected inputs)
+    /// - complement(g, true) has every vertex with at most one self-loop
+    #[test]
+    fn complementer_double_complement_recovers_simple_graphs(g in arb_graph(8)) {
+        let c = rust_igraph::complementer(&g, false).unwrap();
+        prop_assert_eq!(c.vcount(), g.vcount());
+        prop_assert_eq!(c.is_directed(), g.is_directed());
+
+        // Edge-count identity only holds for simple inputs (no loops,
+        // no parallels). simplify() makes it simple first.
+        let simple = rust_igraph::simplify(&g, true, true).unwrap();
+        let simple_c = rust_igraph::complementer(&simple, false).unwrap();
+        let n = u64::from(simple.vcount());
+        let max_edges = if simple.is_directed() {
+            n.saturating_mul(n.saturating_sub(1))
+        } else {
+            n.saturating_mul(n.saturating_sub(1)) / 2
+        };
+        prop_assert_eq!(
+            simple.ecount() as u64 + simple_c.ecount() as u64,
+            max_edges,
+        );
+
+        // Double-complement recovers the (simplified) graph.
+        let cc = rust_igraph::complementer(&simple_c, false).unwrap();
+        let m_simple = u32::try_from(simple.ecount()).unwrap();
+        let m_cc = u32::try_from(cc.ecount()).unwrap();
+        let mut a: Vec<_> = (0..m_simple).map(|e| simple.edge(e).unwrap()).collect();
+        let mut b: Vec<_> = (0..m_cc).map(|e| cc.edge(e).unwrap()).collect();
+        a.sort_unstable();
+        b.sort_unstable();
+        prop_assert_eq!(a, b);
+    }
+
     /// Dijkstra distances invariants:
     /// - all-unit weights collapse to the BFS distance (SP-006)
     /// - source distance is 0.0

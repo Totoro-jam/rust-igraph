@@ -12,11 +12,11 @@ use std::fs::File;
 use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
-    bfs, biconnected_components, bridges, closeness, connected_components, count_reachable,
-    count_triangles, density, dfs, diameter, dijkstra_distances, disjoint_union, distances,
-    eccentricity, edge_betweenness, eigenvector_centrality, girth, harmonic_centrality, has_loop,
-    has_multiple, is_biconnected, is_loop, is_multiple, is_simple, mean_distance, modularity,
-    pagerank, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
+    bfs, biconnected_components, bridges, closeness, complementer, connected_components,
+    count_reachable, count_triangles, density, dfs, diameter, dijkstra_distances, disjoint_union,
+    distances, eccentricity, edge_betweenness, eigenvector_centrality, girth, harmonic_centrality,
+    has_loop, has_multiple, is_biconnected, is_loop, is_multiple, is_simple, mean_distance,
+    modularity, pagerank, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
     strongly_connected_components, transitive_closure, transitivity_local_undirected,
     transitivity_undirected,
 };
@@ -1295,4 +1295,94 @@ fn dijkstra_distances_directed_matches_python_igraph() {
             (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
         }
     }
+}
+
+/// Wire-format payload returned by the `complementer` oracle.
+#[derive(serde::Deserialize)]
+struct PyComplementer {
+    vcount: u32,
+    directed: bool,
+    edges: Vec<[u32; 2]>,
+}
+
+fn rust_complementer_pairs(g: &Graph) -> Vec<(u32, u32)> {
+    let m = u32::try_from(g.ecount()).unwrap();
+    let mut v: Vec<_> = (0..m).map(|e| g.edge(e).unwrap()).collect();
+    v.sort_unstable();
+    v
+}
+
+fn py_complementer_pairs(py: &PyComplementer, undirected: bool) -> Vec<(u32, u32)> {
+    let mut v: Vec<(u32, u32)> = py
+        .edges
+        .iter()
+        .map(|p| {
+            if undirected && p[0] > p[1] {
+                (p[1], p[0])
+            } else {
+                (p[0], p[1])
+            }
+        })
+        .collect();
+    v.sort_unstable();
+    v
+}
+
+#[test]
+fn complementer_path_undirected_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let rust = complementer(&g, false).unwrap();
+    let py: PyComplementer = serde_json::from_value(run_ok(
+        "complementer",
+        &g,
+        serde_json::json!({"loops": false}),
+    ))
+    .expect("decode python complementer");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(
+        rust_complementer_pairs(&rust),
+        py_complementer_pairs(&py, true)
+    );
+}
+
+#[test]
+fn complementer_with_loops_matches_python_igraph() {
+    let g = Graph::with_vertices(3);
+    let rust = complementer(&g, true).unwrap();
+    let py: PyComplementer = serde_json::from_value(run_ok(
+        "complementer",
+        &g,
+        serde_json::json!({"loops": true}),
+    ))
+    .expect("decode python complementer");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(
+        rust_complementer_pairs(&rust),
+        py_complementer_pairs(&py, true)
+    );
+}
+
+#[test]
+fn complementer_directed_matches_python_igraph() {
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let rust = complementer(&g, false).unwrap();
+    let py: PyComplementer = serde_json::from_value(run_ok(
+        "complementer",
+        &g,
+        serde_json::json!({"loops": false}),
+    ))
+    .expect("decode python complementer");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert!(rust.is_directed());
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(
+        rust_complementer_pairs(&rust),
+        py_complementer_pairs(&py, false)
+    );
 }

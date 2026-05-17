@@ -521,6 +521,30 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn complementer_three_source_conformance() {
+    run_conformance("complementer", |g, params| {
+        let loops = params
+            .get("loops")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        let c = rust_igraph::complementer(g, loops).expect("complementer");
+        let m = u32::try_from(c.ecount()).expect("ecount fits in u32");
+        let mut edges: Vec<[u32; 2]> = (0..m)
+            .map(|e| {
+                let (a, b) = c.edge(e).unwrap();
+                [a, b]
+            })
+            .collect();
+        edges.sort_unstable();
+        serde_json::json!({
+            "vcount": c.vcount(),
+            "directed": c.is_directed(),
+            "edges": edges,
+        })
+    });
+}
+
+#[test]
 fn disjoint_union_three_source_conformance() {
     run_conformance("disjoint_union", |g, params| {
         let right_payload: GraphPayload = serde_json::from_value(
