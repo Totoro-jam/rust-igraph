@@ -1,0 +1,42 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): simplify(multiple=F, loops=T) on directed (0,0)x3 + (1,0)",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "simplify",
+  "params": {
+    "remove_multiple": false,
+    "remove_loops": true
+  },
+  "expected": {
+    "vcount": 2,
+    "directed": true,
+    "edges": [
+      [
+        1,
+        0
+      ]
+    ]
+  }
+}

@@ -174,6 +174,19 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "simplify":
+        # Counterpart of igraph_simplify(g, remove_multiple, remove_loops, NULL).
+        # python-igraph mutates in place; we copy first and return the new
+        # edge list in the canonical wire format. Edge order after simplify
+        # depends on python-igraph's internal sort; the runner sorts both
+        # sides before comparing.
+        remove_multiple = bool(params.get("remove_multiple", True))
+        remove_loops = bool(params.get("remove_loops", True))
+        h = g.copy()
+        h.simplify(multiple=remove_multiple, loops=remove_loops)
+        edges = [list(e.tuple) for e in h.es]
+        return {"vcount": h.vcount(), "directed": h.is_directed(), "edges": edges}
+
     if algo == "transitive_closure":
         # Counterpart of igraph_transitive_closure(). python-igraph 0.11
         # has no direct API; emulate by computing per-vertex reachable sets

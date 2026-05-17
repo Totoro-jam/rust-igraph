@@ -224,6 +224,22 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+SIMPLIFY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "simplify_py_loops_no_multi",
+        # From python-igraph tests/test_operators.py: simplify(loops=False)
+        # only removes parallel edges; loops survive. We seed (0,0)(0,1)(0,1)
+        # → simplify(multiple=True, loops=False) keeps the loop and one (0,1).
+        "origin": "test_operators.py:432: g.simplify(loops=False) only removes multi-edges",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 0), (0, 1), (0, 1)], directed=False
+        ),
+        "algo": "simplify",
+        "params": {"remove_multiple": True, "remove_loops": False},
+        "expected": {"vcount": 2, "directed": False, "edges": [[0, 0], [0, 1]]},
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_py_undirected_path2",
@@ -494,6 +510,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
+    "simplify": SIMPLIFY_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

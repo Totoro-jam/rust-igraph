@@ -400,6 +400,34 @@ fn transitive_closure_three_source_conformance() {
 }
 
 #[test]
+fn simplify_three_source_conformance() {
+    run_conformance("simplify", |g, params| {
+        let remove_multiple = params
+            .get("remove_multiple")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(true);
+        let remove_loops = params
+            .get("remove_loops")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(true);
+        let s = rust_igraph::simplify(g, remove_multiple, remove_loops).expect("simplify");
+        let m = u32::try_from(s.ecount()).expect("ecount fits in u32");
+        let mut edges: Vec<[u32; 2]> = (0..m)
+            .map(|e| {
+                let (u, v) = s.edge(e).unwrap();
+                [u, v]
+            })
+            .collect();
+        edges.sort_unstable();
+        serde_json::json!({
+            "vcount": s.vcount(),
+            "directed": s.is_directed(),
+            "edges": edges,
+        })
+    });
+}
+
+#[test]
 fn assortativity_degree_three_source_conformance() {
     run_conformance("assortativity_degree", |g, _params| {
         let r = rust_igraph::assortativity_degree(g).expect("assortativity");

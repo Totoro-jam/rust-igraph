@@ -11,6 +11,23 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(operators)* **ALGO-OP-001**: `simplify` (remove self-loops and/or
+  parallel edges). Returns a new [`Graph`] (upstream igraph mutates in
+  place; we prefer immutability). Counterpart of `igraph_simplify()`
+  from `references/igraph/src/operators/simplify.c`. Phase-1 minimal
+  slice ignores edge-attribute combination (`edge_comb` argument);
+  attributes ship later under ALGO-AT-*. Both directed and undirected
+  graphs are supported.
+  Full 9-step SOP: 10 unit tests (no-op, loops only, multi only,
+  loops+multi, idempotence on simple graph, empty graph, isolated
+  vertices, two igraph_simplify.c example regression cases),
+  3 oracle tests on synthetic graphs, 3 three-source conformance
+  fixtures (igraph C `igraph_simplify.c` 5x parallel undirected;
+  python-igraph `test_operators.py` loops-no-multi; rigraph-style
+  directed-loops-only), 1 proptest invariant (vcount/directedness
+  preserved, ecount monotone, no surviving loops/parallels per flag,
+  idempotent under the same flags).
+
 - *(properties)* **ALGO-PR-012**: eigenvector centrality
   (`eigenvector_centrality`, undirected). Returns `Vec<f64>` —
   dominant-eigenvector entries normalized so `max == 1`. Implemented

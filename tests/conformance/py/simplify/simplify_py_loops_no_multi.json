@@ -1,0 +1,42 @@
+{
+  "source": "py",
+  "origin": "test_operators.py:432: g.simplify(loops=False) only removes multi-edges",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "simplify",
+  "params": {
+    "remove_multiple": true,
+    "remove_loops": false
+  },
+  "expected": {
+    "vcount": 2,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}

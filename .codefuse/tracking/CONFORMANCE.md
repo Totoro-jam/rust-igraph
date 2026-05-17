@@ -38,6 +38,7 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | pagerank | 1 | 1 | 1 | 3/3 | `Vec<f64>` PageRank via power iteration (damping=0.85, eps=1e-10, max_iter=1000). Karate oracle uses 1e-6 tolerance because python-igraph defaults to ARPACK (eigensolver), which converges to the same fixed point but with different fp drift. Fixtures: directed 4-cycle uniform 0.25, triangle uniform 1/3, K4 uniform 0.25. |
 | biconnected_components | 1 | 1 | 1 | 3/3 | Multi-output: `{count, components, articulation_points}`. Components canonicalised (each sorted, list sorted) for stable comparison. Fixtures: igraph C upstream `igraph_biconnected_components.c` 10v graph (4 components, APs [2,5]); python-igraph 4-star (3 components, AP [0]); R triangle (1 component, no APs). |
 | eigenvector_centrality | 1 | 1 | 1 | 3/3 | `Vec<f64>` via shifted power iteration `(A+I)·x` (breaks ±λ symmetry on bipartite graphs); normalized so max=1. Tighter eps (1e-14) than other centrality AWUs to match python-igraph's ARPACK precision. Karate oracle uses 1e-6 tolerance. Fixtures: triangle uniform 1.0; 4-star centre 1, leaves 1/√3; K4 uniform 1.0. |
+| simplify  | 1 | 1 | 1 | 3/3  | Multi-output `Graph` (returns a copy; upstream igraph mutates in place). Wire format `{vcount, directed, edges}`; runner sorts edges before comparison and the oracle test canonicalises endpoints to handle python-igraph's reordering of (a,b) ⇄ (b,a) for undirected graphs. Fixtures exercise all three flag combos: igraph C `igraph_simplify.c` 5x parallel undirected with `(remove_multiple=true, remove_loops=true)`; python-igraph `test_operators.py:432 simplify(loops=False)` (multi only); rigraph-style directed `(remove_multiple=false, remove_loops=true)` to verify directed (a,b) and (b,a) survive when only loops are stripped. |
 
 ## How to add a row
 
@@ -51,4 +52,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 29 (+ eigenvector_centrality) | 94 | 37 / 27 / 30 |
+| 1     | 30 (+ simplify) | 97 | 38 / 28 / 31 |

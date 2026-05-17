@@ -290,6 +290,25 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+SIMPLIFY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "simplify_R_directed_loops_only",
+        # rigraph mirrors igraph_simplify_example_directed_loops_and_multi:
+        # simplify(remove.multiple = FALSE, remove.loops = TRUE) on
+        # directed (2,2)(2,2)(2,2)(3,2) leaves (3,2). We swap to small ids
+        # (0,0)x3 + (1,0) so the fixture stays compact while exercising
+        # remove_loops=true remove_multiple=false on a directed graph.
+        "origin": "constructed (rigraph-style): simplify(multiple=F, loops=T) "
+        "on directed (0,0)x3 + (1,0)",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 0), (0, 0), (0, 0), (1, 0)], directed=True
+        ),
+        "algo": "simplify",
+        "params": {"remove_multiple": False, "remove_loops": True},
+        "expected": {"vcount": 2, "directed": True, "edges": [[1, 0]]},
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_R_undirected_path3",
@@ -596,6 +615,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
+    "simplify": SIMPLIFY_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

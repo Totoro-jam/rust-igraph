@@ -15,8 +15,9 @@ use rust_igraph::{
     bfs, biconnected_components, bridges, closeness, connected_components, count_reachable,
     count_triangles, density, dfs, diameter, distances, eccentricity, edge_betweenness,
     eigenvector_centrality, girth, harmonic_centrality, is_biconnected, mean_distance, pagerank,
-    radius, reachability_matrix, read_edgelist, reciprocity, strongly_connected_components,
-    transitive_closure, transitivity_local_undirected, transitivity_undirected,
+    radius, reachability_matrix, read_edgelist, reciprocity, simplify,
+    strongly_connected_components, transitive_closure, transitivity_local_undirected,
+    transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -830,6 +831,103 @@ fn closeness_karate_matches_python_igraph() {
             (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
         }
     }
+}
+
+/// Wire-format payload returned by the `simplify` oracle.
+#[derive(serde::Deserialize)]
+struct PySimplify {
+    vcount: u32,
+    directed: bool,
+    edges: Vec<[u32; 2]>,
+}
+
+fn rust_simplify_pairs(g: &Graph) -> Vec<(u32, u32)> {
+    let m = u32::try_from(g.ecount()).expect("ecount fits in u32");
+    let mut pairs: Vec<(u32, u32)> = (0..m).map(|e| g.edge(e).unwrap()).collect();
+    pairs.sort_unstable();
+    pairs
+}
+
+fn py_simplify_pairs(py: &PySimplify, undirected: bool) -> Vec<(u32, u32)> {
+    let mut pairs: Vec<(u32, u32)> = py
+        .edges
+        .iter()
+        .map(|p| {
+            if undirected && p[0] > p[1] {
+                (p[1], p[0])
+            } else {
+                (p[0], p[1])
+            }
+        })
+        .collect();
+    pairs.sort_unstable();
+    pairs
+}
+
+#[test]
+fn simplify_undirected_loops_and_multi_matches_python_igraph() {
+    // Triangle plus a self-loop and a parallel edge — exercises both flags.
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 0).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 0).unwrap();
+
+    let rust_s = simplify(&g, true, true).unwrap();
+    let py: PySimplify = serde_json::from_value(run_ok(
+        "simplify",
+        &g,
+        serde_json::json!({"remove_multiple": true, "remove_loops": true}),
+    ))
+    .expect("decode python simplify");
+    assert_eq!(rust_s.vcount(), py.vcount);
+    assert_eq!(rust_s.is_directed(), py.directed);
+    assert_eq!(rust_simplify_pairs(&rust_s), py_simplify_pairs(&py, true));
+}
+
+#[test]
+fn simplify_directed_loops_only_matches_python_igraph() {
+    // Directed (a,b) and (b,a) are distinct → with remove_multiple=false
+    // and remove_loops=true they all survive except self-loops.
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 0).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 0).unwrap();
+    g.add_edge(1, 1).unwrap();
+
+    let rust_s = simplify(&g, false, true).unwrap();
+    let py: PySimplify = serde_json::from_value(run_ok(
+        "simplify",
+        &g,
+        serde_json::json!({"remove_multiple": false, "remove_loops": true}),
+    ))
+    .expect("decode python simplify");
+    assert_eq!(rust_s.vcount(), py.vcount);
+    assert_eq!(rust_s.is_directed(), py.directed);
+    assert_eq!(rust_simplify_pairs(&rust_s), py_simplify_pairs(&py, false));
+}
+
+#[test]
+fn simplify_directed_multi_only_matches_python_igraph() {
+    // remove_multiple=true keeps loops but collapses parallels.
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 0).unwrap();
+    g.add_edge(2, 2).unwrap();
+
+    let rust_s = simplify(&g, true, false).unwrap();
+    let py: PySimplify = serde_json::from_value(run_ok(
+        "simplify",
+        &g,
+        serde_json::json!({"remove_multiple": true, "remove_loops": false}),
+    ))
+    .expect("decode python simplify");
+    assert_eq!(rust_s.vcount(), py.vcount);
+    assert_eq!(rust_s.is_directed(), py.directed);
+    assert_eq!(rust_simplify_pairs(&rust_s), py_simplify_pairs(&py, false));
 }
 
 #[test]

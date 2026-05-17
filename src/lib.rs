@@ -38,6 +38,7 @@ pub use crate::algorithms::connectivity::{
     strongly_connected_components, transitive_closure,
 };
 pub use crate::algorithms::io::read_edgelist;
+pub use crate::algorithms::operators::simplify;
 pub use crate::algorithms::paths::{
     EulerianClassification, diameter, distances, eccentricity, eulerian_path, is_eulerian, radius,
 };

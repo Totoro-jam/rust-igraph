@@ -273,6 +273,22 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+SIMPLIFY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "simplify_c_undirected_loops_and_multi",
+        # From references/igraph/examples/simple/igraph_simplify.c case 2:
+        # undirected (1,0)(0,1)(1,0)(0,1)(0,1) → simplify(true,true) leaves
+        # exactly 1 edge (a single 0-1 edge).
+        "origin": "igraph_simplify.c case 2: undirected 5x parallel 0-1; simplify all",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(1, 0), (0, 1), (1, 0), (0, 1), (0, 1)], directed=False
+        ),
+        "algo": "simplify",
+        "params": {"remove_multiple": True, "remove_loops": True},
+        "expected": {"vcount": 2, "directed": False, "edges": [[0, 1]]},
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_c_directed_path3",
@@ -689,6 +705,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
+    "simplify": SIMPLIFY_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

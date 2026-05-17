@@ -283,6 +283,50 @@ proptest! {
         prop_assert_eq!(bc_aps, std_aps);
     }
 
+    /// `simplify` invariants:
+    /// - vcount unchanged
+    /// - directedness unchanged
+    /// - ecount never grows
+    /// - on output: no self-loops if `remove_loops`, no parallel edges
+    ///   if `remove_multiple`
+    /// - simplifying twice with the same flags is idempotent
+    #[test]
+    fn simplify_drops_loops_and_multi_idempotently(
+        g in arb_graph(8),
+        remove_multiple in any::<bool>(),
+        remove_loops in any::<bool>(),
+    ) {
+        let s = rust_igraph::simplify(&g, remove_multiple, remove_loops).unwrap();
+        prop_assert_eq!(s.vcount(), g.vcount());
+        prop_assert_eq!(s.is_directed(), g.is_directed());
+        prop_assert!(s.ecount() <= g.ecount());
+
+        let m = u32::try_from(s.ecount()).expect("ecount fits in u32");
+        // No self-loops survive when remove_loops.
+        if remove_loops {
+            for e in 0..m {
+                let (u, v) = s.edge(e).unwrap();
+                prop_assert!(u != v, "self-loop survived: ({},{})", u, v);
+            }
+        }
+        // No parallel edges survive when remove_multiple. Endpoints are
+        // canonicalised by Graph storage for undirected graphs (from <=
+        // to); for directed, we treat (a,b) and (b,a) as distinct.
+        if remove_multiple {
+            let mut pairs: Vec<(u32, u32)> = (0..m)
+                .map(|e| s.edge(e).unwrap())
+                .collect();
+            pairs.sort_unstable();
+            let unique = pairs.iter().collect::<std::collections::BTreeSet<_>>().len();
+            prop_assert_eq!(pairs.len(), unique,
+                            "parallel edges survived: {:?}", pairs);
+        }
+
+        // Idempotency: simplify(simplify(g)) == simplify(g).
+        let s2 = rust_igraph::simplify(&s, remove_multiple, remove_loops).unwrap();
+        prop_assert_eq!(s2.ecount(), s.ecount());
+    }
+
     /// PageRank invariants: nonneg, finite, sums to 1 (for n >= 1),
     /// length equals vcount.
     #[test]
