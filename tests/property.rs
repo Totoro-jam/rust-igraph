@@ -242,6 +242,28 @@ proptest! {
         }
     }
 
+    /// Betweenness centrality bounds: nonnegative, finite, ≤ C(n,2)
+    /// for undirected (each unordered pair contributes ≤ 1 unit) and
+    /// ≤ n*(n-1) for directed.
+    #[test]
+    fn betweenness_is_nonneg_and_bounded(g in arb_graph(8)) {
+        let b = rust_igraph::betweenness(&g).unwrap();
+        let n = u64::from(g.vcount());
+        let max = if g.is_directed() {
+            n.saturating_mul(n.saturating_sub(1))
+        } else {
+            n.saturating_mul(n.saturating_sub(1)) / 2
+        };
+        #[allow(clippy::cast_precision_loss)]
+        let max_f = max as f64;
+        for (v, &x) in b.iter().enumerate() {
+            prop_assert!(x.is_finite(), "betweenness[{}] = {} not finite", v, x);
+            prop_assert!(x >= -1e-9, "betweenness[{}] = {} negative", v, x);
+            prop_assert!(x <= max_f + 1e-9,
+                         "betweenness[{}] = {} exceeds bound {}", v, x, max_f);
+        }
+    }
+
     /// Harmonic centrality bounds: 0 ≤ h ≤ 1 (max when every other
     /// vertex is at distance 1; sum_inv = n-1, /(n-1) = 1).
     /// Always finite (no NaN since unreachable contributes 0).

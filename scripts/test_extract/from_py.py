@@ -116,6 +116,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BETW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "betweenness_star_4",
+        # Star: centre 3.0 (sits on all 3 leaf-leaf paths), leaves 0.
+        "origin": "constructed: 4-star; centre betweenness 3.0, leaves 0",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "betweenness",
+        "params": {},
+        "expected": [3.0, 0.0, 0.0, 0.0],
+    },
+]
+
 HARMONIC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "harmonic_star_4",
@@ -416,6 +430,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitive_closure": TC_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
+    "betweenness": BETW_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

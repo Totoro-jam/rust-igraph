@@ -1,0 +1,36 @@
+{
+  "source": "c",
+  "origin": "constructed: 5-path; betweenness via python-igraph 0.11",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "betweenness",
+  "params": {},
+  "expected": [
+    0.0,
+    3.0,
+    4.0,
+    3.0,
+    0.0
+  ]
+}

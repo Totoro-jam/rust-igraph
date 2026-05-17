@@ -6,6 +6,7 @@
 
 pub mod assortativity;
 pub mod basic;
+pub mod betweenness;
 pub mod closeness;
 pub mod girth;
 pub mod harmonic;
@@ -15,6 +16,7 @@ pub mod triangles;
 
 pub use assortativity::assortativity_degree;
 pub use basic::{density, mean_distance};
+pub use betweenness::betweenness;
 pub use closeness::closeness;
 pub use girth::girth;
 pub use harmonic::harmonic_centrality;

@@ -300,6 +300,14 @@ fn reachability_matrix_three_source_conformance() {
 }
 
 #[test]
+fn betweenness_three_source_conformance() {
+    run_conformance("betweenness", |g, _params| {
+        let b = rust_igraph::betweenness(g).expect("betweenness");
+        serde_json::json!(b)
+    });
+}
+
+#[test]
 fn harmonic_centrality_three_source_conformance() {
     run_conformance("harmonic_centrality", |g, _params| {
         let h = rust_igraph::harmonic_centrality(g).expect("harmonic_centrality");

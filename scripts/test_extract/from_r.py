@@ -191,6 +191,21 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BETW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "betweenness_R_4cycle",
+        # 4-cycle 0-1-2-3-0: every vertex has betweenness 0.5 (sits on
+        # one antipodal pair's two-path average).
+        "origin": "constructed (R-style): 4-cycle; uniform betweenness 0.5",
+        "graph_factory": lambda: ig.Graph.Ring(
+            n=4, directed=False, mutual=False, circular=True
+        ),
+        "algo": "betweenness",
+        "params": {},
+        "expected": [0.5, 0.5, 0.5, 0.5],
+    },
+]
+
 HARMONIC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "harmonic_R_triangle",
@@ -527,6 +542,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitive_closure": TC_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
+    "betweenness": BETW_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

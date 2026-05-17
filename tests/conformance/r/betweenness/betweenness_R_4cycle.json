@@ -1,0 +1,35 @@
+{
+  "source": "r",
+  "origin": "constructed (R-style): 4-cycle; uniform betweenness 0.5",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "betweenness",
+  "params": {},
+  "expected": [
+    0.5,
+    0.5,
+    0.5,
+    0.5
+  ]
+}

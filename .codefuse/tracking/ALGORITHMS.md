@@ -116,6 +116,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-007 | Closeness centrality (`closeness`, unweighted, IGRAPH_OUT/ALL) | centrality/closeness.c:33+ | ~120 | adapt | SP-006 | done | (next) | O(V*(V+E)) BFS | C:1 / py:1 / R:1 |
 | ALGO-PR-007b | Weighted closeness (Dijkstra) | centrality/closeness.c | ~150 | adapt | PR-007, SP-001 | todo | - | - | - |
 | ALGO-PR-009 | Harmonic centrality (`harmonic_centrality`, unweighted) | centrality/closeness.c:740-805 | ~80 | adapt | SP-006 | done | (next) | O(V*(V+E)) BFS | C:1 / py:1 / R:1 |
+| ALGO-PR-008 | Betweenness centrality (`betweenness`, Brandes unweighted) | centrality/betweenness.c:504+ | ~120 | adapt | SP-006 | done | (next) | O(V*(V+E)) Brandes | C:1 / py:1 / R:1 |
+| ALGO-PR-008b | Weighted betweenness (Brandes-Dijkstra) | centrality/betweenness.c | ~150 | adapt | PR-008, SP-001 | todo | - | - | - |
 
 ## Phase 3 — Centrality + Eigensolver (~65 AWU)
 
@@ -134,7 +136,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 27 | 0 | ~58 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3 |
+| 1 | 28 | 0 | ~57 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
 **Phase 0 — complete (37/37)**. **Phase 1 underway**: 27/85 done —
@@ -148,8 +150,9 @@ path/cycle (CC-041 + CC-042), reachability counts (CC-020),
 reachability matrix (CC-021), transitive closure (CC-022),
 reciprocity (PR-004), BFS multi-output (TR-001), knn (PR-005),
 degree assortativity (PR-006), edge query helpers (CORE-001d),
-closeness centrality (PR-007), harmonic centrality (PR-009). Next
-options: SP-001 (Dijkstra), CC-011 (biconnected components
-multi-output), CORE-001c (deletion), betweenness centrality (PR-008).
+closeness centrality (PR-007), harmonic centrality (PR-009), betweenness
+centrality (PR-008). Next options: SP-001 (Dijkstra), CC-011
+(biconnected components multi-output), CORE-001c (deletion), eigenvector
+centrality, PageRank.
 
 > Update the counters after every PR merge.

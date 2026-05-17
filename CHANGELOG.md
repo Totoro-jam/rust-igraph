@@ -11,6 +11,19 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-008**: betweenness centrality (`betweenness`).
+  Returns `Vec<f64>` — Brandes' (2001) BFS-based algorithm for the
+  unweighted case. Counterpart of `igraph_betweenness()` from
+  `references/igraph/src/centrality/betweenness.c:504+`. Phase-1
+  minimal slice: undirected/IGRAPH_OUT, unweighted, raw counts
+  (`normalized = false`); weighted Dijkstra-based variant ships in
+  PR-008b.
+  Full 9-step SOP: 8 unit tests (empty / isolated / K3 / 5-path /
+  4-star / K4 / 4-cycle / directed-3-path), 1 oracle test on karate
+  (1e-10 tolerance — Zachary has values ≈ 231 amplifying f64 noise),
+  3 three-source conformance fixtures, 1 proptest invariant
+  (nonneg, finite, ≤ pair count).
+
 - *(properties)* **ALGO-PR-009**: harmonic centrality
   (`harmonic_centrality`). Returns `Vec<f64>` — `(1/(n-1)) * sum 1/d`
   with `1/inf == 0` for unreachable pairs (always finite, defined on

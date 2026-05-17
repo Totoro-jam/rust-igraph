@@ -1,0 +1,31 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-star; centre betweenness 3.0, leaves 0",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "betweenness",
+  "params": {},
+  "expected": [
+    3.0,
+    0.0,
+    0.0,
+    0.0
+  ]
+}

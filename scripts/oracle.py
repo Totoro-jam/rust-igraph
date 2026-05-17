@@ -116,6 +116,12 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "betweenness":
+        # Counterpart of igraph_betweenness(_, _, vss_all(),
+        # /*directed=*/g.is_directed(), NULL_weights).
+        directed = g.is_directed()
+        return [float(v) for v in g.betweenness(directed=directed)]
+
     if algo == "harmonic_centrality":
         # Counterpart of igraph_harmonic_centrality(_, _, vss_all(), IGRAPH_OUT,
         # NULL_weights, /*normalized=*/true).
