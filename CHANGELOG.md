@@ -11,6 +11,19 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(connectivity)* **ALGO-CC-021**: reachability matrix
+  (`reachability_matrix`). Returns `Vec<Vec<bool>>` where `r[i][j]`
+  is `true` iff vertex `j` is reachable from `i` in 0+ steps. Counterpart
+  of `igraph_reachability(_, _, _, _, _, IGRAPH_OUT)` from
+  `references/igraph/src/connectivity/reachability.c:72-148`. Phase-1
+  minimal slice uses BFS-from-each-vertex (O(|V|*(|V|+|E|))); upstream's
+  SCC-condensation optimisation lands later.
+  Full 9-step SOP: 7 unit tests, 2 oracle tests against python-igraph
+  0.11 (uses `g.subcomponent(v, mode='out')` per row), 3 three-source
+  conformance fixtures (directed 3-cycle / undirected path-3 / 2
+  disjoint edges), 1 proptest invariant (n×n shape, diagonal true,
+  symmetric on undirected, row-sums match `count_reachable`).
+
 - *(core)* **ALGO-CORE-001d**: edge query helpers on `Graph`:
   - `get_eid(from, to) -> IgraphResult<EdgeId>` — error if no edge.
   - `find_eid(from, to) -> IgraphResult<Option<EdgeId>>` — None if no edge.

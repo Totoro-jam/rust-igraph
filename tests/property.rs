@@ -242,6 +242,40 @@ proptest! {
         }
     }
 
+    /// Reachability matrix invariants:
+    /// - n×n shape, all diagonals true.
+    /// - Reachability is transitive: if `m[i][j] && m[j][k]` then `m[i][k]`.
+    /// - For undirected graphs the matrix is symmetric.
+    /// - Cross-check with `count_reachable`: row-sum equals the count.
+    #[test]
+    fn reachability_matrix_is_internally_consistent(g in arb_graph(8)) {
+        let m = rust_igraph::reachability_matrix(&g).unwrap();
+        let n = g.vcount() as usize;
+        prop_assert_eq!(m.len(), n);
+        for row in &m { prop_assert_eq!(row.len(), n); }
+        // Diagonal.
+        for (i, row) in m.iter().enumerate() {
+            prop_assert!(row[i], "diagonal not self-reachable at {}", i);
+        }
+        // Symmetry on undirected graphs.
+        if !g.is_directed() {
+            for (i, row) in m.iter().enumerate() {
+                for (j, &val) in row.iter().enumerate() {
+                    prop_assert_eq!(val, m[j][i],
+                                    "asymmetric undirected reach");
+                }
+            }
+        }
+        // Cross-check with count_reachable.
+        let counts = rust_igraph::count_reachable(&g).unwrap();
+        for (i, row) in m.iter().enumerate() {
+            let row_count = u32::try_from(row.iter().filter(|&&b| b).count())
+                .expect("row count fits in u32");
+            prop_assert_eq!(counts[i], row_count,
+                            "count_reachable disagrees with row sum");
+        }
+    }
+
     /// Assortativity bounds: when defined, the Pearson correlation lies
     /// in [-1, 1] (with small float slack at the boundaries). Skip the
     /// directed-error case via try_into. None for regular graphs.

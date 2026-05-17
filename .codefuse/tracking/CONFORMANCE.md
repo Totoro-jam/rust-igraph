@@ -29,6 +29,7 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | eulerian_path | 1 | 0 | 1 | 2/2 | py-skipped (python-igraph 0.11.x has no Eulerian API). Multiple valid walks exist for a given graph; conformance fixtures compare `len(walk)` only — proptest `eulerian_path_visits_every_edge_once_when_it_exists` enforces the actual structural correctness. |
 | count_reachable | 1 | 1 | 1 | 3/3 | `Vec<u32>`. python-igraph 0.11 lacks `count_reachable` directly; oracle uses `len(g.subcomponent(v, mode='out'))` per vertex. |
 | assortativity_degree | 1 | 1 | 1 | 3/3 | `Option<f64>`; `None` for regular graphs (variance denominator zero — matches upstream NaN). Fixtures: igraph C Famous("Zachary") → -0.4756, python-igraph K4-minus-edge → -2/3, R path(3) → -1.0 (perfectly disassortative). Phase-1 minimal: undirected, unweighted only. |
+| reachability_matrix | 1 | 1 | 1 | 3/3 | `Vec<Vec<bool>>` dense matrix. Fixtures: directed 3-cycle → all true; undirected path-3 → all true (single component); 2 disjoint edges → block-diagonal. python-igraph 0.11 lacks the API directly; oracle uses per-vertex `g.subcomponent(v, mode='out')`. |
 
 ## How to add a row
 
@@ -42,4 +43,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 20 (+ assortativity_degree) | 67 | 28 / 18 / 21 |
+| 1     | 21 (+ reachability_matrix) | 70 | 29 / 19 / 22 |

@@ -116,6 +116,18 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "reachability_matrix":
+        # Counterpart of igraph_reachability(_, ..., IGRAPH_OUT) returning
+        # a dense per-vertex bitmap. python-igraph 0.11 lacks a direct
+        # API, so we BFS via subcomponent + mask each row.
+        n = g.vcount()
+        mode = "out" if g.is_directed() else "all"
+        rows = []
+        for v in range(n):
+            reachable = set(g.subcomponent(v, mode=mode))
+            rows.append([j in reachable for j in range(n)])
+        return rows
+
     if algo == "count_reachable":
         # Counterpart of igraph_count_reachable(_, _, IGRAPH_OUT).
         # python-igraph 0.11 has no direct count_reachable, but

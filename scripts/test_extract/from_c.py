@@ -146,6 +146,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+REACH_MATRIX_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "reachability_matrix_c_directed_3cycle",
+        # Directed 3-cycle: every vertex reaches every other (full True matrix).
+        "origin": "constructed: directed 3-cycle 0->1->2->0; full True matrix",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "reachability_matrix",
+        "params": {},
+        "expected": [[True, True, True], [True, True, True], [True, True, True]],
+    },
+]
+
 REACH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "count_reachable_c_directed_chain",
@@ -528,6 +542,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mean_distance": MEANDIST_MANIFEST,
     "eulerian_path": EUL_PATH_MANIFEST,
     "count_reachable": REACH_MANIFEST,
+    "reachability_matrix": REACH_MATRIX_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

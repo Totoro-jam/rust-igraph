@@ -13,8 +13,9 @@ use common::{OracleResponse, run_ok};
 use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, bfs, bridges,
     connected_components, count_reachable, count_triangles, density, dfs, diameter, distances,
-    eccentricity, girth, is_biconnected, mean_distance, radius, read_edgelist, reciprocity,
-    strongly_connected_components, transitivity_local_undirected, transitivity_undirected,
+    eccentricity, girth, is_biconnected, mean_distance, radius, reachability_matrix, read_edgelist,
+    reciprocity, strongly_connected_components, transitivity_local_undirected,
+    transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -574,6 +575,34 @@ fn assortativity_degree_karate_matches_python_igraph() {
         (None, None) => {}
         (a, b) => panic!("rust={a:?} py={b:?}"),
     }
+}
+
+#[test]
+fn reachability_matrix_directed_3cycle_matches_python_igraph() {
+    // Directed 3-cycle: every vertex reaches every other.
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 0).unwrap();
+    let rust = reachability_matrix(&g).unwrap();
+    let py: Vec<Vec<bool>> =
+        serde_json::from_value(run_ok("reachability_matrix", &g, serde_json::json!({})))
+            .expect("decode python reachability_matrix");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn reachability_matrix_disconnected_undirected_matches_python_igraph() {
+    // {0-1-2} and {3-4}: cross-component pairs unreachable.
+    let mut g = Graph::with_vertices(5);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(3, 4).unwrap();
+    let rust = reachability_matrix(&g).unwrap();
+    let py: Vec<Vec<bool>> =
+        serde_json::from_value(run_ok("reachability_matrix", &g, serde_json::json!({})))
+            .expect("decode python reachability_matrix");
+    assert_eq!(rust, py);
 }
 
 #[test]

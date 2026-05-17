@@ -292,6 +292,14 @@ fn count_reachable_three_source_conformance() {
 }
 
 #[test]
+fn reachability_matrix_three_source_conformance() {
+    run_conformance("reachability_matrix", |g, _params| {
+        let m = rust_igraph::reachability_matrix(g).expect("reachability_matrix");
+        serde_json::json!(m)
+    });
+}
+
+#[test]
 fn assortativity_degree_three_source_conformance() {
     run_conformance("assortativity_degree", |g, _params| {
         let r = rust_igraph::assortativity_degree(g).expect("assortativity");

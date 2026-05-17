@@ -116,6 +116,20 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+REACH_MATRIX_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "reachability_matrix_py_undirected_path3",
+        # 3-vertex undirected path: all pairs reachable (within one component).
+        "origin": "constructed: undirected path 0-1-2; full True matrix (1 component)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "reachability_matrix",
+        "params": {},
+        "expected": [[True, True, True], [True, True, True], [True, True, True]],
+    },
+]
+
 REACH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "count_reachable_two_components",
@@ -354,6 +368,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
     "count_reachable": REACH_MANIFEST,
+    "reachability_matrix": REACH_MATRIX_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

@@ -191,6 +191,25 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+REACH_MATRIX_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "reachability_matrix_R_disconnected_pair",
+        # Two disconnected edges 0-1 and 2-3: 4x4 matrix block-diagonal.
+        "origin": "constructed: two disjoint undirected edges; block-diagonal True",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "algo": "reachability_matrix",
+        "params": {},
+        "expected": [
+            [True, True, False, False],
+            [True, True, False, False],
+            [False, False, True, True],
+            [False, False, True, True],
+        ],
+    },
+]
+
 REACH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "count_reachable_R_path_3_undirected",
@@ -458,6 +477,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mean_distance": MEANDIST_MANIFEST,
     "eulerian_path": EUL_PATH_MANIFEST,
     "count_reachable": REACH_MANIFEST,
+    "reachability_matrix": REACH_MATRIX_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

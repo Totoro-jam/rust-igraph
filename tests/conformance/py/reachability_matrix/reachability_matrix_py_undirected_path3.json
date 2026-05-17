@@ -1,0 +1,38 @@
+{
+  "source": "py",
+  "origin": "constructed: undirected path 0-1-2; full True matrix (1 component)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "reachability_matrix",
+  "params": {},
+  "expected": [
+    [
+      true,
+      true,
+      true
+    ],
+    [
+      true,
+      true,
+      true
+    ],
+    [
+      true,
+      true,
+      true
+    ]
+  ]
+}
