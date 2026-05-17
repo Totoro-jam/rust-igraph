@@ -5,3 +5,4 @@
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
 cc c18b1e00de236c2a4140c4403af4192208150ed41edc67c514086beab4c4e6cc # shrinks to g = Graph { n: 3, directed: true, from: [2, 1, 0], to: [1, 0, 2], oi: [2, 1, 0], ii: [1, 0, 2], os: [0, 1, 2, 3], is: [0, 1, 2, 3] }
+cc 39ce66f8752e40ea9b37232cf7625b8bfafc109b9ade69db0a0761267f1edd6e # shrinks to g = Graph { n: 2, directed: false, from: [1, 0], to: [1, 0], oi: [1, 0], ii: [1, 0], os: [0, 1, 2], is: [0, 1, 2] }

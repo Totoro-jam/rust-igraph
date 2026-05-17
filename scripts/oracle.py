@@ -174,6 +174,18 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "modularity":
+        # Counterpart of igraph_modularity(_, &membership, NULL_weights,
+        # /*resolution=*/1.0, /*directed=*/false, &result).
+        membership = list(params["membership"])
+        resolution = float(params.get("resolution", 1.0))
+        if g.ecount() == 0:
+            return None
+        v = g.modularity(membership, resolution=resolution)
+        if v != v:  # NaN
+            return None
+        return float(v)
+
     if algo == "simplify":
         # Counterpart of igraph_simplify(g, remove_multiple, remove_loops, NULL).
         # python-igraph mutates in place; we copy first and return the new

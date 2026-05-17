@@ -11,6 +11,24 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(community)* **ALGO-CO-001**: `modularity` (Newman-Girvan modularity
+  of a partition). Returns `Option<f64>` — `None` for graphs with no
+  edges (matches upstream's NaN). Counterpart of `igraph_modularity()`
+  from `references/igraph/src/community/modularity.c`. Phase-1
+  minimal slice: undirected, unweighted; resolution parameter γ is
+  configurable. Directed (Leicht-Newman 2008) + weighted variants
+  ship later (CO-001b/c). Membership labels need not be consecutive
+  (we reindex internally).
+  Full 9-step SOP: 10 unit tests (incl. K3 ∪ K3 + bridge canonical case
+  with hand-checked Q = 6/7 − 1/2, K4 singletons giving Q = −1/4,
+  γ = 0 reduction to e/2m, label reindexing, error paths),
+  3 oracle tests (synthetic 6v case, karate-by-id split, K4 γ = 0),
+  3 three-source conformance fixtures (C K3 ∪ K3 + bridge; py K5 ∪ K5
+  + bridge from `test_structural.py:127 testModularity` Q ≈ 0.4523;
+  rigraph-style path(3) with [0,1,0] giving Q = −1/2),
+  1 proptest invariant (finite, bounded; Q(all-same) = 0; Q(singletons)
+  ≤ 0 when no self-loops; |Q| ≤ 1).
+
 - *(operators)* **ALGO-OP-001**: `simplify` (remove self-loops and/or
   parallel edges). Returns a new [`Graph`] (upstream igraph mutates in
   place; we prefer immutability). Counterpart of `igraph_simplify()`

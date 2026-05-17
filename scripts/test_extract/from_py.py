@@ -224,6 +224,27 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+MODULARITY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "modularity_py_full5_full5_bridge",
+        # From python-igraph tests/test_structural.py:127 testModularity:
+        # Graph.Full(5) + Graph.Full(5) + edge (0,5); membership
+        # [0]*5 + [1]*5; expected ≈ 0.4523.
+        "origin": "test_structural.py:127 testModularity: K5 + K5 + bridge; "
+        "Q ≈ 0.4523",
+        "graph_factory": lambda: ig.Graph.Full(5)
+        + ig.Graph.Full(5)
+        + [(0, 5)],
+        "algo": "modularity",
+        "params": {
+            "membership": [0] * 5 + [1] * 5,
+            "resolution": 1.0,
+        },
+        # Computed via python-igraph 0.11 to f64 precision.
+        "expected": 0.45238095238095233,
+    },
+]
+
 SIMPLIFY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "simplify_py_loops_no_multi",
@@ -511,6 +532,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
+    "modularity": MODULARITY_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

@@ -283,6 +283,55 @@ proptest! {
         prop_assert_eq!(bc_aps, std_aps);
     }
 
+    /// Modularity invariants:
+    /// - finite (or `None` for empty graphs)
+    /// - bounded in `[-1, 1]` for `resolution=1.0`
+    /// - all-same partition gives `Q = 0` (within fp tolerance) on graphs
+    ///   with at least one edge — every edge is "internal" so e/2m = 1,
+    ///   and the single community accounts for all degree mass so
+    ///   sum k_c² = 1.
+    /// - all-singleton partition (each vertex its own community) gives
+    ///   `Q ≤ 0` (no internal edges, so e/2m = 0; degree-mass term is
+    ///   non-negative).
+    #[test]
+    fn modularity_bounds_and_known_partitions(g in arb_graph(8)) {
+        let n = g.vcount();
+        if n == 0 || g.ecount() == 0 {
+            // No-edge case: modularity returns None — nothing further to check.
+            let same: Vec<u32> = vec![0; n as usize];
+            prop_assert!(rust_igraph::modularity(&g, &same, 1.0).unwrap().is_none());
+            return Ok(());
+        }
+
+        let same: Vec<u32> = vec![0; n as usize];
+        let q_same = rust_igraph::modularity(&g, &same, 1.0).unwrap().unwrap();
+        prop_assert!(q_same.is_finite(), "Q(all-same) = {} not finite", q_same);
+        prop_assert!(q_same.abs() < 1e-12,
+                     "Q(all-same) should be 0 (got {})", q_same);
+
+        let singletons: Vec<u32> = (0..n).collect();
+        let q_each = rust_igraph::modularity(&g, &singletons, 1.0).unwrap().unwrap();
+        prop_assert!(q_each.is_finite(), "Q(singletons) = {} not finite", q_each);
+        // Without self-loops there are no internal edges in the singleton
+        // partition, so e/2m = 0 and Q ≤ 0. Self-loops do count as
+        // internal (each loop contributes 2 to e in the C definition),
+        // so we don't bound Q from above in their presence — only the
+        // global |Q| ≤ 1 bound applies.
+        let m = u32::try_from(g.ecount()).unwrap();
+        let has_self_loop = (0..m).any(|e| {
+            let (u, v) = g.edge(e).unwrap();
+            u == v
+        });
+        if !has_self_loop {
+            prop_assert!(q_each <= 1e-12,
+                         "Q(singletons, no loops) should be ≤ 0 (got {})", q_each);
+        }
+
+        // Standard bound: |Q| ≤ 1 for resolution = 1.
+        prop_assert!(q_same.abs() <= 1.0 + 1e-9, "Q(all-same)={} > 1", q_same);
+        prop_assert!(q_each.abs() <= 1.0 + 1e-9, "Q(singletons)={} > 1", q_each);
+    }
+
     /// `simplify` invariants:
     /// - vcount unchanged
     /// - directedness unchanged

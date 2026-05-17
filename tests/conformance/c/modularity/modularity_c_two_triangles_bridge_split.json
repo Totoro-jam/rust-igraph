@@ -1,0 +1,52 @@
+{
+  "source": "c",
+  "origin": "constructed: two K3 + bridge; partition {0,1,2}/{3,4,5}; Q = 6/7 - 0.5",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "modularity",
+  "params": {
+    "membership": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+    ],
+    "resolution": 1.0
+  },
+  "expected": 0.3571428571428571
+}

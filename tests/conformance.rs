@@ -400,6 +400,28 @@ fn transitive_closure_three_source_conformance() {
 }
 
 #[test]
+fn modularity_three_source_conformance() {
+    run_conformance("modularity", |g, params| {
+        let membership: Vec<u32> = params
+            .get("membership")
+            .and_then(serde_json::Value::as_array)
+            .expect("membership param missing")
+            .iter()
+            .map(|v| u32::try_from(v.as_u64().expect("non-negative int label")).unwrap())
+            .collect();
+        let resolution = params
+            .get("resolution")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(1.0);
+        let q = rust_igraph::modularity(g, &membership, resolution).expect("modularity");
+        match q {
+            Some(v) => serde_json::json!(v),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
 fn simplify_three_source_conformance() {
     run_conformance("simplify", |g, params| {
         let remove_multiple = params

@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "test-aaa-auto.R:6344 'modularity_impl basic': path(3) with membership [1,2,1]; Q = -0.5",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "modularity",
+  "params": {
+    "membership": [
+      0,
+      1,
+      0
+    ],
+    "resolution": 1.0
+  },
+  "expected": -0.5
+}

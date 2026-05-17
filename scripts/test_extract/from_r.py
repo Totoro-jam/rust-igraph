@@ -290,6 +290,23 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+MODULARITY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "modularity_R_path3_split_endpoints",
+        # From rigraph tests/testthat/test-aaa-auto.R:6342
+        # 'modularity_impl basic' — path_graph_impl(n=3) with
+        # membership c(1,2,1). Q = -0.5 (computed via python-igraph).
+        "origin": "test-aaa-auto.R:6344 'modularity_impl basic': "
+        "path(3) with membership [1,2,1]; Q = -0.5",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "modularity",
+        "params": {"membership": [0, 1, 0], "resolution": 1.0},
+        "expected": -0.5,
+    },
+]
+
 SIMPLIFY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "simplify_R_directed_loops_only",
@@ -616,6 +633,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
+    "modularity": MODULARITY_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

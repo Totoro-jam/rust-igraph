@@ -32,6 +32,7 @@ pub mod algorithms;
 pub mod core;
 
 // Top-level re-exports for the common case.
+pub use crate::algorithms::community::modularity;
 pub use crate::algorithms::connectivity::{
     BiconnectedComponents, ConnectedComponents, articulation_points, biconnected_components,
     bridges, connected_components, count_reachable, is_biconnected, reachability_matrix,

@@ -14,8 +14,8 @@ use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
     bfs, biconnected_components, bridges, closeness, connected_components, count_reachable,
     count_triangles, density, dfs, diameter, distances, eccentricity, edge_betweenness,
-    eigenvector_centrality, girth, harmonic_centrality, is_biconnected, mean_distance, pagerank,
-    radius, reachability_matrix, read_edgelist, reciprocity, simplify,
+    eigenvector_centrality, girth, harmonic_centrality, is_biconnected, mean_distance, modularity,
+    pagerank, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
     strongly_connected_components, transitive_closure, transitivity_local_undirected,
     transitivity_undirected,
 };
@@ -946,4 +946,60 @@ fn dfs_small_synthetic_matches_python_igraph() {
             .expect("decode python order");
 
     assert_eq!(rust_order, py_order);
+}
+
+#[test]
+fn modularity_two_triangles_bridge_matches_python_igraph() {
+    // Two K3 + bridge edge — partition {0,1,2} vs {3,4,5}.
+    let mut g = Graph::with_vertices(6);
+    for &(u, v) in &[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5), (2, 3)] {
+        g.add_edge(u, v).unwrap();
+    }
+    let membership = vec![0u32, 0, 0, 1, 1, 1];
+    let rust_q = modularity(&g, &membership, 1.0).unwrap().unwrap();
+    let py: f64 = serde_json::from_value(run_ok(
+        "modularity",
+        &g,
+        serde_json::json!({"membership": membership, "resolution": 1.0}),
+    ))
+    .expect("decode python modularity");
+    assert!((rust_q - py).abs() < 1e-12, "rust={rust_q} py={py}");
+}
+
+#[test]
+fn modularity_karate_two_clusters_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    // Crude split: vertices 0..16 vs 17..33 (Zachary's split-by-id is a
+    // known modular partition, ≈ 0.37). Exact value is irrelevant — we
+    // just need the Rust and python-igraph numbers to coincide.
+    let membership: Vec<u32> = (0..g.vcount()).map(|v| u32::from(v >= 17)).collect();
+    let rust_q = modularity(&g, &membership, 1.0).unwrap().unwrap();
+    let py: f64 = serde_json::from_value(run_ok(
+        "modularity",
+        &g,
+        serde_json::json!({"membership": membership, "resolution": 1.0}),
+    ))
+    .expect("decode python modularity");
+    assert!((rust_q - py).abs() < 1e-12, "rust={rust_q} py={py}");
+}
+
+#[test]
+fn modularity_resolution_zero_matches_python_igraph() {
+    // K4 with [0,0,1,1] under γ=0 → e/2m only.
+    let mut g = Graph::with_vertices(4);
+    for u in 0..4u32 {
+        for v in (u + 1)..4 {
+            g.add_edge(u, v).unwrap();
+        }
+    }
+    let rust_q = modularity(&g, &[0, 0, 1, 1], 0.0).unwrap().unwrap();
+    let py: f64 = serde_json::from_value(run_ok(
+        "modularity",
+        &g,
+        serde_json::json!({"membership": [0, 0, 1, 1], "resolution": 0.0}),
+    ))
+    .expect("decode python modularity");
+    assert!((rust_q - py).abs() < 1e-12, "rust={rust_q} py={py}");
 }

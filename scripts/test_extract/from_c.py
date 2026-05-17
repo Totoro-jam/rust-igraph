@@ -273,6 +273,26 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+MODULARITY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "modularity_c_two_triangles_bridge_split",
+        # Two K3 triangles connected by a bridge edge; partition {0,1,2}
+        # vs {3,4,5} → Q = 6/7 - 0.5 = 0.357142857... (exact rational
+        # representable as f64). This is the canonical hand-computable
+        # case used in the unit tests; matches python-igraph + rigraph.
+        "origin": "constructed: two K3 + bridge; partition {0,1,2}/{3,4,5}; "
+        "Q = 6/7 - 0.5",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5), (2, 3)],
+            directed=False,
+        ),
+        "algo": "modularity",
+        "params": {"membership": [0, 0, 0, 1, 1, 1], "resolution": 1.0},
+        "expected": 6.0 / 7.0 - 0.5,
+    },
+]
+
 SIMPLIFY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "simplify_c_undirected_loops_and_multi",
@@ -706,6 +726,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
+    "modularity": MODULARITY_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
