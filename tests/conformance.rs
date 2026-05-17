@@ -300,6 +300,26 @@ fn reachability_matrix_three_source_conformance() {
 }
 
 #[test]
+fn transitive_closure_three_source_conformance() {
+    run_conformance("transitive_closure", |g, _params| {
+        let tc = rust_igraph::transitive_closure(g).expect("transitive_closure");
+        let m = u32::try_from(tc.ecount()).expect("ecount fits in u32");
+        let mut edges: Vec<[u32; 2]> = (0..m)
+            .map(|e| {
+                let (u, v) = tc.edge(e).unwrap();
+                [u, v]
+            })
+            .collect();
+        edges.sort_unstable();
+        serde_json::json!({
+            "vcount": tc.vcount(),
+            "directed": tc.is_directed(),
+            "edges": edges,
+        })
+    });
+}
+
+#[test]
 fn assortativity_degree_three_source_conformance() {
     run_conformance("assortativity_degree", |g, _params| {
         let r = rust_igraph::assortativity_degree(g).expect("assortativity");

@@ -191,6 +191,24 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+TC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "transitive_closure_R_undirected_path3",
+        # Undirected 0-1-2: closure is K3.
+        "origin": "constructed (R-style): undirected path-3; closure is K3",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "transitive_closure",
+        "params": {},
+        "expected": {
+            "vcount": 3,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 2]],
+        },
+    },
+]
+
 REACH_MATRIX_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reachability_matrix_R_disconnected_pair",
@@ -478,6 +496,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "eulerian_path": EUL_PATH_MANIFEST,
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,
+    "transitive_closure": TC_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

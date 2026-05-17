@@ -1,0 +1,39 @@
+{
+  "source": "r",
+  "origin": "constructed (R-style): undirected path-3; closure is K3",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "transitive_closure",
+  "params": {},
+  "expected": {
+    "vcount": 3,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  }
+}

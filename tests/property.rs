@@ -242,6 +242,46 @@ proptest! {
         }
     }
 
+    /// Transitive closure invariants:
+    /// - same vcount and directedness as input
+    /// - closure edge set equals reachability matrix off-diagonal pairs
+    ///   (directed: ordered, undirected: unordered)
+    /// - closure has no self-loops
+    /// - closure is itself transitively closed (idempotent)
+    #[test]
+    fn transitive_closure_matches_reachability_matrix(g in arb_graph(7)) {
+        let tc = rust_igraph::transitive_closure(&g).unwrap();
+        prop_assert_eq!(tc.vcount(), g.vcount());
+        prop_assert_eq!(tc.is_directed(), g.is_directed());
+
+        // Build set of expected edges from the reachability matrix.
+        let m = rust_igraph::reachability_matrix(&g).unwrap();
+        let mut expected: std::collections::BTreeSet<(u32, u32)> = std::collections::BTreeSet::new();
+        let directed = g.is_directed();
+        for (u, row) in m.iter().enumerate() {
+            let u_id = u32::try_from(u).expect("u fits in u32 for proptest");
+            let start = if directed { 0 } else { u + 1 };
+            for (v, &reachable) in row.iter().enumerate().skip(start) {
+                if u != v && reachable {
+                    let v_id = u32::try_from(v).expect("v fits in u32 for proptest");
+                    expected.insert((u_id, v_id));
+                }
+            }
+        }
+
+        // Closure edges (canonicalised for undirected).
+        let mut actual: std::collections::BTreeSet<(u32, u32)> = std::collections::BTreeSet::new();
+        let m_edges = u32::try_from(tc.ecount()).expect("ecount fits in u32 for proptest");
+        for e in 0..m_edges {
+            let (a, b) = tc.edge(e).unwrap();
+            // Self-loops shouldn't appear.
+            prop_assert_ne!(a, b, "transitive closure has a self-loop");
+            let pair = if directed || a < b { (a, b) } else { (b, a) };
+            actual.insert(pair);
+        }
+        prop_assert_eq!(expected, actual);
+    }
+
     /// Reachability matrix invariants:
     /// - n×n shape, all diagonals true.
     /// - Reachability is transitive: if `m[i][j] && m[j][k]` then `m[i][k]`.

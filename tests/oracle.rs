@@ -14,7 +14,7 @@ use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, bfs, bridges,
     connected_components, count_reachable, count_triangles, density, dfs, diameter, distances,
     eccentricity, girth, is_biconnected, mean_distance, radius, reachability_matrix, read_edgelist,
-    reciprocity, strongly_connected_components, transitivity_local_undirected,
+    reciprocity, strongly_connected_components, transitive_closure, transitivity_local_undirected,
     transitivity_undirected,
 };
 
@@ -603,6 +603,60 @@ fn reachability_matrix_disconnected_undirected_matches_python_igraph() {
         serde_json::from_value(run_ok("reachability_matrix", &g, serde_json::json!({})))
             .expect("decode python reachability_matrix");
     assert_eq!(rust, py);
+}
+
+/// Wire-format payload returned by the `transitive_closure` oracle.
+#[derive(serde::Deserialize)]
+struct PyTransitiveClosure {
+    vcount: u32,
+    directed: bool,
+    edges: Vec<[u32; 2]>,
+}
+
+fn rust_tc_pairs(tc: &Graph) -> Vec<(u32, u32)> {
+    let m = u32::try_from(tc.ecount()).expect("ecount fits in u32");
+    let mut pairs: Vec<(u32, u32)> = (0..m).map(|e| tc.edge(e).unwrap()).collect();
+    pairs.sort_unstable();
+    pairs
+}
+
+fn py_tc_pairs(py: &PyTransitiveClosure) -> Vec<(u32, u32)> {
+    let mut pairs: Vec<(u32, u32)> = py.edges.iter().map(|p| (p[0], p[1])).collect();
+    pairs.sort_unstable();
+    pairs
+}
+
+fn transitive_closure_oracle_pair(g: &Graph) -> (PyTransitiveClosure, Graph) {
+    let tc = transitive_closure(g).expect("rust transitive_closure");
+    let py: PyTransitiveClosure =
+        serde_json::from_value(run_ok("transitive_closure", g, serde_json::json!({})))
+            .expect("decode python transitive_closure");
+    (py, tc)
+}
+
+#[test]
+fn transitive_closure_directed_path_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let (py, tc) = transitive_closure_oracle_pair(&g);
+    assert_eq!(tc.vcount(), py.vcount);
+    assert_eq!(tc.is_directed(), py.directed);
+    assert_eq!(rust_tc_pairs(&tc), py_tc_pairs(&py));
+}
+
+#[test]
+fn transitive_closure_undirected_two_components_matches_python_igraph() {
+    // {0-1-2} and {3-4}: closure has within-component edges only.
+    let mut g = Graph::with_vertices(5);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(3, 4).unwrap();
+    let (py, tc) = transitive_closure_oracle_pair(&g);
+    assert_eq!(tc.vcount(), py.vcount);
+    assert_eq!(tc.is_directed(), py.directed);
+    assert_eq!(rust_tc_pairs(&tc), py_tc_pairs(&py));
 }
 
 #[test]

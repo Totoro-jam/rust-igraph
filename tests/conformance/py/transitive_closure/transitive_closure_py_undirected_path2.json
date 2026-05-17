@@ -1,0 +1,27 @@
+{
+  "source": "py",
+  "origin": "constructed: undirected 2-path; closure = input",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "transitive_closure",
+  "params": {},
+  "expected": {
+    "vcount": 2,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}

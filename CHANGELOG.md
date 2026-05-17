@@ -11,6 +11,19 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(connectivity)* **ALGO-CC-022**: transitive closure
+  (`transitive_closure`). Returns a new `Graph` with the same vcount
+  and directedness, edges added for every off-diagonal reachable pair
+  (ordered for directed, unordered for undirected). Counterpart of
+  `igraph_transitive_closure()` from
+  `references/igraph/src/connectivity/reachability.c:225-257`. Built
+  on top of CC-021 reachability matrix.
+  Full 9-step SOP: 7 unit tests, 2 oracle tests against python-igraph
+  0.11 (uses per-vertex `subcomponent`), 3 three-source conformance
+  fixtures, 1 proptest invariant (closure edge set equals reachability
+  matrix off-diagonal pairs; no self-loops; closure is idempotent
+  by construction).
+
 - *(connectivity)* **ALGO-CC-021**: reachability matrix
   (`reachability_matrix`). Returns `Vec<Vec<bool>>` where `r[i][j]`
   is `true` iff vertex `j` is reachable from `i` in 0+ steps. Counterpart

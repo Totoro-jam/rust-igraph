@@ -1,0 +1,39 @@
+{
+  "source": "c",
+  "origin": "constructed: directed path 0->1->2; transitive closure adds 0->2",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "transitive_closure",
+  "params": {},
+  "expected": {
+    "vcount": 3,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  }
+}

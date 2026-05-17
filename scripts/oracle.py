@@ -116,6 +116,23 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "transitive_closure":
+        # Counterpart of igraph_transitive_closure(). python-igraph 0.11
+        # has no direct API; emulate by computing per-vertex reachable sets
+        # and returning the new edge list as `[(u, v), ...]` for stable
+        # comparison.
+        n = g.vcount()
+        directed = g.is_directed()
+        mode = "out" if directed else "all"
+        edges = []
+        for u in range(n):
+            reachable = set(g.subcomponent(u, mode=mode))
+            v_start = 0 if directed else u + 1
+            for v in range(v_start, n):
+                if u != v and v in reachable:
+                    edges.append([u, v])
+        return {"vcount": n, "directed": directed, "edges": edges}
+
     if algo == "reachability_matrix":
         # Counterpart of igraph_reachability(_, ..., IGRAPH_OUT) returning
         # a dense per-vertex bitmap. python-igraph 0.11 lacks a direct

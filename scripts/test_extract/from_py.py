@@ -116,6 +116,22 @@ RECIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+TC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "transitive_closure_py_undirected_path2",
+        # 2-vertex undirected single edge: closure equals input.
+        "origin": "constructed: undirected 2-path; closure = input",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[(0, 1)], directed=False),
+        "algo": "transitive_closure",
+        "params": {},
+        "expected": {
+            "vcount": 2,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+]
+
 REACH_MATRIX_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reachability_matrix_py_undirected_path3",
@@ -369,6 +385,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mean_distance": MEANDIST_MANIFEST,
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,
+    "transitive_closure": TC_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,

@@ -97,7 +97,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-CC-011..012 | Biconnected_components multi-output (vertex sets / edges / spanning trees) | biconnected*.c | ~270 | adapt | CC-010 | todo | - | - | - |
 | ALGO-CC-020 | Reachability counts (`count_reachable`) | reachability.c:179 | ~80 | adapt | SP-006 | done | (next) | (BFS-from-each, ≈ vcount * SP-006) | C:1 / py:1 / R:1 |
 | ALGO-CC-021 | Reachability matrix (`reachability_matrix`) | reachability.c:72-148 | ~80 | adapt | SP-006 | done | (next) | O(V*(V+E)) BFS-from-each | C:1 / py:1 / R:1 |
-| ALGO-CC-022 | Transitive closure | reachability.c:205+ | ~150 | adapt | CC-021 | todo | - | - | - |
+| ALGO-CC-022 | Transitive closure (`transitive_closure`) | reachability.c:225-257 | ~80 | adapt | CC-021 | done | (next) | (CC-021 + closure ctor) | C:1 / py:1 / R:1 |
 | ALGO-CC-030..032 | Percolation | percolation.c | 404 | adapt | - | todo | - | - | - |
 | ALGO-CC-040 | Eulerian existence (`is_eulerian`) | eulerian.c:333 (incl. directed/undirected helpers) | ~280 | adapt | CC-001 | done | (next) | 4.7 µs/karate | C:3 / py:0 / R:2 (py skipped — see CONFORMANCE.md) |
 | ALGO-CC-041 | Eulerian path/cycle construction, undirected (Hierholzer) | eulerian.c:345-450 | ~200 | adapt | CC-040 | done | (next) | (CC-040 + O(V+E)) | C:1 / py:0 / R:1 (py skipped) |
@@ -131,10 +131,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 24 | 0 | ~61 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3 |
+| 1 | 25 | 0 | ~60 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 24/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 25/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -142,10 +142,11 @@ articulation points (CC-010), bridges (CC-014), is_biconnected
 triangle count + global transitivity (PR-002), local transitivity
 per-vertex (PR-002b), density + mean_distance (PR-003), Eulerian
 path/cycle (CC-041 + CC-042), reachability counts (CC-020),
-reachability matrix (CC-021), reciprocity (PR-004), BFS multi-output
-(TR-001), knn (PR-005), degree assortativity (PR-006), edge query
-helpers (CORE-001d). Next options: SP-001 (Dijkstra), CC-011
-(biconnected components multi-output), CC-022 (transitive closure),
-CORE-001c (deletion), PR-002c (Barrat weighted).
+reachability matrix (CC-021), transitive closure (CC-022),
+reciprocity (PR-004), BFS multi-output (TR-001), knn (PR-005),
+degree assortativity (PR-006), edge query helpers (CORE-001d). Next
+options: SP-001 (Dijkstra), CC-011 (biconnected components
+multi-output), CORE-001c (deletion), PR-002c (Barrat weighted),
+PR-006b (directed assortativity).
 
 > Update the counters after every PR merge.
