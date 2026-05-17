@@ -332,6 +332,43 @@ proptest! {
         prop_assert!(q_each.abs() <= 1.0 + 1e-9, "Q(singletons)={} > 1", q_each);
     }
 
+    /// `disjoint_union` invariants:
+    /// - vcount(left) + vcount(right) == vcount(result)
+    /// - ecount(left) + ecount(right) == ecount(result)
+    /// - directedness preserved
+    /// - left's edges appear in result with original endpoints
+    /// - right's edges appear in result with endpoints shifted by left.vcount()
+    #[test]
+    fn disjoint_union_preserves_counts_and_shifts_right_endpoints(
+        a in arb_graph(8),
+        b in arb_graph(8),
+    ) {
+        let u = rust_igraph::disjoint_union(&a, &b).unwrap();
+        prop_assert_eq!(u.vcount(), a.vcount() + b.vcount());
+        prop_assert_eq!(u.ecount(), a.ecount() + b.ecount());
+        prop_assert_eq!(u.is_directed(), a.is_directed());
+
+        // First a.ecount() edges in u match a's edges (storage order).
+        let m_a = u32::try_from(a.ecount()).unwrap();
+        for e in 0..m_a {
+            prop_assert_eq!(u.edge(e).unwrap(), a.edge(e).unwrap());
+        }
+        // Next b.ecount() edges are b's, shifted by a.vcount(). Edge
+        // canonicalisation (from <= to in undirected mode) is applied
+        // *after* the shift, so we compare canonicalised pairs.
+        let n_a = a.vcount();
+        let m_b = u32::try_from(b.ecount()).unwrap();
+        for e in 0..m_b {
+            let (bu, bv) = b.edge(e).unwrap();
+            let (uu, uv) = u.edge(m_a + e).unwrap();
+            let mut shifted = (bu + n_a, bv + n_a);
+            if !a.is_directed() && shifted.0 > shifted.1 {
+                shifted = (shifted.1, shifted.0);
+            }
+            prop_assert_eq!((uu, uv), shifted);
+        }
+    }
+
     /// Per-edge `is_loop` / `is_multiple` invariants:
     /// - lengths equal `ecount`
     /// - `is_loop[e] == (g.edge(e).0 == g.edge(e).1)`

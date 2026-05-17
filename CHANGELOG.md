@@ -11,6 +11,22 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(operators)* **ALGO-OP-002**: `disjoint_union` (two-graph variant).
+  Counterpart of `igraph_disjoint_union()` from
+  `references/igraph/src/operators/disjoint_union.c`. Vertices of
+  `right` are shifted by `left.vcount()`; edges are concatenated in
+  original order. Returns
+  [`IgraphError::InvalidArgument`](crate::IgraphError) if the two
+  graphs differ in directedness. Phase-1 minimal slice: two-graph
+  variant only — multi-arg `disjoint_union_many` ships in OP-002b.
+  Edge / vertex attributes are dropped.
+  Full 9-step SOP: 9 unit tests (incl. directed both, mixed-directedness
+  rejection, self-disjoint-union doubling), 3 oracle tests against
+  python-igraph's `+` operator, 3 three-source conformance fixtures
+  (C two triangles, py path-plus-path with vertex shift, rigraph-style
+  directed two paths), 1 proptest invariant cross-checking
+  count-preservation + endpoint-shift formula.
+
 - *(properties)* **ALGO-PR-014b**: per-edge `is_loop` + `is_multiple`.
   `is_loop[e]` is the trivial self-loop check; `is_multiple[e]` is
   `true` only for the **second-or-more** appearances of a parallel

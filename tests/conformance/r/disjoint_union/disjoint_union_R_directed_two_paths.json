@@ -1,0 +1,43 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed disjoint union",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "disjoint_union",
+  "params": {
+    "right_graph": {
+      "n": 2,
+      "edges": [
+        [
+          1,
+          0
+        ]
+      ],
+      "directed": true,
+      "weights": null
+    }
+  },
+  "expected": {
+    "vcount": 4,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        3,
+        2
+      ]
+    ]
+  }
+}

@@ -290,6 +290,32 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "disjoint_union_R_directed_two_paths",
+        # rigraph's `disjoint_union(g1, g2)`. Two directed 2-paths
+        # become a 4-vertex graph with edges (0,1) and (3,2).
+        "origin": "constructed (rigraph-style): directed disjoint union",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1)], directed=True
+        ),
+        "algo": "disjoint_union",
+        "params": {
+            "right_graph": {
+                "n": 2,
+                "edges": [[1, 0]],
+                "directed": True,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": True,
+            "edges": [[0, 1], [3, 2]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_R_directed_two_self_loops",
@@ -715,6 +741,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "has_multiple": HAS_MULTIPLE_MANIFEST,
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
+    "disjoint_union": DISJOINT_UNION_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

@@ -1,0 +1,51 @@
+{
+  "source": "py",
+  "origin": "constructed: 3-path + 2-path; vertex shift by 3",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "disjoint_union",
+  "params": {
+    "right_graph": {
+      "n": 2,
+      "edges": [
+        [
+          0,
+          1
+        ]
+      ],
+      "directed": false,
+      "weights": null
+    }
+  },
+  "expected": {
+    "vcount": 5,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        4
+      ]
+    ]
+  }
+}

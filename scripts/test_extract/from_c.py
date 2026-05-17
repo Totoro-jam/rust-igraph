@@ -273,6 +273,33 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "disjoint_union_c_two_triangles",
+        # From references/igraph/examples/simple/igraph_disjoint_union.c style:
+        # disjoint union of two triangles → 6 vertices, 6 edges, two
+        # disjoint K3 components.
+        "origin": "constructed: disjoint union of two K3 triangles",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "disjoint_union",
+        "params": {
+            "right_graph": {
+                "n": 3,
+                "edges": [[0, 1], [1, 2], [2, 0]],
+                "directed": False,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 2], [3, 4], [3, 5], [4, 5]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_c_mixed_self_loops",
@@ -809,6 +836,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "has_multiple": HAS_MULTIPLE_MANIFEST,
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
+    "disjoint_union": DISJOINT_UNION_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

@@ -13,9 +13,9 @@ use common::{OracleResponse, run_ok};
 use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
     bfs, biconnected_components, bridges, closeness, connected_components, count_reachable,
-    count_triangles, density, dfs, diameter, distances, eccentricity, edge_betweenness,
-    eigenvector_centrality, girth, harmonic_centrality, has_loop, has_multiple, is_biconnected,
-    is_loop, is_multiple, is_simple, mean_distance, modularity, pagerank, radius,
+    count_triangles, density, dfs, diameter, disjoint_union, distances, eccentricity,
+    edge_betweenness, eigenvector_centrality, girth, harmonic_centrality, has_loop, has_multiple,
+    is_biconnected, is_loop, is_multiple, is_simple, mean_distance, modularity, pagerank, radius,
     reachability_matrix, read_edgelist, reciprocity, simplify, strongly_connected_components,
     transitive_closure, transitivity_local_undirected, transitivity_undirected,
 };
@@ -1127,4 +1127,99 @@ fn is_multiple_three_copies_matches_python_igraph() {
     let py: Vec<bool> = serde_json::from_value(run_ok("is_multiple", &g, serde_json::json!({})))
         .expect("decode python is_multiple");
     assert_eq!(rust, py);
+}
+
+/// Wire-format payload returned by the `disjoint_union` oracle.
+#[derive(serde::Deserialize)]
+struct PyDisjointUnion {
+    vcount: u32,
+    directed: bool,
+    edges: Vec<[u32; 2]>,
+}
+
+fn rust_du_pairs(g: &Graph) -> Vec<(u32, u32)> {
+    let m = u32::try_from(g.ecount()).unwrap();
+    let mut v: Vec<_> = (0..m).map(|e| g.edge(e).unwrap()).collect();
+    v.sort_unstable();
+    v
+}
+
+fn py_du_pairs(py: &PyDisjointUnion, undirected: bool) -> Vec<(u32, u32)> {
+    let mut v: Vec<(u32, u32)> = py
+        .edges
+        .iter()
+        .map(|p| {
+            if undirected && p[0] > p[1] {
+                (p[1], p[0])
+            } else {
+                (p[0], p[1])
+            }
+        })
+        .collect();
+    v.sort_unstable();
+    v
+}
+
+fn right_graph_payload(g: &Graph) -> serde_json::Value {
+    use common::GraphPayload;
+    let p = GraphPayload::from_graph(g);
+    serde_json::to_value(p).expect("serialize right graph")
+}
+
+#[test]
+fn disjoint_union_two_triangles_matches_python_igraph() {
+    let mut a = Graph::with_vertices(3);
+    a.add_edge(0, 1).unwrap();
+    a.add_edge(1, 2).unwrap();
+    a.add_edge(2, 0).unwrap();
+    let b = a.clone();
+    let rust = disjoint_union(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "disjoint_union",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python disjoint_union");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
+}
+
+#[test]
+fn disjoint_union_directed_path_plus_triangle_matches_python_igraph() {
+    let mut a = Graph::new(3, true).unwrap();
+    a.add_edge(0, 1).unwrap();
+    a.add_edge(1, 2).unwrap();
+    let mut b = Graph::new(3, true).unwrap();
+    b.add_edge(0, 1).unwrap();
+    b.add_edge(1, 2).unwrap();
+    b.add_edge(2, 0).unwrap();
+    let rust = disjoint_union(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "disjoint_union",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python disjoint_union");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert!(rust.is_directed());
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, false));
+}
+
+#[test]
+fn disjoint_union_with_isolated_vertices_matches_python_igraph() {
+    let a = Graph::with_vertices(3);
+    let mut b = Graph::with_vertices(2);
+    b.add_edge(0, 1).unwrap();
+    let rust = disjoint_union(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "disjoint_union",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python disjoint_union");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.ecount(), 1);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
 }

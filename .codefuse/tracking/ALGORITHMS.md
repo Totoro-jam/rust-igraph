@@ -126,6 +126,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-012 | Eigenvector centrality (`eigenvector_centrality`, undirected) | centrality/eigenvector.c | ~120 | adapt | - | done | (next) | shifted power | C:1 / py:1 / R:1 |
 | ALGO-PR-012b | Directed eigenvector + ARPACK + weighted | centrality/eigenvector.c | ~250 | rewrite | PR-012 | todo | - | - | - |
 | ALGO-OP-001 | Simplify graph (`simplify`: remove loops + multi-edges) | operators/simplify.c | ~200 | adapt | CORE-001a/d | done | (next) | O(V + E log E) | C:1 / py:1 / R:1 |
+| ALGO-OP-002 | Disjoint union (`disjoint_union`, two-graph variant) | operators/disjoint_union.c | ~80 | adapt | CORE-001a | done | (next) | O(V + E) | C:1 / py:1 / R:1 |
+| ALGO-OP-002b | Multi-arg `disjoint_union_many` | operators/disjoint_union.c | ~50 | adapt | OP-002 | todo | - | - | - |
 | ALGO-CO-001 | Modularity (`modularity`, undirected, unweighted, configurable γ) | community/modularity.c | ~150 | adapt | CORE-001a/d | done | (next) | O(V + E) | C:1 / py:1 / R:1 |
 | ALGO-PR-013 | `is_simple` predicate (no loops, no multi-edges) | properties/multiplicity.c | ~80 | adapt | CORE-001a | done | (next) | O(V + E) | C:1 / py:1 / R:1 |
 | ALGO-PR-013b | `is_simple` directed-as-undirected mode | properties/multiplicity.c | ~30 | adapt | PR-013 | todo | - | - | - |
@@ -151,10 +153,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 37 | 0 | ~48 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6 |
+| 1 | 38 | 0 | ~47 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 37/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 38/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -170,8 +172,9 @@ centrality (PR-008), edge betweenness (PR-010), PageRank (PR-011),
 biconnected components multi-output (CC-011), eigenvector centrality
 (PR-012), simplify (OP-001), modularity (CO-001), is_simple
 (PR-013), has_loop + has_multiple (PR-014), per-edge is_loop +
-is_multiple (PR-014b). Next options: SP-001 (Dijkstra),
-CORE-001c (deletion), hub/auth scores, more operators
-(union/intersection/difference), `count_multiple` per-edge.
+is_multiple (PR-014b), disjoint_union (OP-002). Next options:
+SP-001 (Dijkstra), CORE-001c (deletion), hub/auth scores, more
+operators (union/intersection/difference/complementer),
+`count_multiple` per-edge.
 
 > Update the counters after every PR merge.

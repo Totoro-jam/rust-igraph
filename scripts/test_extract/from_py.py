@@ -224,6 +224,31 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "disjoint_union_py_path_plus_path",
+        # python-igraph's `+` operator on graphs is disjoint_union.
+        "origin": "constructed: 3-path + 2-path; vertex shift by 3",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "disjoint_union",
+        "params": {
+            "right_graph": {
+                "n": 2,
+                "edges": [[0, 1]],
+                "directed": False,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [3, 4]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_py_no_self_loops",
@@ -605,6 +630,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "has_multiple": HAS_MULTIPLE_MANIFEST,
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
+    "disjoint_union": DISJOINT_UNION_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

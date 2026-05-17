@@ -174,6 +174,17 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "disjoint_union":
+        # Counterpart of igraph_disjoint_union(_, &left, &right). The
+        # request graph carries `left`; `right` is encoded inside
+        # `params.right_graph` as the same wire format used at the top
+        # level (n / edges / directed / weights).
+        rp = params["right_graph"]
+        right = make_graph(rp)
+        u = ig.disjoint_union([g, right])
+        edges = [list(e.tuple) for e in u.es]
+        return {"vcount": u.vcount(), "directed": u.is_directed(), "edges": edges}
+
     if algo == "is_loop":
         # Counterpart of igraph_is_loop(_, _, igraph_ess_all()).
         # python-igraph 0.11 exposes Edge.is_loop() per-edge.
