@@ -272,6 +272,26 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             out.append(None if f == float("inf") else f)
         return out
 
+    if algo == "floyd_warshall_distances":
+        # Counterpart of igraph_distances_floyd_warshall(_, _, vss_all,
+        # vss_all, &weights, IGRAPH_OUT, AUTOMATIC). python-igraph
+        # 0.11 has no direct FW API at Python layer, but g.distances()
+        # already returns the full all-pairs matrix and accepts the
+        # same weight conventions, so we just relay it. inf → None.
+        mode = "out" if g.is_directed() else "all"
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            rows = g.distances(weights="weight", mode=mode)
+        else:
+            rows = g.distances(mode=mode)
+        out = []
+        for row in rows:
+            out_row = []
+            for v in row:
+                f = float(v)
+                out_row.append(None if f == float("inf") else f)
+            out.append(out_row)
+        return out
+
     if algo == "disjoint_union":
         # Counterpart of igraph_disjoint_union(_, &left, &right). The
         # request graph carries `left`; `right` is encoded inside

@@ -9,10 +9,12 @@ pub(crate) mod dijkstra;
 pub(crate) mod distances;
 pub(crate) mod eulerian;
 pub(crate) mod eulerian_construct;
+pub(crate) mod floyd_warshall;
 pub(crate) mod radii;
 
 pub use dijkstra::dijkstra_distances;
 pub use distances::distances;
 pub use eulerian::{EulerianClassification, is_eulerian};
 pub use eulerian_construct::eulerian_path;
+pub use floyd_warshall::floyd_warshall_distances;
 pub use radii::{diameter, eccentricity, radius};

@@ -15,10 +15,10 @@ use rust_igraph::{
     avg_nearest_neighbor_degree, betweenness, betweenness_weighted, bfs, biconnected_components,
     bridges, closeness, closeness_weighted, complementer, connected_components, count_reachable,
     count_triangles, density, dfs, diameter, dijkstra_distances, disjoint_union, distances,
-    eccentricity, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality, girth,
-    harmonic_centrality, harmonic_centrality_weighted, has_loop, has_multiple, is_biconnected,
-    is_loop, is_multiple, is_simple, mean_distance, modularity, pagerank, pagerank_weighted,
-    radius, reachability_matrix, read_edgelist, reciprocity, simplify,
+    eccentricity, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
+    floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
+    has_multiple, is_biconnected, is_loop, is_multiple, is_simple, mean_distance, modularity,
+    pagerank, pagerank_weighted, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
     strongly_connected_components, transitive_closure, transitivity_local_undirected,
     transitivity_undirected,
 };
@@ -1845,4 +1845,71 @@ fn assortativity_degree_weighted_two_triangles_bridge_matches_python_igraph() {
     let py_val = py.as_f64().expect("py value as f64");
     let r = rust.expect("rust value");
     assert!((r - py_val).abs() < 1e-12, "rust={r} py={py_val}");
+}
+
+fn assert_matrix_close(rust: &[Vec<Option<f64>>], py: &[Vec<Option<f64>>], tol: f64) {
+    assert_eq!(rust.len(), py.len(), "row count");
+    for (i, (rr, pp)) in rust.iter().zip(py.iter()).enumerate() {
+        assert_eq!(rr.len(), pp.len(), "row {i} col count");
+        for (j, (a, b)) in rr.iter().zip(pp.iter()).enumerate() {
+            match (a, b) {
+                (Some(x), Some(y)) => assert!((x - y).abs() < tol, "[{i}][{j}]: rust={x} py={y}"),
+                (None, None) => {}
+                (a, b) => panic!("[{i}][{j}]: rust={a:?} py={b:?}"),
+            }
+        }
+    }
+}
+
+#[test]
+fn floyd_warshall_distances_unweighted_path_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let rust = floyd_warshall_distances(&g, None).unwrap();
+    let py: Vec<Vec<Option<f64>>> = serde_json::from_value(run_ok(
+        "floyd_warshall_distances",
+        &g,
+        serde_json::json!({}),
+    ))
+    .expect("decode python floyd_warshall_distances");
+    assert_matrix_close(&rust, &py, 1e-12);
+}
+
+#[test]
+fn floyd_warshall_distances_weighted_triangle_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 4.0, 2.0];
+    let rust = floyd_warshall_distances(&g, Some(&weights)).unwrap();
+    let py: Vec<Vec<Option<f64>>> = serde_json::from_value(run_ok_with_weights(
+        "floyd_warshall_distances",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python floyd_warshall_distances");
+    assert_matrix_close(&rust, &py, 1e-12);
+}
+
+#[test]
+fn floyd_warshall_distances_directed_with_unreachable_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    g.add_edge(0, 3).unwrap();
+    let weights = vec![1.0_f64, 1.0, 1.0, 5.0];
+    let rust = floyd_warshall_distances(&g, Some(&weights)).unwrap();
+    let py: Vec<Vec<Option<f64>>> = serde_json::from_value(run_ok_with_weights(
+        "floyd_warshall_distances",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python floyd_warshall_distances");
+    assert_matrix_close(&rust, &py, 1e-12);
 }

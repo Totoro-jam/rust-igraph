@@ -22,6 +22,26 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-004**: `floyd_warshall_distances` — all-pairs
+  shortest distances via the textbook Floyd-Warshall O(V³) variant.
+  Counterpart of `igraph_distances_floyd_warshall(_, _, vss_all,
+  vss_all, &weights, IGRAPH_OUT, IGRAPH_FLOYD_WARSHALL_ORIGINAL)`.
+  Returns a `vcount × vcount` `Vec<Vec<Option<f64>>>`, with `None` for
+  unreachable pairs. Negative weights are accepted on directed graphs
+  (rejected at upload for self-loops; rejected at relaxation if the
+  diagonal goes negative); rejected outright on undirected graphs
+  because every undirected edge induces a 2-cycle. `+inf` weights are
+  silently ignored to match upstream igraph C behaviour. Power-of-two
+  multi-edges are taken at their minimum.
+  Full 9-step SOP: 16 unit tests (incl. unweighted/weighted, unreachable,
+  directed/undirected orientation, negative-weight rejection,
+  parallel-edges-pick-min, NaN/inf handling, and unit-weight
+  equivalence to BFS), 3 oracle tests (unweighted path, weighted
+  triangle shortcut, directed chain-with-shortcut), 3 three-source
+  conformance fixtures (C directed chain, py 4-path unit weights, R
+  undirected weighted triangle), 1 proptest invariant: unit weights
+  yield a symmetric matrix whose row-0 matches BFS distances.
+
 - *(properties)* **ALGO-PR-006b**: `assortativity_degree_weighted` —
   weighted Pearson correlation of endpoint strengths. Counterpart of
   `igraph_assortativity_degree(_, _, /*directed=*/false, &weights)`.

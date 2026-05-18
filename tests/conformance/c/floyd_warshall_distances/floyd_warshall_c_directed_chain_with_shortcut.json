@@ -1,0 +1,60 @@
+{
+  "source": "c",
+  "origin": "constructed: directed chain 0->1->2->3 + shortcut 0->3@5",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      5.0
+    ]
+  },
+  "algo": "floyd_warshall_distances",
+  "params": {},
+  "expected": [
+    [
+      0.0,
+      1.0,
+      2.0,
+      3.0
+    ],
+    [
+      null,
+      0.0,
+      1.0,
+      2.0
+    ],
+    [
+      null,
+      null,
+      0.0,
+      1.0
+    ],
+    [
+      null,
+      null,
+      null,
+      0.0
+    ]
+  ]
+}

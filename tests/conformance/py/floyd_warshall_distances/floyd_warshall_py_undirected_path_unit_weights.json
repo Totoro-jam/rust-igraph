@@ -1,0 +1,51 @@
+{
+  "source": "py",
+  "origin": "constructed: undirected 4-path 0-1-2-3, unit weights",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "floyd_warshall_distances",
+  "params": {},
+  "expected": [
+    [
+      0.0,
+      1.0,
+      2.0,
+      3.0
+    ],
+    [
+      1.0,
+      0.0,
+      1.0,
+      2.0
+    ],
+    [
+      2.0,
+      1.0,
+      0.0,
+      1.0
+    ],
+    [
+      3.0,
+      2.0,
+      1.0,
+      0.0
+    ]
+  ]
+}

@@ -1231,4 +1231,42 @@ proptest! {
             );
         }
     }
+
+    /// `floyd_warshall_distances` invariants on undirected graphs with
+    /// unit weights:
+    /// - diagonal is `Some(0.0)`
+    /// - matrix is symmetric: `M[i][j] == M[j][i]`
+    /// - row 0 (`M[0]`) matches the BFS distances from vertex 0
+    ///   (cast to f64).
+    #[test]
+    fn floyd_warshall_unit_weights_symmetric_and_match_bfs(g in arb_graph(8)) {
+        if g.vcount() == 0 { return Ok(()); }
+        let m = g.ecount();
+        let weights = vec![1.0_f64; m];
+        let fw = rust_igraph::floyd_warshall_distances(&g, Some(&weights)).unwrap();
+        let n = g.vcount() as usize;
+        prop_assert_eq!(fw.len(), n);
+
+        for (i, row) in fw.iter().enumerate() {
+            prop_assert_eq!(row[i], Some(0.0), "diagonal at {}", i);
+            for (j, cell) in row.iter().enumerate() {
+                prop_assert_eq!(*cell, fw[j][i], "asymmetric at ({}, {})", i, j);
+            }
+        }
+
+        // Row 0 should agree with the unweighted single-source BFS.
+        let bfs = rust_igraph::distances(&g, 0).unwrap();
+        for (v, (fwv, bfsv)) in fw[0].iter().zip(bfs.iter()).enumerate() {
+            match (fwv, bfsv) {
+                (Some(rd), Some(rb)) => {
+                    prop_assert!((rd - f64::from(*rb)).abs() < 1e-12,
+                                 "vertex {}: fw={} bfs={}", v, rd, rb);
+                }
+                (None, None) => {}
+                (a, b) => {
+                    prop_assert!(false, "vertex {}: fw={:?} bfs={:?}", v, a, b);
+                }
+            }
+        }
+    }
 }

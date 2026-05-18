@@ -374,6 +374,29 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+FW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "floyd_warshall_py_undirected_path_unit_weights",
+        # python-igraph's `Graph.distances()` (no weights) returns the
+        # full unweighted all-pairs matrix. On a 4-vertex path it is
+        # the classic taxicab-on-a-line.
+        "origin": "constructed: undirected 4-path 0-1-2-3, unit weights",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3)],
+            directed=False,
+        ),
+        "algo": "floyd_warshall_distances",
+        "params": {},
+        "expected": [
+            [0.0, 1.0, 2.0, 3.0],
+            [1.0, 0.0, 1.0, 2.0],
+            [2.0, 1.0, 0.0, 1.0],
+            [3.0, 2.0, 1.0, 0.0],
+        ],
+    },
+]
+
 DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "disjoint_union_py_path_plus_path",
@@ -782,6 +805,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
+    "floyd_warshall_distances": FW_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

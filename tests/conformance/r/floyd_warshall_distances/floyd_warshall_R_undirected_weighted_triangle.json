@@ -1,0 +1,46 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): undirected triangle weights (1, 4, 2); shortcut via vertex 1",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      4.0,
+      2.0
+    ]
+  },
+  "algo": "floyd_warshall_distances",
+  "params": {},
+  "expected": [
+    [
+      0.0,
+      1.0,
+      3.0
+    ],
+    [
+      1.0,
+      0.0,
+      2.0
+    ],
+    [
+      3.0,
+      2.0,
+      0.0
+    ]
+  ]
+}

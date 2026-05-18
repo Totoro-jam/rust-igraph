@@ -419,6 +419,35 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+FW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "floyd_warshall_c_directed_chain_with_shortcut",
+        # Mirrors the "Weighted directed" case from
+        # references/igraph/tests/unit/igraph_distances_floyd_warshall.c
+        # in spirit but on a smaller, hand-checkable graph: a directed
+        # 4-vertex chain 0→1→2→3 with a costly direct shortcut 0→3 (5).
+        # The chain (cost 1+1+1=3) wins over the direct edge.
+        "origin": "constructed: directed chain 0->1->2->3 + shortcut 0->3@5",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3), (0, 3)],
+            directed=True,
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 5.0],
+        "algo": "floyd_warshall_distances",
+        "params": {},
+        # Out-mode FW on directed: row[i] holds dist(i, *).
+        # 0 reaches everyone via the chain; 1, 2, 3 only reach
+        # forward.
+        "expected": [
+            [0.0, 1.0, 2.0, 3.0],
+            [None, 0.0, 1.0, 2.0],
+            [None, None, 0.0, 1.0],
+            [None, None, None, 0.0],
+        ],
+    },
+]
+
 DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "disjoint_union_c_two_triangles",
@@ -984,6 +1013,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
+    "floyd_warshall_distances": FW_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

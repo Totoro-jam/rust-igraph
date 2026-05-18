@@ -465,6 +465,28 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+FW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "floyd_warshall_R_undirected_weighted_triangle",
+        # rigraph's `distances(graph, weights=, algorithm="floyd-warshall")`.
+        # Triangle with two cheap edges + one expensive direct edge: FW
+        # routes 0→2 via vertex 1.
+        "origin": "constructed (rigraph-style): undirected triangle weights "
+        "(1, 4, 2); shortcut via vertex 1",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "floyd_warshall_distances",
+        "params": {},
+        "expected": [
+            [0.0, 1.0, 3.0],
+            [1.0, 0.0, 2.0],
+            [3.0, 2.0, 0.0],
+        ],
+    },
+]
+
 DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "disjoint_union_R_directed_two_paths",
@@ -918,6 +940,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
+    "floyd_warshall_distances": FW_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

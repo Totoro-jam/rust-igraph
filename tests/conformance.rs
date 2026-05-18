@@ -566,6 +566,59 @@ fn assortativity_degree_weighted_three_source_conformance() {
 }
 
 #[test]
+fn floyd_warshall_distances_three_source_conformance() {
+    // Bespoke fixture-walking runner (needs case.graph.weights when the
+    // fixture provides them; falls back to unweighted otherwise).
+    // Output is a Vec<Vec<Option<f64>>> 2D matrix, so we encode each row
+    // separately and compare via the same json_approx_eq the rest of
+    // the suite uses (handles the f64-roundtrip drift).
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("floyd_warshall_distances");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone();
+            let matrix = rust_igraph::floyd_warshall_distances(&g, weights.as_deref())
+                .expect("floyd_warshall_distances");
+            let rust_json: serde_json::Value = matrix
+                .into_iter()
+                .map(|row| -> serde_json::Value {
+                    row.into_iter()
+                        .map(|x| match x {
+                            Some(v) => serde_json::json!(v),
+                            None => serde_json::Value::Null,
+                        })
+                        .collect()
+                })
+                .collect();
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "floyd_warshall_distances");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn pagerank_weighted_three_source_conformance() {
     // Bespoke fixture-walking runner (needs case.graph.weights).
     // PageRank power iteration vs python-igraph ARPACK → 1e-6 tolerance
