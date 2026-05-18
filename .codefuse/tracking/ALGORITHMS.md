@@ -119,6 +119,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-007 | Closeness centrality (`closeness`, unweighted, IGRAPH_OUT/ALL) | centrality/closeness.c:33+ | ~120 | adapt | SP-006 | done | (next) | O(V*(V+E)) BFS | C:1 / py:1 / R:1 |
 | ALGO-PR-007b | Weighted closeness (`closeness_weighted`, Dijkstra) | centrality/closeness.c | ~150 | adapt | PR-007, SP-001 | done | (next) | O(V*(V+E)logV) Dijkstra-from-each | C:1 / py:1 / R:1 |
 | ALGO-PR-009 | Harmonic centrality (`harmonic_centrality`, unweighted) | centrality/closeness.c:740-805 | ~80 | adapt | SP-006 | done | (next) | O(V*(V+E)) BFS | C:1 / py:1 / R:1 |
+| ALGO-PR-009b | Weighted harmonic centrality (`harmonic_centrality_weighted`) | centrality/closeness.c | ~80 | adapt | PR-009, SP-001 | done | (next) | O(V*(V+E)logV) Dijkstra-from-each | C:1 / py:1 / R:1 |
 | ALGO-PR-008 | Betweenness centrality (`betweenness`, Brandes unweighted) | centrality/betweenness.c:504+ | ~120 | adapt | SP-006 | done | (next) | O(V*(V+E)) Brandes | C:1 / py:1 / R:1 |
 | ALGO-PR-008b | Weighted betweenness (Brandes-Dijkstra) | centrality/betweenness.c | ~150 | adapt | PR-008, SP-001 | todo | - | - | - |
 | ALGO-PR-010 | Edge betweenness (`edge_betweenness`, Brandes unweighted) | centrality/betweenness.c:766+ | ~120 | adapt | PR-008 | done | (next) | O(V*(V+E)) Brandes | C:1 / py:1 / R:1 |
@@ -156,10 +157,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 41 | 0 | ~44 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3 |
+| 1 | 42 | 0 | ~43 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 41/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 42/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -176,11 +177,11 @@ biconnected components multi-output (CC-011), eigenvector centrality
 (PR-012), simplify (OP-001), modularity (CO-001), is_simple
 (PR-013), has_loop + has_multiple (PR-014), per-edge is_loop +
 is_multiple (PR-014b), disjoint_union (OP-002), dijkstra_distances (SP-001),
-complementer (OP-003), weighted closeness (PR-007b). Next
-options: SP-001b (Dijkstra paths+parents), CORE-001c
-(deletion), hub/auth scores, more operators (union/
-intersection/difference), SP-002 Bellman-Ford, weighted
-betweenness (PR-008b) and weighted edge_betweenness (PR-010b),
-both via Brandes-Dijkstra.
+complementer (OP-003), weighted closeness (PR-007b),
+weighted harmonic (PR-009b). Next options: SP-001b (Dijkstra
+paths+parents), CORE-001c (deletion), hub/auth scores, more
+operators (union/intersection/difference), SP-002 Bellman-Ford,
+weighted betweenness (PR-008b) and weighted edge_betweenness
+(PR-010b), both via Brandes-Dijkstra.
 
 > Update the counters after every PR merge.

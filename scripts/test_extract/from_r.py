@@ -290,6 +290,22 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HARMONIC_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "harmonic_w_R_disconnected_pair",
+        # 4-vertex graph with isolated vertex 3.
+        "origin": "constructed (rigraph-style): 3-path + isolated 4th; "
+        "harmonic well-defined (unlike closeness)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0],
+        "algo": "harmonic_centrality_weighted",
+        "params": {},
+        "expected": [0.5, 2.0 / 3.0, 0.5, 0.0],
+    },
+]
+
 CLOSENESS_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "closeness_weighted_R_undirected_path",
@@ -805,6 +821,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
+    "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

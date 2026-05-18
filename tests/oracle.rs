@@ -15,10 +15,11 @@ use rust_igraph::{
     bfs, biconnected_components, bridges, closeness, closeness_weighted, complementer,
     connected_components, count_reachable, count_triangles, density, dfs, diameter,
     dijkstra_distances, disjoint_union, distances, eccentricity, edge_betweenness,
-    eigenvector_centrality, girth, harmonic_centrality, has_loop, has_multiple, is_biconnected,
-    is_loop, is_multiple, is_simple, mean_distance, modularity, pagerank, radius,
-    reachability_matrix, read_edgelist, reciprocity, simplify, strongly_connected_components,
-    transitive_closure, transitivity_local_undirected, transitivity_undirected,
+    eigenvector_centrality, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
+    has_multiple, is_biconnected, is_loop, is_multiple, is_simple, mean_distance, modularity,
+    pagerank, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
+    strongly_connected_components, transitive_closure, transitivity_local_undirected,
+    transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -1464,5 +1465,67 @@ fn closeness_weighted_path_matches_python_igraph() {
             (None, None) => {}
             (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
         }
+    }
+}
+
+#[test]
+fn harmonic_centrality_weighted_path_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 2.0];
+    let rust = harmonic_centrality_weighted(&g, &weights).unwrap();
+    let py: Vec<f64> = serde_json::from_value(run_ok_with_weights(
+        "harmonic_centrality_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python harmonic_centrality_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-12, "vertex {i}: rust={r} py={p}");
+    }
+}
+
+#[test]
+fn harmonic_centrality_weighted_directed_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    g.add_edge(0, 3).unwrap();
+    let weights = vec![1.0_f64, 1.0, 1.0, 5.0];
+    let rust = harmonic_centrality_weighted(&g, &weights).unwrap();
+    let py: Vec<f64> = serde_json::from_value(run_ok_with_weights(
+        "harmonic_centrality_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python harmonic_centrality_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-12, "vertex {i}: rust={r} py={p}");
+    }
+}
+
+#[test]
+fn harmonic_centrality_weighted_disconnected_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 1.0];
+    let rust = harmonic_centrality_weighted(&g, &weights).unwrap();
+    let py: Vec<f64> = serde_json::from_value(run_ok_with_weights(
+        "harmonic_centrality_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python harmonic_centrality_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-12, "vertex {i}: rust={r} py={p}");
     }
 }

@@ -224,6 +224,29 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HARMONIC_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "harmonic_w_py_directed_chain_with_shortcut",
+        # Directed 0→1→2→3, plus 0→3 weight 5; shortest path 0→3 = 3
+        # (via chain). Mirrors the dijkstra py fixture.
+        "origin": "constructed: directed 4-vertex chain with shortcut",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3), (0, 3)],
+            directed=True,
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 5.0],
+        "algo": "harmonic_centrality_weighted",
+        "params": {},
+        "expected": [
+            0.611111111111111,
+            0.5,
+            0.3333333333333333,
+            0.0,
+        ],
+    },
+]
+
 CLOSENESS_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "closeness_weighted_py_directed_path",
@@ -688,6 +711,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
+    "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

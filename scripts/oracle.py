@@ -174,6 +174,16 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "harmonic_centrality_weighted":
+        # Counterpart of igraph_harmonic_centrality(_, _, vss_all(),
+        # IGRAPH_OUT, &weights, /*normalized=*/true).
+        mode = "out" if g.is_directed() else "all"
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            vals = g.harmonic_centrality(mode=mode, weights="weight", normalized=True)
+        else:
+            vals = g.harmonic_centrality(mode=mode, normalized=True)
+        return [float(v) for v in vals]
+
     if algo == "closeness_weighted":
         # Counterpart of igraph_closeness(_, _, _, _, vss_all(),
         # IGRAPH_OUT, &weights, /*normalized=*/true). python-igraph

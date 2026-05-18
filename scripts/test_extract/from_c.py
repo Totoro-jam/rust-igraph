@@ -273,6 +273,26 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HARMONIC_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "harmonic_w_c_path_w1_w2",
+        # 3-path with weights (1, 2). Distances from 0: {1@1, 2@3} →
+        # 1+1/3 = 4/3 / 2 = 2/3.
+        "origin": "constructed: 3-path with weights (1, 2); centre and ends",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 2.0],
+        "algo": "harmonic_centrality_weighted",
+        "params": {},
+        "expected": [
+            2.0 / 3.0,
+            0.75,
+            5.0 / 12.0,
+        ],
+    },
+]
+
 CLOSENESS_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "closeness_weighted_c_star_non_uniform",
@@ -894,6 +914,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
+    "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

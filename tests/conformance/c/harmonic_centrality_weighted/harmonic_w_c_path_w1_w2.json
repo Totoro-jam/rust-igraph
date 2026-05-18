@@ -1,0 +1,29 @@
+{
+  "source": "c",
+  "origin": "constructed: 3-path with weights (1, 2); centre and ends",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      2.0
+    ]
+  },
+  "algo": "harmonic_centrality_weighted",
+  "params": {},
+  "expected": [
+    0.6666666666666666,
+    0.75,
+    0.4166666666666667
+  ]
+}

@@ -11,6 +11,17 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-009b**: `harmonic_centrality_weighted` —
+  Dijkstra-based weighted harmonic centrality. Counterpart of
+  `igraph_harmonic_centrality(_, _, vss_all(), IGRAPH_OUT, &weights,
+  /*normalized=*/true)`. Returns `Vec<f64>`: `(1/(n-1)) * sum 1/d_w`.
+  Defined on disconnected graphs (unlike weighted closeness — `1/inf
+  = 0`).
+  Full 9-step SOP: 9 unit tests (incl. unit-weight equivalence to
+  PR-009, weighted path-with-doubled-edge, directed, disconnected),
+  3 oracle tests, 3 three-source conformance fixtures, 1 proptest
+  invariant: unit weights match unweighted harmonic.
+
 - *(properties)* **ALGO-PR-007b**: `closeness_weighted` — Dijkstra-
   based weighted closeness centrality. Counterpart of
   `igraph_closeness(_, _, _, _, vss_all(), IGRAPH_OUT, &weights,

@@ -372,6 +372,27 @@ proptest! {
         prop_assert_eq!(a, b);
     }
 
+    /// Weighted harmonic centrality invariants:
+    /// - `harmonic_centrality_weighted(g, [1.0; m])` matches
+    ///   `harmonic_centrality(g)` (within fp tolerance)
+    /// - all values are finite and >= 0
+    /// - length equals vcount
+    #[test]
+    fn harmonic_centrality_weighted_unit_matches_unweighted(g in arb_graph(8)) {
+        let m = g.ecount();
+        let weights = vec![1.0_f64; m];
+        let hw = rust_igraph::harmonic_centrality_weighted(&g, &weights).unwrap();
+        let hu = rust_igraph::harmonic_centrality(&g).unwrap();
+        prop_assert_eq!(hw.len(), hu.len());
+        prop_assert_eq!(hw.len(), g.vcount() as usize);
+        for (v, (a, b)) in hw.iter().zip(hu.iter()).enumerate() {
+            prop_assert!(a.is_finite() && *a >= -1e-12,
+                         "vertex {}: harmonic_w = {}", v, a);
+            prop_assert!((a - b).abs() < 1e-12,
+                         "vertex {}: weighted={} unweighted={}", v, a, b);
+        }
+    }
+
     /// Weighted closeness invariants:
     /// - `closeness_weighted(g, [1.0; m])` matches `closeness(g)` (within
     ///   fp tolerance)

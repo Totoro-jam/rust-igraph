@@ -521,6 +521,45 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn harmonic_centrality_weighted_three_source_conformance() {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("harmonic_centrality_weighted");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let h = rust_igraph::harmonic_centrality_weighted(&g, &weights)
+                .expect("harmonic_centrality_weighted");
+            let rust_json: serde_json::Value =
+                h.into_iter().map(|v| serde_json::json!(v)).collect();
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "harmonic_centrality_weighted");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn closeness_weighted_three_source_conformance() {
     // Bespoke runner — `run_conformance` only forwards `(graph, params)`
     // but we need access to `case.graph.weights`. Same shape as the

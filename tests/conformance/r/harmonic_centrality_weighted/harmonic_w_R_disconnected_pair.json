@@ -1,0 +1,30 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): 3-path + isolated 4th; harmonic well-defined (unlike closeness)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "harmonic_centrality_weighted",
+  "params": {},
+  "expected": [
+    0.5,
+    0.6666666666666666,
+    0.5,
+    0.0
+  ]
+}
