@@ -86,14 +86,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - name: Install python-igraph (for oracle suite)
-        run: |
-          python -m venv .venv
-          .venv/bin/pip install --upgrade pip
-          .venv/bin/pip install -r scripts/requirements.txt
-
+      # NOTE: this job intentionally does not install python-igraph.
+      # The nextest run below uses `--features proptest-harness` (no
+      # `oracle-tests`), which keeps every test pure-Rust.
       - name: Install cargo-nextest
         uses: taiki-e/install-action@v2
         with: { tool: cargo-nextest }
@@ -101,12 +96,23 @@ jobs:
       - name: Run nextest with JUnit report
         # The `ci` profile lives in .config/nextest.toml; it writes
         # target/nextest/ci/junit.xml. `--no-fail-fast` is implied by
-        # the profile (fail-fast = false). `|| true` lets a few
-        # legitimately-failing tests still surface their JUnit entry
-        # rather than abort the whole job — Codecov will display them
-        # as failed runs in the test analytics view.
+        # the profile (fail-fast = false). We pin the test set
+        # explicitly because:
+        #   1. `--all-features` would compile-fail or runtime-skip
+        #      anything that depends on a python-igraph venv that's
+        #      not yet set up (oracle-tests). nextest's fail-fast then
+        #      truncates the JUnit; the previous run produced only
+        #      ~10 KB because the proptest test set never reached the
+        #      runner.
+        #   2. Coverage instrumentation already runs the same suite via
+        #      cargo-llvm-cov in the sibling job; here we only need
+        #      enough testcases for the Test Analytics dashboard to
+        #      render — the platform tests in ci.yml are the source of
+        #      truth for "did the code break".
+        # `|| true` keeps the job green even if a test fails so the
+        # JUnit + Codecov upload still happen.
         run: |
-          cargo nextest run --workspace --all-features --profile ci || true
+          cargo nextest run --workspace --features proptest-harness --profile ci || true
 
       - name: Show junit.xml head (debug)
         # Same reason as above: surface missing reports in the log
@@ -129,17 +135,19 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload test results to Codecov
-        # NOTE: Codecov's Test Analytics web docs reference a `v5` tag
-        # for this action that does not actually exist on
-        # github.com/codecov/test-results-action — only `v1.x.x` is
-        # tagged (latest at time of writing: v1.2.1). Using `v1` here
-        # explicitly. With `files:`, `flags:`, and `name:` set, the
-        # uploaded payload should appear in the dashboard's Tests page.
+        # Per the deprecation warning emitted by test-results-action@v1
+        # itself: use `codecov/codecov-action@v5` with
+        # `report_type: test_results`. There is NO
+        # `codecov/test-results-action@v5` tag — Codecov's web docs
+        # confused the two action names. The unified `codecov-action`
+        # IS at v5 and accepts `report_type` to switch between coverage
+        # and test-results uploads.
         if: always()
-        uses: codecov/test-results-action@v1
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: target/nextest/ci/junit.xml
-          flags: rust
+          report_type: test_results
+          flags: rust-tests
           name: rust-igraph-tests
           fail_ci_if_error: false
