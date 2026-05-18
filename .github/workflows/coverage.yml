@@ -1,12 +1,11 @@
 name: Coverage
 
-# Codecov-related work runs in its own workflow so that the daily-driver
-# CI (.github/workflows/ci.yml) stays fast and Python-free, while this
-# file owns everything that needs the python-igraph oracle venv:
-#   - llvm-cov line/branch coverage (cargo-llvm-cov → lcov.info)
-#   - test analytics (cargo-nextest → junit.xml)
-# Both uploads use the unified `codecov/codecov-action@v5` (the
-# previously-used `test-results-action@v1` is now deprecated upstream).
+# Runs in its own workflow so the daily-driver CI (`ci.yml`) stays fast
+# and Python-free. Two parallel jobs, both upload to Codecov via the
+# unified `codecov/codecov-action@v5`:
+#   - llvm-cov:    line/branch coverage (cargo-llvm-cov → lcov.info)
+#   - test-results: per-test analytics (cargo-nextest → junit.xml,
+#                   `report_type: test_results`)
 
 on:
   push:
@@ -20,12 +19,9 @@ jobs:
   llvm-cov:
     name: line coverage (cargo-llvm-cov)
     runs-on: ubuntu-latest
-    # Coverage runs every suite the rest of CI runs in a single
-    # instrumentation pass — `--all-features` flips on both
-    # `oracle-tests` and `proptest-harness`. Drops `-D warnings`
-    # because llvm-cov's instrumentation can surface dead-code lints
-    # that the regular jobs don't see.
     env:
+      # llvm-cov instrumentation can surface dead-code lints the rest
+      # of CI doesn't see; clear `-D warnings` so they don't fail us.
       RUSTFLAGS: ""
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +33,7 @@ jobs:
       # Oracle tests need python-igraph at runtime.
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - name: Install python-igraph (for oracle suite)
+      - name: Install python-igraph
         run: |
           python -m venv .venv
           .venv/bin/pip install --upgrade pip
@@ -48,22 +44,10 @@ jobs:
         with: { tool: cargo-llvm-cov }
 
       - name: Generate lcov coverage report
-        # `--doctests` would require nightly (rustdoc's
-        # `-Z unstable-options --persist-doctests`); the `doc` job
-        # already compiles every doctest with -D warnings, so the
-        # marginal coverage from instrumenting them is not worth a
-        # toolchain split.
-        run: |
-          cargo llvm-cov --workspace --all-features \
-            --lcov --output-path lcov.info
-
-      - name: Show lcov.info head (debug)
-        # Make missing/empty reports loud in the workflow log so this
-        # never silently degrades to "0 coverage" again.
-        run: |
-          ls -la lcov.info
-          head -20 lcov.info
-          wc -l lcov.info
+        # `--doctests` would require nightly; the doc job already
+        # builds them with -D warnings, so the extra coverage signal
+        # is not worth a toolchain split.
+        run: cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -76,8 +60,6 @@ jobs:
   test-results:
     name: test analytics (cargo-nextest → JUnit)
     runs-on: ubuntu-latest
-    # Run regardless of llvm-cov's outcome so that test analytics keeps
-    # flowing even if coverage instrumentation is the thing that broke.
     if: ${{ !cancelled() }}
     env:
       RUSTFLAGS: ""
@@ -86,84 +68,22 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
-      # NOTE: this job intentionally does not install python-igraph.
-      # The nextest run below uses `--features proptest-harness` (no
-      # `oracle-tests`), which keeps every test pure-Rust.
       - name: Install cargo-nextest
         uses: taiki-e/install-action@v2
         with: { tool: cargo-nextest }
 
-      - name: Wipe stale nextest output
-        # `Swatinem/rust-cache@v2` keeps `target/` warm, which can
-        # leave a stale `target/nextest/ci/junit.xml` from a previous
-        # run on disk. Remove it so the file we upload is unambiguous.
-        run: rm -rf target/nextest
-
-      - name: List planned test set (sanity check)
-        # If the testcase count in `junit.xml` is suspiciously small,
-        # the cause is usually here: nextest plans some other set of
-        # binaries than we expect. This step makes the planned count
-        # visible in the log without affecting the run.
-        run: |
-          cargo nextest list --workspace --features proptest-harness 2>&1 | tail -30
-          echo "==="
-          cargo nextest list --workspace --features proptest-harness 2>&1 \
-            | grep -cE "^\s+[a-zA-Z]" || true
-
       - name: Run nextest with JUnit report
-        # The `ci` profile lives in `.config/nextest.toml`; it writes
-        # `target/nextest/ci/junit.xml`. `--no-fail-fast` is implied
-        # by the profile (`fail-fast = false`). We pin the feature
-        # set explicitly because `--all-features` pulls in
-        # `oracle-tests`, which needs a python-igraph venv that this
-        # job intentionally does not set up. `|| true` keeps the
-        # job green even if a test fails so the JUnit + Codecov
-        # upload still happen.
-        run: |
-          cargo nextest run --workspace --features proptest-harness --profile ci || true
-
-      - name: Show junit.xml diagnostics (debug)
-        # Same reason as above: surface missing reports in the log
-        # rather than letting the upload silently no-op.
-        if: always()
-        run: |
-          echo "=== target/nextest tree ==="
-          find target/nextest -type f 2>/dev/null || echo "(target/nextest absent)"
-          echo
-          echo "=== junit.xml header ==="
-          head -3 target/nextest/ci/junit.xml || true
-          echo
-          echo "=== testsuite summary attributes ==="
-          grep -oE '<testsuite[^>]*>' target/nextest/ci/junit.xml || echo "no testsuite found"
-          echo
-          echo "=== testcase count ==="
-          tc=$(grep -c "<testcase" target/nextest/ci/junit.xml || true)
-          echo "testcases: $tc"
-          echo
-          echo "=== file size ==="
-          wc -c target/nextest/ci/junit.xml || true
-          echo
-          echo "=== first 5 testcase lines ==="
-          grep "<testcase" target/nextest/ci/junit.xml | head -5 || true
-
-      - name: Upload junit.xml as artifact
-        # Lets us download and inspect the raw JUnit XML out-of-band
-        # when Codecov's Test Analytics page reports zero entries.
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nextest-junit
-          path: target/nextest/ci/junit.xml
-          if-no-files-found: warn
+        # The `ci` profile in `.config/nextest.toml` writes
+        # `target/nextest/ci/junit.xml`. `--features proptest-harness`
+        # (no `oracle-tests`) keeps the suite pure-Rust so this job
+        # doesn't need a python-igraph venv. `|| true` keeps the job
+        # green even if a test fails so the JUnit upload still happens.
+        run: cargo nextest run --workspace --features proptest-harness --profile ci || true
 
       - name: Upload test results to Codecov
-        # Per the deprecation warning emitted by test-results-action@v1
-        # itself: use `codecov/codecov-action@v5` with
-        # `report_type: test_results`. There is NO
-        # `codecov/test-results-action@v5` tag — Codecov's web docs
-        # confused the two action names. The unified `codecov-action`
-        # IS at v5 and accepts `report_type` to switch between coverage
-        # and test-results uploads.
+        # Unified `codecov-action@v5` with `report_type: test_results`
+        # is the path Codecov themselves recommend (the v1
+        # `test-results-action` is deprecated).
         if: always()
         uses: codecov/codecov-action@v5
         with:
