@@ -3,11 +3,13 @@
 //! ALGO-CC-041 (Eulerian path/cycle construction, undirected), ALGO-SP-020
 //! (eccentricity / radius / diameter).
 
-pub mod dijkstra;
-pub mod distances;
-pub mod eulerian;
-pub mod eulerian_construct;
-pub mod radii;
+// `pub(crate)` so the inner module names (`distances`, `eulerian`)
+// don't double-list with the function re-exports in rustdoc.
+pub(crate) mod dijkstra;
+pub(crate) mod distances;
+pub(crate) mod eulerian;
+pub(crate) mod eulerian_construct;
+pub(crate) mod radii;
 
 pub use dijkstra::dijkstra_distances;
 pub use distances::distances;

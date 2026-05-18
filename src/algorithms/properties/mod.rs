@@ -4,26 +4,32 @@
 //! (reciprocity), ALGO-PR-005 (avg nearest-neighbour degree),
 //! ALGO-PR-006 (degree assortativity).
 
-pub mod assortativity;
-pub mod basic;
-pub mod betweenness;
-pub mod closeness;
-pub mod closeness_weighted;
-pub mod edge_betweenness;
-pub mod eigenvector;
-pub mod girth;
-pub mod harmonic;
-pub mod harmonic_weighted;
-pub mod is_simple;
-pub mod knn;
-pub mod multiplicity;
-pub mod pagerank;
-pub mod reciprocity;
-pub mod triangles;
+// `pub(crate)` instead of `pub` so the inner module names (often
+// identical to the function they expose, e.g. `is_simple`,
+// `pagerank`) don't collide with the function re-exports in the
+// rendered rustdoc — see https://github.com/rust-lang/rust/issues/...
+pub(crate) mod assortativity;
+pub(crate) mod basic;
+pub(crate) mod betweenness;
+pub(crate) mod betweenness_weighted;
+pub(crate) mod closeness;
+pub(crate) mod closeness_weighted;
+pub(crate) mod edge_betweenness;
+pub(crate) mod eigenvector;
+pub(crate) mod girth;
+pub(crate) mod harmonic;
+pub(crate) mod harmonic_weighted;
+pub(crate) mod is_simple;
+pub(crate) mod knn;
+pub(crate) mod multiplicity;
+pub(crate) mod pagerank;
+pub(crate) mod reciprocity;
+pub(crate) mod triangles;
 
 pub use assortativity::assortativity_degree;
 pub use basic::{density, mean_distance};
 pub use betweenness::betweenness;
+pub use betweenness_weighted::betweenness_weighted;
 pub use closeness::closeness;
 pub use closeness_weighted::closeness_weighted;
 pub use edge_betweenness::edge_betweenness;

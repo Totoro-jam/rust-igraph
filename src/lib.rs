@@ -32,24 +32,59 @@ pub mod algorithms;
 pub mod core;
 
 // Top-level re-exports for the common case.
-pub use crate::algorithms::community::modularity;
-pub use crate::algorithms::connectivity::{
-    BiconnectedComponents, ConnectedComponents, articulation_points, biconnected_components,
-    bridges, connected_components, count_reachable, is_biconnected, reachability_matrix,
-    strongly_connected_components, transitive_closure,
+// IMPORTANT: when a function name collides with the file/module it
+// lives in (e.g. `is_simple` in `is_simple.rs`), `pub use
+// crate::algorithms::properties::is_simple` resolves ambiguously to
+// **both** the module and the function, and rustdoc renders the
+// re-export twice on the crate-root page. To suppress that, every
+// re-export below points at the inner module path explicitly so the
+// resolution is unambiguously the function. The submodules
+// themselves are `pub(crate)` (see each algorithm-group `mod.rs`),
+// so the deep paths stay crate-internal at the type-checker level
+// while rustdoc only renders the function entry.
+pub use crate::algorithms::community::modularity::modularity;
+pub use crate::algorithms::connectivity::articulation::articulation_points;
+pub use crate::algorithms::connectivity::biconnected::{
+    BiconnectedComponents, biconnected_components,
 };
-pub use crate::algorithms::io::read_edgelist;
-pub use crate::algorithms::operators::{complementer, disjoint_union, simplify};
-pub use crate::algorithms::paths::{
-    EulerianClassification, diameter, dijkstra_distances, distances, eccentricity, eulerian_path,
-    is_eulerian, radius,
+pub use crate::algorithms::connectivity::bridges::bridges;
+pub use crate::algorithms::connectivity::components::{ConnectedComponents, connected_components};
+pub use crate::algorithms::connectivity::is_biconnected::is_biconnected;
+pub use crate::algorithms::connectivity::reachability::count_reachable;
+pub use crate::algorithms::connectivity::reachability_matrix::reachability_matrix;
+pub use crate::algorithms::connectivity::strong::strongly_connected_components;
+pub use crate::algorithms::connectivity::transitive_closure::transitive_closure;
+pub use crate::algorithms::io::edgelist::read_edgelist;
+pub use crate::algorithms::operators::complementer::complementer;
+pub use crate::algorithms::operators::disjoint_union::disjoint_union;
+pub use crate::algorithms::operators::simplify::simplify;
+pub use crate::algorithms::paths::dijkstra::dijkstra_distances;
+pub use crate::algorithms::paths::distances::distances;
+pub use crate::algorithms::paths::eulerian::{EulerianClassification, is_eulerian};
+pub use crate::algorithms::paths::eulerian_construct::eulerian_path;
+pub use crate::algorithms::paths::radii::{diameter, eccentricity, radius};
+pub use crate::algorithms::properties::assortativity::assortativity_degree;
+pub use crate::algorithms::properties::basic::{density, mean_distance};
+pub use crate::algorithms::properties::betweenness::betweenness;
+pub use crate::algorithms::properties::betweenness_weighted::betweenness_weighted;
+pub use crate::algorithms::properties::closeness::closeness;
+pub use crate::algorithms::properties::closeness_weighted::closeness_weighted;
+pub use crate::algorithms::properties::edge_betweenness::edge_betweenness;
+pub use crate::algorithms::properties::eigenvector::eigenvector_centrality;
+pub use crate::algorithms::properties::girth::girth;
+pub use crate::algorithms::properties::harmonic::harmonic_centrality;
+pub use crate::algorithms::properties::harmonic_weighted::harmonic_centrality_weighted;
+pub use crate::algorithms::properties::is_simple::is_simple;
+pub use crate::algorithms::properties::knn::avg_nearest_neighbor_degree;
+pub use crate::algorithms::properties::multiplicity::{
+    has_loop, has_multiple, is_loop, is_multiple,
 };
-pub use crate::algorithms::properties::{
-    assortativity_degree, avg_nearest_neighbor_degree, betweenness, closeness, closeness_weighted,
-    count_triangles, density, edge_betweenness, eigenvector_centrality, girth, harmonic_centrality,
-    harmonic_centrality_weighted, has_loop, has_multiple, is_loop, is_multiple, is_simple,
-    mean_distance, pagerank, reciprocity, transitivity_local_undirected, transitivity_undirected,
+pub use crate::algorithms::properties::pagerank::pagerank;
+pub use crate::algorithms::properties::reciprocity::reciprocity;
+pub use crate::algorithms::properties::triangles::{
+    count_triangles, transitivity_local_undirected, transitivity_undirected,
 };
-pub use crate::algorithms::traversal::{BfsTree, bfs, bfs_tree, dfs};
+pub use crate::algorithms::traversal::bfs::{BfsTree, bfs, bfs_tree};
+pub use crate::algorithms::traversal::dfs::dfs;
 pub use crate::core::error::{IgraphError, IgraphResult};
 pub use crate::core::graph::{Graph, VertexId};

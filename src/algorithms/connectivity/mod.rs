@@ -4,15 +4,17 @@
 //! ALGO-CC-020 (reachability counts), ALGO-CC-021 (reachability matrix),
 //! ALGO-CC-022 (transitive closure).
 
-pub mod articulation;
-pub mod biconnected;
-pub mod bridges;
-pub mod components;
-pub mod is_biconnected;
-pub mod reachability;
-pub mod reachability_matrix;
-pub mod strong;
-pub mod transitive_closure;
+// `pub(crate)` so the inner module names don't double-list with the
+// function re-exports in rustdoc.
+pub(crate) mod articulation;
+pub(crate) mod biconnected;
+pub(crate) mod bridges;
+pub(crate) mod components;
+pub(crate) mod is_biconnected;
+pub(crate) mod reachability;
+pub(crate) mod reachability_matrix;
+pub(crate) mod strong;
+pub(crate) mod transitive_closure;
 
 pub use articulation::articulation_points;
 pub use biconnected::{BiconnectedComponents, biconnected_components};
