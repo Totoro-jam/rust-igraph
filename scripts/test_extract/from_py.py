@@ -374,6 +374,42 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DU_MANY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "disjoint_union_many_py_path_plus_path_plus_edge",
+        # python-igraph smoke style: three graphs of varying sizes
+        # disjoint-unioned. Output preserves vertex-shifts.
+        "origin": "constructed: 2-path + 4-path + single edge",
+        "graph_factory": lambda: ig.Graph(
+            n=2,
+            edges=[(0, 1)],
+            directed=False,
+        ),
+        "algo": "disjoint_union_many",
+        "params": {
+            "extra_graphs": [
+                {
+                    "n": 4,
+                    "edges": [[0, 1], [1, 2], [2, 3]],
+                    "directed": False,
+                    "weights": None,
+                },
+                {
+                    "n": 2,
+                    "edges": [[0, 1]],
+                    "directed": False,
+                    "weights": None,
+                },
+            ]
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "edges": [[0, 1], [2, 3], [3, 4], [4, 5], [6, 7]],
+        },
+    },
+]
+
 IS_SIMPLE_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_simple_with_mode_py_directed_3_cycle_undirected_view",
@@ -886,6 +922,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,
     "modularity_weighted": MODULARITY_W_MANIFEST,
     "is_simple_with_mode": IS_SIMPLE_MODE_MANIFEST,
+    "disjoint_union_many": DU_MANY_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

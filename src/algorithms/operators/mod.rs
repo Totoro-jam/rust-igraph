@@ -8,5 +8,5 @@ pub(crate) mod disjoint_union;
 pub(crate) mod simplify;
 
 pub use complementer::complementer;
-pub use disjoint_union::disjoint_union;
+pub use disjoint_union::{disjoint_union, disjoint_union_many};
 pub use simplify::simplify;

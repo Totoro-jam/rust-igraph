@@ -15,12 +15,12 @@ use rust_igraph::{
     assortativity_degree_weighted, avg_nearest_neighbor_degree, betweenness, betweenness_weighted,
     bfs, biconnected_components, bridges, closeness, closeness_weighted, complementer,
     connected_components, coreness, count_reachable, count_triangles, density, dfs, diameter,
-    dijkstra_distances, disjoint_union, distances, eccentricity, edge_betweenness,
-    edge_betweenness_weighted, eigenvector_centrality, floyd_warshall_distances, girth,
-    harmonic_centrality, harmonic_centrality_weighted, has_loop, has_multiple, is_biconnected,
-    is_loop, is_multiple, is_simple, is_simple_with_mode, mean_distance, modularity,
-    modularity_weighted, pagerank, pagerank_weighted, radius, reachability_matrix, read_edgelist,
-    reciprocity, reciprocity_with_mode, simplify, strongly_connected_components,
+    dijkstra_distances, disjoint_union, disjoint_union_many, distances, eccentricity,
+    edge_betweenness, edge_betweenness_weighted, eigenvector_centrality, floyd_warshall_distances,
+    girth, harmonic_centrality, harmonic_centrality_weighted, has_loop, has_multiple,
+    is_biconnected, is_loop, is_multiple, is_simple, is_simple_with_mode, mean_distance,
+    modularity, modularity_weighted, pagerank, pagerank_weighted, radius, reachability_matrix,
+    read_edgelist, reciprocity, reciprocity_with_mode, simplify, strongly_connected_components,
     transitive_closure, transitivity_local_undirected, transitivity_undirected,
 };
 
@@ -2124,4 +2124,69 @@ fn is_simple_with_mode_undirected_modes_agree_with_python_igraph() {
     .expect("decode");
     assert_eq!(rust_dir, py);
     assert_eq!(rust_undir, py);
+}
+
+#[test]
+fn disjoint_union_many_three_triangles_matches_python_igraph() {
+    let mut t = Graph::with_vertices(3);
+    t.add_edge(0, 1).unwrap();
+    t.add_edge(1, 2).unwrap();
+    t.add_edge(2, 0).unwrap();
+    let rust = disjoint_union_many(&[&t, &t, &t]).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "disjoint_union_many",
+        &t,
+        serde_json::json!({
+            "extra_graphs": [right_graph_payload(&t), right_graph_payload(&t)],
+        }),
+    ))
+    .expect("decode python disjoint_union_many");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
+}
+
+#[test]
+fn disjoint_union_many_mixed_sizes_matches_python_igraph() {
+    let mut a = Graph::with_vertices(2);
+    a.add_edge(0, 1).unwrap();
+    let mut b = Graph::with_vertices(4);
+    b.add_edge(0, 1).unwrap();
+    b.add_edge(1, 2).unwrap();
+    b.add_edge(2, 3).unwrap();
+    let mut c = Graph::with_vertices(3);
+    c.add_edge(0, 2).unwrap();
+    let rust = disjoint_union_many(&[&a, &b, &c]).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "disjoint_union_many",
+        &a,
+        serde_json::json!({
+            "extra_graphs": [right_graph_payload(&b), right_graph_payload(&c)],
+        }),
+    ))
+    .expect("decode python disjoint_union_many");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.ecount(), py.edges.len());
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
+}
+
+#[test]
+fn disjoint_union_many_directed_chain_matches_python_igraph() {
+    let mut a = Graph::new(2, true).unwrap();
+    a.add_edge(0, 1).unwrap();
+    let mut b = Graph::new(3, true).unwrap();
+    b.add_edge(0, 1).unwrap();
+    b.add_edge(1, 2).unwrap();
+    let rust = disjoint_union_many(&[&a, &b]).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "disjoint_union_many",
+        &a,
+        serde_json::json!({
+            "extra_graphs": [right_graph_payload(&b)],
+        }),
+    ))
+    .expect("decode python disjoint_union_many");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert!(py.directed);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, false));
 }

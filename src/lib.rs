@@ -56,7 +56,7 @@ pub use crate::algorithms::connectivity::strong::strongly_connected_components;
 pub use crate::algorithms::connectivity::transitive_closure::transitive_closure;
 pub use crate::algorithms::io::edgelist::read_edgelist;
 pub use crate::algorithms::operators::complementer::complementer;
-pub use crate::algorithms::operators::disjoint_union::disjoint_union;
+pub use crate::algorithms::operators::disjoint_union::{disjoint_union, disjoint_union_many};
 pub use crate::algorithms::operators::simplify::simplify;
 pub use crate::algorithms::paths::dijkstra::dijkstra_distances;
 pub use crate::algorithms::paths::distances::distances;

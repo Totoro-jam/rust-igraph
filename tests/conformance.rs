@@ -1036,6 +1036,39 @@ fn disjoint_union_three_source_conformance() {
 }
 
 #[test]
+fn disjoint_union_many_three_source_conformance() {
+    run_conformance("disjoint_union_many", |g, params| {
+        let extras: Vec<GraphPayload> = serde_json::from_value(
+            params
+                .get("extra_graphs")
+                .cloned()
+                .unwrap_or(serde_json::Value::Array(vec![])),
+        )
+        .expect("decode extra_graphs payload list");
+        let extra_graphs: Vec<rust_igraph::Graph> = extras.iter().map(build_graph).collect();
+        let mut refs: Vec<&rust_igraph::Graph> = Vec::with_capacity(1 + extra_graphs.len());
+        refs.push(g);
+        for eg in &extra_graphs {
+            refs.push(eg);
+        }
+        let u = rust_igraph::disjoint_union_many(&refs).expect("disjoint_union_many");
+        let m = u32::try_from(u.ecount()).expect("ecount fits in u32");
+        let mut edges: Vec<[u32; 2]> = (0..m)
+            .map(|e| {
+                let (a, b) = u.edge(e).unwrap();
+                [a, b]
+            })
+            .collect();
+        edges.sort_unstable();
+        serde_json::json!({
+            "vcount": u.vcount(),
+            "directed": u.is_directed(),
+            "edges": edges,
+        })
+    });
+}
+
+#[test]
 fn simplify_three_source_conformance() {
     run_conformance("simplify", |g, params| {
         let remove_multiple = params

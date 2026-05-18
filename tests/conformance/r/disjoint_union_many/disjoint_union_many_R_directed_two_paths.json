@@ -1,0 +1,53 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): two directed paths",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "disjoint_union_many",
+  "params": {
+    "extra_graphs": [
+      {
+        "n": 3,
+        "edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "directed": true,
+        "weights": null
+      }
+    ]
+  },
+  "expected": {
+    "vcount": 5,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ]
+  }
+}

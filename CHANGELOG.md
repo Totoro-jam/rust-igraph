@@ -22,6 +22,21 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(operators)* **ALGO-OP-002b**: `disjoint_union_many` — variadic
+  disjoint union over a slice of graphs. Counterpart of
+  `igraph_disjoint_union_many()`. Vertices of the i-th graph shift by
+  the cumulative `vcount` of all preceding inputs; existing
+  `disjoint_union(left, right)` is now a thin wrapper around
+  `disjoint_union_many(&[left, right])`. Empty slice → null graph;
+  single-input case yields a clone.
+  Full 9-step SOP: 6 new unit tests (15 total in module — incl.
+  empty-slice/null, single-input clone, three-triangles shift,
+  variadic-vs-pairwise associativity, mixed-directedness rejection,
+  directed-orientation preservation), 3 oracle tests (3 triangles,
+  mixed sizes, directed chain), 3 three-source conformance fixtures,
+  1 proptest invariant: `disjoint_union_many(&[a, b])` matches
+  `disjoint_union(a, b)` exactly.
+
 - *(properties)* **ALGO-PR-013b**: `is_simple_with_mode` +
   `SimpleMode { DirectedAsDirected, DirectedAsUndirected }`. Counterpart
   of `igraph_is_simple(_, _, /*directed=*/dir)`. The undirected view

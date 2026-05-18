@@ -1232,6 +1232,31 @@ proptest! {
         }
     }
 
+    /// `disjoint_union_many(&[a, b])` must produce the same vertex /
+    /// edge counts as `disjoint_union(a, b)` (and the same edge
+    /// multiset after sorting). Two-arg parity is the cheapest
+    /// invariant the variadic path has.
+    #[test]
+    fn disjoint_union_many_two_arg_matches_disjoint_union(
+        a in arb_graph(8),
+        b in arb_graph(8),
+    ) {
+        if a.is_directed() != b.is_directed() { return Ok(()); }
+        let pairwise = rust_igraph::disjoint_union(&a, &b).unwrap();
+        let many = rust_igraph::disjoint_union_many(&[&a, &b]).unwrap();
+        prop_assert_eq!(pairwise.vcount(), many.vcount());
+        prop_assert_eq!(pairwise.ecount(), many.ecount());
+        let p_m = u32::try_from(pairwise.ecount()).unwrap();
+        let m_m = u32::try_from(many.ecount()).unwrap();
+        let mut p_edges: Vec<(u32, u32)> = (0..p_m)
+            .map(|e| pairwise.edge(e).unwrap()).collect();
+        let mut m_edges: Vec<(u32, u32)> = (0..m_m)
+            .map(|e| many.edge(e).unwrap()).collect();
+        p_edges.sort_unstable();
+        m_edges.sort_unstable();
+        prop_assert_eq!(p_edges, m_edges);
+    }
+
     /// On undirected graphs, both [`SimpleMode`] variants must agree
     /// (the mode parameter is meaningful only for directed graphs).
     #[test]

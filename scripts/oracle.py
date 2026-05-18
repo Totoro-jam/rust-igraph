@@ -362,6 +362,16 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         edges = [list(e.tuple) for e in u.es]
         return {"vcount": u.vcount(), "directed": u.is_directed(), "edges": edges}
 
+    if algo == "disjoint_union_many":
+        # Counterpart of igraph_disjoint_union_many(_, &graphs[]). The
+        # primary graph (`g`) is the FIRST input; `params.extra_graphs`
+        # is a list of {n, edges, directed, weights} payloads for the
+        # rest.
+        extras = [make_graph(rp) for rp in params.get("extra_graphs", [])]
+        u = ig.disjoint_union([g] + extras)
+        edges = [list(e.tuple) for e in u.es]
+        return {"vcount": u.vcount(), "directed": u.is_directed(), "edges": edges}
+
     if algo == "is_loop":
         # Counterpart of igraph_is_loop(_, _, igraph_ess_all()).
         # python-igraph 0.11 exposes Edge.is_loop() per-edge.

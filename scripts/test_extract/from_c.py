@@ -419,6 +419,46 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DU_MANY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "disjoint_union_many_c_three_triangles",
+        # Mirrors the C unit test for igraph_disjoint_union_many: three
+        # triangles → 9-vertex 9-edge graph with three disjoint K3s.
+        "origin": "constructed: three K3 triangles",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 2), (2, 0)],
+            directed=False,
+        ),
+        "algo": "disjoint_union_many",
+        "params": {
+            "extra_graphs": [
+                {
+                    "n": 3,
+                    "edges": [[0, 1], [1, 2], [2, 0]],
+                    "directed": False,
+                    "weights": None,
+                },
+                {
+                    "n": 3,
+                    "edges": [[0, 1], [1, 2], [2, 0]],
+                    "directed": False,
+                    "weights": None,
+                },
+            ]
+        },
+        "expected": {
+            "vcount": 9,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [1, 2],
+                [3, 4], [3, 5], [4, 5],
+                [6, 7], [6, 8], [7, 8],
+            ],
+        },
+    },
+]
+
 IS_SIMPLE_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_simple_with_mode_c_directed_mutual_pair_undirected_view",
@@ -1095,6 +1135,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,
     "modularity_weighted": MODULARITY_W_MANIFEST,
     "is_simple_with_mode": IS_SIMPLE_MODE_MANIFEST,
+    "disjoint_union_many": DU_MANY_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
