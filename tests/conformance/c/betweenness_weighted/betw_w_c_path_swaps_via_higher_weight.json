@@ -1,0 +1,34 @@
+{
+  "source": "c",
+  "origin": "constructed: triangle with weights (1,1,5) routes through vertex 1",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0,
+      5.0
+    ]
+  },
+  "algo": "betweenness_weighted",
+  "params": {},
+  "expected": [
+    0.0,
+    1.0,
+    0.0
+  ]
+}

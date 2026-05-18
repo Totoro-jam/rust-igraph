@@ -1,0 +1,40 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed chain + shortcut 0\u21923@5; intermediates 1, 2 each = 2.0",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      5.0
+    ]
+  },
+  "algo": "betweenness_weighted",
+  "params": {},
+  "expected": [
+    0.0,
+    2.0,
+    2.0,
+    0.0
+  ]
+}

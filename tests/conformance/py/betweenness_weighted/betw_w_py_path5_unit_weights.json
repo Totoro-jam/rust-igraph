@@ -1,0 +1,41 @@
+{
+  "source": "py",
+  "origin": "constructed: 5-path with unit weights matches PR-008",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "betweenness_weighted",
+  "params": {},
+  "expected": [
+    0.0,
+    3.0,
+    4.0,
+    3.0,
+    0.0
+  ]
+}

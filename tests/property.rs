@@ -372,6 +372,27 @@ proptest! {
         prop_assert_eq!(a, b);
     }
 
+    /// Weighted betweenness invariants:
+    /// - `betweenness_weighted(g, [1.0; m])` matches `betweenness(g)`
+    ///   (within fp tolerance)
+    /// - all values are finite and >= 0
+    /// - length equals vcount
+    #[test]
+    fn betweenness_weighted_unit_weights_match_unweighted(g in arb_graph(8)) {
+        let m = g.ecount();
+        let weights = vec![1.0_f64; m];
+        let bw = rust_igraph::betweenness_weighted(&g, &weights).unwrap();
+        let bu = rust_igraph::betweenness(&g).unwrap();
+        prop_assert_eq!(bw.len(), bu.len());
+        prop_assert_eq!(bw.len(), g.vcount() as usize);
+        for (v, (a, b)) in bw.iter().zip(bu.iter()).enumerate() {
+            prop_assert!(a.is_finite() && *a >= -1e-9,
+                         "vertex {}: betweenness_w = {}", v, a);
+            prop_assert!((a - b).abs() < 1e-9,
+                         "vertex {}: weighted={} unweighted={}", v, a, b);
+        }
+    }
+
     /// Weighted harmonic centrality invariants:
     /// - `harmonic_centrality_weighted(g, [1.0; m])` matches
     ///   `harmonic_centrality(g)` (within fp tolerance)

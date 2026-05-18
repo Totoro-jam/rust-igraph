@@ -12,8 +12,8 @@ use std::fs::File;
 use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
-    bfs, biconnected_components, bridges, closeness, closeness_weighted, complementer,
-    connected_components, count_reachable, count_triangles, density, dfs, diameter,
+    betweenness_weighted, bfs, biconnected_components, bridges, closeness, closeness_weighted,
+    complementer, connected_components, count_reachable, count_triangles, density, dfs, diameter,
     dijkstra_distances, disjoint_union, distances, eccentricity, edge_betweenness,
     eigenvector_centrality, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
     has_multiple, is_biconnected, is_loop, is_multiple, is_simple, mean_distance, modularity,
@@ -1524,6 +1524,69 @@ fn harmonic_centrality_weighted_disconnected_matches_python_igraph() {
         serde_json::json!({}),
     ))
     .expect("decode python harmonic_centrality_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-12, "vertex {i}: rust={r} py={p}");
+    }
+}
+
+#[test]
+fn betweenness_weighted_keeps_direct_when_cheaper_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(0, 2).unwrap();
+    let weights = vec![5.0_f64, 5.0, 1.0];
+    let rust = betweenness_weighted(&g, &weights).unwrap();
+    let py: Vec<f64> = serde_json::from_value(run_ok_with_weights(
+        "betweenness_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python betweenness_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-12, "vertex {i}: rust={r} py={p}");
+    }
+}
+
+#[test]
+fn betweenness_weighted_swaps_route_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(0, 2).unwrap();
+    let weights = vec![1.0_f64, 1.0, 5.0];
+    let rust = betweenness_weighted(&g, &weights).unwrap();
+    let py: Vec<f64> = serde_json::from_value(run_ok_with_weights(
+        "betweenness_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python betweenness_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-12, "vertex {i}: rust={r} py={p}");
+    }
+}
+
+#[test]
+fn betweenness_weighted_path5_unit_weights_matches_python_igraph() {
+    let mut g = Graph::with_vertices(5);
+    for i in 0..4u32 {
+        g.add_edge(i, i + 1).unwrap();
+    }
+    let weights = vec![1.0_f64; 4];
+    let rust = betweenness_weighted(&g, &weights).unwrap();
+    let py: Vec<f64> = serde_json::from_value(run_ok_with_weights(
+        "betweenness_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python betweenness_weighted");
     assert_eq!(rust.len(), py.len());
     for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
         assert!((r - p).abs() < 1e-12, "vertex {i}: rust={r} py={p}");

@@ -174,6 +174,15 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "betweenness_weighted":
+        # Counterpart of igraph_betweenness(_, _, vss_all(),
+        # /*directed=*/g.is_directed(), &weights). python-igraph reads
+        # the `weight` edge attribute when weights="weight".
+        directed = g.is_directed()
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            return [float(v) for v in g.betweenness(directed=directed, weights="weight")]
+        return [float(v) for v in g.betweenness(directed=directed)]
+
     if algo == "harmonic_centrality_weighted":
         # Counterpart of igraph_harmonic_centrality(_, _, vss_all(),
         # IGRAPH_OUT, &weights, /*normalized=*/true).

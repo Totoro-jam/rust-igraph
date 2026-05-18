@@ -224,6 +224,23 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BETW_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "betw_w_py_path5_unit_weights",
+        # Mirrors python-igraph's betweenness smoke test: 5-path with
+        # unit weights collapses exactly to the unweighted expected
+        # values [0, 3, 4, 3, 0].
+        "origin": "constructed: 5-path with unit weights matches PR-008",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 1.0],
+        "algo": "betweenness_weighted",
+        "params": {},
+        "expected": [0.0, 3.0, 4.0, 3.0, 0.0],
+    },
+]
+
 HARMONIC_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "harmonic_w_py_directed_chain_with_shortcut",
@@ -712,6 +729,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
+    "betweenness_weighted": BETW_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

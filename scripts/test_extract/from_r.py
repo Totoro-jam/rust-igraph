@@ -290,6 +290,26 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BETW_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "betw_w_R_directed_chain_with_shortcut",
+        # rigraph mirrors igraph_betweenness with weights. Directed
+        # 0→1→2→3 with extra 0→3 weight 5: shortest 0→3 routes through
+        # 1→2 (cost 3) so vertices 1, 2 each carry betweenness 2.
+        "origin": "constructed (rigraph-style): directed chain + shortcut "
+        "0→3@5; intermediates 1, 2 each = 2.0",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3), (0, 3)],
+            directed=True,
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 5.0],
+        "algo": "betweenness_weighted",
+        "params": {},
+        "expected": [0.0, 2.0, 2.0, 0.0],
+    },
+]
+
 HARMONIC_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "harmonic_w_R_disconnected_pair",
@@ -822,6 +842,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
+    "betweenness_weighted": BETW_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

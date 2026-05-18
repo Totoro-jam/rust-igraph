@@ -521,6 +521,44 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn betweenness_weighted_three_source_conformance() {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("betweenness_weighted");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let b = rust_igraph::betweenness_weighted(&g, &weights).expect("betweenness_weighted");
+            let rust_json: serde_json::Value =
+                b.into_iter().map(|v| serde_json::json!(v)).collect();
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "betweenness_weighted");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn harmonic_centrality_weighted_three_source_conformance() {
     for src in ["c", "py", "r"] {
         let dir = workspace_root()

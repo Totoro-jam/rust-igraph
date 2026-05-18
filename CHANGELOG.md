@@ -11,6 +11,23 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-008b**: `betweenness_weighted` — Brandes-
+  Dijkstra weighted betweenness centrality. Counterpart of
+  `igraph_betweenness(_, _, vss_all(), directed, &weights)`.
+  Replaces BFS in PR-008 with Dijkstra: relaxation step now
+  manages `sigma`/`pred` lists with strict-less-than vs equal-distance
+  branches; vertices are pushed onto a stack in final-distance order
+  during heap pops, then processed in reverse for dependency
+  accumulation. Undirected results halved to match upstream's
+  raw-count convention. Weights must be non-negative + finite.
+  Full 9-step SOP: 10 unit tests (incl. unit-weight equivalence to
+  PR-008, weighted shortcut routing, directed-OUT, K4 short-circuit,
+  weight rejection), 3 oracle tests, 3 three-source conformance
+  fixtures (C 3-vertex routing through middle, py 5-path unit
+  weights matching PR-008, R directed chain with shortcut → 1, 2 each
+  carry betweenness 2.0), 1 proptest invariant: unit weights collapse
+  to unweighted betweenness.
+
 - *(properties)* **ALGO-PR-009b**: `harmonic_centrality_weighted` —
   Dijkstra-based weighted harmonic centrality. Counterpart of
   `igraph_harmonic_centrality(_, _, vss_all(), IGRAPH_OUT, &weights,
