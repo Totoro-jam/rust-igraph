@@ -129,17 +129,16 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload test results to Codecov
-        # Per Codecov's current Test Analytics setup guide
-        # (`docs.codecov.com/docs/test-analytics`): use
-        # `codecov/test-results-action@v5` with `report-type: test_results`.
-        # `v1` was the previous-generation action and silently produced
-        # 0 visible test entries on the dashboard despite "succeeding".
-        # `files:` is explicit because the JUnit lives in `target/`.
+        # NOTE: Codecov's Test Analytics web docs reference a `v5` tag
+        # for this action that does not actually exist on
+        # github.com/codecov/test-results-action — only `v1.x.x` is
+        # tagged (latest at time of writing: v1.2.1). Using `v1` here
+        # explicitly. With `files:`, `flags:`, and `name:` set, the
+        # uploaded payload should appear in the dashboard's Tests page.
         if: always()
-        uses: codecov/test-results-action@v5
+        uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          report-type: test_results
           files: target/nextest/ci/junit.xml
           flags: rust
           name: rust-igraph-tests
