@@ -372,6 +372,31 @@ proptest! {
         prop_assert_eq!(a, b);
     }
 
+    /// Weighted assortativity invariants:
+    /// - `assortativity_degree_weighted(g, [1.0; m])` matches
+    ///   `assortativity_degree(g)` (within fp tolerance)
+    /// - result is in `[-1, 1]` when defined
+    #[test]
+    fn assortativity_degree_weighted_unit_weights_match_unweighted(g in arb_graph(8)) {
+        if g.is_directed() { return Ok(()); }
+        let m = g.ecount();
+        let weights = vec![1.0_f64; m];
+        let aw = rust_igraph::assortativity_degree_weighted(&g, &weights).unwrap();
+        let au = rust_igraph::assortativity_degree(&g).unwrap();
+        match (aw, au) {
+            (Some(x), Some(y)) => {
+                prop_assert!(x.is_finite(),
+                             "weighted assortativity = {} not finite", x);
+                prop_assert!(x.abs() <= 1.0 + 1e-9,
+                             "weighted assortativity = {} out of [-1, 1]", x);
+                prop_assert!((x - y).abs() < 1e-9,
+                             "weighted={} unweighted={}", x, y);
+            }
+            (None, None) => {}
+            (a, b) => prop_assert!(false, "weighted={:?} unweighted={:?}", a, b),
+        }
+    }
+
     /// Weighted PageRank invariants:
     /// - `pagerank_weighted(g, [1.0; m])` matches `pagerank(g)`
     ///   (within fp tolerance — both use power iteration in Rust)

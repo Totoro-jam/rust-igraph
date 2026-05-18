@@ -224,6 +224,22 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ASSORT_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assort_w_py_path_4_unit_weights",
+        # Unit-weight 4-path collapses to unweighted assortativity_degree
+        # = -0.5 (per python-igraph oracle; matches PR-006-style formula).
+        "origin": "constructed: 4-path with unit weights → -0.5 (python-igraph)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0, 1.0],
+        "algo": "assortativity_degree_weighted",
+        "params": {},
+        "expected": -0.500000000000003,
+    },
+]
+
 PAGERANK_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "pagerank_w_py_heavy_edge_concentrates",
@@ -772,6 +788,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "betweenness_weighted": BETW_W_MANIFEST,
     "edge_betweenness_weighted": EDGE_BETW_W_MANIFEST,
     "pagerank_weighted": PAGERANK_W_MANIFEST,
+    "assortativity_degree_weighted": ASSORT_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

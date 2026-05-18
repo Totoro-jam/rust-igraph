@@ -11,15 +11,16 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
-    Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
-    betweenness_weighted, bfs, biconnected_components, bridges, closeness, closeness_weighted,
-    complementer, connected_components, count_reachable, count_triangles, density, dfs, diameter,
-    dijkstra_distances, disjoint_union, distances, eccentricity, edge_betweenness,
-    edge_betweenness_weighted, eigenvector_centrality, girth, harmonic_centrality,
-    harmonic_centrality_weighted, has_loop, has_multiple, is_biconnected, is_loop, is_multiple,
-    is_simple, mean_distance, modularity, pagerank, pagerank_weighted, radius, reachability_matrix,
-    read_edgelist, reciprocity, simplify, strongly_connected_components, transitive_closure,
-    transitivity_local_undirected, transitivity_undirected,
+    Graph, articulation_points, assortativity_degree, assortativity_degree_weighted,
+    avg_nearest_neighbor_degree, betweenness, betweenness_weighted, bfs, biconnected_components,
+    bridges, closeness, closeness_weighted, complementer, connected_components, count_reachable,
+    count_triangles, density, dfs, diameter, dijkstra_distances, disjoint_union, distances,
+    eccentricity, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality, girth,
+    harmonic_centrality, harmonic_centrality_weighted, has_loop, has_multiple, is_biconnected,
+    is_loop, is_multiple, is_simple, mean_distance, modularity, pagerank, pagerank_weighted,
+    radius, reachability_matrix, read_edgelist, reciprocity, simplify,
+    strongly_connected_components, transitive_closure, transitivity_local_undirected,
+    transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -1779,4 +1780,69 @@ fn pagerank_weighted_heavy_edge_concentrates_matches_python_igraph() {
         assert!((r - p).abs() < 1e-6, "vertex {i}: rust={r} py={p}");
     }
     assert!(rust[1] > rust[2]);
+}
+
+// python-igraph 0.11 has no weighted assortativity at the Python layer
+// (`Graph.assortativity` has no `weights` kwarg; `assortativity_degree`
+// doesn't take weights). For unit-weight inputs the weighted formula
+// collapses to the unweighted one — these tests verify that
+// equivalence against python-igraph's unweighted oracle. Non-unit
+// weights are validated via the conformance suite with hand-computed
+// reference values.
+
+#[test]
+fn assortativity_degree_weighted_path_4_unit_weights_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    for i in 0..3u32 {
+        g.add_edge(i, i + 1).unwrap();
+    }
+    let weights = vec![1.0_f64; 3];
+    let rust = assortativity_degree_weighted(&g, &weights).unwrap();
+    let py: serde_json::Value = run_ok_with_weights(
+        "assortativity_degree_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    );
+    let py_val = py.as_f64().expect("py value as f64");
+    let r = rust.expect("rust value");
+    assert!((r - py_val).abs() < 1e-12, "rust={r} py={py_val}");
+}
+
+#[test]
+fn assortativity_degree_weighted_diamond_unit_weights_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    for &(u, v) in &[(0u32, 1), (0, 2), (1, 2), (1, 3), (2, 3)] {
+        g.add_edge(u, v).unwrap();
+    }
+    let weights = vec![1.0_f64; 5];
+    let rust = assortativity_degree_weighted(&g, &weights).unwrap();
+    let py: serde_json::Value = run_ok_with_weights(
+        "assortativity_degree_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    );
+    let py_val = py.as_f64().expect("py value as f64");
+    let r = rust.expect("rust value");
+    assert!((r - py_val).abs() < 1e-12, "rust={r} py={py_val}");
+}
+
+#[test]
+fn assortativity_degree_weighted_two_triangles_bridge_matches_python_igraph() {
+    let mut g = Graph::with_vertices(6);
+    for &(u, v) in &[(0u32, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (2, 3)] {
+        g.add_edge(u, v).unwrap();
+    }
+    let weights = vec![1.0_f64; 7];
+    let rust = assortativity_degree_weighted(&g, &weights).unwrap();
+    let py: serde_json::Value = run_ok_with_weights(
+        "assortativity_degree_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    );
+    let py_val = py.as_f64().expect("py value as f64");
+    let r = rust.expect("rust value");
+    assert!((r - py_val).abs() < 1e-12, "rust={r} py={py_val}");
 }

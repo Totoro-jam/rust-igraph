@@ -1,0 +1,25 @@
+{
+  "source": "c",
+  "origin": "constructed: 3-path weights (1, 4); hand-computed -0.64/1.36",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      4.0
+    ]
+  },
+  "algo": "assortativity_degree_weighted",
+  "params": {},
+  "expected": -0.47058823529411764
+}

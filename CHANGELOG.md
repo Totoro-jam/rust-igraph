@@ -11,6 +11,26 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-006b**: `assortativity_degree_weighted` —
+  weighted Pearson correlation of endpoint strengths. Counterpart of
+  `igraph_assortativity_degree(_, _, /*directed=*/false, &weights)`.
+  Strength replaces degree (`s_v = Σ w_e` over incident edges, with
+  self-loops contributing `2w`); each edge weighted by `w` in the
+  Pearson sum. Returns `None` for empty / zero-total-weight / regular
+  graphs (zero-variance denominator).
+  python-igraph 0.11 has no Python-level weighted assortativity
+  (`Graph.assortativity` lacks a `weights` kwarg), so the oracle uses
+  unit-weight equivalence to `assortativity_degree`; non-unit cases
+  validate via 3-source conformance with hand-computed reference
+  values (formula derivation lives in the manifest comments).
+  Full 9-step SOP: 11 unit tests (incl. unit-weight equivalence to
+  PR-006, weighted-path breaking perfect disassortativity,
+  zero-total-weight → None, weight rejection, directed unsupported),
+  3 oracle tests (unit-weight cases), 3 three-source conformance
+  fixtures (C 3-path non-uniform, py 4-path unit equivalence, R
+  diamond non-uniform), 1 proptest invariant: unit weights collapse
+  to unweighted assortativity_degree.
+
 - *(properties)* **ALGO-PR-011b**: `pagerank_weighted` — power-iteration
   weighted `PageRank`. Counterpart of `igraph_pagerank(_,
   IGRAPH_PAGERANK_ALGO_POWER, _, _, vss_all(), directed, 0.85,

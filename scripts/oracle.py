@@ -174,6 +174,21 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "assortativity_degree_weighted":
+        # Counterpart of igraph_assortativity_degree(_, _, /*directed=*/false,
+        # &weights). python-igraph 0.11 has no weighted assortativity
+        # at the Python layer (`Graph.assortativity` has no `weights`
+        # kwarg, and `assortativity_degree` doesn't take weights). For
+        # the unit-weight case, the weighted formula collapses to the
+        # unweighted one, so we use that as the oracle and the Rust
+        # tests only call this for unit-weight fixtures. Non-unit
+        # weights are validated via the Rust conformance suite using
+        # hand-computed reference values.
+        v = g.assortativity_degree(directed=False)
+        if v != v:
+            return None
+        return float(v)
+
     if algo == "pagerank_weighted":
         # Counterpart of igraph_pagerank(_, IGRAPH_PAGERANK_ALGO_POWER,
         # _, _, vss_all(), directed, 0.85, &weights, NULL_options).

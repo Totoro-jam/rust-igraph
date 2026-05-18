@@ -273,6 +273,25 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ASSORT_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assort_w_c_path_3_non_uniform",
+        # Path 0-1-2 weights (1, 4): strengths [1, 5, 4].
+        # By the weighted Pearson formula:
+        #   W = 5; num1=85/5=17; num2=42/10=4.2 → ^2 = 17.64; den1=190/10=19
+        #   r = (17 - 17.64) / (19 - 17.64) = -0.64 / 1.36
+        # Hand-computed; non-unit weights so python-igraph can't oracle this.
+        "origin": "constructed: 3-path weights (1, 4); hand-computed -0.64/1.36",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0],
+        "algo": "assortativity_degree_weighted",
+        "params": {},
+        "expected": -0.64 / 1.36,
+    },
+]
+
 PAGERANK_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "pagerank_w_c_directed_4cycle_unit_weights",
@@ -971,6 +990,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "betweenness_weighted": BETW_W_MANIFEST,
     "edge_betweenness_weighted": EDGE_BETW_W_MANIFEST,
     "pagerank_weighted": PAGERANK_W_MANIFEST,
+    "assortativity_degree_weighted": ASSORT_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

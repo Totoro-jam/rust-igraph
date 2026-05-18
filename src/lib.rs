@@ -64,6 +64,7 @@ pub use crate::algorithms::paths::eulerian::{EulerianClassification, is_eulerian
 pub use crate::algorithms::paths::eulerian_construct::eulerian_path;
 pub use crate::algorithms::paths::radii::{diameter, eccentricity, radius};
 pub use crate::algorithms::properties::assortativity::assortativity_degree;
+pub use crate::algorithms::properties::assortativity_weighted::assortativity_degree_weighted;
 pub use crate::algorithms::properties::basic::{density, mean_distance};
 pub use crate::algorithms::properties::betweenness::betweenness;
 pub use crate::algorithms::properties::betweenness_weighted::betweenness_weighted;

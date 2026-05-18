@@ -290,6 +290,43 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ASSORT_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assort_w_R_diamond_non_uniform",
+        # K4 minus edge (the "diamond"): edges (0,1)(0,2)(1,2)(1,3)(2,3)
+        # with weights (1, 2, 0.5, 1.5, 1). Hand-computed via the
+        # upstream weighted Pearson formula (no python-igraph oracle).
+        # strengths:
+        #   0: 1+2 = 3;  1: 1+0.5+1.5 = 3;  2: 2+0.5+1 = 3.5;  3: 1.5+1 = 2.5
+        # W = 1+2+0.5+1.5+1 = 6
+        # num1 (= Σ w * s_u * s_v):
+        #   1*(3*3) + 2*(3*3.5) + 0.5*(3*3.5) + 1.5*(3*2.5) + 1*(3.5*2.5)
+        #   = 9 + 21 + 5.25 + 11.25 + 8.75 = 55.25; /W = 9.208333...
+        # num2 (= Σ w * (s_u + s_v)):
+        #   1*(3+3) + 2*(3+3.5) + 0.5*(3+3.5) + 1.5*(3+2.5) + 1*(3.5+2.5)
+        #   = 6 + 13 + 3.25 + 8.25 + 6 = 36.5; /(2W) = 3.041666...; ^2 = 9.251736111111108
+        # den1 (= Σ w * (s_u^2 + s_v^2)):
+        #   1*(9+9) + 2*(9+12.25) + 0.5*(9+12.25) + 1.5*(9+6.25) + 1*(12.25+6.25)
+        #   = 18 + 42.5 + 10.625 + 22.875 + 18.5 = 112.5; /(2W) = 9.375
+        # r = (9.208333... - 9.251736...) / (9.375 - 9.251736...)
+        #   = -0.04340277... / 0.12326388... ≈ -0.352112676
+        "origin": "constructed (rigraph-style): K4-minus-edge with weights "
+        "(1, 2, 0.5, 1.5, 1); hand-computed",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "graph_weights": [1.0, 2.0, 0.5, 1.5, 1.0],
+        "algo": "assortativity_degree_weighted",
+        "params": {},
+        # Computed via the formula above; verified by running the same
+        # formula in Python (see oracle dispatcher comment about why
+        # python-igraph itself can't oracle this case).
+        "expected": -0.3521126760563289,
+    },
+]
+
 PAGERANK_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "pagerank_w_R_undirected_triangle_unit",
@@ -887,6 +924,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "betweenness_weighted": BETW_W_MANIFEST,
     "edge_betweenness_weighted": EDGE_BETW_W_MANIFEST,
     "pagerank_weighted": PAGERANK_W_MANIFEST,
+    "assortativity_degree_weighted": ASSORT_W_MANIFEST,
+    "assortativity_degree_weighted": ASSORT_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

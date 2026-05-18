@@ -9,6 +9,7 @@
 // `pagerank`) don't collide with the function re-exports in the
 // rendered rustdoc — see https://github.com/rust-lang/rust/issues/...
 pub(crate) mod assortativity;
+pub(crate) mod assortativity_weighted;
 pub(crate) mod basic;
 pub(crate) mod betweenness;
 pub(crate) mod betweenness_weighted;
@@ -29,6 +30,7 @@ pub(crate) mod reciprocity;
 pub(crate) mod triangles;
 
 pub use assortativity::assortativity_degree;
+pub use assortativity_weighted::assortativity_degree_weighted;
 pub use basic::{density, mean_distance};
 pub use betweenness::betweenness;
 pub use betweenness_weighted::betweenness_weighted;

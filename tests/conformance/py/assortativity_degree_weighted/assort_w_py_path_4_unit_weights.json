@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-path with unit weights \u2192 -0.5 (python-igraph)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "assortativity_degree_weighted",
+  "params": {},
+  "expected": -0.500000000000003
+}
