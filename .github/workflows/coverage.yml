@@ -114,15 +114,29 @@ jobs:
         run: |
           cargo nextest run --workspace --features proptest-harness --profile ci || true
 
-      - name: Show junit.xml head (debug)
+      - name: Show junit.xml diagnostics (debug)
         # Same reason as above: surface missing reports in the log
         # rather than letting the upload silently no-op.
         if: always()
         run: |
-          ls -la target/nextest/ci/ || true
-          head -40 target/nextest/ci/junit.xml || true
-          wc -l target/nextest/ci/junit.xml || true
-          grep -c "<testcase" target/nextest/ci/junit.xml || echo "no testcase entries found"
+          echo "=== target/nextest tree ==="
+          find target/nextest -type f 2>/dev/null || echo "(target/nextest absent)"
+          echo
+          echo "=== junit.xml header ==="
+          head -3 target/nextest/ci/junit.xml || true
+          echo
+          echo "=== testsuite summary attributes ==="
+          grep -oE '<testsuite[^>]*>' target/nextest/ci/junit.xml || echo "no testsuite found"
+          echo
+          echo "=== testcase count ==="
+          tc=$(grep -c "<testcase" target/nextest/ci/junit.xml || true)
+          echo "testcases: $tc"
+          echo
+          echo "=== file size ==="
+          wc -c target/nextest/ci/junit.xml || true
+          echo
+          echo "=== first 5 testcase lines ==="
+          grep "<testcase" target/nextest/ci/junit.xml | head -5 || true
 
       - name: Upload junit.xml as artifact
         # Lets us download and inspect the raw JUnit XML out-of-band
