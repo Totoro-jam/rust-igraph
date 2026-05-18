@@ -1,0 +1,43 @@
+# Codecov configuration. See https://docs.codecov.com/docs/codecov-yaml.
+
+coverage:
+  precision: 2
+  round: down
+  range: "70...95"
+  status:
+    project:
+      default:
+        # Allow ±0.5% slack so trivial line-count noise on a fresh
+        # algorithm doesn't fail the PR check.
+        target: auto
+        threshold: 0.5%
+        if_ci_failed: error
+        informational: false
+    patch:
+      default:
+        # New code added in a PR is expected to land with tests; we
+        # don't want a Phase-1 AWU dropping uncovered lines into the
+        # codebase. 70% is the lower bound — most AWUs land at 90%+
+        # because the 9-step SOP shipped unit tests + oracle tests.
+        target: 70%
+        threshold: 0%
+        if_ci_failed: error
+        informational: false
+
+comment:
+  layout: "reach,diff,flags,files,footer"
+  behavior: default
+  require_changes: false
+
+# We sometimes scaffold a function in one commit and add tests in the
+# next — don't ping the PR before the patch coverage stabilises.
+codecov:
+  notify:
+    wait_for_ci: true
+
+ignore:
+  - "tests/**"
+  - "benches/**"
+  - "examples/**"
+  - "scripts/**"
+  - "references/**"

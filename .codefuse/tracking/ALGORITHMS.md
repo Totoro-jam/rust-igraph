@@ -39,6 +39,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | BOOT-12 | proptest skeleton + BFS invariant | done | 5779a31 |
 | BOOT-13 | criterion bench skeleton + BFS baseline | done | 5779a31 |
 | BOOT-14..18 | GitHub Actions CI matrix | done | 8d688d8, a6b1cf8 |
+| BOOT-14b | Codecov coverage upload (cargo-llvm-cov + codecov.yml + README badge) | done | (next) |
 | BOOT-19..22 | templates/ (algo, test, oracle, bench) | done | (next) |
 | BOOT-23 | ALGORITHMS.md (this file) | done | 8d688d8 |
 | BOOT-24 | ARCHITECTURE.md | done | (next) |
