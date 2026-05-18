@@ -93,24 +93,32 @@ jobs:
         uses: taiki-e/install-action@v2
         with: { tool: cargo-nextest }
 
+      - name: Wipe stale nextest output
+        # `Swatinem/rust-cache@v2` keeps `target/` warm, which can
+        # leave a stale `target/nextest/ci/junit.xml` from a previous
+        # run on disk. Remove it so the file we upload is unambiguous.
+        run: rm -rf target/nextest
+
+      - name: List planned test set (sanity check)
+        # If the testcase count in `junit.xml` is suspiciously small,
+        # the cause is usually here: nextest plans some other set of
+        # binaries than we expect. This step makes the planned count
+        # visible in the log without affecting the run.
+        run: |
+          cargo nextest list --workspace --features proptest-harness 2>&1 | tail -30
+          echo "==="
+          cargo nextest list --workspace --features proptest-harness 2>&1 \
+            | grep -cE "^\s+[a-zA-Z]" || true
+
       - name: Run nextest with JUnit report
-        # The `ci` profile lives in .config/nextest.toml; it writes
-        # target/nextest/ci/junit.xml. `--no-fail-fast` is implied by
-        # the profile (fail-fast = false). We pin the test set
-        # explicitly because:
-        #   1. `--all-features` would compile-fail or runtime-skip
-        #      anything that depends on a python-igraph venv that's
-        #      not yet set up (oracle-tests). nextest's fail-fast then
-        #      truncates the JUnit; the previous run produced only
-        #      ~10 KB because the proptest test set never reached the
-        #      runner.
-        #   2. Coverage instrumentation already runs the same suite via
-        #      cargo-llvm-cov in the sibling job; here we only need
-        #      enough testcases for the Test Analytics dashboard to
-        #      render — the platform tests in ci.yml are the source of
-        #      truth for "did the code break".
-        # `|| true` keeps the job green even if a test fails so the
-        # JUnit + Codecov upload still happen.
+        # The `ci` profile lives in `.config/nextest.toml`; it writes
+        # `target/nextest/ci/junit.xml`. `--no-fail-fast` is implied
+        # by the profile (`fail-fast = false`). We pin the feature
+        # set explicitly because `--all-features` pulls in
+        # `oracle-tests`, which needs a python-igraph venv that this
+        # job intentionally does not set up. `|| true` keeps the
+        # job green even if a test fails so the JUnit + Codecov
+        # upload still happen.
         run: |
           cargo nextest run --workspace --features proptest-harness --profile ci || true
 
