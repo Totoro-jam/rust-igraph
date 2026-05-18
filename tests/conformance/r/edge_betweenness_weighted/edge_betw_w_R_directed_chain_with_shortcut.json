@@ -1,0 +1,60 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed chain + heavy shortcut 0\u21923@5; chain edges carry [3,4,3], shortcut 0",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      5.0
+    ]
+  },
+  "algo": "edge_betweenness_weighted",
+  "params": {},
+  "expected": {
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "values": [
+      3.0,
+      4.0,
+      3.0,
+      0.0
+    ]
+  }
+}

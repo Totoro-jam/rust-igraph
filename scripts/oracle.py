@@ -174,6 +174,20 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "edge_betweenness_weighted":
+        # Counterpart of igraph_edge_betweenness(_, _, all_eids,
+        # /*directed=*/g.is_directed(), &weights). Returns a parallel
+        # `{edges: [(u,v),...], values: [...]}` payload so the oracle
+        # test can match by endpoint pair (edge ids vary across the
+        # wire-format reconstruction).
+        directed = g.is_directed()
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            vals = g.edge_betweenness(directed=directed, weights="weight")
+        else:
+            vals = g.edge_betweenness(directed=directed)
+        edges = [list(e.tuple) for e in g.es]
+        return {"edges": edges, "values": [float(v) for v in vals]}
+
     if algo == "betweenness_weighted":
         # Counterpart of igraph_betweenness(_, _, vss_all(),
         # /*directed=*/g.is_directed(), &weights). python-igraph reads

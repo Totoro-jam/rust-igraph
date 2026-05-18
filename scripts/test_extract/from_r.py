@@ -290,6 +290,28 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EDGE_BETW_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edge_betw_w_R_directed_chain_with_shortcut",
+        # rigraph mirrors igraph_edge_betweenness with weights. Directed
+        # 0→1→2→3 + extra 0→3 weight 5: chain wins, shortcut gets 0.
+        "origin": "constructed (rigraph-style): directed chain + heavy shortcut "
+        "0→3@5; chain edges carry [3,4,3], shortcut 0",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3), (0, 3)],
+            directed=True,
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 5.0],
+        "algo": "edge_betweenness_weighted",
+        "params": {},
+        "expected": {
+            "edges": [[0, 1], [1, 2], [2, 3], [0, 3]],
+            "values": [3.0, 4.0, 3.0, 0.0],
+        },
+    },
+]
+
 BETW_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "betw_w_R_directed_chain_with_shortcut",
@@ -843,6 +865,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
     "betweenness_weighted": BETW_W_MANIFEST,
+    "edge_betweenness_weighted": EDGE_BETW_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

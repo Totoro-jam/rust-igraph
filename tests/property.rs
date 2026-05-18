@@ -372,6 +372,27 @@ proptest! {
         prop_assert_eq!(a, b);
     }
 
+    /// Weighted edge betweenness invariants:
+    /// - `edge_betweenness_weighted(g, [1.0; m])` matches
+    ///   `edge_betweenness(g)` (within fp tolerance)
+    /// - all values are finite and >= 0
+    /// - length equals ecount
+    #[test]
+    fn edge_betweenness_weighted_unit_weights_match_unweighted(g in arb_graph(8)) {
+        let m = g.ecount();
+        let weights = vec![1.0_f64; m];
+        let ebw = rust_igraph::edge_betweenness_weighted(&g, &weights).unwrap();
+        let ebu = rust_igraph::edge_betweenness(&g).unwrap();
+        prop_assert_eq!(ebw.len(), ebu.len());
+        prop_assert_eq!(ebw.len(), m);
+        for (e, (a, b)) in ebw.iter().zip(ebu.iter()).enumerate() {
+            prop_assert!(a.is_finite() && *a >= -1e-9,
+                         "edge {}: weighted = {}", e, a);
+            prop_assert!((a - b).abs() < 1e-9,
+                         "edge {}: weighted={} unweighted={}", e, a, b);
+        }
+    }
+
     /// Weighted betweenness invariants:
     /// - `betweenness_weighted(g, [1.0; m])` matches `betweenness(g)`
     ///   (within fp tolerance)

@@ -11,6 +11,19 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-010b**: `edge_betweenness_weighted` —
+  Brandes-Dijkstra weighted edge-betweenness centrality. Counterpart
+  of `igraph_edge_betweenness(_, _, all_eids, directed, &weights)`.
+  Same Brandes-Dijkstra framework as PR-008b but the dependency is
+  deposited on edges (predecessor list now stores `(vertex, edge_id)`
+  tuples). Undirected results halved.
+  Full 9-step SOP: 10 unit tests (incl. unit-weight equivalence to
+  PR-010, weighted shortcut routing, K4 short-circuit, weight
+  rejection), 3 oracle tests, 3 three-source conformance fixtures
+  (C 4-path, py triangle with heavy chord, R directed chain with
+  shortcut), 1 proptest invariant: unit weights collapse to
+  unweighted edge_betweenness.
+
 - *(properties)* **ALGO-PR-008b**: `betweenness_weighted` — Brandes-
   Dijkstra weighted betweenness centrality. Counterpart of
   `igraph_betweenness(_, _, vss_all(), directed, &weights)`.

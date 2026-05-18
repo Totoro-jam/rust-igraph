@@ -1,0 +1,50 @@
+{
+  "source": "py",
+  "origin": "constructed: triangle with heavy chord; chord betweenness 0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0,
+      5.0
+    ]
+  },
+  "algo": "edge_betweenness_weighted",
+  "params": {},
+  "expected": {
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "values": [
+      2.0,
+      2.0,
+      0.0
+    ]
+  }
+}

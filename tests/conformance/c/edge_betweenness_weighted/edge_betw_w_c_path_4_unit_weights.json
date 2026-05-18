@@ -1,0 +1,50 @@
+{
+  "source": "c",
+  "origin": "constructed: 4-path with unit weights matches PR-010",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "edge_betweenness_weighted",
+  "params": {},
+  "expected": {
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "values": [
+      3.0,
+      4.0,
+      3.0
+    ]
+  }
+}

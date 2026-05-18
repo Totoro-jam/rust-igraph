@@ -521,6 +521,95 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn edge_betweenness_weighted_three_source_conformance() {
+    // Bespoke runner: needs both `case.graph.weights` and the
+    // parallel `(edges, values)` expected shape. Canonicalise edge
+    // endpoint pairs before comparison so Rust storage order vs
+    // python-igraph's by-vertex rebuild order doesn't matter.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("edge_betweenness_weighted");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let directed = case.graph.directed;
+            let eb = rust_igraph::edge_betweenness_weighted(&g, &weights)
+                .expect("edge_betweenness_weighted");
+
+            // Build canonical Vec<((min, max), value)> for both sides
+            // and compare element-wise after sorting by canonical pair.
+            let canonicalise =
+                |u: u32, v: u32| -> (u32, u32) { if directed || u <= v { (u, v) } else { (v, u) } };
+
+            let m_u = u32::try_from(g.ecount()).expect("ecount fits in u32");
+            let mut rust_pairs: Vec<((u32, u32), f64)> = (0..m_u)
+                .map(|e| {
+                    let (u, v) = g.edge(e).unwrap();
+                    (canonicalise(u, v), eb[e as usize])
+                })
+                .collect();
+            rust_pairs.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.partial_cmp(&b.1).unwrap()));
+
+            let expected_obj = case
+                .expected
+                .as_object()
+                .expect("expected is JSON object {edges, values}");
+            let exp_edges = expected_obj
+                .get("edges")
+                .and_then(serde_json::Value::as_array)
+                .expect("expected.edges array");
+            let exp_values = expected_obj
+                .get("values")
+                .and_then(serde_json::Value::as_array)
+                .expect("expected.values array");
+            let mut exp_pairs: Vec<((u32, u32), f64)> = exp_edges
+                .iter()
+                .zip(exp_values.iter())
+                .map(|(eptr, vptr)| {
+                    let arr = eptr.as_array().expect("edge as array");
+                    let u = u32::try_from(arr[0].as_u64().expect("u32")).unwrap();
+                    let v = u32::try_from(arr[1].as_u64().expect("u32")).unwrap();
+                    let val = vptr.as_f64().expect("value as f64");
+                    (canonicalise(u, v), val)
+                })
+                .collect();
+            exp_pairs.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.partial_cmp(&b.1).unwrap()));
+
+            assert_eq!(
+                rust_pairs.len(),
+                exp_pairs.len(),
+                "{}: edge count mismatch",
+                path.display()
+            );
+            for ((rp, rv), (ep, ev)) in rust_pairs.iter().zip(exp_pairs.iter()) {
+                assert_eq!(rp, ep, "{}: edge endpoint mismatch", path.display());
+                assert!(
+                    (rv - ev).abs() < 1e-9 * ev.abs().max(1.0),
+                    "{}: edge {rp:?}: rust={rv} expected={ev}",
+                    path.display()
+                );
+            }
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "edge_betweenness_weighted");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn betweenness_weighted_three_source_conformance() {
     for src in ["c", "py", "r"] {
         let dir = workspace_root()

@@ -224,6 +224,26 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EDGE_BETW_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edge_betw_w_py_triangle_chord_swap",
+        # Triangle (0,1)-(1,2)-(0,2) with weights (1, 1, 5): the chord
+        # 0-2 is too expensive, so 0→1→2 wins. Edge (0,2) gets 0,
+        # the two legs each get 2.0.
+        "origin": "constructed: triangle with heavy chord; chord betweenness 0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (0, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0, 5.0],
+        "algo": "edge_betweenness_weighted",
+        "params": {},
+        "expected": {
+            "edges": [[0, 1], [1, 2], [0, 2]],
+            "values": [2.0, 2.0, 0.0],
+        },
+    },
+]
+
 BETW_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "betw_w_py_path5_unit_weights",
@@ -730,6 +750,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
     "betweenness_weighted": BETW_W_MANIFEST,
+    "edge_betweenness_weighted": EDGE_BETW_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

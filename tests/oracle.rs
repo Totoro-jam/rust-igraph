@@ -15,11 +15,11 @@ use rust_igraph::{
     betweenness_weighted, bfs, biconnected_components, bridges, closeness, closeness_weighted,
     complementer, connected_components, count_reachable, count_triangles, density, dfs, diameter,
     dijkstra_distances, disjoint_union, distances, eccentricity, edge_betweenness,
-    eigenvector_centrality, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
-    has_multiple, is_biconnected, is_loop, is_multiple, is_simple, mean_distance, modularity,
-    pagerank, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
-    strongly_connected_components, transitive_closure, transitivity_local_undirected,
-    transitivity_undirected,
+    edge_betweenness_weighted, eigenvector_centrality, girth, harmonic_centrality,
+    harmonic_centrality_weighted, has_loop, has_multiple, is_biconnected, is_loop, is_multiple,
+    is_simple, mean_distance, modularity, pagerank, radius, reachability_matrix, read_edgelist,
+    reciprocity, simplify, strongly_connected_components, transitive_closure,
+    transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -1590,5 +1590,117 @@ fn betweenness_weighted_path5_unit_weights_matches_python_igraph() {
     assert_eq!(rust.len(), py.len());
     for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
         assert!((r - p).abs() < 1e-12, "vertex {i}: rust={r} py={p}");
+    }
+}
+
+/// Wire-format payload returned by the `edge_betweenness_weighted`
+/// oracle (parallel `edges` + `values`).
+#[derive(serde::Deserialize)]
+struct PyEdgeBetweennessWeighted {
+    edges: Vec<[u32; 2]>,
+    values: Vec<f64>,
+}
+
+fn rust_eb_w_pairs(g: &Graph, eb: &[f64]) -> Vec<((u32, u32), f64)> {
+    let m = u32::try_from(g.ecount()).unwrap();
+    let mut v: Vec<_> = (0..m)
+        .map(|e| {
+            let (a, b) = g.edge(e).unwrap();
+            let pair = if a > b { (b, a) } else { (a, b) };
+            (pair, eb[e as usize])
+        })
+        .collect();
+    v.sort_by(|x, y| x.0.cmp(&y.0).then(x.1.partial_cmp(&y.1).unwrap()));
+    v
+}
+
+fn py_eb_w_pairs(py: &PyEdgeBetweennessWeighted) -> Vec<((u32, u32), f64)> {
+    let mut v: Vec<_> = py
+        .edges
+        .iter()
+        .zip(py.values.iter())
+        .map(|(p, &val)| {
+            let pair = if p[0] > p[1] {
+                (p[1], p[0])
+            } else {
+                (p[0], p[1])
+            };
+            (pair, val)
+        })
+        .collect();
+    v.sort_by(|x, y| x.0.cmp(&y.0).then(x.1.partial_cmp(&y.1).unwrap()));
+    v
+}
+
+#[test]
+fn edge_betweenness_weighted_path_4_unit_weights_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    for i in 0..3u32 {
+        g.add_edge(i, i + 1).unwrap();
+    }
+    let weights = vec![1.0_f64; 3];
+    let rust = edge_betweenness_weighted(&g, &weights).unwrap();
+    let py: PyEdgeBetweennessWeighted = serde_json::from_value(run_ok_with_weights(
+        "edge_betweenness_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python edge_betweenness_weighted");
+    let r_pairs = rust_eb_w_pairs(&g, &rust);
+    let p_pairs = py_eb_w_pairs(&py);
+    assert_eq!(r_pairs.len(), p_pairs.len());
+    for (i, ((rp, rv), (pp, pv))) in r_pairs.iter().zip(p_pairs.iter()).enumerate() {
+        assert_eq!(rp, pp, "edge slot {i}");
+        assert!((rv - pv).abs() < 1e-12, "edge {rp:?}: rust={rv} py={pv}");
+    }
+}
+
+#[test]
+fn edge_betweenness_weighted_triangle_swap_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(0, 2).unwrap();
+    let weights = vec![1.0_f64, 1.0, 5.0];
+    let rust = edge_betweenness_weighted(&g, &weights).unwrap();
+    let py: PyEdgeBetweennessWeighted = serde_json::from_value(run_ok_with_weights(
+        "edge_betweenness_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python edge_betweenness_weighted");
+    let r_pairs = rust_eb_w_pairs(&g, &rust);
+    let p_pairs = py_eb_w_pairs(&py);
+    assert_eq!(r_pairs.len(), p_pairs.len());
+    for ((rp, rv), (pp, pv)) in r_pairs.iter().zip(p_pairs.iter()) {
+        assert_eq!(rp, pp);
+        assert!((rv - pv).abs() < 1e-12, "edge {rp:?}: rust={rv} py={pv}");
+    }
+}
+
+#[test]
+fn edge_betweenness_weighted_directed_chain_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    g.add_edge(0, 3).unwrap();
+    let weights = vec![1.0_f64, 1.0, 1.0, 5.0];
+    let rust = edge_betweenness_weighted(&g, &weights).unwrap();
+    let py: PyEdgeBetweennessWeighted = serde_json::from_value(run_ok_with_weights(
+        "edge_betweenness_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python edge_betweenness_weighted");
+    let r_pairs = rust_eb_w_pairs(&g, &rust);
+    let p_pairs = py_eb_w_pairs(&py);
+    assert_eq!(r_pairs.len(), p_pairs.len());
+    for ((rp, rv), (pp, pv)) in r_pairs.iter().zip(p_pairs.iter()) {
+        assert_eq!(rp, pp);
+        assert!((rv - pv).abs() < 1e-12, "edge {rp:?}: rust={rv} py={pv}");
     }
 }

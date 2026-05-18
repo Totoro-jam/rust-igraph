@@ -273,6 +273,24 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EDGE_BETW_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edge_betw_w_c_path_4_unit_weights",
+        # 4-path with unit weights collapses to PR-010's [3, 4, 3].
+        "origin": "constructed: 4-path with unit weights matches PR-010",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0, 1.0],
+        "algo": "edge_betweenness_weighted",
+        "params": {},
+        "expected": {
+            "edges": [[0, 1], [1, 2], [2, 3]],
+            "values": [3.0, 4.0, 3.0],
+        },
+    },
+]
+
 BETW_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "betw_w_c_path_swaps_via_higher_weight",
@@ -935,6 +953,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
     "betweenness_weighted": BETW_W_MANIFEST,
+    "edge_betweenness_weighted": EDGE_BETW_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
