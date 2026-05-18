@@ -156,8 +156,14 @@ jobs:
         with: { tool: cargo-llvm-cov }
 
       - name: Generate lcov coverage report
+        # `--doctests` would require nightly (rustdoc's
+        # `-Z unstable-options --persist-doctests`); the `doc` job
+        # already compiles every doctest with -D warnings, so the
+        # marginal coverage from instrumenting them is not worth a
+        # toolchain split. We instrument unit + integration tests
+        # only — that's still all of the algorithm code paths.
         run: |
-          cargo llvm-cov --workspace --all-features --doctests \
+          cargo llvm-cov --workspace --all-features \
             --lcov --output-path lcov.info
 
       - name: Upload to Codecov
