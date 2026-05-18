@@ -1,0 +1,5 @@
+# nextest profiles. The `ci` profile emits a JUnit XML report consumed by
+# Codecov Test Analytics (see .github/workflows/coverage.yml).
+[profile.ci]
+junit = { path = "junit.xml" }
+fail-fast = false

@@ -10,6 +10,17 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+### Changed
+- *(ci)* Coverage + test analytics moved out of `.github/workflows/ci.yml`
+  into a dedicated `.github/workflows/coverage.yml`. The new workflow
+  runs two jobs in parallel and both upload to Codecov:
+  1. `llvm-cov` (line coverage via `cargo-llvm-cov` → `lcov.info`),
+  2. `test-results` (JUnit XML via `cargo-nextest --profile ci` →
+     `target/nextest/ci/junit.xml`, consumed by Codecov Test Analytics).
+  The `ci.yml` workflow stays Python-free and fast; coverage / test
+  analytics own their own python-igraph venv setup. New nextest profile
+  lives in `.config/nextest.toml`.
+
 ### Added
 - *(properties)* **ALGO-PR-006b**: `assortativity_degree_weighted` —
   weighted Pearson correlation of endpoint strengths. Counterpart of
