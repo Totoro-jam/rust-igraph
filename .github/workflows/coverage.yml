@@ -111,23 +111,34 @@ jobs:
       - name: Show junit.xml head (debug)
         # Same reason as above: surface missing reports in the log
         # rather than letting the upload silently no-op.
-        if: ${{ !cancelled() }}
+        if: always()
         run: |
           ls -la target/nextest/ci/ || true
           head -40 target/nextest/ci/junit.xml || true
           wc -l target/nextest/ci/junit.xml || true
+          grep -c "<testcase" target/nextest/ci/junit.xml || echo "no testcase entries found"
+
+      - name: Upload junit.xml as artifact
+        # Lets us download and inspect the raw JUnit XML out-of-band
+        # when Codecov's Test Analytics page reports zero entries.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextest-junit
+          path: target/nextest/ci/junit.xml
+          if-no-files-found: warn
 
       - name: Upload test results to Codecov
-        # Codecov's official Test Analytics setup guide (see
-        # https://app.codecov.io/.../tests/new) recommends this exact
-        # action even though its README hints at a future deprecation —
-        # the unified `codecov-action@v5 + report_type: test_results`
-        # path doesn't seem to surface test entries in the dashboard
-        # yet (24s of cumulative CI time but Tests = 0). Auto-discover
-        # the JUnit file by NOT pinning `files:` — the action sweeps
-        # `target/nextest/**/junit.xml` automatically.
-        if: ${{ !cancelled() }}
+        # Per Codecov's official Test Analytics setup guide
+        # (https://app.codecov.io/.../tests/new) — `test-results-action@v1`
+        # is still the recommended path even though its README marks a
+        # future deprecation. Pin `files:` explicitly because the
+        # auto-discovery doesn't recurse into `target/`.
+        if: always()
         uses: codecov/test-results-action@v1
         with:
+          files: target/nextest/ci/junit.xml
+          flags: rust
+          name: rust-igraph-tests
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
