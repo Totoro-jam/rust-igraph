@@ -291,6 +291,14 @@ fn count_reachable_three_source_conformance() {
 }
 
 #[test]
+fn coreness_three_source_conformance() {
+    run_conformance("coreness", |g, _params| {
+        let cores = rust_igraph::coreness(g).expect("coreness");
+        serde_json::json!(cores)
+    });
+}
+
+#[test]
 fn reachability_matrix_three_source_conformance() {
     run_conformance("reachability_matrix", |g, _params| {
         let m = rust_igraph::reachability_matrix(g).expect("reachability_matrix");

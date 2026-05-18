@@ -71,6 +71,7 @@ pub use crate::algorithms::properties::betweenness::betweenness;
 pub use crate::algorithms::properties::betweenness_weighted::betweenness_weighted;
 pub use crate::algorithms::properties::closeness::closeness;
 pub use crate::algorithms::properties::closeness_weighted::closeness_weighted;
+pub use crate::algorithms::properties::coreness::coreness;
 pub use crate::algorithms::properties::edge_betweenness::edge_betweenness;
 pub use crate::algorithms::properties::edge_betweenness_weighted::edge_betweenness_weighted;
 pub use crate::algorithms::properties::eigenvector::eigenvector_centrality;

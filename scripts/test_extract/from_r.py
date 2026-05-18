@@ -465,6 +465,23 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CORENESS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "coreness_R_path_5",
+        # rigraph's `coreness(g, mode='all')`. On a 5-path every vertex
+        # peels at degree 1 → coreness 1 across the board.
+        "origin": "constructed (rigraph-style): 5-vertex path 0-1-2-3-4",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4)],
+            directed=False,
+        ),
+        "algo": "coreness",
+        "params": {},
+        "expected": [1, 1, 1, 1, 1],
+    },
+]
+
 FW_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "floyd_warshall_R_undirected_weighted_triangle",
@@ -941,6 +958,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
+    "coreness": CORENESS_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

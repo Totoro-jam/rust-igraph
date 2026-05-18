@@ -419,6 +419,25 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CORENESS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "coreness_c_triangle_with_pendant",
+        # Mirrors references/igraph/examples/simple/igraph_coreness.c
+        # style: triangle 0-1-2 with a pendant vertex 3 attached to 2.
+        # Pendant has degree 1 so it is in the 1-core; once peeled the
+        # triangle survives so 0, 1, 2 sit in the 2-core.
+        "origin": "constructed: triangle 0-1-2 + pendant 3 attached to 2",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (0, 2), (2, 3)],
+            directed=False,
+        ),
+        "algo": "coreness",
+        "params": {},
+        "expected": [2, 2, 2, 1],
+    },
+]
+
 FW_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "floyd_warshall_c_directed_chain_with_shortcut",
@@ -1014,6 +1033,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
+    "coreness": CORENESS_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

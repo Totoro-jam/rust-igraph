@@ -1,0 +1,35 @@
+{
+  "source": "c",
+  "origin": "constructed: triangle 0-1-2 + pendant 3 attached to 2",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "coreness",
+  "params": {},
+  "expected": [
+    2,
+    2,
+    2,
+    1
+  ]
+}

@@ -13,9 +13,9 @@ use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
     Graph, articulation_points, assortativity_degree, assortativity_degree_weighted,
     avg_nearest_neighbor_degree, betweenness, betweenness_weighted, bfs, biconnected_components,
-    bridges, closeness, closeness_weighted, complementer, connected_components, count_reachable,
-    count_triangles, density, dfs, diameter, dijkstra_distances, disjoint_union, distances,
-    eccentricity, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
+    bridges, closeness, closeness_weighted, complementer, connected_components, coreness,
+    count_reachable, count_triangles, density, dfs, diameter, dijkstra_distances, disjoint_union,
+    distances, eccentricity, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
     floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
     has_multiple, is_biconnected, is_loop, is_multiple, is_simple, mean_distance, modularity,
     pagerank, pagerank_weighted, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
@@ -1912,4 +1912,40 @@ fn floyd_warshall_distances_directed_with_unreachable_matches_python_igraph() {
     ))
     .expect("decode python floyd_warshall_distances");
     assert_matrix_close(&rust, &py, 1e-12);
+}
+
+#[test]
+fn coreness_triangle_with_pendant_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let rust = coreness(&g).unwrap();
+    let py: Vec<u32> =
+        serde_json::from_value(run_ok("coreness", &g, serde_json::json!({}))).expect("decode");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn coreness_two_components_matches_python_igraph() {
+    let mut g = Graph::with_vertices(5);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(3, 4).unwrap();
+    let rust = coreness(&g).unwrap();
+    let py: Vec<u32> =
+        serde_json::from_value(run_ok("coreness", &g, serde_json::json!({}))).expect("decode");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn coreness_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate")).expect("read karate");
+    let rust = coreness(&g).unwrap();
+    let py: Vec<u32> =
+        serde_json::from_value(run_ok("coreness", &g, serde_json::json!({}))).expect("decode");
+    assert_eq!(rust, py);
 }

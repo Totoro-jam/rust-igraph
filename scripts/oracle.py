@@ -246,6 +246,13 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "coreness":
+        # Counterpart of igraph_coreness(_, _, IGRAPH_ALL). python-igraph
+        # exposes `Graph.coreness(mode='all')` which returns a per-vertex
+        # int list.
+        vals = g.coreness(mode="all")
+        return [int(v) for v in vals]
+
     if algo == "complementer":
         # Counterpart of igraph_complementer(_, &graph, loops).
         # python-igraph's `g.complementer(loops=...)` returns a new Graph.

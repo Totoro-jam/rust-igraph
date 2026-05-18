@@ -374,6 +374,26 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CORENESS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "coreness_py_k4_minus_edge",
+        # python-igraph smoke style: K4 minus the (2, 3) edge. After
+        # removing the missing edge, vertices 0 and 1 still have
+        # degree 3 and form a denser sub-structure with each other and
+        # with both 2, 3 — but 2 and 3 only have degree 2 each, so the
+        # whole thing collapses to coreness 2 for everyone.
+        "origin": "constructed: K4 minus edge (2,3)",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3)],
+            directed=False,
+        ),
+        "algo": "coreness",
+        "params": {},
+        "expected": [2, 2, 2, 2],
+    },
+]
+
 FW_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "floyd_warshall_py_undirected_path_unit_weights",
@@ -806,6 +826,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
+    "coreness": CORENESS_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

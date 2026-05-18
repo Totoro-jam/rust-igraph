@@ -142,6 +142,8 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-014b | per-edge `is_loop` + `is_multiple` | properties/loops.c + multiplicity.c | ~80 | adapt | PR-014 | done | (next) | O(E) / O(E log E) | C:2 / py:2 / R:2 |
 | ALGO-CO-001b | Directed modularity (Leicht-Newman) | community/modularity.c | ~80 | adapt | CO-001 | todo | - | - | - |
 | ALGO-CO-001c | Weighted modularity | community/modularity.c | ~80 | adapt | CO-001 | todo | - | - | - |
+| ALGO-PR-015 | Coreness / k-core decomposition (`coreness`, undirected) | centrality/coreness.c | 157 | adapt | - | done | (next) | O(V+E) Batagelj-Zaversnik | C:1 / py:1 / R:1 |
+| ALGO-PR-015b | Coreness directed IN/OUT modes | centrality/coreness.c | ~50 | adapt | PR-015 | todo | - | - | - |
 
 ## Phase 3 — Centrality + Eigensolver (~65 AWU)
 
@@ -160,10 +162,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 47 | 0 | ~38 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3 |
+| 1 | 48 | 0 | ~38 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 47/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 48/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -184,7 +186,8 @@ complementer (OP-003), weighted closeness (PR-007b),
 weighted harmonic (PR-009b), weighted betweenness (PR-008b),
 weighted edge_betweenness (PR-010b), weighted PageRank
 (PR-011b), weighted assortativity (PR-006b),
-Floyd-Warshall all-pairs (SP-004). Next options:
+Floyd-Warshall all-pairs (SP-004), coreness / k-core
+(PR-015). Next options:
 SP-001b (Dijkstra paths+parents), CORE-001c (deletion),
 hub/auth scores, more operators (union/intersection/
 difference), SP-002 Bellman-Ford, Barrat weighted

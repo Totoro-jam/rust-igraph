@@ -22,6 +22,21 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-015**: `coreness` — k-core decomposition
+  per vertex via Batagelj & Zaversnik's O(|E|) "An O(m) Algorithm for
+  Cores Decomposition of Networks". Counterpart of `igraph_coreness(_,
+  _, IGRAPH_ALL)`. Phase-1 minimal slice: undirected graphs only
+  (directed IN/OUT modes ship as PR-015b). Self-loops contribute 2 to
+  a vertex's degree (matches upstream `IGRAPH_LOOPS`).
+  Full 9-step SOP: 13 unit tests (incl. empty/singleton/isolated, K3,
+  K4, path, star, triangle+pendant, 2-component disjoint, self-loop
+  semantics, directed-graph rejection, coreness-≤-degree bound),
+  3 oracle tests (triangle+pendant, 2 components, karate),
+  3 three-source conformance fixtures (C triangle+pendant → [2,2,2,1],
+  py K4-minus-edge → [2,2,2,2], R 5-path → [1,1,1,1,1]),
+  1 proptest invariant: `coreness(v) ≤ degree(v)` on arbitrary
+  undirected graphs.
+
 - *(paths)* **ALGO-SP-004**: `floyd_warshall_distances` — all-pairs
   shortest distances via the textbook Floyd-Warshall O(V³) variant.
   Counterpart of `igraph_distances_floyd_warshall(_, _, vss_all,

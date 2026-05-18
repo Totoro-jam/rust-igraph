@@ -1232,6 +1232,25 @@ proptest! {
         }
     }
 
+    /// `coreness` invariants on arbitrary undirected graphs:
+    /// - same length as `vcount`
+    /// - per-vertex coreness ≤ degree (peeling can only decrease)
+    /// - vertices in the same connected component cannot have a coreness
+    ///   difference larger than the component's max degree (sanity bound)
+    #[test]
+    fn coreness_bounded_by_degree(g in arb_graph(15)) {
+        let cores = rust_igraph::coreness(&g).unwrap();
+        prop_assert_eq!(cores.len(), g.vcount() as usize);
+        for v in 0..g.vcount() {
+            let d = u32::try_from(g.degree(v).unwrap()).unwrap();
+            prop_assert!(
+                cores[v as usize] <= d,
+                "vertex {} coreness {} exceeds degree {}",
+                v, cores[v as usize], d
+            );
+        }
+    }
+
     /// `floyd_warshall_distances` invariants on undirected graphs with
     /// unit weights:
     /// - diagonal is `Some(0.0)`

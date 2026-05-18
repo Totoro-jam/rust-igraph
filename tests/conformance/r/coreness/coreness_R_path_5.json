@@ -1,0 +1,36 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): 5-vertex path 0-1-2-3-4",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "coreness",
+  "params": {},
+  "expected": [
+    1,
+    1,
+    1,
+    1,
+    1
+  ]
+}
