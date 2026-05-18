@@ -12,13 +12,13 @@ use std::fs::File;
 use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
     Graph, articulation_points, assortativity_degree, avg_nearest_neighbor_degree, betweenness,
-    bfs, biconnected_components, bridges, closeness, complementer, connected_components,
-    count_reachable, count_triangles, density, dfs, diameter, dijkstra_distances, disjoint_union,
-    distances, eccentricity, edge_betweenness, eigenvector_centrality, girth, harmonic_centrality,
-    has_loop, has_multiple, is_biconnected, is_loop, is_multiple, is_simple, mean_distance,
-    modularity, pagerank, radius, reachability_matrix, read_edgelist, reciprocity, simplify,
-    strongly_connected_components, transitive_closure, transitivity_local_undirected,
-    transitivity_undirected,
+    bfs, biconnected_components, bridges, closeness, closeness_weighted, complementer,
+    connected_components, count_reachable, count_triangles, density, dfs, diameter,
+    dijkstra_distances, disjoint_union, distances, eccentricity, edge_betweenness,
+    eigenvector_centrality, girth, harmonic_centrality, has_loop, has_multiple, is_biconnected,
+    is_loop, is_multiple, is_simple, mean_distance, modularity, pagerank, radius,
+    reachability_matrix, read_edgelist, reciprocity, simplify, strongly_connected_components,
+    transitive_closure, transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -1385,4 +1385,84 @@ fn complementer_directed_matches_python_igraph() {
         rust_complementer_pairs(&rust),
         py_complementer_pairs(&py, false)
     );
+}
+
+#[test]
+fn closeness_weighted_star_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(0, 3).unwrap();
+    let weights = vec![1.0_f64, 2.0, 3.0];
+    let rust = closeness_weighted(&g, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "closeness_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python closeness_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(rr), Some(pp)) => {
+                assert!((rr - pp).abs() < 1e-12, "vertex {i}: rust={rr} py={pp}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn closeness_weighted_directed_matches_python_igraph() {
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![2.0_f64, 0.5];
+    let rust = closeness_weighted(&g, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "closeness_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python closeness_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(rr), Some(pp)) => {
+                assert!((rr - pp).abs() < 1e-12, "vertex {i}: rust={rr} py={pp}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn closeness_weighted_path_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let weights = vec![1.5_f64, 2.5, 0.5];
+    let rust = closeness_weighted(&g, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "closeness_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python closeness_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(rr), Some(pp)) => {
+                assert!((rr - pp).abs() < 1e-12, "vertex {i}: rust={rr} py={pp}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
 }

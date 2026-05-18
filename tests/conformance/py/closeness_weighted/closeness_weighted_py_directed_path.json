@@ -1,0 +1,29 @@
+{
+  "source": "py",
+  "origin": "constructed: directed path with weights (2.0, 0.5); 0\u21921 dist 2, 0\u21922 dist 2.5",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      2.0,
+      0.5
+    ]
+  },
+  "algo": "closeness_weighted",
+  "params": {},
+  "expected": [
+    0.4444444444444444,
+    2.0,
+    null
+  ]
+}

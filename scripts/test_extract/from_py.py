@@ -224,6 +224,24 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CLOSENESS_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "closeness_weighted_py_directed_path",
+        # Directed 0->1 (w=2.0), 1->2 (w=0.5).
+        # 0 reaches {1@2.0, 2@2.5} → 2/4.5 = 4/9 ≈ 0.4444...
+        # 1 reaches {2@0.5} → 1/0.5 = 2.0; 2 isolated.
+        "origin": "constructed: directed path with weights (2.0, 0.5); "
+        "0→1 dist 2, 0→2 dist 2.5",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "graph_weights": [2.0, 0.5],
+        "algo": "closeness_weighted",
+        "params": {},
+        "expected": [0.4444444444444444, 2.0, None],
+    },
+]
+
 COMPLEMENTER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "complementer_py_isolated_with_loops",
@@ -669,6 +687,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
+    "closeness_weighted": CLOSENESS_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

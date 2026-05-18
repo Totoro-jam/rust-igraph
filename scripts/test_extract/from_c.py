@@ -273,6 +273,23 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CLOSENESS_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "closeness_weighted_c_star_non_uniform",
+        # 4-star with non-uniform weights; centre's closeness =
+        # 3 / (1+2+3) = 0.5.
+        "origin": "constructed: 4-star with non-uniform weights (1,2,3); "
+        "centre closeness = 0.5",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 2.0, 3.0],
+        "algo": "closeness_weighted",
+        "params": {},
+        "expected": [0.5, 3.0 / 8.0, 0.3, 0.25],
+    },
+]
+
 COMPLEMENTER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "complementer_c_path_three_no_loops",
@@ -876,6 +893,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
+    "closeness_weighted": CLOSENESS_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

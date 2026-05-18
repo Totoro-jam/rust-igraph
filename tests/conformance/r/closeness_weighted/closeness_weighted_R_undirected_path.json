@@ -1,0 +1,35 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): 4-path with weights (1.5, 2.5, 0.5); endpoint and middle closeness computed",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.5,
+      2.5,
+      0.5
+    ]
+  },
+  "algo": "closeness_weighted",
+  "params": {},
+  "expected": [
+    0.3,
+    0.42857142857142855,
+    0.42857142857142855,
+    0.375
+  ]
+}

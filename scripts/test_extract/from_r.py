@@ -290,6 +290,28 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CLOSENESS_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "closeness_weighted_R_undirected_path",
+        # rigraph mirrors igraph_closeness with weights. 4-vertex
+        # path with weights (1.5, 2.5, 0.5).
+        "origin": "constructed (rigraph-style): 4-path with weights "
+        "(1.5, 2.5, 0.5); endpoint and middle closeness computed",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.5, 2.5, 0.5],
+        "algo": "closeness_weighted",
+        "params": {},
+        "expected": [
+            0.3,
+            0.42857142857142855,
+            0.42857142857142855,
+            0.375,
+        ],
+    },
+]
+
 COMPLEMENTER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "complementer_R_directed_single_edge",
@@ -782,6 +804,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
+    "closeness_weighted": CLOSENESS_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

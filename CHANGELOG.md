@@ -11,6 +11,20 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-007b**: `closeness_weighted` — Dijkstra-
+  based weighted closeness centrality. Counterpart of
+  `igraph_closeness(_, _, _, _, vss_all(), IGRAPH_OUT, &weights,
+  /*normalized=*/true)`. Returns `Vec<Option<f64>>`: `Some(reach /
+  sum_dist)` per vertex; `None` for isolated. Reuses
+  [`crate::dijkstra_distances`] (SP-001) so unit weights collapse
+  exactly to the unweighted PR-007 result.
+  Full 9-step SOP: 10 unit tests (incl. unit-weight equivalence to
+  PR-007, non-uniform star, directed path, weight rejection
+  forwarding from SP-001), 3 oracle tests, 3 three-source
+  conformance fixtures (C 4-star non-uniform, py directed path,
+  R undirected 4-path), 1 proptest invariant: unit weights match
+  unweighted closeness.
+
 - *(operators)* **ALGO-OP-003**: `complementer`. Returns a new graph
   containing every `(u, v)` edge the input does not. Toggles
   self-loops via the `loops` flag. Counterpart of

@@ -372,6 +372,34 @@ proptest! {
         prop_assert_eq!(a, b);
     }
 
+    /// Weighted closeness invariants:
+    /// - `closeness_weighted(g, [1.0; m])` matches `closeness(g)` (within
+    ///   fp tolerance)
+    /// - all values are either None or in `[0, ∞)` and finite
+    /// - length equals vcount
+    #[test]
+    fn closeness_weighted_unit_weights_match_unweighted(g in arb_graph(8)) {
+        let m = g.ecount();
+        let weights = vec![1.0_f64; m];
+        let cw = rust_igraph::closeness_weighted(&g, &weights).unwrap();
+        let cu = rust_igraph::closeness(&g).unwrap();
+        prop_assert_eq!(cw.len(), cu.len());
+        prop_assert_eq!(cw.len(), g.vcount() as usize);
+        for (v, (a, b)) in cw.iter().zip(cu.iter()).enumerate() {
+            match (a, b) {
+                (Some(x), Some(y)) => {
+                    prop_assert!(x.is_finite() && *x >= -1e-12,
+                                 "vertex {}: closeness_weighted = {}", v, x);
+                    prop_assert!((x - y).abs() < 1e-12,
+                                 "vertex {}: weighted={} unweighted={}", v, x, y);
+                }
+                (None, None) => {}
+                (a, b) => prop_assert!(false,
+                    "vertex {}: weighted={:?} unweighted={:?}", v, a, b),
+            }
+        }
+    }
+
     /// Dijkstra distances invariants:
     /// - all-unit weights collapse to the BFS distance (SP-006)
     /// - source distance is 0.0
