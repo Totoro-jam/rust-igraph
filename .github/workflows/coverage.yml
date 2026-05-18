@@ -129,16 +129,18 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload test results to Codecov
-        # Per Codecov's official Test Analytics setup guide
-        # (https://app.codecov.io/.../tests/new) — `test-results-action@v1`
-        # is still the recommended path even though its README marks a
-        # future deprecation. Pin `files:` explicitly because the
-        # auto-discovery doesn't recurse into `target/`.
+        # Per Codecov's current Test Analytics setup guide
+        # (`docs.codecov.com/docs/test-analytics`): use
+        # `codecov/test-results-action@v5` with `report-type: test_results`.
+        # `v1` was the previous-generation action and silently produced
+        # 0 visible test entries on the dashboard despite "succeeding".
+        # `files:` is explicit because the JUnit lives in `target/`.
         if: always()
-        uses: codecov/test-results-action@v1
+        uses: codecov/test-results-action@v5
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report-type: test_results
           files: target/nextest/ci/junit.xml
           flags: rust
           name: rust-igraph-tests
           fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
