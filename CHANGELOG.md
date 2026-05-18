@@ -22,6 +22,19 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-013b**: `is_simple_with_mode` +
+  `SimpleMode { DirectedAsDirected, DirectedAsUndirected }`. Counterpart
+  of `igraph_is_simple(_, _, /*directed=*/dir)`. The undirected view
+  canonicalises each directed edge to its `(min, max)` endpoint pair
+  and reports a mutual pair `{a→b, b→a}` as a multi-edge. Existing
+  `is_simple()` is now a thin wrapper around
+  `is_simple_with_mode(_, DirectedAsDirected)`.
+  Full 9-step SOP: 5 new unit tests (16 total — incl. mutual-pair
+  divergence, default-mode equivalence, directed-3-cycle simple,
+  self-loop disqualifies in both modes, undirected mode-equivalence),
+  3 oracle tests, 3 three-source conformance fixtures, 1 proptest
+  invariant: undirected modes always agree.
+
 - *(community)* **ALGO-CO-001c**: `modularity_weighted` — Newman-Girvan
   modularity of a partition with edge weights. Counterpart of
   `igraph_modularity(_, &membership, &weights, resolution,

@@ -44,7 +44,7 @@ pub use eigenvector::eigenvector_centrality;
 pub use girth::girth;
 pub use harmonic::harmonic_centrality;
 pub use harmonic_weighted::harmonic_centrality_weighted;
-pub use is_simple::is_simple;
+pub use is_simple::{SimpleMode, is_simple, is_simple_with_mode};
 pub use knn::avg_nearest_neighbor_degree;
 pub use multiplicity::{has_loop, has_multiple, is_loop, is_multiple};
 pub use pagerank::pagerank;

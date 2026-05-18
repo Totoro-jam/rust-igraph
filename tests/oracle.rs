@@ -11,17 +11,17 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
-    Graph, ReciprocityMode, articulation_points, assortativity_degree,
+    Graph, ReciprocityMode, SimpleMode, articulation_points, assortativity_degree,
     assortativity_degree_weighted, avg_nearest_neighbor_degree, betweenness, betweenness_weighted,
     bfs, biconnected_components, bridges, closeness, closeness_weighted, complementer,
     connected_components, coreness, count_reachable, count_triangles, density, dfs, diameter,
     dijkstra_distances, disjoint_union, distances, eccentricity, edge_betweenness,
     edge_betweenness_weighted, eigenvector_centrality, floyd_warshall_distances, girth,
     harmonic_centrality, harmonic_centrality_weighted, has_loop, has_multiple, is_biconnected,
-    is_loop, is_multiple, is_simple, mean_distance, modularity, modularity_weighted, pagerank,
-    pagerank_weighted, radius, reachability_matrix, read_edgelist, reciprocity,
-    reciprocity_with_mode, simplify, strongly_connected_components, transitive_closure,
-    transitivity_local_undirected, transitivity_undirected,
+    is_loop, is_multiple, is_simple, is_simple_with_mode, mean_distance, modularity,
+    modularity_weighted, pagerank, pagerank_weighted, radius, reachability_matrix, read_edgelist,
+    reciprocity, reciprocity_with_mode, simplify, strongly_connected_components,
+    transitive_closure, transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -2074,4 +2074,54 @@ fn modularity_weighted_resolution_zero_matches_python_igraph() {
         (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "rust={r} py={p}"),
         _ => panic!("rust={rust:?} py={py:?}"),
     }
+}
+
+#[test]
+fn is_simple_with_mode_directed_mutual_undirected_view_matches_python_igraph() {
+    let mut g = Graph::new(2, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 0).unwrap();
+    let rust = is_simple_with_mode(&g, SimpleMode::DirectedAsUndirected).unwrap();
+    let py: bool = serde_json::from_value(run_ok(
+        "is_simple_with_mode",
+        &g,
+        serde_json::json!({"directed_as_undirected": true}),
+    ))
+    .expect("decode");
+    assert_eq!(rust, py);
+    assert!(!rust);
+}
+
+#[test]
+fn is_simple_with_mode_directed_3_cycle_undirected_view_matches_python_igraph() {
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 0).unwrap();
+    let rust = is_simple_with_mode(&g, SimpleMode::DirectedAsUndirected).unwrap();
+    let py: bool = serde_json::from_value(run_ok(
+        "is_simple_with_mode",
+        &g,
+        serde_json::json!({"directed_as_undirected": true}),
+    ))
+    .expect("decode");
+    assert_eq!(rust, py);
+    assert!(rust);
+}
+
+#[test]
+fn is_simple_with_mode_undirected_modes_agree_with_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let rust_dir = is_simple_with_mode(&g, SimpleMode::DirectedAsDirected).unwrap();
+    let rust_undir = is_simple_with_mode(&g, SimpleMode::DirectedAsUndirected).unwrap();
+    let py: bool = serde_json::from_value(run_ok(
+        "is_simple_with_mode",
+        &g,
+        serde_json::json!({"directed_as_undirected": false}),
+    ))
+    .expect("decode");
+    assert_eq!(rust_dir, py);
+    assert_eq!(rust_undir, py);
 }

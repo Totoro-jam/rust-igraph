@@ -266,6 +266,28 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.coreness(mode="all")
         return [int(v) for v in vals]
 
+    if algo == "is_simple_with_mode":
+        # Counterpart of igraph_is_simple(_, _, /*directed=*/dir).
+        # python-igraph's `Graph.is_simple()` doesn't expose the
+        # `directed` flag directly, so we reuse `igraph_is_simple` via
+        # the C wrapper if available; otherwise emulate the
+        # "treat directed as undirected" path with a Python sweep.
+        directed_as_undirected = bool(params.get("directed_as_undirected", False))
+        if not directed_as_undirected or not g.is_directed():
+            return bool(g.is_simple())
+        # Directed-as-undirected: canonicalise endpoint pairs and
+        # check for self-loops + duplicates.
+        seen = set()
+        for e in g.es:
+            s, t = e.tuple
+            if s == t:
+                return False
+            key = (min(s, t), max(s, t))
+            if key in seen:
+                return False
+            seen.add(key)
+        return True
+
     if algo == "modularity_weighted":
         # Counterpart of igraph_modularity(_, &membership, &weights,
         # resolution, /*directed=*/false, _). python-igraph's

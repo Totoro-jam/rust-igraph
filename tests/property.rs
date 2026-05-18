@@ -1232,6 +1232,19 @@ proptest! {
         }
     }
 
+    /// On undirected graphs, both [`SimpleMode`] variants must agree
+    /// (the mode parameter is meaningful only for directed graphs).
+    #[test]
+    fn is_simple_with_mode_undirected_modes_agree(g in arb_graph(15)) {
+        use rust_igraph::SimpleMode;
+        let a = rust_igraph::is_simple_with_mode(&g, SimpleMode::DirectedAsDirected).unwrap();
+        let b = rust_igraph::is_simple_with_mode(&g, SimpleMode::DirectedAsUndirected).unwrap();
+        prop_assert_eq!(a, b, "modes diverged on an undirected graph");
+        // And both must agree with the canonical wrapper.
+        let c = rust_igraph::is_simple(&g).unwrap();
+        prop_assert_eq!(a, c);
+    }
+
     /// Unit-weight `modularity_weighted` must equal unweighted
     /// `modularity` exactly on every graph + partition. Trivial
     /// invariant but it's the fastest sanity gate the weighted

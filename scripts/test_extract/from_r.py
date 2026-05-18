@@ -465,6 +465,23 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+IS_SIMPLE_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_simple_with_mode_R_directed_self_loop",
+        # rigraph smoke: a directed graph with a self-loop is never
+        # simple, regardless of mode.
+        "origin": "constructed (rigraph-style): directed self-loop",
+        "graph_factory": lambda: ig.Graph(
+            n=2,
+            edges=[(0, 0)],
+            directed=True,
+        ),
+        "algo": "is_simple_with_mode",
+        "params": {"directed_as_undirected": True},
+        "expected": False,
+    },
+]
+
 MODULARITY_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_weighted_R_two_disjoint_edges",
@@ -999,6 +1016,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,
     "modularity_weighted": MODULARITY_W_MANIFEST,
+    "is_simple_with_mode": IS_SIMPLE_MODE_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

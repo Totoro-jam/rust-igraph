@@ -374,6 +374,24 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+IS_SIMPLE_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_simple_with_mode_py_directed_3_cycle_undirected_view",
+        # python-igraph smoke style: a directed 3-cycle 0→1→2→0
+        # contains no mutual pairs, so the undirected view is also
+        # simple (three distinct edges 0-1, 1-2, 0-2).
+        "origin": "constructed: directed 3-cycle, undirected view → simple",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 2), (2, 0)],
+            directed=True,
+        ),
+        "algo": "is_simple_with_mode",
+        "params": {"directed_as_undirected": True},
+        "expected": True,
+    },
+]
+
 MODULARITY_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_weighted_py_unit_weights",
@@ -867,6 +885,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,
     "modularity_weighted": MODULARITY_W_MANIFEST,
+    "is_simple_with_mode": IS_SIMPLE_MODE_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

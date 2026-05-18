@@ -299,6 +299,24 @@ fn coreness_three_source_conformance() {
 }
 
 #[test]
+fn is_simple_with_mode_three_source_conformance() {
+    use rust_igraph::SimpleMode;
+    run_conformance("is_simple_with_mode", |g, params| {
+        let undirected = params
+            .get("directed_as_undirected")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        let mode = if undirected {
+            SimpleMode::DirectedAsUndirected
+        } else {
+            SimpleMode::DirectedAsDirected
+        };
+        let r = rust_igraph::is_simple_with_mode(g, mode).expect("is_simple_with_mode");
+        serde_json::json!(r)
+    });
+}
+
+#[test]
 fn modularity_weighted_three_source_conformance() {
     // Bespoke fixture-walking runner because the standard
     // `run_conformance` signature only forwards `(graph, params)`,

@@ -1,0 +1,20 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed self-loop",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_simple_with_mode",
+  "params": {
+    "directed_as_undirected": true
+  },
+  "expected": false
+}
