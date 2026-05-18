@@ -224,6 +224,26 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+PAGERANK_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "pagerank_w_py_heavy_edge_concentrates",
+        # Directed 0→1@100, 0→2@0.01: vertex 1 gets ~all of 0's flow.
+        # Computed via python-igraph 0.11 (ARPACK) to f64 precision.
+        "origin": "constructed: directed 2-out + huge weight asymmetry",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2)], directed=True
+        ),
+        "graph_weights": [100.0, 0.01],
+        "algo": "pagerank_weighted",
+        "params": {},
+        "expected": [
+            0.2597402597402597,
+            0.48049740480497405,
+            0.2597623354547662,
+        ],
+    },
+]
+
 EDGE_BETW_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "edge_betw_w_py_triangle_chord_swap",
@@ -751,6 +771,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
     "betweenness_weighted": BETW_W_MANIFEST,
     "edge_betweenness_weighted": EDGE_BETW_W_MANIFEST,
+    "pagerank_weighted": PAGERANK_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

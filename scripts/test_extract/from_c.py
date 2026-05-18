@@ -273,6 +273,22 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+PAGERANK_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "pagerank_w_c_directed_4cycle_unit_weights",
+        # Unit-weight directed 4-cycle: PageRank is uniform 0.25 by
+        # symmetry — same as PR-011 fixture with weights present.
+        "origin": "constructed: directed 4-cycle, unit weights → uniform 0.25",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=True
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 1.0],
+        "algo": "pagerank_weighted",
+        "params": {},
+        "expected": [0.25, 0.25, 0.25, 0.25],
+    },
+]
+
 EDGE_BETW_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "edge_betw_w_c_path_4_unit_weights",
@@ -954,6 +970,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
     "betweenness_weighted": BETW_W_MANIFEST,
     "edge_betweenness_weighted": EDGE_BETW_W_MANIFEST,
+    "pagerank_weighted": PAGERANK_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

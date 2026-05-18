@@ -1,0 +1,29 @@
+{
+  "source": "py",
+  "origin": "constructed: directed 2-out + huge weight asymmetry",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      100.0,
+      0.01
+    ]
+  },
+  "algo": "pagerank_weighted",
+  "params": {},
+  "expected": [
+    0.2597402597402597,
+    0.48049740480497405,
+    0.2597623354547662
+  ]
+}

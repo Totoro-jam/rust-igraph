@@ -17,8 +17,8 @@ use rust_igraph::{
     dijkstra_distances, disjoint_union, distances, eccentricity, edge_betweenness,
     edge_betweenness_weighted, eigenvector_centrality, girth, harmonic_centrality,
     harmonic_centrality_weighted, has_loop, has_multiple, is_biconnected, is_loop, is_multiple,
-    is_simple, mean_distance, modularity, pagerank, radius, reachability_matrix, read_edgelist,
-    reciprocity, simplify, strongly_connected_components, transitive_closure,
+    is_simple, mean_distance, modularity, pagerank, pagerank_weighted, radius, reachability_matrix,
+    read_edgelist, reciprocity, simplify, strongly_connected_components, transitive_closure,
     transitivity_local_undirected, transitivity_undirected,
 };
 
@@ -1703,4 +1703,80 @@ fn edge_betweenness_weighted_directed_chain_matches_python_igraph() {
         assert_eq!(rp, pp);
         assert!((rv - pv).abs() < 1e-12, "edge {rp:?}: rust={rv} py={pv}");
     }
+}
+
+#[test]
+fn pagerank_weighted_unit_weights_match_unweighted_karate() {
+    // Unit weights collapse weighted PageRank to the unweighted result.
+    // python-igraph defaults to ARPACK, so we use 1e-6 tolerance like
+    // the PR-011 oracle test.
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let weights = vec![1.0_f64; g.ecount()];
+    let rust = pagerank_weighted(&g, &weights).unwrap();
+    let py: Vec<f64> = serde_json::from_value(run_ok_with_weights(
+        "pagerank_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python pagerank_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-6, "vertex {i}: rust={r} py={p}");
+    }
+    // Same graph + unit weights → must equal the unweighted PageRank
+    // exactly within Rust (no eigensolver drift).
+    let pu = pagerank(&g).unwrap();
+    for (i, (rw, ru)) in rust.iter().zip(pu.iter()).enumerate() {
+        assert!(
+            (rw - ru).abs() < 1e-9,
+            "vertex {i}: weighted={rw} unweighted={ru}"
+        );
+    }
+}
+
+#[test]
+fn pagerank_weighted_directed_4cycle_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    for i in 0..4u32 {
+        g.add_edge(i, (i + 1) % 4).unwrap();
+    }
+    let weights = vec![1.0_f64; 4];
+    let rust = pagerank_weighted(&g, &weights).unwrap();
+    let py: Vec<f64> = serde_json::from_value(run_ok_with_weights(
+        "pagerank_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python pagerank_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-6, "vertex {i}: rust={r} py={p}");
+    }
+}
+
+#[test]
+fn pagerank_weighted_heavy_edge_concentrates_matches_python_igraph() {
+    // Directed 0→1 weight 100, 0→2 weight 0.01: vertex 1 gets nearly
+    // all of 0's flow.
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    let weights = vec![100.0_f64, 0.01];
+    let rust = pagerank_weighted(&g, &weights).unwrap();
+    let py: Vec<f64> = serde_json::from_value(run_ok_with_weights(
+        "pagerank_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python pagerank_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-6, "vertex {i}: rust={r} py={p}");
+    }
+    assert!(rust[1] > rust[2]);
 }

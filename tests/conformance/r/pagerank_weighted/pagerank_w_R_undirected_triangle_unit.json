@@ -1,0 +1,34 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): undirected triangle, unit weights",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "pagerank_weighted",
+  "params": {},
+  "expected": [
+    0.3333333333333333,
+    0.3333333333333333,
+    0.3333333333333333
+  ]
+}

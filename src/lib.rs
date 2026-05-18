@@ -81,6 +81,7 @@ pub use crate::algorithms::properties::multiplicity::{
     has_loop, has_multiple, is_loop, is_multiple,
 };
 pub use crate::algorithms::properties::pagerank::pagerank;
+pub use crate::algorithms::properties::pagerank_weighted::pagerank_weighted;
 pub use crate::algorithms::properties::reciprocity::reciprocity;
 pub use crate::algorithms::properties::triangles::{
     count_triangles, transitivity_local_undirected, transitivity_undirected,

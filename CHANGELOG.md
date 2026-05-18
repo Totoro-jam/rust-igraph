@@ -11,6 +11,21 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- *(properties)* **ALGO-PR-011b**: `pagerank_weighted` — power-iteration
+  weighted `PageRank`. Counterpart of `igraph_pagerank(_,
+  IGRAPH_PAGERANK_ALGO_POWER, _, _, vss_all(), directed, 0.85,
+  &weights, NULL_options)`. Uses out-strength (`Σ w(u → x)`) instead
+  of out-degree, and the in-flow term becomes `Σ w(u → v) * PR[u] /
+  out_strength(u)`. Dangling-vertex redistribution preserved.
+  Weights must be non-negative + finite.
+  Full 9-step SOP: 11 unit tests (incl. unit-weight equivalence to
+  PR-011 on triangle / directed 4-cycle, heavy-edge concentration,
+  star centre dominance, weight rejection), 3 oracle tests against
+  python-igraph (1e-6 tolerance for ARPACK drift), 3 three-source
+  conformance fixtures (C directed 4-cycle uniform, py heavy-edge
+  asymmetric, R undirected triangle uniform), 1 proptest invariant:
+  unit weights collapse to unweighted PageRank + sum-to-1.
+
 - *(properties)* **ALGO-PR-010b**: `edge_betweenness_weighted` —
   Brandes-Dijkstra weighted edge-betweenness centrality. Counterpart
   of `igraph_edge_betweenness(_, _, all_eids, directed, &weights)`.

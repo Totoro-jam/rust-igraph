@@ -521,6 +521,51 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn pagerank_weighted_three_source_conformance() {
+    // Bespoke fixture-walking runner (needs case.graph.weights).
+    // PageRank power iteration vs python-igraph ARPACK → 1e-6 tolerance
+    // (matches PR-011's pagerank conformance test).
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("pagerank_weighted");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let pr = rust_igraph::pagerank_weighted(&g, &weights).expect("pagerank_weighted");
+            let exp = case
+                .expected
+                .as_array()
+                .expect("expected is JSON array of numbers");
+            assert_eq!(pr.len(), exp.len(), "{}: length mismatch", path.display());
+            for (i, (rust, exp_v)) in pr.iter().zip(exp.iter()).enumerate() {
+                let py = exp_v.as_f64().expect("expected entry as f64");
+                assert!(
+                    (rust - py).abs() < 1e-6,
+                    "{}: vertex {i}: rust={rust} expected={py}",
+                    path.display()
+                );
+            }
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "pagerank_weighted");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn edge_betweenness_weighted_three_source_conformance() {
     // Bespoke runner: needs both `case.graph.weights` and the
     // parallel `(edges, values)` expected shape. Canonicalise edge

@@ -1,0 +1,40 @@
+{
+  "source": "c",
+  "origin": "constructed: directed 4-cycle, unit weights \u2192 uniform 0.25",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "pagerank_weighted",
+  "params": {},
+  "expected": [
+    0.25,
+    0.25,
+    0.25,
+    0.25
+  ]
+}

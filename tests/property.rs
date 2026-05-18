@@ -372,6 +372,32 @@ proptest! {
         prop_assert_eq!(a, b);
     }
 
+    /// Weighted PageRank invariants:
+    /// - `pagerank_weighted(g, [1.0; m])` matches `pagerank(g)`
+    ///   (within fp tolerance — both use power iteration in Rust)
+    /// - sums to 1 (probability distribution)
+    /// - all entries non-negative finite
+    #[test]
+    fn pagerank_weighted_unit_weights_match_unweighted(g in arb_graph(8)) {
+        let m = g.ecount();
+        let weights = vec![1.0_f64; m];
+        let pw = rust_igraph::pagerank_weighted(&g, &weights).unwrap();
+        let pu = rust_igraph::pagerank(&g).unwrap();
+        prop_assert_eq!(pw.len(), pu.len());
+        prop_assert_eq!(pw.len(), g.vcount() as usize);
+        if g.vcount() == 0 { return Ok(()); }
+        let mut sum = 0.0_f64;
+        for (v, (a, b)) in pw.iter().zip(pu.iter()).enumerate() {
+            prop_assert!(a.is_finite() && *a >= -1e-12,
+                         "vertex {}: weighted pr = {}", v, a);
+            prop_assert!((a - b).abs() < 1e-9,
+                         "vertex {}: weighted={} unweighted={}", v, a, b);
+            sum += a;
+        }
+        prop_assert!((sum - 1.0).abs() < 1e-6,
+                     "weighted PageRank sums to {} not 1.0", sum);
+    }
+
     /// Weighted edge betweenness invariants:
     /// - `edge_betweenness_weighted(g, [1.0; m])` matches
     ///   `edge_betweenness(g)` (within fp tolerance)

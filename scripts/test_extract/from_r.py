@@ -290,6 +290,26 @@ CLOSE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+PAGERANK_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "pagerank_w_R_undirected_triangle_unit",
+        # rigraph's `page_rank(graph, weights = ...)` mirrors
+        # igraph_pagerank. Triangle with unit weights → uniform 1/3.
+        "origin": "constructed (rigraph-style): undirected triangle, unit weights",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0, 1.0],
+        "algo": "pagerank_weighted",
+        "params": {},
+        "expected": [
+            0.3333333333333333,
+            0.3333333333333333,
+            0.3333333333333333,
+        ],
+    },
+]
+
 EDGE_BETW_W_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "edge_betw_w_R_directed_chain_with_shortcut",
@@ -866,6 +886,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
     "betweenness_weighted": BETW_W_MANIFEST,
     "edge_betweenness_weighted": EDGE_BETW_W_MANIFEST,
+    "pagerank_weighted": PAGERANK_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

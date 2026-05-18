@@ -174,6 +174,19 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.closeness(mode=mode, normalized=True)
         return [None if (v != v) else float(v) for v in vals]
 
+    if algo == "pagerank_weighted":
+        # Counterpart of igraph_pagerank(_, IGRAPH_PAGERANK_ALGO_POWER,
+        # _, _, vss_all(), directed, 0.85, &weights, NULL_options).
+        # python-igraph defaults to ARPACK; oracle tests use a tolerant
+        # comparison to absorb the eigensolver-vs-power-iteration drift.
+        directed = g.is_directed()
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            return [
+                float(v)
+                for v in g.pagerank(damping=0.85, directed=directed, weights="weight")
+            ]
+        return [float(v) for v in g.pagerank(damping=0.85, directed=directed)]
+
     if algo == "edge_betweenness_weighted":
         # Counterpart of igraph_edge_betweenness(_, _, all_eids,
         # /*directed=*/g.is_directed(), &weights). Returns a parallel

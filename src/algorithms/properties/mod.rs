@@ -24,6 +24,7 @@ pub(crate) mod is_simple;
 pub(crate) mod knn;
 pub(crate) mod multiplicity;
 pub(crate) mod pagerank;
+pub(crate) mod pagerank_weighted;
 pub(crate) mod reciprocity;
 pub(crate) mod triangles;
 
@@ -43,5 +44,6 @@ pub use is_simple::is_simple;
 pub use knn::avg_nearest_neighbor_degree;
 pub use multiplicity::{has_loop, has_multiple, is_loop, is_multiple};
 pub use pagerank::pagerank;
+pub use pagerank_weighted::pagerank_weighted;
 pub use reciprocity::reciprocity;
 pub use triangles::{count_triangles, transitivity_local_undirected, transitivity_undirected};
