@@ -118,13 +118,16 @@ jobs:
           wc -l target/nextest/ci/junit.xml || true
 
       - name: Upload test results to Codecov
-        # Migrated from the deprecated `codecov/test-results-action@v1`
-        # to the unified `codecov-action@v5` with `report_type: test_results`.
+        # Codecov's official Test Analytics setup guide (see
+        # https://app.codecov.io/.../tests/new) recommends this exact
+        # action even though its README hints at a future deprecation —
+        # the unified `codecov-action@v5 + report_type: test_results`
+        # path doesn't seem to surface test entries in the dashboard
+        # yet (24s of cumulative CI time but Tests = 0). Auto-discover
+        # the JUnit file by NOT pinning `files:` — the action sweeps
+        # `target/nextest/**/junit.xml` automatically.
         if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/test-results-action@v1
         with:
-          files: target/nextest/ci/junit.xml
-          report_type: test_results
-          flags: rust
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
