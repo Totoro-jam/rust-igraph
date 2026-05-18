@@ -266,6 +266,23 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.coreness(mode="all")
         return [int(v) for v in vals]
 
+    if algo == "modularity_weighted":
+        # Counterpart of igraph_modularity(_, &membership, &weights,
+        # resolution, /*directed=*/false, _). python-igraph's
+        # `Graph.modularity(membership, weights=...)` reads the
+        # `weight` edge attribute when weights="weight".
+        if g.ecount() == 0:
+            return None
+        membership = list(params["membership"])
+        resolution = float(params.get("resolution", 1.0))
+        if "weight" in g.edge_attributes():
+            v = g.modularity(membership, weights="weight", resolution=resolution)
+        else:
+            v = g.modularity(membership, resolution=resolution)
+        if v != v:
+            return None
+        return float(v)
+
     if algo == "complementer":
         # Counterpart of igraph_complementer(_, &graph, loops).
         # python-igraph's `g.complementer(loops=...)` returns a new Graph.

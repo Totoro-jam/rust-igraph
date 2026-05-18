@@ -299,6 +299,63 @@ fn coreness_three_source_conformance() {
 }
 
 #[test]
+fn modularity_weighted_three_source_conformance() {
+    // Bespoke fixture-walking runner because the standard
+    // `run_conformance` signature only forwards `(graph, params)`,
+    // but modularity_weighted needs `case.graph.weights` too.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("modularity_weighted");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let mem: Vec<u32> = case
+                .params
+                .get("membership")
+                .and_then(serde_json::Value::as_array)
+                .expect("membership param missing")
+                .iter()
+                .map(|v| u32::try_from(v.as_u64().expect("u32 label")).expect("fits u32"))
+                .collect();
+            let resolution = case
+                .params
+                .get("resolution")
+                .and_then(serde_json::Value::as_f64)
+                .unwrap_or(1.0);
+            let r = rust_igraph::modularity_weighted(&g, &mem, resolution, &weights)
+                .expect("modularity_weighted");
+            let rust_json = match r {
+                Some(v) => serde_json::json!(v),
+                None => serde_json::Value::Null,
+            };
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "modularity_weighted");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn reciprocity_with_mode_three_source_conformance() {
     use rust_igraph::ReciprocityMode;
     run_conformance("reciprocity_with_mode", |g, params| {

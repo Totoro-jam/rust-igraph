@@ -42,7 +42,7 @@ pub mod core;
 // themselves are `pub(crate)` (see each algorithm-group `mod.rs`),
 // so the deep paths stay crate-internal at the type-checker level
 // while rustdoc only renders the function entry.
-pub use crate::algorithms::community::modularity::modularity;
+pub use crate::algorithms::community::modularity::{modularity, modularity_weighted};
 pub use crate::algorithms::connectivity::articulation::articulation_points;
 pub use crate::algorithms::connectivity::biconnected::{
     BiconnectedComponents, biconnected_components,

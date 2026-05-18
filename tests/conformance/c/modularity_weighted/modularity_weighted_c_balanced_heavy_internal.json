@@ -1,0 +1,60 @@
+{
+  "source": "c",
+  "origin": "constructed: K3 \u222a K3 + bridge, balanced heavy internal weights",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      0.1
+    ]
+  },
+  "algo": "modularity_weighted",
+  "params": {
+    "membership": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+    ],
+    "resolution": 1.0
+  },
+  "expected": 0.4983361064891847
+}

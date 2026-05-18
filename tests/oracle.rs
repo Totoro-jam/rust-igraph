@@ -18,10 +18,10 @@ use rust_igraph::{
     dijkstra_distances, disjoint_union, distances, eccentricity, edge_betweenness,
     edge_betweenness_weighted, eigenvector_centrality, floyd_warshall_distances, girth,
     harmonic_centrality, harmonic_centrality_weighted, has_loop, has_multiple, is_biconnected,
-    is_loop, is_multiple, is_simple, mean_distance, modularity, pagerank, pagerank_weighted,
-    radius, reachability_matrix, read_edgelist, reciprocity, reciprocity_with_mode, simplify,
-    strongly_connected_components, transitive_closure, transitivity_local_undirected,
-    transitivity_undirected,
+    is_loop, is_multiple, is_simple, mean_distance, modularity, modularity_weighted, pagerank,
+    pagerank_weighted, radius, reachability_matrix, read_edgelist, reciprocity,
+    reciprocity_with_mode, simplify, strongly_connected_components, transitive_closure,
+    transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -2006,4 +2006,72 @@ fn reciprocity_with_mode_undirected_always_one_matches_python_igraph() {
     .expect("decode");
     assert_eq!(rust, py);
     assert_eq!(rust, Some(1.0));
+}
+
+#[test]
+fn modularity_weighted_unit_weights_match_unweighted_oracle() {
+    let mut g = Graph::with_vertices(6);
+    for &(u, v) in &[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5), (2, 3)] {
+        g.add_edge(u, v).unwrap();
+    }
+    let mem = vec![0u32, 0, 0, 1, 1, 1];
+    let weights = vec![1.0_f64; 7];
+    let rust = modularity_weighted(&g, &mem, 1.0, &weights).unwrap();
+    let py: Option<f64> = serde_json::from_value(run_ok_with_weights(
+        "modularity_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({"membership": mem, "resolution": 1.0}),
+    ))
+    .expect("decode");
+    match (rust, py) {
+        (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "rust={r} py={p}"),
+        _ => panic!("rust={rust:?} py={py:?}"),
+    }
+}
+
+#[test]
+fn modularity_weighted_heavy_internal_matches_python_igraph() {
+    let mut g = Graph::with_vertices(6);
+    for &(u, v) in &[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5), (2, 3)] {
+        g.add_edge(u, v).unwrap();
+    }
+    let mem = vec![0u32, 0, 0, 1, 1, 1];
+    let weights = vec![10.0_f64, 10.0, 10.0, 10.0, 10.0, 10.0, 0.1];
+    let rust = modularity_weighted(&g, &mem, 1.0, &weights).unwrap();
+    let py: Option<f64> = serde_json::from_value(run_ok_with_weights(
+        "modularity_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({"membership": mem, "resolution": 1.0}),
+    ))
+    .expect("decode");
+    match (rust, py) {
+        (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "rust={r} py={p}"),
+        _ => panic!("rust={rust:?} py={py:?}"),
+    }
+}
+
+#[test]
+fn modularity_weighted_resolution_zero_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    for u in 0..4u32 {
+        for v in (u + 1)..4 {
+            g.add_edge(u, v).unwrap();
+        }
+    }
+    let mem = vec![0u32, 0, 1, 1];
+    let weights = vec![2.0_f64, 1.0, 1.0, 1.0, 1.0, 2.0];
+    let rust = modularity_weighted(&g, &mem, 0.0, &weights).unwrap();
+    let py: Option<f64> = serde_json::from_value(run_ok_with_weights(
+        "modularity_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({"membership": mem, "resolution": 0.0}),
+    ))
+    .expect("decode");
+    match (rust, py) {
+        (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "rust={r} py={p}"),
+        _ => panic!("rust={rust:?} py={py:?}"),
+    }
 }

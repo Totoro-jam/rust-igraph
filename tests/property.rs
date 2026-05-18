@@ -1232,6 +1232,26 @@ proptest! {
         }
     }
 
+    /// Unit-weight `modularity_weighted` must equal unweighted
+    /// `modularity` exactly on every graph + partition. Trivial
+    /// invariant but it's the fastest sanity gate the weighted
+    /// path has — any drift in the strength accumulator surfaces.
+    #[test]
+    fn modularity_weighted_unit_weights_match_unweighted_proptest(g in arb_graph(12)) {
+        if g.ecount() == 0 { return Ok(()); }
+        let n = g.vcount() as usize;
+        // 2-block partition: first half in 0, rest in 1.
+        let mem: Vec<u32> = (0..n).map(|i| u32::from(i >= n / 2)).collect();
+        let weights = vec![1.0_f64; g.ecount()];
+        let qw = rust_igraph::modularity_weighted(&g, &mem, 1.0, &weights).unwrap();
+        let q = rust_igraph::modularity(&g, &mem, 1.0).unwrap();
+        match (qw, q) {
+            (Some(a), Some(b)) => prop_assert!((a - b).abs() < 1e-12, "qw={a} q={b}"),
+            (None, None) => {}
+            (a, b) => prop_assert!(false, "qw={a:?} q={b:?}"),
+        }
+    }
+
     /// `reciprocity_with_mode(_, false, Default)` must equal the
     /// canonical [`reciprocity`] entry on every graph (the latter is
     /// just a wrapper around the former with default args).

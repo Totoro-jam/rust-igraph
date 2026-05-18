@@ -1,0 +1,33 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): two disjoint edges",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "modularity_weighted",
+  "params": {
+    "membership": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "resolution": 1.0
+  },
+  "expected": 0.5
+}

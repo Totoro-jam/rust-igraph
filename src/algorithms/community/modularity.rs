@@ -128,6 +128,146 @@ pub fn modularity(graph: &Graph, membership: &[u32], resolution: f64) -> IgraphR
     Ok(Some(q))
 }
 
+/// Weighted modularity (ALGO-CO-001c).
+///
+/// Counterpart of `igraph_modularity(_, _, &weights, resolution,
+/// /*directed=*/false, _)`. Same Newman-Girvan formula as
+/// [`modularity`] but with edge weights replacing the unit
+/// adjacency: `s_v = Σ w_e` over incident edges (self-loops
+/// contribute `2w` per upstream `IGRAPH_LOOPS`), `W = Σ w_e`, and
+///
+/// ```text
+/// Q_w = (1 / 2W) Σ_{ij} (w_ij − γ s_i s_j / 2W) δ(c_i, c_j)
+/// ```
+///
+/// `weights.len()` must equal `graph.ecount()`. Returns `None` for
+/// graphs with `ecount == 0` or `W == 0` (both modularity-undefined,
+/// matches upstream NaN). Weights must be non-negative and finite —
+/// igraph rejects negatives outright because the bound `Q ∈ [-1, 1]`
+/// stops holding.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, modularity_weighted};
+///
+/// // Unit weights collapse to unweighted modularity (CO-001).
+/// let mut g = Graph::with_vertices(6);
+/// for &(u, v) in &[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5), (2, 3)] {
+///     g.add_edge(u, v).unwrap();
+/// }
+/// let weights = vec![1.0_f64; 7];
+/// let q = modularity_weighted(&g, &[0, 0, 0, 1, 1, 1], 1.0, &weights).unwrap();
+/// assert!(q.is_some());
+/// assert!(q.unwrap() > 0.3);
+/// ```
+pub fn modularity_weighted(
+    graph: &Graph,
+    membership: &[u32],
+    resolution: f64,
+    weights: &[f64],
+) -> IgraphResult<Option<f64>> {
+    if graph.is_directed() {
+        return Err(IgraphError::Unsupported(
+            "directed weighted modularity is ALGO-CO-001b/c follow-up; not yet ported",
+        ));
+    }
+    let n = graph.vcount() as usize;
+    if membership.len() != n {
+        return Err(IgraphError::InvalidArgument(
+            "membership vector size differs from number of vertices".to_string(),
+        ));
+    }
+    if !resolution.is_finite() || resolution < 0.0 {
+        return Err(IgraphError::InvalidArgument(
+            "resolution parameter must be non-negative and finite".to_string(),
+        ));
+    }
+    let ecount = graph.ecount();
+    if weights.len() != ecount {
+        return Err(IgraphError::InvalidArgument(format!(
+            "weights vector size ({}) differs from edge count ({})",
+            weights.len(),
+            ecount
+        )));
+    }
+    for (e, &w) in weights.iter().enumerate() {
+        if w.is_nan() {
+            return Err(IgraphError::InvalidArgument(format!(
+                "weight at edge {e} is NaN"
+            )));
+        }
+        if w < 0.0 {
+            return Err(IgraphError::InvalidArgument(format!(
+                "weight at edge {e} is negative ({w}); modularity is undefined"
+            )));
+        }
+        if !w.is_finite() {
+            return Err(IgraphError::InvalidArgument(format!(
+                "weight at edge {e} is not finite ({w})"
+            )));
+        }
+    }
+    if ecount == 0 {
+        return Ok(None);
+    }
+
+    // Reindex labels (same as the unweighted entry above).
+    let max_label = membership.iter().copied().max().unwrap_or(0);
+    let mut remap: Vec<Option<u32>> = vec![None; max_label as usize + 1];
+    let mut next_id: u32 = 0;
+    let mut reindexed: Vec<u32> = Vec::with_capacity(n);
+    for &lbl in membership {
+        let slot = lbl as usize;
+        if remap[slot].is_none() {
+            remap[slot] = Some(next_id);
+            next_id += 1;
+        }
+        reindexed.push(remap[slot].expect("just assigned"));
+    }
+    let no_of_partitions = next_id as usize;
+
+    let mut s_part = vec![0.0_f64; no_of_partitions];
+    let mut w_internal = 0.0_f64;
+    let mut total_w = 0.0_f64;
+
+    let m_u32 =
+        u32::try_from(ecount).map_err(|_| IgraphError::Internal("ecount exceeds u32::MAX"))?;
+    for eid in 0..m_u32 {
+        let (src, tgt) = graph.edge(eid as EdgeId)?;
+        let w = weights[eid as usize];
+        let cu = reindexed[src as usize];
+        let cv = reindexed[tgt as usize];
+        if cu == cv {
+            // Each internal undirected edge contributes 2w to e (two
+            // ordered (i,j) pairs).
+            w_internal += 2.0 * w;
+        }
+        // Strength: each endpoint accumulates `w`. Self-loops have
+        // src == tgt so this naturally contributes 2w to that vertex's
+        // strength (matches IGRAPH_LOOPS).
+        s_part[cu as usize] += w;
+        s_part[cv as usize] += w;
+        total_w += w;
+    }
+
+    if total_w == 0.0 {
+        return Ok(None);
+    }
+
+    let two_w = 2.0 * total_w;
+    for slot in &mut s_part {
+        *slot /= two_w;
+    }
+    let e_norm = w_internal / two_w;
+
+    let mut q = e_norm;
+    for &sc in &s_part {
+        q -= resolution * sc * sc;
+    }
+    Ok(Some(q))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -257,5 +397,90 @@ mod tests {
         // Q(γ=0) = 2*2/(2*6) = 4/12 = 1/3.
         let q = modularity(&g, &[0, 0, 1, 1], 0.0).unwrap().unwrap();
         close(q, 4.0 / 12.0, 1e-12);
+    }
+
+    // ----- ALGO-CO-001c: weighted modularity -----
+
+    #[test]
+    fn weighted_unit_weights_match_unweighted() {
+        // Unit weights → modularity_weighted == modularity.
+        let mut g = Graph::with_vertices(6);
+        for &(u, v) in &[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5), (2, 3)] {
+            g.add_edge(u, v).unwrap();
+        }
+        let mem = [0, 0, 0, 1, 1, 1];
+        let weights = vec![1.0_f64; 7];
+        let qw = modularity_weighted(&g, &mem, 1.0, &weights)
+            .unwrap()
+            .unwrap();
+        let q = modularity(&g, &mem, 1.0).unwrap().unwrap();
+        close(qw, q, 1e-12);
+    }
+
+    #[test]
+    fn weighted_balanced_heavy_internal_edges_increase_q() {
+        // Same K3 ∪ K3 + bridge graph. SYMMETRICALLY boost every
+        // internal edge to 10× and shrink the bridge to 0.1×: both
+        // communities keep equal strength so the s² penalty stays
+        // balanced and the heavier concentration of internal weight
+        // makes Q go up vs. the unit-weight baseline.
+        let mut g = Graph::with_vertices(6);
+        for &(u, v) in &[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5), (2, 3)] {
+            g.add_edge(u, v).unwrap();
+        }
+        let mem = [0, 0, 0, 1, 1, 1];
+        let weights = vec![10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.1];
+        let qw = modularity_weighted(&g, &mem, 1.0, &weights)
+            .unwrap()
+            .unwrap();
+        let q_unit = modularity(&g, &mem, 1.0).unwrap().unwrap();
+        assert!(
+            qw > q_unit,
+            "balanced-heavy Q ({qw}) should exceed unit-weight Q ({q_unit})"
+        );
+    }
+
+    #[test]
+    fn weighted_zero_total_weight_yields_none() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        let q = modularity_weighted(&g, &[0, 0], 1.0, &[0.0]).unwrap();
+        assert!(q.is_none());
+    }
+
+    #[test]
+    fn weighted_negative_weight_errors() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        assert!(modularity_weighted(&g, &[0, 0], 1.0, &[-1.0]).is_err());
+    }
+
+    #[test]
+    fn weighted_size_mismatch_errors() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        assert!(modularity_weighted(&g, &[0, 0], 1.0, &[1.0, 2.0]).is_err());
+    }
+
+    #[test]
+    fn weighted_directed_returns_unsupported() {
+        let mut g = Graph::new(2, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        assert!(modularity_weighted(&g, &[0, 0], 1.0, &[1.0]).is_err());
+    }
+
+    #[test]
+    fn weighted_two_disjoint_edges_q_eq_half() {
+        // Two disjoint edges with equal weights, partitioned
+        // {0,1} vs {2,3}: w_internal = 2*(1+1) = 4 (two undirected
+        // edges), W = 2, 2W = 4. e_norm = 4/4 = 1.0. s[c0] = 2/4 = 0.5,
+        // s[c1] = 2/4 = 0.5. Q = 1.0 - (0.25 + 0.25) = 0.5.
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let q = modularity_weighted(&g, &[0, 0, 1, 1], 1.0, &[1.0, 1.0])
+            .unwrap()
+            .unwrap();
+        close(q, 0.5, 1e-12);
     }
 }

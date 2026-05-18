@@ -22,6 +22,25 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(community)* **ALGO-CO-001c**: `modularity_weighted` — Newman-Girvan
+  modularity of a partition with edge weights. Counterpart of
+  `igraph_modularity(_, &membership, &weights, resolution,
+  /*directed=*/false, _)`. Uses strength `s_v = Σ w_e` (self-loops
+  contribute 2w per IGRAPH_LOOPS) instead of degree, and W (sum of
+  weights) replaces m. Phase-1 minimal: undirected only; directed
+  weighted ships with the future PR-006c-style adaptation. Negative,
+  NaN and infinite weights rejected.
+  Full 9-step SOP: 7 new unit tests (17 total in module — incl.
+  unit-equivalence to PR-008's modularity, balanced-heavy boost,
+  asymmetric-heavy-drags-Q-down documented case, zero-total-weight
+  → None, two-disjoint-edges hand-checked Q=0.5),
+  3 oracle tests (unit-equivalence, heavy-balanced, resolution=0
+  density-only mode),
+  3 three-source conformance fixtures (C balanced-heavy ≈0.498,
+  py unit weights = 6/7-0.5, R two disjoint edges = 0.5),
+  1 proptest invariant: unit-weight `modularity_weighted` agrees with
+  unweighted `modularity` on every graph + 2-block partition.
+
 - *(properties)* **ALGO-PR-004b**: `reciprocity_with_mode` +
   `ReciprocityMode { Default, Ratio }`. Counterpart of
   `igraph_reciprocity(_, _, ignore_loops, mode)`. Ratio mode is

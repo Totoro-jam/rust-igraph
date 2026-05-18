@@ -419,6 +419,28 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+MODULARITY_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "modularity_weighted_c_balanced_heavy_internal",
+        # Mirrors the test_modularity_weighted style fixture: K3 ∪ K3
+        # + bridge with internal weight 10× and bridge 0.1×, partition
+        # [0,0,0,1,1,1]. Python-igraph cross-validated.
+        "origin": "constructed: K3 ∪ K3 + bridge, balanced heavy internal weights",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5), (2, 3)],
+            directed=False,
+        ),
+        "graph_weights": [10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.1],
+        "algo": "modularity_weighted",
+        "params": {"membership": [0, 0, 0, 1, 1, 1], "resolution": 1.0},
+        # Hand-checked: W = 60.1, w_internal = 120, e_norm = 120/120.2,
+        # s[c0] = s[c1] = 60.1/120.2 = 0.5 each.
+        # Q ≈ 120/120.2 - 2*0.25 ≈ 0.99834 - 0.5 ≈ 0.49834.
+        "expected": 0.4983361064891847,
+    },
+]
+
 RECIP_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_with_mode_c_ratio_partial",
@@ -1053,6 +1075,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,
+    "modularity_weighted": MODULARITY_W_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

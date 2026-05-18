@@ -465,6 +465,26 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+MODULARITY_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "modularity_weighted_R_two_disjoint_edges",
+        # rigraph's `modularity(g, membership=, weights=)`. Two
+        # disjoint edges with unit weights, partition {0,1} vs {2,3}:
+        # w_internal = 4 (each undirected edge → 2*1), W = 2,
+        # 2W = 4. e_norm = 1.0. s[c0] = s[c1] = 0.5. Q = 0.5.
+        "origin": "constructed (rigraph-style): two disjoint edges",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (2, 3)],
+            directed=False,
+        ),
+        "graph_weights": [1.0, 1.0],
+        "algo": "modularity_weighted",
+        "params": {"membership": [0, 0, 1, 1], "resolution": 1.0},
+        "expected": 0.5,
+    },
+]
+
 RECIP_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_with_mode_R_directed_3_cycle_ratio",
@@ -978,6 +998,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,
+    "modularity_weighted": MODULARITY_W_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

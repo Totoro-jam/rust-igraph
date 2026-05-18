@@ -374,6 +374,25 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+MODULARITY_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "modularity_weighted_py_unit_weights",
+        # python-igraph smoke style: unit weights collapse to
+        # unweighted modularity, K3 ∪ K3 + bridge with [0,0,0,1,1,1]
+        # → 6/7 - 0.5.
+        "origin": "constructed: K3 ∪ K3 + bridge, unit weights",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5), (2, 3)],
+            directed=False,
+        ),
+        "graph_weights": [1.0] * 7,
+        "algo": "modularity_weighted",
+        "params": {"membership": [0, 0, 0, 1, 1, 1], "resolution": 1.0},
+        "expected": 6.0 / 7.0 - 0.5,
+    },
+]
+
 RECIP_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_with_mode_py_ignore_loops_default",
@@ -847,6 +866,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,
+    "modularity_weighted": MODULARITY_W_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
