@@ -299,6 +299,24 @@ fn coreness_three_source_conformance() {
 }
 
 #[test]
+fn coreness_with_mode_three_source_conformance() {
+    use rust_igraph::CorenessMode;
+    run_conformance("coreness_with_mode", |g, params| {
+        let mode_str = params
+            .get("mode")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("all");
+        let mode = match mode_str {
+            "in" => CorenessMode::In,
+            "out" => CorenessMode::Out,
+            _ => CorenessMode::All,
+        };
+        let cores = rust_igraph::coreness_with_mode(g, mode).expect("coreness_with_mode");
+        serde_json::json!(cores)
+    });
+}
+
+#[test]
 fn is_simple_with_mode_three_source_conformance() {
     use rust_igraph::SimpleMode;
     run_conformance("is_simple_with_mode", |g, params| {

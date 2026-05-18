@@ -1232,6 +1232,19 @@ proptest! {
         }
     }
 
+    /// On undirected graphs every [`CorenessMode`] must agree with
+    /// the canonical `coreness` entry. The mode parameter is
+    /// meaningful only for directed graphs.
+    #[test]
+    fn coreness_with_mode_undirected_modes_agree(g in arb_graph(15)) {
+        use rust_igraph::CorenessMode;
+        let canonical = rust_igraph::coreness(&g).unwrap();
+        for mode in [CorenessMode::All, CorenessMode::In, CorenessMode::Out] {
+            let r = rust_igraph::coreness_with_mode(&g, mode).unwrap();
+            prop_assert_eq!(r, canonical.clone(), "mode {:?} diverged", mode);
+        }
+    }
+
     /// `disjoint_union_many(&[a, b])` must produce the same vertex /
     /// edge counts as `disjoint_union(a, b)` (and the same edge
     /// multiset after sorting). Two-arg parity is the cheapest

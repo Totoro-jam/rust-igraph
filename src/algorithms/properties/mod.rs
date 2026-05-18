@@ -37,7 +37,7 @@ pub use betweenness::betweenness;
 pub use betweenness_weighted::betweenness_weighted;
 pub use closeness::closeness;
 pub use closeness_weighted::closeness_weighted;
-pub use coreness::coreness;
+pub use coreness::{CorenessMode, coreness, coreness_with_mode};
 pub use edge_betweenness::edge_betweenness;
 pub use edge_betweenness_weighted::edge_betweenness_weighted;
 pub use eigenvector::eigenvector_centrality;

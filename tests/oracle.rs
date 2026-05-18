@@ -11,17 +11,18 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
-    Graph, ReciprocityMode, SimpleMode, articulation_points, assortativity_degree,
+    CorenessMode, Graph, ReciprocityMode, SimpleMode, articulation_points, assortativity_degree,
     assortativity_degree_weighted, avg_nearest_neighbor_degree, betweenness, betweenness_weighted,
     bfs, biconnected_components, bridges, closeness, closeness_weighted, complementer,
-    connected_components, coreness, count_reachable, count_triangles, density, dfs, diameter,
-    dijkstra_distances, disjoint_union, disjoint_union_many, distances, eccentricity,
-    edge_betweenness, edge_betweenness_weighted, eigenvector_centrality, floyd_warshall_distances,
-    girth, harmonic_centrality, harmonic_centrality_weighted, has_loop, has_multiple,
-    is_biconnected, is_loop, is_multiple, is_simple, is_simple_with_mode, mean_distance,
-    modularity, modularity_weighted, pagerank, pagerank_weighted, radius, reachability_matrix,
-    read_edgelist, reciprocity, reciprocity_with_mode, simplify, strongly_connected_components,
-    transitive_closure, transitivity_local_undirected, transitivity_undirected,
+    connected_components, coreness, coreness_with_mode, count_reachable, count_triangles, density,
+    dfs, diameter, dijkstra_distances, disjoint_union, disjoint_union_many, distances,
+    eccentricity, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
+    floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
+    has_multiple, is_biconnected, is_loop, is_multiple, is_simple, is_simple_with_mode,
+    mean_distance, modularity, modularity_weighted, pagerank, pagerank_weighted, radius,
+    reachability_matrix, read_edgelist, reciprocity, reciprocity_with_mode, simplify,
+    strongly_connected_components, transitive_closure, transitivity_local_undirected,
+    transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -2189,4 +2190,52 @@ fn disjoint_union_many_directed_chain_matches_python_igraph() {
     assert_eq!(rust.vcount(), py.vcount);
     assert!(py.directed);
     assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, false));
+}
+
+#[test]
+fn coreness_with_mode_directed_3_cycle_out_matches_python_igraph() {
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 0).unwrap();
+    let rust = coreness_with_mode(&g, CorenessMode::Out).unwrap();
+    let py: Vec<u32> = serde_json::from_value(run_ok(
+        "coreness_with_mode",
+        &g,
+        serde_json::json!({"mode": "out"}),
+    ))
+    .expect("decode");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn coreness_with_mode_directed_3_cycle_in_matches_python_igraph() {
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 0).unwrap();
+    let rust = coreness_with_mode(&g, CorenessMode::In).unwrap();
+    let py: Vec<u32> = serde_json::from_value(run_ok(
+        "coreness_with_mode",
+        &g,
+        serde_json::json!({"mode": "in"}),
+    ))
+    .expect("decode");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn coreness_with_mode_directed_complete_3_all_matches_python_igraph() {
+    let mut g = Graph::new(3, true).unwrap();
+    for &(u, v) in &[(0u32, 1), (1, 0), (1, 2), (2, 1), (0, 2), (2, 0)] {
+        g.add_edge(u, v).unwrap();
+    }
+    let rust = coreness_with_mode(&g, CorenessMode::Out).unwrap();
+    let py: Vec<u32> = serde_json::from_value(run_ok(
+        "coreness_with_mode",
+        &g,
+        serde_json::json!({"mode": "out"}),
+    ))
+    .expect("decode");
+    assert_eq!(rust, py);
 }

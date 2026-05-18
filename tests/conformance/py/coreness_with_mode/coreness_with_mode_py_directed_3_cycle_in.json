@@ -1,0 +1,32 @@
+{
+  "source": "py",
+  "origin": "constructed: directed 3-cycle 0\u21921\u21922\u21920, in-mode",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "coreness_with_mode",
+  "params": {
+    "mode": "in"
+  },
+  "expected": [
+    1,
+    1,
+    1
+  ]
+}

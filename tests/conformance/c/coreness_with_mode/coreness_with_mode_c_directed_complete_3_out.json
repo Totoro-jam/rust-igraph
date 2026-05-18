@@ -1,0 +1,44 @@
+{
+  "source": "c",
+  "origin": "constructed: directed K3 (mutual on all pairs), out-mode",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "coreness_with_mode",
+  "params": {
+    "mode": "out"
+  },
+  "expected": [
+    2,
+    2,
+    2
+  ]
+}

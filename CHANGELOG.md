@@ -22,6 +22,22 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-015b**: `coreness_with_mode` +
+  `CorenessMode { All, In, Out }`. Counterpart of
+  `igraph_coreness(_, _, mode)`. The peeling loop walks **reverse-mode**
+  neighbours: `Out` peels via in-neighbours, `In` peels via
+  out-neighbours, `All` walks the merged adjacency view. Existing
+  `coreness()` is now a thin wrapper around
+  `coreness_with_mode(_, All)` and accepts directed graphs (which it
+  used to reject as unsupported).
+  Full 9-step SOP: 6 new unit tests (19 total in module), 3 oracle
+  tests, 3 three-source conformance fixtures, 1 proptest invariant:
+  on undirected graphs every mode agrees with the canonical entry.
+
+  *(Breaking-ish.)* `coreness()` no longer returns `Unsupported` for
+  directed graphs; it now returns the undirected projection
+  (`CorenessMode::All`), matching python-igraph's default behaviour.
+
 - *(operators)* **ALGO-OP-002b**: `disjoint_union_many` — variadic
   disjoint union over a slice of graphs. Counterpart of
   `igraph_disjoint_union_many()`. Vertices of the i-th graph shift by

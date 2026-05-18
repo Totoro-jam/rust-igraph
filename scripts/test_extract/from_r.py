@@ -465,6 +465,23 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CORENESS_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "coreness_with_mode_R_directed_star_out",
+        # rigraph smoke: directed star 0→{1,2,3}. Out-degrees:
+        # [3, 0, 0, 0]. Peeling leaves drains 0's core to 0.
+        "origin": "constructed (rigraph-style): directed star, out-mode",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (0, 3)],
+            directed=True,
+        ),
+        "algo": "coreness_with_mode",
+        "params": {"mode": "out"},
+        "expected": [0, 0, 0, 0],
+    },
+]
+
 DU_MANY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "disjoint_union_many_R_directed_two_paths",
@@ -1048,6 +1065,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "modularity_weighted": MODULARITY_W_MANIFEST,
     "is_simple_with_mode": IS_SIMPLE_MODE_MANIFEST,
     "disjoint_union_many": DU_MANY_MANIFEST,
+    "coreness_with_mode": CORENESS_MODE_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

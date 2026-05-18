@@ -419,6 +419,23 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CORENESS_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "coreness_with_mode_c_directed_complete_3_out",
+        # Mirrors C unit test: directed K3 (each pair has both
+        # directions). Out-degrees are all 2 → out-cores all 2.
+        "origin": "constructed: directed K3 (mutual on all pairs), out-mode",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 0), (1, 2), (2, 1), (0, 2), (2, 0)],
+            directed=True,
+        ),
+        "algo": "coreness_with_mode",
+        "params": {"mode": "out"},
+        "expected": [2, 2, 2],
+    },
+]
+
 DU_MANY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "disjoint_union_many_c_three_triangles",
@@ -1136,6 +1153,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "modularity_weighted": MODULARITY_W_MANIFEST,
     "is_simple_with_mode": IS_SIMPLE_MODE_MANIFEST,
     "disjoint_union_many": DU_MANY_MANIFEST,
+    "coreness_with_mode": CORENESS_MODE_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

@@ -266,6 +266,13 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.coreness(mode="all")
         return [int(v) for v in vals]
 
+    if algo == "coreness_with_mode":
+        # Counterpart of igraph_coreness(_, _, mode). python-igraph's
+        # `Graph.coreness(mode=)` accepts 'in' / 'out' / 'all'.
+        mode = str(params.get("mode", "all"))
+        vals = g.coreness(mode=mode)
+        return [int(v) for v in vals]
+
     if algo == "is_simple_with_mode":
         # Counterpart of igraph_is_simple(_, _, /*directed=*/dir).
         # python-igraph's `Graph.is_simple()` doesn't expose the
