@@ -419,6 +419,24 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+RECIP_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "reciprocity_with_mode_c_ratio_partial",
+        # Mirrors igraph C unit test for IGRAPH_RECIPROCITY_RATIO:
+        # 0→1, 1→0 (mutual), 0→2 (one-way) → rec=2, nonrec=2,
+        # ratio = 2/4 = 0.5 (different from Default's 2/3).
+        "origin": "constructed: mutual 0↔1 + one-way 0→2, ratio mode",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 0), (0, 2)],
+            directed=True,
+        ),
+        "algo": "reciprocity_with_mode",
+        "params": {"ignore_loops": False, "mode": "ratio"},
+        "expected": 0.5,
+    },
+]
+
 CORENESS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "coreness_c_triangle_with_pendant",
@@ -1034,6 +1052,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
+    "reciprocity_with_mode": RECIP_MODE_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

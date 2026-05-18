@@ -465,6 +465,24 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+RECIP_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "reciprocity_with_mode_R_directed_3_cycle_ratio",
+        # rigraph's `reciprocity(g, mode='ratio')`. A directed
+        # 3-cycle has zero reciprocal edges and 6 non-reciprocal
+        # contributions (each vertex's in/out tail) → ratio = 0.
+        "origin": "constructed (rigraph-style): directed 3-cycle, ratio mode",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 2), (2, 0)],
+            directed=True,
+        ),
+        "algo": "reciprocity_with_mode",
+        "params": {"ignore_loops": False, "mode": "ratio"},
+        "expected": 0.0,
+    },
+]
+
 CORENESS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "coreness_R_path_5",
@@ -959,6 +977,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
+    "reciprocity_with_mode": RECIP_MODE_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

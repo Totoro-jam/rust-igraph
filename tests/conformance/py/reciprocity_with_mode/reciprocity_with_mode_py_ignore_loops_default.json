@@ -1,0 +1,29 @@
+{
+  "source": "py",
+  "origin": "constructed: self-loop 0\u21920 + mutual 0\u21941, ignore_loops=true, default mode",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "reciprocity_with_mode",
+  "params": {
+    "ignore_loops": true,
+    "mode": "default"
+  },
+  "expected": 1.0
+}

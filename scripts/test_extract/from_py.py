@@ -374,6 +374,25 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+RECIP_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "reciprocity_with_mode_py_ignore_loops_default",
+        # python-igraph smoke style: directed with self-loop +
+        # mutual pair. With ignore_loops=true, the self-loop drops
+        # from both numerator and denominator → rec=2, denom=2 → 1.0.
+        "origin": "constructed: self-loop 0→0 + mutual 0↔1, "
+        "ignore_loops=true, default mode",
+        "graph_factory": lambda: ig.Graph(
+            n=2,
+            edges=[(0, 0), (0, 1), (1, 0)],
+            directed=True,
+        ),
+        "algo": "reciprocity_with_mode",
+        "params": {"ignore_loops": True, "mode": "default"},
+        "expected": 1.0,
+    },
+]
+
 CORENESS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "coreness_py_k4_minus_edge",
@@ -827,6 +846,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
+    "reciprocity_with_mode": RECIP_MODE_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

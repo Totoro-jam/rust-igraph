@@ -299,6 +299,31 @@ fn coreness_three_source_conformance() {
 }
 
 #[test]
+fn reciprocity_with_mode_three_source_conformance() {
+    use rust_igraph::ReciprocityMode;
+    run_conformance("reciprocity_with_mode", |g, params| {
+        let ignore_loops = params
+            .get("ignore_loops")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        let mode_str = params
+            .get("mode")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("default");
+        let mode = match mode_str {
+            "ratio" => ReciprocityMode::Ratio,
+            _ => ReciprocityMode::Default,
+        };
+        let r = rust_igraph::reciprocity_with_mode(g, ignore_loops, mode)
+            .expect("reciprocity_with_mode");
+        match r {
+            Some(v) => serde_json::json!(v),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
 fn reachability_matrix_three_source_conformance() {
     run_conformance("reachability_matrix", |g, _params| {
         let m = rust_igraph::reachability_matrix(g).expect("reachability_matrix");

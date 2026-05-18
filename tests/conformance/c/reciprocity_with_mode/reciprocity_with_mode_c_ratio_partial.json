@@ -1,0 +1,29 @@
+{
+  "source": "c",
+  "origin": "constructed: mutual 0\u21941 + one-way 0\u21922, ratio mode",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "reciprocity_with_mode",
+  "params": {
+    "ignore_loops": false,
+    "mode": "ratio"
+  },
+  "expected": 0.5
+}

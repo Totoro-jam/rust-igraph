@@ -116,6 +116,19 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "reciprocity_with_mode":
+        # Counterpart of igraph_reciprocity(_, _, ignore_loops, mode).
+        # `params.ignore_loops` (bool) and `params.mode` ('default' /
+        # 'ratio') are forwarded through. NaN → None.
+        if g.ecount() == 0:
+            return None
+        ignore = bool(params.get("ignore_loops", False))
+        mode = str(params.get("mode", "default"))
+        v = g.reciprocity(ignore_loops=ignore, mode=mode)
+        if v != v:
+            return None
+        return float(v)
+
     if algo == "eigenvector_centrality":
         # Counterpart of igraph_eigenvector_centrality(_, _, NULL_eval,
         # /*directed=*/false, /*scale=*/true, NULL_weights, NULL_options).

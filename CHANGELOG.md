@@ -22,6 +22,23 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-004b**: `reciprocity_with_mode` +
+  `ReciprocityMode { Default, Ratio }`. Counterpart of
+  `igraph_reciprocity(_, _, ignore_loops, mode)`. Ratio mode is
+  `rec / (rec + nonrec)` and counts non-mutual one-way edges twice
+  (once at source, once at destination); the two formulas only
+  agree on fully-mutual graphs. `ignore_loops` drops self-loops
+  from both numerator and denominator in Default; in Ratio they
+  drop only from numerator (no `nonrec` increment for self-loops).
+  Existing `reciprocity()` is now a thin wrapper around
+  `reciprocity_with_mode(_, false, Default)`.
+  Full 9-step SOP: 8 new unit tests (16 total in module),
+  3 oracle tests (ratio + ignore_loops + undirected),
+  3 three-source conformance fixtures (C ratio mode partial,
+  py ignore_loops + self-loop, R directed 3-cycle ratio),
+  1 proptest invariant: the wrapper agrees with the parametric
+  function under default args.
+
 - *(properties)* **ALGO-PR-015**: `coreness` — k-core decomposition
   per vertex via Batagelj & Zaversnik's O(|E|) "An O(m) Algorithm for
   Cores Decomposition of Networks". Counterpart of `igraph_coreness(_,

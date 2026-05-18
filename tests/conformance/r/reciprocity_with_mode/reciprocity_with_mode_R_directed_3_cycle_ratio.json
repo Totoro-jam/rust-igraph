@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed 3-cycle, ratio mode",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "reciprocity_with_mode",
+  "params": {
+    "ignore_loops": false,
+    "mode": "ratio"
+  },
+  "expected": 0.0
+}

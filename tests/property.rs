@@ -1232,6 +1232,17 @@ proptest! {
         }
     }
 
+    /// `reciprocity_with_mode(_, false, Default)` must equal the
+    /// canonical [`reciprocity`] entry on every graph (the latter is
+    /// just a wrapper around the former with default args).
+    #[test]
+    fn reciprocity_with_mode_default_matches_reciprocity(g in arb_graph(15)) {
+        use rust_igraph::ReciprocityMode;
+        let a = rust_igraph::reciprocity(&g).unwrap();
+        let b = rust_igraph::reciprocity_with_mode(&g, false, ReciprocityMode::Default).unwrap();
+        prop_assert_eq!(a, b);
+    }
+
     /// `coreness` invariants on arbitrary undirected graphs:
     /// - same length as `vcount`
     /// - per-vertex coreness ≤ degree (peeling can only decrease)
