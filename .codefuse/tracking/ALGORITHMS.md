@@ -141,7 +141,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-013b | `is_simple_with_mode` (directed-as-undirected) | properties/multiplicity.c | ~80 | adapt | PR-013 | done | (next) | O(V+E) / O(E log E) | C:1 / py:1 / R:1 |
 | ALGO-PR-014 | `has_loop` + `has_multiple` predicates | properties/loops.c + multiplicity.c | ~100 | adapt | CORE-001a/d | done | (next) | O(E) / O(E log E) | C:2 / py:2 / R:2 |
 | ALGO-PR-014b | per-edge `is_loop` + `is_multiple` | properties/loops.c + multiplicity.c | ~80 | adapt | PR-014 | done | (next) | O(E) / O(E log E) | C:2 / py:2 / R:2 |
-| ALGO-CO-001b | Directed modularity (Leicht-Newman) | community/modularity.c | ~80 | adapt | CO-001 | todo | - | - | - |
+| ALGO-CO-001b | Directed modularity Leicht-Newman (`modularity_directed`) | community/modularity.c | ~120 | adapt | CO-001 | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
 | ALGO-CO-001c | Weighted modularity (`modularity_weighted`, undirected) | community/modularity.c | ~150 | adapt | CO-001 | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
 | ALGO-PR-015 | Coreness / k-core decomposition (`coreness`, undirected) | centrality/coreness.c | 157 | adapt | - | done | (next) | O(V+E) Batagelj-Zaversnik | C:1 / py:1 / R:1 |
 | ALGO-PR-015b | `coreness_with_mode` (directed IN/OUT) | centrality/coreness.c | ~80 | adapt | PR-015 | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
@@ -163,10 +163,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 54 | 0 | ~32 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3 |
+| 1 | 55 | 0 | ~31 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 54/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 55/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -193,7 +193,8 @@ Floyd-Warshall all-pairs (SP-004), coreness / k-core
 directed-as-undirected mode (PR-013b),
 disjoint_union_many (OP-002b),
 directed coreness IN/OUT (PR-015b),
-directed assortativity (PR-006c).
+directed assortativity (PR-006c),
+directed modularity (CO-001b).
 Next options:
 SP-001b (Dijkstra paths+parents), CORE-001c (deletion),
 hub/auth scores, more operators (union/intersection/

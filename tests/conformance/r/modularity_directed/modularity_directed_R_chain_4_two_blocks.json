@@ -1,0 +1,34 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed 4-chain, two blocks",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "modularity_directed",
+  "params": {
+    "membership": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "resolution": 1.0
+  },
+  "expected": 0.2222222222222222
+}

@@ -1,0 +1,33 @@
+{
+  "source": "py",
+  "origin": "constructed: directed 3-cycle, single community",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "modularity_directed",
+  "params": {
+    "membership": [
+      0,
+      0,
+      0
+    ],
+    "resolution": 1.0
+  },
+  "expected": 0.0
+}

@@ -1242,6 +1242,23 @@ proptest! {
         prop_assert_eq!(a, b);
     }
 
+    /// On undirected graphs `modularity_directed` must agree with
+    /// the canonical `modularity` (the `directed` arg is ignored
+    /// upstream on undirected inputs).
+    #[test]
+    fn modularity_directed_undirected_matches_canonical(g in arb_graph(12)) {
+        if g.ecount() == 0 { return Ok(()); }
+        let n = g.vcount() as usize;
+        let mem: Vec<u32> = (0..n).map(|i| u32::from(i >= n / 2)).collect();
+        let a = rust_igraph::modularity(&g, &mem, 1.0).unwrap();
+        let b = rust_igraph::modularity_directed(&g, &mem, 1.0).unwrap();
+        match (a, b) {
+            (Some(x), Some(y)) => prop_assert!((x - y).abs() < 1e-12, "a={x} b={y}"),
+            (None, None) => {}
+            (a, b) => prop_assert!(false, "a={a:?} b={b:?}"),
+        }
+    }
+
     /// On undirected graphs every [`CorenessMode`] must agree with
     /// the canonical `coreness` entry. The mode parameter is
     /// meaningful only for directed graphs.

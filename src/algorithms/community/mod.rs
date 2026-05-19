@@ -5,4 +5,4 @@
 // function re-export in rustdoc.
 pub(crate) mod modularity;
 
-pub use modularity::{modularity, modularity_weighted};
+pub use modularity::{modularity, modularity_directed, modularity_weighted};

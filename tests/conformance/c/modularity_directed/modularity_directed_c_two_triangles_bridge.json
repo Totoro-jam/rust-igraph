@@ -1,0 +1,52 @@
+{
+  "source": "c",
+  "origin": "constructed: two directed triangles + bridge 2\u21923",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "modularity_directed",
+  "params": {
+    "membership": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+    ],
+    "resolution": 1.0
+  },
+  "expected": 0.3673469387755102
+}

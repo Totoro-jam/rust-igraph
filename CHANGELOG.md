@@ -22,6 +22,20 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(community)* **ALGO-CO-001b**: `modularity_directed` — directed
+  Newman-Girvan modularity (Leicht-Newman 2008). Counterpart of
+  `igraph_modularity(_, _, NULL_weights, resolution, /*directed=*/true, _)`.
+  Formula: `Q = (1/m) Σ (A_ij − γ k_out_i k_in_j / m) δ(c_i, c_j)`.
+  Per-partition `k_out` and `k_in` are tracked separately (vs the
+  undirected case where they collapse). Undirected graphs route to
+  [`modularity`] (matches python-igraph's "ignored on undirected"
+  semantics).
+  Full 9-step SOP: 6 new unit tests (23 total in module — incl.
+  two-triangles+bridge with hand-checked Q=18/49, 3-cycle single
+  partition Q=0, undirected routing, no-edges None, validation),
+  3 oracle tests, 3 three-source conformance fixtures, 1 proptest
+  invariant: undirected routes to canonical formula.
+
 - *(properties)* **ALGO-PR-006c**: `assortativity_degree_directed` —
   directed Pearson correlation of source out-degree vs target in-degree.
   Counterpart of `igraph_assortativity_degree(_, _, /*directed=*/true)`.

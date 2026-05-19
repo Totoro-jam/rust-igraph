@@ -419,6 +419,23 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+MODULARITY_DIR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "modularity_directed_c_two_triangles_bridge",
+        # Mirrors C unit test: two directed triangles + bridge, with
+        # partition {0,1,2}/{3,4,5}. Hand-checked Q = 18/49 ≈ 0.367.
+        "origin": "constructed: two directed triangles + bridge 2→3",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (2, 3)],
+            directed=True,
+        ),
+        "algo": "modularity_directed",
+        "params": {"membership": [0, 0, 0, 1, 1, 1], "resolution": 1.0},
+        "expected": 18.0 / 49.0,
+    },
+]
+
 ASSORT_DIR_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "assortativity_degree_directed_c_chain_with_branch",
@@ -1173,6 +1190,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union_many": DU_MANY_MANIFEST,
     "coreness_with_mode": CORENESS_MODE_MANIFEST,
     "assortativity_degree_directed": ASSORT_DIR_MANIFEST,
+    "modularity_directed": MODULARITY_DIR_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

@@ -374,6 +374,24 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+MODULARITY_DIR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "modularity_directed_py_3_cycle_single_partition",
+        # python-igraph smoke style: directed 3-cycle with all
+        # vertices in one community. e_norm = 1.0; k_out=k_in=1.0
+        # → Q = 0.0.
+        "origin": "constructed: directed 3-cycle, single community",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 2), (2, 0)],
+            directed=True,
+        ),
+        "algo": "modularity_directed",
+        "params": {"membership": [0, 0, 0], "resolution": 1.0},
+        "expected": 0.0,
+    },
+]
+
 ASSORT_DIR_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "assortativity_degree_directed_py_hub_in",
@@ -961,6 +979,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union_many": DU_MANY_MANIFEST,
     "coreness_with_mode": CORENESS_MODE_MANIFEST,
     "assortativity_degree_directed": ASSORT_DIR_MANIFEST,
+    "modularity_directed": MODULARITY_DIR_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

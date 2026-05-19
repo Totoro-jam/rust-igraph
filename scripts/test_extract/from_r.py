@@ -465,6 +465,30 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+MODULARITY_DIR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "modularity_directed_R_chain_4_two_blocks",
+        # rigraph smoke: directed chain 0→1→2→3 with partition
+        # {0,1}/{2,3}. m=3, internal edges: (0→1) and (2→3) = 2.
+        # e_norm = 2/3. k_out[c0]=2/3 (vertex 0,1 each out-deg 1; only edge 1→2 cross).
+        # Wait, for c0={0,1}: vertex 0 out-deg 1 (0→1); vertex 1 out-deg 1 (1→2).
+        # Sum k_out = 2. So k_out[c0]=2/3.
+        # k_in[c0]: vertex 0 in-deg 0; vertex 1 in-deg 1 (from 0). Sum=1, /3 = 1/3.
+        # k_out[c1]: vertex 2 out-deg 1 (2→3); vertex 3 out-deg 0. Sum=1, /3 = 1/3.
+        # k_in[c1]: vertex 2 in-deg 1; vertex 3 in-deg 1. Sum=2, /3 = 2/3.
+        # Q = 2/3 - (2/3 * 1/3 + 1/3 * 2/3) = 2/3 - 4/9 = 6/9 - 4/9 = 2/9 ≈ 0.222.
+        "origin": "constructed (rigraph-style): directed 4-chain, two blocks",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3)],
+            directed=True,
+        ),
+        "algo": "modularity_directed",
+        "params": {"membership": [0, 0, 1, 1], "resolution": 1.0},
+        "expected": 2.0 / 9.0,
+    },
+]
+
 ASSORT_DIR_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "assortativity_degree_directed_R_3_cycle_returns_none",
@@ -1084,6 +1108,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union_many": DU_MANY_MANIFEST,
     "coreness_with_mode": CORENESS_MODE_MANIFEST,
     "assortativity_degree_directed": ASSORT_DIR_MANIFEST,
+    "modularity_directed": MODULARITY_DIR_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

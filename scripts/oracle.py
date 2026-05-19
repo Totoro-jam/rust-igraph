@@ -306,6 +306,20 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             seen.add(key)
         return True
 
+    if algo == "modularity_directed":
+        # Counterpart of igraph_modularity(_, &membership, NULL_weights,
+        # resolution, /*directed=*/true, _). python-igraph's
+        # `Graph.modularity` accepts a `directed` arg via the
+        # underlying C call.
+        if g.ecount() == 0:
+            return None
+        membership = list(params["membership"])
+        resolution = float(params.get("resolution", 1.0))
+        v = g.modularity(membership, directed=True, resolution=resolution)
+        if v != v:
+            return None
+        return float(v)
+
     if algo == "modularity_weighted":
         # Counterpart of igraph_modularity(_, &membership, &weights,
         # resolution, /*directed=*/false, _). python-igraph's

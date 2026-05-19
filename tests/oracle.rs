@@ -19,10 +19,10 @@ use rust_igraph::{
     disjoint_union_many, distances, eccentricity, edge_betweenness, edge_betweenness_weighted,
     eigenvector_centrality, floyd_warshall_distances, girth, harmonic_centrality,
     harmonic_centrality_weighted, has_loop, has_multiple, is_biconnected, is_loop, is_multiple,
-    is_simple, is_simple_with_mode, mean_distance, modularity, modularity_weighted, pagerank,
-    pagerank_weighted, radius, reachability_matrix, read_edgelist, reciprocity,
-    reciprocity_with_mode, simplify, strongly_connected_components, transitive_closure,
-    transitivity_local_undirected, transitivity_undirected,
+    is_simple, is_simple_with_mode, mean_distance, modularity, modularity_directed,
+    modularity_weighted, pagerank, pagerank_weighted, radius, reachability_matrix, read_edgelist,
+    reciprocity, reciprocity_with_mode, simplify, strongly_connected_components,
+    transitive_closure, transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -2297,4 +2297,61 @@ fn assortativity_degree_directed_complex_graph_matches_python_igraph() {
         (None, None) => {}
         (a, b) => panic!("rust={a:?} py={b:?}"),
     }
+}
+
+#[test]
+fn modularity_directed_two_triangles_bridge_matches_python_igraph() {
+    let mut g = Graph::new(6, true).unwrap();
+    for &(u, v) in &[(0u32, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (2, 3)] {
+        g.add_edge(u, v).unwrap();
+    }
+    let mem = vec![0u32, 0, 0, 1, 1, 1];
+    let rust = modularity_directed(&g, &mem, 1.0).unwrap();
+    let py: Option<f64> = serde_json::from_value(run_ok(
+        "modularity_directed",
+        &g,
+        serde_json::json!({"membership": mem, "resolution": 1.0}),
+    ))
+    .expect("decode");
+    match (rust, py) {
+        (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "rust={r} py={p}"),
+        _ => panic!("rust={rust:?} py={py:?}"),
+    }
+}
+
+#[test]
+fn modularity_directed_3_cycle_single_partition_matches_python_igraph() {
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 0).unwrap();
+    let mem = vec![0u32, 0, 0];
+    let rust = modularity_directed(&g, &mem, 1.0).unwrap();
+    let py: Option<f64> = serde_json::from_value(run_ok(
+        "modularity_directed",
+        &g,
+        serde_json::json!({"membership": mem, "resolution": 1.0}),
+    ))
+    .expect("decode");
+    match (rust, py) {
+        (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "rust={r} py={p}"),
+        _ => panic!("rust={rust:?} py={py:?}"),
+    }
+}
+
+#[test]
+fn modularity_directed_undirected_routes_to_undirected_oracle() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let mem = vec![0u32, 0, 1, 1];
+    let rust = modularity_directed(&g, &mem, 1.0).unwrap();
+    let py: Option<f64> = serde_json::from_value(run_ok(
+        "modularity",
+        &g,
+        serde_json::json!({"membership": mem, "resolution": 1.0}),
+    ))
+    .expect("decode");
+    assert_eq!(rust, py);
 }

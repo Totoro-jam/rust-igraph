@@ -268,6 +268,117 @@ pub fn modularity_weighted(
     Ok(Some(q))
 }
 
+/// Directed modularity (Leicht-Newman, ALGO-CO-001b).
+///
+/// Counterpart of `igraph_modularity(_, _, NULL_weights, resolution,
+/// /*directed=*/true, _)`. The directed analogue of [`modularity`]:
+///
+/// ```text
+/// Q = (1 / m) Σ_{ij} (A_ij − γ k_out_i * k_in_j / m) δ(c_i, c_j)
+/// ```
+///
+/// where `m = ecount`, `k_out_i = out_degree(i)`, `k_in_j = in_degree(j)`,
+/// and `A_ij` is the directed adjacency matrix (each directed edge
+/// contributes 1 to one entry, not symmetric). Reference: Leicht &
+/// Newman (2008).
+///
+/// Undirected graphs route to [`modularity`] with the same membership
+/// and resolution (matches python-igraph's "ignored on undirected"
+/// semantics).
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, modularity_directed};
+///
+/// // Two directed triangles connected by a single bridge:
+/// // 0→1→2→0, 3→4→5→3, plus 2→3.
+/// // Partition {0,1,2} vs {3,4,5} gives a positive Q (hand-checked
+/// // value: 18/49 ≈ 0.367).
+/// let mut g = Graph::new(6, true).unwrap();
+/// for &(u, v) in &[(0u32, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (2, 3)] {
+///     g.add_edge(u, v).unwrap();
+/// }
+/// let q = modularity_directed(&g, &[0, 0, 0, 1, 1, 1], 1.0).unwrap();
+/// assert!(q.is_some());
+/// assert!(q.unwrap() > 0.3);
+/// ```
+pub fn modularity_directed(
+    graph: &Graph,
+    membership: &[u32],
+    resolution: f64,
+) -> IgraphResult<Option<f64>> {
+    if !graph.is_directed() {
+        // Match python-igraph: directed flag is ignored on undirected.
+        return modularity(graph, membership, resolution);
+    }
+    let n = graph.vcount() as usize;
+    if membership.len() != n {
+        return Err(IgraphError::InvalidArgument(
+            "membership vector size differs from number of vertices".to_string(),
+        ));
+    }
+    if !resolution.is_finite() || resolution < 0.0 {
+        return Err(IgraphError::InvalidArgument(
+            "resolution parameter must be non-negative and finite".to_string(),
+        ));
+    }
+    let ecount = graph.ecount();
+    if ecount == 0 {
+        return Ok(None);
+    }
+
+    // Reindex labels.
+    let max_label = membership.iter().copied().max().unwrap_or(0);
+    let mut remap: Vec<Option<u32>> = vec![None; max_label as usize + 1];
+    let mut next_id: u32 = 0;
+    let mut reindexed: Vec<u32> = Vec::with_capacity(n);
+    for &lbl in membership {
+        let slot = lbl as usize;
+        if remap[slot].is_none() {
+            remap[slot] = Some(next_id);
+            next_id += 1;
+        }
+        reindexed.push(remap[slot].expect("just assigned"));
+    }
+    let no_of_partitions = next_id as usize;
+
+    // Per-partition out- and in-degree sums; e = count of edges with
+    // both endpoints in the same partition (directed_multiplier = 1).
+    let mut k_out = vec![0.0_f64; no_of_partitions];
+    let mut k_in = vec![0.0_f64; no_of_partitions];
+    let mut e_internal = 0.0_f64;
+
+    let m_u32 =
+        u32::try_from(ecount).map_err(|_| IgraphError::Internal("ecount exceeds u32::MAX"))?;
+    for eid in 0..m_u32 {
+        let (src, tgt) = graph.edge(eid as EdgeId)?;
+        let cu = reindexed[src as usize];
+        let cv = reindexed[tgt as usize];
+        if cu == cv {
+            e_internal += 1.0;
+        }
+        k_out[cu as usize] += 1.0;
+        k_in[cv as usize] += 1.0;
+    }
+
+    #[allow(clippy::cast_precision_loss)]
+    let m_f = ecount as f64;
+    for slot in &mut k_out {
+        *slot /= m_f;
+    }
+    for slot in &mut k_in {
+        *slot /= m_f;
+    }
+    let e_norm = e_internal / m_f;
+
+    let mut q = e_norm;
+    for c in 0..no_of_partitions {
+        q -= resolution * k_out[c] * k_in[c];
+    }
+    Ok(Some(q))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -467,6 +578,82 @@ mod tests {
         let mut g = Graph::new(2, true).unwrap();
         g.add_edge(0, 1).unwrap();
         assert!(modularity_weighted(&g, &[0, 0], 1.0, &[1.0]).is_err());
+    }
+
+    // ----- ALGO-CO-001b: directed modularity (Leicht-Newman) -----
+
+    #[test]
+    fn directed_two_triangles_with_bridge_high_q() {
+        // 0→1→2→0, 3→4→5→3, 2→3. Partition {0,1,2}/{3,4,5}.
+        // m = 7.
+        // Internal edges in c0: (0→1), (1→2), (2→0) → e_c0 = 3
+        // Internal edges in c1: (3→4), (4→5), (5→3) → e_c1 = 3
+        // Cross: (2→3) → 1.
+        // e_internal = 6. e_norm = 6/7.
+        // k_out[c0] = (1+1+1)/7 = 3/7 (vertices 0,1,2 each have out-deg 1)
+        // Actually vertex 2 has out-deg 2 (2→0 and 2→3) so k_out[c0] = 4/7.
+        // k_out[c1] = 3/7 (each of 3,4,5 has out-deg 1).
+        // k_in[c0] = 3/7 (each of 0,1,2 has in-deg 1).
+        // k_in[c1] = 4/7 (3 has in-deg 2, 4 and 5 have in-deg 1).
+        // Q = 6/7 - (k_out[c0]*k_in[c0] + k_out[c1]*k_in[c1])
+        //   = 6/7 - (4/7 * 3/7 + 3/7 * 4/7)
+        //   = 6/7 - 24/49 = 42/49 - 24/49 = 18/49
+        //   ≈ 0.3673
+        let mut g = Graph::new(6, true).unwrap();
+        for &(u, v) in &[(0u32, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (2, 3)] {
+            g.add_edge(u, v).unwrap();
+        }
+        let q = modularity_directed(&g, &[0, 0, 0, 1, 1, 1], 1.0)
+            .unwrap()
+            .unwrap();
+        close(q, 18.0 / 49.0, 1e-12);
+    }
+
+    #[test]
+    fn directed_undirected_graph_routes_to_undirected_formula() {
+        let mut g = Graph::with_vertices(6);
+        for &(u, v) in &[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5), (2, 3)] {
+            g.add_edge(u, v).unwrap();
+        }
+        let mem = [0u32, 0, 0, 1, 1, 1];
+        let a = modularity(&g, &mem, 1.0).unwrap();
+        let b = modularity_directed(&g, &mem, 1.0).unwrap();
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn directed_no_edges_yields_none() {
+        let g = Graph::new(3, true).unwrap();
+        let q = modularity_directed(&g, &[0, 0, 0], 1.0).unwrap();
+        assert!(q.is_none());
+    }
+
+    #[test]
+    fn directed_membership_size_mismatch_errors() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        assert!(modularity_directed(&g, &[0, 0], 1.0).is_err());
+    }
+
+    #[test]
+    fn directed_negative_resolution_errors() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        assert!(modularity_directed(&g, &[0, 0, 0], -0.1).is_err());
+    }
+
+    #[test]
+    fn directed_3_cycle_single_partition_zero() {
+        // 0→1→2→0, partition [0,0,0]: all 3 edges internal.
+        // m = 3, e = 3, e_norm = 1.0.
+        // k_out[0] = 3/3 = 1.0; k_in[0] = 3/3 = 1.0.
+        // Q = 1.0 - 1.0*1.0 = 0.0.
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        let q = modularity_directed(&g, &[0, 0, 0], 1.0).unwrap().unwrap();
+        close(q, 0.0, 1e-12);
     }
 
     #[test]

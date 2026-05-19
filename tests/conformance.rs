@@ -347,6 +347,28 @@ fn is_simple_with_mode_three_source_conformance() {
 }
 
 #[test]
+fn modularity_directed_three_source_conformance() {
+    run_conformance("modularity_directed", |g, params| {
+        let mem: Vec<u32> = params
+            .get("membership")
+            .and_then(serde_json::Value::as_array)
+            .expect("membership param missing")
+            .iter()
+            .map(|v| u32::try_from(v.as_u64().expect("u32 label")).expect("fits u32"))
+            .collect();
+        let resolution = params
+            .get("resolution")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(1.0);
+        let r = rust_igraph::modularity_directed(g, &mem, resolution).expect("modularity_directed");
+        match r {
+            Some(v) => serde_json::json!(v),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
 fn modularity_weighted_three_source_conformance() {
     // Bespoke fixture-walking runner because the standard
     // `run_conformance` signature only forwards `(graph, params)`,
