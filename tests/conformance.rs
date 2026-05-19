@@ -887,6 +887,182 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn dijkstra_paths_three_source_conformance() {
+    // Compares only `distances` since parents/inbound_edges depend on
+    // tie-breaking which differs between igraph C / R / py / Rust.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("dijkstra_paths");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let source = u32::try_from(
+                case.params
+                    .get("source")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("source param missing"),
+            )
+            .expect("source fits in u32");
+            let p = rust_igraph::dijkstra_paths(&g, source, &weights).expect("dijkstra_paths");
+            let rust_json = serde_json::json!({
+                "distances": p
+                    .distances
+                    .into_iter()
+                    .map(|x| match x {
+                        Some(v) => serde_json::json!(v),
+                        None => serde_json::Value::Null,
+                    })
+                    .collect::<Vec<_>>(),
+            });
+            // Fixture's expected payload may include parents/edges; we
+            // only check distances. Build a cropped expected value.
+            let expected_dist = case
+                .expected
+                .get("distances")
+                .cloned()
+                .unwrap_or_else(|| case.expected.clone());
+            let cropped_expected = serde_json::json!({"distances": expected_dist});
+            assert!(
+                json_approx_eq(&rust_json, &cropped_expected),
+                "{}: expected {} got {}",
+                path.display(),
+                cropped_expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "dijkstra_paths");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
+fn dijkstra_path_to_three_source_conformance() {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("dijkstra_path_to");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let source = u32::try_from(
+                case.params
+                    .get("source")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("source param missing"),
+            )
+            .expect("source fits in u32");
+            let target = u32::try_from(
+                case.params
+                    .get("target")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("target param missing"),
+            )
+            .expect("target fits in u32");
+            let r = rust_igraph::dijkstra_path_to(&g, source, target, &weights)
+                .expect("dijkstra_path_to");
+            let rust_json = match r {
+                None => serde_json::Value::Null,
+                Some((vs, es)) => serde_json::json!({
+                    "vertices": vs,
+                    "edges": es,
+                }),
+            };
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "dijkstra_path_to");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
+fn dijkstra_distances_cutoff_three_source_conformance() {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("dijkstra_distances_cutoff");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let source = u32::try_from(
+                case.params
+                    .get("source")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("source param missing"),
+            )
+            .expect("source fits in u32");
+            let cutoff = case
+                .params
+                .get("cutoff")
+                .and_then(serde_json::Value::as_f64);
+            let d = rust_igraph::dijkstra_distances_cutoff(&g, source, &weights, cutoff)
+                .expect("dijkstra_distances_cutoff");
+            let rust_json: serde_json::Value = d
+                .into_iter()
+                .map(|x| match x {
+                    Some(v) => serde_json::json!(v),
+                    None => serde_json::Value::Null,
+                })
+                .collect();
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "dijkstra_distances_cutoff");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn assortativity_degree_weighted_three_source_conformance() {
     // Bespoke fixture-walking runner (needs case.graph.weights).
     // Fixtures use hand-computed reference values for non-unit weights

@@ -12,7 +12,10 @@ pub(crate) mod eulerian_construct;
 pub(crate) mod floyd_warshall;
 pub(crate) mod radii;
 
-pub use dijkstra::dijkstra_distances;
+pub use dijkstra::{
+    DijkstraPaths, dijkstra_distances, dijkstra_distances_cutoff, dijkstra_distances_multi,
+    dijkstra_path_to, dijkstra_paths,
+};
 pub use distances::distances;
 pub use eulerian::{EulerianClassification, is_eulerian};
 pub use eulerian_construct::eulerian_path;

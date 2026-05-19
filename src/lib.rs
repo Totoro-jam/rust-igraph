@@ -64,7 +64,10 @@ pub use crate::algorithms::operators::disjoint_union::{disjoint_union, disjoint_
 pub use crate::algorithms::operators::intersection::intersection;
 pub use crate::algorithms::operators::simplify::simplify;
 pub use crate::algorithms::operators::union::union;
-pub use crate::algorithms::paths::dijkstra::dijkstra_distances;
+pub use crate::algorithms::paths::dijkstra::{
+    DijkstraPaths, dijkstra_distances, dijkstra_distances_cutoff, dijkstra_distances_multi,
+    dijkstra_path_to, dijkstra_paths,
+};
 pub use crate::algorithms::paths::distances::distances;
 pub use crate::algorithms::paths::eulerian::{EulerianClassification, is_eulerian};
 pub use crate::algorithms::paths::eulerian_construct::eulerian_path;

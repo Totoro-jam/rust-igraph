@@ -17,15 +17,15 @@ use rust_igraph::{
     betweenness_weighted, bfs, biconnected_components, bridges, closeness, closeness_weighted,
     complementer, connected_components, coreness, coreness_with_mode, count_reachable,
     count_triangles, decompose, density, dfs, diameter, diameter_with_mode, difference,
-    dijkstra_distances, disjoint_union, disjoint_union_many, distances, eccentricity,
-    eccentricity_with_mode, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
-    floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
-    has_multiple, intersection, is_biconnected, is_loop, is_multiple, is_simple,
-    is_simple_with_mode, knnk, knnk_weighted, mean_distance, modularity, modularity_directed,
-    modularity_weighted, pagerank, pagerank_weighted, radius, radius_with_mode,
-    reachability_matrix, read_edgelist, reciprocity, reciprocity_with_mode, simplify,
-    strongly_connected_components, transitive_closure, transitivity_barrat,
-    transitivity_local_undirected, transitivity_undirected, union,
+    dijkstra_distances, dijkstra_distances_cutoff, dijkstra_path_to, dijkstra_paths,
+    disjoint_union, disjoint_union_many, distances, eccentricity, eccentricity_with_mode,
+    edge_betweenness, edge_betweenness_weighted, eigenvector_centrality, floyd_warshall_distances,
+    girth, harmonic_centrality, harmonic_centrality_weighted, has_loop, has_multiple, intersection,
+    is_biconnected, is_loop, is_multiple, is_simple, is_simple_with_mode, knnk, knnk_weighted,
+    mean_distance, modularity, modularity_directed, modularity_weighted, pagerank,
+    pagerank_weighted, radius, radius_with_mode, reachability_matrix, read_edgelist, reciprocity,
+    reciprocity_with_mode, simplify, strongly_connected_components, transitive_closure,
+    transitivity_barrat, transitivity_local_undirected, transitivity_undirected, union,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -1512,6 +1512,115 @@ fn dijkstra_distances_directed_matches_python_igraph() {
             (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
         }
     }
+}
+
+// ---- ALGO-SP-001b: Dijkstra paths / path_to / cutoff oracle tests --------
+
+/// Wire-format payload for the `dijkstra_paths` oracle handler. Distances
+/// use `Option<f64>`; parents and inbound edges use `Option<i64>` to fit
+/// python-igraph's `None` sentinel for source / unreachable vertices.
+#[derive(serde::Deserialize)]
+struct PyDijkstraPaths {
+    distances: Vec<Option<f64>>,
+    parents: Vec<Option<i64>>,
+    inbound_edges: Vec<Option<i64>>,
+}
+
+fn assert_dist_vec_close(rust: &[Option<f64>], py: &[Option<f64>]) {
+    assert_eq!(rust.len(), py.len(), "distance vector length");
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(rr), Some(pp)) => {
+                assert!((rr - pp).abs() < 1e-9, "vertex {i}: rust={rr} py={pp}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn dijkstra_paths_triangle_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 4.0, 2.0];
+    let rust = dijkstra_paths(&g, 0, &weights).unwrap();
+    let py: PyDijkstraPaths = serde_json::from_value(run_ok_with_weights(
+        "dijkstra_paths",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0}),
+    ))
+    .expect("decode python dijkstra_paths");
+    assert_dist_vec_close(&rust.distances, &py.distances);
+    // Verify parents / inbound edges are consistent with the SPT
+    // tree distances (oracle's reconstruction may pick a different
+    // tie-breaking edge; we accept any parent that satisfies the
+    // relaxation equality `dist[parent] + w(eid) == dist[v]`).
+    for v in 0..g.vcount() as usize {
+        let py_p = py.parents[v].map(|x| u32::try_from(x).unwrap());
+        let py_e = py.inbound_edges[v].map(|x| u32::try_from(x).unwrap());
+        assert_eq!(rust.parents[v].is_none(), py_p.is_none(), "v={v} parent");
+        assert_eq!(
+            rust.inbound_edges[v].is_none(),
+            py_e.is_none(),
+            "v={v} inbound"
+        );
+        if let (Some(rp), Some(re)) = (rust.parents[v], rust.inbound_edges[v]) {
+            // sanity: edge connects rp ↔ v and weighted-relax
+            let (s, t) = g.edge(re).unwrap();
+            assert!((s == rp && t as usize == v) || (t == rp && s as usize == v));
+            let w_e = [1.0_f64, 4.0, 2.0][re as usize];
+            let dp = rust.distances[rp as usize].unwrap();
+            let dv = rust.distances[v].unwrap();
+            assert!((dp + w_e - dv).abs() < 1e-9, "relax v={v}");
+        }
+    }
+}
+
+#[test]
+fn dijkstra_path_to_directed_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    g.add_edge(0, 3).unwrap();
+    let weights = vec![1.0_f64, 1.0, 1.0, 5.0];
+    let rust = dijkstra_path_to(&g, 0, 3, &weights).unwrap().unwrap();
+    #[derive(serde::Deserialize)]
+    struct PyPath {
+        vertices: Vec<u32>,
+        edges: Vec<u32>,
+    }
+    let py: PyPath = serde_json::from_value(run_ok_with_weights(
+        "dijkstra_path_to",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0, "target": 3}),
+    ))
+    .expect("decode python dijkstra_path_to");
+    assert_eq!(rust.0, py.vertices);
+    assert_eq!(rust.1, py.edges);
+}
+
+#[test]
+fn dijkstra_distances_cutoff_matches_python_igraph() {
+    let mut g = Graph::with_vertices(5);
+    for i in 0..4u32 {
+        g.add_edge(i, i + 1).unwrap();
+    }
+    let weights = vec![1.0_f64; 4];
+    let rust = dijkstra_distances_cutoff(&g, 0, &weights, Some(2.5)).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "dijkstra_distances_cutoff",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0, "cutoff": 2.5}),
+    ))
+    .expect("decode python dijkstra_distances_cutoff");
+    assert_dist_vec_close(&rust, &py);
 }
 
 /// Wire-format payload returned by the `complementer` oracle.

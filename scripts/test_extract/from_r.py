@@ -568,6 +568,57 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-001b: paths variant — distances only.
+DIJKSTRA_PATHS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_paths_R_undirected_partial_unreachable",
+        "origin": "constructed (rigraph-style): 4-vertex with two disconnected "
+        "weighted edges; unreachable yields None",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 2.5],
+        "algo": "dijkstra_paths",
+        "params": {"source": 0},
+        "expected": {"distances": [0.0, 1.0, None, None]},
+    },
+]
+
+# ALGO-SP-001b: source-to-target — unreachable target ⇒ null.
+DIJKSTRA_PATH_TO_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_path_to_R_unreachable_target",
+        # rigraph's `shortest_paths` returns an empty path (or NA) for
+        # unreachable targets. We encode this as JSON null.
+        "origin": "constructed (rigraph-style): 4-vertex with two disconnected "
+        "weighted edges; query target=2 from source=0 ⇒ unreachable",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 2.5],
+        "algo": "dijkstra_path_to",
+        "params": {"source": 0, "target": 2},
+        "expected": None,
+    },
+]
+
+# ALGO-SP-001b: cutoff variant.
+DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_cutoff_R_path_unit_weights_cutoff_1_5",
+        # rigraph mirror: undirected path 0-1-2-3 with unit weights and
+        # cutoff 1.5 returns distances [0, 1, None, None].
+        "origin": "constructed (rigraph-style): undirected P4 unit weights, cutoff=1.5",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0, 1.0],
+        "algo": "dijkstra_distances_cutoff",
+        "params": {"source": 0, "cutoff": 1.5},
+        "expected": [0.0, 1.0, None, None],
+    },
+]
+
 MODULARITY_DIR_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_directed_R_chain_4_two_blocks",
@@ -1341,6 +1392,9 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "intersection": INTERSECTION_MANIFEST,
     "difference": DIFFERENCE_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
+    "dijkstra_paths": DIJKSTRA_PATHS_MANIFEST,
+    "dijkstra_path_to": DIJKSTRA_PATH_TO_MANIFEST,
+    "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,

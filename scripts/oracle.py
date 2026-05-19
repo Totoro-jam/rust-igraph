@@ -435,6 +435,108 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             out.append(None if f == float("inf") else f)
         return out
 
+    if algo == "dijkstra_paths":
+        # Counterpart of igraph_get_shortest_paths_dijkstra(_, _, _, source,
+        # vss_all(), &weights, IGRAPH_OUT, parents, inbound_edges).
+        # python-igraph exposes the same via `Graph.get_shortest_paths`,
+        # but for cross-impl portability we instead reconstruct the full
+        # SPT from `g.distances(...)` plus a manual parent lookup that
+        # picks any tie-breaking parent that satisfies the relaxation.
+        source = int(params["source"])
+        mode = "out" if g.is_directed() else "all"
+        # Distances first (used both for the public output AND for the
+        # parent reconstruction).
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            d_rows = g.distances(source=source, weights="weight", mode=mode)
+        else:
+            d_rows = g.distances(source=source, mode=mode)
+        d = [None if float(v) == float("inf") else float(v) for v in d_rows[0]]
+        # Parents / inbound edges: replay an SPT consistent with these
+        # distances. For each non-source reachable vertex v, pick any
+        # incoming edge u→v whose weight closes the gap d[v] - d[u]
+        # (within 1e-9). On the first match we settle and emit. python-
+        # igraph's own get_shortest_paths can also be used, but explicit
+        # reconstruction here keeps the oracle deterministic w.r.t. our
+        # Rust impl's heap-order tie-breaking — in practice both match.
+        n = g.vcount()
+        parents = [None] * n
+        inbound = [None] * n
+        weights = (
+            list(g.es["weight"])
+            if g.ecount() > 0 and "weight" in g.edge_attributes()
+            else [1.0] * g.ecount()
+        )
+        # Sort vertices by distance ascending so that when we look up a
+        # parent for v, that parent's distance is already known.
+        order = sorted(
+            (i for i in range(n) if i != source and d[i] is not None),
+            key=lambda i: d[i],
+        )
+        directed = g.is_directed()
+        # Adjacency by destination → list of (src, eid, weight).
+        in_adj = [[] for _ in range(n)]
+        for e in g.es:
+            s, t = e.tuple
+            in_adj[t].append((s, e.index, weights[e.index]))
+            if not directed:
+                in_adj[s].append((t, e.index, weights[e.index]))
+        for v in order:
+            for u, eid, w in in_adj[v]:
+                if d[u] is None:
+                    continue
+                if abs(d[u] + w - d[v]) < 1e-9:
+                    parents[v] = u
+                    inbound[v] = eid
+                    break
+        return {"distances": d, "parents": parents, "inbound_edges": inbound}
+
+    if algo == "dijkstra_path_to":
+        # Counterpart of igraph_get_shortest_path_dijkstra(_, _, _, source,
+        # target, &weights, IGRAPH_OUT). Returns either None (target
+        # unreachable) or a {vertices, edges} dict.
+        source = int(params["source"])
+        target = int(params["target"])
+        mode = "out" if g.is_directed() else "all"
+        try:
+            if g.ecount() > 0 and "weight" in g.edge_attributes():
+                vs = g.get_shortest_paths(
+                    source, to=target, weights="weight", mode=mode, output="vpath"
+                )[0]
+                es = g.get_shortest_paths(
+                    source, to=target, weights="weight", mode=mode, output="epath"
+                )[0]
+            else:
+                vs = g.get_shortest_paths(source, to=target, mode=mode, output="vpath")[0]
+                es = g.get_shortest_paths(source, to=target, mode=mode, output="epath")[0]
+        except Exception:
+            return None
+        if not vs:
+            return None
+        return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
+
+    if algo == "dijkstra_distances_cutoff":
+        # Counterpart of igraph_distances_dijkstra_cutoff(_, _, single
+        # source, to=igraph_vss_all(), &weights, IGRAPH_OUT, cutoff).
+        # python-igraph's `g.distances` does not accept a cutoff so we
+        # apply it after the fact (mask values > cutoff to None).
+        source = int(params["source"])
+        cutoff = params.get("cutoff", None)
+        mode = "out" if g.is_directed() else "all"
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            rows = g.distances(source=source, weights="weight", mode=mode)
+        else:
+            rows = g.distances(source=source, mode=mode)
+        out = []
+        for v in rows[0]:
+            f = float(v)
+            if f == float("inf"):
+                out.append(None)
+            elif cutoff is not None and f > float(cutoff):
+                out.append(None)
+            else:
+                out.append(f)
+        return out
+
     if algo == "floyd_warshall_distances":
         # Counterpart of igraph_distances_floyd_warshall(_, _, vss_all,
         # vss_all, &weights, IGRAPH_OUT, AUTOMATIC). python-igraph

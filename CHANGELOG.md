@@ -22,6 +22,53 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-001b**: Dijkstra paths / parents / cutoff /
+  multi-source. Adds four public items to
+  `src/algorithms/paths/dijkstra.rs` on top of the existing SP-001
+  `dijkstra_distances`:
+  - `dijkstra_paths(graph, source, weights) -> DijkstraPaths` —
+    counterpart of `igraph_get_shortest_paths_dijkstra`. Returns
+    `{ distances, parents, inbound_edges }` where each vector is
+    `Vec<Option<...>>` of length `vcount`. The source has
+    `parents[source] = None`; unreachable vertices share that sentinel
+    (caller can disambiguate via `distances[v]`).
+  - `dijkstra_path_to(graph, source, target, weights) ->
+    Option<(Vec<VertexId>, Vec<EdgeId>)>` — counterpart of
+    `igraph_get_shortest_path_dijkstra`. Returns `None` for
+    unreachable target; otherwise the vertex chain (including source
+    and target) and the parallel edge id chain.
+  - `dijkstra_distances_cutoff(graph, source, weights, cutoff:
+    Option<f64>) -> Vec<Option<f64>>` — counterpart of
+    `igraph_distances_dijkstra_cutoff`. `cutoff = None` is identical
+    to `dijkstra_distances`; `cutoff = Some(c)` masks every vertex
+    with `dist > c` to `None` (matches upstream's "distances within
+    cutoff only" semantics).
+  - `dijkstra_distances_multi(graph, sources, weights, cutoff) ->
+    Vec<Vec<Option<f64>>>` — multi-source row-per-source variant.
+    Each source is run independently (matches upstream's `fromvit`
+    iteration).
+
+  Implementation factors out a private `dijkstra_inner` that runs the
+  binary-heap loop with multiple seed sources at distance 0, optional
+  cutoff, and optional inbound-edge bookkeeping; `validate_weights`
+  enforces non-negative finite weights (matches SP-001 contract);
+  `INFINITY`-weight edges are skipped during relax. Mode is `OUT`
+  only; `IN`/`ALL` plus all-shortest-paths ship with SP-001c. 15 new
+  unit tests (paths SPT relaxation; parent/inbound consistency;
+  unreachable parent is `None`; path_to vertex+edge chain; path_to to
+  self is singleton; path_to unreachable; cutoff masks above; cutoff
+  None ≡ unbounded; cutoff zero keeps source only; cutoff NaN errors;
+  multi yields per-source distances; multi empty list yields empty;
+  multi propagates cutoff; multi rejects out-of-range source). 2 new
+  doctests (`dijkstra_paths`, `dijkstra_path_to`). 3 new oracle tests
+  vs python-igraph (triangle with shortcut paths; directed chain
+  path_to; cutoff masks above 2.5). 9 three-source conformance
+  fixtures (3 algos × C/py/R; conformance runners walk fixtures
+  directly to access `case.graph.weights`). 3 proptest invariants
+  (paths SPT relaxation `dist[parent] + w(eid) == dist[v]` for every
+  reachable non-source; path_to edge weights sum to dist[target];
+  cutoff is monotone — more permissive cutoff produces a superset of
+  reachable vertices and never disagrees on retained distances).
 - *(paths)* **ALGO-SP-021abc**: mode-aware
   `eccentricity_with_mode(graph, mode) -> Vec<u32>`,
   `radius_with_mode(graph, mode) -> Option<u32>`,

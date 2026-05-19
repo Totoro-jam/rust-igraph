@@ -498,6 +498,60 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-001b: paths variant — only `distances` checked.
+DIJKSTRA_PATHS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_paths_py_directed_chain_shortcut",
+        "origin": "constructed: directed 4-vertex chain with shortcut "
+        "0->3 (5.0) vs 0->1->2->3 (3.0)",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3), (0, 3)],
+            directed=True,
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 5.0],
+        "algo": "dijkstra_paths",
+        "params": {"source": 0},
+        "expected": {"distances": [0.0, 1.0, 2.0, 3.0]},
+    },
+]
+
+# ALGO-SP-001b: source-to-target convenience.
+DIJKSTRA_PATH_TO_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_path_to_py_undirected_triangle_shortcut",
+        # Undirected triangle with weights [1, 4, 2]: best path 0->1->2.
+        "origin": "constructed: triangle (1,4,2) with shortcut via vertex 1",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "dijkstra_path_to",
+        "params": {"source": 0, "target": 2},
+        "expected": {"vertices": [0, 1, 2], "edges": [0, 2]},
+    },
+]
+
+# ALGO-SP-001b: cutoff variant.
+DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_cutoff_py_directed_chain_cutoff_2",
+        # Directed chain with cutoff 2.0: vertex 3 (distance 3) masked
+        # to None; the heavy 0->3 edge alone with weight 5.0 is also
+        # past the cutoff.
+        "origin": "constructed: directed 4-vertex chain with cutoff=2.0",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3), (0, 3)],
+            directed=True,
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 5.0],
+        "algo": "dijkstra_distances_cutoff",
+        "params": {"source": 0, "cutoff": 2.0},
+        "expected": [0.0, 1.0, 2.0, None],
+    },
+]
+
 MODULARITY_DIR_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_directed_py_3_cycle_single_partition",
@@ -1225,6 +1279,9 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "intersection": INTERSECTION_MANIFEST,
     "difference": DIFFERENCE_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
+    "dijkstra_paths": DIJKSTRA_PATHS_MANIFEST,
+    "dijkstra_path_to": DIJKSTRA_PATH_TO_MANIFEST,
+    "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,

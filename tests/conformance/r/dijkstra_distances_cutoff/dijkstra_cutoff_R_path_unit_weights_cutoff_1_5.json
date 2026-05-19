@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): undirected P4 unit weights, cutoff=1.5",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "dijkstra_distances_cutoff",
+  "params": {
+    "source": 0,
+    "cutoff": 1.5
+  },
+  "expected": [
+    0.0,
+    1.0,
+    null,
+    null
+  ]
+}

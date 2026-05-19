@@ -598,6 +598,95 @@ proptest! {
         }
     }
 
+    /// `dijkstra_paths` SPT invariants:
+    /// - distances match `dijkstra_distances`
+    /// - source has no parent / inbound edge
+    /// - every reachable non-source vertex has a parent and an inbound edge
+    /// - the parent / inbound edge satisfy the relaxation equality
+    ///   `dist[parent] + w(eid) == dist[v]`
+    #[test]
+    fn dijkstra_paths_consistent_with_distances(g in arb_graph(8)) {
+        if g.vcount() == 0 { return Ok(()); }
+        let m = g.ecount();
+        let weights: Vec<f64> = (0..m).map(|i| 1.0 + (i as f64) * 0.25).collect();
+        let p = rust_igraph::dijkstra_paths(&g, 0, &weights).unwrap();
+        let d = rust_igraph::dijkstra_distances(&g, 0, &weights).unwrap();
+        prop_assert_eq!(&p.distances, &d);
+        prop_assert_eq!(p.parents[0], None);
+        prop_assert_eq!(p.inbound_edges[0], None);
+        for v in 1..g.vcount() as usize {
+            match (p.distances[v], p.parents[v], p.inbound_edges[v]) {
+                (None, None, None) => {}
+                (Some(dv), Some(parent), Some(eid)) => {
+                    let (s, t) = g.edge(eid).unwrap();
+                    let other = if s == parent { t } else if t == parent { s } else {
+                        prop_assert!(false, "inbound edge {eid} not incident on parent {parent}");
+                        unreachable!()
+                    };
+                    prop_assert_eq!(other as usize, v);
+                    let dp = p.distances[parent as usize].expect("parent reachable");
+                    let w = weights[eid as usize];
+                    prop_assert!((dp + w - dv).abs() < 1e-9,
+                                 "v={} relax dp={} + w={} != dv={}", v, dp, w, dv);
+                }
+                (a, b, c) => prop_assert!(false, "v={} dist/parent/edge mismatch: {:?} {:?} {:?}", v, a, b, c),
+            }
+        }
+    }
+
+    /// `dijkstra_path_to` invariants:
+    /// - vertex path starts at source and ends at target (when reachable)
+    /// - len(edges) == len(vertices) - 1
+    /// - sum of edge weights along the path equals dist[target]
+    /// - target unreachable ⇒ Ok(None)
+    #[test]
+    fn dijkstra_path_to_sums_to_distance(g in arb_graph(8), target in 0u32..8) {
+        if g.vcount() == 0 || target >= g.vcount() { return Ok(()); }
+        let m = g.ecount();
+        let weights: Vec<f64> = (0..m).map(|i| 0.5 + (i as f64) * 0.5).collect();
+        let d = rust_igraph::dijkstra_distances(&g, 0, &weights).unwrap();
+        let p = rust_igraph::dijkstra_path_to(&g, 0, target, &weights).unwrap();
+        match (d[target as usize], p) {
+            (None, None) => {}
+            (Some(dt), Some((vs, es))) => {
+                prop_assert_eq!(*vs.first().unwrap(), 0u32);
+                prop_assert_eq!(*vs.last().unwrap(), target);
+                prop_assert_eq!(es.len() + 1, vs.len());
+                let mut total = 0.0;
+                for &eid in &es { total += weights[eid as usize]; }
+                prop_assert!((total - dt).abs() < 1e-9, "path sum {} != dist {}", total, dt);
+            }
+            (a, b) => prop_assert!(false, "dist/path mismatch: {:?} / {:?}", a, b),
+        }
+    }
+
+    /// `dijkstra_distances_cutoff` invariants:
+    /// - cutoff = None ≡ unbounded dijkstra_distances
+    /// - cutoff = c masks every vertex with dist > c to None
+    /// - cutoff is monotone: more permissive cutoff produces a superset of
+    ///   reachable vertices
+    #[test]
+    fn dijkstra_distances_cutoff_masks_above_cutoff(g in arb_graph(8), cutoff_idx in 0u32..6) {
+        if g.vcount() == 0 { return Ok(()); }
+        let m = g.ecount();
+        let weights: Vec<f64> = vec![1.0; m];
+        let d_unbounded = rust_igraph::dijkstra_distances_cutoff(&g, 0, &weights, None).unwrap();
+        prop_assert_eq!(&d_unbounded, &rust_igraph::dijkstra_distances(&g, 0, &weights).unwrap());
+        let c = cutoff_idx as f64;
+        let d_cut = rust_igraph::dijkstra_distances_cutoff(&g, 0, &weights, Some(c)).unwrap();
+        for (v, (du, dc)) in d_unbounded.iter().zip(d_cut.iter()).enumerate() {
+            match (du, dc) {
+                (None, None) => {}
+                (Some(_), None) => prop_assert!(du.unwrap() > c, "v={} masked but dist {}≤cut", v, du.unwrap()),
+                (Some(uu), Some(cc)) => {
+                    prop_assert!((uu - cc).abs() < 1e-9 && *uu <= c + 1e-9,
+                                 "v={} cutoff disagreement: u={} c={}", v, uu, cc);
+                }
+                (None, Some(_)) => prop_assert!(false, "v={} cutoff revealed unreachable vertex", v),
+            }
+        }
+    }
+
     /// `disjoint_union` invariants:
     /// - vcount(left) + vcount(right) == vcount(result)
     /// - ecount(left) + ecount(right) == ecount(result)
