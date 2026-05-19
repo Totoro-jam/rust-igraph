@@ -197,6 +197,46 @@ BC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BC_EDGES_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "biconnected_component_edges_c_two_blocks_plus_pendant",
+        # Same upstream fixture used by BC_MANIFEST: 10v graph with 4
+        # biconnected components. CC-012 adds the per-component edge
+        # set; here we hand-encode the expected partition of edge
+        # endpoint pairs (canonicalised as sorted (min, max)).
+        "origin": "igraph_biconnected_components.c — component_edges output (CC-012)",
+        "graph_factory": lambda: ig.Graph(
+            n=10,
+            edges=[
+                (0, 1),
+                (1, 2),
+                (2, 3),
+                (3, 0),
+                (2, 4),
+                (4, 5),
+                (5, 2),
+                (5, 6),
+                (7, 8),
+            ],
+            directed=False,
+        ),
+        "algo": "biconnected_component_edges",
+        "params": {},
+        # Per-component edge-pair partition (sorted within each component,
+        # outer list sorted lexicographically). Pairs are (min(u,v), max(u,v)).
+        # Components: {0,1,2,3} cycle (4 edges), {2,4,5} triangle (3),
+        # {5,6} bridge (1), {7,8} bridge (1).
+        "expected": sorted(
+            [
+                sorted([[0, 1], [1, 2], [2, 3], [0, 3]]),
+                sorted([[2, 4], [4, 5], [2, 5]]),
+                [[5, 6]],
+                [[7, 8]],
+            ]
+        ),
+    },
+]
+
 PAGERANK_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "pagerank_c_directed_4cycle",
@@ -1204,6 +1244,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_betweenness": EDGE_BETW_MANIFEST,
     "pagerank": PAGERANK_MANIFEST,
     "biconnected_components": BC_MANIFEST,
+    "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,

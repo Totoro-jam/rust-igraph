@@ -13,11 +13,11 @@
 //! - `tree_edges[i]` — edge ids that form a spanning tree of the i-th
 //!   component (i.e. the DFS-tree edges of that component, popped off
 //!   the edge stack).
+//! - `component_edges[i]` — *all* edge ids inside the i-th component
+//!   (not just the spanning tree). Counterpart of upstream's
+//!   `component_edges` argument; see ALGO-CC-012.
 //! - `articulation_points` — vertices whose removal would disconnect
 //!   the graph (deduplicated, in DFS-discovery order).
-//!
-//! Upstream's separate `component_edges` output (O(|V|²·d)) is deferred
-//! to a future AWU.
 //!
 //! igraph's convention: isolated vertices are *not* part of any
 //! biconnected component (see upstream doc at
@@ -37,6 +37,10 @@ pub struct BiconnectedComponents {
     /// `tree_edges[i]` lists the edge ids that form a spanning tree of
     /// the i-th component. Same length as `components`.
     pub tree_edges: Vec<Vec<EdgeId>>,
+    /// `component_edges[i]` lists *every* edge id whose endpoints both
+    /// lie in the i-th component. Same length as `components`.
+    /// Counterpart of upstream's `component_edges` output (CC-012).
+    pub component_edges: Vec<Vec<EdgeId>>,
     /// Articulation points of the graph (in DFS-discovery order).
     pub articulation_points: Vec<VertexId>,
 }
@@ -64,6 +68,9 @@ pub struct BiconnectedComponents {
 /// let mut aps = bc.articulation_points.clone();
 /// aps.sort_unstable();
 /// assert_eq!(aps, vec![2, 3]);
+/// // component_edges partitions every edge across all components.
+/// let total: usize = bc.component_edges.iter().map(Vec::len).sum();
+/// assert_eq!(total, g.ecount() as usize);
 /// ```
 #[allow(clippy::too_many_lines)] // Direct port of upstream's tightly-coupled DFS state.
 pub fn biconnected_components(graph: &Graph) -> IgraphResult<BiconnectedComponents> {
@@ -72,6 +79,7 @@ pub fn biconnected_components(graph: &Graph) -> IgraphResult<BiconnectedComponen
         count: 0,
         components: Vec::new(),
         tree_edges: Vec::new(),
+        component_edges: Vec::new(),
         articulation_points: Vec::new(),
     };
     if n == 0 {
@@ -179,8 +187,24 @@ pub fn biconnected_components(graph: &Graph) -> IgraphResult<BiconnectedComponen
                                 break;
                             }
                         }
+                        // After comp_vertices is built, re-scan each
+                        // vertex's incidence to gather every edge whose
+                        // other endpoint is also in this component. The
+                        // `nei < vert` guard prevents picking each edge
+                        // twice — direct port of upstream's
+                        // `component_edges` block at components.c:1216.
+                        let mut comp_edges: Vec<EdgeId> = Vec::new();
+                        for &vert in &comp_vertices {
+                            for &e in &inc[vert as usize] {
+                                let nei = graph.edge_other(e, vert)?;
+                                if vertex_added[nei as usize] == comps_so_far && nei < vert {
+                                    comp_edges.push(e);
+                                }
+                            }
+                        }
                         out.components.push(comp_vertices);
                         out.tree_edges.push(comp_tree_edges);
+                        out.component_edges.push(comp_edges);
                     }
                 }
             }
@@ -211,6 +235,7 @@ mod tests {
         assert_eq!(bc.count, 0);
         assert!(bc.components.is_empty());
         assert!(bc.tree_edges.is_empty());
+        assert!(bc.component_edges.is_empty());
         assert!(bc.articulation_points.is_empty());
     }
 
@@ -220,6 +245,7 @@ mod tests {
         let bc = biconnected_components(&g).unwrap();
         assert_eq!(bc.count, 0);
         assert!(bc.components.is_empty());
+        assert!(bc.component_edges.is_empty());
     }
 
     #[test]
@@ -230,6 +256,7 @@ mod tests {
         assert_eq!(bc.count, 1);
         assert_eq!(sorted(&bc.components[0]), vec![0, 1]);
         assert_eq!(bc.tree_edges[0], vec![0]);
+        assert_eq!(bc.component_edges[0], vec![0]);
         assert!(bc.articulation_points.is_empty());
     }
 
@@ -242,7 +269,83 @@ mod tests {
         let bc = biconnected_components(&g).unwrap();
         assert_eq!(bc.count, 1);
         assert_eq!(sorted(&bc.components[0]), vec![0, 1, 2]);
+        // All 3 cycle edges must appear in component_edges (not just tree).
+        assert_eq!(sorted(&bc.component_edges[0]), vec![0, 1, 2]);
+        // Spanning tree of a 3-cycle has only 2 edges.
+        assert_eq!(bc.tree_edges[0].len(), 2);
         assert!(bc.articulation_points.is_empty());
+    }
+
+    #[test]
+    fn k4_complete_component_edges_has_all_six_edges() {
+        let mut g = Graph::with_vertices(4);
+        for u in 0..4u32 {
+            for v in (u + 1)..4 {
+                g.add_edge(u, v).unwrap();
+            }
+        }
+        let bc = biconnected_components(&g).unwrap();
+        assert_eq!(bc.count, 1);
+        // K4: all 6 edges, but spanning tree only has 3.
+        assert_eq!(bc.component_edges[0].len(), 6);
+        assert_eq!(bc.tree_edges[0].len(), 3);
+        let mut all = bc.component_edges[0].clone();
+        all.sort_unstable();
+        assert_eq!(all, vec![0, 1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn pendant_component_edges_match_tree() {
+        // Bridge edge alone: tree_edges == component_edges (single edge).
+        // 0-1-2-0 cycle + 2-3 bridge. The 2-3 component has 1 edge total.
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap(); // edge 0
+        g.add_edge(1, 2).unwrap(); // edge 1
+        g.add_edge(2, 0).unwrap(); // edge 2
+        g.add_edge(2, 3).unwrap(); // edge 3
+        let bc = biconnected_components(&g).unwrap();
+        assert_eq!(bc.count, 2);
+        // Find the bridge component (size 2 vertices, 1 edge).
+        let bridge_idx = bc
+            .components
+            .iter()
+            .position(|c| c.len() == 2)
+            .expect("bridge component");
+        assert_eq!(bc.tree_edges[bridge_idx], bc.component_edges[bridge_idx]);
+        // Cycle component has 3 edges in component_edges, 2 in tree_edges.
+        let cycle_idx = 1 - bridge_idx;
+        assert_eq!(bc.component_edges[cycle_idx].len(), 3);
+        assert_eq!(bc.tree_edges[cycle_idx].len(), 2);
+    }
+
+    #[test]
+    fn component_edges_partition_non_bridge_edges() {
+        // Every non-bridge edge belongs to exactly one biconnected
+        // component; bridge edges are themselves single-edge components.
+        // Combined, component_edges across all components partition E.
+        let mut g = Graph::with_vertices(7);
+        for &(u, v) in &[
+            (0u32, 1),
+            (1, 2),
+            (2, 0),
+            (2, 3),
+            (3, 4),
+            (4, 5),
+            (5, 3),
+            (0, 6),
+        ] {
+            g.add_edge(u, v).unwrap();
+        }
+        let bc = biconnected_components(&g).unwrap();
+        let total: usize = bc.component_edges.iter().map(Vec::len).sum();
+        // 8 edges, all should be partitioned (no edge in two components).
+        assert_eq!(total, g.ecount());
+        // No duplicate edge ids across components.
+        let mut all: Vec<_> = bc.component_edges.iter().flatten().copied().collect();
+        all.sort_unstable();
+        let mut deduped = all.clone();
+        deduped.dedup();
+        assert_eq!(all, deduped);
     }
 
     #[test]

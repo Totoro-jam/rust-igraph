@@ -492,6 +492,33 @@ fn biconnected_components_three_source_conformance() {
 }
 
 #[test]
+fn biconnected_component_edges_three_source_conformance() {
+    run_conformance("biconnected_component_edges", |g, _params| {
+        let bc = rust_igraph::biconnected_components(g).expect("biconnected_components");
+        // Canonicalise to sorted per-component endpoint pairs (min, max),
+        // outer list lexicographically sorted. Matches the manifest's
+        // expected-payload encoding.
+        let mut canon: Vec<Vec<[u32; 2]>> = bc
+            .component_edges
+            .iter()
+            .map(|edges| {
+                let mut pairs: Vec<[u32; 2]> = edges
+                    .iter()
+                    .map(|&e| {
+                        let (u, v) = g.edge(e).expect("edge endpoints");
+                        if u <= v { [u, v] } else { [v, u] }
+                    })
+                    .collect();
+                pairs.sort_unstable();
+                pairs
+            })
+            .collect();
+        canon.sort();
+        serde_json::json!(canon)
+    });
+}
+
+#[test]
 fn pagerank_three_source_conformance() {
     run_conformance("pagerank", |g, _params| {
         let pr = rust_igraph::pagerank(g).expect("pagerank");

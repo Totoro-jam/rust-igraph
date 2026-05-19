@@ -203,6 +203,31 @@ EIGEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BC_EDGES_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "biconnected_component_edges_R_K4",
+        # K4: a single biconnected component containing all 6 edges.
+        "origin": "constructed (R-style): K4 complete; CC-012 partition trivial",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "biconnected_component_edges",
+        "params": {},
+        "expected": sorted(
+            [
+                sorted(
+                    [
+                        [0, 1],
+                        [0, 2],
+                        [0, 3],
+                        [1, 2],
+                        [1, 3],
+                        [2, 3],
+                    ]
+                ),
+            ]
+        ),
+    },
+]
+
 BC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "biconnected_components_R_triangle",
@@ -1123,6 +1148,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_betweenness": EDGE_BETW_MANIFEST,
     "pagerank": PAGERANK_MANIFEST,
     "biconnected_components": BC_MANIFEST,
+    "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,

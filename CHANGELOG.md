@@ -22,6 +22,28 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(connectivity)* **ALGO-CC-012**: `BiconnectedComponents.component_edges`
+  — explicit per-component edge-id list (companion of CC-011's
+  `tree_edges`). Counterpart of upstream's `component_edges` output
+  argument at `components.c:1216` of `igraph_biconnected_components()`.
+  Implementation: after the spanning-tree edges of a biconnected
+  component are popped off the DFS edge stack, re-scan each component
+  vertex's incidence list and pick edges whose other endpoint is also
+  in the component (using the `nei < vert` guard for canonicalisation,
+  matching upstream). Self-loops are skipped by that guard (also
+  matches upstream). Loop edges of the same biconnected component are
+  partitioned across the new field.
+  Full 9-step SOP: 3 new unit tests (k4_complete_component_edges_has_all_six_edges,
+  pendant_component_edges_match_tree, component_edges_partition_non_bridge_edges)
+  on top of CC-011's 9, doctest extended to assert partitioning,
+  oracle test extended to compare canonicalised endpoint pairs against
+  python-igraph (computed from `g.es` filtered by component membership),
+  3 three-source conformance fixtures (C 10v upstream + py triangle
+  +pendant + R K4) under new `biconnected_component_edges` algo, and
+  1 proptest invariant: per-component edge sets partition all non-loop
+  edges, tree_edges ⊆ component_edges, and all endpoints stay within
+  the component's vertex set.
+
 - *(community)* **ALGO-CO-001b**: `modularity_directed` — directed
   Newman-Girvan modularity (Leicht-Newman 2008). Counterpart of
   `igraph_modularity(_, _, NULL_weights, resolution, /*directed=*/true, _)`.

@@ -1,0 +1,51 @@
+{
+  "source": "py",
+  "origin": "constructed: triangle 0-1-2 + pendant 0-3 \u2014 CC-012 partition",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "biconnected_component_edges",
+  "params": {},
+  "expected": [
+    [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    [
+      [
+        0,
+        3
+      ]
+    ]
+  ]
+}

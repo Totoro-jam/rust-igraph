@@ -1,0 +1,95 @@
+{
+  "source": "c",
+  "origin": "igraph_biconnected_components.c \u2014 component_edges output (CC-012)",
+  "graph": {
+    "n": 10,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        7,
+        8
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "biconnected_component_edges",
+  "params": {},
+  "expected": [
+    [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    [
+      [
+        2,
+        4
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    [
+      [
+        5,
+        6
+      ]
+    ],
+    [
+      [
+        7,
+        8
+      ]
+    ]
+  ]
+}

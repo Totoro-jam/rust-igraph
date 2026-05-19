@@ -679,6 +679,7 @@ struct PyBiconnectedComponents {
     count: u32,
     components: Vec<Vec<u32>>,
     articulation_points: Vec<u32>,
+    component_edge_pairs: Vec<Vec<[u32; 2]>>,
 }
 
 #[test]
@@ -731,6 +732,33 @@ fn biconnected_components_karate_matches_python_igraph() {
     }
     py_set.sort();
     assert_eq!(rust_set, py_set);
+
+    // CC-012: compare per-component edge sets via canonical (min, max)
+    // endpoint pairs. The components themselves may be ordered differently
+    // between rust/py, so canonicalise both sides as sorted nested lists.
+    let mut rust_edge_pairs: Vec<Vec<[u32; 2]>> = rust_bc
+        .components
+        .iter()
+        .zip(rust_bc.component_edges.iter())
+        .map(|(_, edges)| {
+            let mut pairs: Vec<[u32; 2]> = edges
+                .iter()
+                .map(|&e| {
+                    let (u, v) = g.edge(e).unwrap();
+                    if u <= v { [u, v] } else { [v, u] }
+                })
+                .collect();
+            pairs.sort();
+            pairs
+        })
+        .collect();
+    rust_edge_pairs.sort();
+    let mut py_edge_pairs: Vec<Vec<[u32; 2]>> = py.component_edge_pairs.clone();
+    for p in &mut py_edge_pairs {
+        p.sort();
+    }
+    py_edge_pairs.sort();
+    assert_eq!(rust_edge_pairs, py_edge_pairs);
 }
 
 #[test]

@@ -135,6 +135,26 @@ EIGEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+BC_EDGES_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "biconnected_component_edges_py_triangle_plus_pendant",
+        # Triangle 0-1-2 + pendant 0-3: two components.
+        # Triangle component edges: {0-1, 1-2, 0-2}; pendant: {0-3}.
+        "origin": "constructed: triangle 0-1-2 + pendant 0-3 — CC-012 partition",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 0), (0, 3)], directed=False
+        ),
+        "algo": "biconnected_component_edges",
+        "params": {},
+        "expected": sorted(
+            [
+                sorted([[0, 1], [1, 2], [0, 2]]),
+                [[0, 3]],
+            ]
+        ),
+    },
+]
+
 BC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "biconnected_components_star_4",
@@ -993,6 +1013,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_betweenness": EDGE_BETW_MANIFEST,
     "pagerank": PAGERANK_MANIFEST,
     "biconnected_components": BC_MANIFEST,
+    "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,

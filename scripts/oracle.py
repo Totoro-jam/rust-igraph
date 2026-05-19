@@ -138,13 +138,30 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         # Counterpart of igraph_biconnected_components(). python-igraph
         # returns a tuple `(VertexCover, articulation_points)`. The
         # VertexCover supports iteration over vertex-id lists per
-        # component. Wire format: {count, components, articulation_points}.
+        # component. Wire format: {count, components, articulation_points,
+        # component_edge_pairs}. `component_edge_pairs[i]` lists the
+        # endpoint pairs (sorted, deduplicated by canonical (min, max))
+        # of every edge inside the i-th component — matches CC-012's
+        # `BiconnectedComponents.component_edges`.
         cover, aps = g.biconnected_components(return_articulation_points=True)
         comps = [sorted(int(v) for v in cover[i]) for i in range(len(cover))]
+        # Build a canonical edge-pair multiset per component.
+        edge_pairs = []
+        for i in range(len(cover)):
+            verts = set(int(v) for v in cover[i])
+            pairs = []
+            for e in g.es:
+                u, v = int(e.source), int(e.target)
+                if u in verts and v in verts:
+                    a, b = (u, v) if u <= v else (v, u)
+                    pairs.append([a, b])
+            pairs.sort()
+            edge_pairs.append(pairs)
         return {
             "count": len(comps),
             "components": comps,
             "articulation_points": sorted(int(v) for v in aps),
+            "component_edge_pairs": edge_pairs,
         }
 
     if algo == "pagerank":

@@ -283,6 +283,53 @@ proptest! {
         prop_assert_eq!(bc_aps, std_aps);
     }
 
+    /// CC-012 component_edges invariants:
+    /// - same length as `components` (one edge-set per component)
+    /// - tree_edges[i] is a subset of component_edges[i]
+    /// - all edge ids across component_edges are unique (partition)
+    /// - each component edge has both endpoints in that component
+    /// - non-loop edges are partitioned: total = ecount minus loops
+    ///   (loops are skipped by the `nei < vert` guard, matching upstream)
+    #[test]
+    fn biconnected_component_edges_partition_invariants(g in arb_graph(8)) {
+        let bc = rust_igraph::biconnected_components(&g).unwrap();
+        prop_assert_eq!(bc.component_edges.len(), bc.components.len());
+
+        // Track every edge id seen across components → must be unique.
+        let mut seen: std::collections::HashSet<u32> = std::collections::HashSet::new();
+        let mut total_partitioned: usize = 0;
+        for (i, edges) in bc.component_edges.iter().enumerate() {
+            let comp_set: std::collections::HashSet<u32> =
+                bc.components[i].iter().copied().collect();
+            // Every edge endpoint pair lies inside this component.
+            for &e in edges {
+                let (u, v) = g.edge(e).unwrap();
+                prop_assert!(comp_set.contains(&u) && comp_set.contains(&v),
+                             "component {} edge {} = ({},{}) not in vertex set {:?}",
+                             i, e, u, v, comp_set);
+                prop_assert!(seen.insert(e),
+                             "edge {} appeared in two component_edges entries", e);
+                total_partitioned += 1;
+            }
+            // Tree edges are a subset of component edges.
+            let edge_set: std::collections::HashSet<u32> = edges.iter().copied().collect();
+            for &t in &bc.tree_edges[i] {
+                prop_assert!(edge_set.contains(&t),
+                             "tree edge {} not in component_edges of comp {}", t, i);
+            }
+        }
+
+        // Loop edges are dropped by the `nei < vert` guard (matches upstream).
+        let mut non_loop_count: usize = 0;
+        for e in 0..g.ecount() {
+            let (u, v) = g.edge(e as u32).unwrap();
+            if u != v {
+                non_loop_count += 1;
+            }
+        }
+        prop_assert_eq!(total_partitioned, non_loop_count);
+    }
+
     /// Modularity invariants:
     /// - finite (or `None` for empty graphs)
     /// - bounded in `[-1, 1]` for `resolution=1.0`

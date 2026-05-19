@@ -98,7 +98,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-CC-014 | Bridges (`bridges`) | components.c:1400-1504 | ~200 | adapt | TR-002 | done | (next) | 3.8 µs/karate | C:2 / py:1 / R:1 |
 | ALGO-CC-013 | `is_biconnected` (delegate to CC-001 + CC-010) | components.c:1254-1379 | ~80 | copy | CC-001, CC-010 | done | (next) | (delegate; ≈7.3 µs/karate) | C:2 / py:1 / R:1 |
 | ALGO-CC-011 | Biconnected components multi-output (`biconnected_components`) | components.c:1032-1227 | ~250 | adapt | CC-010 | done | (next) | O(V+E) DFS | C:1 / py:1 / R:1 |
-| ALGO-CC-012 | Biconnected components: explicit `component_edges` output | components.c:1176-1195 | ~80 | adapt | CC-011 | todo | - | - | - |
+| ALGO-CC-012 | Biconnected components: explicit `component_edges` output | components.c:1176-1195 | ~80 | adapt | CC-011 | done | (next) | (CC-011 + O(Σ_v deg(v) per comp)) | C:1 / py:1 / R:1 |
 | ALGO-CC-020 | Reachability counts (`count_reachable`) | reachability.c:179 | ~80 | adapt | SP-006 | done | (next) | (BFS-from-each, ≈ vcount * SP-006) | C:1 / py:1 / R:1 |
 | ALGO-CC-021 | Reachability matrix (`reachability_matrix`) | reachability.c:72-148 | ~80 | adapt | SP-006 | done | (next) | O(V*(V+E)) BFS-from-each | C:1 / py:1 / R:1 |
 | ALGO-CC-022 | Transitive closure (`transitive_closure`) | reachability.c:225-257 | ~80 | adapt | CC-021 | done | (next) | (CC-021 + closure ctor) | C:1 / py:1 / R:1 |
@@ -163,10 +163,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 55 | 0 | ~31 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3 |
+| 1 | 56 | 0 | ~30 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 55/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 56/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -194,7 +194,8 @@ directed-as-undirected mode (PR-013b),
 disjoint_union_many (OP-002b),
 directed coreness IN/OUT (PR-015b),
 directed assortativity (PR-006c),
-directed modularity (CO-001b).
+directed modularity (CO-001b),
+biconnected component_edges output (CC-012).
 Next options:
 SP-001b (Dijkstra paths+parents), CORE-001c (deletion),
 hub/auth scores, more operators (union/intersection/
