@@ -15,9 +15,9 @@ use rust_igraph::{
     assortativity_degree_directed, assortativity_degree_weighted, avg_nearest_neighbor_degree,
     avg_nearest_neighbor_degree_weighted, betweenness, betweenness_weighted, bfs,
     biconnected_components, bridges, closeness, closeness_weighted, complementer,
-    connected_components, coreness, coreness_with_mode, count_reachable, count_triangles, density,
-    dfs, diameter, dijkstra_distances, disjoint_union, disjoint_union_many, distances,
-    eccentricity, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
+    connected_components, coreness, coreness_with_mode, count_reachable, count_triangles,
+    decompose, density, dfs, diameter, dijkstra_distances, disjoint_union, disjoint_union_many,
+    distances, eccentricity, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
     floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
     has_multiple, is_biconnected, is_loop, is_multiple, is_simple, is_simple_with_mode, knnk,
     knnk_weighted, mean_distance, modularity, modularity_directed, modularity_weighted, pagerank,
@@ -127,6 +127,85 @@ fn connected_components_two_components() {
     assert_eq!(rust_cc.membership, py_cc.membership);
     assert_eq!(rust_cc.count, py_cc.count);
     assert_eq!(rust_cc.count, 2);
+}
+
+#[derive(serde::Deserialize, Debug)]
+struct PyDecomposeComponent {
+    vcount: u32,
+    directed: bool,
+    edges: Vec<[u32; 2]>,
+}
+
+fn canonicalize_component(g: &Graph) -> PyDecomposeComponent {
+    let mut edges: Vec<[u32; 2]> = (0..g.ecount())
+        .map(|e| {
+            let s = g.edge_source(e as u32).expect("edge source");
+            let t = g.edge_target(e as u32).expect("edge target");
+            if g.is_directed() {
+                [s, t]
+            } else if s <= t {
+                [s, t]
+            } else {
+                [t, s]
+            }
+        })
+        .collect();
+    edges.sort();
+    PyDecomposeComponent {
+        vcount: g.vcount(),
+        directed: g.is_directed(),
+        edges,
+    }
+}
+
+#[test]
+fn decompose_two_components_matches_python_igraph() {
+    // Two components: {0,1,2} (triangle), {3,4} (edge).
+    let mut g = Graph::with_vertices(5);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 0).unwrap();
+    g.add_edge(3, 4).unwrap();
+    let rust_parts: Vec<PyDecomposeComponent> = decompose(&g)
+        .expect("rust decompose")
+        .iter()
+        .map(canonicalize_component)
+        .collect();
+    let py_parts: Vec<PyDecomposeComponent> =
+        serde_json::from_value(run_ok("decompose", &g, serde_json::json!({})))
+            .expect("decode python decompose");
+    assert_eq!(rust_parts.len(), py_parts.len());
+    for (i, (r, p)) in rust_parts.iter().zip(py_parts.iter()).enumerate() {
+        assert_eq!(r.vcount, p.vcount, "component {i} vcount");
+        assert_eq!(r.directed, p.directed, "component {i} directed");
+        assert_eq!(r.edges, p.edges, "component {i} edges");
+    }
+}
+
+#[test]
+fn decompose_karate_single_component_size_matches() {
+    // Karate is one weak component, so both impls must return exactly
+    // one subgraph with `vcount == g.vcount` and `ecount == g.ecount`.
+    // We do NOT assert exact edge equality: BFS-discovery vertex
+    // remapping order can differ between python-igraph and our impl
+    // because `igraph_neighbors` ordering in C does not necessarily
+    // match our sorted-merge-of-out/in order. The structural
+    // cross-check lives in `decompose_two_components_matches_python_igraph`.
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let rust_parts: Vec<PyDecomposeComponent> = decompose(&g)
+        .expect("rust decompose")
+        .iter()
+        .map(canonicalize_component)
+        .collect();
+    let py_parts: Vec<PyDecomposeComponent> =
+        serde_json::from_value(run_ok("decompose", &g, serde_json::json!({})))
+            .expect("decode python decompose");
+    assert_eq!(rust_parts.len(), 1);
+    assert_eq!(py_parts.len(), 1);
+    assert_eq!(rust_parts[0].vcount, py_parts[0].vcount);
+    assert_eq!(rust_parts[0].edges.len(), py_parts[0].edges.len());
 }
 
 #[test]

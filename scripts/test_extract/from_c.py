@@ -187,6 +187,34 @@ KNNK_W_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DECOMPOSE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "decompose_c_two_components",
+        # Triangle {0,1,2} ∪ edge {3,4}. BFS-from-actstart visits 0..2
+        # then 3..4, all in identity order, so the remapped subgraphs
+        # have edges identical to the originals (modulo the 3-4 → 0-1
+        # remap in the second component).
+        "origin": "constructed: triangle + edge, hand-checked decompose result",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 0), (3, 4)], directed=False
+        ),
+        "algo": "decompose",
+        "params": {},
+        "expected": [
+            {
+                "vcount": 3,
+                "directed": False,
+                "edges": [[0, 1], [0, 2], [1, 2]],
+            },
+            {
+                "vcount": 2,
+                "directed": False,
+                "edges": [[0, 1]],
+            },
+        ],
+    },
+]
+
 TRANS_BARRAT_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_barrat_c_triangle_unequal",
@@ -1327,6 +1355,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "knnk_weighted": KNNK_W_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,
     "transitivity_barrat": TRANS_BARRAT_MANIFEST,
+    "decompose": DECOMPOSE_MANIFEST,
 }
 
 

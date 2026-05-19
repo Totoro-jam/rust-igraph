@@ -1395,6 +1395,31 @@ proptest! {
         }
     }
 
+    /// `decompose(g)` invariants on arbitrary undirected graphs:
+    /// - The number of components matches `connected_components(g).count`.
+    /// - Total `vcount` across subgraphs equals `g.vcount`.
+    /// - Total `ecount` across subgraphs equals `g.ecount`.
+    /// - Each component subgraph is itself fully connected
+    ///   (single-component) when re-checked.
+    #[test]
+    fn decompose_partition_invariants(g in arb_graph(12)) {
+        let parts = rust_igraph::decompose(&g).unwrap();
+        let cc = rust_igraph::connected_components(&g).unwrap();
+        prop_assert_eq!(parts.len() as u32, cc.count);
+
+        let total_v: u32 = parts.iter().map(|p| p.vcount()).sum();
+        prop_assert_eq!(total_v, g.vcount());
+
+        let total_e: usize = parts.iter().map(|p| p.ecount()).sum();
+        prop_assert_eq!(total_e, g.ecount());
+
+        for (i, p) in parts.iter().enumerate() {
+            let sub_cc = rust_igraph::connected_components(p).unwrap();
+            prop_assert_eq!(sub_cc.count, 1, "component {} not single-cc: count={}",
+                i, sub_cc.count);
+        }
+    }
+
     /// On a simple graph with unit weights, Barrat's weighted local
     /// transitivity must equal the unweighted local transitivity. This
     /// pins the formula's symmetry property and the strength

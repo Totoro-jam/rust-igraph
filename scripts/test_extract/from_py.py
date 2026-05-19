@@ -153,6 +153,40 @@ KNNK_W_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DECOMPOSE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "decompose_py_three_components",
+        # Three components: K3 on {0,1,2}, P3 on {3,4,5}, isolated {6}.
+        # BFS-from-actstart on each component visits in identity order
+        # (sorted neighbours). Remapped to per-component local 0..k-1.
+        "origin": "constructed: K3 ∪ P3 ∪ isolated; hand-checked decompose",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5)],
+            directed=False,
+        ),
+        "algo": "decompose",
+        "params": {},
+        "expected": [
+            {
+                "vcount": 3,
+                "directed": False,
+                "edges": [[0, 1], [0, 2], [1, 2]],
+            },
+            {
+                "vcount": 3,
+                "directed": False,
+                "edges": [[0, 1], [1, 2]],
+            },
+            {
+                "vcount": 1,
+                "directed": False,
+                "edges": [],
+            },
+        ],
+    },
+]
+
 TRANS_BARRAT_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_barrat_py_diamond_unit",
@@ -1092,6 +1126,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "knnk_weighted": KNNK_W_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,
     "transitivity_barrat": TRANS_BARRAT_MANIFEST,
+    "decompose": DECOMPOSE_MANIFEST,
 }
 
 

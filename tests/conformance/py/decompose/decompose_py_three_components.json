@@ -1,0 +1,72 @@
+{
+  "source": "py",
+  "origin": "constructed: K3 \u222a P3 \u222a isolated; hand-checked decompose",
+  "graph": {
+    "n": 7,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "decompose",
+  "params": {},
+  "expected": [
+    {
+      "vcount": 3,
+      "directed": false,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "vcount": 3,
+      "directed": false,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "vcount": 1,
+      "directed": false,
+      "edges": []
+    }
+  ]
+}

@@ -565,6 +565,32 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "decompose":
+        # Counterpart of igraph_decompose(_, _, IGRAPH_WEAK, -1, 1).
+        # python-igraph returns a list of Graph objects whose vertex
+        # IDs are renumbered to 0..k. We canonicalise each component
+        # to a {vcount, edges} dict with edge endpoints sorted as
+        # (u, v) for undirected graphs (u <= v), so list-of-edges
+        # comparison is order-stable. Component order matches
+        # python-igraph's decompose() (BFS-from-actstart, same as
+        # upstream's C kernel).
+        comps = g.decompose(mode="weak")
+        result = []
+        for sub in comps:
+            edges = []
+            for e in sub.es:
+                u, v = int(e.source), int(e.target)
+                if not sub.is_directed():
+                    u, v = (u, v) if u <= v else (v, u)
+                edges.append([u, v])
+            edges.sort()
+            result.append({
+                "vcount": int(sub.vcount()),
+                "directed": bool(sub.is_directed()),
+                "edges": edges,
+            })
+        return result
+
     if algo == "transitivity_barrat":
         # Counterpart of igraph_transitivity_barrat(_, _, igraph_vss_all(),
         # weights, IGRAPH_TRANSITIVITY_NAN). python-igraph dispatches to

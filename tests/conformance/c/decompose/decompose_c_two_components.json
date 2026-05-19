@@ -1,0 +1,59 @@
+{
+  "source": "c",
+  "origin": "constructed: triangle + edge, hand-checked decompose result",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "decompose",
+  "params": {},
+  "expected": [
+    {
+      "vcount": 3,
+      "directed": false,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "vcount": 2,
+      "directed": false,
+      "edges": [
+        [
+          0,
+          1
+        ]
+      ]
+    }
+  ]
+}

@@ -22,6 +22,27 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(connectivity)* **ALGO-CC-003**: weak graph decomposition
+  (`decompose(graph) -> Vec<Graph>`), counterpart of
+  `igraph_decompose(_, _, IGRAPH_WEAK, -1, 1)` (`components.c:603`).
+  Phase-1 minimal slice covers the weak (BFS-by-actstart) branch only;
+  strong decomposition is a follow-up AWU. Each component subgraph has
+  vertices renumbered to `0..k` in BFS visit order, matching upstream's
+  `IGRAPH_SUBGRAPH_AUTO` semantics. Loops and parallel edges within a
+  component are preserved; on directed input the components are
+  detected by weak connectivity but the subgraph keeps every edge's
+  original orientation. Single edge sweep places each edge in its
+  pre-computed component subgraph (O(V+E) total). 9 unit tests
+  (empty/null/single/multi-component, vertex remapping, directed
+  orientation, loops + parallel edges, cross-check vs CC-001), 1
+  proptest invariant (component count + vcount/ecount partition + each
+  subgraph is single-cc), 2 oracle tests (deterministic 5-vertex
+  2-component fixture for exact structural match; karate
+  size-only cross-check — BFS remapping order differs between
+  python-igraph and our impl when neighbour iteration order matters,
+  documented), 3 three-source conformance fixtures (C triangle ∪ edge
+  → `[K3, K2]`; py `K3 ∪ P3 ∪ {6}` with isolated vertex; R `K4` single
+  component).
 - *(properties)* **ALGO-PR-002c**: Barrat's weighted local transitivity
   (`transitivity_barrat(graph, weights)`), counterpart of
   `igraph_transitivity_barrat()` (`triangles.c:874`). Per-vertex

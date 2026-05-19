@@ -218,6 +218,29 @@ KNNK_W_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DECOMPOSE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "decompose_R_K4_single_component",
+        # K4 is a single connected component. decompose returns one
+        # subgraph identical (after identity remap) to the original.
+        # Edges canonicalised to (min, max) and sorted ascending.
+        "origin": "constructed (R-style): K4 single component",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "decompose",
+        "params": {},
+        "expected": [
+            {
+                "vcount": 4,
+                "directed": False,
+                "edges": [
+                    [0, 1], [0, 2], [0, 3],
+                    [1, 2], [1, 3], [2, 3],
+                ],
+            },
+        ],
+    },
+]
+
 TRANS_BARRAT_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_barrat_R_K4_unit",
@@ -1212,6 +1235,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "knnk_weighted": KNNK_W_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,
     "transitivity_barrat": TRANS_BARRAT_MANIFEST,
+    "decompose": DECOMPOSE_MANIFEST,
 }
 
 

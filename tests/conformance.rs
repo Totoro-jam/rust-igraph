@@ -376,6 +376,37 @@ fn knnk_weighted_three_source_conformance() {
 }
 
 #[test]
+fn decompose_three_source_conformance() {
+    run_conformance("decompose", |g, _params| {
+        let parts = rust_igraph::decompose(g).expect("decompose");
+        let comps: Vec<serde_json::Value> = parts
+            .iter()
+            .map(|sub| {
+                let mut edges: Vec<[u32; 2]> = (0..sub.ecount())
+                    .map(|e| {
+                        let eid = u32::try_from(e).expect("edge id fits u32");
+                        let s = sub.edge_source(eid).expect("edge source");
+                        let t = sub.edge_target(eid).expect("edge target");
+                        if sub.is_directed() || s <= t {
+                            [s, t]
+                        } else {
+                            [t, s]
+                        }
+                    })
+                    .collect();
+                edges.sort_unstable();
+                serde_json::json!({
+                    "vcount": sub.vcount(),
+                    "directed": sub.is_directed(),
+                    "edges": edges,
+                })
+            })
+            .collect();
+        serde_json::Value::Array(comps)
+    });
+}
+
+#[test]
 fn transitivity_barrat_three_source_conformance() {
     // Bespoke fixture-walking runner (needs case.graph.weights).
     for src in ["c", "py", "r"] {
