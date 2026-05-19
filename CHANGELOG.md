@@ -22,6 +22,37 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-021..023 (weighted)**: Dijkstra-based eccentricity
+  / radius / diameter for weighted graphs. Adds six new public items
+  to `src/algorithms/paths/radii.rs`:
+  - `eccentricity_weighted_with_mode(graph, weights, mode) -> Vec<f64>`
+    — counterpart of `igraph_eccentricity(_, weights, _, vss_all(), mode)`.
+  - `radius_weighted_with_mode(graph, weights, mode) -> Option<f64>`
+    — counterpart of `igraph_radius(_, weights, _, mode)`.
+  - `diameter_weighted_with_mode(graph, weights, mode) -> Option<f64>`
+    — counterpart of `igraph_diameter(_, weights, _, NULL, NULL, NULL,
+    NULL, mode == directed ? IGRAPH_OUT : IGRAPH_ALL, /*unconn=*/true)`.
+  - `eccentricity_weighted` / `radius_weighted` / `diameter_weighted`
+    — OUT-mode-default thin wrappers (matching upstream's default
+    semantics when `mode` is omitted from the call site).
+
+  Implementation reuses [`dijkstra_distances_with_mode`] from SP-001c:
+  for each vertex `v`, run weighted single-source Dijkstra, then fold
+  the max-of-finite distances (matches upstream's `unconn=true`/ignore
+  -unreachable semantics; isolated vertices have eccentricity `0.0`).
+  Radius / diameter are min / max over the eccentricity vector. Edge
+  weights validated by the underlying Dijkstra (non-negative, finite,
+  not NaN). 9 new unit tests (path eccentricity; singleton zero;
+  isolated vertices zero; disconnected unconn-true semantics; directed
+  IN/ALL reachability; undirected modes agree; negative weight error;
+  empty graph None; with_mode/Out matches default), 1 new doctest
+  (`eccentricity_weighted_with_mode`), 3 new oracle tests vs python-
+  igraph (P3 ecc; directed P3 radius across modes; undirected triangle
+  diameter), 9 three-source conformance fixtures (3 algos × C/py/R)
+  with bespoke fixture-walking runners that thread `case.graph.weights`,
+  2 new proptest invariants (weighted ecc/radius/diameter consistency
+  per mode; unit-weight weighted ecc agrees with unweighted ecc cast to
+  f64).
 - *(paths)* **ALGO-SP-001c**: Dijkstra IN/ALL mode plus all-shortest-paths.
   Adds the [`DijkstraMode`] enum (`Out` / `In` / `All`), the
   `incident_for_mode` private helper that selects per-vertex

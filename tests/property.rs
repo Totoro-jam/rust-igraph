@@ -1962,4 +1962,41 @@ proptest! {
         let with_out = rust_igraph::eccentricity_with_mode(&g, EccMode::Out).unwrap();
         prop_assert_eq!(legacy, with_out);
     }
+
+    /// SP-021..023 weighted ecc/rad/diam invariants.
+    /// - radius == min(ecc) and diameter == max(ecc) for every mode.
+    /// - On undirected graphs every mode is identical.
+    /// - With unit weights the weighted variants agree with the
+    ///   unweighted u32 variants (cast to f64).
+    #[test]
+    fn weighted_ecc_radius_diameter_consistent(g in arb_graph(6)) {
+        use rust_igraph::EccMode;
+        if g.vcount() == 0 { return Ok(()); }
+        let m = g.ecount();
+        let weights: Vec<f64> = (0..m).map(|i| 1.0 + (i as f64) * 0.5).collect();
+        for mode in [EccMode::Out, EccMode::In, EccMode::All] {
+            let ecc = rust_igraph::eccentricity_weighted_with_mode(&g, &weights, mode).unwrap();
+            let r = rust_igraph::radius_weighted_with_mode(&g, &weights, mode).unwrap();
+            let d = rust_igraph::diameter_weighted_with_mode(&g, &weights, mode).unwrap();
+            let rust_min = ecc.iter().copied().fold(f64::INFINITY, f64::min);
+            let rust_max = ecc.iter().copied().fold(0.0_f64, f64::max);
+            prop_assert!((r.unwrap() - rust_min).abs() < 1e-9, "mode {:?}", mode);
+            prop_assert!((d.unwrap() - rust_max).abs() < 1e-9, "mode {:?}", mode);
+        }
+    }
+
+    /// Unit-weight weighted ecc agrees with unweighted ecc cast to f64.
+    #[test]
+    fn weighted_ecc_unit_weights_match_unweighted(g in arb_graph(6)) {
+        if g.vcount() == 0 { return Ok(()); }
+        let m = g.ecount();
+        let unit = vec![1.0_f64; m];
+        let w_ecc = rust_igraph::eccentricity_weighted(&g, &unit).unwrap();
+        let u_ecc = rust_igraph::eccentricity(&g).unwrap();
+        prop_assert_eq!(w_ecc.len(), u_ecc.len());
+        for (i, (rw, ru)) in w_ecc.iter().zip(u_ecc.iter()).enumerate() {
+            prop_assert!((rw - f64::from(*ru)).abs() < 1e-9,
+                         "vertex {}: weighted={} unweighted={}", i, rw, ru);
+        }
+    }
 }

@@ -648,6 +648,52 @@ DIJKSTRA_ASP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-021..023 weighted: ecc / rad / diam Dijkstra-based.
+ECC_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ecc_weighted_c_path_3_weights_1_2_5",
+        # Undirected path 0-1-2 weights (1, 2.5): ecc = [3.5, 2.5, 3.5].
+        "origin": "constructed: P3 with weights (1, 2.5)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 2.5],
+        "algo": "eccentricity_weighted_with_mode",
+        "params": {"mode": "all"},
+        "expected": [3.5, 2.5, 3.5],
+    },
+]
+
+RAD_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "radius_weighted_c_path_3_weights_1_2_5",
+        # Same P3: radius = min ecc = 2.5.
+        "origin": "constructed: P3 with weights (1, 2.5), radius = 2.5",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 2.5],
+        "algo": "radius_weighted_with_mode",
+        "params": {"mode": "all"},
+        "expected": 2.5,
+    },
+]
+
+DIAM_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "diameter_weighted_c_path_3_weights_1_2_5",
+        # Same P3: diameter = max ecc = 3.5.
+        "origin": "constructed: P3 with weights (1, 2.5), diameter = 3.5",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 2.5],
+        "algo": "diameter_weighted_with_mode",
+        "params": {"mode": "all"},
+        "expected": 3.5,
+    },
+]
+
 MODULARITY_DIR_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_directed_c_two_triangles_bridge",
@@ -1557,6 +1603,9 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
     "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
+    "eccentricity_weighted_with_mode": ECC_W_MANIFEST,
+    "radius_weighted_with_mode": RAD_W_MANIFEST,
+    "diameter_weighted_with_mode": DIAM_W_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,

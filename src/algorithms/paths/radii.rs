@@ -218,6 +218,114 @@ pub fn diameter_with_mode(graph: &Graph, mode: EccMode) -> IgraphResult<Option<u
     Ok(ecc.into_iter().max())
 }
 
+// ---------------------------------------------------------------
+// SP-021..023: weighted (Dijkstra-based) ecc/radius/diameter.
+// Mirrors `igraph_eccentricity / igraph_radius / igraph_diameter`
+// when called with a non-NULL `weights` argument.
+// ---------------------------------------------------------------
+
+fn ecc_mode_to_dijkstra(mode: EccMode) -> crate::algorithms::paths::dijkstra::DijkstraMode {
+    use crate::algorithms::paths::dijkstra::DijkstraMode;
+    match mode {
+        EccMode::Out => DijkstraMode::Out,
+        EccMode::In => DijkstraMode::In,
+        EccMode::All => DijkstraMode::All,
+    }
+}
+
+/// Mode-aware weighted eccentricity. For each vertex `v`, returns
+/// `max_{u reachable from v} dist(v, u)`, where distances are
+/// weighted shortest-path lengths (Dijkstra). Unreachable vertex
+/// pairs are ignored (matches upstream's `unconn=true`); isolated
+/// vertices have eccentricity `0.0`.
+///
+/// Counterpart of `igraph_eccentricity(_, weights, _, igraph_vss_all(), mode)`.
+///
+/// Edge weights must be non-negative and not NaN.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, eccentricity_weighted_with_mode, EccMode};
+///
+/// // Path 0-1-2 with weights (1.0, 2.5): vertex 0 has ecc 3.5,
+/// // vertex 1 has ecc 2.5, vertex 2 has ecc 3.5.
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let r = eccentricity_weighted_with_mode(&g, &[1.0, 2.5], EccMode::All).unwrap();
+/// assert_eq!(r, vec![3.5, 2.5, 3.5]);
+/// ```
+pub fn eccentricity_weighted_with_mode(
+    graph: &Graph,
+    weights: &[f64],
+    mode: EccMode,
+) -> IgraphResult<Vec<f64>> {
+    use crate::algorithms::paths::dijkstra::dijkstra_distances_with_mode;
+    let n = graph.vcount();
+    let mut out = vec![0.0_f64; n as usize];
+    for v in 0..n {
+        let d = dijkstra_distances_with_mode(graph, v, weights, ecc_mode_to_dijkstra(mode))?;
+        let max = d
+            .iter()
+            .filter_map(|x| *x)
+            .fold(0.0_f64, |a, b| if b > a { b } else { a });
+        out[v as usize] = max;
+    }
+    Ok(out)
+}
+
+/// Mode-aware weighted radius. `None` for `vcount == 0`.
+///
+/// Counterpart of `igraph_radius(_, weights, _, mode)`.
+pub fn radius_weighted_with_mode(
+    graph: &Graph,
+    weights: &[f64],
+    mode: EccMode,
+) -> IgraphResult<Option<f64>> {
+    if graph.vcount() == 0 {
+        return Ok(None);
+    }
+    let ecc = eccentricity_weighted_with_mode(graph, weights, mode)?;
+    Ok(ecc
+        .into_iter()
+        .fold(None, |acc, x| Some(acc.map_or(x, |a: f64| a.min(x)))))
+}
+
+/// Mode-aware weighted diameter. `None` for `vcount == 0`.
+///
+/// Counterpart of `igraph_diameter(_, weights, _, NULL, NULL, NULL,
+/// NULL, mode == directed ? IGRAPH_OUT : IGRAPH_ALL, /*unconn=*/true)`.
+pub fn diameter_weighted_with_mode(
+    graph: &Graph,
+    weights: &[f64],
+    mode: EccMode,
+) -> IgraphResult<Option<f64>> {
+    if graph.vcount() == 0 {
+        return Ok(None);
+    }
+    let ecc = eccentricity_weighted_with_mode(graph, weights, mode)?;
+    Ok(ecc
+        .into_iter()
+        .fold(None, |acc, x| Some(acc.map_or(x, |a: f64| a.max(x)))))
+}
+
+/// OUT-mode default for [`eccentricity_weighted_with_mode`]. Counterpart
+/// of `igraph_eccentricity(_, weights, _, igraph_vss_all(), IGRAPH_OUT)`.
+pub fn eccentricity_weighted(graph: &Graph, weights: &[f64]) -> IgraphResult<Vec<f64>> {
+    eccentricity_weighted_with_mode(graph, weights, EccMode::Out)
+}
+
+/// OUT-mode default for [`radius_weighted_with_mode`].
+pub fn radius_weighted(graph: &Graph, weights: &[f64]) -> IgraphResult<Option<f64>> {
+    radius_weighted_with_mode(graph, weights, EccMode::Out)
+}
+
+/// OUT-mode default for [`diameter_weighted_with_mode`].
+pub fn diameter_weighted(graph: &Graph, weights: &[f64]) -> IgraphResult<Option<f64>> {
+    diameter_weighted_with_mode(graph, weights, EccMode::Out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -459,5 +567,117 @@ mod tests {
             assert_eq!(diameter_with_mode(&g_d, m).unwrap(), None);
             assert!(eccentricity_with_mode(&g_d, m).unwrap().is_empty());
         }
+    }
+
+    // ---- SP-021..023: weighted ecc/rad/diam tests ------------------
+
+    #[test]
+    fn weighted_path_eccentricity() {
+        // Path 0-1-2 with weights (1, 2.5):
+        // ecc[0] = 0+1+2.5 = 3.5; ecc[1] = max(1, 2.5) = 2.5; ecc[2] = 3.5.
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let r = eccentricity_weighted(&g, &[1.0, 2.5]).unwrap();
+        assert_eq!(r, vec![3.5, 2.5, 3.5]);
+        assert_eq!(radius_weighted(&g, &[1.0, 2.5]).unwrap(), Some(2.5));
+        assert_eq!(diameter_weighted(&g, &[1.0, 2.5]).unwrap(), Some(3.5));
+    }
+
+    #[test]
+    fn weighted_singleton_zero() {
+        let g = Graph::with_vertices(1);
+        assert_eq!(eccentricity_weighted(&g, &[]).unwrap(), vec![0.0]);
+        assert_eq!(radius_weighted(&g, &[]).unwrap(), Some(0.0));
+        assert_eq!(diameter_weighted(&g, &[]).unwrap(), Some(0.0));
+    }
+
+    #[test]
+    fn weighted_isolated_vertices_zero() {
+        let g = Graph::with_vertices(4);
+        assert_eq!(eccentricity_weighted(&g, &[]).unwrap(), vec![0.0; 4]);
+        assert_eq!(radius_weighted(&g, &[]).unwrap(), Some(0.0));
+        assert_eq!(diameter_weighted(&g, &[]).unwrap(), Some(0.0));
+    }
+
+    #[test]
+    fn weighted_disconnected_unconn_true_semantics() {
+        // 0-1 (w 1.0) and 2-3 (w 4.0). Each vertex's ecc = max within its
+        // component (unconn=true ignores cross-component pairs).
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let r = eccentricity_weighted(&g, &[1.0, 4.0]).unwrap();
+        assert_eq!(r, vec![1.0, 1.0, 4.0, 4.0]);
+        // Diameter is 4.0 (the max), radius is 1.0 (the min).
+        assert_eq!(radius_weighted(&g, &[1.0, 4.0]).unwrap(), Some(1.0));
+        assert_eq!(diameter_weighted(&g, &[1.0, 4.0]).unwrap(), Some(4.0));
+    }
+
+    #[test]
+    fn weighted_directed_in_mode_reverses() {
+        // Directed path 0→1→2 with weights (1, 2). OUT-mode ecc[2]=0
+        // (sink); IN-mode ecc[2]=3 (reaches both predecessors).
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let w = vec![1.0, 2.0];
+        assert_eq!(
+            eccentricity_weighted_with_mode(&g, &w, EccMode::Out).unwrap(),
+            vec![3.0, 2.0, 0.0]
+        );
+        assert_eq!(
+            eccentricity_weighted_with_mode(&g, &w, EccMode::In).unwrap(),
+            vec![0.0, 1.0, 3.0]
+        );
+        assert_eq!(
+            eccentricity_weighted_with_mode(&g, &w, EccMode::All).unwrap(),
+            vec![3.0, 2.0, 3.0]
+        );
+    }
+
+    #[test]
+    fn weighted_undirected_modes_agree() {
+        // Triangle 0-1, 1-2, 0-2 with weights 1, 2, 4. Min path 0→2 is
+        // via 1: cost 3 < direct 4. ecc[0] = 3, ecc[1] = 2, ecc[2] = 3.
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(0, 2).unwrap();
+        let w = vec![1.0, 2.0, 4.0];
+        for m in [EccMode::Out, EccMode::In, EccMode::All] {
+            assert_eq!(
+                eccentricity_weighted_with_mode(&g, &w, m).unwrap(),
+                vec![3.0, 2.0, 3.0],
+                "mode {m:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn weighted_negative_weight_errors() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        assert!(eccentricity_weighted(&g, &[-1.0]).is_err());
+    }
+
+    #[test]
+    fn weighted_empty_graph_radius_diameter_none() {
+        let g = Graph::with_vertices(0);
+        assert_eq!(radius_weighted(&g, &[]).unwrap(), None);
+        assert_eq!(diameter_weighted(&g, &[]).unwrap(), None);
+        assert!(eccentricity_weighted(&g, &[]).unwrap().is_empty());
+    }
+
+    #[test]
+    fn weighted_with_mode_default_matches_out() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let w = vec![1.0, 2.5];
+        assert_eq!(
+            eccentricity_weighted(&g, &w).unwrap(),
+            eccentricity_weighted_with_mode(&g, &w, EccMode::Out).unwrap()
+        );
     }
 }

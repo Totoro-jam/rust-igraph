@@ -1,0 +1,27 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): two disjoint edges; min ecc = 1.0",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      4.0
+    ]
+  },
+  "algo": "radius_weighted_with_mode",
+  "params": {
+    "mode": "all"
+  },
+  "expected": 1.0
+}

@@ -115,6 +115,51 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         directed_flag = mode == "out"
         return int(g.diameter(directed=directed_flag, unconn=True))
 
+    if algo == "eccentricity_weighted_with_mode":
+        # ALGO-SP-021..023 weighted: counterpart of
+        # igraph_eccentricity(_, weights, _, igraph_vss_all(), mode).
+        # python-igraph's `Graph.eccentricity` takes `weights="weight"`.
+        mode = params.get("mode", "out")
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            r = g.eccentricity(mode=mode, weights="weight")
+        else:
+            r = g.eccentricity(mode=mode)
+        return [float(x) for x in r]
+
+    if algo == "radius_weighted_with_mode":
+        mode = params.get("mode", "out")
+        if g.vcount() == 0:
+            return None
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            return float(g.radius(mode=mode, weights="weight"))
+        return float(g.radius(mode=mode))
+
+    if algo == "diameter_weighted_with_mode":
+        # python-igraph's Graph.diameter accepts `weights=` and toggles
+        # directedness via `directed=`. As with the unweighted variant,
+        # IN-mode on directed graphs is emulated by edge-reversal.
+        mode = params.get("mode", "out")
+        if g.vcount() == 0:
+            return None
+        weights_arg = (
+            "weight"
+            if g.ecount() > 0 and "weight" in g.edge_attributes()
+            else None
+        )
+        if mode == "in" and g.is_directed():
+            rev_edges = [(t, s) for (s, t) in g.get_edgelist()]
+            rev = ig.Graph(n=g.vcount(), edges=rev_edges, directed=True)
+            if weights_arg is not None:
+                rev.es["weight"] = list(g.es["weight"])
+                return float(rev.diameter(directed=True, unconn=True, weights="weight"))
+            return float(rev.diameter(directed=True, unconn=True))
+        directed_flag = mode == "out"
+        if weights_arg is not None:
+            return float(
+                g.diameter(directed=directed_flag, unconn=True, weights="weight")
+            )
+        return float(g.diameter(directed=directed_flag, unconn=True))
+
     if algo == "assortativity_degree":
         # Counterpart of igraph_assortativity_degree(_, _, /*directed=*/false).
         # python-igraph returns NaN for regular graphs; we encode as None.

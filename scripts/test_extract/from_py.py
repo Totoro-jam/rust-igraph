@@ -585,6 +585,52 @@ DIJKSTRA_ASP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-021..023 weighted: directed P3 OUT/IN/ALL.
+ECC_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ecc_weighted_py_directed_path_out",
+        # Directed 0→1→2 weights (1, 2): OUT ecc = [3, 2, 0].
+        "origin": "constructed: directed P3 weights (1, 2) — OUT mode",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "graph_weights": [1.0, 2.0],
+        "algo": "eccentricity_weighted_with_mode",
+        "params": {"mode": "out"},
+        "expected": [3.0, 2.0, 0.0],
+    },
+]
+
+RAD_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "radius_weighted_py_undirected_triangle_shortcut",
+        # Undirected triangle weights (1, 2, 4): vertex 1's ecc = 2 is min.
+        "origin": "constructed: triangle weights (1,2,4), radius = 2.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (0, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 2.0, 4.0],
+        "algo": "radius_weighted_with_mode",
+        "params": {"mode": "all"},
+        "expected": 2.0,
+    },
+]
+
+DIAM_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "diameter_weighted_py_directed_path_out",
+        # Directed 0→1→2 weights (1, 2): OUT diameter = 3.
+        "origin": "constructed: directed P3 (1, 2) — OUT diameter = 3.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "graph_weights": [1.0, 2.0],
+        "algo": "diameter_weighted_with_mode",
+        "params": {"mode": "out"},
+        "expected": 3.0,
+    },
+]
+
 MODULARITY_DIR_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_directed_py_3_cycle_single_partition",
@@ -1317,6 +1363,9 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
     "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
+    "eccentricity_weighted_with_mode": ECC_W_MANIFEST,
+    "radius_weighted_with_mode": RAD_W_MANIFEST,
+    "diameter_weighted_with_mode": DIAM_W_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,

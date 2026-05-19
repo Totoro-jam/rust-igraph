@@ -16,17 +16,18 @@ use rust_igraph::{
     avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, betweenness,
     betweenness_weighted, bfs, biconnected_components, bridges, closeness, closeness_weighted,
     complementer, connected_components, coreness, coreness_with_mode, count_reachable,
-    count_triangles, decompose, density, dfs, diameter, diameter_with_mode, difference,
-    dijkstra_all_shortest_paths, dijkstra_distances, dijkstra_distances_cutoff,
-    dijkstra_distances_with_mode, dijkstra_path_to, dijkstra_paths, disjoint_union,
-    disjoint_union_many, distances, eccentricity, eccentricity_with_mode, edge_betweenness,
-    edge_betweenness_weighted, eigenvector_centrality, floyd_warshall_distances, girth,
-    harmonic_centrality, harmonic_centrality_weighted, has_loop, has_multiple, intersection,
-    is_biconnected, is_loop, is_multiple, is_simple, is_simple_with_mode, knnk, knnk_weighted,
-    mean_distance, modularity, modularity_directed, modularity_weighted, pagerank,
-    pagerank_weighted, radius, radius_with_mode, reachability_matrix, read_edgelist, reciprocity,
-    reciprocity_with_mode, simplify, strongly_connected_components, transitive_closure,
-    transitivity_barrat, transitivity_local_undirected, transitivity_undirected, union,
+    count_triangles, decompose, density, dfs, diameter, diameter_weighted_with_mode,
+    diameter_with_mode, difference, dijkstra_all_shortest_paths, dijkstra_distances,
+    dijkstra_distances_cutoff, dijkstra_distances_with_mode, dijkstra_path_to, dijkstra_paths,
+    disjoint_union, disjoint_union_many, distances, eccentricity, eccentricity_weighted_with_mode,
+    eccentricity_with_mode, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
+    floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
+    has_multiple, intersection, is_biconnected, is_loop, is_multiple, is_simple,
+    is_simple_with_mode, knnk, knnk_weighted, mean_distance, modularity, modularity_directed,
+    modularity_weighted, pagerank, pagerank_weighted, radius, radius_weighted_with_mode,
+    radius_with_mode, reachability_matrix, read_edgelist, reciprocity, reciprocity_with_mode,
+    simplify, strongly_connected_components, transitive_closure, transitivity_barrat,
+    transitivity_local_undirected, transitivity_undirected, union,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -3038,5 +3039,78 @@ fn diameter_with_mode_directed_dag_matches_python_igraph() {
         ))
         .expect("decode python diameter_with_mode");
         assert_eq!(rust, py, "mode {m:?}");
+    }
+}
+
+// ---- ALGO-SP-021..023 weighted ecc/rad/diam oracle tests -----
+
+fn assert_close_f64_vec(rust: &[f64], py: &[f64]) {
+    assert_eq!(rust.len(), py.len(), "length");
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert!((r - p).abs() < 1e-9, "vertex {i}: rust={r} py={p}");
+    }
+}
+
+#[test]
+fn eccentricity_weighted_path_matches_python_igraph() {
+    // Path 0-1-2 weights (1, 2.5): ecc = [3.5, 2.5, 3.5].
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 2.5];
+    let rust = eccentricity_weighted_with_mode(&g, &weights, EccMode::All).unwrap();
+    let py: Vec<f64> = serde_json::from_value(run_ok_with_weights(
+        "eccentricity_weighted_with_mode",
+        &g,
+        Some(weights),
+        serde_json::json!({"mode": "all"}),
+    ))
+    .expect("decode python eccentricity_weighted_with_mode");
+    assert_close_f64_vec(&rust, &py);
+}
+
+#[test]
+fn radius_weighted_directed_path_matches_python_igraph() {
+    // Directed 0→1→2 with weights (1, 2): radius depends on mode.
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 2.0];
+    for m in [EccMode::Out, EccMode::In, EccMode::All] {
+        let rust = radius_weighted_with_mode(&g, &weights, m).unwrap();
+        let py: Option<f64> = serde_json::from_value(run_ok_with_weights(
+            "radius_weighted_with_mode",
+            &g,
+            Some(weights.clone()),
+            serde_json::json!({"mode": mode_str(m)}),
+        ))
+        .expect("decode python radius_weighted_with_mode");
+        match (rust, py) {
+            (Some(r), Some(p)) => assert!((r - p).abs() < 1e-9, "mode {m:?}: rust={r} py={p}"),
+            (None, None) => {}
+            (a, b) => panic!("mode {m:?}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn diameter_weighted_undirected_triangle_matches_python_igraph() {
+    // Undirected triangle (1, 2, 4): diameter = 3 (via shortcut).
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(0, 2).unwrap();
+    let weights = vec![1.0_f64, 2.0, 4.0];
+    let rust = diameter_weighted_with_mode(&g, &weights, EccMode::All).unwrap();
+    let py: Option<f64> = serde_json::from_value(run_ok_with_weights(
+        "diameter_weighted_with_mode",
+        &g,
+        Some(weights),
+        serde_json::json!({"mode": "all"}),
+    ))
+    .expect("decode python diameter_weighted_with_mode");
+    match (rust, py) {
+        (Some(r), Some(p)) => assert!((r - p).abs() < 1e-9, "rust={r} py={p}"),
+        _ => panic!("rust={rust:?} py={py:?}"),
     }
 }

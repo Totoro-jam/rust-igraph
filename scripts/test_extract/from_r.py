@@ -651,6 +651,52 @@ DIJKSTRA_ASP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-021..023 weighted: disconnected components keep per-component
+# eccentricity (matches rigraph's `unconn=TRUE` default).
+ECC_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ecc_weighted_R_disconnected_components",
+        # Two components: 0-1 weight 1, 2-3 weight 4.
+        # ecc[0]=ecc[1]=1.0; ecc[2]=ecc[3]=4.0.
+        "origin": "constructed (rigraph-style): two disjoint edges with non-uniform weights",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0],
+        "algo": "eccentricity_weighted_with_mode",
+        "params": {"mode": "all"},
+        "expected": [1.0, 1.0, 4.0, 4.0],
+    },
+]
+
+RAD_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "radius_weighted_R_disconnected_components",
+        "origin": "constructed (rigraph-style): two disjoint edges; min ecc = 1.0",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0],
+        "algo": "radius_weighted_with_mode",
+        "params": {"mode": "all"},
+        "expected": 1.0,
+    },
+]
+
+DIAM_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "diameter_weighted_R_disconnected_components",
+        "origin": "constructed (rigraph-style): two disjoint edges; max ecc = 4.0",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0],
+        "algo": "diameter_weighted_with_mode",
+        "params": {"mode": "all"},
+        "expected": 4.0,
+    },
+]
+
 MODULARITY_DIR_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_directed_R_chain_4_two_blocks",
@@ -1429,6 +1475,9 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
     "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
+    "eccentricity_weighted_with_mode": ECC_W_MANIFEST,
+    "radius_weighted_with_mode": RAD_W_MANIFEST,
+    "diameter_weighted_with_mode": DIAM_W_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,

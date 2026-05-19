@@ -1,0 +1,27 @@
+{
+  "source": "py",
+  "origin": "constructed: directed P3 (1, 2) \u2014 OUT diameter = 3.0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      1.0,
+      2.0
+    ]
+  },
+  "algo": "diameter_weighted_with_mode",
+  "params": {
+    "mode": "out"
+  },
+  "expected": 3.0
+}

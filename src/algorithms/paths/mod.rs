@@ -22,4 +22,7 @@ pub use distances::distances;
 pub use eulerian::{EulerianClassification, is_eulerian};
 pub use eulerian_construct::eulerian_path;
 pub use floyd_warshall::floyd_warshall_distances;
-pub use radii::{diameter, eccentricity, radius};
+pub use radii::{
+    diameter, diameter_weighted, diameter_weighted_with_mode, eccentricity, eccentricity_weighted,
+    eccentricity_weighted_with_mode, radius, radius_weighted, radius_weighted_with_mode,
+};

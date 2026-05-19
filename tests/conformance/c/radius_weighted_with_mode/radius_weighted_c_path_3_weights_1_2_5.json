@@ -1,0 +1,27 @@
+{
+  "source": "c",
+  "origin": "constructed: P3 with weights (1, 2.5), radius = 2.5",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      2.5
+    ]
+  },
+  "algo": "radius_weighted_with_mode",
+  "params": {
+    "mode": "all"
+  },
+  "expected": 2.5
+}
