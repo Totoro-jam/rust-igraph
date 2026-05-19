@@ -1175,6 +1175,53 @@ RAD_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ECC_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ecc_with_mode_c_directed_path4_in",
+        # Directed path 0→1→2→3, queried under IGRAPH_IN. Reverse-BFS
+        # from each vertex: from 0 reaches nothing (ecc=0); from 1
+        # reaches 0 (ecc=1); from 2 reaches 1,0 (ecc=2); from 3 reaches
+        # 2,1,0 (ecc=3). Expected: [0,1,2,3].
+        "origin": "constructed: directed P4 — IN-mode reverses BFS direction",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=True
+        ),
+        "algo": "eccentricity_with_mode",
+        "params": {"mode": "in"},
+        "expected": [0, 1, 2, 3],
+    },
+]
+
+RAD_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "radius_with_mode_c_directed_path4_in",
+        # Same directed P4 under IN-mode. Min eccentricity over the
+        # vector [0,1,2,3] is 0 (vertex 0 has no incoming edges).
+        "origin": "constructed: directed P4 — IN-mode min ecc = 0 (source vertex)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=True
+        ),
+        "algo": "radius_with_mode",
+        "params": {"mode": "in"},
+        "expected": 0,
+    },
+]
+
+DIAM_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "diameter_with_mode_c_directed_path4_in",
+        # Same directed P4 under IN-mode. Max ecc is 3 (vertex 3 reaches
+        # all earlier vertices via reverse BFS).
+        "origin": "constructed: directed P4 — IN-mode max ecc = 3 (longest reverse BFS)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=True
+        ),
+        "algo": "diameter_with_mode",
+        "params": {"mode": "in"},
+        "expected": 3,
+    },
+]
+
 GIRTH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "girth_c_ring100_with_chord_0_50",
@@ -1392,8 +1439,11 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_biconnected": ISBI_MANIFEST,
     "girth": GIRTH_MANIFEST,
     "diameter": DIAM_MANIFEST,
+    "diameter_with_mode": DIAM_MODE_MANIFEST,
     "eccentricity": ECC_MANIFEST,
+    "eccentricity_with_mode": ECC_MODE_MANIFEST,
     "radius": RAD_MANIFEST,
+    "radius_with_mode": RAD_MODE_MANIFEST,
     "count_triangles": TRI_MANIFEST,
     "transitivity_undirected": TRANS_MANIFEST,
     "transitivity_local_undirected": LTRANS_MANIFEST,

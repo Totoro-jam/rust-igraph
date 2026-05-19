@@ -1767,4 +1767,57 @@ proptest! {
             prop_assert!(ca.contains_key(k));
         }
     }
+
+    /// Mode-aware ecc/radius/diameter invariants:
+    /// - radius == min(ecc); diameter == max(ecc)
+    /// - radius ≤ diameter
+    /// - on undirected graphs, all three modes produce identical
+    ///   eccentricity vectors
+    /// - eccentricity_with_mode(_, Out) on a directed graph equals the
+    ///   legacy `eccentricity` (which uses OUT)
+    #[test]
+    fn ecc_with_mode_radius_diameter_consistent(g in arb_graph(8)) {
+        use rust_igraph::EccMode;
+        for m in [EccMode::Out, EccMode::In, EccMode::All] {
+            let ecc = rust_igraph::eccentricity_with_mode(&g, m).unwrap();
+            let r = rust_igraph::radius_with_mode(&g, m).unwrap();
+            let d = rust_igraph::diameter_with_mode(&g, m).unwrap();
+            if g.vcount() == 0 {
+                prop_assert!(r.is_none());
+                prop_assert!(d.is_none());
+                prop_assert!(ecc.is_empty());
+            } else {
+                prop_assert_eq!(r, ecc.iter().copied().min());
+                prop_assert_eq!(d, ecc.iter().copied().max());
+                prop_assert!(r.unwrap() <= d.unwrap());
+            }
+        }
+    }
+
+    /// Undirected graphs: every mode produces the same eccentricity
+    /// vector (every edge is bidirectional).
+    #[test]
+    fn ecc_with_mode_undirected_modes_agree(g in arb_graph(8)) {
+        use rust_igraph::EccMode;
+        if g.is_directed() {
+            return Ok(());
+        }
+        let out = rust_igraph::eccentricity_with_mode(&g, EccMode::Out).unwrap();
+        let in_  = rust_igraph::eccentricity_with_mode(&g, EccMode::In).unwrap();
+        let all = rust_igraph::eccentricity_with_mode(&g, EccMode::All).unwrap();
+        prop_assert_eq!(&out, &in_);
+        prop_assert_eq!(&out, &all);
+    }
+
+    /// `eccentricity_with_mode(g, Out)` matches the legacy
+    /// mode-defaulted `eccentricity(g)` for both directed and undirected
+    /// graphs (the legacy function's BFS follows OUT edges via
+    /// `distances`).
+    #[test]
+    fn ecc_with_mode_out_matches_legacy(g in arb_graph(8)) {
+        use rust_igraph::EccMode;
+        let legacy = rust_igraph::eccentricity(&g).unwrap();
+        let with_out = rust_igraph::eccentricity_with_mode(&g, EccMode::Out).unwrap();
+        prop_assert_eq!(legacy, with_out);
+    }
 }

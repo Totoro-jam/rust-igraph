@@ -1,0 +1,28 @@
+{
+  "source": "c",
+  "origin": "constructed: directed P4 \u2014 IN-mode max ecc = 3 (longest reverse BFS)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "diameter_with_mode",
+  "params": {
+    "mode": "in"
+  },
+  "expected": 3
+}

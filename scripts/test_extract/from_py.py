@@ -1058,6 +1058,47 @@ RAD_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ECC_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ecc_with_mode_py_directed_cycle3_all",
+        # Directed 3-cycle 0→1→2→0 under "all" mode → underlying graph
+        # is K3 (triangle), so every vertex has eccentricity 1.
+        "origin": "constructed: directed 3-cycle — ALL-mode collapses to undirected K3",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "eccentricity_with_mode",
+        "params": {"mode": "all"},
+        "expected": [1, 1, 1],
+    },
+]
+
+RAD_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "radius_with_mode_py_directed_cycle3_all",
+        "origin": "constructed: directed 3-cycle — ALL-mode radius = 1 (uniform K3)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "radius_with_mode",
+        "params": {"mode": "all"},
+        "expected": 1,
+    },
+]
+
+DIAM_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "diameter_with_mode_py_directed_cycle3_all",
+        "origin": "constructed: directed 3-cycle — ALL-mode diameter = 1 (uniform K3)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "diameter_with_mode",
+        "params": {"mode": "all"},
+        "expected": 1,
+    },
+]
+
 GIRTH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "girth_petersen_like_pentagon",
@@ -1159,8 +1200,11 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_biconnected": ISBI_MANIFEST,
     "girth": GIRTH_MANIFEST,
     "diameter": DIAM_MANIFEST,
+    "diameter_with_mode": DIAM_MODE_MANIFEST,
     "eccentricity": ECC_MANIFEST,
+    "eccentricity_with_mode": ECC_MODE_MANIFEST,
     "radius": RAD_MANIFEST,
+    "radius_with_mode": RAD_MODE_MANIFEST,
     "count_triangles": TRI_MANIFEST,
     "transitivity_undirected": TRANS_MANIFEST,
     "transitivity_local_undirected": LTRANS_MANIFEST,

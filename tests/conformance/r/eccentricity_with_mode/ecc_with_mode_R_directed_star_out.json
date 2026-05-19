@@ -1,0 +1,33 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed out-star \u2014 OUT mode",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "eccentricity_with_mode",
+  "params": {
+    "mode": "out"
+  },
+  "expected": [
+    1,
+    0,
+    0,
+    0
+  ]
+}

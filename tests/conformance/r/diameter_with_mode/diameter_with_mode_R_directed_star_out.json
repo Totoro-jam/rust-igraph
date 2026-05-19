@@ -1,0 +1,28 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed out-star \u2014 OUT-mode diam = 1",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "diameter_with_mode",
+  "params": {
+    "mode": "out"
+  },
+  "expected": 1
+}

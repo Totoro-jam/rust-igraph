@@ -22,6 +22,36 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-021abc**: mode-aware
+  `eccentricity_with_mode(graph, mode) -> Vec<u32>`,
+  `radius_with_mode(graph, mode) -> Option<u32>`,
+  `diameter_with_mode(graph, mode) -> Option<u32>` plus the
+  `EccMode { Out, In, All }` enum. Counterparts of
+  `igraph_eccentricity / igraph_radius / igraph_diameter` with the
+  `mode` parameter wired through. For directed graphs the BFS follows
+  `Out`-edges (default; matches the legacy `eccentricity / radius /
+  diameter`), `In`-edges, or `All` (treat every edge as
+  bidirectional). For undirected graphs every mode reduces to `All`
+  (every edge is bidirectional). Implemented via an inlined BFS that
+  picks per-vertex neighbour lists via `out_neighbors_vec` /
+  `in_neighbors_vec` / their concatenation — no allocation reuse
+  beyond the distance vector. The legacy `eccentricity / radius /
+  diameter` APIs are unchanged and remain `Out`-mode for directed
+  graphs. python-igraph's `Graph.diameter` has no IN-mode, so the
+  oracle handler reverses edges for `mode="in"` on directed inputs
+  and uses `directed=True`; the `Out`/`All` modes map to
+  `directed=True`/`directed=False`. 8 new unit tests (legacy-API
+  agreement; undirected modes agree; directed P3 IN reverses BFS;
+  directed P3 ALL collapses to undirected; directed K3-cycle modes;
+  sources/sinks have zero ecc in OUT/IN; min/max ↔ radius/diameter;
+  empty-graph None for every mode), 1 doctest, 3 oracle tests vs
+  python-igraph (directed P4 ecc all modes; directed K3 cycle radius
+  all modes; directed DAG diamond diameter all modes), 9 three-source
+  conformance fixtures (C: directed P4 IN ecc/radius/diameter →
+  [0,1,2,3]/0/3; py: directed 3-cycle ALL → [1,1,1]/1/1; R: directed
+  out-star OUT → [1,0,0,0]/0/1), 3 proptest invariants
+  (min/max ↔ radius/diameter consistency for every mode; undirected
+  modes agree; `eccentricity_with_mode(_, Out) ≡ eccentricity`).
 - *(operators)* **ALGO-OP-006**: difference of two graphs
   (`difference(orig, sub) -> Graph`), counterpart of
   `igraph_difference(_, &orig, &sub)` (`operators/difference.c:54`).

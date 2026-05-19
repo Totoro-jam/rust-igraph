@@ -1,0 +1,33 @@
+{
+  "source": "c",
+  "origin": "constructed: directed P4 \u2014 IN-mode reverses BFS direction",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "eccentricity_with_mode",
+  "params": {
+    "mode": "in"
+  },
+  "expected": [
+    0,
+    1,
+    2,
+    3
+  ]
+}

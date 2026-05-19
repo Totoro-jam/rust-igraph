@@ -11,17 +11,18 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
-    CorenessMode, Graph, ReciprocityMode, SimpleMode, articulation_points, assortativity_degree,
-    assortativity_degree_directed, assortativity_degree_weighted, avg_nearest_neighbor_degree,
-    avg_nearest_neighbor_degree_weighted, betweenness, betweenness_weighted, bfs,
-    biconnected_components, bridges, closeness, closeness_weighted, complementer,
-    connected_components, coreness, coreness_with_mode, count_reachable, count_triangles,
-    decompose, density, dfs, diameter, difference, dijkstra_distances, disjoint_union,
-    disjoint_union_many, distances, eccentricity, edge_betweenness, edge_betweenness_weighted,
-    eigenvector_centrality, floyd_warshall_distances, girth, harmonic_centrality,
-    harmonic_centrality_weighted, has_loop, has_multiple, intersection, is_biconnected, is_loop,
-    is_multiple, is_simple, is_simple_with_mode, knnk, knnk_weighted, mean_distance, modularity,
-    modularity_directed, modularity_weighted, pagerank, pagerank_weighted, radius,
+    CorenessMode, EccMode, Graph, ReciprocityMode, SimpleMode, articulation_points,
+    assortativity_degree, assortativity_degree_directed, assortativity_degree_weighted,
+    avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, betweenness,
+    betweenness_weighted, bfs, biconnected_components, bridges, closeness, closeness_weighted,
+    complementer, connected_components, coreness, coreness_with_mode, count_reachable,
+    count_triangles, decompose, density, dfs, diameter, diameter_with_mode, difference,
+    dijkstra_distances, disjoint_union, disjoint_union_many, distances, eccentricity,
+    eccentricity_with_mode, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
+    floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
+    has_multiple, intersection, is_biconnected, is_loop, is_multiple, is_simple,
+    is_simple_with_mode, knnk, knnk_weighted, mean_distance, modularity, modularity_directed,
+    modularity_weighted, pagerank, pagerank_weighted, radius, radius_with_mode,
     reachability_matrix, read_edgelist, reciprocity, reciprocity_with_mode, simplify,
     strongly_connected_components, transitive_closure, transitivity_barrat,
     transitivity_local_undirected, transitivity_undirected, union,
@@ -2796,4 +2797,72 @@ fn difference_multiplicity_clamps_to_zero_matches_python_igraph() {
     assert_eq!(rust.vcount(), py.vcount);
     assert_eq!(rust.ecount(), 2);
     assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
+}
+
+// ---- ALGO-SP-021abc mode-aware ecc/rad/diam -----
+
+fn mode_str(m: EccMode) -> &'static str {
+    match m {
+        EccMode::Out => "out",
+        EccMode::In => "in",
+        EccMode::All => "all",
+    }
+}
+
+#[test]
+fn eccentricity_with_mode_directed_path_matches_python_igraph() {
+    // 0→1→2→3. Out: forward distances; In: reverse; All: undirected.
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    for m in [EccMode::Out, EccMode::In, EccMode::All] {
+        let rust = eccentricity_with_mode(&g, m).unwrap();
+        let py: Vec<u32> = serde_json::from_value(run_ok(
+            "eccentricity_with_mode",
+            &g,
+            serde_json::json!({"mode": mode_str(m)}),
+        ))
+        .expect("decode python eccentricity_with_mode");
+        assert_eq!(rust, py, "mode {m:?}");
+    }
+}
+
+#[test]
+fn radius_with_mode_directed_cycle_matches_python_igraph() {
+    // 0→1→2→0. Out / In / All all give radius.
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 0).unwrap();
+    for m in [EccMode::Out, EccMode::In, EccMode::All] {
+        let rust = radius_with_mode(&g, m).unwrap();
+        let py: Option<u32> = serde_json::from_value(run_ok(
+            "radius_with_mode",
+            &g,
+            serde_json::json!({"mode": mode_str(m)}),
+        ))
+        .expect("decode python radius_with_mode");
+        assert_eq!(rust, py, "mode {m:?}");
+    }
+}
+
+#[test]
+fn diameter_with_mode_directed_dag_matches_python_igraph() {
+    // 0→1, 0→2, 1→3, 2→3. DAG diamond.
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 3).unwrap();
+    g.add_edge(2, 3).unwrap();
+    for m in [EccMode::Out, EccMode::In, EccMode::All] {
+        let rust = diameter_with_mode(&g, m).unwrap();
+        let py: Option<u32> = serde_json::from_value(run_ok(
+            "diameter_with_mode",
+            &g,
+            serde_json::json!({"mode": mode_str(m)}),
+        ))
+        .expect("decode python diameter_with_mode");
+        assert_eq!(rust, py, "mode {m:?}");
+    }
 }

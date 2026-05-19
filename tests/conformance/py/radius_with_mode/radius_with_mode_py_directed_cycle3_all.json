@@ -1,0 +1,28 @@
+{
+  "source": "py",
+  "origin": "constructed: directed 3-cycle \u2014 ALL-mode radius = 1 (uniform K3)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "radius_with_mode",
+  "params": {
+    "mode": "all"
+  },
+  "expected": 1
+}

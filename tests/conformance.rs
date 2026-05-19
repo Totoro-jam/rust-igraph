@@ -1377,6 +1377,48 @@ fn difference_three_source_conformance() {
     });
 }
 
+fn ecc_mode_from_params(params: &serde_json::Value) -> rust_igraph::EccMode {
+    let s = params.get("mode").and_then(|v| v.as_str()).unwrap_or("out");
+    match s {
+        "in" => rust_igraph::EccMode::In,
+        "all" => rust_igraph::EccMode::All,
+        _ => rust_igraph::EccMode::Out,
+    }
+}
+
+#[test]
+fn eccentricity_with_mode_three_source_conformance() {
+    run_conformance("eccentricity_with_mode", |g, params| {
+        let mode = ecc_mode_from_params(params);
+        let ecc = rust_igraph::eccentricity_with_mode(g, mode).expect("eccentricity_with_mode");
+        serde_json::json!(ecc)
+    });
+}
+
+#[test]
+fn radius_with_mode_three_source_conformance() {
+    run_conformance("radius_with_mode", |g, params| {
+        let mode = ecc_mode_from_params(params);
+        let r = rust_igraph::radius_with_mode(g, mode).expect("radius_with_mode");
+        match r {
+            Some(n) => serde_json::json!(n),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
+fn diameter_with_mode_three_source_conformance() {
+    run_conformance("diameter_with_mode", |g, params| {
+        let mode = ecc_mode_from_params(params);
+        let d = rust_igraph::diameter_with_mode(g, mode).expect("diameter_with_mode");
+        match d {
+            Some(n) => serde_json::json!(n),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
 #[test]
 fn disjoint_union_many_three_source_conformance() {
     run_conformance("disjoint_union_many", |g, params| {

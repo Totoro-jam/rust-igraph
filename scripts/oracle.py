@@ -83,6 +83,38 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return int(g.diameter())
 
+    if algo == "eccentricity_with_mode":
+        # ALGO-SP-021. Counterpart of igraph_eccentricity(_, NULL_weights,
+        # _, igraph_vss_all(), mode). `mode` arrives as one of "out" /
+        # "in" / "all"; python-igraph accepts the same lowercase strings.
+        mode = params.get("mode", "out")
+        return [int(x) for x in g.eccentricity(mode=mode)]
+
+    if algo == "radius_with_mode":
+        # ALGO-SP-022. Counterpart of igraph_radius(_, NULL_weights, _, mode).
+        mode = params.get("mode", "out")
+        if g.vcount() == 0:
+            return None
+        return int(g.radius(mode=mode))
+
+    if algo == "diameter_with_mode":
+        # ALGO-SP-023. Counterpart of igraph_diameter(_, ..., mode, true).
+        # python-igraph's `Graph.diameter(directed=...)` toggles between
+        # IGRAPH_OUT (directed=True) and IGRAPH_ALL (directed=False); it
+        # has no IN mode. We map "out" → directed=True, "all" → directed
+        # =False. The "in" mode is computed by reversing the graph and
+        # running with directed=True (BFS along reversed edges == IN BFS
+        # on the original).
+        mode = params.get("mode", "out")
+        if g.vcount() == 0:
+            return None
+        if mode == "in" and g.is_directed():
+            rev_edges = [(t, s) for (s, t) in g.get_edgelist()]
+            rev = ig.Graph(n=g.vcount(), edges=rev_edges, directed=True)
+            return int(rev.diameter(directed=True, unconn=True))
+        directed_flag = mode == "out"
+        return int(g.diameter(directed=directed_flag, unconn=True))
+
     if algo == "assortativity_degree":
         # Counterpart of igraph_assortativity_degree(_, _, /*directed=*/false).
         # python-igraph returns NaN for regular graphs; we encode as None.

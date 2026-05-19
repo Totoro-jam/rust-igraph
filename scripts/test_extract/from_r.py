@@ -1161,6 +1161,51 @@ RAD_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ECC_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ecc_with_mode_R_directed_star_out",
+        # rigraph-style: directed out-star 0→1, 0→2, 0→3 under
+        # IGRAPH_OUT. Centre vertex 0 reaches every leaf at distance 1
+        # (ecc=1); leaves have no out-edges (ecc=0). Expected: [1,0,0,0].
+        "origin": "constructed (rigraph-style): directed out-star — OUT mode",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=True
+        ),
+        "algo": "eccentricity_with_mode",
+        "params": {"mode": "out"},
+        "expected": [1, 0, 0, 0],
+    },
+]
+
+RAD_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "radius_with_mode_R_directed_star_out",
+        # Same directed out-star — min ecc is 0 (any leaf has no
+        # out-edges).
+        "origin": "constructed (rigraph-style): directed out-star — OUT-mode min = 0",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=True
+        ),
+        "algo": "radius_with_mode",
+        "params": {"mode": "out"},
+        "expected": 0,
+    },
+]
+
+DIAM_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "diameter_with_mode_R_directed_star_out",
+        # Same directed out-star — max ecc is 1 (the centre's reach).
+        "origin": "constructed (rigraph-style): directed out-star — OUT-mode diam = 1",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=True
+        ),
+        "algo": "diameter_with_mode",
+        "params": {"mode": "out"},
+        "expected": 1,
+    },
+]
+
 GIRTH_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "girth_R_make_ring_100",
@@ -1270,8 +1315,11 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_biconnected": ISBI_MANIFEST,
     "girth": GIRTH_MANIFEST,
     "diameter": DIAM_MANIFEST,
+    "diameter_with_mode": DIAM_MODE_MANIFEST,
     "eccentricity": ECC_MANIFEST,
+    "eccentricity_with_mode": ECC_MODE_MANIFEST,
     "radius": RAD_MANIFEST,
+    "radius_with_mode": RAD_MODE_MANIFEST,
     "count_triangles": TRI_MANIFEST,
     "transitivity_undirected": TRANS_MANIFEST,
     "transitivity_local_undirected": LTRANS_MANIFEST,
