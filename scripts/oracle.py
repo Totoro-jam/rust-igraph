@@ -537,6 +537,63 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
                 out.append(f)
         return out
 
+    if algo == "dijkstra_distances_with_mode":
+        # Counterpart of igraph_distances_dijkstra(_, _, source,
+        # vss_all(), &weights, mode). python-igraph accepts mode as
+        # "out"/"in"/"all" lowercase strings on Graph.distances.
+        source = int(params["source"])
+        mode = str(params.get("mode", "out"))
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            rows = g.distances(source=source, weights="weight", mode=mode)
+        else:
+            rows = g.distances(source=source, mode=mode)
+        out = []
+        for v in rows[0]:
+            f = float(v)
+            out.append(None if f == float("inf") else f)
+        return out
+
+    if algo == "dijkstra_all_shortest_paths":
+        # Counterpart of igraph_get_all_shortest_paths_dijkstra(_, _, _,
+        # _, source, vss_all(), weights, mode). python-igraph
+        # exposes get_all_shortest_paths(v, weights=, mode=). Output:
+        # list of vertex paths (one entry per geodesic). We aggregate
+        # by target vertex for cross-impl comparison: nrgeo[v] = path
+        # count to v, distances[v] = sum-of-weights of any path to v.
+        source = int(params["source"])
+        mode = str(params.get("mode", "out"))
+        weights = (
+            list(g.es["weight"])
+            if g.ecount() > 0 and "weight" in g.edge_attributes()
+            else [1.0] * g.ecount()
+        )
+        try:
+            paths = g.get_all_shortest_paths(source, weights=weights, mode=mode)
+        except Exception:
+            paths = g.get_all_shortest_paths(source, mode=mode)
+        n = g.vcount()
+        nrgeo = [0] * n
+        # Distances row, used to sanity-check the path lengths and to
+        # include in the wire format alongside nrgeo.
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            rows = g.distances(source=source, weights="weight", mode=mode)
+        else:
+            rows = g.distances(source=source, mode=mode)
+        d = [None if float(v) == float("inf") else float(v) for v in rows[0]]
+        for p in paths:
+            if not p:
+                continue
+            target = int(p[-1])
+            nrgeo[target] += 1
+        # Source contributes one trivial geodesic to itself.
+        if d[source] is not None:
+            # python-igraph's get_all_shortest_paths returns at least
+            # one path for the source (just [source]); ensure nrgeo
+            # reflects that.
+            if nrgeo[source] == 0:
+                nrgeo[source] = 1
+        return {"distances": d, "nrgeo": nrgeo}
+
     if algo == "floyd_warshall_distances":
         # Counterpart of igraph_distances_floyd_warshall(_, _, vss_all,
         # vss_all, &weights, IGRAPH_OUT, AUTOMATIC). python-igraph

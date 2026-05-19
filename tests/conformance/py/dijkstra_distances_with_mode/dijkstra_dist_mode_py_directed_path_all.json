@@ -1,0 +1,32 @@
+{
+  "source": "py",
+  "origin": "constructed: directed P3 (1,2), ALL mode = undirected projection",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      1.0,
+      2.0
+    ]
+  },
+  "algo": "dijkstra_distances_with_mode",
+  "params": {
+    "source": 0,
+    "mode": "all"
+  },
+  "expected": [
+    0.0,
+    1.0,
+    3.0
+  ]
+}

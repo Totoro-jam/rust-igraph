@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): undirected P4, ALL mode (undirected)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      2.0,
+      3.0
+    ]
+  },
+  "algo": "dijkstra_distances_with_mode",
+  "params": {
+    "source": 0,
+    "mode": "all"
+  },
+  "expected": [
+    0.0,
+    1.0,
+    3.0,
+    6.0
+  ]
+}

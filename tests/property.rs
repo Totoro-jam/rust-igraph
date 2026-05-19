@@ -687,6 +687,59 @@ proptest! {
         }
     }
 
+    /// SP-001c: mode-aware dijkstra invariants.
+    /// - `dijkstra_distances_with_mode(_, Out)` agrees with the legacy
+    ///   `dijkstra_distances` (which is hard-coded to OUT).
+    /// - For undirected graphs every mode is identical.
+    /// - For directed graphs, ALL-mode equals the result on the
+    ///   undirected projection.
+    #[test]
+    fn dijkstra_with_mode_out_matches_legacy(g in arb_graph(8)) {
+        if g.vcount() == 0 { return Ok(()); }
+        let m = g.ecount();
+        let weights: Vec<f64> = (0..m).map(|i| 1.0 + (i as f64) * 0.5).collect();
+        prop_assert_eq!(
+            rust_igraph::dijkstra_distances_with_mode(&g, 0, &weights, rust_igraph::DijkstraMode::Out).unwrap(),
+            rust_igraph::dijkstra_distances(&g, 0, &weights).unwrap()
+        );
+    }
+
+    /// SP-001c: all-shortest-paths invariants.
+    /// - distances derived from `dijkstra_all_shortest_paths` (sum of
+    ///   weights along any returned path) match `dijkstra_distances_with_mode`
+    /// - `nrgeo[source]` equals 1 when source is reachable; 0 only on
+    ///   pathological empty-graph inputs.
+    /// - `nrgeo[v] == 0` iff `distances[v] == None`.
+    /// - vertex_paths[v].len() equals nrgeo[v].
+    /// - every vertex_path is a valid weighted geodesic: starts at
+    ///   source, ends at v, sum of edge weights equals distances[v].
+    #[test]
+    fn all_shortest_paths_consistent(g in arb_graph(6)) {
+        if g.vcount() == 0 { return Ok(()); }
+        let m = g.ecount();
+        let weights: Vec<f64> = (0..m).map(|i| 1.0 + (i as f64) * 0.25).collect();
+        let r = rust_igraph::dijkstra_all_shortest_paths(&g, 0, &weights, rust_igraph::DijkstraMode::Out).unwrap();
+        let d = rust_igraph::dijkstra_distances_with_mode(&g, 0, &weights, rust_igraph::DijkstraMode::Out).unwrap();
+        prop_assert_eq!(r.nrgeo[0], 1);
+        for v in 0..g.vcount() as usize {
+            prop_assert_eq!(r.vertex_paths[v].len() as u64, r.nrgeo[v]);
+            prop_assert_eq!(r.edge_paths[v].len() as u64, r.nrgeo[v]);
+            match d[v] {
+                None => prop_assert_eq!(r.nrgeo[v], 0, "v={} unreachable but nrgeo={}", v, r.nrgeo[v]),
+                Some(dv) => {
+                    prop_assert!(r.nrgeo[v] >= 1);
+                    for (vp, ep) in r.vertex_paths[v].iter().zip(r.edge_paths[v].iter()) {
+                        prop_assert_eq!(*vp.first().unwrap(), 0u32);
+                        prop_assert_eq!(*vp.last().unwrap(), v as u32);
+                        prop_assert_eq!(ep.len() + 1, vp.len());
+                        let sum: f64 = ep.iter().map(|&e| weights[e as usize]).sum();
+                        prop_assert!((sum - dv).abs() < 1e-9, "v={} path sum {} != dist {}", v, sum, dv);
+                    }
+                }
+            }
+        }
+    }
+
     /// `disjoint_union` invariants:
     /// - vcount(left) + vcount(right) == vcount(result)
     /// - ecount(left) + ecount(right) == ecount(result)

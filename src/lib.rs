@@ -65,8 +65,10 @@ pub use crate::algorithms::operators::intersection::intersection;
 pub use crate::algorithms::operators::simplify::simplify;
 pub use crate::algorithms::operators::union::union;
 pub use crate::algorithms::paths::dijkstra::{
-    DijkstraPaths, dijkstra_distances, dijkstra_distances_cutoff, dijkstra_distances_multi,
-    dijkstra_path_to, dijkstra_paths,
+    DijkstraAllPaths, DijkstraMode, DijkstraPaths, dijkstra_all_shortest_paths, dijkstra_distances,
+    dijkstra_distances_cutoff, dijkstra_distances_cutoff_with_mode, dijkstra_distances_multi,
+    dijkstra_distances_multi_with_mode, dijkstra_distances_with_mode, dijkstra_path_to,
+    dijkstra_path_to_with_mode, dijkstra_paths, dijkstra_paths_with_mode,
 };
 pub use crate::algorithms::paths::distances::distances;
 pub use crate::algorithms::paths::eulerian::{EulerianClassification, is_eulerian};

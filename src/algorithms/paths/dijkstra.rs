@@ -1,16 +1,21 @@
-//! Dijkstra single-source shortest distances + paths/parents/cutoff
-//! (ALGO-SP-001 / SP-001b).
+//! Dijkstra single-source shortest distances + paths/parents/cutoff +
+//! mode-aware variants + all-shortest-paths (ALGO-SP-001 / SP-001b /
+//! SP-001c).
 //!
 //! Counterparts of:
-//! - `igraph_distances_dijkstra()`         — `references/igraph/src/paths/dijkstra.c:322`
-//! - `igraph_distances_dijkstra_cutoff()`  — `references/igraph/src/paths/dijkstra.c:107`
-//! - `igraph_get_shortest_paths_dijkstra()`— `references/igraph/src/paths/dijkstra.c:412`
-//! - `igraph_get_shortest_path_dijkstra()` — `references/igraph/src/paths/dijkstra.c:689`
+//! - `igraph_distances_dijkstra()`              — `references/igraph/src/paths/dijkstra.c:322`
+//! - `igraph_distances_dijkstra_cutoff()`       — `references/igraph/src/paths/dijkstra.c:107`
+//! - `igraph_get_shortest_paths_dijkstra()`     — `references/igraph/src/paths/dijkstra.c:412`
+//! - `igraph_get_shortest_path_dijkstra()`      — `references/igraph/src/paths/dijkstra.c:689`
+//! - `igraph_get_all_shortest_paths_dijkstra()` — `references/igraph/src/paths/dijkstra.c:797`
 //!
-//! Phase-1 mode is `IGRAPH_OUT` only (on directed graphs we walk
-//! out-edges; on undirected graphs every mode collapses to ALL since
-//! `Graph::incident` merges the two adjacency views). `IN` and `ALL`
-//! plus all-shortest-paths ship later (SP-001c).
+//! Mode (SP-001c): on directed graphs the [`DijkstraMode`] parameter
+//! selects which adjacency the BFS follows (`Out` / `In` / `All`). The
+//! legacy entry points without `_with_mode` keep `Out` semantics
+//! (matches upstream defaults). For undirected graphs every mode is
+//! identical (every edge is bidirectional). The all-shortest-paths
+//! variant takes a `mode` parameter from the start because it didn't
+//! exist before SP-001c.
 //!
 //! All edge weights must be non-negative and not NaN; otherwise we
 //! return [`IgraphError::InvalidArgument`]. Edges of weight
@@ -48,6 +53,40 @@ impl Ord for Frontier {
 impl PartialOrd for Frontier {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+/// Direction selector for the mode-aware Dijkstra entry points
+/// (SP-001c). Counterpart of `igraph_neimode_t` restricted to the
+/// three values `igraph_distances_dijkstra` accepts. For undirected
+/// graphs every variant collapses to [`DijkstraMode::All`] (every
+/// edge is bidirectional).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DijkstraMode {
+    /// Follow outgoing edges (`IGRAPH_OUT`). Default for the legacy
+    /// entry points without `_with_mode`.
+    Out,
+    /// Follow incoming edges (`IGRAPH_IN`).
+    In,
+    /// Ignore direction — treat every edge as bidirectional
+    /// (`IGRAPH_ALL`).
+    All,
+}
+
+/// Per-vertex mode-aware incident edges. For undirected graphs every
+/// mode collapses to [`Graph::incident`]'s merged adjacency.
+fn incident_for_mode(graph: &Graph, v: VertexId, mode: DijkstraMode) -> IgraphResult<Vec<EdgeId>> {
+    if !graph.is_directed() {
+        return graph.incident(v);
+    }
+    match mode {
+        DijkstraMode::Out => graph.incident(v),
+        DijkstraMode::In => graph.incident_in(v),
+        DijkstraMode::All => {
+            let mut out = graph.incident(v)?;
+            out.extend(graph.incident_in(v)?);
+            Ok(out)
+        }
     }
 }
 
@@ -93,6 +132,7 @@ fn dijkstra_inner(
     weights: &[f64],
     cutoff: Option<f64>,
     record_inbound: bool,
+    mode: DijkstraMode,
 ) -> IgraphResult<(Vec<f64>, Vec<Option<EdgeId>>)> {
     let n = graph.vcount();
     let n_us = n as usize;
@@ -127,7 +167,7 @@ fn dijkstra_inner(
         }
         visited[v_us] = true;
 
-        for eid in graph.incident(v)? {
+        for eid in incident_for_mode(graph, v, mode)? {
             let w = weights[eid as usize];
             if !w.is_finite() {
                 continue;
@@ -184,7 +224,7 @@ pub fn dijkstra_distances(
     weights: &[f64],
 ) -> IgraphResult<Vec<Option<f64>>> {
     validate_weights(graph, weights)?;
-    let (dist, _) = dijkstra_inner(graph, &[source], weights, None, false)?;
+    let (dist, _) = dijkstra_inner(graph, &[source], weights, None, false, DijkstraMode::Out)?;
     Ok(dist_vec_to_options(dist))
 }
 
@@ -243,7 +283,7 @@ pub fn dijkstra_paths(
     weights: &[f64],
 ) -> IgraphResult<DijkstraPaths> {
     validate_weights(graph, weights)?;
-    let (dist, inbound) = dijkstra_inner(graph, &[source], weights, None, true)?;
+    let (dist, inbound) = dijkstra_inner(graph, &[source], weights, None, true, DijkstraMode::Out)?;
     let mut parents = vec![None; graph.vcount() as usize];
     for v in 0..graph.vcount() {
         if let Some(eid) = inbound[v as usize] {
@@ -332,7 +372,7 @@ pub fn dijkstra_distances_cutoff(
             return Err(IgraphError::InvalidArgument("cutoff is NaN".into()));
         }
     }
-    let (dist, _) = dijkstra_inner(graph, &[source], weights, cutoff, false)?;
+    let (dist, _) = dijkstra_inner(graph, &[source], weights, cutoff, false, DijkstraMode::Out)?;
     let mut out = dist_vec_to_options(dist);
     if let Some(c) = cutoff {
         // The relax loop already prunes outgoing edges past `c`, but a
@@ -376,6 +416,354 @@ pub fn dijkstra_distances_multi(
         out.push(dijkstra_distances_cutoff(graph, s, weights, cutoff)?);
     }
     Ok(out)
+}
+
+// ---------------------------------------------------------------
+// SP-001c: mode-aware variants of every SP-001/SP-001b entry point.
+// On undirected graphs every mode behaves identically (matches
+// upstream — every edge is bidirectional).
+// ---------------------------------------------------------------
+
+/// Mode-aware Dijkstra distances. Counterpart of
+/// `igraph_distances_dijkstra(_, _, source, vss_all(), weights, mode)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, dijkstra_distances_with_mode, DijkstraMode};
+///
+/// // Directed path 0→1→2: OUT reaches forward, IN reaches backward,
+/// // ALL collapses to undirected.
+/// let mut g = Graph::new(3, true).unwrap();
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let w = [1.0, 2.0];
+/// assert_eq!(
+///     dijkstra_distances_with_mode(&g, 0, &w, DijkstraMode::Out).unwrap(),
+///     vec![Some(0.0), Some(1.0), Some(3.0)]
+/// );
+/// assert_eq!(
+///     dijkstra_distances_with_mode(&g, 0, &w, DijkstraMode::In).unwrap(),
+///     vec![Some(0.0), None, None]
+/// );
+/// ```
+pub fn dijkstra_distances_with_mode(
+    graph: &Graph,
+    source: VertexId,
+    weights: &[f64],
+    mode: DijkstraMode,
+) -> IgraphResult<Vec<Option<f64>>> {
+    validate_weights(graph, weights)?;
+    let (dist, _) = dijkstra_inner(graph, &[source], weights, None, false, mode)?;
+    Ok(dist_vec_to_options(dist))
+}
+
+/// Mode-aware [`dijkstra_paths`]. Counterpart of
+/// `igraph_get_shortest_paths_dijkstra(_, _, _, source, vss_all(), weights, mode, parents, inbound_edges)`.
+pub fn dijkstra_paths_with_mode(
+    graph: &Graph,
+    source: VertexId,
+    weights: &[f64],
+    mode: DijkstraMode,
+) -> IgraphResult<DijkstraPaths> {
+    validate_weights(graph, weights)?;
+    let (dist, inbound) = dijkstra_inner(graph, &[source], weights, None, true, mode)?;
+    let mut parents = vec![None; graph.vcount() as usize];
+    for v in 0..graph.vcount() {
+        if let Some(eid) = inbound[v as usize] {
+            let other = graph.edge_other(eid, v)?;
+            parents[v as usize] = Some(other);
+        }
+    }
+    Ok(DijkstraPaths {
+        distances: dist_vec_to_options(dist),
+        parents,
+        inbound_edges: inbound,
+    })
+}
+
+/// Mode-aware [`dijkstra_path_to`]. Counterpart of
+/// `igraph_get_shortest_path_dijkstra(_, _, _, source, target, weights, mode)`.
+pub fn dijkstra_path_to_with_mode(
+    graph: &Graph,
+    source: VertexId,
+    target: VertexId,
+    weights: &[f64],
+    mode: DijkstraMode,
+) -> IgraphResult<Option<(Vec<VertexId>, Vec<EdgeId>)>> {
+    let n = graph.vcount();
+    if target >= n {
+        return Err(IgraphError::VertexOutOfRange { id: target, n });
+    }
+    let p = dijkstra_paths_with_mode(graph, source, weights, mode)?;
+    if p.distances[target as usize].is_none() {
+        return Ok(None);
+    }
+    let mut vs = Vec::new();
+    let mut es = Vec::new();
+    let mut cur = target;
+    while let Some(eid) = p.inbound_edges[cur as usize] {
+        es.push(eid);
+        let parent = p.parents[cur as usize].expect("inbound edge implies parent exists");
+        vs.push(cur);
+        cur = parent;
+    }
+    vs.push(cur);
+    vs.reverse();
+    es.reverse();
+    Ok(Some((vs, es)))
+}
+
+/// Mode-aware [`dijkstra_distances_cutoff`]. Counterpart of
+/// `igraph_distances_dijkstra_cutoff(_, _, source, vss_all(), weights, mode, cutoff)`.
+pub fn dijkstra_distances_cutoff_with_mode(
+    graph: &Graph,
+    source: VertexId,
+    weights: &[f64],
+    cutoff: Option<f64>,
+    mode: DijkstraMode,
+) -> IgraphResult<Vec<Option<f64>>> {
+    validate_weights(graph, weights)?;
+    if let Some(c) = cutoff {
+        if c.is_nan() {
+            return Err(IgraphError::InvalidArgument("cutoff is NaN".into()));
+        }
+    }
+    let (dist, _) = dijkstra_inner(graph, &[source], weights, cutoff, false, mode)?;
+    let mut out = dist_vec_to_options(dist);
+    if let Some(c) = cutoff {
+        for d in &mut out {
+            if let Some(v) = *d {
+                if v > c {
+                    *d = None;
+                }
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// Mode-aware [`dijkstra_distances_multi`].
+pub fn dijkstra_distances_multi_with_mode(
+    graph: &Graph,
+    sources: &[VertexId],
+    weights: &[f64],
+    cutoff: Option<f64>,
+    mode: DijkstraMode,
+) -> IgraphResult<Vec<Vec<Option<f64>>>> {
+    validate_weights(graph, weights)?;
+    if let Some(c) = cutoff {
+        if c.is_nan() {
+            return Err(IgraphError::InvalidArgument("cutoff is NaN".into()));
+        }
+    }
+    let mut out = Vec::with_capacity(sources.len());
+    for &s in sources {
+        out.push(dijkstra_distances_cutoff_with_mode(
+            graph, s, weights, cutoff, mode,
+        )?);
+    }
+    Ok(out)
+}
+
+// ---------------------------------------------------------------
+// SP-001c: all-shortest-paths Dijkstra. Multiple parents per vertex
+// (DAG of equal-cost predecessors) + count of geodesics (`nrgeo`).
+// ---------------------------------------------------------------
+
+/// Output of [`dijkstra_all_shortest_paths`].
+#[derive(Debug, Clone, PartialEq)]
+pub struct DijkstraAllPaths {
+    /// `vertex_paths[v]` = every shortest source→v path as a vertex
+    /// chain (including source and v). Empty for unreachable v;
+    /// always `[[source]]` for v == source.
+    pub vertex_paths: Vec<Vec<Vec<VertexId>>>,
+    /// `edge_paths[v]` mirrors [`vertex_paths`] but with edge ids
+    /// (length one less than the matching vertex chain). Empty for
+    /// unreachable v; `[[]]` for v == source.
+    pub edge_paths: Vec<Vec<Vec<EdgeId>>>,
+    /// `nrgeo[v]` = number of distinct shortest paths from source to
+    /// v. Zero for unreachable, one for the source itself.
+    pub nrgeo: Vec<u64>,
+}
+
+/// Tie-tolerant comparison of two distances. Mirrors upstream's
+/// `igraph_cmp_epsilon(a, b, eps)` which returns `sign(a − b)` modulo
+/// the epsilon band (positive if `a > b`, zero within epsilon,
+/// negative if `a < b`).
+fn cmp_eps(a: f64, b: f64) -> i32 {
+    const EPS: f64 = 1e-10; // `IGRAPH_SHORTEST_PATH_EPSILON`
+    if !a.is_finite() || !b.is_finite() {
+        // Treat infinities deterministically: only equal if both are
+        // identical bit-patterns (both +inf, both -inf, or both NaN —
+        // NaN can't appear here because validate_weights rejects it).
+        return match a.total_cmp(&b) {
+            Ordering::Equal => 0,
+            Ordering::Greater => 1,
+            Ordering::Less => -1,
+        };
+    }
+    let scale = a.abs().max(b.abs()).max(1.0);
+    let diff = a - b;
+    if diff.abs() <= EPS * scale {
+        0
+    } else if diff > 0.0 {
+        1
+    } else {
+        -1
+    }
+}
+
+/// All shortest weighted paths from `source` to every vertex,
+/// preserving every tie. Counterpart of
+/// `igraph_get_all_shortest_paths_dijkstra(_, _, _, _, source, vss_all(), weights, mode)`.
+///
+/// Mirrors upstream's tie handling: equal-cost alternative paths are
+/// recorded only when the connecting edge has non-zero weight (avoids
+/// infinite loops via 0-weight edges in undirected graphs). On
+/// undirected graphs every mode behaves identically.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, dijkstra_all_shortest_paths, DijkstraMode};
+///
+/// // Diamond 0-1-3 and 0-2-3, all weight 1: two distinct shortest
+/// // paths to vertex 3.
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(1, 3).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// let r = dijkstra_all_shortest_paths(&g, 0, &[1.0, 1.0, 1.0, 1.0], DijkstraMode::Out)
+///     .unwrap();
+/// assert_eq!(r.nrgeo, vec![1, 1, 1, 2]);
+/// assert_eq!(r.vertex_paths[3].len(), 2); // {0,1,3} and {0,2,3}
+/// ```
+pub fn dijkstra_all_shortest_paths(
+    graph: &Graph,
+    source: VertexId,
+    weights: &[f64],
+    mode: DijkstraMode,
+) -> IgraphResult<DijkstraAllPaths> {
+    let n = graph.vcount();
+    if source >= n {
+        return Err(IgraphError::VertexOutOfRange { id: source, n });
+    }
+    validate_weights(graph, weights)?;
+
+    let n_us = n as usize;
+    let mut dist = vec![f64::INFINITY; n_us];
+    // For each vertex: parent (predecessor) vertices in the shortest
+    // path DAG, plus the matching edge ids. Tracked separately so that
+    // a "shorter path found" event can clear both atomically.
+    let mut parents: Vec<Vec<VertexId>> = vec![Vec::new(); n_us];
+    let mut parent_eids: Vec<Vec<EdgeId>> = vec![Vec::new(); n_us];
+    // Order in which vertices were *settled* (popped from the heap with
+    // their final distance). Used as a topological order to compute
+    // `nrgeo` in linear time after the BFS.
+    let mut order: Vec<VertexId> = Vec::new();
+    let mut visited = vec![false; n_us];
+
+    let mut heap: BinaryHeap<Frontier> = BinaryHeap::new();
+    dist[source as usize] = 0.0;
+    heap.push(Frontier(0.0, source));
+
+    while let Some(Frontier(d, v)) = heap.pop() {
+        let v_us = v as usize;
+        if visited[v_us] {
+            continue;
+        }
+        visited[v_us] = true;
+        order.push(v);
+
+        for eid in incident_for_mode(graph, v, mode)? {
+            let w = weights[eid as usize];
+            if !w.is_finite() {
+                continue;
+            }
+            let other = graph.edge_other(eid as EdgeId, v)?;
+            let altdist = d + w;
+            let curdist = dist[other as usize];
+            let cmp = cmp_eps(curdist, altdist);
+            if curdist.is_infinite() {
+                // First time we reach `other`.
+                dist[other as usize] = altdist;
+                parents[other as usize].clear();
+                parents[other as usize].push(v);
+                parent_eids[other as usize].clear();
+                parent_eids[other as usize].push(eid);
+                heap.push(Frontier(altdist, other));
+            } else if cmp == 0 && w > 0.0 {
+                // Equal-cost alternative — record only if the
+                // connecting edge has positive weight (mirrors upstream's
+                // zero-weight loop guard).
+                parents[other as usize].push(v);
+                parent_eids[other as usize].push(eid);
+            } else if cmp > 0 {
+                // Strictly shorter — replace existing parents.
+                dist[other as usize] = altdist;
+                parents[other as usize].clear();
+                parents[other as usize].push(v);
+                parent_eids[other as usize].clear();
+                parent_eids[other as usize].push(eid);
+                heap.push(Frontier(altdist, other));
+            }
+        }
+    }
+
+    // Number of geodesics: source = 1; otherwise sum over parents.
+    // We process vertices in heap-settle order to ensure parents are
+    // counted before children.
+    let mut nrgeo: Vec<u64> = vec![0; n_us];
+    if dist[source as usize].is_finite() {
+        nrgeo[source as usize] = 1;
+    }
+    for &v in order.iter().skip(1) {
+        let mut acc: u64 = 0;
+        for &p in &parents[v as usize] {
+            acc = acc.saturating_add(nrgeo[p as usize]);
+        }
+        nrgeo[v as usize] = acc;
+    }
+
+    // Reconstruct vertex/edge paths by depth-first enumeration through
+    // the predecessor DAG. For each target v we walk every distinct
+    // chain source → ... → v and emit it.
+    let mut vertex_paths: Vec<Vec<Vec<VertexId>>> = vec![Vec::new(); n_us];
+    let mut edge_paths: Vec<Vec<Vec<EdgeId>>> = vec![Vec::new(); n_us];
+    if dist[source as usize].is_finite() {
+        vertex_paths[source as usize].push(vec![source]);
+        edge_paths[source as usize].push(Vec::new());
+    }
+    // Walk vertices in `order` (distance-ascending). For each non-source
+    // settled vertex, build its paths by extending each parent's paths.
+    for &v in order.iter().skip(1) {
+        let v_us = v as usize;
+        let parent_count = parents[v_us].len();
+        for i in 0..parent_count {
+            let p = parents[v_us][i];
+            let e = parent_eids[v_us][i];
+            // Snapshot lengths so we don't iterate over freshly pushed
+            // paths if `p == v_us` somehow; that shouldn't happen but
+            // it's cheap insurance.
+            let par_paths_len = vertex_paths[p as usize].len();
+            for j in 0..par_paths_len {
+                let mut vp = vertex_paths[p as usize][j].clone();
+                vp.push(v);
+                vertex_paths[v_us].push(vp);
+                let mut ep = edge_paths[p as usize][j].clone();
+                ep.push(e);
+                edge_paths[v_us].push(ep);
+            }
+        }
+    }
+
+    Ok(DijkstraAllPaths {
+        vertex_paths,
+        edge_paths,
+        nrgeo,
+    })
 }
 
 #[cfg(test)]
@@ -628,5 +1016,177 @@ mod tests {
     fn multi_source_invalid_vertex_errors() {
         let (g, w) = shortcut_triangle();
         assert!(dijkstra_distances_multi(&g, &[0, 99], &w, None).is_err());
+    }
+
+    // ---- SP-001c: mode-aware + all-shortest-paths -----------------------
+
+    fn directed_path_3() -> (Graph, Vec<f64>) {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        (g, vec![1.0, 2.0])
+    }
+
+    #[test]
+    fn legacy_apis_match_with_mode_out() {
+        let (g, w) = shortcut_triangle();
+        assert_eq!(
+            dijkstra_distances(&g, 0, &w).unwrap(),
+            dijkstra_distances_with_mode(&g, 0, &w, DijkstraMode::Out).unwrap()
+        );
+        let p = dijkstra_paths(&g, 0, &w).unwrap();
+        let pm = dijkstra_paths_with_mode(&g, 0, &w, DijkstraMode::Out).unwrap();
+        assert_eq!(p, pm);
+    }
+
+    #[test]
+    fn directed_path_in_mode_reverses_reachability() {
+        let (g, w) = directed_path_3();
+        // OUT: from 0, reaches forward.
+        assert_eq!(
+            dijkstra_distances_with_mode(&g, 0, &w, DijkstraMode::Out).unwrap(),
+            vec![Some(0.0), Some(1.0), Some(3.0)]
+        );
+        // IN: from 0, no incoming edges so nothing else reachable.
+        assert_eq!(
+            dijkstra_distances_with_mode(&g, 0, &w, DijkstraMode::In).unwrap(),
+            vec![Some(0.0), None, None]
+        );
+        // ALL: undirected — vertex 2 reaches 0 too.
+        assert_eq!(
+            dijkstra_distances_with_mode(&g, 2, &w, DijkstraMode::All).unwrap(),
+            vec![Some(3.0), Some(2.0), Some(0.0)]
+        );
+    }
+
+    #[test]
+    fn undirected_modes_agree() {
+        let (g, w) = shortcut_triangle();
+        for m in [DijkstraMode::Out, DijkstraMode::In, DijkstraMode::All] {
+            assert_eq!(
+                dijkstra_distances_with_mode(&g, 0, &w, m).unwrap(),
+                vec![Some(0.0), Some(1.0), Some(3.0)],
+                "mode {m:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn paths_with_mode_in_records_reverse_parents() {
+        let (g, w) = directed_path_3();
+        // IN-mode SPT from vertex 2: parents[1]=2, parents[0]=1.
+        let p = dijkstra_paths_with_mode(&g, 2, &w, DijkstraMode::In).unwrap();
+        assert_eq!(p.distances, vec![Some(3.0), Some(2.0), Some(0.0)]);
+        assert_eq!(p.parents[2], None);
+        assert_eq!(p.parents[1], Some(2));
+        assert_eq!(p.parents[0], Some(1));
+    }
+
+    #[test]
+    fn path_to_with_mode_directed_in() {
+        let (g, w) = directed_path_3();
+        let (vs, es) = dijkstra_path_to_with_mode(&g, 2, 0, &w, DijkstraMode::In)
+            .unwrap()
+            .unwrap();
+        assert_eq!(vs, vec![2, 1, 0]);
+        assert_eq!(es, vec![1, 0]);
+    }
+
+    #[test]
+    fn path_to_with_mode_unreachable_via_out() {
+        let (g, w) = directed_path_3();
+        // OUT from 2: nothing else reachable (sink).
+        assert_eq!(
+            dijkstra_path_to_with_mode(&g, 2, 0, &w, DijkstraMode::Out).unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn cutoff_with_mode_masks_above() {
+        let (g, w) = directed_path_3();
+        let d =
+            dijkstra_distances_cutoff_with_mode(&g, 0, &w, Some(1.5), DijkstraMode::Out).unwrap();
+        assert_eq!(d, vec![Some(0.0), Some(1.0), None]);
+    }
+
+    #[test]
+    fn multi_with_mode_sources_independent() {
+        let (g, w) = directed_path_3();
+        let r =
+            dijkstra_distances_multi_with_mode(&g, &[0, 2], &w, None, DijkstraMode::All).unwrap();
+        assert_eq!(r[0], vec![Some(0.0), Some(1.0), Some(3.0)]);
+        assert_eq!(r[1], vec![Some(3.0), Some(2.0), Some(0.0)]);
+    }
+
+    // ---- SP-001c: all-shortest-paths -------------------
+
+    #[test]
+    fn all_paths_diamond_yields_two_geodesics() {
+        // 0-1-3 and 0-2-3, all weight 1: two distinct shortest paths
+        // to vertex 3.
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap(); // edge 0
+        g.add_edge(0, 2).unwrap(); // edge 1
+        g.add_edge(1, 3).unwrap(); // edge 2
+        g.add_edge(2, 3).unwrap(); // edge 3
+        let r = dijkstra_all_shortest_paths(&g, 0, &[1.0; 4], DijkstraMode::Out).unwrap();
+        assert_eq!(r.nrgeo, vec![1, 1, 1, 2]);
+        assert_eq!(r.vertex_paths[0], vec![vec![0]]);
+        assert_eq!(r.edge_paths[0], vec![Vec::<EdgeId>::new()]);
+        assert_eq!(r.vertex_paths[3].len(), 2);
+        let mut paths: Vec<Vec<u32>> = r.vertex_paths[3].clone();
+        paths.sort();
+        assert_eq!(paths, vec![vec![0, 1, 3], vec![0, 2, 3]]);
+    }
+
+    #[test]
+    fn all_paths_unique_returns_single_chain() {
+        let (g, w) = shortcut_triangle();
+        let r = dijkstra_all_shortest_paths(&g, 0, &w, DijkstraMode::Out).unwrap();
+        assert_eq!(r.nrgeo, vec![1, 1, 1]);
+        assert_eq!(r.vertex_paths[2], vec![vec![0, 1, 2]]);
+        assert_eq!(r.edge_paths[2], vec![vec![0, 2]]);
+    }
+
+    #[test]
+    fn all_paths_unreachable_emits_empty() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        let r = dijkstra_all_shortest_paths(&g, 0, &[1.0], DijkstraMode::Out).unwrap();
+        assert_eq!(r.nrgeo, vec![1, 1, 0]);
+        assert!(r.vertex_paths[2].is_empty());
+        assert!(r.edge_paths[2].is_empty());
+    }
+
+    #[test]
+    fn all_paths_directed_in_mode() {
+        let (g, w) = directed_path_3();
+        let r = dijkstra_all_shortest_paths(&g, 2, &w, DijkstraMode::In).unwrap();
+        assert_eq!(r.nrgeo, vec![1, 1, 1]);
+        assert_eq!(r.vertex_paths[0], vec![vec![2, 1, 0]]);
+        assert_eq!(r.edge_paths[0], vec![vec![1, 0]]);
+    }
+
+    #[test]
+    fn all_paths_invalid_source_errors() {
+        let (g, _) = shortcut_triangle();
+        assert!(dijkstra_all_shortest_paths(&g, 99, &[1.0; 3], DijkstraMode::Out).is_err());
+    }
+
+    #[test]
+    fn all_paths_zero_weight_alt_is_dropped_by_guard() {
+        // Triangle with one zero-weight edge (1→2). Upstream's
+        // alt-equal-paths branch only fires when the *connecting* edge
+        // has positive weight. So the alt path 0→1→2 (cost 1+0=1)
+        // ties the direct 0→2 (cost 1) but is *not* recorded — the
+        // 1→2 hop has weight 0. We end up with the direct edge only.
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap(); // edge 0, weight 1
+        g.add_edge(1, 2).unwrap(); // edge 1, weight 0
+        g.add_edge(0, 2).unwrap(); // edge 2, weight 1
+        let r = dijkstra_all_shortest_paths(&g, 0, &[1.0, 0.0, 1.0], DijkstraMode::Out).unwrap();
+        assert_eq!(r.nrgeo[2], 1);
+        assert_eq!(r.vertex_paths[2], vec![vec![0, 2]]);
     }
 }

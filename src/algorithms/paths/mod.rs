@@ -13,8 +13,10 @@ pub(crate) mod floyd_warshall;
 pub(crate) mod radii;
 
 pub use dijkstra::{
-    DijkstraPaths, dijkstra_distances, dijkstra_distances_cutoff, dijkstra_distances_multi,
-    dijkstra_path_to, dijkstra_paths,
+    DijkstraAllPaths, DijkstraMode, DijkstraPaths, dijkstra_all_shortest_paths, dijkstra_distances,
+    dijkstra_distances_cutoff, dijkstra_distances_cutoff_with_mode, dijkstra_distances_multi,
+    dijkstra_distances_multi_with_mode, dijkstra_distances_with_mode, dijkstra_path_to,
+    dijkstra_path_to_with_mode, dijkstra_paths, dijkstra_paths_with_mode,
 };
 pub use distances::distances;
 pub use eulerian::{EulerianClassification, is_eulerian};

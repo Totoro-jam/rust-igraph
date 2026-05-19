@@ -1,0 +1,41 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): two disjoint edges; vertex 2 unreachable",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      2.5
+    ]
+  },
+  "algo": "dijkstra_all_shortest_paths",
+  "params": {
+    "source": 0,
+    "mode": "out"
+  },
+  "expected": {
+    "distances": [
+      0.0,
+      1.0,
+      null,
+      null
+    ],
+    "nrgeo": [
+      1,
+      1,
+      0,
+      0
+    ]
+  }
+}

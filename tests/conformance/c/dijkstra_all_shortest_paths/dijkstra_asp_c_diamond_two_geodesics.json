@@ -1,0 +1,51 @@
+{
+  "source": "c",
+  "origin": "constructed: diamond unit weights, two geodesics to 3",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "dijkstra_all_shortest_paths",
+  "params": {
+    "source": 0,
+    "mode": "out"
+  },
+  "expected": {
+    "distances": [
+      0.0,
+      1.0,
+      1.0,
+      2.0
+    ],
+    "nrgeo": [
+      1,
+      1,
+      1,
+      2
+    ]
+  }
+}

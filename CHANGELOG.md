@@ -22,6 +22,53 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-001c**: Dijkstra IN/ALL mode plus all-shortest-paths.
+  Adds the [`DijkstraMode`] enum (`Out` / `In` / `All`), the
+  `incident_for_mode` private helper that selects per-vertex
+  incident-edge lists by mode (with a new `pub(crate)` `Graph::incident_in`
+  for in-incident edge ids on directed graphs), and six new public
+  items in `src/algorithms/paths/dijkstra.rs`:
+  - `dijkstra_distances_with_mode`,
+  - `dijkstra_paths_with_mode`,
+  - `dijkstra_path_to_with_mode`,
+  - `dijkstra_distances_cutoff_with_mode`,
+  - `dijkstra_distances_multi_with_mode`,
+  - `dijkstra_all_shortest_paths(graph, source, weights, mode) ->
+    DijkstraAllPaths`.
+
+  `DijkstraAllPaths { vertex_paths, edge_paths, nrgeo }` carries
+  every distinct shortest source→v path (vertex chain + parallel
+  edge chain) plus `nrgeo[v]` = the geodesic count. Tie detection
+  uses an internal `cmp_eps` helper mirroring upstream's
+  `igraph_cmp_epsilon` (epsilon 1e-10, scale-relative). Equal-cost
+  alternative paths are recorded only when the *connecting edge has
+  positive weight* — matches upstream's zero-weight loop guard
+  (avoids infinite enumeration through 0-weight edges in undirected
+  graphs). `nrgeo` is computed in heap-settle topological order in
+  linear time after the BFS. Path reconstruction is a depth-first
+  enumeration through the predecessor DAG; output ordering is
+  heap-dependent and not stable across impls — conformance
+  comparisons cover `distances` + `nrgeo` only.
+
+  Mode is threaded through the existing `dijkstra_inner` helper, so
+  the legacy `dijkstra_distances` / `dijkstra_paths` /
+  `dijkstra_path_to` / `dijkstra_distances_cutoff` /
+  `dijkstra_distances_multi` continue to behave identically (they
+  delegate with `DijkstraMode::Out`). For undirected graphs every
+  mode collapses to ALL (every edge is bidirectional). 14 new unit
+  tests (mode-default agreement; directed P3 IN/ALL reachability;
+  undirected modes agree; paths_with_mode IN parents; path_to_with_mode
+  unreachable via OUT; cutoff_with_mode mask; multi_with_mode rows;
+  diamond all-paths two geodesics; unique chain single path;
+  unreachable empty paths; directed IN all-paths; invalid source
+  errors; zero-weight guard drops alt path), 2 new doctests
+  (`dijkstra_distances_with_mode`, `dijkstra_all_shortest_paths`),
+  3 new oracle tests vs python-igraph (directed IN distances; ALL
+  distances; diamond all-paths nrgeo), 6 three-source conformance
+  fixtures (2 algos × C/py/R), 2 new proptest invariants
+  (`dijkstra_distances_with_mode(_, Out) ≡ dijkstra_distances`;
+  `dijkstra_all_shortest_paths` consistency: nrgeo[source]=1, every
+  emitted path is a valid weighted geodesic of length distances[v]).
 - *(paths)* **ALGO-SP-001b**: Dijkstra paths / parents / cutoff /
   multi-source. Adds four public items to
   `src/algorithms/paths/dijkstra.rs` on top of the existing SP-001

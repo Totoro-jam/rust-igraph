@@ -611,6 +611,43 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-001c: mode-aware distances variant. IN-mode reverses
+# reachability on directed graphs.
+DIJKSTRA_DIST_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_dist_mode_c_directed_path_in",
+        # Directed path 0→1→2 with weights (1, 2). IN-mode from 2:
+        # 2 reaches 1 (cost 2) and 0 (cost 3) by walking edges in reverse.
+        "origin": "constructed: directed P3 (1,2), IN mode from sink",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "graph_weights": [1.0, 2.0],
+        "algo": "dijkstra_distances_with_mode",
+        "params": {"source": 2, "mode": "in"},
+        "expected": [3.0, 2.0, 0.0],
+    },
+]
+
+# ALGO-SP-001c: all-shortest-paths variant. The expected payload
+# carries `distances` and `nrgeo` (path counts) — path enumeration
+# itself is order-dependent and not checked.
+DIJKSTRA_ASP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_asp_c_diamond_two_geodesics",
+        # Diamond 0-1-3 / 0-2-3, all weights 1: 2 distinct shortest
+        # paths to vertex 3.
+        "origin": "constructed: diamond unit weights, two geodesics to 3",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 1.0],
+        "algo": "dijkstra_all_shortest_paths",
+        "params": {"source": 0, "mode": "out"},
+        "expected": {"distances": [0.0, 1.0, 1.0, 2.0], "nrgeo": [1, 1, 1, 2]},
+    },
+]
+
 MODULARITY_DIR_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_directed_c_two_triangles_bridge",
@@ -1518,6 +1555,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_paths": DIJKSTRA_PATHS_MANIFEST,
     "dijkstra_path_to": DIJKSTRA_PATH_TO_MANIFEST,
     "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
+    "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
+    "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,

@@ -315,6 +315,23 @@ impl Graph {
         }
     }
 
+    /// Companion to [`incident`](Self::incident): returns *only* the
+    /// edges incoming to `v` for directed graphs. For undirected
+    /// graphs the result is identical to `incident` (every edge is
+    /// bidirectional).
+    ///
+    /// Counterpart of `igraph_incident(_, _, v, IGRAPH_IN, IGRAPH_LOOPS_TWICE)`.
+    pub(crate) fn incident_in(&self, v: VertexId) -> IgraphResult<Vec<EdgeId>> {
+        self.check_vertex(v)?;
+        let v_idx = v as usize;
+        if self.directed {
+            let in_range = self.is[v_idx] as usize..self.is[v_idx + 1] as usize;
+            Ok(self.ii[in_range].to_vec())
+        } else {
+            self.incident(v)
+        }
+    }
+
     /// Edge id between `from` and `to`, if any.
     ///
     /// On undirected graphs `(u, v)` and `(v, u)` are equivalent.

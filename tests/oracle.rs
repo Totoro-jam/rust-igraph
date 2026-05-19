@@ -11,16 +11,17 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
-    CorenessMode, EccMode, Graph, ReciprocityMode, SimpleMode, articulation_points,
+    CorenessMode, DijkstraMode, EccMode, Graph, ReciprocityMode, SimpleMode, articulation_points,
     assortativity_degree, assortativity_degree_directed, assortativity_degree_weighted,
     avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, betweenness,
     betweenness_weighted, bfs, biconnected_components, bridges, closeness, closeness_weighted,
     complementer, connected_components, coreness, coreness_with_mode, count_reachable,
     count_triangles, decompose, density, dfs, diameter, diameter_with_mode, difference,
-    dijkstra_distances, dijkstra_distances_cutoff, dijkstra_path_to, dijkstra_paths,
-    disjoint_union, disjoint_union_many, distances, eccentricity, eccentricity_with_mode,
-    edge_betweenness, edge_betweenness_weighted, eigenvector_centrality, floyd_warshall_distances,
-    girth, harmonic_centrality, harmonic_centrality_weighted, has_loop, has_multiple, intersection,
+    dijkstra_all_shortest_paths, dijkstra_distances, dijkstra_distances_cutoff,
+    dijkstra_distances_with_mode, dijkstra_path_to, dijkstra_paths, disjoint_union,
+    disjoint_union_many, distances, eccentricity, eccentricity_with_mode, edge_betweenness,
+    edge_betweenness_weighted, eigenvector_centrality, floyd_warshall_distances, girth,
+    harmonic_centrality, harmonic_centrality_weighted, has_loop, has_multiple, intersection,
     is_biconnected, is_loop, is_multiple, is_simple, is_simple_with_mode, knnk, knnk_weighted,
     mean_distance, modularity, modularity_directed, modularity_weighted, pagerank,
     pagerank_weighted, radius, radius_with_mode, reachability_matrix, read_edgelist, reciprocity,
@@ -1621,6 +1622,70 @@ fn dijkstra_distances_cutoff_matches_python_igraph() {
     ))
     .expect("decode python dijkstra_distances_cutoff");
     assert_dist_vec_close(&rust, &py);
+}
+
+// ---- ALGO-SP-001c: mode-aware + all-shortest-paths oracle tests ---------
+
+#[test]
+fn dijkstra_distances_with_mode_in_matches_python_igraph() {
+    // Directed path 0→1→2: IN-mode from vertex 2 reaches the source.
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 2.0];
+    let rust = dijkstra_distances_with_mode(&g, 2, &weights, DijkstraMode::In).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "dijkstra_distances_with_mode",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 2, "mode": "in"}),
+    ))
+    .expect("decode python dijkstra_distances_with_mode");
+    assert_dist_vec_close(&rust, &py);
+}
+
+#[test]
+fn dijkstra_distances_with_mode_all_matches_python_igraph() {
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 2.0];
+    let rust = dijkstra_distances_with_mode(&g, 2, &weights, DijkstraMode::All).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "dijkstra_distances_with_mode",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 2, "mode": "all"}),
+    ))
+    .expect("decode python dijkstra_distances_with_mode");
+    assert_dist_vec_close(&rust, &py);
+}
+
+#[test]
+fn dijkstra_all_shortest_paths_diamond_matches_python_igraph() {
+    // Diamond: two distinct shortest paths to vertex 3.
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 3).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let weights = vec![1.0_f64; 4];
+    let rust = dijkstra_all_shortest_paths(&g, 0, &weights, DijkstraMode::Out).unwrap();
+    let rust_dist = dijkstra_distances_with_mode(&g, 0, &weights, DijkstraMode::Out).unwrap();
+    #[derive(serde::Deserialize)]
+    struct PyAsp {
+        distances: Vec<Option<f64>>,
+        nrgeo: Vec<u64>,
+    }
+    let py: PyAsp = serde_json::from_value(run_ok_with_weights(
+        "dijkstra_all_shortest_paths",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0, "mode": "out"}),
+    ))
+    .expect("decode python dijkstra_all_shortest_paths");
+    assert_dist_vec_close(&rust_dist, &py.distances);
+    assert_eq!(rust.nrgeo, py.nrgeo);
 }
 
 /// Wire-format payload returned by the `complementer` oracle.

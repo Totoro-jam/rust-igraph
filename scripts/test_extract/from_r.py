@@ -619,6 +619,38 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-001c: mode-aware distances. Undirected graph: every mode
+# identical (rigraph's `distances(graph, mode='all')`).
+DIJKSTRA_DIST_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_dist_mode_R_undirected_all",
+        "origin": "constructed (rigraph-style): undirected P4, ALL mode (undirected)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 2.0, 3.0],
+        "algo": "dijkstra_distances_with_mode",
+        "params": {"source": 0, "mode": "all"},
+        "expected": [0.0, 1.0, 3.0, 6.0],
+    },
+]
+
+# ALGO-SP-001c: all-shortest-paths. Disconnected graph: nrgeo == 0
+# for unreachable vertices.
+DIJKSTRA_ASP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_asp_R_disconnected_unreachable",
+        "origin": "constructed (rigraph-style): two disjoint edges; vertex 2 unreachable",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 2.5],
+        "algo": "dijkstra_all_shortest_paths",
+        "params": {"source": 0, "mode": "out"},
+        "expected": {"distances": [0.0, 1.0, None, None], "nrgeo": [1, 1, 0, 0]},
+    },
+]
+
 MODULARITY_DIR_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_directed_R_chain_4_two_blocks",
@@ -1395,6 +1427,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_paths": DIJKSTRA_PATHS_MANIFEST,
     "dijkstra_path_to": DIJKSTRA_PATH_TO_MANIFEST,
     "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
+    "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
+    "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,

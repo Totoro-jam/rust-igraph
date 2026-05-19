@@ -552,6 +552,39 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-001c: mode-aware distances. ALL-mode treats directed graph
+# as undirected.
+DIJKSTRA_DIST_MODE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_dist_mode_py_directed_path_all",
+        "origin": "constructed: directed P3 (1,2), ALL mode = undirected projection",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "graph_weights": [1.0, 2.0],
+        "algo": "dijkstra_distances_with_mode",
+        "params": {"source": 0, "mode": "all"},
+        "expected": [0.0, 1.0, 3.0],
+    },
+]
+
+# ALGO-SP-001c: all-shortest-paths.
+DIJKSTRA_ASP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dijkstra_asp_py_unique_chain",
+        # Triangle with shortcut weights (1,4,2): one geodesic to each
+        # vertex (the 0→1→2 path beats the direct 0→2 edge).
+        "origin": "constructed: triangle (1,4,2) with unique shortcut",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "dijkstra_all_shortest_paths",
+        "params": {"source": 0, "mode": "out"},
+        "expected": {"distances": [0.0, 1.0, 3.0], "nrgeo": [1, 1, 1]},
+    },
+]
+
 MODULARITY_DIR_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_directed_py_3_cycle_single_partition",
@@ -1282,6 +1315,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_paths": DIJKSTRA_PATHS_MANIFEST,
     "dijkstra_path_to": DIJKSTRA_PATH_TO_MANIFEST,
     "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
+    "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
+    "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
     "reciprocity_with_mode": RECIP_MODE_MANIFEST,
