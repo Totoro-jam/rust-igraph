@@ -123,6 +123,119 @@ pub fn assortativity_degree_weighted(graph: &Graph, weights: &[f64]) -> IgraphRe
     Ok(Some((num1 - num2) / denom))
 }
 
+/// Directed weighted degree assortativity (PR-006d).
+///
+/// Counterpart of `igraph_assortativity_degree(_, _, /*directed=*/true,
+/// &weights)` from `references/igraph/src/misc/mixing.c:351-405`. Pearson
+/// correlation between out-strength of source and in-strength of target,
+/// each edge weighted by `w`:
+///
+/// ```text
+/// For each edge (u → v) with weight w:
+///   num1 += w * (s_out[u] * s_in[v])
+///   num2 += w * s_out[u]
+///   num3 += w * s_in[v]
+///   den1 += w * s_out[u]^2
+///   den2 += w * s_in[v]^2
+/// W = Σ w
+/// r = (num1 - num2*num3/W) / (sqrt(den1 - num2^2/W) * sqrt(den2 - num3^2/W))
+/// ```
+///
+/// Returns `None` for graphs with no edges, zero total weight, or zero
+/// variance (matches upstream's `IGRAPH_NAN`). Undirected graphs route
+/// to the symmetric formula via [`assortativity_degree_weighted`].
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, assortativity_degree_directed_weighted};
+///
+/// // Directed 3-cycle 0→1→2→0 with unit weights: every vertex has
+/// // out-strength 1 and in-strength 1, so both variance terms vanish.
+/// let mut g = Graph::new(3, true).unwrap();
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// assert_eq!(
+///     assortativity_degree_directed_weighted(&g, &[1.0, 1.0, 1.0]).unwrap(),
+///     None
+/// );
+/// ```
+pub fn assortativity_degree_directed_weighted(
+    graph: &Graph,
+    weights: &[f64],
+) -> IgraphResult<Option<f64>> {
+    if !graph.is_directed() {
+        return assortativity_degree_weighted(graph, weights);
+    }
+    let m = graph.ecount();
+    if m == 0 {
+        return Ok(None);
+    }
+    if weights.len() != m {
+        return Err(IgraphError::InvalidArgument(format!(
+            "weights vector size ({}) differs from edge count ({})",
+            weights.len(),
+            m
+        )));
+    }
+    for (e, &w) in weights.iter().enumerate() {
+        if w.is_nan() || w < 0.0 || !w.is_finite() {
+            return Err(IgraphError::InvalidArgument(format!(
+                "weight at edge {e} must be non-negative and finite (got {w})"
+            )));
+        }
+    }
+
+    let n = graph.vcount();
+    let n_us = n as usize;
+    let mut out_strength = vec![0.0_f64; n_us];
+    let mut in_strength = vec![0.0_f64; n_us];
+
+    let m_u = u32::try_from(m).map_err(|_| IgraphError::Internal("ecount overflows u32"))?;
+    for e in 0..m_u {
+        let (u, v) = graph.edge(e as EdgeId)?;
+        let edge_w = weights[e as usize];
+        out_strength[u as usize] += edge_w;
+        in_strength[v as usize] += edge_w;
+    }
+
+    let mut num1 = 0.0_f64;
+    let mut num2 = 0.0_f64;
+    let mut num3 = 0.0_f64;
+    let mut den1 = 0.0_f64;
+    let mut den2 = 0.0_f64;
+    let mut total_w = 0.0_f64;
+
+    for e in 0..m_u {
+        let (u, v) = graph.edge(e as EdgeId)?;
+        let edge_w = weights[e as usize];
+        let so = out_strength[u as usize];
+        let si = in_strength[v as usize];
+        num1 += edge_w * so * si;
+        num2 += edge_w * so;
+        num3 += edge_w * si;
+        den1 += edge_w * so * so;
+        den2 += edge_w * si * si;
+        total_w += edge_w;
+    }
+
+    if total_w == 0.0 {
+        return Ok(None);
+    }
+    let num = num1 - num2 * num3 / total_w;
+    let var_from = den1 - num2 * num2 / total_w;
+    let var_to = den2 - num3 * num3 / total_w;
+    if var_from <= 0.0 || var_to <= 0.0 {
+        return Ok(None);
+    }
+    let den = var_from.sqrt() * var_to.sqrt();
+    if den == 0.0 {
+        return Ok(None);
+    }
+    Ok(Some(num / den))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -237,5 +350,75 @@ mod tests {
             assortativity_degree_weighted(&g, &[0.0, 0.0]).unwrap(),
             None
         );
+    }
+
+    // ---- PR-006d: Directed weighted assortativity ----------------
+
+    #[test]
+    fn directed_weighted_3_cycle_uniform_returns_none() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        assert_eq!(
+            assortativity_degree_directed_weighted(&g, &[1.0, 1.0, 1.0]).unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn directed_weighted_unit_weights_match_unweighted_directed() {
+        // Directed chain 0→1→2→3→4 with unit weights should match the
+        // unweighted directed assortativity (formula collapses identically).
+        let mut g = Graph::new(5, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 4).unwrap();
+        let unweighted =
+            crate::algorithms::properties::assortativity::assortativity_degree_directed(&g)
+                .unwrap();
+        let weighted = assortativity_degree_directed_weighted(&g, &[1.0; 4]).unwrap();
+        match (unweighted, weighted) {
+            (Some(u), Some(w)) => close(u, w, 1e-12),
+            (None, None) => {}
+            _ => panic!("disagreement between unweighted={unweighted:?} weighted={weighted:?}"),
+        }
+    }
+
+    #[test]
+    fn directed_weighted_undirected_routes_to_undirected_weighted() {
+        // For an undirected input, the directed function should behave
+        // exactly like the undirected weighted variant.
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let r1 = assortativity_degree_directed_weighted(&g, &[1.0, 1.0]).unwrap();
+        let r2 = assortativity_degree_weighted(&g, &[1.0, 1.0]).unwrap();
+        assert_eq!(r1, r2);
+    }
+
+    #[test]
+    fn directed_weighted_empty_no_edges_is_none() {
+        let g = Graph::new(3, true).unwrap();
+        assert_eq!(
+            assortativity_degree_directed_weighted(&g, &[]).unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn directed_weighted_negative_weight_errors() {
+        let mut g = Graph::new(2, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        assert!(assortativity_degree_directed_weighted(&g, &[-1.0]).is_err());
+    }
+
+    #[test]
+    fn directed_weighted_size_mismatch_errors() {
+        let mut g = Graph::new(2, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        assert!(assortativity_degree_directed_weighted(&g, &[]).is_err());
+        assert!(assortativity_degree_directed_weighted(&g, &[1.0, 2.0]).is_err());
     }
 }

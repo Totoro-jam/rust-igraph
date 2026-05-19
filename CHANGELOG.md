@@ -22,6 +22,24 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-006d**: Directed weighted assortativity
+  (`assortativity_degree_directed_weighted(graph, weights) ->
+  Option<f64>`), counterpart of `igraph_assortativity_degree(_, _,
+  /*directed=*/true, &weights)` (`misc/mixing.c:351-405`). Pearson
+  correlation between out-strength of source and in-strength of target,
+  each edge weighted by `w`. Returns `None` for graphs with no edges,
+  zero total weight, or zero variance (matches upstream's `IGRAPH_NAN`).
+  Undirected graphs route to the symmetric formula via
+  [`assortativity_degree_weighted`]. Edge weights validated as
+  non-negative, finite, not NaN. 6 new unit tests (3-cycle uniform
+  → None; chain with unit weights ≡ unweighted directed; undirected
+  routes to undirected weighted; empty graph None; negative weight error;
+  size mismatch error), 1 new doctest, 1 new oracle test (directed chain
+  unit weights ≡ unweighted directed), 3 three-source conformance fixtures
+  (C chain-with-branch unit → -0.5 formula collapse; py DAG diamond unit
+  → -1.0 hand-computed; R directed 3-cycle weights (1,2,4) → 1.0
+  hand-computed perfect alignment between out-strength of source and
+  in-strength of target).
 - *(paths)* **ALGO-SP-021..023 (weighted)**: Dijkstra-based eccentricity
   / radius / diameter for weighted graphs. Adds six new public items
   to `src/algorithms/paths/radii.rs`:

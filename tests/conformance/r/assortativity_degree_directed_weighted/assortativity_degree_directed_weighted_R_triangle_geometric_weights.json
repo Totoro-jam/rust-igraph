@@ -1,0 +1,30 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed 3-cycle weights (1, 2, 4); hand-computed r = 1.0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      1.0,
+      2.0,
+      4.0
+    ]
+  },
+  "algo": "assortativity_degree_directed_weighted",
+  "params": {},
+  "expected": 1.0
+}

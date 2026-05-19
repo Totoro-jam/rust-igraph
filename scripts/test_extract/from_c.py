@@ -729,6 +729,30 @@ ASSORT_DIR_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-006d: Directed weighted assortativity. python-igraph 0.11
+# has no Python-level weighted assortativity API, so non-unit-weight
+# fixtures use hand-computed reference values from the upstream
+# Pearson formula (Σ w·(s_out_u·s_in_v) etc.). Same convention as the
+# undirected weighted PR-006b fixtures.
+ASSORT_DIR_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assortativity_degree_directed_weighted_c_chain_with_branch_unit",
+        # Same chain with branch (0→1, 1→2, 0→2) but with unit weights
+        # — formula collapses to the unweighted directed PR-006c case
+        # → r = -0.5. Cross-validates the directed-weighted impl.
+        "origin": "constructed: 0→1, 1→2, 0→2 (chain with branch) unit weights",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 2), (0, 2)],
+            directed=True,
+        ),
+        "graph_weights": [1.0, 1.0, 1.0],
+        "algo": "assortativity_degree_directed_weighted",
+        "params": {},
+        "expected": -0.5,
+    },
+]
+
 CORENESS_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "coreness_with_mode_c_directed_complete_3_out",
@@ -1622,6 +1646,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_betweenness_weighted": EDGE_BETW_W_MANIFEST,
     "pagerank_weighted": PAGERANK_W_MANIFEST,
     "assortativity_degree_weighted": ASSORT_W_MANIFEST,
+    "assortativity_degree_directed_weighted": ASSORT_DIR_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

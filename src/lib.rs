@@ -82,7 +82,9 @@ pub use crate::algorithms::paths::radii::{
 pub use crate::algorithms::properties::assortativity::{
     assortativity_degree, assortativity_degree_directed,
 };
-pub use crate::algorithms::properties::assortativity_weighted::assortativity_degree_weighted;
+pub use crate::algorithms::properties::assortativity_weighted::{
+    assortativity_degree_directed_weighted, assortativity_degree_weighted,
+};
 pub use crate::algorithms::properties::basic::{density, mean_distance};
 pub use crate::algorithms::properties::betweenness::betweenness;
 pub use crate::algorithms::properties::betweenness_weighted::betweenness_weighted;

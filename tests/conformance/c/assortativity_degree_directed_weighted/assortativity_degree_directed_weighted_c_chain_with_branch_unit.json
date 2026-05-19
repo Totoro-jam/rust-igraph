@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "constructed: 0\u21921, 1\u21922, 0\u21922 (chain with branch) unit weights",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "assortativity_degree_directed_weighted",
+  "params": {},
+  "expected": -0.5
+}

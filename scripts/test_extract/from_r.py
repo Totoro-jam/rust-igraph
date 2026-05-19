@@ -738,6 +738,31 @@ ASSORT_DIR_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-006d: Directed weighted assortativity. Hand-computed
+# reference value.
+ASSORT_DIR_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assortativity_degree_directed_weighted_R_triangle_geometric_weights",
+        # Directed 3-cycle 0→1, 1→2, 2→0 with weights (1, 2, 4).
+        # out_str = [1, 2, 4]; in_str = [4, 1, 2].
+        # Hand-computed Pearson: num1=73, num2=21, num3=21,
+        # den1=73, den2=73, total_w=7. num = 73 - 21·21/7 = 10.
+        # var_from = var_to = 73 - 441/7 = 10.
+        # r = 10 / sqrt(10 · 10) = 1.0 (perfect correlation between
+        # out-strength of source and in-strength of target).
+        "origin": "constructed (rigraph-style): directed 3-cycle weights (1, 2, 4); hand-computed r = 1.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 2), (2, 0)],
+            directed=True,
+        ),
+        "graph_weights": [1.0, 2.0, 4.0],
+        "algo": "assortativity_degree_directed_weighted",
+        "params": {},
+        "expected": 1.0,
+    },
+]
+
 CORENESS_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "coreness_with_mode_R_directed_star_out",
@@ -1494,7 +1519,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_betweenness_weighted": EDGE_BETW_W_MANIFEST,
     "pagerank_weighted": PAGERANK_W_MANIFEST,
     "assortativity_degree_weighted": ASSORT_W_MANIFEST,
-    "assortativity_degree_weighted": ASSORT_W_MANIFEST,
+    "assortativity_degree_directed_weighted": ASSORT_DIR_W_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,

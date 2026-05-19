@@ -12,14 +12,15 @@ use std::fs::File;
 use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
     CorenessMode, DijkstraMode, EccMode, Graph, ReciprocityMode, SimpleMode, articulation_points,
-    assortativity_degree, assortativity_degree_directed, assortativity_degree_weighted,
-    avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, betweenness,
-    betweenness_weighted, bfs, biconnected_components, bridges, closeness, closeness_weighted,
-    complementer, connected_components, coreness, coreness_with_mode, count_reachable,
-    count_triangles, decompose, density, dfs, diameter, diameter_weighted_with_mode,
-    diameter_with_mode, difference, dijkstra_all_shortest_paths, dijkstra_distances,
-    dijkstra_distances_cutoff, dijkstra_distances_with_mode, dijkstra_path_to, dijkstra_paths,
-    disjoint_union, disjoint_union_many, distances, eccentricity, eccentricity_weighted_with_mode,
+    assortativity_degree, assortativity_degree_directed, assortativity_degree_directed_weighted,
+    assortativity_degree_weighted, avg_nearest_neighbor_degree,
+    avg_nearest_neighbor_degree_weighted, betweenness, betweenness_weighted, bfs,
+    biconnected_components, bridges, closeness, closeness_weighted, complementer,
+    connected_components, coreness, coreness_with_mode, count_reachable, count_triangles,
+    decompose, density, dfs, diameter, diameter_weighted_with_mode, diameter_with_mode, difference,
+    dijkstra_all_shortest_paths, dijkstra_distances, dijkstra_distances_cutoff,
+    dijkstra_distances_with_mode, dijkstra_path_to, dijkstra_paths, disjoint_union,
+    disjoint_union_many, distances, eccentricity, eccentricity_weighted_with_mode,
     eccentricity_with_mode, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
     floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
     has_multiple, intersection, is_biconnected, is_loop, is_multiple, is_simple,
@@ -2235,6 +2236,30 @@ fn assortativity_degree_weighted_two_triangles_bridge_matches_python_igraph() {
     let py_val = py.as_f64().expect("py value as f64");
     let r = rust.expect("rust value");
     assert!((r - py_val).abs() < 1e-12, "rust={r} py={py_val}");
+}
+
+#[test]
+fn assortativity_degree_directed_weighted_unit_weights_matches_python_igraph() {
+    // Directed chain 0→1→2→3→4 with unit weights — should match the
+    // unweighted directed assortativity (formula collapse).
+    let mut g = Graph::new(5, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    g.add_edge(3, 4).unwrap();
+    let weights = vec![1.0_f64; 4];
+    let rust = assortativity_degree_directed_weighted(&g, &weights).unwrap();
+    let py: serde_json::Value = run_ok_with_weights(
+        "assortativity_degree_directed_weighted",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    );
+    match (rust, py.as_f64()) {
+        (Some(r), Some(p)) => assert!((r - p).abs() < 1e-12, "rust={r} py={p}"),
+        (None, None) => {}
+        _ => panic!("rust={rust:?} py={py:?}"),
+    }
 }
 
 fn assert_matrix_close(rust: &[Vec<Option<f64>>], py: &[Vec<Option<f64>>], tol: f64) {

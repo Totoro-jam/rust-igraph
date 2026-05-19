@@ -319,6 +319,19 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "assortativity_degree_directed_weighted":
+        # PR-006d: counterpart of igraph_assortativity_degree(_, _,
+        # /*directed=*/true, &weights). python-igraph still has no
+        # weighted assortativity at the Python layer, so the oracle
+        # only handles unit-weight cases (formula collapses to the
+        # unweighted directed assortativity then). Non-unit-weight
+        # fixtures use hand-computed reference values, same convention
+        # as the undirected weighted variant.
+        v = g.assortativity_degree(directed=True)
+        if v != v:
+            return None
+        return float(v)
+
     if algo == "pagerank_weighted":
         # Counterpart of igraph_pagerank(_, IGRAPH_PAGERANK_ALGO_POWER,
         # _, _, vss_all(), directed, 0.85, &weights, NULL_options).
