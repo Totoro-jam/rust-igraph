@@ -102,6 +102,57 @@ KNN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+KNN_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knn_weighted_py_3path_skewed",
+        # 3-path 0-1-2 with weights (e0=1, e1=3). degrees [1, 2, 1].
+        # Vertex 0: only neighbour is 1 (deg 2). knn_w[0] = (1*2)/1 = 2.
+        # Vertex 1: incident to e0 (→0, deg 1, w=1) + e1 (→2, deg 1, w=3).
+        #            sum = 1*1 + 3*1 = 4; strength = 1+3 = 4; knn_w[1] = 1.
+        # Vertex 2: only neighbour is 1 (deg 2). knn_w[2] = (3*2)/3 = 2.
+        "origin": "constructed: 3-path with weights (1,3); hand-checked knn_w = [2, 1, 2]",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 3.0],
+        "algo": "avg_nearest_neighbor_degree_weighted",
+        "params": {},
+        "expected": [2.0, 1.0, 2.0],
+    },
+]
+
+KNNK_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knnk_py_K4",
+        # K4: all knn = 3. knnk[0..1] = None (no deg 1, 2 vertices).
+        # knnk[2] (deg 3) = 3.0.
+        "origin": "constructed: K4; knnk = [None, None, 3.0]",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "knnk",
+        "params": {},
+        "expected": [None, None, 3.0],
+    },
+]
+
+KNNK_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knnk_weighted_py_3path_skewed",
+        # 3-path with weights (1, 3): knn_w = [2, 1, 2]; degrees [1, 2, 1].
+        # knnk_w[0] (deg 1) = pooled over vertices 0 and 2.
+        #   v0: sum = 1*2 = 2; str = 1. v2: sum = 3*2 = 6; str = 3.
+        #   knnk_w[0] = (2 + 6) / (1 + 3) = 8/4 = 2.
+        # knnk_w[1] (deg 2) = vertex 1 alone: sum = 4; str = 4 → 1.
+        "origin": "constructed: weighted 3-path; knnk_w = [2.0, 1.0]",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 3.0],
+        "algo": "knnk_weighted",
+        "params": {},
+        "expected": [2.0, 1.0],
+    },
+]
+
 RECIP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_mutual_pair",
@@ -1017,6 +1068,9 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "eigenvector_centrality": EIGEN_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
+    "avg_nearest_neighbor_degree_weighted": KNN_W_MANIFEST,
+    "knnk": KNNK_MANIFEST,
+    "knnk_weighted": KNNK_W_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,
 }
 

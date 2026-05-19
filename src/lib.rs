@@ -83,7 +83,9 @@ pub use crate::algorithms::properties::girth::girth;
 pub use crate::algorithms::properties::harmonic::harmonic_centrality;
 pub use crate::algorithms::properties::harmonic_weighted::harmonic_centrality_weighted;
 pub use crate::algorithms::properties::is_simple::{SimpleMode, is_simple, is_simple_with_mode};
-pub use crate::algorithms::properties::knn::avg_nearest_neighbor_degree;
+pub use crate::algorithms::properties::knn::{
+    avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, knnk, knnk_weighted,
+};
 pub use crate::algorithms::properties::multiplicity::{
     has_loop, has_multiple, is_loop, is_multiple,
 };

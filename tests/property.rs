@@ -1377,6 +1377,41 @@ proptest! {
         }
     }
 
+    /// Unit-weight `avg_nearest_neighbor_degree_weighted` must match
+    /// the unweighted entry on every graph. Verifies the weighted code
+    /// path's strength accumulator and edge alignment are correct.
+    #[test]
+    fn knn_weighted_unit_weights_match_unweighted(g in arb_graph(12)) {
+        let weights = vec![1.0_f64; g.ecount()];
+        let unw = rust_igraph::avg_nearest_neighbor_degree(&g).unwrap();
+        let w = rust_igraph::avg_nearest_neighbor_degree_weighted(&g, &weights).unwrap();
+        prop_assert_eq!(unw.len(), w.len());
+        for (i, (a, b)) in unw.iter().zip(w.iter()).enumerate() {
+            match (a, b) {
+                (Some(x), Some(y)) => prop_assert!((x - y).abs() < 1e-12, "v={i} a={x} b={y}"),
+                (None, None) => {}
+                _ => prop_assert!(false, "v={} unw={:?} w={:?}", i, a, b),
+            }
+        }
+    }
+
+    /// Unit-weight `knnk_weighted` must match unweighted `knnk` on
+    /// every graph. Same correctness gate as the per-vertex variant.
+    #[test]
+    fn knnk_weighted_unit_weights_match_unweighted(g in arb_graph(12)) {
+        let weights = vec![1.0_f64; g.ecount()];
+        let unw = rust_igraph::knnk(&g).unwrap();
+        let w = rust_igraph::knnk_weighted(&g, &weights).unwrap();
+        prop_assert_eq!(unw.len(), w.len());
+        for (i, (a, b)) in unw.iter().zip(w.iter()).enumerate() {
+            match (a, b) {
+                (Some(x), Some(y)) => prop_assert!((x - y).abs() < 1e-12, "deg {} a={x} b={y}", i+1),
+                (None, None) => {}
+                _ => prop_assert!(false, "deg {} unw={:?} w={:?}", i+1, a, b),
+            }
+        }
+    }
+
     /// `reciprocity_with_mode(_, false, Default)` must equal the
     /// canonical [`reciprocity`] entry on every graph (the latter is
     /// just a wrapper around the former with default args).

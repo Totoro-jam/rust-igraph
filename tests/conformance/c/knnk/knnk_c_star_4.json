@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "constructed: 4-star, hand-checked knnk (deg 1\u21923, deg 2\u2192None, deg 3\u21921)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "knnk",
+  "params": {},
+  "expected": [
+    3.0,
+    null,
+    1.0
+  ]
+}

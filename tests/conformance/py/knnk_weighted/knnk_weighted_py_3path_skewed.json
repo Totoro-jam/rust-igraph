@@ -1,0 +1,28 @@
+{
+  "source": "py",
+  "origin": "constructed: weighted 3-path; knnk_w = [2.0, 1.0]",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      3.0
+    ]
+  },
+  "algo": "knnk_weighted",
+  "params": {},
+  "expected": [
+    2.0,
+    1.0
+  ]
+}

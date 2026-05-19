@@ -104,6 +104,29 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         knn_per_vertex, _ = g.knn()
         return [None if (v != v) else float(v) for v in knn_per_vertex]
 
+    if algo == "avg_nearest_neighbor_degree_weighted":
+        # Counterpart with weights (Barrat formula). The wire harness
+        # sets `g.es['weight']` from the payload's `weights` field;
+        # we pass that attribute name to python-igraph's knn().
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            knn_per_vertex, _ = g.knn(weights="weight")
+        else:
+            knn_per_vertex, _ = g.knn()
+        return [None if (v != v) else float(v) for v in knn_per_vertex]
+
+    if algo == "knnk":
+        # Counterpart of igraph_avg_nearest_neighbor_degree(_, _, _, _,
+        # NULL, &knnk, NULL). python-igraph returns the second tuple slot.
+        _, knn_per_degree = g.knn()
+        return [None if (v != v) else float(v) for v in knn_per_degree]
+
+    if algo == "knnk_weighted":
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            _, knn_per_degree = g.knn(weights="weight")
+        else:
+            _, knn_per_degree = g.knn()
+        return [None if (v != v) else float(v) for v in knn_per_degree]
+
     if algo == "reciprocity":
         # Counterpart of igraph_reciprocity(_, _, /*ignore_loops=*/false,
         # IGRAPH_RECIPROCITY_DEFAULT). python-igraph's `Graph.reciprocity(

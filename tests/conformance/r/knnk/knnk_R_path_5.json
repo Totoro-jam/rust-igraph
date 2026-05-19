@@ -1,0 +1,33 @@
+{
+  "source": "r",
+  "origin": "constructed (R-style): 5-path; knnk = [2.0, 5/3]",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "knnk",
+  "params": {},
+  "expected": [
+    2.0,
+    1.6666666666666667
+  ]
+}

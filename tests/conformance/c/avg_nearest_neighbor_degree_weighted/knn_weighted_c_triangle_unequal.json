@@ -1,0 +1,34 @@
+{
+  "source": "c",
+  "origin": "constructed: triangle with non-uniform weights, all-deg-2 \u2192 knn=2",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      2.0,
+      4.0
+    ]
+  },
+  "algo": "avg_nearest_neighbor_degree_weighted",
+  "params": {},
+  "expected": [
+    2.0,
+    2.0,
+    2.0
+  ]
+}

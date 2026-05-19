@@ -13,16 +13,17 @@ use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
     CorenessMode, Graph, ReciprocityMode, SimpleMode, articulation_points, assortativity_degree,
     assortativity_degree_directed, assortativity_degree_weighted, avg_nearest_neighbor_degree,
-    betweenness, betweenness_weighted, bfs, biconnected_components, bridges, closeness,
-    closeness_weighted, complementer, connected_components, coreness, coreness_with_mode,
-    count_reachable, count_triangles, density, dfs, diameter, dijkstra_distances, disjoint_union,
-    disjoint_union_many, distances, eccentricity, edge_betweenness, edge_betweenness_weighted,
-    eigenvector_centrality, floyd_warshall_distances, girth, harmonic_centrality,
-    harmonic_centrality_weighted, has_loop, has_multiple, is_biconnected, is_loop, is_multiple,
-    is_simple, is_simple_with_mode, mean_distance, modularity, modularity_directed,
-    modularity_weighted, pagerank, pagerank_weighted, radius, reachability_matrix, read_edgelist,
-    reciprocity, reciprocity_with_mode, simplify, strongly_connected_components,
-    transitive_closure, transitivity_local_undirected, transitivity_undirected,
+    avg_nearest_neighbor_degree_weighted, betweenness, betweenness_weighted, bfs,
+    biconnected_components, bridges, closeness, closeness_weighted, complementer,
+    connected_components, coreness, coreness_with_mode, count_reachable, count_triangles, density,
+    dfs, diameter, dijkstra_distances, disjoint_union, disjoint_union_many, distances,
+    eccentricity, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
+    floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
+    has_multiple, is_biconnected, is_loop, is_multiple, is_simple, is_simple_with_mode, knnk,
+    knnk_weighted, mean_distance, modularity, modularity_directed, modularity_weighted, pagerank,
+    pagerank_weighted, radius, reachability_matrix, read_edgelist, reciprocity,
+    reciprocity_with_mode, simplify, strongly_connected_components, transitive_closure,
+    transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -564,6 +565,80 @@ fn knn_karate_matches_python_igraph() {
             }
             (None, None) => {}
             (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn knn_weighted_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    // Use uniform weights — this exercises the weighted code path while
+    // letting us compare against python-igraph's `g.knn(weights=...)`.
+    let weights: Vec<f64> = (0..g.ecount()).map(|i| 1.0 + (i % 3) as f64).collect();
+    let rust = avg_nearest_neighbor_degree_weighted(&g, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "avg_nearest_neighbor_degree_weighted",
+        &g,
+        Some(weights.clone()),
+        serde_json::json!({}),
+    ))
+    .expect("decode python knn_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(a), Some(b)) => {
+                assert!((a - b).abs() < 1e-9, "vertex {i}: rust={a} py={b}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn knnk_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let rust = knnk(&g).unwrap();
+    let py: Vec<Option<f64>> =
+        serde_json::from_value(run_ok("knnk", &g, serde_json::json!({}))).expect("decode py knnk");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(a), Some(b)) => {
+                assert!((a - b).abs() < 1e-12, "deg {} : rust={a} py={b}", i + 1);
+            }
+            (None, None) => {}
+            (a, b) => panic!("deg {} : rust={a:?} py={b:?}", i + 1),
+        }
+    }
+}
+
+#[test]
+fn knnk_weighted_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    let weights: Vec<f64> = (0..g.ecount()).map(|i| 1.0 + (i % 3) as f64).collect();
+    let rust = knnk_weighted(&g, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "knnk_weighted",
+        &g,
+        Some(weights.clone()),
+        serde_json::json!({}),
+    ))
+    .expect("decode py knnk_weighted");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(a), Some(b)) => {
+                assert!((a - b).abs() < 1e-9, "deg {} : rust={a} py={b}", i + 1);
+            }
+            (None, None) => {}
+            (a, b) => panic!("deg {} : rust={a:?} py={b:?}", i + 1),
         }
     }
 }

@@ -114,7 +114,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-004 | Reciprocity (default mode) | basic_properties.c:325 | ~80 | adapt | - | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
 | ALGO-PR-004b | Reciprocity ratio mode + ignore_loops (`reciprocity_with_mode`) | basic_properties.c:325 | ~80 | adapt | PR-004 | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
 | ALGO-PR-005 | Average nearest-neighbour degree (`avg_nearest_neighbor_degree`) | properties/degrees.c:263 | ~80 | adapt | - | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
-| ALGO-PR-005b | knn weighted + per-degree aggregate (`knnk`) | properties/degrees.c:263 | ~120 | adapt | PR-005 | todo | - | - | - |
+| ALGO-PR-005b | knn weighted + per-degree aggregate (`knnk`) | properties/degrees.c:263 | ~120 | adapt | PR-005 | done | (next) | O(V+E) per call | C:3 / py:3 / R:3 (3 algos × 3 sources) |
 | ALGO-PR-006 | Degree assortativity (`assortativity_degree`, undirected) | misc/mixing.c:443 + 273 | ~150 | adapt | - | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
 | ALGO-PR-006b | Weighted assortativity (`assortativity_degree_weighted`, undirected) | misc/mixing.c | ~120 | adapt | PR-006 | done | (next) | O(V + E) | C:1 / py:1 / R:1 |
 | ALGO-PR-006c | Directed assortativity (`assortativity_degree_directed`, unweighted) | misc/mixing.c:351-405 | ~120 | adapt | PR-006b | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
@@ -163,10 +163,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 56 | 0 | ~30 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3 |
+| 1 | 57 | 0 | ~29 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 56/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 57/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -195,7 +195,8 @@ disjoint_union_many (OP-002b),
 directed coreness IN/OUT (PR-015b),
 directed assortativity (PR-006c),
 directed modularity (CO-001b),
-biconnected component_edges output (CC-012).
+biconnected component_edges output (CC-012),
+weighted knn + knnk + knnk_weighted (PR-005b).
 Next options:
 SP-001b (Dijkstra paths+parents), CORE-001c (deletion),
 hub/auth scores, more operators (union/intersection/

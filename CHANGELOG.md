@@ -22,6 +22,35 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-005b**: weighted variant + per-degree
+  aggregate of `avg_nearest_neighbor_degree`. Three new public entries:
+  - `avg_nearest_neighbor_degree_weighted(graph, weights)` — Barrat
+    formula `k_nn(v) = (1/s_v) Σ_{u∼v} w_{vu} k_u` with `s_v` being
+    the strength of `v`. Returns `None` for vertices with strength 0.
+  - `knnk(graph)` — unweighted per-degree aggregate `k_nn(k)`.
+    Output indexed by degree `k`; `result[k-1]` is the mean of
+    `knn[v]` over all vertices with `deg(v)=k`. `None` for unused
+    degrees (matches upstream's `IGRAPH_NAN`).
+  - `knnk_weighted(graph, weights)` — weighted per-degree aggregate;
+    pools `Σ_{deg(v)=k} sum_v / Σ_{deg(v)=k} strength_v` per upstream
+    (degrees.c:155 — `knnk[nv-1]` accumulates raw `sum`, `deghist`
+    accumulates `strength`).
+  Implementation note: the weighted code path iterates over
+  `incident()` (edge ids) and resolves the neighbour via
+  `edge_other()`. `neighbors()` and `incident()` are NOT positionally
+  aligned for undirected graphs (neighbors merges out/in lists in
+  ascending order; incident concatenates), so a join-by-edge is
+  required. Weights are validated as finite, non-negative, with
+  `len == ecount`.
+  Full 9-step SOP: 11 new unit tests on top of PR-005's 6 (covering
+  uniform=unweighted, hand-checked triangle Q=2.0 invariant under any
+  weights, isolated/zero-strength=None, validation), 3 new oracle
+  tests against python-igraph's `Graph.knn(weights="weight")` (uniform
+  + non-uniform karate weights, knn_w + knnk + knnk_w), 9 three-source
+  conformance fixtures (3 per source × 3 algos: weighted-triangle hand
+  check, K4 unit collapse, 5-path arithmetic), 2 proptest invariants:
+  unit-weight knn_w/knnk_w must equal unweighted on every graph.
+
 - *(connectivity)* **ALGO-CC-012**: `BiconnectedComponents.component_edges`
   — explicit per-component edge-id list (companion of CC-011's
   `tree_edges`). Counterpart of upstream's `component_edges` output

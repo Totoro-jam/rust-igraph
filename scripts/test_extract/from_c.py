@@ -133,6 +133,60 @@ KNN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+KNN_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knn_weighted_c_triangle_unequal",
+        # Triangle 0-1-2 with weights e0=(0,1)=1, e1=(1,2)=2, e2=(2,0)=4.
+        # All degrees = 2. Weighted knn for any vertex must equal 2.0
+        # because every neighbour has the same degree (2) — the weight
+        # cancels out (Σ w·k / Σ w = k for constant k).
+        "origin": "constructed: triangle with non-uniform weights, all-deg-2 → knn=2",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "graph_weights": [1.0, 2.0, 4.0],
+        "algo": "avg_nearest_neighbor_degree_weighted",
+        "params": {},
+        "expected": [2.0, 2.0, 2.0],
+    },
+]
+
+KNNK_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knnk_c_star_4",
+        # Star K_{1,3}: degrees [3, 1, 1, 1]. knn = [1, 3, 3, 3].
+        # knnk[0] (deg 1) = avg(3, 3, 3) = 3.0.
+        # knnk[1] (deg 2) = NaN → None.
+        # knnk[2] (deg 3) = 1.0.
+        "origin": "constructed: 4-star, hand-checked knnk (deg 1→3, deg 2→None, deg 3→1)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "knnk",
+        "params": {},
+        "expected": [3.0, None, 1.0],
+    },
+]
+
+KNNK_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knnk_weighted_c_triangle_unequal",
+        # Triangle 0-1-2 with weights (1, 2, 4): all degrees=2, all knn=2.
+        # knnk_weighted[1] (deg 2) = pooled (Σ sum / Σ str). Each vertex
+        # has sum/str = 2.0; pooled also = 2.0.
+        "origin": "constructed: weighted triangle, all-deg-2 → knnk[deg=2] = 2.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "graph_weights": [1.0, 2.0, 4.0],
+        "algo": "knnk_weighted",
+        "params": {},
+        # knnk has length max_deg = 2. Bucket 0 (deg 1) is None (no deg-1
+        # vertices); bucket 1 (deg 2) is 2.0.
+        "expected": [None, 2.0],
+    },
+]
+
 RECIP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_c_directed_3_cycle_zero",
@@ -1248,6 +1302,9 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "eigenvector_centrality": EIGEN_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
+    "avg_nearest_neighbor_degree_weighted": KNN_W_MANIFEST,
+    "knnk": KNNK_MANIFEST,
+    "knnk_weighted": KNNK_W_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,
 }
 

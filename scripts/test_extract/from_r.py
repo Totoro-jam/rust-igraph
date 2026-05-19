@@ -177,6 +177,47 @@ KNN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+KNN_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knn_weighted_R_K4_unit",
+        # K4 with unit weights collapses to unweighted knn = [3, 3, 3, 3].
+        "origin": "constructed (R-style): K4 unit weights — collapses to unweighted",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "graph_weights": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        "algo": "avg_nearest_neighbor_degree_weighted",
+        "params": {},
+        "expected": [3.0, 3.0, 3.0, 3.0],
+    },
+]
+
+KNNK_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knnk_R_path_5",
+        # 5-path: degrees [1,2,2,2,1]; knn = [2, 1.5, 2, 1.5, 2].
+        # knnk[0] (deg 1) = (2 + 2) / 2 = 2; knnk[1] (deg 2) = (1.5+2+1.5)/3 = 5/3.
+        "origin": "constructed (R-style): 5-path; knnk = [2.0, 5/3]",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "algo": "knnk",
+        "params": {},
+        "expected": [2.0, 5.0 / 3.0],
+    },
+]
+
+KNNK_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "knnk_weighted_R_K4_unit",
+        # K4 unit weights collapses: knnk_w[2] (deg 3) = 3.0; lower buckets None.
+        "origin": "constructed (R-style): K4 unit weights — knnk_w = [None, None, 3.0]",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "graph_weights": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        "algo": "knnk_weighted",
+        "params": {},
+        "expected": [None, None, 3.0],
+    },
+]
+
 RECIP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_undirected_is_one",
@@ -1152,6 +1193,9 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "eigenvector_centrality": EIGEN_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
+    "avg_nearest_neighbor_degree_weighted": KNN_W_MANIFEST,
+    "knnk": KNNK_MANIFEST,
+    "knnk_weighted": KNNK_W_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,
 }
 

@@ -272,6 +272,110 @@ fn avg_nearest_neighbor_degree_three_source_conformance() {
 }
 
 #[test]
+fn knnk_three_source_conformance() {
+    run_conformance("knnk", |g, _params| {
+        let v = rust_igraph::knnk(g).expect("knnk");
+        let arr: Vec<serde_json::Value> = v
+            .into_iter()
+            .map(|o| match o {
+                Some(x) => serde_json::json!(x),
+                None => serde_json::Value::Null,
+            })
+            .collect();
+        serde_json::Value::Array(arr)
+    });
+}
+
+#[test]
+fn avg_nearest_neighbor_degree_weighted_three_source_conformance() {
+    // Bespoke fixture-walking runner (needs case.graph.weights).
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("avg_nearest_neighbor_degree_weighted");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let v = rust_igraph::avg_nearest_neighbor_degree_weighted(&g, &weights)
+                .expect("knn_weighted");
+            let arr: serde_json::Value = v
+                .into_iter()
+                .map(|o| match o {
+                    Some(x) => serde_json::json!(x),
+                    None => serde_json::Value::Null,
+                })
+                .collect();
+            assert!(
+                json_approx_eq(&arr, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                arr,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "avg_nearest_neighbor_degree_weighted");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
+fn knnk_weighted_three_source_conformance() {
+    // Bespoke fixture-walking runner (needs case.graph.weights).
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("knnk_weighted");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let v = rust_igraph::knnk_weighted(&g, &weights).expect("knnk_weighted");
+            let arr: serde_json::Value = v
+                .into_iter()
+                .map(|o| match o {
+                    Some(x) => serde_json::json!(x),
+                    None => serde_json::Value::Null,
+                })
+                .collect();
+            assert!(
+                json_approx_eq(&arr, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                arr,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "knnk_weighted");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn reciprocity_three_source_conformance() {
     run_conformance("reciprocity", |g, _params| {
         let r = rust_igraph::reciprocity(g).expect("reciprocity");
