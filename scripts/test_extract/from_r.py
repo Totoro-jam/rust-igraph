@@ -218,6 +218,20 @@ KNNK_W_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+TRANS_BARRAT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "transitivity_barrat_R_K4_unit",
+        # K4 with unit weights: every triple is a triangle → Barrat = 1.0
+        # for all four vertices (mirrors unweighted local clustering).
+        "origin": "constructed (R-style): K4 unit weights → Barrat = 1.0 per vertex",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "graph_weights": [1.0] * 6,
+        "algo": "transitivity_barrat",
+        "params": {},
+        "expected": [1.0, 1.0, 1.0, 1.0],
+    },
+]
+
 RECIP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_undirected_is_one",
@@ -1197,6 +1211,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "knnk": KNNK_MANIFEST,
     "knnk_weighted": KNNK_W_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,
+    "transitivity_barrat": TRANS_BARRAT_MANIFEST,
 }
 
 

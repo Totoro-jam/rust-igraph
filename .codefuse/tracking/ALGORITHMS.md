@@ -109,7 +109,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-001 | Girth (shortest cycle length) | properties/girth.c:73 | ~200 | adapt | CC-001 | done | (next) | 2.6 µs/karate | C:2 / py:1 / R:1 |
 | ALGO-PR-002 | Triangle count + global transitivity | properties/triangles.c:405-630 | ~250 | adapt | - | done | (next) | 2.7 µs/karate | C:3 / py:2 / R:2 (2 algos × 3 sources) |
 | ALGO-PR-002b | Local transitivity per-vertex (`transitivity_local_undirected`) | properties/triangles.c:330+185-280 | ~150 | adapt | PR-002 | done | (next) | (shares PR-002 baseline) | C:1 / py:1 / R:1 |
-| ALGO-PR-002c | Barrat weighted transitivity | properties/triangles.c:632 | ~150 | adapt | PR-002b | todo | - | - | - |
+| ALGO-PR-002c | Barrat weighted transitivity (`transitivity_barrat`) | properties/triangles.c:632 | ~150 | adapt | PR-002b | done | (next) | O(V·d²) (shares PR-002 baseline) | C:1 / py:1 / R:1 |
 | ALGO-PR-003 | Density + mean shortest-path length (unweighted) | basic_properties.c:71, shortest_paths.c:329 | ~150 | adapt | SP-006 | done | (next) | density O(1); mean_distance ≈ ecc | C:2 / py:2 / R:2 |
 | ALGO-PR-004 | Reciprocity (default mode) | basic_properties.c:325 | ~80 | adapt | - | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
 | ALGO-PR-004b | Reciprocity ratio mode + ignore_loops (`reciprocity_with_mode`) | basic_properties.c:325 | ~80 | adapt | PR-004 | done | (next) | O(V+E) | C:1 / py:1 / R:1 |
@@ -163,10 +163,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 57 | 0 | ~29 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3 |
+| 1 | 58 | 0 | ~28 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; transitivity_barrat: 3; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 57/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 58/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -196,11 +196,12 @@ directed coreness IN/OUT (PR-015b),
 directed assortativity (PR-006c),
 directed modularity (CO-001b),
 biconnected component_edges output (CC-012),
-weighted knn + knnk + knnk_weighted (PR-005b).
+weighted knn + knnk + knnk_weighted (PR-005b),
+Barrat weighted transitivity (PR-002c).
 Next options:
 SP-001b (Dijkstra paths+parents), CORE-001c (deletion),
 hub/auth scores, more operators (union/intersection/
-difference), SP-002 Bellman-Ford, Barrat weighted
-transitivity (PR-002c), reciprocity ratio mode (PR-004b).
+difference), SP-002 Bellman-Ford, CC-003 (decompose),
+SP-021..023 (mode-aware ecc/radius/diameter).
 
 > Update the counters after every PR merge.

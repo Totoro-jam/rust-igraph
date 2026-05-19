@@ -153,6 +153,25 @@ KNNK_W_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+TRANS_BARRAT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "transitivity_barrat_py_diamond_unit",
+        # K4 minus edge (0,3) ("diamond"). Unit weights ⇒ Barrat reduces
+        # to unweighted local clustering: vertex 0/3 deg 2, sees one
+        # triangle → 1.0; vertex 1/2 deg 3, sees two triangles → 2/3.
+        "origin": "constructed: K4 minus edge with unit weights",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "graph_weights": [1.0] * 5,
+        "algo": "transitivity_barrat",
+        "params": {},
+        "expected": [1.0, 2.0 / 3.0, 2.0 / 3.0, 1.0],
+    },
+]
+
 RECIP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_mutual_pair",
@@ -1072,6 +1091,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "knnk": KNNK_MANIFEST,
     "knnk_weighted": KNNK_W_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,
+    "transitivity_barrat": TRANS_BARRAT_MANIFEST,
 }
 
 

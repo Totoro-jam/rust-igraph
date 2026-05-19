@@ -376,6 +376,50 @@ fn knnk_weighted_three_source_conformance() {
 }
 
 #[test]
+fn transitivity_barrat_three_source_conformance() {
+    // Bespoke fixture-walking runner (needs case.graph.weights).
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("transitivity_barrat");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let v = rust_igraph::transitivity_barrat(&g, &weights).expect("transitivity_barrat");
+            let arr: serde_json::Value = v
+                .into_iter()
+                .map(|o| match o {
+                    Some(x) => serde_json::json!(x),
+                    None => serde_json::Value::Null,
+                })
+                .collect();
+            assert!(
+                json_approx_eq(&arr, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                arr,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "transitivity_barrat");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn reciprocity_three_source_conformance() {
     run_conformance("reciprocity", |g, _params| {
         let r = rust_igraph::reciprocity(g).expect("reciprocity");

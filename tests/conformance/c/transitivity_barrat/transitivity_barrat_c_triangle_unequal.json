@@ -1,0 +1,34 @@
+{
+  "source": "c",
+  "origin": "constructed: weighted triangle hand-checked, all vertices = 1.0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      2.0,
+      4.0
+    ]
+  },
+  "algo": "transitivity_barrat",
+  "params": {},
+  "expected": [
+    1.0,
+    1.0,
+    1.0
+  ]
+}

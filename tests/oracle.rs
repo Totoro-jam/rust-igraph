@@ -23,7 +23,7 @@ use rust_igraph::{
     knnk_weighted, mean_distance, modularity, modularity_directed, modularity_weighted, pagerank,
     pagerank_weighted, radius, reachability_matrix, read_edgelist, reciprocity,
     reciprocity_with_mode, simplify, strongly_connected_components, transitive_closure,
-    transitivity_local_undirected, transitivity_undirected,
+    transitivity_barrat, transitivity_local_undirected, transitivity_undirected,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -562,6 +562,35 @@ fn knn_karate_matches_python_igraph() {
         match (r, p) {
             (Some(a), Some(b)) => {
                 assert!((a - b).abs() < 1e-12, "vertex {i}: rust={a} py={b}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn transitivity_barrat_karate_matches_python_igraph() {
+    let path = workspace_fixture("karate.edges");
+    let g = read_edgelist(File::open(&path).expect("open karate fixture"))
+        .expect("parse karate edgelist");
+    // Distinct positive weights to exercise the Barrat formula's
+    // weighted aggregation (uniform weights would just reproduce the
+    // unweighted result).
+    let weights: Vec<f64> = (0..g.ecount()).map(|i| 1.0 + (i % 4) as f64).collect();
+    let rust = transitivity_barrat(&g, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "transitivity_barrat",
+        &g,
+        Some(weights.clone()),
+        serde_json::json!({}),
+    ))
+    .expect("decode python transitivity_barrat");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(a), Some(b)) => {
+                assert!((a - b).abs() < 1e-9, "vertex {i}: rust={a} py={b}");
             }
             (None, None) => {}
             (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),

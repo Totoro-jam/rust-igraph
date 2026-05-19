@@ -1395,6 +1395,44 @@ proptest! {
         }
     }
 
+    /// On a simple graph with unit weights, Barrat's weighted local
+    /// transitivity must equal the unweighted local transitivity. This
+    /// pins the formula's symmetry property and the strength
+    /// computation against the well-tested unweighted variant.
+    #[test]
+    fn barrat_unit_weights_match_unweighted(g in arb_graph(10)) {
+        let s = rust_igraph::simplify(&g, true, true).unwrap();
+        let weights = vec![1.0_f64; s.ecount()];
+        let unw = rust_igraph::transitivity_local_undirected(&s).unwrap();
+        let bar = rust_igraph::transitivity_barrat(&s, &weights).unwrap();
+        prop_assert_eq!(unw.len(), bar.len());
+        for (i, (a, b)) in unw.iter().zip(bar.iter()).enumerate() {
+            match (a, b) {
+                (Some(x), Some(y)) => prop_assert!((x - y).abs() < 1e-12, "v={i} unw={x} bar={y}"),
+                (None, None) => {}
+                _ => prop_assert!(false, "v={} unw={:?} bar={:?}", i, a, b),
+            }
+        }
+    }
+
+    /// Barrat result is bounded: on a simple graph each vertex's
+    /// Barrat value (when defined) lies in [0, 1] — same range as the
+    /// unweighted clustering coefficient.
+    #[test]
+    fn barrat_values_in_unit_interval(g in arb_graph(10)) {
+        let s = rust_igraph::simplify(&g, true, true).unwrap();
+        let m = s.ecount();
+        // Use varying positive weights to exercise the formula.
+        let weights: Vec<f64> = (0..m).map(|i| (i as f64) + 1.0).collect();
+        let bar = rust_igraph::transitivity_barrat(&s, &weights).unwrap();
+        for (i, val) in bar.iter().enumerate() {
+            if let Some(x) = val {
+                prop_assert!(*x >= -1e-12 && *x <= 1.0 + 1e-12,
+                    "v={i} barrat={x} out of [0,1]");
+            }
+        }
+    }
+
     /// Unit-weight `knnk_weighted` must match unweighted `knnk` on
     /// every graph. Same correctness gate as the per-vertex variant.
     #[test]

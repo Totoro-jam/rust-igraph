@@ -187,6 +187,26 @@ KNNK_W_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+TRANS_BARRAT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "transitivity_barrat_c_triangle_unequal",
+        # Triangle 0-1-2 with edges e0=(0,1)=1, e1=(1,2)=2, e2=(2,0)=4.
+        # All vertices have deg 2 and lie on the single triangle.
+        # Vertex 0: s_0 = 1+4 = 5, triples = 5*1 = 5,
+        #           triangle sum = w(0,1)+w(0,2) = 1+4 = 5 → 1.0.
+        # Vertex 1: s_1 = 1+2 = 3, sum = 1+2 = 3 → 1.0.
+        # Vertex 2: s_2 = 2+4 = 6, sum = 2+4 = 6 → 1.0.
+        "origin": "constructed: weighted triangle hand-checked, all vertices = 1.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "graph_weights": [1.0, 2.0, 4.0],
+        "algo": "transitivity_barrat",
+        "params": {},
+        "expected": [1.0, 1.0, 1.0],
+    },
+]
+
 RECIP_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "reciprocity_c_directed_3_cycle_zero",
@@ -1306,6 +1326,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "knnk": KNNK_MANIFEST,
     "knnk_weighted": KNNK_W_MANIFEST,
     "assortativity_degree": ASSORT_MANIFEST,
+    "transitivity_barrat": TRANS_BARRAT_MANIFEST,
 }
 
 

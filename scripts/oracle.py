@@ -565,6 +565,17 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return float(v)
 
+    if algo == "transitivity_barrat":
+        # Counterpart of igraph_transitivity_barrat(_, _, igraph_vss_all(),
+        # weights, IGRAPH_TRANSITIVITY_NAN). python-igraph dispatches to
+        # the Barrat formula automatically when the weights kwarg is set.
+        # NaN encoded as None for Option<f64> parity.
+        if "weight" in g.edge_attributes():
+            vals = g.transitivity_local_undirected(weights="weight", mode="nan")
+        else:
+            vals = g.transitivity_local_undirected(mode="nan")
+        return [None if (v != v) else float(v) for v in vals]
+
     if algo == "girth":
         # Counterpart of igraph_girth(_, &result, NULL). python-igraph
         # returns float('inf') for acyclic graphs; we encode that as None

@@ -68,6 +68,7 @@ algorithm; columns are fixture counts per source plus the Rust pass rate.
 | has_loop / has_multiple | 2 | 2 | 2 | 6/6 | Two predicates × three sources. `has_loop` is the trivial O(\|E\|) self-loop scan; `has_multiple` collapses canonicalised `(from, to)` pairs and looks for adjacent duplicates (so two self-loops at the same vertex correctly flag as multi). Fixtures cover positive + negative cases for both. |
 | is_loop / is_multiple | 2 | 2 | 2 | 6/6 | Per-edge `Vec<bool>`. Edge ids reorder over the wire (Python's `make_graph` rebuilds in vertex-ascending order), so the conformance runner sorts the bool vector before comparing — this turns the comparison into a multiset check that is robust to edge-id permutations. `is_multiple` follows upstream's "second-or-more" contract: the canonical/lowest-id edge in each parallel group stays `false`, the rest flip to `true`. |
 | is_loop / is_multiple | 2 | 2 | 2 | 6/6 | Per-edge `Vec<bool>`. Edge ids reorder over the wire (Python's `make_graph` rebuilds in vertex-ascending order), so the conformance runner sorts the bool vector before comparing — this turns the comparison into a multiset check that is robust to edge-id permutations. `is_multiple` follows upstream's "second-or-more" contract: the canonical/lowest-id edge in each parallel group stays `false`, the rest flip to `true`. |
+| transitivity_barrat | 1 | 1 | 1 | 3/3 | `Vec<Option<f64>>` Barrat weighted local clustering (PNAS 101 3747 eqn 5). Bespoke conformance runner because the weights ride on `case.graph.weights`. Phase-1 minimal: simple undirected only (rejects multi-edges, loops, directed); python-igraph's `g.transitivity_local_undirected(weights=...)` auto-routes to the C `igraph_transitivity_barrat()` so the same Python entry point doubles as oracle. Critical impl detail: must iterate `incident()` directly (not `neighbors()`) and resolve the neighbour with `edge_other()` — the two are NOT positionally aligned (neighbours merges sorted ascending; incident concatenates out\|in). Fixtures: C weighted triangle (1,2,4) all-vertex 1.0 (hand-checked); py K4-minus-edge unit → [1, 2/3, 2/3, 1] (collapses to unweighted local clustering); R K4 unit → [1,1,1,1]. |
 
 ## How to add a row
 
@@ -81,4 +82,4 @@ green, append a row here with the new counts.
 | Phase | Algorithms in conformance | Total fixtures | C / py / R |
 |-------|---------------------------|----------------|------------|
 | 0     | 1 (bfs)                   | 4              | 2 / 1 / 1  |
-| 1     | 58 (+ knn_w/knnk/knnk_w) | 181 | 66 / 56 / 59 |
+| 1     | 59 (+ transitivity_barrat) | 184 | 67 / 57 / 60 |

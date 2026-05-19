@@ -1,10 +1,12 @@
-//! Triangles and global transitivity (ALGO-PR-002).
+//! Triangles and global transitivity (ALGO-PR-002 / 002b / 002c).
 //!
 //! Counterparts of:
-//! - `igraph_count_triangles()`            from `references/igraph/src/properties/triangles.c:501`
-//! - `igraph_transitivity_undirected()`    from `references/igraph/src/properties/triangles.c:615`
+//! - `igraph_count_triangles()`             from `references/igraph/src/properties/triangles.c:501`
+//! - `igraph_transitivity_undirected()`     from `references/igraph/src/properties/triangles.c:615`
+//! - `igraph_transitivity_local_undirected()` from `references/igraph/src/properties/triangles.c:369`
+//! - `igraph_transitivity_barrat()`         from `references/igraph/src/properties/triangles.c:874`
 //!
-//! Both share the same private helper that computes triangles AND
+//! The first three share a private helper that computes triangles AND
 //! connected triples in a single sweep. We port that helper directly:
 //!
 //! 1. Build simple adjacency lists (no self-loops, no parallel edges).
@@ -17,8 +19,8 @@
 //! 5. Global transitivity = `3 * triangles / triples` (or `None` if no
 //!    triples).
 //!
-//! Phase-1 minimal slice — `transitivity_local_undirected` (per-vertex)
-//! and weighted Barrat's variant ship in PR-002b/c.
+//! Barrat's weighted local variant uses a different inner loop driven
+//! by the `transitivity_barrat1` helper at `triangles.c:632`.
 
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
@@ -181,6 +183,129 @@ fn per_vertex_triangle_stats(graph: &Graph) -> IgraphResult<(Vec<u64>, Vec<u64>)
     }
 
     Ok((tri_counts, degrees))
+}
+
+/// Barrat's weighted local transitivity, per vertex.
+///
+/// For each vertex `v`, returns
+/// `(Σ over triangles (v, u, w) (w(v,u) + w(v,w))) /
+///  (s_v * (deg_v - 1))`,
+/// where `s_v = Σ_{u ∼ v} w(v, u)` is `v`'s strength and `deg_v` is
+/// `v`'s simple degree. Returns `None` for vertices with `triples = 0`
+/// (degree < 2 or strength 0) — matches upstream's
+/// `IGRAPH_TRANSITIVITY_NAN` mode.
+///
+/// Counterpart of `igraph_transitivity_barrat()` from
+/// `references/igraph/src/properties/triangles.c:874`. The graph must
+/// be simple (no multi-edges, no self-loops); otherwise this returns
+/// `IgraphError::Internal`. Edge directions are ignored — directed
+/// graphs are currently rejected (Phase-1 minimal slice).
+///
+/// `weights` must have length `graph.ecount()` and contain only finite,
+/// non-negative values.
+///
+/// Reference: Barrat, Barthélemy, Pastor-Satorras, Vespignani (2004),
+/// "The architecture of complex weighted networks", PNAS 101 3747,
+/// equation (5).
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, transitivity_barrat};
+///
+/// // Triangle 0-1-2 with all unit weights — every vertex sees the
+/// // single triangle, so weighted transitivity equals the unweighted
+/// // value of 1.0.
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// let r = transitivity_barrat(&g, &[1.0, 1.0, 1.0]).unwrap();
+/// assert_eq!(r, vec![Some(1.0), Some(1.0), Some(1.0)]);
+/// ```
+pub fn transitivity_barrat(graph: &Graph, weights: &[f64]) -> IgraphResult<Vec<Option<f64>>> {
+    if graph.is_directed() {
+        return Err(IgraphError::Internal(
+            "transitivity_barrat: directed graphs not supported in Phase-1 minimal slice",
+        ));
+    }
+    let n = graph.vcount();
+    let n_us = n as usize;
+    let m = graph.ecount();
+    if weights.len() != m {
+        return Err(IgraphError::Internal(
+            "weights length does not match ecount in transitivity_barrat",
+        ));
+    }
+    for &w in weights {
+        if !w.is_finite() || w < 0.0 {
+            return Err(IgraphError::Internal(
+                "weights must be finite and non-negative in transitivity_barrat",
+            ));
+        }
+    }
+    // Upstream rejects multi-edges; loops yield undefined output, so
+    // require simple graphs here — matches the documented contract
+    // ("the function does not work for non-simple graphs").
+    if !crate::algorithms::properties::is_simple::is_simple(graph)? {
+        return Err(IgraphError::Internal(
+            "transitivity_barrat requires a simple graph (no multi-edges, no self-loops)",
+        ));
+    }
+
+    if n_us == 0 {
+        return Ok(Vec::new());
+    }
+
+    // Sentinel-based neighbour marker: `nei_mark[u] == i+1` means u is
+    // a neighbour of the i-th vertex being processed. Avoids reset cost
+    // between iterations. `actw[u]` records the weight of the edge
+    // from the current vertex to u.
+    let mut nei_mark: Vec<u64> = vec![0; n_us];
+    let mut actw: Vec<f64> = vec![0.0; n_us];
+    let mut out: Vec<Option<f64>> = Vec::with_capacity(n_us);
+
+    for v in 0..n {
+        let i_mark = u64::from(v) + 1;
+        let inc_v = graph.incident(v)?;
+        let mut strength = 0.0_f64;
+        for &e in &inc_v {
+            let u = graph.edge_other(e, v)?;
+            nei_mark[u as usize] = i_mark;
+            actw[u as usize] = weights[e as usize];
+            strength += weights[e as usize];
+        }
+        let deg_v = inc_v.len();
+        if deg_v < 2 {
+            out.push(None);
+            continue;
+        }
+        // triples = strength_v * (deg_v - 1). For a simple graph, deg_v
+        // is the simple degree, matching upstream.
+        #[allow(clippy::cast_precision_loss)]
+        let triples = strength * (deg_v as f64 - 1.0);
+        let mut triangles_w = 0.0_f64;
+
+        for &e1 in &inc_v {
+            let u = graph.edge_other(e1, v)?;
+            let w1 = weights[e1 as usize];
+            let inc_u = graph.incident(u)?;
+            for &e2 in &inc_u {
+                let u2 = graph.edge_other(e2, u)?;
+                if nei_mark[u2 as usize] == i_mark {
+                    triangles_w += f64::midpoint(actw[u2 as usize], w1);
+                }
+            }
+        }
+
+        if triples > 0.0 {
+            out.push(Some(triangles_w / triples));
+        } else {
+            out.push(None);
+        }
+    }
+
+    Ok(out)
 }
 
 fn triangles_and_triples(graph: &Graph) -> IgraphResult<(u64, u64)> {
@@ -405,6 +530,135 @@ mod tests {
         let two_thirds = 2.0_f64 / 3.0;
         assert_eq!(r[1], Some(two_thirds));
         assert_eq!(r[2], Some(two_thirds));
+    }
+
+    #[test]
+    fn barrat_unit_weights_match_unweighted_on_k4() {
+        // K4: every triple is a triangle → local clustering = 1.0 per
+        // vertex. Barrat with unit weights must reduce to that value.
+        let mut g = Graph::with_vertices(4);
+        for u in 0..4u32 {
+            for v in (u + 1)..4 {
+                g.add_edge(u, v).unwrap();
+            }
+        }
+        let r = transitivity_barrat(&g, &[1.0; 6]).unwrap();
+        assert_eq!(r, vec![Some(1.0); 4]);
+    }
+
+    #[test]
+    fn barrat_triangle_unit_weights_all_ones() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        let r = transitivity_barrat(&g, &[1.0; 3]).unwrap();
+        assert_eq!(r, vec![Some(1.0), Some(1.0), Some(1.0)]);
+    }
+
+    #[test]
+    fn barrat_triangle_unequal_weights_hand_check() {
+        // Triangle 0-1-2 with edges (0,1)=1, (1,2)=2, (2,0)=4.
+        // strength: s_0=1+4=5, s_1=1+2=3, s_2=2+4=6. degrees=2 each.
+        // Vertex 0: triples = 5*1 = 5;
+        //   triangle (0,1,2): w(0,1)=1, w(0,2)=4. Sum = 1+4 = 5.
+        //   Barrat = 5/5 = 1.0.
+        // Vertex 1: triples = 3; triangle sum = w(1,0)+w(1,2)=1+2=3 → 1.0.
+        // Vertex 2: triples = 6; sum = w(2,0)+w(2,1)=4+2=6 → 1.0.
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        let r = transitivity_barrat(&g, &[1.0, 2.0, 4.0]).unwrap();
+        assert_eq!(r, vec![Some(1.0), Some(1.0), Some(1.0)]);
+    }
+
+    #[test]
+    fn barrat_path_no_triangles_yields_zero_inner_none_endpoints() {
+        // Path 0-1-2: vertex 1 has 2 neighbours, no triangle → 0.0.
+        // Vertices 0, 2 have degree 1 → triples = 0 → None.
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let r = transitivity_barrat(&g, &[1.0, 1.0]).unwrap();
+        assert_eq!(r, vec![None, Some(0.0), None]);
+    }
+
+    #[test]
+    fn barrat_isolated_vertex_yields_none() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        let r = transitivity_barrat(&g, &[1.0]).unwrap();
+        assert_eq!(r, vec![None, None, None]);
+    }
+
+    #[test]
+    fn barrat_empty_graph_empty_result() {
+        let g = Graph::with_vertices(0);
+        let r = transitivity_barrat(&g, &[]).unwrap();
+        assert!(r.is_empty());
+    }
+
+    #[test]
+    fn barrat_diamond_unit_weights() {
+        // K4 minus edge (0,3): same as unweighted local with unit weights.
+        // Expected: 1.0, 2/3, 2/3, 1.0.
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let r = transitivity_barrat(&g, &[1.0; 5]).unwrap();
+        let two_thirds = 2.0_f64 / 3.0;
+        assert_eq!(r[0], Some(1.0));
+        assert_eq!(r[3], Some(1.0));
+        match (r[1], r[2]) {
+            (Some(a), Some(b)) => {
+                assert!((a - two_thirds).abs() < 1e-12);
+                assert!((b - two_thirds).abs() < 1e-12);
+            }
+            _ => panic!("middle vertices must be Some"),
+        }
+    }
+
+    #[test]
+    fn barrat_invalid_weight_length_errors() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        assert!(transitivity_barrat(&g, &[1.0]).is_err());
+    }
+
+    #[test]
+    fn barrat_negative_weight_errors() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        assert!(transitivity_barrat(&g, &[1.0, -1.0]).is_err());
+    }
+
+    #[test]
+    fn barrat_self_loop_rejected() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 0).unwrap();
+        g.add_edge(0, 1).unwrap();
+        assert!(transitivity_barrat(&g, &[1.0, 1.0]).is_err());
+    }
+
+    #[test]
+    fn barrat_multi_edge_rejected() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 1).unwrap();
+        assert!(transitivity_barrat(&g, &[1.0, 1.0]).is_err());
+    }
+
+    #[test]
+    fn barrat_directed_rejected() {
+        let mut g = Graph::new(2, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        assert!(transitivity_barrat(&g, &[1.0]).is_err());
     }
 
     #[test]

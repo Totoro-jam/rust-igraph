@@ -22,6 +22,30 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-002c**: Barrat's weighted local transitivity
+  (`transitivity_barrat(graph, weights)`), counterpart of
+  `igraph_transitivity_barrat()` (`triangles.c:874`). Per-vertex
+  `Vec<Option<f64>>`; `None` for degree<2 / strength==0 (matches
+  upstream `IGRAPH_TRANSITIVITY_NAN`). Implements equation (5) of Barrat
+  et al., PNAS 101 3747 (2004): for each vertex `v`,
+  `Σ_t (w(v,u_t) + w(v,u_t')) / (s_v · (deg_v − 1))`. Uses upstream's
+  sentinel-marker pattern (`nei_mark[u] == v+1` to avoid per-iteration
+  resets). Phase-1 minimal slice — rejects directed graphs and any
+  non-simple input (multi-edges or self-loops); upstream documents the
+  function as undefined for non-simple graphs. Re-applies the
+  `incident()`-not-`neighbors()` weight-handling pattern validated in
+  PR-005b: positional alignment between the two iterators is not
+  guaranteed. Full 9-step SOP: 12 new unit tests (unit weights match
+  unweighted local on K4 and K4-minus-edge, hand-checked triangle
+  unequal weights, path/isolated → None, all four input validations,
+  directed/loop/multi rejection), 1 oracle test against python-igraph's
+  `Graph.transitivity_local_undirected(weights="weight", mode="nan")`,
+  3 three-source conformance fixtures (1 per source: C weighted
+  triangle (1,2,4) all-1.0; py K4-minus-edge unit → [1, 2/3, 2/3, 1];
+  R K4 unit → all-1.0), 2 proptest invariants (unit weights match
+  unweighted local; values bounded in [0, 1]). Verified against
+  python-igraph: weighted karate.edges with cyclic 1-4 weights matches
+  to 1e-9.
 - *(properties)* **ALGO-PR-005b**: weighted variant + per-degree
   aggregate of `avg_nearest_neighbor_degree`. Three new public entries:
   - `avg_nearest_neighbor_degree_weighted(graph, weights)` — Barrat
