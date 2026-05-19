@@ -30,7 +30,7 @@ pub(crate) mod pagerank_weighted;
 pub(crate) mod reciprocity;
 pub(crate) mod triangles;
 
-pub use assortativity::assortativity_degree;
+pub use assortativity::{assortativity_degree, assortativity_degree_directed};
 pub use assortativity_weighted::assortativity_degree_weighted;
 pub use basic::{density, mean_distance};
 pub use betweenness::betweenness;

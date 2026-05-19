@@ -1,0 +1,38 @@
+{
+  "source": "py",
+  "origin": "constructed: directed hub 0/1/2/4 \u2192 3",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "assortativity_degree_directed",
+  "params": {},
+  "expected": -0.7071067811865476
+}

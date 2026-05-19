@@ -1232,6 +1232,16 @@ proptest! {
         }
     }
 
+    /// On undirected graphs `assortativity_degree_directed` must
+    /// agree with the canonical `assortativity_degree` (since the C
+    /// `directed` arg is documented as ignored on undirected inputs).
+    #[test]
+    fn assortativity_degree_directed_undirected_matches_canonical(g in arb_graph(15)) {
+        let a = rust_igraph::assortativity_degree(&g).unwrap();
+        let b = rust_igraph::assortativity_degree_directed(&g).unwrap();
+        prop_assert_eq!(a, b);
+    }
+
     /// On undirected graphs every [`CorenessMode`] must agree with
     /// the canonical `coreness` entry. The mode parameter is
     /// meaningful only for directed graphs.

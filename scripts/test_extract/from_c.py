@@ -419,6 +419,24 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ASSORT_DIR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assortativity_degree_directed_c_chain_with_branch",
+        # Mirrors C unit test: 0→1, 1→2, 0→2.
+        # Out-deg [2,1,0], in-deg [0,1,2]; Pearson r = -0.5 (variance
+        # well-defined on both sides).
+        "origin": "constructed: 0→1, 1→2, 0→2 (chain with branch)",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 2), (0, 2)],
+            directed=True,
+        ),
+        "algo": "assortativity_degree_directed",
+        "params": {},
+        "expected": -0.5,
+    },
+]
+
 CORENESS_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "coreness_with_mode_c_directed_complete_3_out",
@@ -1154,6 +1172,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_simple_with_mode": IS_SIMPLE_MODE_MANIFEST,
     "disjoint_union_many": DU_MANY_MANIFEST,
     "coreness_with_mode": CORENESS_MODE_MANIFEST,
+    "assortativity_degree_directed": ASSORT_DIR_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

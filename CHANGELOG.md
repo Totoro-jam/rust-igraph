@@ -22,6 +22,22 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-006c**: `assortativity_degree_directed` —
+  directed Pearson correlation of source out-degree vs target in-degree.
+  Counterpart of `igraph_assortativity_degree(_, _, /*directed=*/true)`.
+  Different formula from the symmetric undirected case:
+  `r = (num1 − num2*num3/m) / (sqrt(den1 − num2²/m) * sqrt(den2 − num3²/m))`.
+  Returns `None` when either variance term collapses (regular
+  in-/out-degrees, e.g. directed 3-cycle).
+  Existing `assortativity_degree` now routes directed inputs through
+  `assortativity_degree_directed` (matches python-igraph's default
+  behaviour where the `directed` arg is "do the natural thing").
+  Full 9-step SOP: 5 new unit tests (15 total in module — incl. 3-cycle
+  None, path-3 None due to vanishing variance, well-defined chain+branch
+  with hand-checked r=-0.5, undirected routing), 3 oracle tests,
+  3 three-source conformance fixtures, 1 proptest invariant: undirected
+  graphs route to the canonical formula.
+
 - *(properties)* **ALGO-PR-015b**: `coreness_with_mode` +
   `CorenessMode { All, In, Out }`. Counterpart of
   `igraph_coreness(_, _, mode)`. The peeling loop walks **reverse-mode**

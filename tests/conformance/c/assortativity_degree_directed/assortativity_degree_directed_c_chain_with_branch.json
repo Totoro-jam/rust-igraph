@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed: 0\u21921, 1\u21922, 0\u21922 (chain with branch)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "assortativity_degree_directed",
+  "params": {},
+  "expected": -0.5
+}

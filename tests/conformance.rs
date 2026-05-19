@@ -299,6 +299,18 @@ fn coreness_three_source_conformance() {
 }
 
 #[test]
+fn assortativity_degree_directed_three_source_conformance() {
+    run_conformance("assortativity_degree_directed", |g, _params| {
+        let r =
+            rust_igraph::assortativity_degree_directed(g).expect("assortativity_degree_directed");
+        match r {
+            Some(v) => serde_json::json!(v),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
 fn coreness_with_mode_three_source_conformance() {
     use rust_igraph::CorenessMode;
     run_conformance("coreness_with_mode", |g, params| {

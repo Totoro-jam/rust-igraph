@@ -465,6 +465,23 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ASSORT_DIR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assortativity_degree_directed_R_3_cycle_returns_none",
+        # rigraph smoke: directed 3-cycle is regular (every vertex
+        # has out-deg 1 and in-deg 1) → variance vanishes → None.
+        "origin": "constructed (rigraph-style): directed 3-cycle",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 2), (2, 0)],
+            directed=True,
+        ),
+        "algo": "assortativity_degree_directed",
+        "params": {},
+        "expected": None,
+    },
+]
+
 CORENESS_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "coreness_with_mode_R_directed_star_out",
@@ -1066,6 +1083,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_simple_with_mode": IS_SIMPLE_MODE_MANIFEST,
     "disjoint_union_many": DU_MANY_MANIFEST,
     "coreness_with_mode": CORENESS_MODE_MANIFEST,
+    "assortativity_degree_directed": ASSORT_DIR_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,

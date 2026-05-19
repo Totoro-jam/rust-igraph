@@ -266,6 +266,17 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         vals = g.coreness(mode="all")
         return [int(v) for v in vals]
 
+    if algo == "assortativity_degree_directed":
+        # Counterpart of igraph_assortativity_degree(_, _, /*directed=*/true).
+        # python-igraph's `g.assortativity_degree(directed=True)` returns
+        # NaN when either variance vanishes; we encode as None.
+        if g.ecount() == 0:
+            return None
+        v = g.assortativity_degree(directed=True)
+        if v != v:
+            return None
+        return float(v)
+
     if algo == "coreness_with_mode":
         # Counterpart of igraph_coreness(_, _, mode). python-igraph's
         # `Graph.coreness(mode=)` accepts 'in' / 'out' / 'all'.

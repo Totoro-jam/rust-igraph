@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed 3-cycle",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "assortativity_degree_directed",
+  "params": {},
+  "expected": null
+}

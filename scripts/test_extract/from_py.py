@@ -374,6 +374,25 @@ DIJKSTRA_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ASSORT_DIR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assortativity_degree_directed_py_hub_in",
+        # python-igraph smoke style: every vertex points at vertex 3
+        # (a directed in-hub). Variance is well-defined on both sides.
+        "origin": "constructed: directed hub 0/1/2/4 → 3",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 3), (2, 3), (4, 3)],
+            directed=True,
+        ),
+        "algo": "assortativity_degree_directed",
+        "params": {},
+        # Computed via python-igraph's
+        # `g.assortativity_degree(directed=True)` → -0.7071067811865476.
+        "expected": -0.7071067811865476,
+    },
+]
+
 CORENESS_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "coreness_with_mode_py_directed_3_cycle_in",
@@ -941,6 +960,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_simple_with_mode": IS_SIMPLE_MODE_MANIFEST,
     "disjoint_union_many": DU_MANY_MANIFEST,
     "coreness_with_mode": CORENESS_MODE_MANIFEST,
+    "assortativity_degree_directed": ASSORT_DIR_MANIFEST,
     "complementer": COMPLEMENTER_MANIFEST,
     "closeness_weighted": CLOSENESS_W_MANIFEST,
     "harmonic_centrality_weighted": HARMONIC_W_MANIFEST,
