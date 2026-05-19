@@ -1,0 +1,55 @@
+{
+  "source": "py",
+  "origin": "constructed: K3 \\ P4 on shared vertex space",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "difference",
+  "params": {
+    "right_graph": {
+      "n": 4,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "directed": false,
+      "weights": null
+    }
+  },
+  "expected": {
+    "vcount": 3,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        2
+      ]
+    ]
+  }
+}

@@ -22,6 +22,32 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(operators)* **ALGO-OP-006**: difference of two graphs
+  (`difference(orig, sub) -> Graph`), counterpart of
+  `igraph_difference(_, &orig, &sub)` (`operators/difference.c:54`).
+  Per canonicalised endpoint pair the result keeps
+  `max(0, count_orig − count_sub)` copies, i.e. clamped multiset
+  subtraction; pairs unique to `sub` drop out entirely (difference
+  cannot synthesise edges). **vcount = orig.vcount() only** —
+  asymmetric, unlike [`union`] / [`intersection`] which take
+  `max(left, right)`. Same `BTreeMap` template as OP-004/OP-005
+  (O((E1+E2) log(E1+E2))). Errors on directedness mismatch.
+  python-igraph exposes `g.difference(h)` as a Graph method (not
+  module-level `ig.difference`), so the oracle handler calls it that
+  way. 16 unit tests (empty±empty, vcount-orig-only, vcount when sub
+  larger / smaller, doc example, self-difference is empty,
+  identity-with-empty, empty-minus-anything, sub-only pair drops,
+  multiplicity clamp to zero, partial subtraction, directed
+  orientations independent, directed per-orientation multiplicity,
+  loops, mixed-directedness errors, undirected canonicalisation,
+  high-index sub vertex ignored), 1 doctest, 3 oracle tests vs
+  python-igraph's `g.difference(h)` (undirected triangle\path; directed
+  unmatched orientation; multiplicity clamps to zero), 3 three-source
+  conformance fixtures (C `igraph_union.c` BINARY VERSION inputs but
+  asking difference 4v 1e; py K3 \ P4 → 3v 1e; R K4 \ K3-on-{0,1,2} →
+  4v 3e star at vertex 3), 3 proptest invariants
+  (`difference(g, g) ≡ empty`; `difference(g, empty) ≡ g`;
+  per-pair clamped subtract + no-edge-synthesis).
 - *(operators)* **ALGO-OP-005**: intersection of two graphs
   (`intersection(left, right) -> Graph`), counterpart of
   `igraph_intersection(_, &left, &right, NULL, NULL)`

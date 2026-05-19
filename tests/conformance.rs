@@ -1350,6 +1350,34 @@ fn intersection_three_source_conformance() {
 }
 
 #[test]
+fn difference_three_source_conformance() {
+    run_conformance("difference", |g, params| {
+        let right_payload: GraphPayload = serde_json::from_value(
+            params
+                .get("right_graph")
+                .expect("right_graph param missing")
+                .clone(),
+        )
+        .expect("decode right_graph payload");
+        let right = build_graph(&right_payload);
+        let u = rust_igraph::difference(g, &right).expect("difference");
+        let m = u32::try_from(u.ecount()).expect("ecount fits in u32");
+        let mut edges: Vec<[u32; 2]> = (0..m)
+            .map(|e| {
+                let (a, b) = u.edge(e).unwrap();
+                [a, b]
+            })
+            .collect();
+        edges.sort_unstable();
+        serde_json::json!({
+            "vcount": u.vcount(),
+            "directed": u.is_directed(),
+            "edges": edges,
+        })
+    });
+}
+
+#[test]
 fn disjoint_union_many_three_source_conformance() {
     run_conformance("disjoint_union_many", |g, params| {
         let extras: Vec<GraphPayload> = serde_json::from_value(

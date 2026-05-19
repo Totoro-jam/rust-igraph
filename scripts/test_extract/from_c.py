@@ -844,6 +844,36 @@ INTERSECTION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIFFERENCE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "difference_c_directed_with_loop_disjoint_endpoints",
+        # Same igraph_union.c BINARY VERSION inputs, queried for
+        # difference (orig \ sub). Per directed pair:
+        #   (0,1):1−1=0, (1,2):1−1=0, (2,2):1−1=0, (2,3):1−0=1
+        #   (2,4) is not a key in orig, so it is ignored.
+        # vcount = orig.vcount() = 4 (asymmetric — unlike union /
+        # intersection which take max).
+        "origin": "constructed (mirrors igraph_union.c BINARY VERSION inputs)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 2), (2, 3)], directed=True
+        ),
+        "algo": "difference",
+        "params": {
+            "right_graph": {
+                "n": 5,
+                "edges": [[0, 1], [1, 2], [2, 2], [2, 4]],
+                "directed": True,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": True,
+            "edges": [[2, 3]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_c_mixed_self_loops",
@@ -1383,6 +1413,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "union": UNION_MANIFEST,
     "intersection": INTERSECTION_MANIFEST,
+    "difference": DIFFERENCE_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,

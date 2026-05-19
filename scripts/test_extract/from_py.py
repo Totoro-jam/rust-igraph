@@ -767,6 +767,34 @@ INTERSECTION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIFFERENCE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "difference_py_triangle_minus_path",
+        # python-igraph: K3.difference(P4). orig = K3 on {0,1,2}, sub =
+        # path 0-1-2-3 on 4 vertices. Per canonicalised undirected pair:
+        #   (0,1): 1−1=0, (1,2): 1−1=0, (0,2): 1−0=1; (2,3) is in sub
+        #   only and is ignored. vcount = orig.vcount() = 3 (asymmetric).
+        "origin": "constructed: K3 \\ P4 on shared vertex space",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (0, 2)], directed=False
+        ),
+        "algo": "difference",
+        "params": {
+            "right_graph": {
+                "n": 4,
+                "edges": [[0, 1], [1, 2], [2, 3]],
+                "directed": False,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 3,
+            "directed": False,
+            "edges": [[0, 2]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_py_no_self_loops",
@@ -1151,6 +1179,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "union": UNION_MANIFEST,
     "intersection": INTERSECTION_MANIFEST,
+    "difference": DIFFERENCE_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,

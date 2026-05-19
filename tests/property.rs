@@ -1686,4 +1686,85 @@ proptest! {
             prop_assert!(ca.contains_key(k) || cb.contains_key(k));
         }
     }
+
+    /// `difference(a, a)` is the empty edge set on a.vcount() vertices.
+    #[test]
+    fn difference_with_self_is_empty(g in arb_graph(8)) {
+        let d = rust_igraph::difference(&g, &g).unwrap();
+        prop_assert_eq!(d.vcount(), g.vcount());
+        prop_assert_eq!(d.ecount(), 0);
+        prop_assert_eq!(d.is_directed(), g.is_directed());
+    }
+
+    /// `difference(a, empty)` keeps every edge of `a` (multiset
+    /// equality) and the same vcount.
+    #[test]
+    fn difference_with_empty_is_identity(g in arb_graph(8)) {
+        use std::collections::BTreeMap;
+        let empty = if g.is_directed() {
+            Graph::new(g.vcount(), true).unwrap()
+        } else {
+            Graph::with_vertices(g.vcount())
+        };
+        let d = rust_igraph::difference(&g, &empty).unwrap();
+        prop_assert_eq!(d.vcount(), g.vcount());
+        prop_assert_eq!(d.ecount(), g.ecount());
+
+        let count = |graph: &Graph| -> BTreeMap<(u32, u32), u32> {
+            let mut m = BTreeMap::new();
+            let n = u32::try_from(graph.ecount()).unwrap();
+            for e in 0..n {
+                let p = graph.edge(e).unwrap();
+                *m.entry(p).or_insert(0u32) += 1;
+            }
+            m
+        };
+        prop_assert_eq!(count(&g), count(&d));
+    }
+
+    /// `difference` invariants on two arbitrary undirected graphs:
+    /// - vcount = orig.vcount() (asymmetric, NOT max)
+    /// - directedness preserved
+    /// - per-pair multiplicity = max(0, count_orig - count_sub)
+    /// - ecount = Σ_pairs max(0, count_orig - count_sub)
+    /// - no pair in result is absent from `orig`
+    #[test]
+    fn difference_clamped_subtract_per_pair(
+        a in arb_graph(6),
+        b in arb_graph(6),
+    ) {
+        use std::collections::BTreeMap;
+        let d = rust_igraph::difference(&a, &b).unwrap();
+        prop_assert_eq!(d.vcount(), a.vcount());
+        prop_assert_eq!(d.is_directed(), a.is_directed());
+
+        let count = |g: &Graph| -> BTreeMap<(u32, u32), u32> {
+            let mut m = BTreeMap::new();
+            let n = u32::try_from(g.ecount()).unwrap();
+            for e in 0..n {
+                let p = g.edge(e).unwrap();
+                *m.entry(p).or_insert(0u32) += 1;
+            }
+            m
+        };
+        let ca = count(&a);
+        let cb = count(&b);
+        let cd = count(&d);
+
+        let mut expected_e: usize = 0;
+        for (k, &co) in &ca {
+            let cs = cb.get(k).copied().unwrap_or(0);
+            let want = co.saturating_sub(cs);
+            let got = cd.get(k).copied().unwrap_or(0);
+            prop_assert_eq!(got, want, "pair {:?}", k);
+            expected_e += want as usize;
+        }
+        prop_assert_eq!(d.ecount(), expected_e);
+
+        // No pair appears in d that isn't in a (difference can never
+        // synthesise edges).
+        for k in cd.keys() {
+            prop_assert!(ca.contains_key(k));
+        }
+    }
 }

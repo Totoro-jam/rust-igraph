@@ -16,15 +16,15 @@ use rust_igraph::{
     avg_nearest_neighbor_degree_weighted, betweenness, betweenness_weighted, bfs,
     biconnected_components, bridges, closeness, closeness_weighted, complementer,
     connected_components, coreness, coreness_with_mode, count_reachable, count_triangles,
-    decompose, density, dfs, diameter, dijkstra_distances, disjoint_union, disjoint_union_many,
-    distances, eccentricity, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
-    floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
-    has_multiple, intersection, is_biconnected, is_loop, is_multiple, is_simple,
-    is_simple_with_mode, knnk, knnk_weighted, mean_distance, modularity, modularity_directed,
-    modularity_weighted, pagerank, pagerank_weighted, radius, reachability_matrix, read_edgelist,
-    reciprocity, reciprocity_with_mode, simplify, strongly_connected_components,
-    transitive_closure, transitivity_barrat, transitivity_local_undirected,
-    transitivity_undirected, union,
+    decompose, density, dfs, diameter, difference, dijkstra_distances, disjoint_union,
+    disjoint_union_many, distances, eccentricity, edge_betweenness, edge_betweenness_weighted,
+    eigenvector_centrality, floyd_warshall_distances, girth, harmonic_centrality,
+    harmonic_centrality_weighted, has_loop, has_multiple, intersection, is_biconnected, is_loop,
+    is_multiple, is_simple, is_simple_with_mode, knnk, knnk_weighted, mean_distance, modularity,
+    modularity_directed, modularity_weighted, pagerank, pagerank_weighted, radius,
+    reachability_matrix, read_edgelist, reciprocity, reciprocity_with_mode, simplify,
+    strongly_connected_components, transitive_closure, transitivity_barrat,
+    transitivity_local_undirected, transitivity_undirected, union,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -2718,5 +2718,82 @@ fn intersection_min_multiplicity_matches_python_igraph() {
     .expect("decode python intersection");
     assert_eq!(rust.vcount(), py.vcount);
     assert_eq!(rust.ecount(), 3);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
+}
+
+// ---- ALGO-OP-006 difference (2-graph variant) -----
+
+#[test]
+fn difference_undirected_triangle_minus_path_matches_python_igraph() {
+    // Triangle {(0,1),(1,2),(2,0)} \ path {(0,1),(1,2)} → {(0,2)}.
+    let mut a = Graph::with_vertices(3);
+    a.add_edge(0, 1).unwrap();
+    a.add_edge(1, 2).unwrap();
+    a.add_edge(2, 0).unwrap();
+    let mut b = Graph::with_vertices(3);
+    b.add_edge(0, 1).unwrap();
+    b.add_edge(1, 2).unwrap();
+    let rust = difference(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "difference",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python difference");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
+}
+
+#[test]
+fn difference_directed_keeps_unmatched_orientation_matches_python_igraph() {
+    // orig: 0→1, 1→0, 1→2; sub: 0→1. Result: 1→0, 1→2.
+    let mut a = Graph::new(3, true).unwrap();
+    a.add_edge(0, 1).unwrap();
+    a.add_edge(1, 0).unwrap();
+    a.add_edge(1, 2).unwrap();
+    let mut b = Graph::new(3, true).unwrap();
+    b.add_edge(0, 1).unwrap();
+    let rust = difference(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "difference",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python difference");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert!(rust.is_directed());
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, false));
+}
+
+#[test]
+fn difference_multiplicity_clamps_to_zero_matches_python_igraph() {
+    // orig: 4× (0,1), 1× (1,2); sub: 2× (0,1), 5× (1,2), 3× (2,3).
+    // Result: 2× (0,1) only — (1,2) clamps to 0; (2,3) absent in orig.
+    let mut a = Graph::with_vertices(4);
+    for _ in 0..4 {
+        a.add_edge(0, 1).unwrap();
+    }
+    a.add_edge(1, 2).unwrap();
+    let mut b = Graph::with_vertices(4);
+    for _ in 0..2 {
+        b.add_edge(0, 1).unwrap();
+    }
+    for _ in 0..5 {
+        b.add_edge(1, 2).unwrap();
+    }
+    for _ in 0..3 {
+        b.add_edge(2, 3).unwrap();
+    }
+    let rust = difference(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "difference",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python difference");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.ecount(), 2);
     assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
 }

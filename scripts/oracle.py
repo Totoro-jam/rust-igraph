@@ -484,6 +484,25 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         edges.sort()
         return {"vcount": u.vcount(), "directed": directed, "edges": edges}
 
+    if algo == "difference":
+        # Counterpart of igraph_difference(_, &orig, &sub). The request
+        # graph carries `orig` (the left operand); `sub` rides via
+        # `params.right_graph`. NB: vcount is taken from `orig` only
+        # (asymmetric — unlike union/intersection). Edges are
+        # canonicalised + sorted for portable comparison.
+        rp = params["right_graph"]
+        sub = make_graph(rp)
+        u = g.difference(sub)
+        directed = bool(u.is_directed())
+        edges = []
+        for e in u.es:
+            (s, t) = e.tuple
+            if not directed and s > t:
+                s, t = t, s
+            edges.append([int(s), int(t)])
+        edges.sort()
+        return {"vcount": u.vcount(), "directed": directed, "edges": edges}
+
     if algo == "is_loop":
         # Counterpart of igraph_is_loop(_, _, igraph_ess_all()).
         # python-igraph 0.11 exposes Edge.is_loop() per-edge.

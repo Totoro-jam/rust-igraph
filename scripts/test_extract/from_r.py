@@ -833,6 +833,36 @@ INTERSECTION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+DIFFERENCE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "difference_R_K4_minus_K3_subgraph",
+        # rigraph's `difference(g1, g2)`. orig = K4 on {0,1,2,3};
+        # sub = K3 on {0,1,2}. Subtracting the triangle from K4 leaves
+        # exactly the star at vertex 3: edges {(0,3),(1,3),(2,3)}.
+        # vcount = orig.vcount() = 4 (asymmetric).
+        "origin": "constructed (rigraph-style): K4 \\ K3-subgraph on 4 vertices",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "algo": "difference",
+        "params": {
+            "right_graph": {
+                "n": 4,
+                "edges": [[0, 1], [0, 2], [1, 2]],
+                "directed": False,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": False,
+            "edges": [[0, 3], [1, 3], [2, 3]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_R_directed_two_self_loops",
@@ -1261,6 +1291,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "union": UNION_MANIFEST,
     "intersection": INTERSECTION_MANIFEST,
+    "difference": DIFFERENCE_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,

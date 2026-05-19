@@ -138,6 +138,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-OP-003 | Complementer (`complementer`, configurable loops) | operators/complementer.c | ~100 | adapt | CORE-001a/d | done | (next) | O(V² log E) | C:1 / py:1 / R:1 |
 | ALGO-OP-004 | Union of two graphs (`union`, max-multiplicity) | operators/union.c:69 | ~150 | adapt | CORE-001a | done | (next) | O((E1+E2) log(E1+E2)) BTreeMap merge | C:1 / py:1 / R:1 |
 | ALGO-OP-005 | Intersection of two graphs (`intersection`, min-multiplicity) | operators/intersection.c:71 | ~150 | adapt | CORE-001a | done | (next) | O((E1+E2) log(E1+E2)) BTreeMap lookup | C:1 / py:1 / R:1 |
+| ALGO-OP-006 | Difference of two graphs (`difference`, clamped multiset subtract) | operators/difference.c:54 | ~120 | adapt | CORE-001a | done | (next) | O((E1+E2) log(E1+E2)) BTreeMap lookup | C:1 / py:1 / R:1 |
 | ALGO-CO-001 | Modularity (`modularity`, undirected, unweighted, configurable γ) | community/modularity.c | ~150 | adapt | CORE-001a/d | done | (next) | O(V + E) | C:1 / py:1 / R:1 |
 | ALGO-PR-013 | `is_simple` predicate (no loops, no multi-edges) | properties/multiplicity.c | ~80 | adapt | CORE-001a | done | (next) | O(V + E) | C:1 / py:1 / R:1 |
 | ALGO-PR-013b | `is_simple_with_mode` (directed-as-undirected) | properties/multiplicity.c | ~80 | adapt | PR-013 | done | (next) | O(V+E) / O(E log E) | C:1 / py:1 / R:1 |
@@ -165,10 +166,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 61 | 0 | ~25 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; transitivity_barrat: 3; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3; decompose: 3; union: 3; intersection: 3 |
+| 1 | 62 | 0 | ~24 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; triangles+transitivity: 10; transitivity_barrat: 3; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; floyd_warshall_distances: 3; decompose: 3; union: 3; intersection: 3; difference: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 61/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 62/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -202,10 +203,11 @@ weighted knn + knnk + knnk_weighted (PR-005b),
 Barrat weighted transitivity (PR-002c),
 decompose (CC-003 weak slice),
 union (OP-004 two-graph max-multiplicity),
-intersection (OP-005 two-graph min-multiplicity).
+intersection (OP-005 two-graph min-multiplicity),
+difference (OP-006 clamped multiset subtract).
 Next options:
 SP-001b (Dijkstra paths+parents), CORE-001c (deletion),
-hub/auth scores, more operators (difference),
+hub/auth scores,
 SP-002 Bellman-Ford,
 SP-021..023 (mode-aware ecc/radius/diameter).
 
