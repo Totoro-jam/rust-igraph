@@ -739,6 +739,34 @@ UNION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+INTERSECTION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "intersection_py_triangle_overlap_path",
+        # python-igraph: ig.intersection([K3, P4]) — vcount = max(3,4) = 4.
+        # Triangle on {0,1,2} ∩ path 0-1-2-3 → only the shared pairs
+        # (0,1) and (1,2) survive. (0,2) is in K3 but not in P4; (2,3)
+        # is in P4 but not in K3.
+        "origin": "constructed: K3 ∩ P4 on shared vertex space",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (0, 2)], directed=False
+        ),
+        "algo": "intersection",
+        "params": {
+            "right_graph": {
+                "n": 4,
+                "edges": [[0, 1], [1, 2], [2, 3]],
+                "directed": False,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": False,
+            "edges": [[0, 1], [1, 2]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_py_no_self_loops",
@@ -1122,6 +1150,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "union": UNION_MANIFEST,
+    "intersection": INTERSECTION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,

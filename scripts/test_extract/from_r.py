@@ -803,6 +803,36 @@ UNION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+INTERSECTION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "intersection_R_K4_with_two_K3_subgraphs",
+        # rigraph's `intersection(g1, g2)`. K4 on {0,1,2,3} ∩ a graph
+        # carrying only the K3 on {0,1,2} edges → the three triangle
+        # edges survive. Vertex 3 stays as an isolated vertex (vcount =
+        # max(4, 4) = 4, no edges incident to it).
+        "origin": "constructed (rigraph-style): K4 ∩ K3-subgraph on 4 vertices",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "algo": "intersection",
+        "params": {
+            "right_graph": {
+                "n": 4,
+                "edges": [[0, 1], [0, 2], [1, 2]],
+                "directed": False,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 2]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_R_directed_two_self_loops",
@@ -1230,6 +1260,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "union": UNION_MANIFEST,
+    "intersection": INTERSECTION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,

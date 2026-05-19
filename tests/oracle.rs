@@ -19,11 +19,12 @@ use rust_igraph::{
     decompose, density, dfs, diameter, dijkstra_distances, disjoint_union, disjoint_union_many,
     distances, eccentricity, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
     floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
-    has_multiple, is_biconnected, is_loop, is_multiple, is_simple, is_simple_with_mode, knnk,
-    knnk_weighted, mean_distance, modularity, modularity_directed, modularity_weighted, pagerank,
-    pagerank_weighted, radius, reachability_matrix, read_edgelist, reciprocity,
-    reciprocity_with_mode, simplify, strongly_connected_components, transitive_closure,
-    transitivity_barrat, transitivity_local_undirected, transitivity_undirected, union,
+    has_multiple, intersection, is_biconnected, is_loop, is_multiple, is_simple,
+    is_simple_with_mode, knnk, knnk_weighted, mean_distance, modularity, modularity_directed,
+    modularity_weighted, pagerank, pagerank_weighted, radius, reachability_matrix, read_edgelist,
+    reciprocity, reciprocity_with_mode, simplify, strongly_connected_components,
+    transitive_closure, transitivity_barrat, transitivity_local_undirected,
+    transitivity_undirected, union,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -2637,5 +2638,85 @@ fn union_max_multiplicity_matches_python_igraph() {
     .expect("decode python union");
     assert_eq!(rust.vcount(), py.vcount);
     assert_eq!(rust.ecount(), 8);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
+}
+
+// ---- ALGO-OP-005 intersection (2-graph variant) -----
+
+#[test]
+fn intersection_undirected_triangle_inter_path_matches_python_igraph() {
+    // Triangle on {0,1,2} ∩ path 0-1-2 → 2 edges (0,1) + (1,2).
+    let mut a = Graph::with_vertices(3);
+    a.add_edge(0, 1).unwrap();
+    a.add_edge(1, 2).unwrap();
+    a.add_edge(2, 0).unwrap();
+    let mut b = Graph::with_vertices(3);
+    b.add_edge(0, 1).unwrap();
+    b.add_edge(1, 2).unwrap();
+    let rust = intersection(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "intersection",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python intersection");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
+}
+
+#[test]
+fn intersection_directed_overlap_matches_python_igraph() {
+    // left: 0→1, 1→2, 2→0; right: 0→1, 2→0, 0→2. Common: 0→1, 2→0.
+    let mut a = Graph::new(3, true).unwrap();
+    a.add_edge(0, 1).unwrap();
+    a.add_edge(1, 2).unwrap();
+    a.add_edge(2, 0).unwrap();
+    let mut b = Graph::new(3, true).unwrap();
+    b.add_edge(0, 1).unwrap();
+    b.add_edge(2, 0).unwrap();
+    b.add_edge(0, 2).unwrap();
+    let rust = intersection(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "intersection",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python intersection");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert!(rust.is_directed());
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, false));
+}
+
+#[test]
+fn intersection_min_multiplicity_matches_python_igraph() {
+    // left: 3× (0,1), 1× (1,2); right: 2× (0,1), 4× (1,2), 5× (2,3).
+    // Intersection: min for (0,1)=2, (1,2)=1; (2,3) absent → dropped.
+    // Total: 2 + 1 = 3 edges.
+    let mut a = Graph::with_vertices(4);
+    for _ in 0..3 {
+        a.add_edge(0, 1).unwrap();
+    }
+    a.add_edge(1, 2).unwrap();
+    let mut b = Graph::with_vertices(4);
+    for _ in 0..2 {
+        b.add_edge(0, 1).unwrap();
+    }
+    for _ in 0..4 {
+        b.add_edge(1, 2).unwrap();
+    }
+    for _ in 0..5 {
+        b.add_edge(2, 3).unwrap();
+    }
+    let rust = intersection(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "intersection",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python intersection");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.ecount(), 3);
     assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
 }

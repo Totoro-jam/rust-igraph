@@ -465,6 +465,25 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         edges.sort()
         return {"vcount": u.vcount(), "directed": directed, "edges": edges}
 
+    if algo == "intersection":
+        # Counterpart of igraph_intersection(_, &left, &right, NULL,
+        # NULL). Same wire format as `union`: right rides via
+        # `params.right_graph`. Output edges are canonicalised + sorted
+        # for portable comparison across the three reference
+        # implementations.
+        rp = params["right_graph"]
+        right = make_graph(rp)
+        u = ig.intersection([g, right])
+        directed = bool(u.is_directed())
+        edges = []
+        for e in u.es:
+            (s, t) = e.tuple
+            if not directed and s > t:
+                s, t = t, s
+            edges.append([int(s), int(t)])
+        edges.sort()
+        return {"vcount": u.vcount(), "directed": directed, "edges": edges}
+
     if algo == "is_loop":
         # Counterpart of igraph_is_loop(_, _, igraph_ess_all()).
         # python-igraph 0.11 exposes Edge.is_loop() per-edge.

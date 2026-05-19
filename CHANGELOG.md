@@ -22,6 +22,26 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(operators)* **ALGO-OP-005**: intersection of two graphs
+  (`intersection(left, right) -> Graph`), counterpart of
+  `igraph_intersection(_, &left, &right, NULL, NULL)`
+  (`operators/intersection.c:71`). Phase-1 two-graph slice; multi-arg
+  `intersection_many` and edge-mapping outputs ship later. Vertex sets
+  aligned by index (`vcount = max(left.vcount(), right.vcount())` —
+  matches upstream's "common edges, larger vertex set" semantics);
+  edges intersected by min-multiplicity per canonicalised endpoint
+  pair (so pairs unique to either side drop out entirely). Iterates
+  the smaller of the two count-BTreeMaps and looks up matches in the
+  other (O((E1+E2) log(E1+E2))). Errors on directedness mismatch. 14
+  unit tests (empty, vcount-max, doc example, both-sides multiplicity,
+  idempotent, directed orientation separation, loops, undirected
+  canonicalisation, commutative), 1 doctest, 3 oracle tests vs
+  python-igraph's `igraph.intersection([g1, g2])` (undirected triangle
+  ∩ path; directed overlap; min-multiplicity), 3 three-source
+  conformance fixtures (C `igraph_union.c` BINARY VERSION inputs but
+  asking intersection 5v 3e; py K3 ∩ P4 sharing vertices 4v 2e; R K4 ∩
+  K3-on-{0,1,2} 4v 3e), 2 proptest invariants (idempotence;
+  per-pair min-multiplicity + commutativity).
 - *(operators)* **ALGO-OP-004**: union of two graphs
   (`union(left, right) -> Graph`), counterpart of
   `igraph_union(_, &left, &right, NULL, NULL)`

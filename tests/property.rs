@@ -1561,6 +1561,82 @@ proptest! {
         prop_assert_eq!(u_pairs, g_pairs);
     }
 
+    /// `intersection(a, a)` is idempotent up to canonical-edge multiset
+    /// equality (min(k, k) = k preserves every multiplicity).
+    #[test]
+    fn intersection_with_self_is_idempotent(g in arb_graph(8)) {
+        let i = rust_igraph::intersection(&g, &g).unwrap();
+        prop_assert_eq!(i.vcount(), g.vcount());
+        prop_assert_eq!(i.ecount(), g.ecount());
+        prop_assert_eq!(i.is_directed(), g.is_directed());
+
+        let m_g = u32::try_from(g.ecount()).unwrap();
+        let mut g_pairs: Vec<(u32, u32)> = (0..m_g).map(|e| g.edge(e).unwrap()).collect();
+        g_pairs.sort_unstable();
+        let m_i = u32::try_from(i.ecount()).unwrap();
+        let mut i_pairs: Vec<(u32, u32)> = (0..m_i).map(|e| i.edge(e).unwrap()).collect();
+        i_pairs.sort_unstable();
+        prop_assert_eq!(i_pairs, g_pairs);
+    }
+
+    /// `intersection` invariants on two arbitrary undirected graphs:
+    /// - vcount = max(left, right)
+    /// - directedness preserved (and shared)
+    /// - per-pair multiplicity = min of the two inputs' multiplicities
+    /// - ecount = Σ_pairs min(count_left, count_right)
+    /// - intersection is commutative: intersection(a, b) ≡ intersection(b, a)
+    #[test]
+    fn intersection_min_multiplicity_per_pair(
+        a in arb_graph(6),
+        b in arb_graph(6),
+    ) {
+        use std::collections::BTreeMap;
+        let i = rust_igraph::intersection(&a, &b).unwrap();
+        prop_assert_eq!(i.vcount(), std::cmp::max(a.vcount(), b.vcount()));
+        prop_assert_eq!(i.is_directed(), a.is_directed());
+
+        let count = |g: &Graph| -> BTreeMap<(u32, u32), u32> {
+            let mut m = BTreeMap::new();
+            let n = u32::try_from(g.ecount()).unwrap();
+            for e in 0..n {
+                let p = g.edge(e).unwrap();
+                *m.entry(p).or_insert(0u32) += 1;
+            }
+            m
+        };
+        let ca = count(&a);
+        let cb = count(&b);
+        let ci = count(&i);
+
+        // Per-pair: count in result equals min(count_a, count_b); 0 when
+        // pair missing from either side.
+        let mut keys: Vec<(u32, u32)> = ca.keys().chain(cb.keys()).copied().collect();
+        keys.sort_unstable();
+        keys.dedup();
+        let mut expected_e: usize = 0;
+        for k in &keys {
+            let want = std::cmp::min(
+                ca.get(k).copied().unwrap_or(0),
+                cb.get(k).copied().unwrap_or(0),
+            );
+            let got = ci.get(k).copied().unwrap_or(0);
+            prop_assert_eq!(got, want, "pair {:?}", k);
+            expected_e += want as usize;
+        }
+        prop_assert_eq!(i.ecount(), expected_e);
+
+        // Commutativity: swapping operands yields the same edge multiset.
+        let i_swap = rust_igraph::intersection(&b, &a).unwrap();
+        let m_i_swap = u32::try_from(i_swap.ecount()).unwrap();
+        let mut swap_pairs: Vec<(u32, u32)> =
+            (0..m_i_swap).map(|e| i_swap.edge(e).unwrap()).collect();
+        swap_pairs.sort_unstable();
+        let m_i = u32::try_from(i.ecount()).unwrap();
+        let mut i_pairs: Vec<(u32, u32)> = (0..m_i).map(|e| i.edge(e).unwrap()).collect();
+        i_pairs.sort_unstable();
+        prop_assert_eq!(swap_pairs, i_pairs);
+    }
+
     /// `union` invariants on two arbitrary undirected graphs:
     /// - vcount = max(left, right)
     /// - directedness preserved (and shared)

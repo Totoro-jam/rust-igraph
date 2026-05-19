@@ -814,6 +814,36 @@ UNION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+INTERSECTION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "intersection_c_directed_with_loop_disjoint_endpoints",
+        # Mirrors the same `igraph_union.c` BINARY VERSION graphs but
+        # asks for the intersection. Common ordered pairs (and their
+        # min multiplicity): (0,1), (1,2), (2,2). Pairs unique to one
+        # side (left's (2,3) and right's (2,4)) drop out. vcount =
+        # max(4, 5) = 5 to match upstream's "common edges, larger vertex
+        # set" contract.
+        "origin": "constructed (mirrors igraph_union.c BINARY VERSION inputs)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 2), (2, 3)], directed=True
+        ),
+        "algo": "intersection",
+        "params": {
+            "right_graph": {
+                "n": 5,
+                "edges": [[0, 1], [1, 2], [2, 2], [2, 4]],
+                "directed": True,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": True,
+            "edges": [[0, 1], [1, 2], [2, 2]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_c_mixed_self_loops",
@@ -1352,6 +1382,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "union": UNION_MANIFEST,
+    "intersection": INTERSECTION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,
