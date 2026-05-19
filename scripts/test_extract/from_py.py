@@ -712,6 +712,33 @@ DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+UNION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "union_py_triangle_overlap_path",
+        # python-igraph: ig.union([K3, P4]) — vcount = max(3,4) = 4.
+        # Triangle on {0,1,2} ∪ path 0-1-2-3 → max-multiplicity union
+        # over the four canonical pairs {(0,1), (0,2), (1,2), (2,3)}.
+        "origin": "constructed: K3 ∪ P4 on shared vertex space",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (0, 2)], directed=False
+        ),
+        "algo": "union",
+        "params": {
+            "right_graph": {
+                "n": 4,
+                "edges": [[0, 1], [1, 2], [2, 3]],
+                "directed": False,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 2], [2, 3]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_py_no_self_loops",
@@ -1094,6 +1121,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
+    "union": UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,

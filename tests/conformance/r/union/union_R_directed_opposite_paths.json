@@ -1,0 +1,59 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed union of opposing 2-paths",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "union",
+  "params": {
+    "right_graph": {
+      "n": 3,
+      "edges": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "directed": true,
+      "weights": null
+    }
+  },
+  "expected": {
+    "vcount": 3,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ]
+    ]
+  }
+}

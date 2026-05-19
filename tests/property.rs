@@ -1542,4 +1542,72 @@ proptest! {
             }
         }
     }
+
+    /// `union(a, a)` is idempotent up to canonical-edge multiset
+    /// equality (max(k, k) = k preserves every multiplicity).
+    #[test]
+    fn union_with_self_is_idempotent(g in arb_graph(8)) {
+        let u = rust_igraph::union(&g, &g).unwrap();
+        prop_assert_eq!(u.vcount(), g.vcount());
+        prop_assert_eq!(u.ecount(), g.ecount());
+        prop_assert_eq!(u.is_directed(), g.is_directed());
+
+        let m_g = u32::try_from(g.ecount()).unwrap();
+        let mut g_pairs: Vec<(u32, u32)> = (0..m_g).map(|e| g.edge(e).unwrap()).collect();
+        g_pairs.sort_unstable();
+        let m_u = u32::try_from(u.ecount()).unwrap();
+        let mut u_pairs: Vec<(u32, u32)> = (0..m_u).map(|e| u.edge(e).unwrap()).collect();
+        u_pairs.sort_unstable();
+        prop_assert_eq!(u_pairs, g_pairs);
+    }
+
+    /// `union` invariants on two arbitrary undirected graphs:
+    /// - vcount = max(left, right)
+    /// - directedness preserved (and shared)
+    /// - per-pair multiplicity = max of the two inputs' multiplicities
+    /// - ecount = Σ_pairs max(count_left, count_right)
+    #[test]
+    fn union_max_multiplicity_per_pair(
+        a in arb_graph(6),
+        b in arb_graph(6),
+    ) {
+        use std::collections::BTreeMap;
+        let u = rust_igraph::union(&a, &b).unwrap();
+        prop_assert_eq!(u.vcount(), std::cmp::max(a.vcount(), b.vcount()));
+        prop_assert_eq!(u.is_directed(), a.is_directed());
+
+        let count = |g: &Graph| -> BTreeMap<(u32, u32), u32> {
+            let mut m = BTreeMap::new();
+            let n = u32::try_from(g.ecount()).unwrap();
+            for e in 0..n {
+                let p = g.edge(e).unwrap();
+                *m.entry(p).or_insert(0u32) += 1;
+            }
+            m
+        };
+        let ca = count(&a);
+        let cb = count(&b);
+        let cu = count(&u);
+
+        // Every pair appearing in a or b has the right max-multiplicity in u.
+        let mut keys: Vec<(u32, u32)> = ca.keys().chain(cb.keys()).copied().collect();
+        keys.sort_unstable();
+        keys.dedup();
+        let mut expected_e: usize = 0;
+        for k in &keys {
+            let want = std::cmp::max(
+                ca.get(k).copied().unwrap_or(0),
+                cb.get(k).copied().unwrap_or(0),
+            );
+            let got = cu.get(k).copied().unwrap_or(0);
+            prop_assert_eq!(got, want, "pair {:?}", k);
+            expected_e += want as usize;
+        }
+        prop_assert_eq!(u.ecount(), expected_e);
+
+        // No spurious pairs: every pair in u must appear in a or b.
+        for k in cu.keys() {
+            prop_assert!(ca.contains_key(k) || cb.contains_key(k));
+        }
+    }
 }

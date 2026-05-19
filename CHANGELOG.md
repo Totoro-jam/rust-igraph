@@ -22,6 +22,26 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(operators)* **ALGO-OP-004**: union of two graphs
+  (`union(left, right) -> Graph`), counterpart of
+  `igraph_union(_, &left, &right, NULL, NULL)`
+  (`operators/union.c:69`). Phase-1 two-graph slice; multi-arg
+  `union_many` and edge-mapping outputs ship later. Vertex sets are
+  aligned by index (output `vcount = max(left.vcount(),
+  right.vcount())`); edges are unioned by max-multiplicity per
+  endpoint pair, with undirected pairs canonicalised to `(min, max)`
+  and directed pairs counted per orientation. Implementation merges
+  per-pair counts with two `BTreeMap`s (deterministic, O((E1+E2)
+  log(E1+E2))). Errors when directedness diverges. 14 unit tests
+  (empty, vcount-max, doc example, both-sides multiplicity, idempotent
+  with self, directed orientation separation, loops, undirected
+  canonicalisation, swap-endpoints invariance), 1 doctest, 3 oracle
+  tests vs python-igraph's `igraph.union([g1, g2])` (undirected
+  triangle ∪ path; directed opposing paths; max-multiplicity), 3
+  three-source conformance fixtures (C upstream `igraph_union.c`
+  BINARY VERSION 5v 5e directed-with-loop; py K3 ∪ P4 sharing vertices
+  4v 4e; R directed opposite paths 3v 4e), 2 proptest invariants
+  (idempotence; per-pair max-multiplicity + ecount = Σ_pairs max).
 - *(connectivity)* **ALGO-CC-003**: weak graph decomposition
   (`decompose(graph) -> Vec<Graph>`), counterpart of
   `igraph_decompose(_, _, IGRAPH_WEAK, -1, 1)` (`components.c:603`).

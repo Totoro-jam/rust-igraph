@@ -23,7 +23,7 @@ use rust_igraph::{
     knnk_weighted, mean_distance, modularity, modularity_directed, modularity_weighted, pagerank,
     pagerank_weighted, radius, reachability_matrix, read_edgelist, reciprocity,
     reciprocity_with_mode, simplify, strongly_connected_components, transitive_closure,
-    transitivity_barrat, transitivity_local_undirected, transitivity_undirected,
+    transitivity_barrat, transitivity_local_undirected, transitivity_undirected, union,
 };
 
 fn workspace_fixture(name: &str) -> std::path::PathBuf {
@@ -2565,4 +2565,77 @@ fn modularity_directed_undirected_routes_to_undirected_oracle() {
     ))
     .expect("decode");
     assert_eq!(rust, py);
+}
+
+// ---- ALGO-OP-004 union (2-graph variant) -----
+
+#[test]
+fn union_undirected_triangle_plus_path_matches_python_igraph() {
+    // Triangle on {0,1,2} ∪ path 0-1-3 → 4 edges on 4 vertices.
+    let mut a = Graph::with_vertices(3);
+    a.add_edge(0, 1).unwrap();
+    a.add_edge(1, 2).unwrap();
+    a.add_edge(2, 0).unwrap();
+    let mut b = Graph::with_vertices(4);
+    b.add_edge(0, 1).unwrap();
+    b.add_edge(1, 3).unwrap();
+    let rust = union(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "union",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python union");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
+}
+
+#[test]
+fn union_directed_paths_keep_orientation_separate_matches_python_igraph() {
+    // left: 0→1, 1→2; right: 1→0, 2→1. Both orientations preserved.
+    let mut a = Graph::new(3, true).unwrap();
+    a.add_edge(0, 1).unwrap();
+    a.add_edge(1, 2).unwrap();
+    let mut b = Graph::new(3, true).unwrap();
+    b.add_edge(1, 0).unwrap();
+    b.add_edge(2, 1).unwrap();
+    let rust = union(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "union",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python union");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert!(rust.is_directed());
+    assert_eq!(rust.is_directed(), py.directed);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, false));
+}
+
+#[test]
+fn union_max_multiplicity_matches_python_igraph() {
+    // left: 2× (0,1), 1× (1,2); right: 4× (0,1), 3× (2,3) → max gives
+    // 4× (0,1), 1× (1,2), 3× (2,3) on 4 vertices.
+    let mut a = Graph::with_vertices(4);
+    a.add_edge(0, 1).unwrap();
+    a.add_edge(0, 1).unwrap();
+    a.add_edge(1, 2).unwrap();
+    let mut b = Graph::with_vertices(4);
+    for _ in 0..4 {
+        b.add_edge(0, 1).unwrap();
+    }
+    for _ in 0..3 {
+        b.add_edge(2, 3).unwrap();
+    }
+    let rust = union(&a, &b).unwrap();
+    let py: PyDisjointUnion = serde_json::from_value(run_ok(
+        "union",
+        &a,
+        serde_json::json!({"right_graph": right_graph_payload(&b)}),
+    ))
+    .expect("decode python union");
+    assert_eq!(rust.vcount(), py.vcount);
+    assert_eq!(rust.ecount(), 8);
+    assert_eq!(rust_du_pairs(&rust), py_du_pairs(&py, true));
 }

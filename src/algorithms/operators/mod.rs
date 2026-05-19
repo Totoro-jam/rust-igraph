@@ -6,7 +6,9 @@
 pub(crate) mod complementer;
 pub(crate) mod disjoint_union;
 pub(crate) mod simplify;
+pub(crate) mod union;
 
 pub use complementer::complementer;
 pub use disjoint_union::{disjoint_union, disjoint_union_many};
 pub use simplify::simplify;
+pub use union::union;

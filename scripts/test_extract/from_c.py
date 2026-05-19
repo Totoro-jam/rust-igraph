@@ -786,6 +786,34 @@ DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+UNION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "union_c_directed_with_loop_disjoint_endpoints",
+        # Mirrors references/igraph/tests/unit/igraph_union.c "BINARY VERSION":
+        # left  = 0→1, 1→2, 2→2 (loop), 2→3
+        # right = 0→1, 1→2, 2→2 (loop), 2→4
+        # vcount = max(4, 5) = 5; per ordered pair max multiplicity → 5 edges.
+        "origin": "references/igraph/tests/unit/igraph_union.c (BINARY VERSION)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 2), (2, 3)], directed=True
+        ),
+        "algo": "union",
+        "params": {
+            "right_graph": {
+                "n": 5,
+                "edges": [[0, 1], [1, 2], [2, 2], [2, 4]],
+                "directed": True,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": True,
+            "edges": [[0, 1], [1, 2], [2, 2], [2, 3], [2, 4]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_c_mixed_self_loops",
@@ -1323,6 +1351,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
+    "union": UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,

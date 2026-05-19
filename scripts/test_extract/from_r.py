@@ -776,6 +776,33 @@ DISJOINT_UNION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+UNION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "union_R_directed_opposite_paths",
+        # rigraph's `union(g1, g2)`. Both graphs have 3 vertices; left
+        # is the directed path 0→1→2, right is the reverse 2→1→0.
+        # Direction is preserved per ordered pair → 4 distinct edges.
+        "origin": "constructed (rigraph-style): directed union of opposing 2-paths",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "algo": "union",
+        "params": {
+            "right_graph": {
+                "n": 3,
+                "edges": [[1, 0], [2, 1]],
+                "directed": True,
+                "weights": None,
+            }
+        },
+        "expected": {
+            "vcount": 3,
+            "directed": True,
+            "edges": [[0, 1], [1, 0], [1, 2], [2, 1]],
+        },
+    },
+]
+
 IS_LOOP_PER_EDGE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_loop_R_directed_two_self_loops",
@@ -1202,6 +1229,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
+    "union": UNION_MANIFEST,
     "dijkstra_distances": DIJKSTRA_MANIFEST,
     "floyd_warshall_distances": FW_MANIFEST,
     "coreness": CORENESS_MANIFEST,

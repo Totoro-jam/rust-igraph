@@ -444,6 +444,27 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         edges = [list(e.tuple) for e in u.es]
         return {"vcount": u.vcount(), "directed": u.is_directed(), "edges": edges}
 
+    if algo == "union":
+        # Counterpart of igraph_union(_, &left, &right, NULL, NULL). The
+        # request graph carries `left`; `right` is encoded inside
+        # `params.right_graph` (n / edges / directed / weights). Edges
+        # are returned canonicalised + sorted: the C kernel emits edges
+        # in its internal sort-merge order which is not portable across
+        # bindings, so we hand back a deterministic representation
+        # suited for set-equality testing.
+        rp = params["right_graph"]
+        right = make_graph(rp)
+        u = ig.union([g, right])
+        directed = bool(u.is_directed())
+        edges = []
+        for e in u.es:
+            (s, t) = e.tuple
+            if not directed and s > t:
+                s, t = t, s
+            edges.append([int(s), int(t)])
+        edges.sort()
+        return {"vcount": u.vcount(), "directed": directed, "edges": edges}
+
     if algo == "is_loop":
         # Counterpart of igraph_is_loop(_, _, igraph_ess_all()).
         # python-igraph 0.11 exposes Edge.is_loop() per-edge.
