@@ -1517,6 +1517,66 @@ fn dijkstra_distances_directed_matches_python_igraph() {
     }
 }
 
+// ---- ALGO-SP-013: widest_paths_to multi-target oracle tests --------
+
+#[derive(serde::Deserialize, Debug)]
+struct PyWidestPathOpt(Option<PyWidestPath>);
+
+#[test]
+fn widest_paths_to_triangle_matches_python_reference() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 4.0, 2.0];
+    let rust = rust_igraph::widest_paths_to(&g, 0, &[1, 2], &weights).unwrap();
+    let py: Vec<PyWidestPathOpt> = serde_json::from_value(run_ok_with_weights(
+        "widest_paths_to",
+        &g,
+        Some(weights),
+        serde_json::json!({"from": 0, "targets": [1, 2]}),
+    ))
+    .expect("decode python widest_paths_to");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, &p.0) {
+            (Some((r_vs, r_es)), Some(pp)) => {
+                assert_eq!(r_vs.len(), pp.vertices.len(), "target idx {i}: vs len");
+                assert_eq!(r_es.len(), pp.edges.len(), "target idx {i}: es len");
+                assert_eq!(r_vs[0], pp.vertices[0]);
+                assert_eq!(*r_vs.last().unwrap(), *pp.vertices.last().unwrap());
+            }
+            (None, None) => {}
+            (a, b) => panic!("target idx {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn widest_paths_to_mixed_reachability_matches_python_reference() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let weights = vec![1.0_f64, 1.0];
+    let rust = rust_igraph::widest_paths_to(&g, 0, &[1, 2, 3], &weights).unwrap();
+    let py: Vec<PyWidestPathOpt> = serde_json::from_value(run_ok_with_weights(
+        "widest_paths_to",
+        &g,
+        Some(weights),
+        serde_json::json!({"from": 0, "targets": [1, 2, 3]}),
+    ))
+    .expect("decode python widest_paths_to");
+    assert_eq!(rust.len(), py.len());
+    // Reachability set must match exactly.
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        assert_eq!(
+            r.is_some(),
+            p.0.is_some(),
+            "target idx {i}: reachability mismatch"
+        );
+    }
+}
+
 // ---- ALGO-SP-012: FW all-pairs widest widths oracle tests --------
 
 fn decode_widths_matrix(payload: serde_json::Value) -> Vec<Vec<Option<f64>>> {
@@ -1591,7 +1651,7 @@ fn fw_widest_directed_chain_matches_python_reference() {
 
 // ---- ALGO-SP-011: widest-path single-target path oracle tests --------
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Debug)]
 struct PyWidestPath {
     vertices: Vec<u32>,
     edges: Vec<u32>,

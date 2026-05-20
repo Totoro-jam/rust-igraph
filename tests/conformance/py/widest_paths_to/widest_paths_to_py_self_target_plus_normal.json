@@ -1,0 +1,47 @@
+{
+  "source": "py",
+  "origin": "constructed: P3 (5,3); targets include source itself",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      5.0,
+      3.0
+    ]
+  },
+  "algo": "widest_paths_to",
+  "params": {
+    "from": 1,
+    "targets": [
+      1,
+      0
+    ]
+  },
+  "expected": [
+    {
+      "vertices": [
+        1
+      ],
+      "edges": []
+    },
+    {
+      "vertices": [
+        1,
+        0
+      ],
+      "edges": [
+        0
+      ]
+    }
+  ]
+}

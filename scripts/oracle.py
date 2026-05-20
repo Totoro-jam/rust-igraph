@@ -622,6 +622,63 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "widest_paths_to":
+        # Counterpart of igraph_get_widest_paths(_, _, _, from, to,
+        # weights, IGRAPH_OUT). python-igraph does not bind this;
+        # we reuse the inline single-target reference and loop over
+        # the targets.
+        import heapq
+
+        from_v = int(params["from"])
+        targets = [int(t) for t in params.get("targets", [])]
+        n = g.vcount()
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            ew = list(g.es["weight"])
+        else:
+            ew = [1.0] * g.ecount()
+        widths = [float("-inf")] * n
+        widths[from_v] = float("inf")
+        parent = [None] * n
+        heap = [(-float("inf"), from_v)]
+        while heap:
+            neg_w, v = heapq.heappop(heap)
+            w = -neg_w
+            if w < widths[v]:
+                continue
+            eids = g.incident(v, mode="out" if g.is_directed() else "all")
+            for e in eids:
+                edge = g.es[e]
+                edge_w = ew[e]
+                if edge_w == float("-inf"):
+                    continue
+                other = edge.target if edge.source == v else edge.source
+                alt = min(w, edge_w)
+                if alt > widths[other]:
+                    widths[other] = alt
+                    parent[other] = (v, e)
+                    heapq.heappush(heap, (-alt, other))
+
+        results = []
+        for t in targets:
+            if from_v == t:
+                results.append({"vertices": [from_v], "edges": []})
+                continue
+            if widths[t] == float("-inf"):
+                results.append(None)
+                continue
+            vs = [t]
+            es = []
+            cur = t
+            while cur != from_v:
+                prev, eid = parent[cur]
+                vs.append(prev)
+                es.append(eid)
+                cur = prev
+            vs.reverse()
+            es.reverse()
+            results.append({"vertices": vs, "edges": es})
+        return results
+
     if algo == "widest_path_widths_floyd_warshall":
         # Counterpart of igraph_widest_path_widths_floyd_warshall(_, _,
         # vss_all(), vss_all(), weights, IGRAPH_OUT). python-igraph

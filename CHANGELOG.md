@@ -22,6 +22,26 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-013**: Multi-target widest paths
+  (`widest_paths_to(graph, from, targets, weights) ->
+  IgraphResult<Vec<WidestPathResult>>` plus the mode-aware
+  `widest_paths_to_with_mode`). Counterpart of
+  `igraph_get_widest_paths` from
+  `references/igraph/src/paths/widest_paths.c:102`. Returns one
+  `Option<(vertices, edges)>` per element of `targets`, in the
+  same order. SP-011's single-target `widest_path` is now a thin
+  wrapper around the shared `widest_inner` SPT loop and the new
+  `reconstruct_one` helper; this AWU exposes the multi-target
+  variant. Duplicate target ids are allowed (each gets the same
+  path); self-targets return the trivial `(vec![from], vec![])`.
+  Added `pub type WidestPathResult = Option<(Vec<VertexId>,
+  Vec<EdgeId>)>` to keep the public signature readable (clippy's
+  `type_complexity` lint).
+  8 unit tests + 2 oracle tests vs an inline Python reference +
+  6 conformance fixtures (2 each C/Python/R, hand-computed since
+  neither python-igraph nor rigraph bind widest paths) +
+  1 proptest invariant (`widest_paths_to_consistent_with_widths` —
+  reachability and chain bottleneck match the single-call API).
 - *(paths)* **ALGO-SP-012**: All-pairs widest-path widths via
   Floyd-Warshall (`widest_path_widths_floyd_warshall(graph, weights)
   -> IgraphResult<Vec<Vec<Option<f64>>>>` plus the mode-aware

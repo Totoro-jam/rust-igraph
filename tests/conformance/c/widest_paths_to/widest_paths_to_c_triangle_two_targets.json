@@ -1,0 +1,57 @@
+{
+  "source": "c",
+  "origin": "constructed: triangle (1,4,2) \u2014 two targets, shortcut + direct",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      4.0,
+      2.0
+    ]
+  },
+  "algo": "widest_paths_to",
+  "params": {
+    "from": 0,
+    "targets": [
+      1,
+      2
+    ]
+  },
+  "expected": [
+    {
+      "vertices": [
+        0,
+        2,
+        1
+      ],
+      "edges": [
+        1,
+        2
+      ]
+    },
+    {
+      "vertices": [
+        0,
+        2
+      ],
+      "edges": [
+        1
+      ]
+    }
+  ]
+}

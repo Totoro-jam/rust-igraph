@@ -1,0 +1,42 @@
+{
+  "source": "c",
+  "origin": "constructed: two components; mid target unreachable",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "widest_paths_to",
+  "params": {
+    "from": 0,
+    "targets": [
+      1,
+      2
+    ]
+  },
+  "expected": [
+    {
+      "vertices": [
+        0,
+        1
+      ],
+      "edges": [
+        0
+      ]
+    },
+    null
+  ]
+}

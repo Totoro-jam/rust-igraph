@@ -619,6 +619,42 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-013: Multi-target widest paths. rigraph does not bind
+# this directly; hand-computed expected paths.
+WIDEST_PATHS_TO_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_paths_to_R_chain_three_targets",
+        # 0-1-2-3 weights (5, 1, 3); targets [1, 2, 3].
+        "origin": "constructed (rigraph-style): P4 (5,1,3) → three targets",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [5.0, 1.0, 3.0],
+        "algo": "widest_paths_to",
+        "params": {"from": 0, "targets": [1, 2, 3]},
+        "expected": [
+            {"vertices": [0, 1], "edges": [0]},
+            {"vertices": [0, 1, 2], "edges": [0, 1]},
+            {"vertices": [0, 1, 2, 3], "edges": [0, 1, 2]},
+        ],
+    },
+    {
+        "case": "widest_paths_to_R_duplicate_targets_same_path",
+        # Same target id appears multiple times; each gets the same path.
+        "origin": "constructed (rigraph-style): targets [2,2] → identical entries",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [3.0, 3.0],
+        "algo": "widest_paths_to",
+        "params": {"from": 0, "targets": [2, 2]},
+        "expected": [
+            {"vertices": [0, 1, 2], "edges": [0, 1]},
+            {"vertices": [0, 1, 2], "edges": [0, 1]},
+        ],
+    },
+]
+
 # ALGO-SP-012: Floyd-Warshall-based all-pairs widest widths matrix.
 # Hand-computed (rigraph does not expose). Diagonal +∞ encoded as null.
 WIDEST_PATH_WIDTHS_FW_MANIFEST: List[Dict[str, Any]] = [
@@ -1695,6 +1731,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_path_widths": WIDEST_PATH_MANIFEST,
     "widest_path": WIDEST_PATH_GET_MANIFEST,
     "widest_path_widths_floyd_warshall": WIDEST_PATH_WIDTHS_FW_MANIFEST,
+    "widest_paths_to": WIDEST_PATHS_TO_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

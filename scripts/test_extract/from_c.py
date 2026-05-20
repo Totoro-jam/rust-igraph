@@ -611,6 +611,38 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-013: Multi-target widest paths (single source).
+# Returns one Option<(vertices, edges)> per target, in the order
+# the targets were given. Source: widest_paths.c (lines 102-322).
+WIDEST_PATHS_TO_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_paths_to_c_triangle_two_targets",
+        # Triangle (1, 4, 2): 0→1 goes via 2 (bottleneck 2), 0→2 direct (4).
+        "origin": "constructed: triangle (1,4,2) — two targets, shortcut + direct",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "widest_paths_to",
+        "params": {"from": 0, "targets": [1, 2]},
+        "expected": [
+            {"vertices": [0, 2, 1], "edges": [1, 2]},
+            {"vertices": [0, 2], "edges": [1]},
+        ],
+    },
+    {
+        "case": "widest_paths_to_c_mixed_reachability",
+        "origin": "constructed: two components; mid target unreachable",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0],
+        "algo": "widest_paths_to",
+        "params": {"from": 0, "targets": [1, 2]},
+        "expected": [{"vertices": [0, 1], "edges": [0]}, None],
+    },
+]
+
 # ALGO-SP-012: Floyd-Warshall-based all-pairs widest widths matrix.
 # Source: widest_paths.c (lines 451-555). All-pairs matrix; diagonal
 # entries are +∞ by convention so we encode them as null in fixtures
@@ -1836,6 +1868,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_path_widths": WIDEST_PATH_MANIFEST,
     "widest_path": WIDEST_PATH_GET_MANIFEST,
     "widest_path_widths_floyd_warshall": WIDEST_PATH_WIDTHS_FW_MANIFEST,
+    "widest_paths_to": WIDEST_PATHS_TO_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

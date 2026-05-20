@@ -1,0 +1,54 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): targets [2,2] \u2192 identical entries",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      3.0,
+      3.0
+    ]
+  },
+  "algo": "widest_paths_to",
+  "params": {
+    "from": 0,
+    "targets": [
+      2,
+      2
+    ]
+  },
+  "expected": [
+    {
+      "vertices": [
+        0,
+        1,
+        2
+      ],
+      "edges": [
+        0,
+        1
+      ]
+    },
+    {
+      "vertices": [
+        0,
+        1,
+        2
+      ],
+      "edges": [
+        0,
+        1
+      ]
+    }
+  ]
+}

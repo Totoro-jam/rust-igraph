@@ -2037,6 +2037,66 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// SP-013 `widest_paths_to` invariants (multi-target):
+    /// - Output length matches the number of targets.
+    /// - For each target, `is_some()` agrees with
+    ///   `widest_path_widths[t].is_some()`.
+    /// - When `Some((vs, es))`, the chain is well-formed (consecutive
+    ///   vertices adjacent via the recorded edge), `vs[0] == from`,
+    ///   `*vs.last() == t`, and the bottleneck (min of edge weights)
+    ///   matches `widths[t]` from the single-call API.
+    /// - Cross-check against single-target `widest_path`: matching
+    ///   bottlenecks even if vertex chains differ in tie-breaking.
+    #[test]
+    fn widest_paths_to_consistent_with_widths(
+        g in arb_graph(8),
+        ta in 0u32..8,
+        tb in 0u32..8,
+    ) {
+        if g.vcount() == 0 { return Ok(()); }
+        let n = g.vcount();
+        if ta >= n || tb >= n { return Ok(()); }
+        let m = g.ecount();
+        let weights: Vec<f64> = (0..m).map(|i| 1.0 + (i as f64) * 0.5).collect();
+        let from = 0u32;
+        let widths = rust_igraph::widest_path_widths(&g, from, &weights).unwrap();
+        let targets = vec![ta, tb];
+        let paths = rust_igraph::widest_paths_to(&g, from, &targets, &weights).unwrap();
+        prop_assert_eq!(paths.len(), targets.len());
+        for (t_idx, &t) in targets.iter().enumerate() {
+            let entry = &paths[t_idx];
+            let reachable = widths[t as usize].is_some();
+            prop_assert_eq!(entry.is_some(), reachable,
+                "target {} reachability mismatch", t);
+            if let Some((vs, es)) = entry {
+                prop_assert_eq!(vs[0], from);
+                prop_assert_eq!(*vs.last().unwrap(), t);
+                prop_assert_eq!(es.len() + 1, vs.len());
+                // Adjacency along the chain.
+                for (i, w) in vs.windows(2).enumerate() {
+                    let (a, b) = (w[0], w[1]);
+                    let (s, t_ep) = g.edge(es[i]).unwrap();
+                    prop_assert!(
+                        (s == a && t_ep == b) || (t_ep == a && s == b),
+                        "step {}: edge {} = ({},{}), expected ({},{})",
+                        i, es[i], s, t_ep, a, b
+                    );
+                }
+                // Bottleneck equals widths[t] when t != from.
+                if t != from {
+                    let bottleneck = es.iter()
+                        .map(|&e| weights[e as usize])
+                        .fold(f64::INFINITY, f64::min);
+                    let expected = widths[t as usize].unwrap();
+                    prop_assert!(
+                        (bottleneck - expected).abs() < 1e-9,
+                        "target {}: chain bottleneck {} != widths {}",
+                        t, bottleneck, expected);
+                }
+            }
+        }
+    }
+
     /// SP-012 FW widest-widths invariants:
     /// - Output is `vcount × vcount` matrix.
     /// - Diagonal is always `Some(f64::INFINITY)`.

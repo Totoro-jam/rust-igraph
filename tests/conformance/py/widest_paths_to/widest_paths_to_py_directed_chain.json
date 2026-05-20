@@ -1,0 +1,71 @@
+{
+  "source": "py",
+  "origin": "constructed: directed P4 (5,3,4) targets {1,2,3}",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      5.0,
+      3.0,
+      4.0
+    ]
+  },
+  "algo": "widest_paths_to",
+  "params": {
+    "from": 0,
+    "targets": [
+      1,
+      2,
+      3
+    ]
+  },
+  "expected": [
+    {
+      "vertices": [
+        0,
+        1
+      ],
+      "edges": [
+        0
+      ]
+    },
+    {
+      "vertices": [
+        0,
+        1,
+        2
+      ],
+      "edges": [
+        0,
+        1
+      ]
+    },
+    {
+      "vertices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "edges": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

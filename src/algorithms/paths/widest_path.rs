@@ -261,17 +261,25 @@ pub fn widest_path_with_mode(
     }
     // `from` is validated inside `widest_inner`.
     let (widths, parent_eid) = widest_inner(graph, from, weights, mode)?;
+    reconstruct_one(graph, from, to, &widths, &parent_eid)
+}
 
-    // Trivial self-target.
+/// Walk back along `parent_eid` from `to` to `from`, building the
+/// vertex+edge chains. Returns `None` if `to` is unreachable; for
+/// `from == to` returns the trivial single-vertex zero-edge chain.
+fn reconstruct_one(
+    graph: &Graph,
+    from: VertexId,
+    to: VertexId,
+    widths: &[f64],
+    parent_eid: &[Option<EdgeId>],
+) -> IgraphResult<Option<(Vec<VertexId>, Vec<EdgeId>)>> {
     if from == to {
         return Ok(Some((vec![from], Vec::new())));
     }
-    // Unreachable: parent_eid is None at `to` and `to != from`.
     if widths[to as usize] == f64::NEG_INFINITY {
         return Ok(None);
     }
-
-    // Walk back along parent_eid from `to` to `from`.
     let mut edges: Vec<EdgeId> = Vec::new();
     let mut vertices: Vec<VertexId> = vec![to];
     let mut cur = to;
@@ -287,6 +295,79 @@ pub fn widest_path_with_mode(
     vertices.reverse();
     edges.reverse();
     Ok(Some((vertices, edges)))
+}
+
+/// One entry of [`widest_paths_to`]'s output: `Some((vertices,
+/// edges))` for a reachable target, `None` for unreachable. Each
+/// vertex chain begins with the source and ends with the target;
+/// each edge chain has length one less.
+pub type WidestPathResult = Option<(Vec<VertexId>, Vec<EdgeId>)>;
+
+/// Widest paths from a single source to multiple targets. Returns
+/// one [`WidestPathResult`] per element of `targets`, in the same
+/// order; `None` means the target is unreachable from `from`.
+///
+/// Self-target entries (`from == targets[i]`) return the trivial
+/// `Some((vec![from], vec![]))`. Repeating the same target id in
+/// `targets` is allowed — both entries get the same path.
+///
+/// Same weight semantics as [`widest_path_widths`]: NaN rejected,
+/// `-f64::INFINITY` edges ignored, negative finite weights act as
+/// small bottlenecks.
+///
+/// Counterpart of `igraph_get_widest_paths(_, vertices, edges,
+/// from, to, weights, IGRAPH_OUT, parents=NULL, inbound_edges=NULL)`
+/// from `references/igraph/src/paths/widest_paths.c:102`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, widest_paths_to};
+///
+/// // Triangle 0-1-2 weights (1, 4, 2). From 0, paths to 1 and 2.
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();  // edge 0, width 1
+/// g.add_edge(0, 2).unwrap();  // edge 1, width 4
+/// g.add_edge(1, 2).unwrap();  // edge 2, width 2
+/// let paths = widest_paths_to(&g, 0, &[1, 2], &[1.0, 4.0, 2.0]).unwrap();
+/// // 0→1 goes via the shortcut at 2 (bottleneck 2 beats direct 1)
+/// assert_eq!(paths[0].as_ref().unwrap().0, vec![0, 2, 1]);
+/// // 0→2 takes the direct edge (width 4 is widest)
+/// assert_eq!(paths[1].as_ref().unwrap().0, vec![0, 2]);
+/// ```
+pub fn widest_paths_to(
+    graph: &Graph,
+    from: VertexId,
+    targets: &[VertexId],
+    weights: &[f64],
+) -> IgraphResult<Vec<WidestPathResult>> {
+    widest_paths_to_with_mode(graph, from, targets, weights, DijkstraMode::Out)
+}
+
+/// Mode-aware variant of [`widest_paths_to`].
+///
+/// Counterpart of `igraph_get_widest_paths(_, vertices, edges,
+/// from, to, weights, mode, parents=NULL, inbound_edges=NULL)`.
+pub fn widest_paths_to_with_mode(
+    graph: &Graph,
+    from: VertexId,
+    targets: &[VertexId],
+    weights: &[f64],
+    mode: DijkstraMode,
+) -> IgraphResult<Vec<WidestPathResult>> {
+    let n = graph.vcount();
+    for &t in targets {
+        if t >= n {
+            return Err(IgraphError::VertexOutOfRange { id: t, n });
+        }
+    }
+    // `from` is validated inside `widest_inner`.
+    let (widths, parent_eid) = widest_inner(graph, from, weights, mode)?;
+    let mut out = Vec::with_capacity(targets.len());
+    for &t in targets {
+        out.push(reconstruct_one(graph, from, t, &widths, &parent_eid)?);
+    }
+    Ok(out)
 }
 
 // ---------------------------------------------------------------
@@ -787,5 +868,106 @@ mod tests {
         let g = Graph::with_vertices(0);
         let m = widest_path_widths_floyd_warshall(&g, &[]).unwrap();
         assert!(m.is_empty());
+    }
+
+    // -------- ALGO-SP-013: widest_paths_to multi-target --------
+
+    #[test]
+    fn widest_paths_to_triangle_two_targets() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap(); // edge 0, width 1
+        g.add_edge(0, 2).unwrap(); // edge 1, width 4
+        g.add_edge(1, 2).unwrap(); // edge 2, width 2
+        let paths = widest_paths_to(&g, 0, &[1, 2], &[1.0, 4.0, 2.0]).unwrap();
+        assert_eq!(paths.len(), 2);
+        // 0→1 via shortcut at 2: bottleneck min(4, 2) = 2 beats direct 1
+        let (vs1, es1) = paths[0].as_ref().unwrap();
+        assert_eq!(vs1, &vec![0, 2, 1]);
+        assert_eq!(es1, &vec![1, 2]);
+        // 0→2 direct: width 4 wins
+        let (vs2, es2) = paths[1].as_ref().unwrap();
+        assert_eq!(vs2, &vec![0, 2]);
+        assert_eq!(es2, &vec![1]);
+    }
+
+    #[test]
+    fn widest_paths_to_includes_unreachable_as_none() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        // Targets [1, 2, 3]: only 1 reachable.
+        let paths = widest_paths_to(&g, 0, &[1, 2, 3], &[1.0, 1.0]).unwrap();
+        assert!(paths[0].is_some());
+        assert!(paths[1].is_none());
+        assert!(paths[2].is_none());
+    }
+
+    #[test]
+    fn widest_paths_to_empty_targets_returns_empty() {
+        let g = Graph::with_vertices(3);
+        let paths = widest_paths_to(&g, 0, &[], &[]).unwrap();
+        assert!(paths.is_empty());
+    }
+
+    #[test]
+    fn widest_paths_to_self_target_is_trivial() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        // from == target[0]: trivial path.
+        let paths = widest_paths_to(&g, 1, &[1, 0], &[5.0]).unwrap();
+        let (vs0, es0) = paths[0].as_ref().unwrap();
+        assert_eq!(vs0, &vec![1]);
+        assert!(es0.is_empty());
+        // 1 → 0: single edge.
+        let (vs1, es1) = paths[1].as_ref().unwrap();
+        assert_eq!(vs1, &vec![1, 0]);
+        assert_eq!(es1, &vec![0]);
+    }
+
+    #[test]
+    fn widest_paths_to_duplicate_targets_return_same_path() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let paths = widest_paths_to(&g, 0, &[2, 2, 2], &[5.0, 3.0]).unwrap();
+        assert_eq!(paths.len(), 3);
+        for p in &paths {
+            let (vs, _) = p.as_ref().unwrap();
+            assert_eq!(vs, &vec![0, 1, 2]);
+        }
+    }
+
+    #[test]
+    fn widest_paths_to_target_out_of_range_errors() {
+        let g = Graph::with_vertices(3);
+        let err = widest_paths_to(&g, 0, &[1, 99], &[]).unwrap_err();
+        assert!(matches!(
+            err,
+            IgraphError::VertexOutOfRange { id: 99, n: 3 }
+        ));
+    }
+
+    #[test]
+    fn widest_paths_to_directed_in_mode_reverses() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        // IN mode from 2: reaches 1 and 0 by walking reverse edges.
+        let paths =
+            widest_paths_to_with_mode(&g, 2, &[1, 0], &[5.0, 3.0], DijkstraMode::In).unwrap();
+        let (vs1, _) = paths[0].as_ref().unwrap();
+        assert_eq!(vs1, &vec![2, 1]);
+        let (vs0, _) = paths[1].as_ref().unwrap();
+        assert_eq!(vs0, &vec![2, 1, 0]);
+    }
+
+    #[test]
+    fn widest_paths_to_negative_infinity_edge_blocks_target() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap(); // -∞ → ignored
+        g.add_edge(1, 2).unwrap();
+        let paths = widest_paths_to(&g, 0, &[1, 2], &[f64::NEG_INFINITY, 1.0]).unwrap();
+        assert!(paths[0].is_none());
+        assert!(paths[1].is_none());
     }
 }
