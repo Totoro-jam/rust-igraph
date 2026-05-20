@@ -12,6 +12,7 @@ pub(crate) mod eulerian;
 pub(crate) mod eulerian_construct;
 pub(crate) mod floyd_warshall;
 pub(crate) mod radii;
+pub(crate) mod random_walk;
 
 pub use astar::a_star_path;
 pub use dijkstra::{
@@ -28,3 +29,4 @@ pub use radii::{
     diameter, diameter_weighted, diameter_weighted_with_mode, eccentricity, eccentricity_weighted,
     eccentricity_weighted_with_mode, radius, radius_weighted, radius_weighted_with_mode,
 };
+pub use random_walk::random_walk;

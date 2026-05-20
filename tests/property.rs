@@ -2000,6 +2000,43 @@ proptest! {
         }
     }
 
+    /// TR-003 random walk structural invariants:
+    /// - `vs[0] == start`
+    /// - `len(vs) <= steps + 1` and `len(es) == len(vs) - 1`
+    /// - every consecutive `(vs[i], vs[i+1])` is connected by `es[i]`
+    /// - same `(graph, start, steps, seed)` ⇒ identical chain
+    #[test]
+    fn random_walk_chain_is_well_formed(
+        g in arb_graph(8),
+        steps in 0u32..15,
+        seed in 0u64..u64::MAX,
+    ) {
+        if g.vcount() == 0 { return Ok(()); }
+        let start = 0u32;
+        let (vs, es) = rust_igraph::random_walk(
+            &g, None, start, rust_igraph::DijkstraMode::Out, steps, seed,
+        ).unwrap();
+        prop_assert_eq!(vs[0], start);
+        prop_assert!(vs.len() <= (steps as usize) + 1);
+        prop_assert_eq!(vs.len(), es.len() + 1);
+        for (i, w) in vs.windows(2).enumerate() {
+            let (a, b) = (w[0], w[1]);
+            let eid = es[i];
+            let (s, t) = g.edge(eid).unwrap();
+            prop_assert!(
+                (s == a && t == b) || (t == a && s == b),
+                "step {}: edge {} = ({},{}), expected adjacency to ({},{})",
+                i, eid, s, t, a, b
+            );
+        }
+        // Determinism: same seed yields same chain.
+        let (vs2, es2) = rust_igraph::random_walk(
+            &g, None, start, rust_igraph::DijkstraMode::Out, steps, seed,
+        ).unwrap();
+        prop_assert_eq!(&vs, &vs2);
+        prop_assert_eq!(&es, &es2);
+    }
+
     /// SP-005 A* invariants:
     /// - With null heuristic, A* finds the same length path as
     ///   `dijkstra_path_to`. Path identity may differ (different

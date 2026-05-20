@@ -22,6 +22,43 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-TR-003**: Random walk on a graph
+  (`random_walk(graph, weights, start, mode, steps, seed) ->
+  IgraphResult<(Vec<VertexId>, Vec<EdgeId>)>`). Counterpart of
+  `igraph_random_walk(_, &weights, _, _, start, mode, steps,
+  IGRAPH_RANDOM_WALK_STUCK_RETURN)` from
+  `references/igraph/src/paths/random_walk.c:288`. New module
+  `src/algorithms/paths/random_walk.rs`.
+
+  Behaviour matches upstream's `IGRAPH_RANDOM_WALK_STUCK_RETURN`
+  variant (returns the truncated chain when the walk reaches a
+  vertex with no admissible outgoing neighbours). `weights = None`
+  selects neighbours uniformly; `weights = Some(_)` selects each
+  candidate edge with probability proportional to its weight (zero
+  and non-finite weights are skipped). Negative or NaN weights
+  reject at validation time. Mode follows the same `DijkstraMode`
+  convention as SP-001b/c (on undirected graphs every mode collapses
+  to ALL).
+
+  PRNG: deterministic inline SplitMix64 seeded by the user-supplied
+  `seed: u64` — no external `rand` dependency. Same
+  `(graph, weights, start, mode, steps, seed)` always produces the
+  same chain; callers wanting non-deterministic behaviour can derive
+  `seed` from `std::time::SystemTime` etc. 13 new unit tests + 1
+  doctest covering: 4-cycle walk length; sink stops early; zero-step
+  singleton; isolated vertex stuck immediately; deterministic same-
+  seed repeatability; different-seed divergence; weighted walk picks
+  only positive-weight edges; weighted zero-total stops early;
+  negative / NaN / size-mismatch / out-of-range errors; directed
+  IN-mode reverse-edge walk. 1 new proptest invariant: chain is
+  well-formed (`vs[0] == start`; `len(vs) ≤ steps + 1`;
+  `len(es) == len(vs) - 1`; consecutive vertices are connected by
+  the recorded edge id; same seed yields identical chain).
+
+  No oracle / conformance fixtures: cross-implementation chain
+  comparison isn't meaningful (each impl uses its own RNG). The
+  AWU's correctness is anchored by the structural proptest invariant
+  plus the unit-test seed-reproducibility checks.
 - *(paths)* **ALGO-SP-005**: A* shortest path with admissible heuristic.
   Adds `a_star_path<H: Fn(VertexId, VertexId) -> f64>(graph, from, to,
   weights: Option<&[f64]>, mode: DijkstraMode, heuristic: H) ->
