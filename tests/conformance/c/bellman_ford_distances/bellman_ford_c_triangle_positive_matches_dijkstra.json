@@ -1,0 +1,36 @@
+{
+  "source": "c",
+  "origin": "constructed: triangle (1,4,2) \u2014 should agree with Dijkstra",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      4.0,
+      2.0
+    ]
+  },
+  "algo": "bellman_ford_distances",
+  "params": {
+    "source": 0
+  },
+  "expected": [
+    0.0,
+    1.0,
+    3.0
+  ]
+}

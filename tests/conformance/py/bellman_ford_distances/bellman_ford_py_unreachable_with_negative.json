@@ -1,0 +1,32 @@
+{
+  "source": "py",
+  "origin": "constructed: two components, source in first",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      2.0,
+      -1.0
+    ]
+  },
+  "algo": "bellman_ford_distances",
+  "params": {
+    "source": 0
+  },
+  "expected": [
+    0.0,
+    2.0,
+    null,
+    null
+  ]
+}

@@ -552,6 +552,48 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-002: Bellman-Ford single-source distances. python-igraph
+# auto-dispatches Graph.distances to BF when weights contain negatives.
+BELLMAN_FORD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "bellman_ford_py_negative_edge_directed_diamond",
+        # Same setup as the C fixture: 0→1 (3), 0→2 (1), 1→3 (-2), 2→3 (4).
+        "origin": "constructed: directed diamond with negative edge 1→3",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 3), (2, 3)], directed=True
+        ),
+        "graph_weights": [3.0, 1.0, -2.0, 4.0],
+        "algo": "bellman_ford_distances",
+        "params": {"source": 0},
+        "expected": [0.0, 3.0, 1.0, 1.0],
+    },
+    {
+        "case": "bellman_ford_py_undirected_positive_weights",
+        "origin": "constructed: undirected triangle (1,4,2)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "bellman_ford_distances",
+        "params": {"source": 0},
+        "expected": [0.0, 1.0, 3.0],
+    },
+    {
+        "case": "bellman_ford_py_unreachable_with_negative",
+        # Two components: source's component has a positive edge,
+        # other component has a negative edge that BF doesn't need
+        # to touch.
+        "origin": "constructed: two components, source in first",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [2.0, -1.0],
+        "algo": "bellman_ford_distances",
+        "params": {"source": 0},
+        "expected": [0.0, 2.0, None, None],
+    },
+]
+
 # ALGO-SP-001c: mode-aware distances. ALL-mode treats directed graph
 # as undirected.
 DIJKSTRA_DIST_MODE_MANIFEST: List[Dict[str, Any]] = [
@@ -1401,6 +1443,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_path_to": DIJKSTRA_PATH_TO_MANIFEST,
     "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
     "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
+    "bellman_ford_distances": BELLMAN_FORD_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

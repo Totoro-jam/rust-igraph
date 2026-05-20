@@ -1517,6 +1517,86 @@ fn dijkstra_distances_directed_matches_python_igraph() {
     }
 }
 
+// ---- ALGO-SP-002: Bellman-Ford distances oracle tests --------
+
+#[test]
+fn bellman_ford_distances_positive_weights_matches_python_igraph() {
+    // Positive weights: BF and Dijkstra must agree; this verifies our
+    // SPFA loop against python-igraph's distances() implementation.
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 4.0, 2.0];
+    let rust = rust_igraph::bellman_ford_distances(&g, 0, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "bellman_ford_distances",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0}),
+    ))
+    .expect("decode python bellman_ford_distances");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(rr), Some(pp)) => {
+                assert!((rr - pp).abs() < 1e-12, "vertex {i}: rust={rr} py={pp}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn bellman_ford_distances_negative_edge_directed_matches_python_igraph() {
+    // The headline case: a negative edge that would break Dijkstra
+    // but is correctly handled by BF.
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 3).unwrap();
+    g.add_edge(2, 3).unwrap();
+    // 0→1 (3), 0→2 (1), 1→3 (-2), 2→3 (4).
+    // BF distances from 0: d[0]=0, d[1]=3, d[2]=1, d[3]=min(3-2, 1+4)=1.
+    let weights = vec![3.0_f64, 1.0, -2.0, 4.0];
+    let rust = rust_igraph::bellman_ford_distances(&g, 0, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "bellman_ford_distances",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0}),
+    ))
+    .expect("decode python bellman_ford_distances");
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(rr), Some(pp)) => {
+                assert!((rr - pp).abs() < 1e-12, "vertex {i}: rust={rr} py={pp}");
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn bellman_ford_distances_unreachable_matches_python_igraph() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let weights = vec![1.5_f64, -0.5];
+    let rust = rust_igraph::bellman_ford_distances(&g, 0, &weights).unwrap();
+    let py: Vec<Option<f64>> = serde_json::from_value(run_ok_with_weights(
+        "bellman_ford_distances",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0}),
+    ))
+    .expect("decode python bellman_ford_distances");
+    assert_eq!(rust, py);
+}
+
 // ---- ALGO-SP-001b: Dijkstra paths / path_to / cutoff oracle tests --------
 
 /// Wire-format payload for the `dijkstra_paths` oracle handler. Distances

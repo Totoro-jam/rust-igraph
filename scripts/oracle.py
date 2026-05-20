@@ -622,6 +622,40 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "bellman_ford_distances":
+        # Counterpart of igraph_distances_bellman_ford(_, _, source,
+        # vss_all(), weights, IGRAPH_OUT). python-igraph's
+        # `Graph.distances(weights=...)` auto-picks an algorithm
+        # (Dijkstra for non-negative, BF / Johnson for negative).
+        # For the BF oracle we always pass weights explicitly so
+        # python-igraph dispatches to its own BF implementation.
+        source = int(params["source"])
+        mode = "out" if g.is_directed() else "all"
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            rows = g.distances(source=source, weights="weight", mode=mode)
+        else:
+            rows = g.distances(source=source, mode=mode)
+        out = []
+        for v in rows[0]:
+            f = float(v)
+            out.append(None if f == float("inf") else f)
+        return out
+
+    if algo == "bellman_ford_distances_with_mode":
+        # Counterpart of igraph_distances_bellman_ford(_, _, source,
+        # vss_all(), weights, mode).
+        source = int(params["source"])
+        mode = str(params.get("mode", "out"))
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            rows = g.distances(source=source, weights="weight", mode=mode)
+        else:
+            rows = g.distances(source=source, mode=mode)
+        out = []
+        for v in rows[0]:
+            f = float(v)
+            out.append(None if f == float("inf") else f)
+        return out
+
     if algo == "dijkstra_distances_with_mode":
         # Counterpart of igraph_distances_dijkstra(_, _, source,
         # vss_all(), &weights, mode). python-igraph accepts mode as

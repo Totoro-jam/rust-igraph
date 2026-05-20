@@ -1,0 +1,42 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed diamond with negative edge 1\u21923",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      3.0,
+      1.0,
+      -2.0,
+      4.0
+    ]
+  },
+  "algo": "bellman_ford_distances",
+  "params": {
+    "source": 0
+  },
+  "expected": [
+    0.0,
+    3.0,
+    1.0,
+    1.0
+  ]
+}

@@ -2037,6 +2037,35 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// SP-002 Bellman-Ford invariants:
+    /// - For **non-negative** weights, BF must produce the same
+    ///   distances as Dijkstra (since BF subsumes Dijkstra on this
+    ///   weight class).
+    /// - For unit weights, both must match unweighted BFS distances
+    ///   (covered by the dijkstra invariant; here we cross-check BF
+    ///   against Dijkstra directly).
+    #[test]
+    fn bellman_ford_matches_dijkstra_on_nonneg_weights(g in arb_graph(8)) {
+        if g.vcount() == 0 { return Ok(()); }
+        let m = g.ecount();
+        // Strictly positive weights so both BF and Dijkstra agree
+        // unambiguously.
+        let weights: Vec<f64> = (0..m).map(|i| 0.5 + (i as f64) * 0.25).collect();
+        let bf = rust_igraph::bellman_ford_distances(&g, 0, &weights).unwrap();
+        let dk = rust_igraph::dijkstra_distances(&g, 0, &weights).unwrap();
+        prop_assert_eq!(bf.len(), dk.len());
+        for (i, (a, b)) in bf.iter().zip(dk.iter()).enumerate() {
+            match (a, b) {
+                (Some(x), Some(y)) => prop_assert!(
+                    (x - y).abs() < 1e-9,
+                    "vertex {}: BF={} Dijkstra={}", i, x, y),
+                (None, None) => {}
+                (x, y) => prop_assert!(false,
+                    "vertex {}: BF={:?} Dijkstra={:?}", i, x, y),
+            }
+        }
+    }
+
     /// CORE-001c invariants for `delete_edges`:
     /// - vcount unchanged.
     /// - ecount decreases by exactly 1 when removing one edge.

@@ -6,6 +6,7 @@
 // `pub(crate)` so the inner module names (`distances`, `eulerian`)
 // don't double-list with the function re-exports in rustdoc.
 pub(crate) mod astar;
+pub(crate) mod bellman_ford;
 pub(crate) mod dijkstra;
 pub(crate) mod distances;
 pub(crate) mod eulerian;

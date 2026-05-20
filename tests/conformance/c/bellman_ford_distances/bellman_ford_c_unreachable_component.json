@@ -1,0 +1,32 @@
+{
+  "source": "c",
+  "origin": "constructed: two disconnected components, source in first",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.5,
+      -0.5
+    ]
+  },
+  "algo": "bellman_ford_distances",
+  "params": {
+    "source": 0
+  },
+  "expected": [
+    0.0,
+    1.5,
+    null,
+    null
+  ]
+}

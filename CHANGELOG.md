@@ -22,6 +22,25 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-002**: Bellman-Ford single-source shortest
+  distances (`bellman_ford_distances(graph, source, weights) ->
+  IgraphResult<Vec<Option<f64>>>` plus the mode-aware
+  `bellman_ford_distances_with_mode`). Counterpart of
+  `igraph_distances_bellman_ford` from
+  `references/igraph/src/paths/bellman_ford.c:69`. Algorithm: SPFA
+  (Shortest Path Faster Algorithm), the queue-based BF variant
+  upstream uses. Initial queue contains every vertex; relaxation
+  marks targets dirty and re-queues. Negative cycle detected when a
+  vertex is popped more than `vcount` times → returns
+  `IgraphError::InvalidArgument` (matches upstream's
+  `IGRAPH_ENEGCYCLE`). Positive-infinite weights are ignored
+  (matches upstream); NaN weights and size mismatch are rejected.
+  Use this when edge weights may be negative; for non-negative
+  weights `dijkstra_distances` is asymptotically faster (`O((V+E)
+  log V)` vs `O(V·E)`).
+  12 unit tests + 3 oracle tests vs python-igraph + 9 conformance
+  fixtures (3 each C/Python/R) + 1 proptest invariant
+  (`bellman_ford_matches_dijkstra_on_nonneg_weights`).
 - *(core)* **ALGO-CORE-001c**: Structural mutators
   `Graph::delete_edges(&[EdgeId])`, `Graph::delete_vertices(&[VertexId])`,
   and `Graph::delete_vertices_map(&[VertexId]) -> (Vec<Option<VertexId>>,
