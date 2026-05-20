@@ -289,6 +289,150 @@ pub fn widest_path_with_mode(
     Ok(Some((vertices, edges)))
 }
 
+// ---------------------------------------------------------------
+// ALGO-SP-012: Floyd-Warshall-based all-pairs widest widths.
+// O(V³) — better than V invocations of the Dijkstra-style variant
+// on dense graphs.
+// ---------------------------------------------------------------
+
+/// All-pairs widest-path widths via the Floyd-Warshall recurrence.
+///
+/// Returns a `vcount × vcount` matrix where `result[u][v]` is the
+/// maximum bottleneck width of any `u → v` path:
+/// - `Some(f64::INFINITY)` on the diagonal (`u == v`)
+/// - `Some(w)` for reachable pairs with `w` the bottleneck width
+/// - `None` for unreachable pairs
+///
+/// `weights[e]` is the width of edge `e`; length must equal
+/// `graph.ecount()`. NaN is rejected; edges with weight
+/// `-f64::INFINITY` are ignored (matches upstream). Parallel edges
+/// are merged by the wider-wins rule when seeding the matrix.
+///
+/// Use this on **dense** graphs (`|E| ~ V²`); for sparse graphs the
+/// Dijkstra-based [`widest_path_widths`] called from every source is
+/// asymptotically faster.
+///
+/// Counterpart of `igraph_widest_path_widths_floyd_warshall(_, _,
+/// vss_all(), vss_all(), weights, IGRAPH_OUT)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, widest_path_widths_floyd_warshall};
+///
+/// // Undirected triangle (1, 4, 2) — same all-pairs result the
+/// // Dijkstra variant produces when run from every source.
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let m = widest_path_widths_floyd_warshall(&g, &[1.0, 4.0, 2.0]).unwrap();
+/// assert_eq!(m[0][2], Some(4.0));   // direct
+/// assert_eq!(m[0][1], Some(2.0));   // via vertex 2: min(4, 2)
+/// assert_eq!(m[0][0], Some(f64::INFINITY));
+/// ```
+pub fn widest_path_widths_floyd_warshall(
+    graph: &Graph,
+    weights: &[f64],
+) -> IgraphResult<Vec<Vec<Option<f64>>>> {
+    widest_path_widths_floyd_warshall_with_mode(graph, weights, DijkstraMode::Out)
+}
+
+/// Mode-aware variant of [`widest_path_widths_floyd_warshall`].
+/// Mode selects how directed edges contribute to the adjacency
+/// matrix:
+/// - [`DijkstraMode::Out`] populates `M[s][t]` for edge `s → t`
+/// - [`DijkstraMode::In`] populates `M[t][s]` for edge `s → t`
+/// - [`DijkstraMode::All`] populates both directions
+///
+/// On undirected graphs every mode collapses to `All` (matches
+/// upstream).
+///
+/// Counterpart of `igraph_widest_path_widths_floyd_warshall(_, _,
+/// vss_all(), vss_all(), weights, mode)`.
+pub fn widest_path_widths_floyd_warshall_with_mode(
+    graph: &Graph,
+    weights: &[f64],
+    mode: DijkstraMode,
+) -> IgraphResult<Vec<Vec<Option<f64>>>> {
+    validate_weights(graph, weights)?;
+    let vcount = graph.vcount();
+    let n_us = vcount as usize;
+
+    // Normalise mode: undirected graph → ALL (matches upstream).
+    let effective_mode = if graph.is_directed() {
+        mode
+    } else {
+        DijkstraMode::All
+    };
+    let (use_out, use_in) = match effective_mode {
+        DijkstraMode::Out => (true, false),
+        DijkstraMode::In => (false, true),
+        DijkstraMode::All => (true, true),
+    };
+
+    // Init: -∞ everywhere; +∞ on the diagonal.
+    let mut mat: Vec<Vec<f64>> = vec![vec![f64::NEG_INFINITY; n_us]; n_us];
+    for (i, row) in mat.iter_mut().enumerate().take(n_us) {
+        row[i] = f64::INFINITY;
+    }
+
+    // Seed from edges (wider-wins for parallel edges).
+    for (e, &w) in weights.iter().enumerate() {
+        if w == f64::NEG_INFINITY {
+            continue;
+        }
+        let eid = u32::try_from(e)
+            .map_err(|_| IgraphError::Internal("edge id exceeds u32::MAX in FW widest"))?;
+        let (s, t) = graph.edge(eid)?;
+        let (si, ti) = (s as usize, t as usize);
+        if use_out && mat[si][ti] < w {
+            mat[si][ti] = w;
+        }
+        if use_in && mat[ti][si] < w {
+            mat[ti][si] = w;
+        }
+    }
+
+    // Modified FW: relax via every intermediate k.
+    // alt = min(M[i][k], M[k][j]); M[i][j] = max(M[i][j], alt).
+    // The triple-nested index access is inherent to the recurrence —
+    // iterator-style rewrites obscure it.
+    #[allow(clippy::needless_range_loop)]
+    for k in 0..n_us {
+        for j in 0..n_us {
+            let width_kj = mat[k][j];
+            if j == k || width_kj == f64::NEG_INFINITY {
+                continue;
+            }
+            for i in 0..n_us {
+                if i == j || i == k {
+                    continue;
+                }
+                let alt = mat[i][k].min(width_kj);
+                if alt > mat[i][j] {
+                    mat[i][j] = alt;
+                }
+            }
+        }
+    }
+
+    Ok(mat
+        .into_iter()
+        .map(|row| {
+            row.into_iter()
+                .map(|w| {
+                    if w == f64::NEG_INFINITY {
+                        None
+                    } else {
+                        Some(w)
+                    }
+                })
+                .collect()
+        })
+        .collect())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -538,5 +682,110 @@ mod tests {
         g.add_edge(1, 2).unwrap();
         let r = widest_path(&g, 0, 2, &[f64::NEG_INFINITY, 1.0]).unwrap();
         assert!(r.is_none());
+    }
+
+    // -------- ALGO-SP-012: FW all-pairs widest widths --------
+
+    #[test]
+    fn fw_widest_triangle_matches_dijkstra_per_source() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let weights = [1.0, 4.0, 2.0];
+        let fw = widest_path_widths_floyd_warshall(&g, &weights).unwrap();
+        // Compare each row to the Dijkstra-based result.
+        for u in 0..3u32 {
+            let dij = widest_path_widths(&g, u, &weights).unwrap();
+            assert_eq!(fw[u as usize], dij, "row {u} mismatch");
+        }
+    }
+
+    #[test]
+    fn fw_widest_diagonal_is_infinity() {
+        let g = Graph::with_vertices(3);
+        let m = widest_path_widths_floyd_warshall(&g, &[]).unwrap();
+        for (i, row) in m.iter().enumerate() {
+            for (j, entry) in row.iter().enumerate() {
+                if i == j {
+                    assert_eq!(*entry, Some(f64::INFINITY));
+                } else {
+                    assert_eq!(*entry, None);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn fw_widest_unreachable_components() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let m = widest_path_widths_floyd_warshall(&g, &[5.0, 7.0]).unwrap();
+        assert_eq!(m[0][1], Some(5.0));
+        assert_eq!(m[0][2], None);
+        assert_eq!(m[2][3], Some(7.0));
+        assert_eq!(m[1][3], None);
+    }
+
+    #[test]
+    fn fw_widest_directed_respects_mode() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let weights = [5.0, 3.0];
+        // OUT mode: 0 reaches 1 (5) and 2 (3); 2 doesn't reach back.
+        let out = widest_path_widths_floyd_warshall(&g, &weights).unwrap();
+        assert_eq!(out[0][1], Some(5.0));
+        assert_eq!(out[0][2], Some(3.0));
+        assert_eq!(out[2][0], None);
+        // IN mode: reversed.
+        let in_m =
+            widest_path_widths_floyd_warshall_with_mode(&g, &weights, DijkstraMode::In).unwrap();
+        assert_eq!(in_m[0][1], None);
+        assert_eq!(in_m[2][0], Some(3.0));
+        // ALL mode: bidirectional.
+        let all =
+            widest_path_widths_floyd_warshall_with_mode(&g, &weights, DijkstraMode::All).unwrap();
+        assert_eq!(all[0][2], Some(3.0));
+        assert_eq!(all[2][0], Some(3.0));
+    }
+
+    #[test]
+    fn fw_widest_parallel_edges_keep_widest() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap(); // width 1
+        g.add_edge(0, 1).unwrap(); // width 5 — wins
+        g.add_edge(0, 1).unwrap(); // width 3
+        let m = widest_path_widths_floyd_warshall(&g, &[1.0, 5.0, 3.0]).unwrap();
+        assert_eq!(m[0][1], Some(5.0));
+        assert_eq!(m[1][0], Some(5.0));
+    }
+
+    #[test]
+    fn fw_widest_negative_infinity_edge_ignored() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap(); // -∞ → ignored
+        g.add_edge(1, 2).unwrap();
+        let m = widest_path_widths_floyd_warshall(&g, &[f64::NEG_INFINITY, 1.0]).unwrap();
+        // 0 can't reach 1 or 2 — the bridge edge is absent.
+        assert_eq!(m[0][1], None);
+        assert_eq!(m[0][2], None);
+        assert_eq!(m[1][2], Some(1.0));
+    }
+
+    #[test]
+    fn fw_widest_nan_weight_errors() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        let err = widest_path_widths_floyd_warshall(&g, &[f64::NAN]).unwrap_err();
+        assert!(matches!(err, IgraphError::InvalidArgument(_)));
+    }
+
+    #[test]
+    fn fw_widest_empty_graph_empty_matrix() {
+        let g = Graph::with_vertices(0);
+        let m = widest_path_widths_floyd_warshall(&g, &[]).unwrap();
+        assert!(m.is_empty());
     }
 }

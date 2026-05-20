@@ -1517,6 +1517,78 @@ fn dijkstra_distances_directed_matches_python_igraph() {
     }
 }
 
+// ---- ALGO-SP-012: FW all-pairs widest widths oracle tests --------
+
+fn decode_widths_matrix(payload: serde_json::Value) -> Vec<Vec<Option<f64>>> {
+    let outer = payload.as_array().expect("matrix payload is array");
+    outer
+        .iter()
+        .map(|row| {
+            let arr = row.as_array().expect("matrix row is array");
+            arr.iter()
+                .map(|v| match v {
+                    serde_json::Value::Null => None,
+                    serde_json::Value::String(s) if s == "Infinity" => Some(f64::INFINITY),
+                    other => Some(other.as_f64().expect("width is number")),
+                })
+                .collect()
+        })
+        .collect()
+}
+
+fn assert_widths_matrix_close(rust: &[Vec<Option<f64>>], py: &[Vec<Option<f64>>], label: &str) {
+    assert_eq!(rust.len(), py.len(), "{label}: row count");
+    for (u, (r_row, p_row)) in rust.iter().zip(py.iter()).enumerate() {
+        assert_eq!(r_row.len(), p_row.len(), "{label}: row {u} length");
+        for (v, (r, p)) in r_row.iter().zip(p_row.iter()).enumerate() {
+            match (r, p) {
+                (Some(rr), Some(pp)) if rr.is_infinite() && pp.is_infinite() => {}
+                (Some(rr), Some(pp)) => assert!(
+                    (rr - pp).abs() < 1e-12,
+                    "{label}: [{u}][{v}] rust={rr} py={pp}"
+                ),
+                (None, None) => {}
+                (a, b) => panic!("{label}: [{u}][{v}] rust={a:?} py={b:?}"),
+            }
+        }
+    }
+}
+
+#[test]
+fn fw_widest_triangle_matches_python_reference() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 4.0, 2.0];
+    let rust = rust_igraph::widest_path_widths_floyd_warshall(&g, &weights).unwrap();
+    let py = decode_widths_matrix(run_ok_with_weights(
+        "widest_path_widths_floyd_warshall",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ));
+    assert_widths_matrix_close(&rust, &py, "fw_widest_triangle");
+}
+
+#[test]
+fn fw_widest_directed_chain_matches_python_reference() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    g.add_edge(0, 3).unwrap();
+    let weights = vec![5.0_f64, 3.0, 4.0, 1.0];
+    let rust = rust_igraph::widest_path_widths_floyd_warshall(&g, &weights).unwrap();
+    let py = decode_widths_matrix(run_ok_with_weights(
+        "widest_path_widths_floyd_warshall",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ));
+    assert_widths_matrix_close(&rust, &py, "fw_widest_directed_chain");
+}
+
 // ---- ALGO-SP-011: widest-path single-target path oracle tests --------
 
 #[derive(serde::Deserialize)]

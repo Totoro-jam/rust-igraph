@@ -622,6 +622,55 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "widest_path_widths_floyd_warshall":
+        # Counterpart of igraph_widest_path_widths_floyd_warshall(_, _,
+        # vss_all(), vss_all(), weights, IGRAPH_OUT). python-igraph
+        # does not bind this either — reference is inline FW with
+        # widest-paths recurrence (max of min).
+        n = g.vcount()
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            ew = list(g.es["weight"])
+        else:
+            ew = [1.0] * g.ecount()
+        # Init: -inf everywhere; +inf on diagonal.
+        mat = [[float("-inf")] * n for _ in range(n)]
+        for i in range(n):
+            mat[i][i] = float("inf")
+        # Seed from edges. OUT mode for directed; bidirectional for undirected.
+        directed = g.is_directed()
+        for e in range(g.ecount()):
+            w = ew[e]
+            if w == float("-inf"):
+                continue
+            s = g.es[e].source
+            t = g.es[e].target
+            if mat[s][t] < w:
+                mat[s][t] = w
+            if not directed and mat[t][s] < w:
+                mat[t][s] = w
+        # FW recurrence.
+        for k in range(n):
+            for j in range(n):
+                width_kj = mat[k][j]
+                if j == k or width_kj == float("-inf"):
+                    continue
+                for i in range(n):
+                    if i == j or i == k:
+                        continue
+                    alt = min(mat[i][k], width_kj)
+                    if alt > mat[i][j]:
+                        mat[i][j] = alt
+        # Convert: -inf → None; +inf → "Infinity" string sentinel.
+        return [
+            [
+                None if w == float("-inf")
+                else "Infinity" if w == float("inf")
+                else w
+                for w in row
+            ]
+            for row in mat
+        ]
+
     if algo == "widest_path":
         # Counterpart of igraph_get_widest_path(_, _, _, from, to,
         # weights, IGRAPH_OUT). python-igraph does not bind widest

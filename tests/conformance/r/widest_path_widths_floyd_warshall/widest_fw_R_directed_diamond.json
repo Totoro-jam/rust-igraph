@@ -1,0 +1,60 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed diamond, one negative-finite edge",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      5.0,
+      1.0,
+      -2.0,
+      4.0
+    ]
+  },
+  "algo": "widest_path_widths_floyd_warshall",
+  "params": {},
+  "expected": [
+    [
+      null,
+      5.0,
+      1.0,
+      1.0
+    ],
+    [
+      null,
+      null,
+      null,
+      -2.0
+    ],
+    [
+      null,
+      null,
+      null,
+      4.0
+    ],
+    [
+      null,
+      null,
+      null,
+      null
+    ]
+  ]
+}

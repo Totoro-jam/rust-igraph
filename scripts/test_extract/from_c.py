@@ -611,6 +611,48 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-012: Floyd-Warshall-based all-pairs widest widths matrix.
+# Source: widest_paths.c (lines 451-555). All-pairs matrix; diagonal
+# entries are +∞ by convention so we encode them as null in fixtures
+# and the conformance runner skips diagonal.
+WIDEST_PATH_WIDTHS_FW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_fw_c_triangle_all_pairs",
+        # Same triangle (1, 4, 2): all-pairs widest widths must match
+        # what the Dijkstra variant produces from every source.
+        "origin": "constructed: triangle (1,4,2) — all-pairs widest matrix",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "widest_path_widths_floyd_warshall",
+        "params": {},
+        "expected": [
+            [None, 2.0, 4.0],
+            [2.0, None, 2.0],
+            [4.0, 2.0, None],
+        ],
+    },
+    {
+        "case": "widest_fw_c_unreachable_components",
+        # Two components: 0-1 with weight 5, 2-3 with weight 7.
+        # Cross-component pairs are unreachable.
+        "origin": "constructed: 4 vertices, 2 disjoint edges",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [5.0, 7.0],
+        "algo": "widest_path_widths_floyd_warshall",
+        "params": {},
+        "expected": [
+            [None, 5.0, None, None],
+            [5.0, None, None, None],
+            [None, None, None, 7.0],
+            [None, None, 7.0, None],
+        ],
+    },
+]
+
 # ALGO-SP-011: Widest-path single source-to-target (returns the
 # path itself, not just its width). Source: widest_paths.c (lines 102-322).
 # Conformance compares only the bottleneck width along the returned
@@ -1793,6 +1835,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "johnson_distances": JOHNSON_MANIFEST,
     "widest_path_widths": WIDEST_PATH_MANIFEST,
     "widest_path": WIDEST_PATH_GET_MANIFEST,
+    "widest_path_widths_floyd_warshall": WIDEST_PATH_WIDTHS_FW_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

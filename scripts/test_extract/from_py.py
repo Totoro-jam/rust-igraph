@@ -552,6 +552,45 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-012: Floyd-Warshall-based all-pairs widest widths matrix.
+# Hand-computed expected values; diagonal is +∞ by convention,
+# encoded as null in fixtures.
+WIDEST_PATH_WIDTHS_FW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_fw_py_undirected_chain",
+        # Path 0-1-2-3 weights (5, 1, 3). All-pairs bottlenecks:
+        # 0↔1=5; 0↔2=min(5,1)=1; 0↔3=min(5,1,3)=1; 1↔2=1; 1↔3=1; 2↔3=3.
+        "origin": "constructed: undirected P4 (5,1,3)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [5.0, 1.0, 3.0],
+        "algo": "widest_path_widths_floyd_warshall",
+        "params": {},
+        "expected": [
+            [None, 5.0, 1.0, 1.0],
+            [5.0, None, 1.0, 1.0],
+            [1.0, 1.0, None, 3.0],
+            [1.0, 1.0, 3.0, None],
+        ],
+    },
+    {
+        "case": "widest_fw_py_parallel_edges",
+        # Two vertices, 3 parallel edges (1, 5, 3). Widest = 5.
+        "origin": "constructed: 3 parallel edges (1, 5, 3)",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1), (0, 1)], directed=False
+        ),
+        "graph_weights": [1.0, 5.0, 3.0],
+        "algo": "widest_path_widths_floyd_warshall",
+        "params": {},
+        "expected": [
+            [None, 5.0],
+            [5.0, None],
+        ],
+    },
+]
+
 # ALGO-SP-011: Widest path (single source-to-target). python-igraph
 # does not bind this either; hand-computed expected values.
 WIDEST_PATH_GET_MANIFEST: List[Dict[str, Any]] = [
@@ -1544,6 +1583,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "johnson_distances": JOHNSON_MANIFEST,
     "widest_path_widths": WIDEST_PATH_MANIFEST,
     "widest_path": WIDEST_PATH_GET_MANIFEST,
+    "widest_path_widths_floyd_warshall": WIDEST_PATH_WIDTHS_FW_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

@@ -887,6 +887,62 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn widest_path_widths_floyd_warshall_three_source_conformance() {
+    // All-pairs matrix. Diagonal entries are +∞ by convention and
+    // encoded as null in fixtures; this runner converts our Rust
+    // Some(inf) to null to match the fixture format.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("widest_path_widths_floyd_warshall");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let matrix = rust_igraph::widest_path_widths_floyd_warshall(&g, &weights)
+                .expect("widest_path_widths_floyd_warshall");
+            let rust_json: serde_json::Value = matrix
+                .into_iter()
+                .map(|row| {
+                    let row_json: serde_json::Value = row
+                        .into_iter()
+                        .map(|x| match x {
+                            Some(v) if v.is_finite() => serde_json::json!(v),
+                            // Source-to-self (+∞) and unreachable (None
+                            // here would already match) both serialise
+                            // to null to align with the fixture format.
+                            _ => serde_json::Value::Null,
+                        })
+                        .collect();
+                    row_json
+                })
+                .collect();
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "widest_path_widths_floyd_warshall");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn widest_path_three_source_conformance() {
     // Single source-to-target. JSON null means unreachable;
     // `{vertices, edges}` means the path.

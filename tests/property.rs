@@ -2037,6 +2037,39 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// SP-012 FW widest-widths invariants:
+    /// - Output is `vcount × vcount` matrix.
+    /// - Diagonal is always `Some(f64::INFINITY)`.
+    /// - Every row matches the Dijkstra-based `widest_path_widths`
+    ///   from that source (FW and Dijkstra agree on the widest
+    ///   bottleneck — different code paths, same answer).
+    #[test]
+    fn fw_widest_matches_pairwise_dijkstra(g in arb_graph(8)) {
+        if g.vcount() == 0 { return Ok(()); }
+        let n = g.vcount();
+        let m = g.ecount();
+        let weights: Vec<f64> = (0..m).map(|i| 1.0 + (i as f64) * 0.5).collect();
+        let fw = rust_igraph::widest_path_widths_floyd_warshall(&g, &weights).unwrap();
+        prop_assert_eq!(fw.len() as u32, n);
+        for (u, row) in fw.iter().enumerate() {
+            prop_assert_eq!(row.len() as u32, n);
+            prop_assert_eq!(row[u], Some(f64::INFINITY));
+            let u_u32 = u32::try_from(u).expect("u fits in u32 for proptest");
+            let dij = rust_igraph::widest_path_widths(&g, u_u32, &weights).unwrap();
+            for (v, (a, b)) in row.iter().zip(dij.iter()).enumerate() {
+                match (a, b) {
+                    (Some(x), Some(y)) if x.is_infinite() && y.is_infinite() => {}
+                    (Some(x), Some(y)) => prop_assert!(
+                        (x - y).abs() < 1e-9,
+                        "[{}][{}]: FW={} Dijkstra={}", u, v, x, y),
+                    (None, None) => {}
+                    (x, y) => prop_assert!(false,
+                        "[{}][{}]: FW={:?} Dijkstra={:?}", u, v, x, y),
+                }
+            }
+        }
+    }
+
     /// SP-011 `widest_path` invariants:
     /// - When `widest_path_widths[target].is_some()`, `widest_path`
     ///   returns `Some((vs, es))` with the same bottleneck (min over

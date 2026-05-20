@@ -22,6 +22,28 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-012**: All-pairs widest-path widths via
+  Floyd-Warshall (`widest_path_widths_floyd_warshall(graph, weights)
+  -> IgraphResult<Vec<Vec<Option<f64>>>>` plus the mode-aware
+  `widest_path_widths_floyd_warshall_with_mode`). Counterpart of
+  `igraph_widest_path_widths_floyd_warshall` from
+  `references/igraph/src/paths/widest_paths.c:451`. Returns the
+  `vcount × vcount` bottleneck-width matrix between every pair of
+  vertices. Useful on **dense** graphs; for sparse graphs running
+  `widest_path_widths` from every source is asymptotically the same
+  in practice but avoids the V³ wall.
+  Algorithm: standard FW shape with the widest-paths recurrence
+  `M[i][j] = max(M[i][j], min(M[i][k], M[k][j]))`. Diagonal is
+  `Some(f64::INFINITY)` (source to self). Mode controls how
+  directed edges seed the matrix: OUT populates `M[s][t]`, IN
+  populates `M[t][s]`, ALL does both. On undirected graphs every
+  mode collapses to ALL. Parallel edges merge by wider-wins;
+  `-f64::INFINITY` weights are ignored.
+  8 unit tests + 2 oracle tests vs an inline FW Python reference +
+  6 conformance fixtures (2 each C/Python/R, hand-computed) +
+  1 proptest invariant (`fw_widest_matches_pairwise_dijkstra` —
+  every row matches the Dijkstra-based `widest_path_widths` from
+  that source).
 - *(paths)* **ALGO-SP-011**: Single-source single-target widest
   path (`widest_path(graph, from, to, weights) ->
   IgraphResult<Option<(Vec<VertexId>, Vec<EdgeId>)>>` plus the

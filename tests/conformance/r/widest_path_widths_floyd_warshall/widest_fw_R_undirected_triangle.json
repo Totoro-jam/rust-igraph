@@ -1,0 +1,46 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): triangle (3, 6, 2)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      3.0,
+      6.0,
+      2.0
+    ]
+  },
+  "algo": "widest_path_widths_floyd_warshall",
+  "params": {},
+  "expected": [
+    [
+      null,
+      3.0,
+      6.0
+    ],
+    [
+      3.0,
+      null,
+      3.0
+    ],
+    [
+      6.0,
+      3.0,
+      null
+    ]
+  ]
+}

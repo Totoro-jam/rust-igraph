@@ -1,0 +1,50 @@
+{
+  "source": "c",
+  "origin": "constructed: 4 vertices, 2 disjoint edges",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      5.0,
+      7.0
+    ]
+  },
+  "algo": "widest_path_widths_floyd_warshall",
+  "params": {},
+  "expected": [
+    [
+      null,
+      5.0,
+      null,
+      null
+    ],
+    [
+      5.0,
+      null,
+      null,
+      null
+    ],
+    [
+      null,
+      null,
+      null,
+      7.0
+    ],
+    [
+      null,
+      null,
+      7.0,
+      null
+    ]
+  ]
+}
