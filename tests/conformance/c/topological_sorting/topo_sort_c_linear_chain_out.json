@@ -1,0 +1,28 @@
+{
+  "source": "c",
+  "origin": "constructed: directed P3 \u2014 unique OUT topological order",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "topological_sorting",
+  "params": {
+    "mode": "out"
+  },
+  "expected": [
+    0,
+    1,
+    2
+  ]
+}

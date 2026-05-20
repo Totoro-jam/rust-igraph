@@ -126,6 +126,7 @@ pub use crate::algorithms::properties::pagerank_weighted::pagerank_weighted;
 pub use crate::algorithms::properties::reciprocity::{
     ReciprocityMode, reciprocity, reciprocity_with_mode,
 };
+pub use crate::algorithms::properties::topological_sorting::topological_sorting;
 pub use crate::algorithms::properties::triangles::{
     count_triangles, transitivity_barrat, transitivity_local_undirected, transitivity_undirected,
 };

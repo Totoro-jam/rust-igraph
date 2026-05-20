@@ -887,6 +887,53 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn topological_sorting_three_source_conformance() {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("topological_sorting");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let mode_str = case
+                .params
+                .get("mode")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("out");
+            let mode = match mode_str {
+                "in" => rust_igraph::DijkstraMode::In,
+                "all" => rust_igraph::DijkstraMode::All,
+                _ => rust_igraph::DijkstraMode::Out,
+            };
+            let order = rust_igraph::topological_sorting(&g, mode).expect("topological_sorting");
+            let rust_json: serde_json::Value =
+                order.into_iter().map(serde_json::Value::from).collect();
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "topological_sorting");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn is_dag_three_source_conformance() {
     for src in ["c", "py", "r"] {
         let dir = workspace_root()

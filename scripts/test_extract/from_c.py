@@ -611,6 +611,33 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-021: topological_sorting. Source: properties/dag.c
+# (lines 54-123). Kahn's peel, recording the popped order.
+TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "topo_sort_c_linear_chain_out",
+        # 0 → 1 → 2: unique OUT-mode order.
+        "origin": "constructed: directed P3 — unique OUT topological order",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "algo": "topological_sorting",
+        "params": {"mode": "out"},
+        "expected": [0, 1, 2],
+    },
+    {
+        "case": "topo_sort_c_linear_chain_in",
+        # Same chain, IN mode reverses it.
+        "origin": "constructed: directed P3 — IN mode reverses",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "algo": "topological_sorting",
+        "params": {"mode": "in"},
+        "expected": [2, 1, 0],
+    },
+]
+
 # ALGO-PR-020: is_dag (directed acyclic graph predicate). Source:
 # properties/dag.c (lines 151-220). Kahn's topological peel.
 IS_DAG_MANIFEST: List[Dict[str, Any]] = [
@@ -2085,6 +2112,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "site_percolation": SITE_PERCOLATION_MANIFEST,
     "is_same_graph": IS_SAME_GRAPH_MANIFEST,
     "is_dag": IS_DAG_MANIFEST,
+    "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

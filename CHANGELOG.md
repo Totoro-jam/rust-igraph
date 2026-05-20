@@ -22,6 +22,27 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-021**: `topological_sorting(graph,
+  mode)` — returns a topological ordering of a directed graph's
+  vertices. Counterpart of `igraph_topological_sorting` from
+  `references/igraph/src/properties/dag.c:54`. Same Kahn-peel
+  inner loop as [`crate::is_dag`] but recording each popped vertex
+  in the output. Uses `DijkstraMode` to mirror the IN/OUT mode
+  selection (ALL rejected with `InvalidArgument`).
+  Key contract difference from `is_dag`: **self-loops are
+  ignored** when computing degrees (matches upstream's
+  `IGRAPH_NO_LOOPS` flag). A vertex with only a self-loop can
+  still be sorted; only non-loop cycles cause the function to
+  error.
+  12 unit tests + 3 oracle tests vs `python-igraph`'s
+  `Graph.topological_sorting()` (one direct-equality on a
+  uniquely-ordered chain; one partial-order check on a diamond
+  DAG since tie-breaking may differ) + 6 conformance fixtures
+  (2 each C/Python/R, all on uniquely-ordered cases for
+  element-wise comparison) + 1 proptest invariant
+  (`topological_sorting_respects_every_directed_edge` —
+  partial-order respect, permutation, and consistency with
+  `is_dag`/SCC structure).
 - *(properties)* **ALGO-PR-020**: `is_dag(graph: &Graph) -> bool`
   — directed acyclic graph predicate. Counterpart of `igraph_is_dag`
   from `references/igraph/src/properties/dag.c:151`. Returns

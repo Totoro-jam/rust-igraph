@@ -29,6 +29,7 @@ pub(crate) mod multiplicity;
 pub(crate) mod pagerank;
 pub(crate) mod pagerank_weighted;
 pub(crate) mod reciprocity;
+pub(crate) mod topological_sorting;
 pub(crate) mod triangles;
 
 pub use assortativity::{assortativity_degree, assortativity_degree_directed};
@@ -54,4 +55,5 @@ pub use multiplicity::{has_loop, has_multiple, is_loop, is_multiple};
 pub use pagerank::pagerank;
 pub use pagerank_weighted::pagerank_weighted;
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
+pub use topological_sorting::topological_sorting;
 pub use triangles::{count_triangles, transitivity_local_undirected, transitivity_undirected};

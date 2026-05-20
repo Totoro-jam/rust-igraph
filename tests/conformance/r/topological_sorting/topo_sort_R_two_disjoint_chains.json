@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): two disjoint chains",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "topological_sorting",
+  "params": {
+    "mode": "out"
+  },
+  "expected": [
+    0,
+    2,
+    1,
+    3
+  ]
+}

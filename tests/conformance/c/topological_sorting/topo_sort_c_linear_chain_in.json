@@ -1,0 +1,28 @@
+{
+  "source": "c",
+  "origin": "constructed: directed P3 \u2014 IN mode reverses",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "topological_sorting",
+  "params": {
+    "mode": "in"
+  },
+  "expected": [
+    2,
+    1,
+    0
+  ]
+}

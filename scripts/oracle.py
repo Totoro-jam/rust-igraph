@@ -622,6 +622,24 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "topological_sorting":
+        # Counterpart of igraph_topological_sorting. python-igraph
+        # exposes Graph.topological_sorting(mode='OUT'/'IN'/'ALL')
+        # which returns a list[int]. We mirror the upstream
+        # contract: undirected or ALL mode → return an _error sentinel
+        # so the Rust side can compare against our InvalidArgument.
+        if not g.is_directed():
+            return {"_error": "topological_sorting requires a directed graph"}
+        mode = str(params.get("mode", "out")).lower()
+        if mode == "all":
+            return {"_error": "topological_sorting does not accept mode=all"}
+        if mode not in ("out", "in"):
+            return {"_error": f"invalid mode: {mode}"}
+        try:
+            return list(g.topological_sorting(mode=mode))
+        except Exception as exc:
+            return {"_error": str(exc)}
+
     if algo == "is_dag":
         # Counterpart of igraph_is_dag. python-igraph exposes
         # `Graph.is_dag()` which returns a bool directly. Returns

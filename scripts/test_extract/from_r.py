@@ -619,6 +619,36 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-021: topological_sorting. rigraph's
+# `topo_sort(g, mode="out"|"in")` returns the order.
+TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "topo_sort_R_parallel_edges_dont_affect_order",
+        # Parallel edges 0 → 1; order = [0, 1] regardless.
+        "origin": "constructed (rigraph-style): parallel edges, unique order",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1)], directed=True
+        ),
+        "algo": "topological_sorting",
+        "params": {"mode": "out"},
+        "expected": [0, 1],
+    },
+    {
+        "case": "topo_sort_R_two_disjoint_chains",
+        # Two disjoint chains 0 → 1 and 2 → 3.
+        # Sources are vertices 0 and 2 (both in-degree 0). They both
+        # get queued together; Kahn pops them in id order, then their
+        # successors.
+        "origin": "constructed (rigraph-style): two disjoint chains",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=True
+        ),
+        "algo": "topological_sorting",
+        "params": {"mode": "out"},
+        "expected": [0, 2, 1, 3],
+    },
+]
+
 # ALGO-PR-020: is_dag. rigraph's `is_dag(g)` returns TRUE/FALSE.
 IS_DAG_MANIFEST: List[Dict[str, Any]] = [
     {
@@ -1944,6 +1974,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "site_percolation": SITE_PERCOLATION_MANIFEST,
     "is_same_graph": IS_SAME_GRAPH_MANIFEST,
     "is_dag": IS_DAG_MANIFEST,
+    "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

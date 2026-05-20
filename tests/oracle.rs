@@ -1614,6 +1614,83 @@ fn bond_percolation_partial_order_matches_python_reference() {
     bond_percolation_round_trip_via_edgelist_oracle(&g, &[0, 2]);
 }
 
+// ---- ALGO-PR-021: topological_sorting oracle tests --------
+
+/// Helper: verify the topological order is consistent with all
+/// edges in the OUT direction. Two valid orderings can disagree on
+/// vertex positions, so we only check the partial-order constraint.
+fn check_topo_order_out(g: &Graph, order: &[u32]) {
+    let mut pos: Vec<usize> = vec![0; g.vcount() as usize];
+    for (i, &v) in order.iter().enumerate() {
+        pos[v as usize] = i;
+    }
+    for e in 0..g.ecount() as u32 {
+        let (u, v) = g.edge(e).unwrap();
+        if u == v {
+            continue; // self-loops ignored
+        }
+        assert!(
+            pos[u as usize] < pos[v as usize],
+            "edge {u}→{v} violated by position pos[{u}]={} pos[{v}]={}",
+            pos[u as usize],
+            pos[v as usize]
+        );
+    }
+}
+
+#[test]
+fn topological_sorting_linear_chain_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 3)]).unwrap();
+    let rust = rust_igraph::topological_sorting(&g, rust_igraph::DijkstraMode::Out).unwrap();
+    let py: Vec<u32> = serde_json::from_value(run_ok(
+        "topological_sorting",
+        &g,
+        serde_json::json!({"mode": "out"}),
+    ))
+    .expect("decode python topological_sorting");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn topological_sorting_diamond_dag_agrees_on_partial_order() {
+    // Tie-breaking may differ between Rust and Python — just check
+    // that BOTH outputs are valid topological orderings of the same
+    // graph (every edge u→v has pos(u) < pos(v)).
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edges(vec![(0u32, 1u32), (0, 2), (1, 3), (2, 3)])
+        .unwrap();
+    let rust = rust_igraph::topological_sorting(&g, rust_igraph::DijkstraMode::Out).unwrap();
+    let py: Vec<u32> = serde_json::from_value(run_ok(
+        "topological_sorting",
+        &g,
+        serde_json::json!({"mode": "out"}),
+    ))
+    .expect("decode python topological_sorting");
+    check_topo_order_out(&g, &rust);
+    check_topo_order_out(&g, &py);
+    // Same vertex set (both orders are permutations of 0..n).
+    let mut rust_sorted = rust.clone();
+    let mut py_sorted = py.clone();
+    rust_sorted.sort_unstable();
+    py_sorted.sort_unstable();
+    assert_eq!(rust_sorted, py_sorted);
+}
+
+#[test]
+fn topological_sorting_in_mode_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 3)]).unwrap();
+    let rust = rust_igraph::topological_sorting(&g, rust_igraph::DijkstraMode::In).unwrap();
+    let py: Vec<u32> = serde_json::from_value(run_ok(
+        "topological_sorting",
+        &g,
+        serde_json::json!({"mode": "in"}),
+    ))
+    .expect("decode python topological_sorting");
+    assert_eq!(rust, py);
+}
+
 // ---- ALGO-PR-020: is_dag oracle tests --------
 
 #[test]

@@ -2037,6 +2037,65 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// PR-021 `topological_sorting` invariants:
+    /// - For DAGs, the result is a permutation of `0..vcount`
+    ///   that respects every non-loop directed edge `u → v`
+    ///   (pos[u] < pos[v]).
+    /// - For graphs with cycles (non-loop), the function errors.
+    /// - For DAGs, self-loops don't prevent a valid ordering
+    ///   (upstream's IGRAPH_NO_LOOPS semantics).
+    #[test]
+    fn topological_sorting_respects_every_directed_edge(g in arb_directed_graph(8)) {
+        let result = rust_igraph::topological_sorting(&g, rust_igraph::DijkstraMode::Out);
+        let is_dag = rust_igraph::is_dag(&g);
+        // Check whether the graph has any non-loop cycles. is_dag is
+        // false for self-loops too, but topological_sorting accepts
+        // self-loops as long as there are no other cycles. We have
+        // to check separately.
+        let has_non_loop_cycle = {
+            // Strip self-loops by checking if the SCC-induced
+            // non-DAG structure is purely self-loops.
+            let scc = rust_igraph::strongly_connected_components(&g).unwrap();
+            let mut bucket = vec![0u32; scc.count as usize];
+            for &c in &scc.membership {
+                bucket[c as usize] += 1;
+            }
+            bucket.iter().any(|&sz| sz >= 2)
+        };
+        if has_non_loop_cycle {
+            // Multi-vertex SCC ⇒ cycle exists ⇒ should error.
+            prop_assert!(result.is_err(), "expected error on cyclic graph");
+        } else {
+            // No multi-vertex cycle ⇒ topological sort should succeed.
+            let order = result.expect("DAG (possibly with self-loops) has a topological order");
+            let n = g.vcount() as usize;
+            prop_assert_eq!(order.len(), n);
+            // Permutation: every vertex appears exactly once.
+            let mut sorted = order.clone();
+            sorted.sort_unstable();
+            prop_assert_eq!(sorted, (0..g.vcount()).collect::<Vec<_>>());
+            // Edge consistency: every non-loop edge u→v has pos[u] < pos[v].
+            let mut pos = vec![0usize; n];
+            for (i, &v) in order.iter().enumerate() {
+                pos[v as usize] = i;
+            }
+            for e in 0..g.ecount() as u32 {
+                let (u, v) = g.edge(e).unwrap();
+                if u == v { continue; }
+                prop_assert!(pos[u as usize] < pos[v as usize],
+                    "edge {}→{} violated: pos[{}]={} pos[{}]={}",
+                    u, v, u, pos[u as usize], v, pos[v as usize]);
+            }
+            // Also: is_dag must be false (self-loops disqualify it)
+            // OR the graph genuinely has no self-loops and is_dag = true.
+            let has_self_loop = (0..g.ecount() as u32).any(|e| {
+                let (u, v) = g.edge(e).unwrap();
+                u == v
+            });
+            prop_assert_eq!(is_dag, !has_self_loop);
+        }
+    }
+
     /// PR-020 `is_dag` invariants:
     /// - Undirected graphs are never DAGs.
     /// - DAGs cannot have self-loops.

@@ -1,0 +1,27 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): parallel edges, unique order",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "topological_sorting",
+  "params": {
+    "mode": "out"
+  },
+  "expected": [
+    0,
+    1
+  ]
+}

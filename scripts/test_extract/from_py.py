@@ -552,6 +552,34 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-021: topological_sorting. python-igraph exposes
+# `Graph.topological_sorting(mode='OUT'/'IN'/'ALL')`.
+TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "topo_sort_py_self_loop_does_not_block",
+        # Self-loop on vertex 0 + 0 → 1 — self-loops ignored, order = [0, 1].
+        "origin": "constructed: self-loop tolerated by topological sort",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 0), (0, 1)], directed=True
+        ),
+        "algo": "topological_sorting",
+        "params": {"mode": "out"},
+        "expected": [0, 1],
+    },
+    {
+        "case": "topo_sort_py_long_chain_unique_order",
+        # 0 → 1 → 2 → 3 → 4: only one valid topological order; safe
+        # to compare element-wise across implementations.
+        "origin": "constructed: directed P5 — unique OUT topological order",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=True
+        ),
+        "algo": "topological_sorting",
+        "params": {"mode": "out"},
+        "expected": [0, 1, 2, 3, 4],
+    },
+]
+
 # ALGO-PR-020: is_dag. python-igraph's `Graph.is_dag()` returns
 # True/False directly.
 IS_DAG_MANIFEST: List[Dict[str, Any]] = [
@@ -1836,6 +1864,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "site_percolation": SITE_PERCOLATION_MANIFEST,
     "is_same_graph": IS_SAME_GRAPH_MANIFEST,
     "is_dag": IS_DAG_MANIFEST,
+    "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,
