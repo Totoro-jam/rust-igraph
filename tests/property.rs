@@ -2037,6 +2037,38 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// SP-003 Johnson invariants:
+    /// - All-pairs matrix is `vcount × vcount`.
+    /// - Diagonal is always `Some(0.0)`.
+    /// - With non-negative weights, every row matches
+    ///   `dijkstra_distances` from that source (Johnson short-circuits
+    ///   to pairwise Dijkstra in that case).
+    #[test]
+    fn johnson_matches_pairwise_dijkstra_on_nonneg_weights(g in arb_graph(8)) {
+        if g.vcount() == 0 { return Ok(()); }
+        let n = g.vcount();
+        let m = g.ecount();
+        let weights: Vec<f64> = (0..m).map(|i| 0.5 + (i as f64) * 0.25).collect();
+        let johnson = rust_igraph::johnson_distances(&g, &weights).unwrap();
+        prop_assert_eq!(johnson.len() as u32, n);
+        for (u, row) in johnson.iter().enumerate() {
+            prop_assert_eq!(row.len() as u32, n);
+            prop_assert_eq!(row[u], Some(0.0));
+            let u_u32 = u32::try_from(u).expect("u fits in u32 for proptest");
+            let dk = rust_igraph::dijkstra_distances(&g, u_u32, &weights).unwrap();
+            for (v, (a, b)) in row.iter().zip(dk.iter()).enumerate() {
+                match (a, b) {
+                    (Some(x), Some(y)) => prop_assert!(
+                        (x - y).abs() < 1e-9,
+                        "[{}][{}]: Johnson={} Dijkstra={}", u, v, x, y),
+                    (None, None) => {}
+                    (x, y) => prop_assert!(false,
+                        "[{}][{}]: Johnson={:?} Dijkstra={:?}", u, v, x, y),
+                }
+            }
+        }
+    }
+
     /// SP-002 Bellman-Ford invariants:
     /// - For **non-negative** weights, BF must produce the same
     ///   distances as Dijkstra (since BF subsumes Dijkstra on this

@@ -12,6 +12,7 @@ pub(crate) mod distances;
 pub(crate) mod eulerian;
 pub(crate) mod eulerian_construct;
 pub(crate) mod floyd_warshall;
+pub(crate) mod johnson;
 pub(crate) mod radii;
 pub(crate) mod random_walk;
 

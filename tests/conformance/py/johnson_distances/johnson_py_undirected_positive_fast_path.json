@@ -1,0 +1,46 @@
+{
+  "source": "py",
+  "origin": "constructed: undirected triangle (1,4,2) \u2014 Johnson fast path",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      4.0,
+      2.0
+    ]
+  },
+  "algo": "johnson_distances",
+  "params": {},
+  "expected": [
+    [
+      0.0,
+      1.0,
+      3.0
+    ],
+    [
+      1.0,
+      0.0,
+      2.0
+    ],
+    [
+      3.0,
+      2.0,
+      0.0
+    ]
+  ]
+}

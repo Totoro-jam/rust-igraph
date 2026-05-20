@@ -622,6 +622,26 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "johnson_distances":
+        # Counterpart of igraph_distances_johnson(_, _, vss_all(),
+        # vss_all(), weights, IGRAPH_OUT). python-igraph's
+        # `Graph.distances(weights=...)` auto-picks the algorithm
+        # (Dijkstra when non-negative, BF/Johnson when negative).
+        # For Johnson we pass weights to get an all-pairs matrix.
+        mode = "out" if g.is_directed() else "all"
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            rows = g.distances(weights="weight", mode=mode)
+        else:
+            rows = g.distances(mode=mode)
+        out = []
+        for row in rows:
+            converted = []
+            for v in row:
+                f = float(v)
+                converted.append(None if f == float("inf") else f)
+            out.append(converted)
+        return out
+
     if algo == "bellman_ford_distances":
         # Counterpart of igraph_distances_bellman_ford(_, _, source,
         # vss_all(), weights, IGRAPH_OUT). python-igraph's

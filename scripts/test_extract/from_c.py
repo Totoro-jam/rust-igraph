@@ -611,6 +611,46 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-003: Johnson all-pairs shortest distances. Used when many
+# sources are needed AND graph has negative weights. Source:
+# distances_johnson.c.
+JOHNSON_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "johnson_c_directed_diamond_negative_edge",
+        # Same diamond as the BF fixture: 0→1 (3), 0→2 (1), 1→3 (-2), 2→3 (4).
+        # All-pairs matrix from upstream's Johnson.
+        "origin": "constructed: directed diamond with negative edge 1→3",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 3), (2, 3)], directed=True
+        ),
+        "graph_weights": [3.0, 1.0, -2.0, 4.0],
+        "algo": "johnson_distances",
+        "params": {},
+        "expected": [
+            [0.0, 3.0, 1.0, 1.0],
+            [None, 0.0, None, -2.0],
+            [None, None, 0.0, 4.0],
+            [None, None, None, 0.0],
+        ],
+    },
+    {
+        "case": "johnson_c_undirected_triangle_fast_path",
+        # Non-negative weights ⇒ Johnson short-circuits to Dijkstra.
+        "origin": "constructed: undirected triangle (1,4,2) — fast path",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "johnson_distances",
+        "params": {},
+        "expected": [
+            [0.0, 1.0, 3.0],
+            [1.0, 0.0, 2.0],
+            [3.0, 2.0, 0.0],
+        ],
+    },
+]
+
 # ALGO-SP-002: Bellman-Ford single-source distances. Handles negative
 # weights that would break Dijkstra. Source: distances_bellman_ford.c.
 BELLMAN_FORD_MANIFEST: List[Dict[str, Any]] = [
@@ -1687,6 +1727,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
     "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
     "bellman_ford_distances": BELLMAN_FORD_MANIFEST,
+    "johnson_distances": JOHNSON_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

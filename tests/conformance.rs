@@ -887,6 +887,56 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn johnson_distances_three_source_conformance() {
+    // Matrix-shaped: each fixture's `expected` is Vec<Vec<Option<f64>>>.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("johnson_distances");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let matrix = rust_igraph::johnson_distances(&g, &weights).expect("johnson_distances");
+            let rust_json: serde_json::Value = matrix
+                .into_iter()
+                .map(|row| {
+                    let row_json: serde_json::Value = row
+                        .into_iter()
+                        .map(|x| match x {
+                            Some(v) => serde_json::json!(v),
+                            None => serde_json::Value::Null,
+                        })
+                        .collect();
+                    row_json
+                })
+                .collect();
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "johnson_distances");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn bellman_ford_distances_three_source_conformance() {
     // Parallels dijkstra_distances_three_source_conformance: same
     // wire shape (per-vertex Option<f64>), same need for per-fixture

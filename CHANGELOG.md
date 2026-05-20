@@ -22,6 +22,28 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-003**: Johnson's all-pairs shortest distances
+  (`johnson_distances(graph, weights) -> IgraphResult<Vec<Vec<Option<f64>>>>`).
+  Counterpart of `igraph_distances_johnson` from
+  `references/igraph/src/paths/johnson.c:83`. Computes the full
+  `vcount × vcount` distance matrix with support for negative edge
+  weights on directed graphs.
+  Algorithm: fast-path to V independent Dijkstras when all weights
+  are non-negative (matches upstream short-circuit). Slow path:
+  compute Johnson potentials `h[v]` via virtual-source SPFA (the
+  standard trick — initialising every dist[v]=0 in SPFA is
+  equivalent to attaching a virtual vertex with zero-weight
+  outgoing edges), reweight each edge to `w' = w + h[u] - h[v]`,
+  snap roundoff negatives to 0, run Dijkstra from each source on
+  the reweighted graph, and recover `d[u][v] = d'[u][v] - h[u] +
+  h[v]`. Time complexity `O(V·E + V·(V+E)·log V)`.
+  Constraints (match upstream): undirected graphs with any negative
+  weight are rejected (an undirected negative edge is itself a
+  length-2 negative cycle); negative cycles reachable from any
+  vertex are surfaced as `IgraphError::InvalidArgument`.
+  11 unit tests + 2 oracle tests vs python-igraph + 6 conformance
+  fixtures (2 each C/Python/R) + 1 proptest invariant
+  (`johnson_matches_pairwise_dijkstra_on_nonneg_weights`).
 - *(paths)* **ALGO-SP-002**: Bellman-Ford single-source shortest
   distances (`bellman_ford_distances(graph, source, weights) ->
   IgraphResult<Vec<Option<f64>>>` plus the mode-aware

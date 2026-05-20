@@ -1517,6 +1517,69 @@ fn dijkstra_distances_directed_matches_python_igraph() {
     }
 }
 
+// ---- ALGO-SP-003: Johnson all-pairs distances oracle tests --------
+
+#[test]
+fn johnson_distances_directed_with_negative_edge_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 3).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let weights = vec![3.0_f64, 1.0, -2.0, 4.0];
+    let rust = rust_igraph::johnson_distances(&g, &weights).unwrap();
+    let py: Vec<Vec<Option<f64>>> = serde_json::from_value(run_ok_with_weights(
+        "johnson_distances",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python johnson_distances");
+    assert_eq!(rust.len(), py.len());
+    for (u, (r_row, p_row)) in rust.iter().zip(py.iter()).enumerate() {
+        assert_eq!(r_row.len(), p_row.len(), "row {u} length mismatch");
+        for (v, (r, p)) in r_row.iter().zip(p_row.iter()).enumerate() {
+            match (r, p) {
+                (Some(rr), Some(pp)) => {
+                    assert!((rr - pp).abs() < 1e-12, "[{u}][{v}]: rust={rr} py={pp}");
+                }
+                (None, None) => {}
+                (a, b) => panic!("[{u}][{v}]: rust={a:?} py={b:?}"),
+            }
+        }
+    }
+}
+
+#[test]
+fn johnson_distances_positive_weights_matches_python_igraph() {
+    // Fast path: no negative weights ⇒ Johnson short-circuits to
+    // pairwise Dijkstra. Verify the all-pairs matrix still matches.
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 4.0, 2.0];
+    let rust = rust_igraph::johnson_distances(&g, &weights).unwrap();
+    let py: Vec<Vec<Option<f64>>> = serde_json::from_value(run_ok_with_weights(
+        "johnson_distances",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode python johnson_distances");
+    for (u, (r_row, p_row)) in rust.iter().zip(py.iter()).enumerate() {
+        for (v, (r, p)) in r_row.iter().zip(p_row.iter()).enumerate() {
+            match (r, p) {
+                (Some(rr), Some(pp)) => {
+                    assert!((rr - pp).abs() < 1e-12, "[{u}][{v}]: rust={rr} py={pp}");
+                }
+                (None, None) => {}
+                (a, b) => panic!("[{u}][{v}]: rust={a:?} py={b:?}"),
+            }
+        }
+    }
+}
+
 // ---- ALGO-SP-002: Bellman-Ford distances oracle tests --------
 
 #[test]
