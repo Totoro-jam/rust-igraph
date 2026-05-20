@@ -648,6 +648,25 @@ DIJKSTRA_ASP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-005: A* shortest path. With null heuristic, A* ≡ Dijkstra
+# single-source single-target. Conformance compares the full vertex+edge
+# chain (matches the dijkstra_path_to convention).
+ASTAR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "a_star_path_c_directed_p4_with_long_shortcut",
+        # Directed P4 0→1→2→3 with unit weights plus a long edge 0→3
+        # weight 5: best path is the chain through every vertex.
+        "origin": "constructed: directed P4 with heavier shortcut 0→3",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (0, 3)], directed=True
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 5.0],
+        "algo": "a_star_path",
+        "params": {"source": 0, "target": 3, "mode": "out"},
+        "expected": {"vertices": [0, 1, 2, 3], "edges": [0, 1, 2]},
+    },
+]
+
 # ALGO-SP-021..023 weighted: ecc / rad / diam Dijkstra-based.
 ECC_W_MANIFEST: List[Dict[str, Any]] = [
     {
@@ -1627,6 +1646,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
     "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
+    "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,
     "radius_weighted_with_mode": RAD_W_MANIFEST,
     "diameter_weighted_with_mode": DIAM_W_MANIFEST,

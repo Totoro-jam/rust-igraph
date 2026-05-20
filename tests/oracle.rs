@@ -11,16 +11,16 @@ use std::fs::File;
 
 use common::{OracleResponse, run_ok, run_ok_with_weights};
 use rust_igraph::{
-    CorenessMode, DijkstraMode, EccMode, Graph, ReciprocityMode, SimpleMode, articulation_points,
-    assortativity_degree, assortativity_degree_directed, assortativity_degree_directed_weighted,
-    assortativity_degree_weighted, avg_nearest_neighbor_degree,
-    avg_nearest_neighbor_degree_weighted, betweenness, betweenness_weighted, bfs,
-    biconnected_components, bridges, closeness, closeness_weighted, complementer,
-    connected_components, coreness, coreness_with_mode, count_reachable, count_triangles,
-    decompose, density, dfs, diameter, diameter_weighted_with_mode, diameter_with_mode, difference,
-    dijkstra_all_shortest_paths, dijkstra_distances, dijkstra_distances_cutoff,
-    dijkstra_distances_with_mode, dijkstra_path_to, dijkstra_paths, disjoint_union,
-    disjoint_union_many, distances, eccentricity, eccentricity_weighted_with_mode,
+    CorenessMode, DijkstraMode, EccMode, Graph, ReciprocityMode, SimpleMode, a_star_path,
+    articulation_points, assortativity_degree, assortativity_degree_directed,
+    assortativity_degree_directed_weighted, assortativity_degree_weighted,
+    avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, betweenness,
+    betweenness_weighted, bfs, biconnected_components, bridges, closeness, closeness_weighted,
+    complementer, connected_components, coreness, coreness_with_mode, count_reachable,
+    count_triangles, decompose, density, dfs, diameter, diameter_weighted_with_mode,
+    diameter_with_mode, difference, dijkstra_all_shortest_paths, dijkstra_distances,
+    dijkstra_distances_cutoff, dijkstra_distances_with_mode, dijkstra_path_to, dijkstra_paths,
+    disjoint_union, disjoint_union_many, distances, eccentricity, eccentricity_weighted_with_mode,
     eccentricity_with_mode, edge_betweenness, edge_betweenness_weighted, eigenvector_centrality,
     floyd_warshall_distances, girth, harmonic_centrality, harmonic_centrality_weighted, has_loop,
     has_multiple, intersection, is_biconnected, is_loop, is_multiple, is_simple,
@@ -3138,4 +3138,57 @@ fn diameter_weighted_undirected_triangle_matches_python_igraph() {
         (Some(r), Some(p)) => assert!((r - p).abs() < 1e-9, "rust={r} py={p}"),
         _ => panic!("rust={rust:?} py={py:?}"),
     }
+}
+
+// ---- ALGO-SP-005 A* oracle tests --------
+
+#[test]
+fn a_star_path_unit_weights_matches_python_igraph() {
+    // Path 0-1-2-3 unit weights: A* with null heuristic == BFS path.
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let (vs, es) = a_star_path(&g, 0, 3, None, DijkstraMode::Out, |_, _| 0.0)
+        .unwrap()
+        .unwrap();
+    #[derive(serde::Deserialize)]
+    struct PyPath {
+        vertices: Vec<u32>,
+        edges: Vec<u32>,
+    }
+    let py: PyPath = serde_json::from_value(run_ok(
+        "a_star_path",
+        &g,
+        serde_json::json!({"source": 0, "target": 3, "mode": "out"}),
+    ))
+    .expect("decode python a_star_path");
+    assert_eq!(vs, py.vertices);
+    assert_eq!(es, py.edges);
+}
+
+#[test]
+fn a_star_path_weighted_triangle_with_shortcut_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 4.0, 2.0];
+    let (vs, es) = a_star_path(&g, 0, 2, Some(&weights), DijkstraMode::Out, |_, _| 0.0)
+        .unwrap()
+        .unwrap();
+    #[derive(serde::Deserialize)]
+    struct PyPath {
+        vertices: Vec<u32>,
+        edges: Vec<u32>,
+    }
+    let py: PyPath = serde_json::from_value(run_ok_with_weights(
+        "a_star_path",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0, "target": 2, "mode": "out"}),
+    ))
+    .expect("decode python a_star_path");
+    assert_eq!(vs, py.vertices);
+    assert_eq!(es, py.edges);
 }

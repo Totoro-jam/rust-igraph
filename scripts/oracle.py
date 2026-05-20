@@ -595,6 +595,33 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
                 out.append(f)
         return out
 
+    if algo == "a_star_path":
+        # SP-005: A* shortest path from source to target. With null
+        # heuristic (h ≡ 0), A* reduces to Dijkstra single-source
+        # single-target — same path as `dijkstra_path_to`. python-
+        # igraph has no Python-level A* binding, so the oracle simply
+        # delegates to `Graph.get_shortest_paths(weights=...)`. Output
+        # `{vertices, edges}` matches dijkstra_path_to's format.
+        source = int(params["source"])
+        target = int(params["target"])
+        mode = str(params.get("mode", "out"))
+        try:
+            if g.ecount() > 0 and "weight" in g.edge_attributes():
+                vs = g.get_shortest_paths(
+                    source, to=target, weights="weight", mode=mode, output="vpath"
+                )[0]
+                es = g.get_shortest_paths(
+                    source, to=target, weights="weight", mode=mode, output="epath"
+                )[0]
+            else:
+                vs = g.get_shortest_paths(source, to=target, mode=mode, output="vpath")[0]
+                es = g.get_shortest_paths(source, to=target, mode=mode, output="epath")[0]
+        except Exception:
+            return None
+        if not vs:
+            return None
+        return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
+
     if algo == "dijkstra_distances_with_mode":
         # Counterpart of igraph_distances_dijkstra(_, _, source,
         # vss_all(), &weights, mode). python-igraph accepts mode as

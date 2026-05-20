@@ -1008,6 +1008,80 @@ fn dijkstra_path_to_three_source_conformance() {
 }
 
 #[test]
+fn a_star_path_three_source_conformance() {
+    // SP-005 A* with null heuristic (h ≡ 0) ≡ Dijkstra single-source
+    // single-target. Path enumeration order is heap-dependent and not
+    // checked across impls — we compare vertex chain + edge chain
+    // directly, picking the same canonical chain igraph C / py / R
+    // would.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("a_star_path");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone();
+            let source = u32::try_from(
+                case.params
+                    .get("source")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("source param missing"),
+            )
+            .expect("source fits in u32");
+            let target = u32::try_from(
+                case.params
+                    .get("target")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("target param missing"),
+            )
+            .expect("target fits in u32");
+            let mode = match case
+                .params
+                .get("mode")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("out")
+            {
+                "in" => rust_igraph::DijkstraMode::In,
+                "all" => rust_igraph::DijkstraMode::All,
+                _ => rust_igraph::DijkstraMode::Out,
+            };
+            let r =
+                rust_igraph::a_star_path(&g, source, target, weights.as_deref(), mode, |_, _| 0.0)
+                    .expect("a_star_path");
+            let rust_json = match r {
+                None => serde_json::Value::Null,
+                Some((vs, es)) => serde_json::json!({
+                    "vertices": vs,
+                    "edges": es,
+                }),
+            };
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "a_star_path");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn dijkstra_distances_cutoff_three_source_conformance() {
     for src in ["c", "py", "r"] {
         let dir = workspace_root()

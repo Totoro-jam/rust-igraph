@@ -1,0 +1,44 @@
+{
+  "source": "py",
+  "origin": "constructed: triangle (1,4,2) with shortcut via vertex 1",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      4.0,
+      2.0
+    ]
+  },
+  "algo": "a_star_path",
+  "params": {
+    "source": 0,
+    "target": 2,
+    "mode": "out"
+  },
+  "expected": {
+    "vertices": [
+      0,
+      1,
+      2
+    ],
+    "edges": [
+      0,
+      2
+    ]
+  }
+}

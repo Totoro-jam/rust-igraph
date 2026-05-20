@@ -651,6 +651,21 @@ DIJKSTRA_ASP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-005 A*: unreachable target ⇒ null.
+ASTAR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "a_star_path_R_unreachable_target",
+        "origin": "constructed (rigraph-style): two disjoint edges; target=2 unreachable from 0",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 2.5],
+        "algo": "a_star_path",
+        "params": {"source": 0, "target": 2, "mode": "out"},
+        "expected": None,
+    },
+]
+
 # ALGO-SP-021..023 weighted: disconnected components keep per-component
 # eccentricity (matches rigraph's `unconn=TRUE` default).
 ECC_W_MANIFEST: List[Dict[str, Any]] = [
@@ -1500,6 +1515,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
     "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
+    "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,
     "radius_weighted_with_mode": RAD_W_MANIFEST,
     "diameter_weighted_with_mode": DIAM_W_MANIFEST,

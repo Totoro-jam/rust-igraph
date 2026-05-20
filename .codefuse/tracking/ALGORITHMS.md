@@ -86,7 +86,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-SP-002 | Bellman-Ford | distances_bellman_ford*.c | 591 | adapt | TR-001 | todo | - | - | - |
 | ALGO-SP-003 | Johnson | distances_johnson.c | 254 | adapt | SP-001,002 | todo | - | - | - |
 | ALGO-SP-004 | Floyd-Warshall (`floyd_warshall_distances`, original variant) | paths/floyd_warshall.c:270-365 | 365 | adapt | - | done | (next) | O(V³) triple-loop | C:1 / py:1 / R:1 |
-| ALGO-SP-005 | A* | astar.c | 273 | adapt | TR-001 | todo | - | - | - |
+| ALGO-SP-005 | A* | astar.c | 273 | adapt | TR-001 | done | (next) | O((V+E)log V), better w/ admissible heuristic | C:1 / py:1 / R:1 |
 | ALGO-SP-006 | BFS distances (single-source, unweighted, OUT mode) | unweighted.c:273-325 | 240 | adapt | TR-001 | done | (next) | 2.5 µs/karate | C:1 / py:1 / R:1 |
 | ALGO-SP-010..014 | Widest paths | widest_paths*.c | 741 | adapt | - | todo | - | - | - |
 | ALGO-SP-020 | Eccentricity / radius / diameter (unweighted) | distances.c:257-363, shortest_paths.c:1259 | ~250 | adapt | SP-006 | done | (next) | ecc 92 µs / rad 88 µs / karate | C:3 / py:3 / R:3 (3 algos × 3 sources) |
@@ -167,10 +167,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 67 | 0 | ~19 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; ecc/radius/diameter_with_mode: 9; triangles+transitivity: 10; transitivity_barrat: 3; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; assortativity_degree_directed_weighted: 3; floyd_warshall_distances: 3; decompose: 3; union: 3; intersection: 3; difference: 3; dijkstra_paths+path_to+cutoff: 9; dijkstra_with_mode+all_shortest_paths: 6; ecc/radius/diameter_weighted_with_mode: 9 |
+| 1 | 68 | 0 | ~18 | ~85 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; ecc/radius/diameter_with_mode: 9; triangles+transitivity: 10; transitivity_barrat: 3; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; assortativity_degree_directed_weighted: 3; floyd_warshall_distances: 3; decompose: 3; union: 3; intersection: 3; difference: 3; dijkstra_paths+path_to+cutoff: 9; dijkstra_with_mode+all_shortest_paths: 6; ecc/radius/diameter_weighted_with_mode: 9; a_star_path: 3 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 67/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 68/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -210,11 +210,13 @@ mode-aware ecc/radius/diameter (SP-021abc),
 Dijkstra paths/path_to/cutoff/multi-source (SP-001b),
 Dijkstra IN/ALL + all-shortest-paths (SP-001c),
 weighted ecc/radius/diameter (SP-021..023 weighted),
-directed weighted assortativity (PR-006d).
+directed weighted assortativity (PR-006d),
+A* shortest path with admissible heuristic (SP-005).
 Next options:
 CORE-001c (deletion),
 hub/auth scores,
 SP-002 Bellman-Ford,
-SP-005 A*.
+SP-003 Johnson all-pairs,
+TR-003 random walk.
 
 > Update the counters after every PR merge.

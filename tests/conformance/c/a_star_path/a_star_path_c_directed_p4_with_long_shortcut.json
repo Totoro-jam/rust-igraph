@@ -1,0 +1,51 @@
+{
+  "source": "c",
+  "origin": "constructed: directed P4 with heavier shortcut 0\u21923",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      5.0
+    ]
+  },
+  "algo": "a_star_path",
+  "params": {
+    "source": 0,
+    "target": 3,
+    "mode": "out"
+  },
+  "expected": {
+    "vertices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "edges": [
+      0,
+      1,
+      2
+    ]
+  }
+}

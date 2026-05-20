@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): two disjoint edges; target=2 unreachable from 0",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      2.5
+    ]
+  },
+  "algo": "a_star_path",
+  "params": {
+    "source": 0,
+    "target": 2,
+    "mode": "out"
+  },
+  "expected": null
+}

@@ -5,6 +5,7 @@
 
 // `pub(crate)` so the inner module names (`distances`, `eulerian`)
 // don't double-list with the function re-exports in rustdoc.
+pub(crate) mod astar;
 pub(crate) mod dijkstra;
 pub(crate) mod distances;
 pub(crate) mod eulerian;
@@ -12,6 +13,7 @@ pub(crate) mod eulerian_construct;
 pub(crate) mod floyd_warshall;
 pub(crate) mod radii;
 
+pub use astar::a_star_path;
 pub use dijkstra::{
     DijkstraAllPaths, DijkstraMode, DijkstraPaths, dijkstra_all_shortest_paths, dijkstra_distances,
     dijkstra_distances_cutoff, dijkstra_distances_cutoff_with_mode, dijkstra_distances_multi,

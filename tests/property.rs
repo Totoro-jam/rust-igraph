@@ -1999,4 +1999,33 @@ proptest! {
                          "vertex {}: weighted={} unweighted={}", i, rw, ru);
         }
     }
+
+    /// SP-005 A* invariants:
+    /// - With null heuristic, A* finds the same length path as
+    ///   `dijkstra_path_to`. Path identity may differ (different
+    ///   tie-breaking) but the **edge weight sum** must match.
+    /// - For unit weights, the path length matches `dijkstra_distances`
+    ///   from source to target.
+    #[test]
+    fn a_star_null_heuristic_matches_dijkstra_path_length(g in arb_graph(8), target in 0u32..8) {
+        if g.vcount() == 0 || target >= g.vcount() { return Ok(()); }
+        let m = g.ecount();
+        let weights: Vec<f64> = (0..m).map(|i| 1.0 + (i as f64) * 0.5).collect();
+        let astar_result = rust_igraph::a_star_path(
+            &g, 0, target, Some(&weights), rust_igraph::DijkstraMode::Out, |_, _| 0.0,
+        ).unwrap();
+        let dijkstra_d = rust_igraph::dijkstra_distances(&g, 0, &weights).unwrap();
+        match (astar_result, dijkstra_d[target as usize]) {
+            (None, None) => {}
+            (Some((vs, es)), Some(dij_dist)) => {
+                prop_assert_eq!(*vs.first().unwrap(), 0u32);
+                prop_assert_eq!(*vs.last().unwrap(), target);
+                prop_assert_eq!(es.len() + 1, vs.len());
+                let total: f64 = es.iter().map(|&e| weights[e as usize]).sum();
+                prop_assert!((total - dij_dist).abs() < 1e-9,
+                             "A* path sum {} != dijkstra dist {}", total, dij_dist);
+            }
+            (a, b) => prop_assert!(false, "A* / dijkstra disagreement: astar={:?} dij={:?}", a, b),
+        }
+    }
 }

@@ -585,6 +585,22 @@ DIJKSTRA_ASP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-005 A*: undirected triangle with shortcut.
+ASTAR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "a_star_path_py_undirected_triangle_shortcut",
+        # Undirected triangle with weights (1,4,2): best 0→1→2 path.
+        "origin": "constructed: triangle (1,4,2) with shortcut via vertex 1",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "a_star_path",
+        "params": {"source": 0, "target": 2, "mode": "out"},
+        "expected": {"vertices": [0, 1, 2], "edges": [0, 2]},
+    },
+]
+
 # ALGO-SP-021..023 weighted: directed P3 OUT/IN/ALL.
 ECC_W_MANIFEST: List[Dict[str, Any]] = [
     {
@@ -1386,6 +1402,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances_cutoff": DIJKSTRA_CUTOFF_MANIFEST,
     "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
+    "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,
     "radius_weighted_with_mode": RAD_W_MANIFEST,
     "diameter_weighted_with_mode": DIAM_W_MANIFEST,

@@ -22,6 +22,38 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-005**: A* shortest path with admissible heuristic.
+  Adds `a_star_path<H: Fn(VertexId, VertexId) -> f64>(graph, from, to,
+  weights: Option<&[f64]>, mode: DijkstraMode, heuristic: H) ->
+  IgraphResult<Option<(Vec<VertexId>, Vec<EdgeId>)>>` (single-source
+  single-target). Counterpart of `igraph_get_shortest_path_astar()`
+  (`paths/astar.c:93`). New module
+  `src/algorithms/paths/astar.rs`.
+
+  Behaviour mirrors upstream:
+  - `weights = None` is treated as unit-weights (BFS-equivalent).
+  - `weights[e] = INFINITY` skips the edge during relaxation.
+  - Unreachable target → `Ok(None)`; `from == to` → vertex chain
+    `[from]` and empty edge chain.
+  - With null heuristic (`|_, _| 0.0`), A* reduces to Dijkstra and is
+    guaranteed correct.
+  - Heuristic must return non-negative non-NaN values, else
+    [`IgraphError::InvalidArgument`]. Negative / NaN edge weights
+    rejected at validation time.
+
+  Internals: BinaryHeap with `(f_score, tiebreaker, vertex)` entries;
+  closed-set tracking; mode-aware incidence (private
+  `incident_for_mode` helper kept local to keep cross-module
+  dependencies tight). 12 new unit tests (BFS-equivalent on chain;
+  weighted triangle shortcut; unreachable target; from == to
+  singleton; admissible heuristic equals null-heuristic length;
+  directed IN-mode reverses; negative weight error; NaN weight error;
+  size mismatch error; out-of-range source/target errors; negative
+  heuristic error; INF weight skipped). 1 new doctest, 2 new oracle
+  tests vs python-igraph (unit-weight chain; weighted triangle
+  shortcut), 3 three-source conformance fixtures, 1 new proptest
+  invariant (A* with null heuristic produces a path with edge-weight
+  sum equal to `dijkstra_distances` from source to target).
 - *(properties)* **ALGO-PR-006d**: Directed weighted assortativity
   (`assortativity_degree_directed_weighted(graph, weights) ->
   Option<f64>`), counterpart of `igraph_assortativity_degree(_, _,
