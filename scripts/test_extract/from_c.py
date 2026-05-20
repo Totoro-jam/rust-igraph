@@ -611,6 +611,39 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CC-030: Edge-list percolation. Reads the percolation sequence
+# from the graph's edge list (insertion order). Source:
+# connectivity/percolation.c (lines 105-180).
+EDGELIST_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edgelist_perc_c_chain_growth",
+        # 0-1, 1-2, 2-3, 3-4 → giant grows 2,3,4,5; vertices added at every step.
+        "origin": "constructed: P5 chain — linear growth",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "algo": "edgelist_percolation",
+        "params": {},
+        "expected": {
+            "giant_size": [2, 3, 4, 5],
+            "vertex_count": [2, 3, 4, 5],
+        },
+    },
+    {
+        "case": "edgelist_perc_c_two_components_then_join",
+        "origin": "constructed: two pairs joined by a bridge edge — phase transition",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3), (1, 2)], directed=False
+        ),
+        "algo": "edgelist_percolation",
+        "params": {},
+        "expected": {
+            "giant_size": [2, 2, 4],
+            "vertex_count": [2, 4, 4],
+        },
+    },
+]
+
 # ALGO-SP-014: Single-source widest-paths SPT (widths + parents +
 # inbound_edges). Source: widest_paths.c (lines 102-322).
 # Fixtures encode source's width as null (Infinity convention).
@@ -1908,6 +1941,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_path_widths_floyd_warshall": WIDEST_PATH_WIDTHS_FW_MANIFEST,
     "widest_paths_to": WIDEST_PATHS_TO_MANIFEST,
     "widest_paths": WIDEST_PATHS_SPT_MANIFEST,
+    "edgelist_percolation": EDGELIST_PERCOLATION_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

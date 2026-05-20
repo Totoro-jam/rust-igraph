@@ -1,0 +1,31 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): parallel edge as no-op",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "edgelist_percolation",
+  "params": {},
+  "expected": {
+    "giant_size": [
+      2,
+      2
+    ],
+    "vertex_count": [
+      2,
+      2
+    ]
+  }
+}

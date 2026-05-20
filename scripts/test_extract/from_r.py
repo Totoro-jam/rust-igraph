@@ -619,6 +619,40 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CC-030: Edge-list percolation. rigraph doesn't bind this
+# either; hand-computed expected values.
+EDGELIST_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edgelist_perc_R_parallel_edge_no_change",
+        # Adding the same edge twice — second add is a no-op.
+        "origin": "constructed (rigraph-style): parallel edge as no-op",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1)], directed=False
+        ),
+        "algo": "edgelist_percolation",
+        "params": {},
+        "expected": {
+            "giant_size": [2, 2],
+            "vertex_count": [2, 2],
+        },
+    },
+    {
+        "case": "edgelist_perc_R_self_loop_adds_one_vertex",
+        # Self-loop on vertex 0, then a normal edge: giant grows
+        # 1 → 2, vertex_count 1 → 2.
+        "origin": "constructed (rigraph-style): self-loop then bridge",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 0), (0, 1)], directed=False
+        ),
+        "algo": "edgelist_percolation",
+        "params": {},
+        "expected": {
+            "giant_size": [1, 2],
+            "vertex_count": [1, 2],
+        },
+    },
+]
+
 # ALGO-SP-014: Single-source widest-paths SPT struct (widths +
 # parents + inbound_edges). rigraph doesn't bind this; hand-computed.
 WIDEST_PATHS_SPT_MANIFEST: List[Dict[str, Any]] = [
@@ -1772,6 +1806,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_path_widths_floyd_warshall": WIDEST_PATH_WIDTHS_FW_MANIFEST,
     "widest_paths_to": WIDEST_PATHS_TO_MANIFEST,
     "widest_paths": WIDEST_PATHS_SPT_MANIFEST,
+    "edgelist_percolation": EDGELIST_PERCOLATION_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

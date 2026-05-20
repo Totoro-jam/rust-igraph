@@ -53,6 +53,7 @@ pub use crate::algorithms::connectivity::bridges::bridges;
 pub use crate::algorithms::connectivity::components::{ConnectedComponents, connected_components};
 pub use crate::algorithms::connectivity::decompose::decompose;
 pub use crate::algorithms::connectivity::is_biconnected::is_biconnected;
+pub use crate::algorithms::connectivity::percolation::{EdgelistPercolation, edgelist_percolation};
 pub use crate::algorithms::connectivity::reachability::count_reachable;
 pub use crate::algorithms::connectivity::reachability_matrix::reachability_matrix;
 pub use crate::algorithms::connectivity::strong::strongly_connected_components;

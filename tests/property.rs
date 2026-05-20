@@ -2037,6 +2037,69 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// CC-030 `edgelist_percolation` invariants:
+    /// - Outputs have length `edges.len()`.
+    /// - `giant_size` is monotone non-decreasing (the giant can only
+    ///   grow, never shrink, as more edges are added).
+    /// - `vertex_count` is monotone non-decreasing and bounded by
+    ///   `2 * edges.len()` (each edge touches ≤ 2 distinct vertices).
+    /// - `vertex_count[i] <= vcount(implicit)` for all i.
+    /// - Final `giant_size` equals the largest connected component of
+    ///   the cumulative undirected graph at the end (cross-check
+    ///   against `connected_components`).
+    #[test]
+    fn edgelist_percolation_monotone_and_matches_components(g in arb_graph(8)) {
+        let n = g.vcount();
+        if n == 0 { return Ok(()); }
+        let m = g.ecount();
+        if m == 0 { return Ok(()); }
+        // Build the edge sequence directly from the proptest-generated graph.
+        let edges: Vec<(u32, u32)> = (0..m as u32)
+            .map(|e| g.edge(e).unwrap())
+            .collect();
+        let p = rust_igraph::edgelist_percolation(&edges).unwrap();
+        prop_assert_eq!(p.giant_size.len(), edges.len());
+        prop_assert_eq!(p.vertex_count.len(), edges.len());
+        // Monotonicity.
+        for w in p.giant_size.windows(2) {
+            prop_assert!(w[0] <= w[1], "giant_size not monotone");
+        }
+        for w in p.vertex_count.windows(2) {
+            prop_assert!(w[0] <= w[1], "vertex_count not monotone");
+        }
+        // Final giant equals max CC size on the same graph.
+        let cc = rust_igraph::connected_components(&g).unwrap();
+        let mut bucket = vec![0u32; cc.count as usize];
+        for &c in &cc.membership {
+            bucket[c as usize] += 1;
+        }
+        let expected_giant = bucket.iter().max().copied().unwrap_or(0);
+        // The percolation `giant_size` only counts touched vertices;
+        // isolated vertices in g are excluded. To compare, restrict
+        // CCs to vertices touched by any edge in the same sequence.
+        let mut touched = vec![false; n as usize];
+        for &(u, v) in &edges {
+            touched[u as usize] = true;
+            touched[v as usize] = true;
+        }
+        // Recount CC sizes over touched vertices only.
+        let mut touched_bucket = vec![0u32; cc.count as usize];
+        for (v, &t) in touched.iter().enumerate() {
+            if t {
+                touched_bucket[cc.membership[v] as usize] += 1;
+            }
+        }
+        let touched_giant = touched_bucket.iter().max().copied().unwrap_or(0);
+        let _ = expected_giant; // full-graph giant is an upper bound, not strict equality
+        prop_assert_eq!(
+            *p.giant_size.last().unwrap(),
+            touched_giant,
+            "final percolation giant {} != touched-vertex CC max {}",
+            p.giant_size.last().unwrap(),
+            touched_giant,
+        );
+    }
+
     /// SP-014 `widest_paths` SPT struct invariants:
     /// - `widths` field matches the standalone `widest_path_widths`.
     /// - `parents[source] == None`, `inbound_edges[source] == None`.

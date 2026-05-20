@@ -552,6 +552,40 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CC-030: Edge-list percolation. python-igraph does not bind
+# this; hand-computed expected values.
+EDGELIST_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edgelist_perc_py_star_around_center",
+        # Star edges 0-1, 0-2, 0-3 → giant grows 2, 3, 4.
+        "origin": "constructed: star around vertex 0",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "edgelist_percolation",
+        "params": {},
+        "expected": {
+            "giant_size": [2, 3, 4],
+            "vertex_count": [2, 3, 4],
+        },
+    },
+    {
+        "case": "edgelist_perc_py_triangle_then_bridge_to_pair",
+        # Build triangle {0,1,2}, separate pair {3,4}, then bridge.
+        # Final state: one component of 5.
+        "origin": "constructed: triangle + isolated pair + bridge",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (0, 2), (3, 4), (2, 3)], directed=False
+        ),
+        "algo": "edgelist_percolation",
+        "params": {},
+        "expected": {
+            "giant_size": [2, 3, 3, 3, 5],
+            "vertex_count": [2, 3, 3, 5, 5],
+        },
+    },
+]
+
 # ALGO-SP-014: Single-source widest-paths SPT struct (widths +
 # parents + inbound_edges). Hand-computed; source's width null.
 WIDEST_PATHS_SPT_MANIFEST: List[Dict[str, Any]] = [
@@ -1660,6 +1694,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_path_widths_floyd_warshall": WIDEST_PATH_WIDTHS_FW_MANIFEST,
     "widest_paths_to": WIDEST_PATHS_TO_MANIFEST,
     "widest_paths": WIDEST_PATHS_SPT_MANIFEST,
+    "edgelist_percolation": EDGELIST_PERCOLATION_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

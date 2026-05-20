@@ -622,6 +622,55 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "edgelist_percolation":
+        # Counterpart of igraph_edgelist_percolation. python-igraph
+        # does not bind percolation; inline union-find reference.
+        # Edges come through params (not from g.es) because
+        # python-igraph reorders edges internally — the percolation
+        # curve is order-sensitive, so we need the exact sequence
+        # the caller intended.
+        edges = [tuple(e) for e in params.get("edges", [])]
+        if not edges:
+            return {"giant_size": [], "vertex_count": []}
+        max_id = max(max(u, v) for (u, v) in edges)
+        vcount = max_id + 1
+        links = list(range(vcount))
+        sizes = [0] * vcount
+
+        def find(v):
+            while links[v] != v:
+                links[v] = links[links[v]]
+                v = links[v]
+            return v
+
+        biggest = 1
+        added = 0
+        giant_size = []
+        vertex_count = []
+        for (u, v) in edges:
+            if sizes[u] == 0:
+                sizes[u] = 1
+                added += 1
+            if sizes[v] == 0:
+                sizes[v] = 1
+                if u != v:
+                    added += 1
+            if u != v:
+                ra = find(u)
+                rb = find(v)
+                if ra != rb:
+                    if sizes[ra] < sizes[rb]:
+                        parent, child = rb, ra
+                    else:
+                        parent, child = ra, rb
+                    links[child] = parent
+                    sizes[parent] += sizes[child]
+                    if sizes[parent] > biggest:
+                        biggest = sizes[parent]
+            giant_size.append(biggest)
+            vertex_count.append(added)
+        return {"giant_size": giant_size, "vertex_count": vertex_count}
+
     if algo == "widest_paths":
         # Counterpart of igraph_get_widest_paths(_, NULL, NULL, source,
         # vss_all(), weights, IGRAPH_OUT, parents, inbound_edges).

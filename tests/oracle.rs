@@ -1517,6 +1517,47 @@ fn dijkstra_distances_directed_matches_python_igraph() {
     }
 }
 
+// ---- ALGO-CC-030: edgelist_percolation oracle tests --------
+
+#[derive(serde::Deserialize)]
+struct PyEdgelistPercolation {
+    giant_size: Vec<u32>,
+    vertex_count: Vec<u32>,
+}
+
+#[test]
+fn edgelist_percolation_chain_matches_python_reference() {
+    // Percolation is order-sensitive; pass the sequence explicitly
+    // via params (python-igraph would reorder edges if we read them
+    // back from g.es). The graph itself is a placeholder.
+    let g = Graph::with_vertices(0);
+    let seq = vec![[0u32, 1u32], [1, 2], [2, 3], [3, 4]];
+    let rust = rust_igraph::edgelist_percolation(&[(0, 1), (1, 2), (2, 3), (3, 4)]).unwrap();
+    let py: PyEdgelistPercolation = serde_json::from_value(run_ok(
+        "edgelist_percolation",
+        &g,
+        serde_json::json!({"edges": seq}),
+    ))
+    .expect("decode python edgelist_percolation");
+    assert_eq!(rust.giant_size, py.giant_size);
+    assert_eq!(rust.vertex_count, py.vertex_count);
+}
+
+#[test]
+fn edgelist_percolation_two_components_then_merge_matches_python_reference() {
+    let g = Graph::with_vertices(0);
+    let seq = vec![[0u32, 1u32], [2, 3], [1, 2]];
+    let rust = rust_igraph::edgelist_percolation(&[(0, 1), (2, 3), (1, 2)]).unwrap();
+    let py: PyEdgelistPercolation = serde_json::from_value(run_ok(
+        "edgelist_percolation",
+        &g,
+        serde_json::json!({"edges": seq}),
+    ))
+    .expect("decode python edgelist_percolation");
+    assert_eq!(rust.giant_size, py.giant_size);
+    assert_eq!(rust.vertex_count, py.vertex_count);
+}
+
 // ---- ALGO-SP-014: WidestPaths struct oracle tests --------
 
 #[derive(serde::Deserialize, Debug)]

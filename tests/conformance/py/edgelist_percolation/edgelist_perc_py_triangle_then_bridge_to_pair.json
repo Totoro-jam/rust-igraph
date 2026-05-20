@@ -1,0 +1,49 @@
+{
+  "source": "py",
+  "origin": "constructed: triangle + isolated pair + bridge",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "edgelist_percolation",
+  "params": {},
+  "expected": {
+    "giant_size": [
+      2,
+      3,
+      3,
+      3,
+      5
+    ],
+    "vertex_count": [
+      2,
+      3,
+      3,
+      5,
+      5
+    ]
+  }
+}

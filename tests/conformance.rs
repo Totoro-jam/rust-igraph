@@ -887,6 +887,49 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn edgelist_percolation_three_source_conformance() {
+    // Percolation is order-sensitive — read edges directly from
+    // `case.graph.edges` (preserves the JSON insertion order; we
+    // don't go through `build_graph` because internal index rebuilds
+    // would lose ordering for our purposes).
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("edgelist_percolation");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let edges: Vec<(u32, u32)> = case.graph.edges.clone();
+            let p = rust_igraph::edgelist_percolation(&edges).expect("edgelist_percolation");
+            let rust_json = serde_json::json!({
+                "giant_size": p.giant_size,
+                "vertex_count": p.vertex_count,
+            });
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "edgelist_percolation");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn widest_paths_three_source_conformance() {
     // SPT struct: widths + parents + inbound_edges. Source's width
     // is +∞ by convention and encoded as null in fixtures (JSON has

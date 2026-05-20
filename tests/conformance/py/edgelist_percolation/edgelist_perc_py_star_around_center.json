@@ -1,0 +1,37 @@
+{
+  "source": "py",
+  "origin": "constructed: star around vertex 0",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "edgelist_percolation",
+  "params": {},
+  "expected": {
+    "giant_size": [
+      2,
+      3,
+      4
+    ],
+    "vertex_count": [
+      2,
+      3,
+      4
+    ]
+  }
+}

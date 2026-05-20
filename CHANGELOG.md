@@ -22,6 +22,32 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(connectivity)* **ALGO-CC-030**: Edge-list percolation
+  (`edgelist_percolation(edges: &[(VertexId, VertexId)]) ->
+  IgraphResult<EdgelistPercolation>`). Counterpart of
+  `igraph_edgelist_percolation` from
+  `references/igraph/src/connectivity/percolation.c:105`. Given a
+  sequence of vertex-pair edges, returns two parallel curves:
+  `giant_size[i]` (size of the largest connected component after
+  edge `i` is added) and `vertex_count[i]` (cumulative count of
+  distinct vertices touched by any edge up through `i`). Classic
+  network-resilience / phase-transition primitive.
+  Algorithm: union-find with path compression (`links[a] =
+  links[links[a]]`) and union-by-size. Time complexity
+  `O(|E| · α(|E|))` where `α` is the inverse Ackermann function.
+  Vertex ids are inferred from the edge list (implicit vcount =
+  max id + 1). Self-loops and parallel edges are tolerated.
+  10 unit tests + 2 oracle tests vs an inline Python union-find
+  reference (python-igraph does not bind percolation) + 6
+  conformance fixtures (2 each C/Python/R, hand-computed) +
+  1 proptest invariant
+  (`edgelist_percolation_monotone_and_matches_components` —
+  monotonicity of both curves; final `giant_size` matches the
+  largest CC restricted to touched vertices).
+  Order-sensitive note: the oracle passes the edge sequence
+  through `params` (not `g.es`) because python-igraph reorders
+  edges internally; the conformance runner reads
+  `case.graph.edges` directly to preserve JSON insertion order.
 - *(paths)* **ALGO-SP-014**: Widest-paths SPT sidecar
   (`widest_paths(graph, from, weights) -> IgraphResult<WidestPaths>`
   plus the mode-aware `widest_paths_with_mode`). Counterpart of
