@@ -1,0 +1,43 @@
+{
+  "source": "py",
+  "origin": "constructed: two pairs joined by a bridge edge",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bond_percolation",
+  "params": {
+    "edge_order": [
+      0,
+      1,
+      2
+    ]
+  },
+  "expected": {
+    "giant_size": [
+      2,
+      2,
+      4
+    ],
+    "vertex_count": [
+      2,
+      4,
+      4
+    ]
+  }
+}

@@ -1558,6 +1558,62 @@ fn edgelist_percolation_two_components_then_merge_matches_python_reference() {
     assert_eq!(rust.vertex_count, py.vertex_count);
 }
 
+// ---- ALGO-CC-031: bond_percolation oracle tests --------
+
+/// `bond_percolation` is a thin wrapper around `edgelist_percolation`
+/// (the upstream C version literally delegates after resolving edge
+/// ids). The cross-check: resolve edge ids Rust-side to the
+/// `(u, v)` sequence, feed that to the Python edgelist_percolation
+/// reference, and confirm both pipelines produce the same curves.
+/// This avoids relying on python-igraph's edge-storage ordering
+/// (which canonicalises undirected edges and breaks id-based lookup).
+fn bond_percolation_round_trip_via_edgelist_oracle(g: &Graph, edge_order: &[u32]) {
+    let rust = rust_igraph::bond_percolation(g, edge_order).unwrap();
+    // Resolve in Rust so we know exactly which (u, v) pairs each id
+    // maps to; ship those to the edgelist oracle.
+    let pairs: Vec<[u32; 2]> = edge_order
+        .iter()
+        .map(|&eid| {
+            let (u, v) = g.edge(eid).unwrap();
+            [u, v]
+        })
+        .collect();
+    let placeholder = Graph::with_vertices(0);
+    let py: PyEdgelistPercolation = serde_json::from_value(run_ok(
+        "edgelist_percolation",
+        &placeholder,
+        serde_json::json!({"edges": pairs}),
+    ))
+    .expect("decode python edgelist_percolation");
+    assert_eq!(rust.giant_size, py.giant_size);
+    assert_eq!(rust.vertex_count, py.vertex_count);
+}
+
+#[test]
+fn bond_percolation_natural_order_matches_python_reference() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 3)]).unwrap();
+    bond_percolation_round_trip_via_edgelist_oracle(&g, &[0, 1, 2]);
+}
+
+#[test]
+fn bond_percolation_reordered_matches_python_reference() {
+    // Reorder to add the middle edge first — verifies the wrapper
+    // honours the user-supplied order, not the graph's internal one.
+    let mut g = Graph::with_vertices(4);
+    g.add_edges(vec![(0u32, 1u32), (2, 3), (1, 2)]).unwrap();
+    bond_percolation_round_trip_via_edgelist_oracle(&g, &[2, 0, 1]);
+}
+
+#[test]
+fn bond_percolation_partial_order_matches_python_reference() {
+    // Skip one edge in the order — both pipelines see the same
+    // shorter sequence.
+    let mut g = Graph::with_vertices(4);
+    g.add_edges(vec![(0u32, 1u32), (2, 3), (1, 2)]).unwrap();
+    bond_percolation_round_trip_via_edgelist_oracle(&g, &[0, 2]);
+}
+
 // ---- ALGO-SP-014: WidestPaths struct oracle tests --------
 
 #[derive(serde::Deserialize, Debug)]

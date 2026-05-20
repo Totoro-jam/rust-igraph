@@ -1,0 +1,43 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): triangle, natural id order",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bond_percolation",
+  "params": {
+    "edge_order": [
+      0,
+      1,
+      2
+    ]
+  },
+  "expected": {
+    "giant_size": [
+      2,
+      3,
+      3
+    ],
+    "vertex_count": [
+      2,
+      3,
+      3
+    ]
+  }
+}

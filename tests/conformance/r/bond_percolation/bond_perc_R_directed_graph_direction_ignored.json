@@ -1,0 +1,36 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed P3 \u2014 direction ignored",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "bond_percolation",
+  "params": {
+    "edge_order": [
+      0,
+      1
+    ]
+  },
+  "expected": {
+    "giant_size": [
+      2,
+      3
+    ],
+    "vertex_count": [
+      2,
+      3
+    ]
+  }
+}

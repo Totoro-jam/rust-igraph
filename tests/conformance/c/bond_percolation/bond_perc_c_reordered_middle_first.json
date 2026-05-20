@@ -1,0 +1,43 @@
+{
+  "source": "c",
+  "origin": "constructed: P4 with middle edge added first",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bond_percolation",
+  "params": {
+    "edge_order": [
+      1,
+      0,
+      2
+    ]
+  },
+  "expected": {
+    "giant_size": [
+      2,
+      3,
+      4
+    ],
+    "vertex_count": [
+      2,
+      3,
+      4
+    ]
+  }
+}

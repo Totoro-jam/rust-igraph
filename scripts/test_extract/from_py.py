@@ -552,6 +552,40 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CC-031: Bond percolation. python-igraph does not bind this;
+# hand-computed expected values resolved from edge ids.
+BOND_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "bond_perc_py_star_around_center",
+        # Star around vertex 0; add edges in id order.
+        "origin": "constructed: star graph, natural id order",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "bond_percolation",
+        "params": {"edge_order": [0, 1, 2]},
+        "expected": {
+            "giant_size": [2, 3, 4],
+            "vertex_count": [2, 3, 4],
+        },
+    },
+    {
+        "case": "bond_perc_py_two_components_then_bridge",
+        # Adding edges in the order [pair, pair, bridge].
+        # First pair {0,1}, second pair {2,3}, then (1,2) bridges them.
+        "origin": "constructed: two pairs joined by a bridge edge",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3), (1, 2)], directed=False
+        ),
+        "algo": "bond_percolation",
+        "params": {"edge_order": [0, 1, 2]},
+        "expected": {
+            "giant_size": [2, 2, 4],
+            "vertex_count": [2, 4, 4],
+        },
+    },
+]
+
 # ALGO-CC-030: Edge-list percolation. python-igraph does not bind
 # this; hand-computed expected values.
 EDGELIST_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
@@ -1695,6 +1729,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_paths_to": WIDEST_PATHS_TO_MANIFEST,
     "widest_paths": WIDEST_PATHS_SPT_MANIFEST,
     "edgelist_percolation": EDGELIST_PERCOLATION_MANIFEST,
+    "bond_percolation": BOND_PERCOLATION_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

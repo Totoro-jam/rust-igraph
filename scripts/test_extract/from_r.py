@@ -619,6 +619,40 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CC-031: Bond percolation. rigraph doesn't bind this either;
+# hand-computed expected values.
+BOND_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "bond_perc_R_triangle_natural_order",
+        # Triangle: adding edges in id order builds {0,1}, {0,1,2}, no
+        # change for the third edge (already connected).
+        "origin": "constructed (rigraph-style): triangle, natural id order",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (0, 2)], directed=False
+        ),
+        "algo": "bond_percolation",
+        "params": {"edge_order": [0, 1, 2]},
+        "expected": {
+            "giant_size": [2, 3, 3],
+            "vertex_count": [2, 3, 3],
+        },
+    },
+    {
+        "case": "bond_perc_R_directed_graph_direction_ignored",
+        # Directed edges 0→1, 1→2 percolate the same as undirected.
+        "origin": "constructed (rigraph-style): directed P3 — direction ignored",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "algo": "bond_percolation",
+        "params": {"edge_order": [0, 1]},
+        "expected": {
+            "giant_size": [2, 3],
+            "vertex_count": [2, 3],
+        },
+    },
+]
+
 # ALGO-CC-030: Edge-list percolation. rigraph doesn't bind this
 # either; hand-computed expected values.
 EDGELIST_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
@@ -1807,6 +1841,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_paths_to": WIDEST_PATHS_TO_MANIFEST,
     "widest_paths": WIDEST_PATHS_SPT_MANIFEST,
     "edgelist_percolation": EDGELIST_PERCOLATION_MANIFEST,
+    "bond_percolation": BOND_PERCOLATION_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

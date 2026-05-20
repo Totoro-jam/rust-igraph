@@ -16,8 +16,8 @@
 //! independently optional; in Rust the marginal cost of always
 //! returning both is one extra `Vec<u32>` alloc).
 
-use crate::core::graph::VertexId;
-use crate::core::{IgraphError, IgraphResult};
+use crate::core::graph::{EdgeId, VertexId};
+use crate::core::{Graph, IgraphError, IgraphResult};
 
 /// Outputs of [`edgelist_percolation`]. Same length as the input
 /// edge slice. `giant_size[i]` is the size of the largest component
@@ -151,6 +151,71 @@ pub fn edgelist_percolation(edges: &[(VertexId, VertexId)]) -> IgraphResult<Edge
     })
 }
 
+/// Bond percolation: the size of the largest component as edges of
+/// `graph` are added in the order specified by `edge_order`.
+///
+/// Returns an [`EdgelistPercolation`] with two vectors, both of
+/// length `edge_order.len()` — same shape as
+/// [`edgelist_percolation`], just resolved from edge ids instead of
+/// raw vertex pairs.
+///
+/// `edge_order[i]` must be a valid edge id (`< graph.ecount()`) and
+/// must not repeat — duplicates return
+/// [`IgraphError::InvalidArgument`]; out-of-range ids return
+/// [`IgraphError::EdgeOutOfRange`].
+///
+/// Edge direction is ignored (matches upstream — percolation reads
+/// edges as undirected connection events).
+///
+/// To shuffle into a random order, generate the permutation with
+/// your own RNG and pass it as `edge_order`. We don't take an RNG
+/// here to keep the API deterministic and to avoid pulling in a
+/// `rand` dependency for callers who already have one.
+///
+/// Counterpart of `igraph_bond_percolation` from
+/// `references/igraph/src/connectivity/percolation.c:214`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, bond_percolation};
+///
+/// // Path 0-1-2-3 with edges added in natural id order.
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 3)]).unwrap();
+/// let p = bond_percolation(&g, &[0, 1, 2]).unwrap();
+/// assert_eq!(p.giant_size, vec![2, 3, 4]);
+/// assert_eq!(p.vertex_count, vec![2, 3, 4]);
+/// ```
+pub fn bond_percolation(graph: &Graph, edge_order: &[EdgeId]) -> IgraphResult<EdgelistPercolation> {
+    let m = graph.ecount();
+    let m_u32 = u32::try_from(m).unwrap_or(u32::MAX);
+
+    // Validate up front (matches upstream's two-pass approach): no
+    // duplicates and every id in range. We use a bool bitset over
+    // the graph's edge ids — `edge_order.len()` may exceed `m`
+    // worst-case but a duplicate or oob id will trip the check.
+    let mut seen = vec![false; m];
+    for &eid in edge_order {
+        if (eid as usize) >= m {
+            return Err(IgraphError::EdgeOutOfRange { id: eid, m: m_u32 });
+        }
+        if seen[eid as usize] {
+            return Err(IgraphError::InvalidArgument(format!(
+                "duplicate edge id {eid} in edge_order"
+            )));
+        }
+        seen[eid as usize] = true;
+    }
+
+    // Resolve each edge id → (u, v) endpoint pair, then delegate.
+    let mut edges: Vec<(VertexId, VertexId)> = Vec::with_capacity(edge_order.len());
+    for &eid in edge_order {
+        edges.push(graph.edge(eid)?);
+    }
+    edgelist_percolation(&edges)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -243,5 +308,89 @@ mod tests {
         let p = edgelist_percolation(&[(100, 200)]).unwrap();
         assert_eq!(p.giant_size, vec![2]);
         assert_eq!(p.vertex_count, vec![2]);
+    }
+
+    // -------- ALGO-CC-031: bond_percolation (graph + edge order) --------
+
+    #[test]
+    fn bond_percolation_natural_order_matches_edgelist() {
+        // Chain 0-1-2-3 added in id order: bond_percolation must
+        // produce the same curve as the equivalent edgelist call.
+        let mut g = Graph::with_vertices(4);
+        g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 3)]).unwrap();
+        let bond = bond_percolation(&g, &[0, 1, 2]).unwrap();
+        let direct = edgelist_percolation(&[(0u32, 1u32), (1, 2), (2, 3)]).unwrap();
+        assert_eq!(bond, direct);
+    }
+
+    #[test]
+    fn bond_percolation_reordered_changes_curve() {
+        // Same graph, but adding the bridge first: middle vertex
+        // counts grow differently.
+        let mut g = Graph::with_vertices(4);
+        g.add_edges(vec![(0u32, 1u32), (2, 3), (1, 2)]).unwrap();
+        // Order [2, 0, 1]: first add (1,2) → {1,2}; then (0,1) → {0,1,2}; then (2,3) → {0,1,2,3}.
+        let p = bond_percolation(&g, &[2, 0, 1]).unwrap();
+        assert_eq!(p.giant_size, vec![2, 3, 4]);
+        assert_eq!(p.vertex_count, vec![2, 3, 4]);
+    }
+
+    #[test]
+    fn bond_percolation_partial_order_only_processes_listed_edges() {
+        // Graph has 3 edges; order lists only 2 → result reflects
+        // only those two additions.
+        let mut g = Graph::with_vertices(4);
+        g.add_edges(vec![(0u32, 1u32), (2, 3), (1, 2)]).unwrap();
+        let p = bond_percolation(&g, &[0, 2]).unwrap();
+        // (0,1) then (1,2) → giants 2, 3; touched 2, 3.
+        assert_eq!(p.giant_size, vec![2, 3]);
+        assert_eq!(p.vertex_count, vec![2, 3]);
+    }
+
+    #[test]
+    fn bond_percolation_empty_order_returns_empty() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        let p = bond_percolation(&g, &[]).unwrap();
+        assert!(p.giant_size.is_empty());
+        assert!(p.vertex_count.is_empty());
+    }
+
+    #[test]
+    fn bond_percolation_duplicate_edge_id_errors() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0u32, 1u32), (1, 2)]).unwrap();
+        let err = bond_percolation(&g, &[0, 0]).unwrap_err();
+        assert!(matches!(err, IgraphError::InvalidArgument(_)));
+    }
+
+    #[test]
+    fn bond_percolation_out_of_range_edge_id_errors() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        let err = bond_percolation(&g, &[5]).unwrap_err();
+        assert!(matches!(err, IgraphError::EdgeOutOfRange { id: 5, m: 1 }));
+    }
+
+    #[test]
+    fn bond_percolation_directed_graph_ignores_direction() {
+        // Edge direction must not affect percolation — same curve as
+        // the equivalent undirected version.
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edges(vec![(0u32, 1u32), (1, 2)]).unwrap();
+        let p = bond_percolation(&g, &[0, 1]).unwrap();
+        assert_eq!(p.giant_size, vec![2, 3]);
+        assert_eq!(p.vertex_count, vec![2, 3]);
+    }
+
+    #[test]
+    fn bond_percolation_isolated_vertex_never_counted() {
+        // Graph has 4 vertices but only 2 are touched by edges in the
+        // given order. Vertex 3 stays isolated, never contributes to
+        // vertex_count.
+        let mut g = Graph::with_vertices(4);
+        g.add_edges(vec![(0u32, 1u32), (0, 2)]).unwrap();
+        let p = bond_percolation(&g, &[0, 1]).unwrap();
+        assert_eq!(p.vertex_count, vec![2, 3]);
     }
 }

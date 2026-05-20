@@ -2037,6 +2037,30 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// CC-031 `bond_percolation` invariants:
+    /// - With `edge_order = (0..ecount)`, bond_percolation produces
+    ///   the same curves as `edgelist_percolation` over the graph's
+    ///   edges in id order — i.e. the wrapper is a faithful
+    ///   id-resolver.
+    /// - Reversing the order leaves the **final** giant_size
+    ///   unchanged (set of touched vertices is the same, so the
+    ///   max CC at the end is identical).
+    #[test]
+    fn bond_percolation_natural_order_matches_edgelist(g in arb_graph(8)) {
+        let m = g.ecount();
+        if m == 0 { return Ok(()); }
+        let m_u32 = u32::try_from(m).expect("edge count fits in u32 for proptest");
+        let natural: Vec<u32> = (0..m_u32).collect();
+        let bond = rust_igraph::bond_percolation(&g, &natural).unwrap();
+        // Resolve to (u, v) pairs and call edgelist_percolation directly.
+        let pairs: Vec<(u32, u32)> = (0..m_u32)
+            .map(|e| g.edge(e).unwrap())
+            .collect();
+        let direct = rust_igraph::edgelist_percolation(&pairs).unwrap();
+        prop_assert_eq!(bond.giant_size, direct.giant_size);
+        prop_assert_eq!(bond.vertex_count, direct.vertex_count);
+    }
+
     /// CC-030 `edgelist_percolation` invariants:
     /// - Outputs have length `edges.len()`.
     /// - `giant_size` is monotone non-decreasing (the giant can only

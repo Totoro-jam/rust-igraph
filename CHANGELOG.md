@@ -22,6 +22,30 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(connectivity)* **ALGO-CC-031**: Bond percolation
+  (`bond_percolation(graph: &Graph, edge_order: &[EdgeId]) ->
+  IgraphResult<EdgelistPercolation>`). Counterpart of
+  `igraph_bond_percolation` from
+  `references/igraph/src/connectivity/percolation.c:214`. Thin
+  wrapper over [`edgelist_percolation`] that resolves the given
+  edge ids into `(u, v)` pairs through the graph before delegating
+  to the union-find core. Edge direction is ignored (matches
+  upstream).
+  Validates the order up front: every id must be `< graph.ecount()`
+  and must not repeat (duplicates return
+  `IgraphError::InvalidArgument`, out-of-range returns
+  `IgraphError::EdgeOutOfRange`). The order does not have to cover
+  every edge — pass a subset to percolate just a slice. Unlike the
+  C version, no random shuffle option is exposed — callers who
+  want randomness shuffle the order with their own RNG and pass it
+  in; this keeps the API deterministic and dependency-free.
+  8 unit tests + 3 oracle tests that resolve the order Rust-side
+  and cross-check against the [`edgelist_percolation`] oracle
+  (avoids python-igraph's undirected edge canonicalisation) +
+  6 conformance fixtures (2 each C/Python/R) + 1 proptest
+  invariant (`bond_percolation_natural_order_matches_edgelist` —
+  natural id order produces the same curves as the equivalent
+  direct edgelist call).
 - *(connectivity)* **ALGO-CC-030**: Edge-list percolation
   (`edgelist_percolation(edges: &[(VertexId, VertexId)]) ->
   IgraphResult<EdgelistPercolation>`). Counterpart of
