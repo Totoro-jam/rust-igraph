@@ -2037,6 +2037,59 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// CORE-001c invariants for `delete_edges`:
+    /// - vcount unchanged.
+    /// - ecount decreases by exactly 1 when removing one edge.
+    /// - Every retained edge's endpoints existed in the original graph.
+    /// - `incident(v).len() == degree(v)` (index consistency).
+    #[test]
+    fn delete_edges_preserves_invariants(g in arb_graph(8)) {
+        let m = g.ecount();
+        if m == 0 { return Ok(()); }
+        let mut g2 = g.clone();
+        g2.delete_edges(&[0u32]).unwrap();
+        prop_assert_eq!(g2.vcount(), g.vcount());
+        prop_assert_eq!(g2.ecount(), m - 1);
+        let new_m = u32::try_from(g2.ecount()).expect("edge count fits in u32 for proptest");
+        for e in 0..new_m {
+            let (u, v) = g2.edge(e).unwrap();
+            prop_assert!(g.find_eid(u, v).unwrap().is_some()
+                         || g.find_eid(v, u).unwrap().is_some());
+        }
+        for v in 0..g2.vcount() {
+            prop_assert_eq!(g2.incident(v).unwrap().len(), g2.degree(v).unwrap());
+        }
+    }
+
+    /// CORE-001c invariants for `delete_vertices_map`:
+    /// - new vcount = old vcount − 1 when removing one vertex.
+    /// - new ecount ≤ old ecount.
+    /// - `map.len() == old vcount`, `map[removed] == None`.
+    /// - `invmap` is a strict permutation of retained old ids, and
+    ///   `map[invmap[new_id]] == Some(new_id)` for every retained id.
+    /// - Index consistency: `incident(v).len() == degree(v)`.
+    #[test]
+    fn delete_vertices_preserves_invariants(g in arb_graph(8)) {
+        let n = g.vcount();
+        if n == 0 { return Ok(()); }
+        let mut g2 = g.clone();
+        let (map, invmap) = g2.delete_vertices_map(&[0u32]).unwrap();
+        prop_assert_eq!(map.len(), n as usize);
+        prop_assert_eq!(map[0], None);
+        prop_assert_eq!(invmap.len(), g2.vcount() as usize);
+        for (new_id, &old_id) in invmap.iter().enumerate() {
+            prop_assert!(old_id != 0);
+            prop_assert!(old_id < n);
+            let new_id_u32 = u32::try_from(new_id).expect("new_id fits in u32");
+            prop_assert_eq!(map[old_id as usize], Some(new_id_u32));
+        }
+        prop_assert_eq!(g2.vcount(), n - 1);
+        prop_assert!(g2.ecount() <= g.ecount());
+        for v in 0..g2.vcount() {
+            prop_assert_eq!(g2.incident(v).unwrap().len(), g2.degree(v).unwrap());
+        }
+    }
+
     /// SP-005 A* invariants:
     /// - With null heuristic, A* finds the same length path as
     ///   `dijkstra_path_to`. Path identity may differ (different

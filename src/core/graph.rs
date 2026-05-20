@@ -447,6 +447,132 @@ impl Graph {
             .collect())
     }
 
+    // ---------------------------------------------------------------
+    // ALGO-CORE-001c: delete_edges + delete_vertices + delete_vertices_map.
+    // ---------------------------------------------------------------
+
+    /// Remove the given edges from the graph.
+    ///
+    /// `edges` may contain the same id more than once — the second and
+    /// later occurrences are no-ops. Remaining edges keep their
+    /// pairwise relative order but are renumbered so edge ids stay
+    /// contiguous starting at 0. Returns
+    /// [`IgraphError::EdgeOutOfRange`] if any id is `>= ecount()`; on
+    /// error the graph is left unchanged.
+    ///
+    /// Counterpart of `igraph_delete_edges`
+    /// (`references/igraph/src/graph/type_indexededgelist.c:500`).
+    pub fn delete_edges(&mut self, edges: &[EdgeId]) -> IgraphResult<()> {
+        let m = self.ecount();
+        let m_u32 = u32::try_from(m).unwrap_or(u32::MAX);
+
+        // Validate up front so a bad id leaves graph state untouched.
+        for &eid in edges {
+            if (eid as usize) >= m {
+                return Err(IgraphError::EdgeOutOfRange { id: eid, m: m_u32 });
+            }
+        }
+        if edges.is_empty() {
+            return Ok(());
+        }
+
+        let mut remove = vec![false; m];
+        for &eid in edges {
+            remove[eid as usize] = true;
+        }
+
+        let mut new_from: Vec<VertexId> = Vec::with_capacity(m);
+        let mut new_to: Vec<VertexId> = Vec::with_capacity(m);
+        for (e, &is_removed) in remove.iter().enumerate() {
+            if !is_removed {
+                new_from.push(self.from[e]);
+                new_to.push(self.to[e]);
+            }
+        }
+        self.from = new_from;
+        self.to = new_to;
+        self.rebuild_indexes()
+    }
+
+    /// Remove the given vertices and all their incident edges.
+    ///
+    /// `vertices` may repeat ids freely. Surviving vertices get
+    /// renumbered so the new id space is `0..new_vcount` in their
+    /// previous relative order. Returns
+    /// [`IgraphError::VertexOutOfRange`] if any id is `>= vcount()`;
+    /// on error the graph is left unchanged.
+    ///
+    /// Counterpart of `igraph_delete_vertices`
+    /// (`references/igraph/src/graph/type_indexededgelist.c:540`).
+    pub fn delete_vertices(&mut self, vertices: &[VertexId]) -> IgraphResult<()> {
+        self.delete_vertices_map(vertices).map(|_| ())
+    }
+
+    /// Like [`delete_vertices`](Self::delete_vertices), but also returns
+    /// the old↔new vertex id mappings.
+    ///
+    /// Returns `(map, invmap)` where:
+    /// - `map[old_id] == Some(new_id)` if the vertex was retained, else
+    ///   `None`. Length is the *original* vertex count.
+    /// - `invmap[new_id] == old_id`. Length is the *new* vertex count.
+    ///
+    /// Counterpart of `igraph_delete_vertices_map`
+    /// (`references/igraph/src/graph/type_indexededgelist.c:645`).
+    pub fn delete_vertices_map(
+        &mut self,
+        vertices: &[VertexId],
+    ) -> IgraphResult<(Vec<Option<VertexId>>, Vec<VertexId>)> {
+        let n_u32 = self.n;
+        let n = n_u32 as usize;
+
+        // Validate first.
+        for &vid in vertices {
+            if vid >= n_u32 {
+                return Err(IgraphError::VertexOutOfRange { id: vid, n: n_u32 });
+            }
+        }
+
+        let mut remove = vec![false; n];
+        for &vid in vertices {
+            remove[vid as usize] = true;
+        }
+
+        // Build map (old → new) and invmap (new → old).
+        let mut map: Vec<Option<VertexId>> = vec![None; n];
+        let mut invmap: Vec<VertexId> = Vec::new();
+        let mut next_new: u32 = 0;
+        for (i, &is_removed) in remove.iter().enumerate() {
+            if !is_removed {
+                let i_u32 = u32::try_from(i)
+                    .map_err(|_| IgraphError::Internal("vertex index exceeds u32::MAX"))?;
+                map[i] = Some(next_new);
+                invmap.push(i_u32);
+                next_new = next_new
+                    .checked_add(1)
+                    .ok_or(IgraphError::Internal("new vertex count overflow"))?;
+            }
+        }
+
+        // Filter edges: keep only those with both endpoints retained,
+        // renumber endpoints via `map`.
+        let m = self.ecount();
+        let mut new_from: Vec<VertexId> = Vec::with_capacity(m);
+        let mut new_to: Vec<VertexId> = Vec::with_capacity(m);
+        for (u, v) in self.from.iter().zip(self.to.iter()) {
+            if let (Some(nu), Some(nv)) = (map[*u as usize], map[*v as usize]) {
+                new_from.push(nu);
+                new_to.push(nv);
+            }
+        }
+
+        self.n = next_new;
+        self.from = new_from;
+        self.to = new_to;
+        self.rebuild_indexes()?;
+
+        Ok((map, invmap))
+    }
+
     fn check_vertex(&self, v: VertexId) -> IgraphResult<()> {
         if v >= self.n {
             return Err(IgraphError::VertexOutOfRange { id: v, n: self.n });
@@ -815,5 +941,184 @@ mod tests {
         g.add_edge(0, 1).unwrap(); // edge 0
         g.add_edge(0, 1).unwrap(); // edge 1
         assert_eq!(g.get_eid(0, 1).unwrap(), 0);
+    }
+
+    // -------- ALGO-CORE-001c: delete_edges + delete_vertices --------
+
+    #[test]
+    fn delete_edges_empty_input_is_noop() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0, 1), (1, 2)]).unwrap();
+        g.delete_edges(&[]).unwrap();
+        assert_eq!(g.ecount(), 2);
+        assert_eq!(g.degree(1).unwrap(), 2);
+    }
+
+    #[test]
+    fn delete_edges_single_edge_undirected() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0, 1), (1, 2), (0, 2)]).unwrap();
+        // Remove edge id 1 (the (1,2) edge).
+        g.delete_edges(&[1]).unwrap();
+        assert_eq!(g.ecount(), 2);
+        // Surviving edges renumbered to 0,1: (0,1) and (0,2).
+        assert_eq!(g.find_eid(0, 1).unwrap(), Some(0));
+        assert_eq!(g.find_eid(0, 2).unwrap(), Some(1));
+        assert_eq!(g.find_eid(1, 2).unwrap(), None);
+        // Degrees consistent post-rebuild.
+        assert_eq!(g.degree(1).unwrap(), 1);
+        assert_eq!(g.degree(2).unwrap(), 1);
+    }
+
+    #[test]
+    fn delete_edges_duplicate_ids_tolerated() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0, 1), (1, 2)]).unwrap();
+        g.delete_edges(&[0, 0, 0]).unwrap();
+        assert_eq!(g.ecount(), 1);
+        assert_eq!(g.find_eid(1, 2).unwrap(), Some(0));
+    }
+
+    #[test]
+    fn delete_edges_all_edges_leaves_isolated_vertices() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0, 1), (1, 2)]).unwrap();
+        g.delete_edges(&[0, 1]).unwrap();
+        assert_eq!(g.ecount(), 0);
+        assert_eq!(g.vcount(), 3);
+        for v in 0..3 {
+            assert_eq!(g.degree(v).unwrap(), 0);
+        }
+    }
+
+    #[test]
+    fn delete_edges_out_of_range_errors_and_preserves_state() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0, 1), (1, 2)]).unwrap();
+        let err = g.delete_edges(&[5]).unwrap_err();
+        assert!(matches!(err, IgraphError::EdgeOutOfRange { id: 5, m: 2 }));
+        // Graph unchanged.
+        assert_eq!(g.ecount(), 2);
+    }
+
+    #[test]
+    fn delete_edges_self_loop_directed() {
+        let mut g = Graph::new(2, true).unwrap();
+        g.add_edges(vec![(0, 0), (0, 1)]).unwrap();
+        g.delete_edges(&[0]).unwrap(); // remove the self-loop
+        assert_eq!(g.ecount(), 1);
+        assert_eq!(g.degree(0).unwrap(), 1);
+        assert_eq!(g.find_eid(0, 1).unwrap(), Some(0));
+    }
+
+    #[test]
+    fn delete_vertices_empty_input_is_noop() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0, 1), (1, 2)]).unwrap();
+        g.delete_vertices(&[]).unwrap();
+        assert_eq!(g.vcount(), 3);
+        assert_eq!(g.ecount(), 2);
+    }
+
+    #[test]
+    fn delete_vertices_single_renumbers() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edges(vec![(0, 1), (1, 2), (2, 3), (0, 3)]).unwrap();
+        // Remove vertex 1: edges (0,1) and (1,2) go with it. (2,3),(0,3)
+        // survive but get renumbered: 2 → 1, 3 → 2.
+        g.delete_vertices(&[1]).unwrap();
+        assert_eq!(g.vcount(), 3);
+        assert_eq!(g.ecount(), 2);
+        // (2,3) → (1,2); (0,3) → (0,2).
+        assert!(g.find_eid(1, 2).unwrap().is_some());
+        assert!(g.find_eid(0, 2).unwrap().is_some());
+        assert_eq!(g.find_eid(0, 1).unwrap(), None);
+    }
+
+    #[test]
+    fn delete_vertices_duplicate_ids_tolerated() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0, 1), (1, 2)]).unwrap();
+        g.delete_vertices(&[1, 1, 1]).unwrap();
+        assert_eq!(g.vcount(), 2);
+        assert_eq!(g.ecount(), 0);
+    }
+
+    #[test]
+    fn delete_vertices_all_yields_empty_graph() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0, 1), (1, 2)]).unwrap();
+        g.delete_vertices(&[0, 1, 2]).unwrap();
+        assert_eq!(g.vcount(), 0);
+        assert_eq!(g.ecount(), 0);
+    }
+
+    #[test]
+    fn delete_vertices_out_of_range_errors_and_preserves_state() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0, 1), (1, 2)]).unwrap();
+        let err = g.delete_vertices(&[5]).unwrap_err();
+        assert!(matches!(err, IgraphError::VertexOutOfRange { id: 5, n: 3 }));
+        assert_eq!(g.vcount(), 3);
+        assert_eq!(g.ecount(), 2);
+    }
+
+    #[test]
+    fn delete_vertices_map_returns_correct_mappings() {
+        let mut g = Graph::with_vertices(5);
+        g.add_edges(vec![(0, 1), (1, 2), (2, 3), (3, 4)]).unwrap();
+        let (map, invmap) = g.delete_vertices_map(&[1, 3]).unwrap();
+        // Removed: 1 and 3. Retained: 0 → 0, 2 → 1, 4 → 2.
+        assert_eq!(map, vec![Some(0), None, Some(1), None, Some(2)]);
+        assert_eq!(invmap, vec![0, 2, 4]);
+        assert_eq!(g.vcount(), 3);
+        // Only edges between retained vertices survive — none do here.
+        assert_eq!(g.ecount(), 0);
+    }
+
+    #[test]
+    fn delete_vertices_directed_preserves_direction() {
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edges(vec![(0, 1), (1, 2), (2, 0), (3, 0)]).unwrap();
+        g.delete_vertices(&[3]).unwrap();
+        assert_eq!(g.vcount(), 3);
+        assert!(g.is_directed());
+        // Surviving directed edges (3 → 0) gone; (0,1),(1,2),(2,0) keep direction.
+        assert!(g.get_eid(0, 1).is_ok());
+        assert!(g.get_eid(1, 0).is_err()); // wrong direction
+    }
+
+    #[test]
+    fn delete_vertices_self_loop_on_removed_vertex() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0, 0), (0, 1), (1, 2)]).unwrap();
+        g.delete_vertices(&[0]).unwrap();
+        // Self-loop and edges to vertex 0 gone; only (1,2) → (0,1) survives.
+        assert_eq!(g.vcount(), 2);
+        assert_eq!(g.ecount(), 1);
+        assert!(g.find_eid(0, 1).unwrap().is_some());
+    }
+
+    #[test]
+    fn delete_vertices_preserves_parallel_edges() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edges(vec![(0, 1), (0, 1), (1, 2)]).unwrap();
+        g.delete_vertices(&[2]).unwrap();
+        assert_eq!(g.vcount(), 2);
+        assert_eq!(g.ecount(), 2); // both parallel (0,1) edges retained
+        assert_eq!(g.degree(0).unwrap(), 2);
+        assert_eq!(g.degree(1).unwrap(), 2);
+    }
+
+    #[test]
+    fn add_edges_after_delete_works() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edges(vec![(0, 1), (1, 2), (2, 3)]).unwrap();
+        g.delete_vertices(&[0]).unwrap(); // now n=3, vertices 0,1,2
+        // Add a new edge and check indexes still work.
+        g.add_edge(0, 2).unwrap();
+        assert_eq!(g.ecount(), 3);
+        assert_eq!(g.degree(0).unwrap(), 2); // (0,1)+(0,2)
+        assert!(g.find_eid(0, 2).unwrap().is_some());
     }
 }

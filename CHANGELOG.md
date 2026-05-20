@@ -22,6 +22,21 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(core)* **ALGO-CORE-001c**: Structural mutators
+  `Graph::delete_edges(&[EdgeId])`, `Graph::delete_vertices(&[VertexId])`,
+  and `Graph::delete_vertices_map(&[VertexId]) -> (Vec<Option<VertexId>>,
+  Vec<VertexId>)` returning `(map, invmap)`. Counterparts of
+  `igraph_delete_edges` and `igraph_delete_vertices_map` from
+  `references/igraph/src/graph/type_indexededgelist.c:500-825`. Both
+  validate ids up-front (errors leave graph state untouched), tolerate
+  duplicate ids, and re-index `oi/ii/os/is` via the existing
+  `rebuild_indexes` helper — no manual sort/rebuild needed. 16 unit
+  tests (empty input, duplicates, all-removal, out-of-range, self-loops,
+  parallel edges, directed direction preservation, post-delete
+  add_edges round-trip) + 2 proptest invariants
+  (`delete_{edges,vertices}_preserves_invariants` over arbitrary
+  graphs ≤ 8 vertices). No oracle/conformance: structural mutation,
+  not numerical algorithm output (parity with CORE-001b/d).
 - *(paths)* **ALGO-TR-003**: Random walk on a graph
   (`random_walk(graph, weights, start, mode, steps, seed) ->
   IgraphResult<(Vec<VertexId>, Vec<EdgeId>)>`). Counterpart of

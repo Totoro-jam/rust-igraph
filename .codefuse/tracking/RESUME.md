@@ -211,3 +211,24 @@ doctest = **61 pass**.
   (Dijkstra). Dijkstra needs weighted edges — extend Graph with
   optional `weight: Option<Vec<f64>>` in CORE-001 follow-up first.
   CC-002 just uses what we have. Recommend CC-002.
+
+---
+
+## 2026-05-20 — resumed (mid-CORE-001c recon)
+
+- Last commit: `2d855a2` — feat(paths): ALGO-TR-003 random walk
+- Working tree: clean. `cargo test --workspace` → 72 pass / 0 fail.
+- Phase 1: 69/85 done (~81%). 0 wip / 0 blocked.
+- Mid-flight: CORE-001c recon. C source already read:
+  `igraph_delete_edges` (type_indexededgelist.c:500-614) and
+  `igraph_delete_vertices_map` (615-817). Ready to design the Rust
+  interface and proceed to AWU Step 2 (Interface) → 3 (Skeleton) →
+  4 (Implementation). Existing `Graph` already has `rebuild_indexes`
+  (graph.rs:483) which we can reuse — no need to manually re-sort
+  oi/ii/os/is the way the C code does.
+- Picked up: ALGO-CORE-001c — continuation of in-flight recon.
+- **Landed**: `Graph::delete_edges`, `Graph::delete_vertices`,
+  `Graph::delete_vertices_map`. 16 new unit tests + 2 proptest
+  invariants. Implementation reuses `rebuild_indexes`; no manual
+  sort/rebuild. Phase 1: 70/85 done. `cargo test --workspace` →
+  660 lib + 79 integration + 72 doctest, all green.
