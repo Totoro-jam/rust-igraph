@@ -1,0 +1,22 @@
+{
+  "source": "py",
+  "origin": "constructed: self-loop disqualifies DAG",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_dag",
+  "params": {},
+  "expected": false
+}

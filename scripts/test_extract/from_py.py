@@ -552,6 +552,34 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-020: is_dag. python-igraph's `Graph.is_dag()` returns
+# True/False directly.
+IS_DAG_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_dag_py_diamond_dag_true",
+        # 0→1, 0→2, 1→3, 2→3 — diamond, no cycles.
+        "origin": "constructed: directed diamond — DAG",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 3), (2, 3)], directed=True
+        ),
+        "algo": "is_dag",
+        "params": {},
+        "expected": True,
+    },
+    {
+        "case": "is_dag_py_self_loop_false",
+        # Self-loop on 0 plus an unrelated edge — vertex with a
+        # self-loop cannot be topologically ordered.
+        "origin": "constructed: self-loop disqualifies DAG",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 0), (0, 1)], directed=True
+        ),
+        "algo": "is_dag",
+        "params": {},
+        "expected": False,
+    },
+]
+
 # ALGO-CORE-001e: is_same_graph (structural equality). python-igraph
 # does not expose this predicate; hand-computed expected values.
 IS_SAME_GRAPH_MANIFEST: List[Dict[str, Any]] = [
@@ -1807,6 +1835,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bond_percolation": BOND_PERCOLATION_MANIFEST,
     "site_percolation": SITE_PERCOLATION_MANIFEST,
     "is_same_graph": IS_SAME_GRAPH_MANIFEST,
+    "is_dag": IS_DAG_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

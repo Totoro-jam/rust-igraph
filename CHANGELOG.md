@@ -22,6 +22,23 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-020**: `is_dag(graph: &Graph) -> bool`
+  — directed acyclic graph predicate. Counterpart of `igraph_is_dag`
+  from `references/igraph/src/properties/dag.c:151`. Returns
+  `false` for undirected graphs (matches upstream — DAGs are
+  directed by definition); for directed graphs, runs Kahn's
+  topological peel: queue zero-in-degree vertices, pop and
+  decrement their out-neighbours' in-degrees, queue any that hit
+  zero. If all vertices peel away the graph is a DAG; otherwise
+  a cycle remains. Self-loops short-circuit to `false`.
+  Time `O(V + E)`. The C version caches the result on the graph
+  object; our Rust impl recomputes on each call until the
+  property-cache subsystem (CORE-001f) lands.
+  12 unit tests + 3 oracle tests vs `python-igraph`'s
+  `Graph.is_dag()` + 6 conformance fixtures (2 each C/Python/R) +
+  1 proptest invariant (`is_dag_consistent_with_scc` — every DAG
+  has SCC count equal to vcount and no self-loops; every non-DAG
+  either has a self-loop or a multi-vertex SCC).
 - *(operators)* **ALGO-CORE-001e**: `is_same_graph(g1: &Graph, g2:
   &Graph) -> bool` — structural equality on labelled vertex/edge
   sets. Counterpart of `igraph_is_same_graph` from

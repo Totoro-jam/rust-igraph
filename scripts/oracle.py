@@ -622,6 +622,14 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "is_dag":
+        # Counterpart of igraph_is_dag. python-igraph exposes
+        # `Graph.is_dag()` which returns a bool directly. Returns
+        # False for undirected graphs (matches upstream).
+        if not g.is_directed():
+            return False
+        return bool(g.is_dag())
+
     if algo == "is_same_graph":
         # Counterpart of igraph_is_same_graph. Compare the wire graph
         # `g` to a second graph encoded under params.other (same

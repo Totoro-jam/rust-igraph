@@ -1614,6 +1614,41 @@ fn bond_percolation_partial_order_matches_python_reference() {
     bond_percolation_round_trip_via_edgelist_oracle(&g, &[0, 2]);
 }
 
+// ---- ALGO-PR-020: is_dag oracle tests --------
+
+#[test]
+fn is_dag_chain_matches_python_igraph() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 3)]).unwrap();
+    let rust = rust_igraph::is_dag(&g);
+    let py: bool = serde_json::from_value(run_ok("is_dag", &g, serde_json::json!({})))
+        .expect("decode python is_dag");
+    assert_eq!(rust, py);
+    assert!(rust);
+}
+
+#[test]
+fn is_dag_three_cycle_matches_python_igraph() {
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 0)]).unwrap();
+    let rust = rust_igraph::is_dag(&g);
+    let py: bool = serde_json::from_value(run_ok("is_dag", &g, serde_json::json!({})))
+        .expect("decode python is_dag");
+    assert_eq!(rust, py);
+    assert!(!rust);
+}
+
+#[test]
+fn is_dag_undirected_matches_python_igraph() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edges(vec![(0u32, 1u32), (1, 2)]).unwrap();
+    let rust = rust_igraph::is_dag(&g);
+    let py: bool = serde_json::from_value(run_ok("is_dag", &g, serde_json::json!({})))
+        .expect("decode python is_dag");
+    assert_eq!(rust, py);
+    assert!(!rust);
+}
+
 // ---- ALGO-CORE-001e: is_same_graph oracle tests --------
 
 /// Build an "other graph" wire payload suitable for the oracle's

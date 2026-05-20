@@ -2037,6 +2037,38 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// PR-020 `is_dag` invariants:
+    /// - Undirected graphs are never DAGs.
+    /// - DAGs cannot have self-loops.
+    /// - DAGs are consistent with SCC structure: every SCC has size 1
+    ///   (no cycle means no strongly connected sub-component bigger
+    ///   than a single vertex).
+    #[test]
+    fn is_dag_consistent_with_scc(g in arb_directed_graph(8)) {
+        let dag = rust_igraph::is_dag(&g);
+        // Strong CC count == vcount iff every SCC has size 1 iff DAG
+        // (modulo self-loops which create a 1-vertex SCC but still
+        // mean "not a DAG"). Check the "no self-loop" condition
+        // separately.
+        let has_self_loop = (0..g.ecount() as u32)
+            .any(|e| {
+                let (u, v) = g.edge(e).unwrap();
+                u == v
+            });
+        if dag {
+            // Every SCC must be a singleton AND there are no self-loops.
+            let scc = rust_igraph::strongly_connected_components(&g).unwrap();
+            prop_assert_eq!(scc.count, g.vcount(),
+                "DAG must have one SCC per vertex");
+            prop_assert!(!has_self_loop, "DAG cannot have self-loops");
+        } else {
+            // Not a DAG: either has a self-loop or has a multi-vertex SCC.
+            let scc = rust_igraph::strongly_connected_components(&g).unwrap();
+            prop_assert!(has_self_loop || scc.count < g.vcount(),
+                "non-DAG must have a cycle (self-loop or multi-vertex SCC)");
+        }
+    }
+
     /// CORE-001e `is_same_graph` invariants:
     /// - Reflexivity: every graph is the same as itself (and as a
     ///   clone of itself).

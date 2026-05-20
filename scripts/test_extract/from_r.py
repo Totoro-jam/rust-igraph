@@ -619,6 +619,32 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-020: is_dag. rigraph's `is_dag(g)` returns TRUE/FALSE.
+IS_DAG_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_dag_R_undirected_false",
+        # Undirected graphs are never DAGs per the upstream contract.
+        "origin": "constructed (rigraph-style): undirected — not a DAG",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "is_dag",
+        "params": {},
+        "expected": False,
+    },
+    {
+        "case": "is_dag_R_two_disjoint_dags_true",
+        # Two disjoint 2-vertex DAGs in the same graph.
+        "origin": "constructed (rigraph-style): two disjoint DAG branches",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=True
+        ),
+        "algo": "is_dag",
+        "params": {},
+        "expected": True,
+    },
+]
+
 # ALGO-CORE-001e: is_same_graph (structural equality). rigraph
 # doesn't expose this directly; hand-computed expected values.
 IS_SAME_GRAPH_MANIFEST: List[Dict[str, Any]] = [
@@ -1917,6 +1943,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bond_percolation": BOND_PERCOLATION_MANIFEST,
     "site_percolation": SITE_PERCOLATION_MANIFEST,
     "is_same_graph": IS_SAME_GRAPH_MANIFEST,
+    "is_dag": IS_DAG_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

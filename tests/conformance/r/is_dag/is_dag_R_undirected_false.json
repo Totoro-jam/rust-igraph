@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): undirected \u2014 not a DAG",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_dag",
+  "params": {},
+  "expected": false
+}

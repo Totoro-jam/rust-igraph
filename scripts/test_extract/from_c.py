@@ -611,6 +611,33 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-020: is_dag (directed acyclic graph predicate). Source:
+# properties/dag.c (lines 151-220). Kahn's topological peel.
+IS_DAG_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_dag_c_directed_chain_true",
+        # 0 → 1 → 2 → 3: linear chain, no cycles.
+        "origin": "constructed: directed P4 — DAG",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=True
+        ),
+        "algo": "is_dag",
+        "params": {},
+        "expected": True,
+    },
+    {
+        "case": "is_dag_c_three_cycle_false",
+        # 0 → 1 → 2 → 0: 3-cycle.
+        "origin": "constructed: directed 3-cycle — not a DAG",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "is_dag",
+        "params": {},
+        "expected": False,
+    },
+]
+
 # ALGO-CORE-001e: is_same_graph (structural equality). Source:
 # graph/type_indexededgelist.c (lines 1947-2003). Compares two
 # graphs as labelled vertex/edge sets — not isomorphism.
@@ -2057,6 +2084,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bond_percolation": BOND_PERCOLATION_MANIFEST,
     "site_percolation": SITE_PERCOLATION_MANIFEST,
     "is_same_graph": IS_SAME_GRAPH_MANIFEST,
+    "is_dag": IS_DAG_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

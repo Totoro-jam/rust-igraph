@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): two disjoint DAG branches",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_dag",
+  "params": {},
+  "expected": true
+}
