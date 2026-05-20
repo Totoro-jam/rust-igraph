@@ -1,0 +1,32 @@
+{
+  "source": "py",
+  "origin": "constructed: 4 vertices, 2 disjoint edges; w[2]=w[3]=None",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      3.0,
+      7.0
+    ]
+  },
+  "algo": "widest_path_widths",
+  "params": {
+    "source": 0
+  },
+  "expected": [
+    null,
+    3.0,
+    null,
+    null
+  ]
+}

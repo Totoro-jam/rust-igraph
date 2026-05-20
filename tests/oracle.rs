@@ -1517,6 +1517,75 @@ fn dijkstra_distances_directed_matches_python_igraph() {
     }
 }
 
+// ---- ALGO-SP-010: widest-path widths oracle tests --------
+
+/// Decode the oracle's widths output: None → unreachable,
+/// "Infinity" string → source itself (JSON has no Infinity literal),
+/// otherwise f64. Returns same `Option<f64>` shape as our Rust API.
+fn decode_widest_widths(payload: serde_json::Value) -> Vec<Option<f64>> {
+    let arr = payload.as_array().expect("widths payload is array");
+    arr.iter()
+        .map(|v| match v {
+            serde_json::Value::Null => None,
+            serde_json::Value::String(s) if s == "Infinity" => Some(f64::INFINITY),
+            other => Some(other.as_f64().expect("width is number")),
+        })
+        .collect()
+}
+
+#[test]
+fn widest_path_widths_triangle_matches_python_reference() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 4.0, 2.0];
+    let rust = rust_igraph::widest_path_widths(&g, 0, &weights).unwrap();
+    let py = decode_widest_widths(run_ok_with_weights(
+        "widest_path_widths",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0}),
+    ));
+    assert_eq!(rust.len(), py.len());
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(rr), Some(pp)) if rr.is_infinite() && pp.is_infinite() => {}
+            (Some(rr), Some(pp)) => {
+                assert!((rr - pp).abs() < 1e-12, "vertex {i}: rust={rr} py={pp}")
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
+#[test]
+fn widest_path_widths_chain_bottleneck_matches_python_reference() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(1, 2).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let weights = vec![5.0_f64, 1.0, 3.0];
+    let rust = rust_igraph::widest_path_widths(&g, 0, &weights).unwrap();
+    let py = decode_widest_widths(run_ok_with_weights(
+        "widest_path_widths",
+        &g,
+        Some(weights),
+        serde_json::json!({"source": 0}),
+    ));
+    for (i, (r, p)) in rust.iter().zip(py.iter()).enumerate() {
+        match (r, p) {
+            (Some(rr), Some(pp)) if rr.is_infinite() && pp.is_infinite() => {}
+            (Some(rr), Some(pp)) => {
+                assert!((rr - pp).abs() < 1e-12, "vertex {i}: rust={rr} py={pp}")
+            }
+            (None, None) => {}
+            (a, b) => panic!("vertex {i}: rust={a:?} py={b:?}"),
+        }
+    }
+}
+
 // ---- ALGO-SP-003: Johnson all-pairs distances oracle tests --------
 
 #[test]

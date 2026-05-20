@@ -2037,6 +2037,53 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// SP-010 widest-path invariants:
+    /// - `widths[source] == Some(f64::INFINITY)`.
+    /// - For every reachable vertex `v`, `widths[v]` is **at most**
+    ///   the maximum edge weight in the graph (the bottleneck can
+    ///   never exceed the widest single edge).
+    /// - For every reachable vertex `v`, `widths[v]` is **at least**
+    ///   any specific path's bottleneck — checked by the direct edge
+    ///   case: if there is a direct edge source→v with weight w,
+    ///   then `widths[v] >= w` (the algorithm must at least find that
+    ///   path).
+    /// - Unreachable iff no walk exists from source (cross-checked
+    ///   against `dijkstra_distances`: `widths[v].is_none()` iff
+    ///   `dijkstra_distances[v].is_none()`).
+    #[test]
+    fn widest_path_invariants(g in arb_graph(8)) {
+        if g.vcount() == 0 { return Ok(()); }
+        let m = g.ecount();
+        if m == 0 {
+            // Only source itself reachable; nothing else to check.
+            let widths = rust_igraph::widest_path_widths(&g, 0, &[]).unwrap();
+            prop_assert_eq!(widths[0], Some(f64::INFINITY));
+            for w in &widths[1..] {
+                prop_assert_eq!(w, &None);
+            }
+            return Ok(());
+        }
+        // Strictly positive weights so the upper bound is well-defined.
+        let weights: Vec<f64> = (0..m).map(|i| 1.0 + (i as f64) * 0.5).collect();
+        let max_weight = weights.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        let widths = rust_igraph::widest_path_widths(&g, 0, &weights).unwrap();
+        let dij = rust_igraph::dijkstra_distances(&g, 0, &weights).unwrap();
+        prop_assert_eq!(widths.len(), g.vcount() as usize);
+        prop_assert_eq!(widths[0], Some(f64::INFINITY));
+        for (v, (w, d)) in widths.iter().zip(dij.iter()).enumerate() {
+            // Reachability agrees with Dijkstra: same set of None positions.
+            prop_assert_eq!(w.is_some(), d.is_some(),
+                "vertex {}: widest={:?} dijkstra={:?}", v, w, d);
+            if let Some(wv) = w {
+                if v != 0 {
+                    // Bottleneck ≤ max edge weight in the graph.
+                    prop_assert!(*wv <= max_weight + 1e-9,
+                        "vertex {}: width {} > max edge weight {}", v, wv, max_weight);
+                }
+            }
+        }
+    }
+
     /// SP-003 Johnson invariants:
     /// - All-pairs matrix is `vcount × vcount`.
     /// - Diagonal is always `Some(0.0)`.

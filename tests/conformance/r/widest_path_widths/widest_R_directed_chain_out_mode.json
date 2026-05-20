@@ -1,0 +1,31 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed P3 (5,3) OUT mode",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      5.0,
+      3.0
+    ]
+  },
+  "algo": "widest_path_widths",
+  "params": {
+    "source": 0
+  },
+  "expected": [
+    null,
+    5.0,
+    3.0
+  ]
+}

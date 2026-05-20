@@ -85,6 +85,7 @@ pub use crate::algorithms::paths::radii::{
     radius, radius_weighted, radius_weighted_with_mode, radius_with_mode,
 };
 pub use crate::algorithms::paths::random_walk::random_walk;
+pub use crate::algorithms::paths::widest_path::{widest_path_widths, widest_path_widths_with_mode};
 pub use crate::algorithms::properties::assortativity::{
     assortativity_degree, assortativity_degree_directed,
 };

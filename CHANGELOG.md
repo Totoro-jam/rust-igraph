@@ -22,6 +22,27 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-010**: Single-source widest-path widths
+  (`widest_path_widths(graph, source, weights) ->
+  IgraphResult<Vec<Option<f64>>>` plus the mode-aware
+  `widest_path_widths_with_mode`). Counterpart of
+  `igraph_widest_path_widths_dijkstra` from
+  `references/igraph/src/paths/widest_paths.c:596`. Returns the
+  maximum bottleneck width of any `source → v` path for each
+  vertex `v` — useful for network-capacity / max-flow heuristics.
+  Algorithm: Dijkstra with a max-priority queue keyed by width.
+  Relaxation uses `width[u] = max(width[u], min(width[v], edge_w))`.
+  Source's own width is `Some(f64::INFINITY)` by convention;
+  unreachable vertices are `None`; edges with weight
+  `-f64::INFINITY` are treated as "edge absent" (matches upstream).
+  Uses Rust's `BinaryHeap` directly (no indexed heap needed —
+  lazy stale-entry skip on pop).
+  12 unit tests + 2 oracle tests vs an inline Python reference
+  (python-igraph does not bind widest paths) + 6 conformance
+  fixtures (2 each C/Python/R, hand-computed expected values
+  since the C extractor cannot drive a non-bound function) +
+  1 proptest invariant (`widest_path_invariants` — bottleneck
+  bounded by max edge weight; reachability matches Dijkstra).
 - *(paths)* **ALGO-SP-003**: Johnson's all-pairs shortest distances
   (`johnson_distances(graph, weights) -> IgraphResult<Vec<Vec<Option<f64>>>>`).
   Counterpart of `igraph_distances_johnson` from

@@ -619,6 +619,35 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-010: Widest-path widths. rigraph does not expose this API
+# either; values are hand-computed (source position null by convention).
+WIDEST_PATH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_R_directed_chain_out_mode",
+        # Directed 0→1 (5), 1→2 (3). From source 0: w[1]=5, w[2]=min(5,3)=3.
+        "origin": "constructed (rigraph-style): directed P3 (5,3) OUT mode",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "graph_weights": [5.0, 3.0],
+        "algo": "widest_path_widths",
+        "params": {"source": 0},
+        "expected": [None, 5.0, 3.0],
+    },
+    {
+        "case": "widest_R_parallel_edges_keep_widest",
+        # Parallel edges (0,1) with widths 1, 5, 3. Widest 0→1 = 5.
+        "origin": "constructed (rigraph-style): 3 parallel edges 0-1",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1), (0, 1)], directed=False
+        ),
+        "graph_weights": [1.0, 5.0, 3.0],
+        "algo": "widest_path_widths",
+        "params": {"source": 0},
+        "expected": [None, 5.0],
+    },
+]
+
 # ALGO-SP-003: Johnson all-pairs distances. rigraph exposes
 # `distances(g, weights=, algorithm="johnson")` returning a square
 # numeric matrix; Inf encodes unreachability and maps to None here.
@@ -1593,6 +1622,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
     "bellman_ford_distances": BELLMAN_FORD_MANIFEST,
     "johnson_distances": JOHNSON_MANIFEST,
+    "widest_path_widths": WIDEST_PATH_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

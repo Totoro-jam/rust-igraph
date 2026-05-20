@@ -622,6 +622,54 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "widest_path_widths":
+        # Counterpart of igraph_widest_path_widths_dijkstra(_, _,
+        # vss(source), vss_all(), weights, IGRAPH_OUT). python-igraph
+        # does not expose widest paths, so reference implementation
+        # is here (Dijkstra variant: max-priority instead of min,
+        # relax via min(width[u], edge_weight)).
+        import heapq
+
+        source = int(params["source"])
+        n = g.vcount()
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            ew = list(g.es["weight"])
+        else:
+            ew = [1.0] * g.ecount()
+        widths = [float("-inf")] * n
+        widths[source] = float("inf")
+        # Use negated widths to turn min-heap into max-heap.
+        heap = [(-float("inf"), source)]
+        while heap:
+            neg_w, v = heapq.heappop(heap)
+            w = -neg_w
+            if w < widths[v]:
+                continue
+            # In OUT mode for directed: outgoing edges; for undirected: all.
+            mode_out = g.is_directed()
+            if mode_out:
+                eids = g.incident(v, mode="out")
+            else:
+                eids = g.incident(v, mode="all")
+            for e in eids:
+                edge = g.es[e]
+                edge_w = ew[e]
+                if edge_w == float("-inf"):
+                    continue
+                other = edge.target if edge.source == v else edge.source
+                alt = min(w, edge_w)
+                if alt > widths[other]:
+                    widths[other] = alt
+                    heapq.heappush(heap, (-alt, other))
+        # Convert -inf → None for unreachable; +inf stays as-is (encoded
+        # as JSON sentinel string since JSON has no Infinity).
+        return [
+            None if w == float("-inf")
+            else "Infinity" if w == float("inf")
+            else w
+            for w in widths
+        ]
+
     if algo == "johnson_distances":
         # Counterpart of igraph_distances_johnson(_, _, vss_all(),
         # vss_all(), weights, IGRAPH_OUT). python-igraph's

@@ -552,6 +552,37 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-010: Widest-path widths. python-igraph does not bind the
+# C `igraph_widest_path_widths_dijkstra`, so these expected values
+# are hand-computed (same shape as our Rust API, source position null).
+WIDEST_PATH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_py_unreachable_components",
+        "origin": "constructed: 4 vertices, 2 disjoint edges; w[2]=w[3]=None",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [3.0, 7.0],
+        "algo": "widest_path_widths",
+        "params": {"source": 0},
+        "expected": [None, 3.0, None, None],
+    },
+    {
+        "case": "widest_py_negative_finite_weight",
+        # A negative-but-finite weight is a valid bottleneck — only -inf
+        # is the ignore sentinel. Source 0 → 1 (-1) → 2 (5):
+        # widest = min(-1, 5) = -1.
+        "origin": "constructed: chain with one negative-finite weight",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [-1.0, 5.0],
+        "algo": "widest_path_widths",
+        "params": {"source": 0},
+        "expected": [None, -1.0, -1.0],
+    },
+]
+
 # ALGO-SP-003: Johnson all-pairs distances. python-igraph's
 # Graph.distances dispatches to Johnson when called over all pairs
 # with negative weights; we encode the result as a full Vec<Vec<...>>.
@@ -1482,6 +1513,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
     "bellman_ford_distances": BELLMAN_FORD_MANIFEST,
     "johnson_distances": JOHNSON_MANIFEST,
+    "widest_path_widths": WIDEST_PATH_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

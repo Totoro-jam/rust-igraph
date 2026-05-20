@@ -611,6 +611,39 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-010: Widest-path widths (single source). Bottleneck on the
+# best (max-min) path from source to each vertex. Source: widest_paths.c.
+# Source's own width is convention-infinite; encoded as null in fixtures
+# and skipped by the conformance runner.
+WIDEST_PATH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_c_triangle_direct_beats_chain",
+        # Triangle (1, 4, 2). Source 0: widest 0→1 = min(4, 2) = 2
+        # (via 0-2-1, not direct edge weight 1). Widest 0→2 = 4 (direct).
+        "origin": "constructed: triangle (1,4,2) — widest paths via shortcut",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "widest_path_widths",
+        "params": {"source": 0},
+        "expected": [None, 2.0, 4.0],  # null at source position
+    },
+    {
+        "case": "widest_c_chain_bottleneck_5_1_3",
+        # Path 0-1-2-3 with weights (5, 1, 3). Bottleneck of best
+        # path from 0: w[1]=5, w[2]=min(5,1)=1, w[3]=min(5,1,3)=1.
+        "origin": "constructed: P4 weights (5,1,3) — bottleneck shrinks at edge 2",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [5.0, 1.0, 3.0],
+        "algo": "widest_path_widths",
+        "params": {"source": 0},
+        "expected": [None, 5.0, 1.0, 1.0],
+    },
+]
+
 # ALGO-SP-003: Johnson all-pairs shortest distances. Used when many
 # sources are needed AND graph has negative weights. Source:
 # distances_johnson.c.
@@ -1728,6 +1761,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dijkstra_distances_with_mode": DIJKSTRA_DIST_MODE_MANIFEST,
     "bellman_ford_distances": BELLMAN_FORD_MANIFEST,
     "johnson_distances": JOHNSON_MANIFEST,
+    "widest_path_widths": WIDEST_PATH_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

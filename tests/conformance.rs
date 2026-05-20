@@ -887,6 +887,69 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn widest_path_widths_three_source_conformance() {
+    // Widths convention: source's own width is `+inf`; JSON has no
+    // infinity literal so fixtures encode source position as `null`
+    // and this runner replaces our `Some(inf)` with `null` before
+    // comparing.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("widest_path_widths");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let source = u32::try_from(
+                case.params
+                    .get("source")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("source param missing"),
+            )
+            .expect("source fits in u32");
+            let widths =
+                rust_igraph::widest_path_widths(&g, source, &weights).expect("widest_path_widths");
+            let rust_json: serde_json::Value = widths
+                .into_iter()
+                .enumerate()
+                .map(|(i, x)| {
+                    // Source entry: infinite by convention — encode as null
+                    // to match fixture format.
+                    if i == source as usize {
+                        return serde_json::Value::Null;
+                    }
+                    match x {
+                        Some(v) if v.is_finite() => serde_json::json!(v),
+                        _ => serde_json::Value::Null,
+                    }
+                })
+                .collect();
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "widest_path_widths");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn johnson_distances_three_source_conformance() {
     // Matrix-shaped: each fixture's `expected` is Vec<Vec<Option<f64>>>.
     for src in ["c", "py", "r"] {

@@ -15,6 +15,7 @@ pub(crate) mod floyd_warshall;
 pub(crate) mod johnson;
 pub(crate) mod radii;
 pub(crate) mod random_walk;
+pub(crate) mod widest_path;
 
 pub use astar::a_star_path;
 pub use dijkstra::{
