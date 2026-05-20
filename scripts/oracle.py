@@ -622,6 +622,55 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "widest_paths":
+        # Counterpart of igraph_get_widest_paths(_, NULL, NULL, source,
+        # vss_all(), weights, IGRAPH_OUT, parents, inbound_edges).
+        # Returns the widths vector plus per-vertex parent and
+        # inbound-edge SPT. python-igraph does not bind widest paths;
+        # inline reference is the same SPFA-style Dijkstra as widths
+        # oracle plus parent_eid tracking.
+        import heapq
+
+        source = int(params["source"])
+        n = g.vcount()
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            ew = list(g.es["weight"])
+        else:
+            ew = [1.0] * g.ecount()
+        widths = [float("-inf")] * n
+        widths[source] = float("inf")
+        parent_v = [None] * n
+        parent_e = [None] * n
+        heap = [(-float("inf"), source)]
+        while heap:
+            neg_w, v = heapq.heappop(heap)
+            w = -neg_w
+            if w < widths[v]:
+                continue
+            eids = g.incident(v, mode="out" if g.is_directed() else "all")
+            for e in eids:
+                edge = g.es[e]
+                edge_w = ew[e]
+                if edge_w == float("-inf"):
+                    continue
+                other = edge.target if edge.source == v else edge.source
+                alt = min(w, edge_w)
+                if alt > widths[other]:
+                    widths[other] = alt
+                    parent_v[other] = v
+                    parent_e[other] = e
+                    heapq.heappush(heap, (-alt, other))
+        return {
+            "widths": [
+                None if w == float("-inf")
+                else "Infinity" if w == float("inf")
+                else w
+                for w in widths
+            ],
+            "parents": parent_v,
+            "inbound_edges": parent_e,
+        }
+
     if algo == "widest_paths_to":
         # Counterpart of igraph_get_widest_paths(_, _, _, from, to,
         # weights, IGRAPH_OUT). python-igraph does not bind this;

@@ -1,0 +1,51 @@
+{
+  "source": "py",
+  "origin": "constructed: directed P4 (5,3,4) \u2014 unique SPT",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      5.0,
+      3.0,
+      4.0
+    ]
+  },
+  "algo": "widest_paths",
+  "params": {
+    "source": 0
+  },
+  "expected": {
+    "widths": [
+      null,
+      5.0,
+      3.0,
+      3.0
+    ],
+    "parents": [
+      null,
+      0,
+      1,
+      2
+    ],
+    "inbound_edges": [
+      null,
+      0,
+      1,
+      2
+    ]
+  }
+}

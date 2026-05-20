@@ -2037,6 +2037,60 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// SP-014 `widest_paths` SPT struct invariants:
+    /// - `widths` field matches the standalone `widest_path_widths`.
+    /// - `parents[source] == None`, `inbound_edges[source] == None`.
+    /// - For every reachable v != source: `inbound_edges[v]` is some
+    ///   edge id whose `edge_other(eid, v)` equals `parents[v]`.
+    /// - Walking back via `parents` reconstructs a valid path from v
+    ///   to source (finite length, vertices distinct).
+    #[test]
+    fn widest_paths_spt_consistent_with_widths(g in arb_graph(8)) {
+        if g.vcount() == 0 { return Ok(()); }
+        let m = g.ecount();
+        let weights: Vec<f64> = (0..m).map(|i| 1.0 + (i as f64) * 0.5).collect();
+        let from = 0u32;
+        let sp = rust_igraph::widest_paths(&g, from, &weights).unwrap();
+        let standalone = rust_igraph::widest_path_widths(&g, from, &weights).unwrap();
+        prop_assert_eq!(&sp.widths, &standalone, "widths field mismatch");
+        let n = g.vcount();
+        prop_assert_eq!(sp.parents.len() as u32, n);
+        prop_assert_eq!(sp.inbound_edges.len() as u32, n);
+        prop_assert_eq!(sp.parents[from as usize], None);
+        prop_assert_eq!(sp.inbound_edges[from as usize], None);
+        // Consistency: for every reachable v != source, parent matches
+        // edge_other(inbound_edge, v).
+        for v in 0..n {
+            if v == from { continue; }
+            if sp.widths[v as usize].is_none() {
+                prop_assert_eq!(sp.parents[v as usize], None);
+                prop_assert_eq!(sp.inbound_edges[v as usize], None);
+                continue;
+            }
+            let eid = sp.inbound_edges[v as usize]
+                .expect("reachable vertex must have an inbound edge");
+            let prev = g.edge_other(eid, v).unwrap();
+            prop_assert_eq!(sp.parents[v as usize], Some(prev));
+        }
+        // Walking back via parents must reach source in at most n steps
+        // and visit distinct vertices.
+        for v in 0..n {
+            if sp.widths[v as usize].is_none() || v == from { continue; }
+            let mut visited: std::collections::HashSet<u32> = std::collections::HashSet::new();
+            let mut cur = v;
+            let mut steps = 0u32;
+            visited.insert(cur);
+            while cur != from {
+                let prev = sp.parents[cur as usize]
+                    .expect("non-source reachable has parent");
+                prop_assert!(visited.insert(prev), "cycle in SPT from vertex {}", v);
+                cur = prev;
+                steps += 1;
+                prop_assert!(steps <= n, "walk longer than vcount from {}", v);
+            }
+        }
+    }
+
     /// SP-013 `widest_paths_to` invariants (multi-target):
     /// - Output length matches the number of targets.
     /// - For each target, `is_some()` agrees with

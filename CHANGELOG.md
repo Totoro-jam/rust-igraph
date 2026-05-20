@@ -22,6 +22,28 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-014**: Widest-paths SPT sidecar
+  (`widest_paths(graph, from, weights) -> IgraphResult<WidestPaths>`
+  plus the mode-aware `widest_paths_with_mode`). Counterpart of
+  `igraph_get_widest_paths(_, NULL, NULL, source, vss_all(),
+  weights, mode, parents, inbound_edges)` from
+  `references/igraph/src/paths/widest_paths.c:102`. Returns a
+  `WidestPaths` struct exposing all three SPT outputs in one call:
+  `widths`, `parents` (predecessor vertex per node), and
+  `inbound_edges` (the edge id each vertex was reached through) —
+  mirroring `DijkstraPaths`'s shape so callers don't have to re-run
+  the SPT loop for the parent-pointer view.
+  Implementation reuses `widest_inner` and derives `parents` from
+  `inbound_edges` via `graph.edge_other(eid, v)`. Source itself
+  has `widths[source] == Some(f64::INFINITY)`,
+  `parents[source] == None`, `inbound_edges[source] == None`.
+  Unreachable vertices: all three fields `None`. Disambiguate
+  source vs unreachable via the `widths` field.
+  7 unit tests + 2 oracle tests vs an inline Python reference +
+  6 conformance fixtures (2 each C/Python/R, hand-computed) +
+  1 proptest invariant (`widest_paths_spt_consistent_with_widths`:
+  fields agree, walking back via `parents` reaches source in ≤ vcount
+  steps with distinct vertices).
 - *(paths)* **ALGO-SP-013**: Multi-target widest paths
   (`widest_paths_to(graph, from, targets, weights) ->
   IgraphResult<Vec<WidestPathResult>>` plus the mode-aware

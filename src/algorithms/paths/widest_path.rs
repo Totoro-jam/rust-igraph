@@ -244,6 +244,106 @@ pub fn widest_path(
     widest_path_with_mode(graph, from, to, weights, DijkstraMode::Out)
 }
 
+/// Sidecar outputs from a single-source widest-paths run. Carries
+/// the widths vector plus the parent-pointer SPT (vertex-side and
+/// edge-side). Counterpart of the `parents` and `inbound_edges`
+/// outputs of `igraph_get_widest_paths`. Source itself has
+/// `parents[source] == None` and `inbound_edges[source] == None`;
+/// unreachable vertices also have both `None`. To disambiguate the
+/// source from unreachable targets, consult `widths`: source has
+/// `Some(f64::INFINITY)`, unreachable has `None`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct WidestPaths {
+    /// `widths[v]`: `Some(f64::INFINITY)` for `v == source`,
+    /// `Some(w)` for reachable, `None` for unreachable.
+    pub widths: Vec<Option<f64>>,
+    /// `parents[v]` is the predecessor of `v` in the widest-paths
+    /// spanning tree. `None` for source and unreachable.
+    pub parents: Vec<Option<VertexId>>,
+    /// `inbound_edges[v]` is the edge id `v` was reached through.
+    /// `None` for source and unreachable.
+    pub inbound_edges: Vec<Option<EdgeId>>,
+}
+
+/// Single-source widest-paths sidecar: widths plus the parent-pointer
+/// SPT. Convenient when you want **all** of widths, parent vertices,
+/// and inbound edge ids in one call without re-running the SPT.
+///
+/// Behaves like [`widest_path_widths`] for weight semantics: NaN
+/// rejected, `-f64::INFINITY` edges ignored, negative finite weights
+/// act as small bottlenecks.
+///
+/// Counterpart of `igraph_get_widest_paths(_, NULL, NULL, source,
+/// vss_all(), weights, IGRAPH_OUT, parents, inbound_edges)` from
+/// `references/igraph/src/paths/widest_paths.c:102`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, widest_paths};
+///
+/// // Triangle 0-1-2 weights (1, 4, 2). Widest 0→1 routes via vertex 2.
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();  // edge 0, width 1
+/// g.add_edge(0, 2).unwrap();  // edge 1, width 4
+/// g.add_edge(1, 2).unwrap();  // edge 2, width 2
+/// let sp = widest_paths(&g, 0, &[1.0, 4.0, 2.0]).unwrap();
+/// // Source itself
+/// assert_eq!(sp.widths[0], Some(f64::INFINITY));
+/// assert_eq!(sp.parents[0], None);
+/// assert_eq!(sp.inbound_edges[0], None);
+/// // Vertex 2 reached directly via edge 1 (widest direct edge)
+/// assert_eq!(sp.parents[2], Some(0));
+/// assert_eq!(sp.inbound_edges[2], Some(1));
+/// // Vertex 1 reached via 2 (bottleneck min(4, 2) = 2 beats direct edge 0 with width 1)
+/// assert_eq!(sp.parents[1], Some(2));
+/// assert_eq!(sp.inbound_edges[1], Some(2));
+/// ```
+pub fn widest_paths(graph: &Graph, from: VertexId, weights: &[f64]) -> IgraphResult<WidestPaths> {
+    widest_paths_with_mode(graph, from, weights, DijkstraMode::Out)
+}
+
+/// Mode-aware variant of [`widest_paths`].
+///
+/// Counterpart of `igraph_get_widest_paths(_, NULL, NULL, source,
+/// vss_all(), weights, mode, parents, inbound_edges)`.
+pub fn widest_paths_with_mode(
+    graph: &Graph,
+    from: VertexId,
+    weights: &[f64],
+    mode: DijkstraMode,
+) -> IgraphResult<WidestPaths> {
+    let (raw_widths, parent_eid) = widest_inner(graph, from, weights, mode)?;
+    let n = raw_widths.len();
+    let mut parents: Vec<Option<VertexId>> = vec![None; n];
+    let widths: Vec<Option<f64>> = raw_widths
+        .iter()
+        .map(|&w| {
+            if w == f64::NEG_INFINITY {
+                None
+            } else {
+                Some(w)
+            }
+        })
+        .collect();
+    // Derive parent vertices from parent edges: `edge_other(eid, v)`
+    // gives the predecessor of v in the SPT. Source's parent stays
+    // None (its parent_eid entry is None by construction).
+    for v in 0..n {
+        if let Some(eid) = parent_eid[v] {
+            let v_u32 = u32::try_from(v)
+                .map_err(|_| IgraphError::Internal("vertex index exceeds u32::MAX"))?;
+            let prev = graph.edge_other(eid, v_u32)?;
+            parents[v] = Some(prev);
+        }
+    }
+    Ok(WidestPaths {
+        widths,
+        parents,
+        inbound_edges: parent_eid,
+    })
+}
+
 /// Widest path with mode selection. Mirrors [`widest_path`] but lets
 /// you pick OUT/IN/ALL traversal on directed graphs.
 ///
@@ -969,5 +1069,112 @@ mod tests {
         let paths = widest_paths_to(&g, 0, &[1, 2], &[f64::NEG_INFINITY, 1.0]).unwrap();
         assert!(paths[0].is_none());
         assert!(paths[1].is_none());
+    }
+
+    // -------- ALGO-SP-014: WidestPaths struct (widths + SPT) --------
+
+    #[test]
+    fn widest_paths_triangle_struct_fields_consistent() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap(); // edge 0, width 1
+        g.add_edge(0, 2).unwrap(); // edge 1, width 4
+        g.add_edge(1, 2).unwrap(); // edge 2, width 2
+        let sp = widest_paths(&g, 0, &[1.0, 4.0, 2.0]).unwrap();
+        // Source-side sentinels
+        assert_eq!(sp.widths[0], Some(f64::INFINITY));
+        assert_eq!(sp.parents[0], None);
+        assert_eq!(sp.inbound_edges[0], None);
+        // Vertex 2 reached directly via edge 1 (width 4)
+        assert_eq!(sp.widths[2], Some(4.0));
+        assert_eq!(sp.parents[2], Some(0));
+        assert_eq!(sp.inbound_edges[2], Some(1));
+        // Vertex 1 reached via 2 (bottleneck min(4, 2) = 2 beats direct width 1)
+        assert_eq!(sp.widths[1], Some(2.0));
+        assert_eq!(sp.parents[1], Some(2));
+        assert_eq!(sp.inbound_edges[1], Some(2));
+    }
+
+    #[test]
+    fn widest_paths_widths_match_widest_path_widths() {
+        // The struct's `widths` field must match the standalone function.
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let weights = [5.0, 1.0, 3.0];
+        let sp = widest_paths(&g, 0, &weights).unwrap();
+        let standalone = widest_path_widths(&g, 0, &weights).unwrap();
+        assert_eq!(sp.widths, standalone);
+    }
+
+    #[test]
+    fn widest_paths_unreachable_has_none_in_all_three_fields() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let sp = widest_paths(&g, 0, &[5.0, 7.0]).unwrap();
+        // Unreachable vertex 2: widths/parents/inbound_edges all None.
+        assert_eq!(sp.widths[2], None);
+        assert_eq!(sp.parents[2], None);
+        assert_eq!(sp.inbound_edges[2], None);
+        // Reachable vertex 1 (via edge 0) — parent is source.
+        assert_eq!(sp.parents[1], Some(0));
+        assert_eq!(sp.inbound_edges[1], Some(0));
+    }
+
+    #[test]
+    fn widest_paths_directed_in_mode() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        // IN mode from 2: reaches 1 (edge 1) and 0 (via edge 0).
+        let sp = widest_paths_with_mode(&g, 2, &[5.0, 3.0], DijkstraMode::In).unwrap();
+        assert_eq!(sp.widths[2], Some(f64::INFINITY));
+        assert_eq!(sp.widths[1], Some(3.0));
+        assert_eq!(sp.widths[0], Some(3.0));
+        // Parents under IN mode: 1's predecessor reached via edge 1 → from
+        // 2's side that is vertex 2 (edge_other(1, 1) = 2).
+        assert_eq!(sp.parents[1], Some(2));
+        assert_eq!(sp.parents[0], Some(1));
+    }
+
+    #[test]
+    fn widest_paths_source_out_of_range_errors() {
+        let g = Graph::with_vertices(3);
+        let err = widest_paths(&g, 99, &[]).unwrap_err();
+        assert!(matches!(
+            err,
+            IgraphError::VertexOutOfRange { id: 99, n: 3 }
+        ));
+    }
+
+    #[test]
+    fn widest_paths_nan_weight_errors() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        let err = widest_paths(&g, 0, &[f64::NAN]).unwrap_err();
+        assert!(matches!(err, IgraphError::InvalidArgument(_)));
+    }
+
+    #[test]
+    fn widest_paths_spt_endpoints_match_widest_path_chain() {
+        // Walking back from a target via parents/inbound_edges must
+        // reconstruct exactly the chain returned by widest_path.
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let weights = [5.0, 1.0, 3.0];
+        let sp = widest_paths(&g, 0, &weights).unwrap();
+        let path = widest_path(&g, 0, 3, &weights).unwrap().unwrap();
+        // Reconstruct via SPT from target 3.
+        let mut reconstructed: Vec<u32> = vec![3];
+        let mut cur = 3usize;
+        while let Some(prev) = sp.parents[cur] {
+            reconstructed.push(prev);
+            cur = prev as usize;
+        }
+        reconstructed.reverse();
+        assert_eq!(reconstructed, path.0);
     }
 }

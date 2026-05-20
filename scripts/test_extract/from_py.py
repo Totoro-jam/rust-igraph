@@ -552,6 +552,45 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-014: Single-source widest-paths SPT struct (widths +
+# parents + inbound_edges). Hand-computed; source's width null.
+WIDEST_PATHS_SPT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_paths_py_directed_chain",
+        # Directed 0→1→2→3 weights (5, 3, 4); widest from 0: chain
+        # bottlenecks 5, 3, 3. Each vertex reached by the unique chain.
+        "origin": "constructed: directed P4 (5,3,4) — unique SPT",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=True
+        ),
+        "graph_weights": [5.0, 3.0, 4.0],
+        "algo": "widest_paths",
+        "params": {"source": 0},
+        "expected": {
+            "widths": [None, 5.0, 3.0, 3.0],
+            "parents": [None, 0, 1, 2],
+            "inbound_edges": [None, 0, 1, 2],
+        },
+    },
+    {
+        "case": "widest_paths_py_chain_with_bottleneck",
+        # 0-1-2-3 with weights 5, 1, 3; widths from 0 = 5, 1, 1.
+        # Each vertex reached by the unique chain.
+        "origin": "constructed: P4 (5,1,3) — bottleneck shrinks at edge 1",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [5.0, 1.0, 3.0],
+        "algo": "widest_paths",
+        "params": {"source": 0},
+        "expected": {
+            "widths": [None, 5.0, 1.0, 1.0],
+            "parents": [None, 0, 1, 2],
+            "inbound_edges": [None, 0, 1, 2],
+        },
+    },
+]
+
 # ALGO-SP-013: Multi-target widest paths.
 WIDEST_PATHS_TO_MANIFEST: List[Dict[str, Any]] = [
     {
@@ -1620,6 +1659,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_path": WIDEST_PATH_GET_MANIFEST,
     "widest_path_widths_floyd_warshall": WIDEST_PATH_WIDTHS_FW_MANIFEST,
     "widest_paths_to": WIDEST_PATHS_TO_MANIFEST,
+    "widest_paths": WIDEST_PATHS_SPT_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

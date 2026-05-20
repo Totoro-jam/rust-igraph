@@ -1,0 +1,48 @@
+{
+  "source": "c",
+  "origin": "constructed: triangle (1,4,2) \u2014 SPT with shortcut at 2",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      4.0,
+      2.0
+    ]
+  },
+  "algo": "widest_paths",
+  "params": {
+    "source": 0
+  },
+  "expected": {
+    "widths": [
+      null,
+      2.0,
+      4.0
+    ],
+    "parents": [
+      null,
+      2,
+      0
+    ],
+    "inbound_edges": [
+      null,
+      2,
+      1
+    ]
+  }
+}

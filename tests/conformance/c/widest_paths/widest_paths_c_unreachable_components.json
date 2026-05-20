@@ -1,0 +1,46 @@
+{
+  "source": "c",
+  "origin": "constructed: two disjoint edges \u2014 half the vertices unreachable",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      3.0,
+      7.0
+    ]
+  },
+  "algo": "widest_paths",
+  "params": {
+    "source": 0
+  },
+  "expected": {
+    "widths": [
+      null,
+      3.0,
+      null,
+      null
+    ],
+    "parents": [
+      null,
+      0,
+      null,
+      null
+    ],
+    "inbound_edges": [
+      null,
+      0,
+      null,
+      null
+    ]
+  }
+}

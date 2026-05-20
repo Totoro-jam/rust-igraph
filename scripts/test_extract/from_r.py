@@ -619,6 +619,45 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-014: Single-source widest-paths SPT struct (widths +
+# parents + inbound_edges). rigraph doesn't bind this; hand-computed.
+WIDEST_PATHS_SPT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_paths_R_parallel_edges_pick_widest",
+        # Parallel edges (0,1) with widths 1, 5, 3. The widest direct
+        # edge (id 1, width 5) wins; parent_edge is edge 1.
+        "origin": "constructed (rigraph-style): 3 parallel edges 0-1 (1,5,3)",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1), (0, 1)], directed=False
+        ),
+        "graph_weights": [1.0, 5.0, 3.0],
+        "algo": "widest_paths",
+        "params": {"source": 0},
+        "expected": {
+            "widths": [None, 5.0],
+            "parents": [None, 0],
+            "inbound_edges": [None, 1],
+        },
+    },
+    {
+        "case": "widest_paths_R_negative_finite_edge_bottleneck",
+        # Negative-but-finite weight (-1.0) acts as a valid bottleneck:
+        # chain 0-1-2 has widths [INF, -1, min(-1, 1)] = [INF, -1, -1].
+        "origin": "constructed (rigraph-style): negative-finite first edge sets bottleneck",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [-1.0, 1.0],
+        "algo": "widest_paths",
+        "params": {"source": 0},
+        "expected": {
+            "widths": [None, -1.0, -1.0],
+            "parents": [None, 0, 1],
+            "inbound_edges": [None, 0, 1],
+        },
+    },
+]
+
 # ALGO-SP-013: Multi-target widest paths. rigraph does not bind
 # this directly; hand-computed expected paths.
 WIDEST_PATHS_TO_MANIFEST: List[Dict[str, Any]] = [
@@ -1732,6 +1771,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_path": WIDEST_PATH_GET_MANIFEST,
     "widest_path_widths_floyd_warshall": WIDEST_PATH_WIDTHS_FW_MANIFEST,
     "widest_paths_to": WIDEST_PATHS_TO_MANIFEST,
+    "widest_paths": WIDEST_PATHS_SPT_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

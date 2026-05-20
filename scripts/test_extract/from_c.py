@@ -611,6 +611,44 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-014: Single-source widest-paths SPT (widths + parents +
+# inbound_edges). Source: widest_paths.c (lines 102-322).
+# Fixtures encode source's width as null (Infinity convention).
+WIDEST_PATHS_SPT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_paths_c_triangle_spt",
+        # Triangle (1, 4, 2): widest 0→1 routes via 2 (bottleneck 2),
+        # widest 0→2 direct (width 4).
+        "origin": "constructed: triangle (1,4,2) — SPT with shortcut at 2",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "widest_paths",
+        "params": {"source": 0},
+        "expected": {
+            "widths": [None, 2.0, 4.0],
+            "parents": [None, 2, 0],
+            "inbound_edges": [None, 2, 1],
+        },
+    },
+    {
+        "case": "widest_paths_c_unreachable_components",
+        "origin": "constructed: two disjoint edges — half the vertices unreachable",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [3.0, 7.0],
+        "algo": "widest_paths",
+        "params": {"source": 0},
+        "expected": {
+            "widths": [None, 3.0, None, None],
+            "parents": [None, 0, None, None],
+            "inbound_edges": [None, 0, None, None],
+        },
+    },
+]
+
 # ALGO-SP-013: Multi-target widest paths (single source).
 # Returns one Option<(vertices, edges)> per target, in the order
 # the targets were given. Source: widest_paths.c (lines 102-322).
@@ -1869,6 +1907,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_path": WIDEST_PATH_GET_MANIFEST,
     "widest_path_widths_floyd_warshall": WIDEST_PATH_WIDTHS_FW_MANIFEST,
     "widest_paths_to": WIDEST_PATHS_TO_MANIFEST,
+    "widest_paths": WIDEST_PATHS_SPT_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,
