@@ -1,0 +1,45 @@
+{
+  "source": "c",
+  "origin": "constructed: P4 unit widths \u2014 unique widest path",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "widest_path",
+  "params": {
+    "from": 0,
+    "to": 3
+  },
+  "expected": {
+    "vertices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "edges": [
+      0,
+      1,
+      2
+    ]
+  }
+}

@@ -622,6 +622,60 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "widest_path":
+        # Counterpart of igraph_get_widest_path(_, _, _, from, to,
+        # weights, IGRAPH_OUT). python-igraph does not bind widest
+        # paths so the reference is inline: same SPFA-style Dijkstra
+        # as the widths oracle, plus parent-edge tracking and
+        # backwards reconstruction.
+        import heapq
+
+        from_v = int(params["from"])
+        to_v = int(params["to"])
+        n = g.vcount()
+        if g.ecount() > 0 and "weight" in g.edge_attributes():
+            ew = list(g.es["weight"])
+        else:
+            ew = [1.0] * g.ecount()
+        widths = [float("-inf")] * n
+        widths[from_v] = float("inf")
+        parent = [None] * n
+        heap = [(-float("inf"), from_v)]
+        while heap:
+            neg_w, v = heapq.heappop(heap)
+            w = -neg_w
+            if w < widths[v]:
+                continue
+            eids = g.incident(v, mode="out" if g.is_directed() else "all")
+            for e in eids:
+                edge = g.es[e]
+                edge_w = ew[e]
+                if edge_w == float("-inf"):
+                    continue
+                other = edge.target if edge.source == v else edge.source
+                alt = min(w, edge_w)
+                if alt > widths[other]:
+                    widths[other] = alt
+                    parent[other] = (v, e)
+                    heapq.heappush(heap, (-alt, other))
+        # Trivial self-target.
+        if from_v == to_v:
+            return {"vertices": [from_v], "edges": []}
+        if widths[to_v] == float("-inf"):
+            return None
+        # Reconstruct.
+        vs = [to_v]
+        es = []
+        cur = to_v
+        while cur != from_v:
+            prev, eid = parent[cur]
+            vs.append(prev)
+            es.append(eid)
+            cur = prev
+        vs.reverse()
+        es.reverse()
+        return {"vertices": vs, "edges": es}
+
     if algo == "widest_path_widths":
         # Counterpart of igraph_widest_path_widths_dijkstra(_, _,
         # vss(source), vss_all(), weights, IGRAPH_OUT). python-igraph

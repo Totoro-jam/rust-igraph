@@ -552,6 +552,35 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-011: Widest path (single source-to-target). python-igraph
+# does not bind this either; hand-computed expected values.
+WIDEST_PATH_GET_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_get_py_self_target_trivial",
+        # Source equals target: trivial zero-edge path.
+        "origin": "constructed: self-target path is single vertex, no edges",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0],
+        "algo": "widest_path",
+        "params": {"from": 1, "to": 1},
+        "expected": {"vertices": [1], "edges": []},
+    },
+    {
+        "case": "widest_get_py_directed_chain_out",
+        # Directed 0 → 1 → 2 with weights 5, 3 in OUT mode.
+        "origin": "constructed: directed P3 (5, 3) OUT — chain is unique path",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "graph_weights": [5.0, 3.0],
+        "algo": "widest_path",
+        "params": {"from": 0, "to": 2},
+        "expected": {"vertices": [0, 1, 2], "edges": [0, 1]},
+    },
+]
+
 # ALGO-SP-010: Widest-path widths. python-igraph does not bind the
 # C `igraph_widest_path_widths_dijkstra`, so these expected values
 # are hand-computed (same shape as our Rust API, source position null).
@@ -1514,6 +1543,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bellman_ford_distances": BELLMAN_FORD_MANIFEST,
     "johnson_distances": JOHNSON_MANIFEST,
     "widest_path_widths": WIDEST_PATH_MANIFEST,
+    "widest_path": WIDEST_PATH_GET_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

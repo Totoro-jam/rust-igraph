@@ -2037,6 +2037,58 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// SP-011 `widest_path` invariants:
+    /// - When `widest_path_widths[target].is_some()`, `widest_path`
+    ///   returns `Some((vs, es))` with the same bottleneck (min over
+    ///   `es`'s weights == `widths[target]`).
+    /// - When `widths[target].is_none()`, `widest_path` returns `None`.
+    /// - The returned chain is a valid walk: every consecutive
+    ///   `(vs[i], vs[i+1])` is an endpoint pair of edge `es[i]`.
+    /// - `vs[0] == from`, `*vs.last().unwrap() == target`.
+    #[test]
+    fn widest_path_chain_is_well_formed(g in arb_graph(8), target in 0u32..8) {
+        if g.vcount() == 0 || target >= g.vcount() { return Ok(()); }
+        let m = g.ecount();
+        let weights: Vec<f64> = (0..m).map(|i| 1.0 + (i as f64) * 0.5).collect();
+        let from = 0u32;
+        let widths = rust_igraph::widest_path_widths(&g, from, &weights).unwrap();
+        let path = rust_igraph::widest_path(&g, from, target, &weights).unwrap();
+        match (path, widths[target as usize]) {
+            (None, None) => {}
+            (None, Some(_)) if target != from => {
+                prop_assert!(false, "widest_path None but widths reachable")
+            }
+            (Some((vs, es)), _) => {
+                prop_assert_eq!(vs[0], from);
+                prop_assert_eq!(*vs.last().unwrap(), target);
+                prop_assert_eq!(es.len() + 1, vs.len());
+                // Walk validity: every step uses an edge with the
+                // correct endpoints.
+                for (i, w) in vs.windows(2).enumerate() {
+                    let (a, b) = (w[0], w[1]);
+                    let (s, t) = g.edge(es[i]).unwrap();
+                    prop_assert!(
+                        (s == a && t == b) || (t == a && s == b),
+                        "step {}: edge {} = ({},{}), expected adjacency ({},{})",
+                        i, es[i], s, t, a, b
+                    );
+                }
+                // Bottleneck of the chosen path equals widths[target]
+                // (when target != from).
+                if target != from {
+                    let bottleneck = es.iter()
+                        .map(|&e| weights[e as usize])
+                        .fold(f64::INFINITY, f64::min);
+                    let expected = widths[target as usize].unwrap();
+                    prop_assert!(
+                        (bottleneck - expected).abs() < 1e-9,
+                        "path bottleneck {} != widths {}", bottleneck, expected);
+                }
+            }
+            _ => {}
+        }
+    }
+
     /// SP-010 widest-path invariants:
     /// - `widths[source] == Some(f64::INFINITY)`.
     /// - For every reachable vertex `v`, `widths[v]` is **at most**

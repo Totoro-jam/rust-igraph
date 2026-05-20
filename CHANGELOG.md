@@ -22,6 +22,27 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(paths)* **ALGO-SP-011**: Single-source single-target widest
+  path (`widest_path(graph, from, to, weights) ->
+  IgraphResult<Option<(Vec<VertexId>, Vec<EdgeId>)>>` plus the
+  mode-aware `widest_path_with_mode`). Counterpart of
+  `igraph_get_widest_path` from
+  `references/igraph/src/paths/widest_paths.c:365`. Returns the
+  actual path (vertex chain + edge chain) along the
+  maximum-bottleneck `from → to` route, or `None` if unreachable.
+  Self-target (`from == to`) returns the trivial `(vec![from],
+  vec![])`.
+  Implementation refactors SP-010's loop into a private
+  `widest_inner` helper that returns both widths and parent edges;
+  `widest_path_widths` strips parents, `widest_path` walks them
+  back from the target. Reusing the same core keeps the algorithm
+  in one place.
+  9 unit tests + 2 oracle tests vs an inline Python reference +
+  6 conformance fixtures (2 each C/Python/R, hand-computed since
+  python-igraph/rigraph do not bind widest paths) + 1 proptest
+  invariant (`widest_path_chain_is_well_formed` — chain validity,
+  endpoint anchoring, bottleneck consistency with
+  `widest_path_widths`).
 - *(paths)* **ALGO-SP-010**: Single-source widest-path widths
   (`widest_path_widths(graph, source, weights) ->
   IgraphResult<Vec<Option<f64>>>` plus the mode-aware

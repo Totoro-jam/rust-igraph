@@ -887,6 +887,65 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn widest_path_three_source_conformance() {
+    // Single source-to-target. JSON null means unreachable;
+    // `{vertices, edges}` means the path.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("widest_path");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let from = u32::try_from(
+                case.params
+                    .get("from")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("from param missing"),
+            )
+            .expect("from fits in u32");
+            let to = u32::try_from(
+                case.params
+                    .get("to")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("to param missing"),
+            )
+            .expect("to fits in u32");
+            let result = rust_igraph::widest_path(&g, from, to, &weights).expect("widest_path");
+            let rust_json = match result {
+                None => serde_json::Value::Null,
+                Some((vs, es)) => serde_json::json!({
+                    "vertices": vs,
+                    "edges": es,
+                }),
+            };
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "widest_path");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn widest_path_widths_three_source_conformance() {
     // Widths convention: source's own width is `+inf`; JSON has no
     // infinity literal so fixtures encode source position as `null`

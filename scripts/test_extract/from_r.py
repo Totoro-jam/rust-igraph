@@ -619,6 +619,37 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-011: Widest path (single source-to-target). Hand-computed —
+# rigraph does not expose this directly.
+WIDEST_PATH_GET_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_get_R_chain_three_edges",
+        # Path 0-1-2-3 with weights 5, 1, 3. Widest 0→3 path is the
+        # chain (unique). Bottleneck = min(5, 1, 3) = 1.
+        "origin": "constructed (rigraph-style): P4 (5,1,3) — bottleneck 1",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [5.0, 1.0, 3.0],
+        "algo": "widest_path",
+        "params": {"from": 0, "to": 3},
+        "expected": {"vertices": [0, 1, 2, 3], "edges": [0, 1, 2]},
+    },
+    {
+        "case": "widest_get_R_triangle_via_shortcut",
+        # Triangle (1, 4, 2). Widest 0→1: chain 0-2-1 (bottleneck 2)
+        # beats direct edge (width 1). Order matches Rust impl.
+        "origin": "constructed (rigraph-style): triangle (1,4,2) — chain via 2 wins",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 4.0, 2.0],
+        "algo": "widest_path",
+        "params": {"from": 0, "to": 1},
+        "expected": {"vertices": [0, 2, 1], "edges": [1, 2]},
+    },
+]
+
 # ALGO-SP-010: Widest-path widths. rigraph does not expose this API
 # either; values are hand-computed (source position null by convention).
 WIDEST_PATH_MANIFEST: List[Dict[str, Any]] = [
@@ -1623,6 +1654,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bellman_ford_distances": BELLMAN_FORD_MANIFEST,
     "johnson_distances": JOHNSON_MANIFEST,
     "widest_path_widths": WIDEST_PATH_MANIFEST,
+    "widest_path": WIDEST_PATH_GET_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

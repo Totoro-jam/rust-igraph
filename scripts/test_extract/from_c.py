@@ -611,6 +611,36 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-SP-011: Widest-path single source-to-target (returns the
+# path itself, not just its width). Source: widest_paths.c (lines 102-322).
+# Conformance compares only the bottleneck width along the returned
+# path, not vertex identity (different tie-breaking is allowed).
+WIDEST_PATH_GET_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "widest_get_c_chain_unit_widths",
+        # Path 0-1-2-3 unit widths; only one widest path exists.
+        "origin": "constructed: P4 unit widths — unique widest path",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0, 1.0],
+        "algo": "widest_path",
+        "params": {"from": 0, "to": 3},
+        "expected": {"vertices": [0, 1, 2, 3], "edges": [0, 1, 2]},
+    },
+    {
+        "case": "widest_get_c_unreachable_yields_null",
+        "origin": "constructed: 4 vertices, 2 disjoint edges — no 0→2 path",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0],
+        "algo": "widest_path",
+        "params": {"from": 0, "to": 2},
+        "expected": None,
+    },
+]
+
 # ALGO-SP-010: Widest-path widths (single source). Bottleneck on the
 # best (max-min) path from source to each vertex. Source: widest_paths.c.
 # Source's own width is convention-infinite; encoded as null in fixtures
@@ -1762,6 +1792,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bellman_ford_distances": BELLMAN_FORD_MANIFEST,
     "johnson_distances": JOHNSON_MANIFEST,
     "widest_path_widths": WIDEST_PATH_MANIFEST,
+    "widest_path": WIDEST_PATH_GET_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

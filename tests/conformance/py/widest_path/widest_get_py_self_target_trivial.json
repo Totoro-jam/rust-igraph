@@ -1,0 +1,33 @@
+{
+  "source": "py",
+  "origin": "constructed: self-target path is single vertex, no edges",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "widest_path",
+  "params": {
+    "from": 1,
+    "to": 1
+  },
+  "expected": {
+    "vertices": [
+      1
+    ],
+    "edges": []
+  }
+}

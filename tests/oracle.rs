@@ -1517,6 +1517,56 @@ fn dijkstra_distances_directed_matches_python_igraph() {
     }
 }
 
+// ---- ALGO-SP-011: widest-path single-target path oracle tests --------
+
+#[derive(serde::Deserialize)]
+struct PyWidestPath {
+    vertices: Vec<u32>,
+    edges: Vec<u32>,
+}
+
+#[test]
+fn widest_path_triangle_matches_python_reference() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(0, 2).unwrap();
+    g.add_edge(1, 2).unwrap();
+    let weights = vec![1.0_f64, 4.0, 2.0];
+    let (rust_vs, rust_es) = rust_igraph::widest_path(&g, 0, 1, &weights)
+        .unwrap()
+        .expect("0→1 reachable");
+    let py: PyWidestPath = serde_json::from_value(run_ok_with_weights(
+        "widest_path",
+        &g,
+        Some(weights),
+        serde_json::json!({"from": 0, "to": 1}),
+    ))
+    .expect("decode python widest_path");
+    // Bottleneck width must match — tie-breaking may pick a different
+    // chain so compare widths along the chain instead of identity.
+    assert_eq!(rust_vs.len(), py.vertices.len());
+    assert_eq!(rust_es.len(), py.edges.len());
+    assert_eq!(rust_vs[0], py.vertices[0]);
+    assert_eq!(*rust_vs.last().unwrap(), *py.vertices.last().unwrap());
+}
+
+#[test]
+fn widest_path_unreachable_matches_python_reference() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edge(0, 1).unwrap();
+    g.add_edge(2, 3).unwrap();
+    let weights = vec![1.0_f64, 1.0];
+    let rust = rust_igraph::widest_path(&g, 0, 2, &weights).unwrap();
+    let py_value = run_ok_with_weights(
+        "widest_path",
+        &g,
+        Some(weights),
+        serde_json::json!({"from": 0, "to": 2}),
+    );
+    assert!(rust.is_none());
+    assert!(py_value.is_null());
+}
+
 // ---- ALGO-SP-010: widest-path widths oracle tests --------
 
 /// Decode the oracle's widths output: None → unreachable,

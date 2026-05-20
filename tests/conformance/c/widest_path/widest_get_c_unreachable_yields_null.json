@@ -1,0 +1,28 @@
+{
+  "source": "c",
+  "origin": "constructed: 4 vertices, 2 disjoint edges \u2014 no 0\u21922 path",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "widest_path",
+  "params": {
+    "from": 0,
+    "to": 2
+  },
+  "expected": null
+}
