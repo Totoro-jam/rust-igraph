@@ -1,0 +1,36 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): parallel edges count each",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "site_percolation",
+  "params": {
+    "vertex_order": [
+      0,
+      1
+    ]
+  },
+  "expected": {
+    "giant_size": [
+      1,
+      2
+    ],
+    "edge_count": [
+      0,
+      2
+    ]
+  }
+}

@@ -22,6 +22,33 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(connectivity)* **ALGO-CC-032**: Site percolation
+  (`site_percolation(graph: &Graph, vertex_order: &[VertexId]) ->
+  IgraphResult<SitePercolation>`). Counterpart of
+  `igraph_site_percolation` from
+  `references/igraph/src/connectivity/percolation.c:328`. Activates
+  sites (vertices) in the given order; each activation step adds
+  every edge that now connects two activated vertices, unioning
+  the corresponding trees in a shared union-find.
+  Output struct `SitePercolation` carries `giant_size[i]` (size of
+  the largest component after the i-th vertex activates) and
+  `edge_count[i]` (cumulative count of edges activated through step
+  i). Self-loops on the just-activated vertex contribute 2 to
+  `edge_count` (loop appears twice in the all-neighbor walk per
+  `IGRAPH_LOOPS` semantics); parallel edges each count separately
+  per `IGRAPH_MULTIPLE`. Edge direction is ignored (percolation is
+  pure connectivity).
+  Validates up front: ids in range and no duplicates. `vertex_order`
+  may be a strict subset — unlisted vertices stay inactive.
+  11 unit tests + 3 oracle tests vs an inline Python union-find
+  reference + 6 conformance fixtures (2 each C/Python/R) +
+  1 proptest invariant
+  (`site_percolation_monotone_and_matches_components`: both curves
+  monotone non-decreasing; final giant after activating every
+  vertex equals the full-graph largest CC).
+  **Percolation series complete** — CC-030 (edgelist) + CC-031
+  (bond) + CC-032 (site) cover the upstream `percolation.c` module
+  in full.
 - *(connectivity)* **ALGO-CC-031**: Bond percolation
   (`bond_percolation(graph: &Graph, edge_order: &[EdgeId]) ->
   IgraphResult<EdgelistPercolation>`). Counterpart of

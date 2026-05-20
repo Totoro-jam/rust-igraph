@@ -1,0 +1,45 @@
+{
+  "source": "py",
+  "origin": "constructed: two pairs + isolated vertex",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "site_percolation",
+  "params": {
+    "vertex_order": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "expected": {
+    "giant_size": [
+      1,
+      2,
+      2,
+      2,
+      2
+    ],
+    "edge_count": [
+      0,
+      1,
+      1,
+      2,
+      2
+    ]
+  }
+}

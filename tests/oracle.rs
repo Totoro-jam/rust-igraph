@@ -1614,6 +1614,61 @@ fn bond_percolation_partial_order_matches_python_reference() {
     bond_percolation_round_trip_via_edgelist_oracle(&g, &[0, 2]);
 }
 
+// ---- ALGO-CC-032: site_percolation oracle tests --------
+
+#[derive(serde::Deserialize)]
+struct PySitePercolation {
+    giant_size: Vec<u32>,
+    edge_count: Vec<u32>,
+}
+
+#[test]
+fn site_percolation_chain_matches_python_reference() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 3)]).unwrap();
+    let rust = rust_igraph::site_percolation(&g, &[0, 1, 2, 3]).unwrap();
+    let py: PySitePercolation = serde_json::from_value(run_ok(
+        "site_percolation",
+        &g,
+        serde_json::json!({"vertex_order": [0, 1, 2, 3]}),
+    ))
+    .expect("decode python site_percolation");
+    assert_eq!(rust.giant_size, py.giant_size);
+    assert_eq!(rust.edge_count, py.edge_count);
+}
+
+#[test]
+fn site_percolation_triangle_matches_python_reference() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edges(vec![(0u32, 1u32), (0, 2), (1, 2)]).unwrap();
+    let rust = rust_igraph::site_percolation(&g, &[0, 1, 2]).unwrap();
+    let py: PySitePercolation = serde_json::from_value(run_ok(
+        "site_percolation",
+        &g,
+        serde_json::json!({"vertex_order": [0, 1, 2]}),
+    ))
+    .expect("decode python site_percolation");
+    assert_eq!(rust.giant_size, py.giant_size);
+    assert_eq!(rust.edge_count, py.edge_count);
+}
+
+#[test]
+fn site_percolation_isolated_components_matches_python_reference() {
+    let mut g = Graph::with_vertices(5);
+    g.add_edges(vec![(0u32, 1u32), (2, 3)]).unwrap();
+    // Activate all 5 in unusual order; 4 is isolated throughout.
+    let order = [4u32, 0, 2, 1, 3];
+    let rust = rust_igraph::site_percolation(&g, &order).unwrap();
+    let py: PySitePercolation = serde_json::from_value(run_ok(
+        "site_percolation",
+        &g,
+        serde_json::json!({"vertex_order": order}),
+    ))
+    .expect("decode python site_percolation");
+    assert_eq!(rust.giant_size, py.giant_size);
+    assert_eq!(rust.edge_count, py.edge_count);
+}
+
 // ---- ALGO-SP-014: WidestPaths struct oracle tests --------
 
 #[derive(serde::Deserialize, Debug)]

@@ -54,7 +54,7 @@ pub use crate::algorithms::connectivity::components::{ConnectedComponents, conne
 pub use crate::algorithms::connectivity::decompose::decompose;
 pub use crate::algorithms::connectivity::is_biconnected::is_biconnected;
 pub use crate::algorithms::connectivity::percolation::{
-    EdgelistPercolation, bond_percolation, edgelist_percolation,
+    EdgelistPercolation, SitePercolation, bond_percolation, edgelist_percolation, site_percolation,
 };
 pub use crate::algorithms::connectivity::reachability::count_reachable;
 pub use crate::algorithms::connectivity::reachability_matrix::reachability_matrix;

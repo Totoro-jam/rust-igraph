@@ -24,7 +24,9 @@ pub use bridges::bridges;
 pub use components::{ConnectedComponents, connected_components};
 pub use decompose::decompose;
 pub use is_biconnected::is_biconnected;
-pub use percolation::{EdgelistPercolation, bond_percolation, edgelist_percolation};
+pub use percolation::{
+    EdgelistPercolation, SitePercolation, bond_percolation, edgelist_percolation, site_percolation,
+};
 pub use reachability::count_reachable;
 pub use reachability_matrix::reachability_matrix;
 pub use strong::strongly_connected_components;

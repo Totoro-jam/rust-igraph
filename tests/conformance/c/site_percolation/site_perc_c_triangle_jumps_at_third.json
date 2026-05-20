@@ -1,0 +1,43 @@
+{
+  "source": "c",
+  "origin": "constructed: triangle \u2014 vertex 2 closes both extra edges",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "site_percolation",
+  "params": {
+    "vertex_order": [
+      0,
+      1,
+      2
+    ]
+  },
+  "expected": {
+    "giant_size": [
+      1,
+      2,
+      3
+    ],
+    "edge_count": [
+      0,
+      1,
+      3
+    ]
+  }
+}

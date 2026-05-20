@@ -619,6 +619,40 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CC-032: Site percolation. rigraph doesn't bind this; hand-
+# computed expected values.
+SITE_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "site_perc_R_parallel_edges_count_each",
+        # Two parallel edges between 0 and 1: activating both yields
+        # edge_count=2 (each parallel edge counted).
+        "origin": "constructed (rigraph-style): parallel edges count each",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1)], directed=False
+        ),
+        "algo": "site_percolation",
+        "params": {"vertex_order": [0, 1]},
+        "expected": {
+            "giant_size": [1, 2],
+            "edge_count": [0, 2],
+        },
+    },
+    {
+        "case": "site_perc_R_reverse_order_chain",
+        # Chain 0-1-2-3, activate in reverse: 3, 2, 1, 0.
+        "origin": "constructed (rigraph-style): P4 activated in reverse",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "site_percolation",
+        "params": {"vertex_order": [3, 2, 1, 0]},
+        "expected": {
+            "giant_size": [1, 2, 3, 4],
+            "edge_count": [0, 1, 2, 3],
+        },
+    },
+]
+
 # ALGO-CC-031: Bond percolation. rigraph doesn't bind this either;
 # hand-computed expected values.
 BOND_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
@@ -1842,6 +1876,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_paths": WIDEST_PATHS_SPT_MANIFEST,
     "edgelist_percolation": EDGELIST_PERCOLATION_MANIFEST,
     "bond_percolation": BOND_PERCOLATION_MANIFEST,
+    "site_percolation": SITE_PERCOLATION_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

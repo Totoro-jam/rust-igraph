@@ -1,0 +1,46 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): P4 activated in reverse",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "site_percolation",
+  "params": {
+    "vertex_order": [
+      3,
+      2,
+      1,
+      0
+    ]
+  },
+  "expected": {
+    "giant_size": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "edge_count": [
+      0,
+      1,
+      2,
+      3
+    ]
+  }
+}

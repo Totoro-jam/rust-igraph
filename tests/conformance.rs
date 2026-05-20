@@ -887,6 +887,58 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn site_percolation_three_source_conformance() {
+    // Reads vertex_order from params; runs site_percolation against
+    // the build_graph-constructed Rust graph.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("site_percolation");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let vertex_order: Vec<u32> = case
+                .params
+                .get("vertex_order")
+                .and_then(serde_json::Value::as_array)
+                .expect("vertex_order param missing")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("vertex id is integer"))
+                        .expect("vertex id fits in u32")
+                })
+                .collect();
+            let p = rust_igraph::site_percolation(&g, &vertex_order).expect("site_percolation");
+            let rust_json = serde_json::json!({
+                "giant_size": p.giant_size,
+                "edge_count": p.edge_count,
+            });
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "site_percolation");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn bond_percolation_three_source_conformance() {
     // Reads edge_order from params, resolves through Rust's
     // graph.edge() (via bond_percolation itself), and compares to

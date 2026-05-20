@@ -1,0 +1,46 @@
+{
+  "source": "py",
+  "origin": "constructed: star, centre activated last",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "site_percolation",
+  "params": {
+    "vertex_order": [
+      1,
+      2,
+      3,
+      0
+    ]
+  },
+  "expected": {
+    "giant_size": [
+      1,
+      1,
+      1,
+      4
+    ],
+    "edge_count": [
+      0,
+      0,
+      0,
+      3
+    ]
+  }
+}

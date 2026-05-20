@@ -2037,6 +2037,48 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// CC-032 `site_percolation` invariants:
+    /// - Outputs have length `vertex_order.len()`.
+    /// - `giant_size` and `edge_count` are both monotone
+    ///   non-decreasing (giant and edge counter only grow).
+    /// - `edge_count[i]` is bounded above by twice the total number
+    ///   of edges in the subgraph induced by the first `i+1`
+    ///   activated vertices (loose upper bound; loops + parallels).
+    /// - Final `giant_size` equals the largest CC of the subgraph
+    ///   induced by the activated vertices (when all are activated).
+    #[test]
+    fn site_percolation_monotone_and_matches_components(g in arb_graph(8)) {
+        let n = g.vcount();
+        if n == 0 { return Ok(()); }
+        // Activate every vertex in id order.
+        let order: Vec<u32> = (0..n).collect();
+        let p = rust_igraph::site_percolation(&g, &order).unwrap();
+        prop_assert_eq!(p.giant_size.len(), order.len());
+        prop_assert_eq!(p.edge_count.len(), order.len());
+        // Monotonicity.
+        for w in p.giant_size.windows(2) {
+            prop_assert!(w[0] <= w[1], "giant_size not monotone");
+        }
+        for w in p.edge_count.windows(2) {
+            prop_assert!(w[0] <= w[1], "edge_count not monotone");
+        }
+        // Final giant_size matches the largest CC of the full graph
+        // (since we activated every vertex).
+        let cc = rust_igraph::connected_components(&g).unwrap();
+        let mut bucket = vec![0u32; cc.count as usize];
+        for &c in &cc.membership {
+            bucket[c as usize] += 1;
+        }
+        let expected_giant = bucket.iter().max().copied().unwrap_or(0);
+        prop_assert_eq!(
+            *p.giant_size.last().unwrap(),
+            expected_giant,
+            "final site percolation giant {} != CC max {}",
+            p.giant_size.last().unwrap(),
+            expected_giant,
+        );
+    }
+
     /// CC-031 `bond_percolation` invariants:
     /// - With `edge_order = (0..ecount)`, bond_percolation produces
     ///   the same curves as `edgelist_percolation` over the graph's

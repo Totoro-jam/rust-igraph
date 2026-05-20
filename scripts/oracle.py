@@ -622,6 +622,72 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "site_percolation":
+        # Counterpart of igraph_site_percolation. python-igraph does
+        # not bind percolation; inline union-find reference, with
+        # all-neighbor walks that match upstream's IGRAPH_LOOPS |
+        # IGRAPH_MULTIPLE semantics (loops twice, parallels each).
+        vertex_order = [int(v) for v in params.get("vertex_order", [])]
+        n = g.vcount()
+        # Validate up front.
+        seen = set()
+        for vid in vertex_order:
+            if vid < 0 or vid >= n:
+                return {"_error": f"vertex id {vid} out of range (n={n})"}
+            if vid in seen:
+                return {"_error": f"duplicate vertex id {vid}"}
+            seen.add(vid)
+
+        if not vertex_order:
+            return {"giant_size": [], "edge_count": []}
+
+        links = list(range(n))
+        sizes = [0] * n
+
+        def find(v):
+            while links[v] != v:
+                links[v] = links[links[v]]
+                v = links[v]
+            return v
+
+        biggest = 1
+        edges_added = 0
+        giant_size = []
+        edge_count = []
+        for vid in vertex_order:
+            sizes[vid] = 1
+            # All-neighbor walk with IGRAPH_LOOPS | IGRAPH_MULTIPLE:
+            # for directed graphs, merge out + in incident edges; the
+            # `igraph_neighbors(IGRAPH_ALL, IGRAPH_LOOPS, IGRAPH_MULTIPLE)`
+            # call produces one entry per incident edge per endpoint.
+            if g.is_directed():
+                eids = list(g.incident(vid, mode="out")) + list(g.incident(vid, mode="in"))
+            else:
+                eids = list(g.incident(vid, mode="all"))
+            neighbors = []
+            for e in eids:
+                edge = g.es[e]
+                other = edge.target if edge.source == vid else edge.source
+                neighbors.append(other)
+            for nb in neighbors:
+                if sizes[nb] == 0:
+                    continue
+                edges_added += 1
+                ra = find(vid)
+                rb = find(nb)
+                if ra != rb:
+                    if sizes[ra] < sizes[rb]:
+                        parent, child = rb, ra
+                    else:
+                        parent, child = ra, rb
+                    links[child] = parent
+                    sizes[parent] += sizes[child]
+                    if sizes[parent] > biggest:
+                        biggest = sizes[parent]
+            giant_size.append(biggest)
+            edge_count.append(edges_added)
+        return {"giant_size": giant_size, "edge_count": edge_count}
+
     if algo == "edgelist_percolation":
         # Counterpart of igraph_edgelist_percolation. python-igraph
         # does not bind percolation; inline union-find reference.

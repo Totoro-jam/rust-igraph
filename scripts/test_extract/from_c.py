@@ -611,6 +611,41 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CC-032: Site percolation (vertex activation). Source:
+# connectivity/percolation.c (lines 328-410). Each vertex activates
+# in order; the connecting edges to already-activated neighbors
+# percolate (self-loops count twice, parallels count separately).
+SITE_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "site_perc_c_chain_natural_order",
+        # Path 0-1-2-3, activate in id order.
+        "origin": "constructed: P4 activated in id order",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "site_percolation",
+        "params": {"vertex_order": [0, 1, 2, 3]},
+        "expected": {
+            "giant_size": [1, 2, 3, 4],
+            "edge_count": [0, 1, 2, 3],
+        },
+    },
+    {
+        "case": "site_perc_c_triangle_jumps_at_third",
+        # Triangle K_3, activate 0, 1, 2.
+        "origin": "constructed: triangle — vertex 2 closes both extra edges",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "algo": "site_percolation",
+        "params": {"vertex_order": [0, 1, 2]},
+        "expected": {
+            "giant_size": [1, 2, 3],
+            "edge_count": [0, 1, 3],
+        },
+    },
+]
+
 # ALGO-CC-031: Bond percolation. Resolves the percolation sequence
 # from edge ids into a Graph. Source: connectivity/percolation.c
 # (lines 214-265). Wraps edgelist_percolation after edge lookup.
@@ -1980,6 +2015,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "widest_paths": WIDEST_PATHS_SPT_MANIFEST,
     "edgelist_percolation": EDGELIST_PERCOLATION_MANIFEST,
     "bond_percolation": BOND_PERCOLATION_MANIFEST,
+    "site_percolation": SITE_PERCOLATION_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,
