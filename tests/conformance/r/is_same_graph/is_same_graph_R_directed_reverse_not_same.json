@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed reverse \u21d2 not same",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_same_graph",
+  "params": {
+    "other": {
+      "n": 2,
+      "edges": [
+        [
+          1,
+          0
+        ]
+      ],
+      "directed": true
+    }
+  },
+  "expected": false
+}

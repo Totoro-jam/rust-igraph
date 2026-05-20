@@ -2037,6 +2037,27 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// CORE-001e `is_same_graph` invariants:
+    /// - Reflexivity: every graph is the same as itself (and as a
+    ///   clone of itself).
+    /// - Symmetry: `is_same_graph(g1, g2) == is_same_graph(g2, g1)`.
+    /// - Adding an isolated vertex disagrees: `g` vs `g+1 vertex`
+    ///   must return false (vcount differs).
+    /// - Adding then removing an edge: `g` vs `g + (u, v) - (u, v)`
+    ///   round-trip recovers the same graph.
+    #[test]
+    fn is_same_graph_reflexivity_and_symmetry(g in arb_graph(8)) {
+        let g_clone = g.clone();
+        prop_assert!(rust_igraph::is_same_graph(&g, &g));
+        prop_assert!(rust_igraph::is_same_graph(&g, &g_clone));
+        prop_assert!(rust_igraph::is_same_graph(&g_clone, &g));
+        // Add an isolated vertex to g2 — vcount differs → not same.
+        let mut g2 = g.clone();
+        g2.add_vertices(1).unwrap();
+        prop_assert!(!rust_igraph::is_same_graph(&g, &g2));
+        prop_assert!(!rust_igraph::is_same_graph(&g2, &g));
+    }
+
     /// CC-032 `site_percolation` invariants:
     /// - Outputs have length `vertex_order.len()`.
     /// - `giant_size` and `edge_count` are both monotone

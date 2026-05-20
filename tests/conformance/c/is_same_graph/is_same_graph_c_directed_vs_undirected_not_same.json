@@ -1,0 +1,29 @@
+{
+  "source": "c",
+  "origin": "constructed: directed vs undirected, same edges \u21d2 not same",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_same_graph",
+  "params": {
+    "other": {
+      "n": 2,
+      "edges": [
+        [
+          0,
+          1
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": false
+}

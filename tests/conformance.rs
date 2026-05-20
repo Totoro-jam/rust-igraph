@@ -887,6 +887,53 @@ fn dijkstra_distances_three_source_conformance() {
 }
 
 #[test]
+fn is_same_graph_three_source_conformance() {
+    // Reads the "other" graph from params.other, builds a Rust
+    // Graph for each side, and compares via `is_same_graph`.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("is_same_graph");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g1 = build_graph(&case.graph);
+            // Decode the "other" graph payload into the same shape
+            // GraphPayload uses, then build it.
+            let other_value = case
+                .params
+                .get("other")
+                .expect("other graph payload missing");
+            let other_payload: GraphPayload =
+                serde_json::from_value(other_value.clone()).expect("decode other graph");
+            let g2 = build_graph(&other_payload);
+            let rust = rust_igraph::is_same_graph(&g1, &g2);
+            let rust_json = serde_json::Value::Bool(rust);
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "is_same_graph");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn site_percolation_three_source_conformance() {
     // Reads vertex_order from params; runs site_percolation against
     // the build_graph-constructed Rust graph.

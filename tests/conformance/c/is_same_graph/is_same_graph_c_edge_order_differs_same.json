@@ -1,0 +1,37 @@
+{
+  "source": "c",
+  "origin": "constructed: same edges, different order \u21d2 same",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_same_graph",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          1,
+          2
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": true
+}

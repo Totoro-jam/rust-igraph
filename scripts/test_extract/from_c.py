@@ -611,6 +611,46 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CORE-001e: is_same_graph (structural equality). Source:
+# graph/type_indexededgelist.c (lines 1947-2003). Compares two
+# graphs as labelled vertex/edge sets — not isomorphism.
+IS_SAME_GRAPH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_same_graph_c_edge_order_differs_same",
+        # Two graphs with the same vertex/edge sets in different
+        # insertion orders are the same.
+        "origin": "constructed: same edges, different order ⇒ same",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "is_same_graph",
+        "params": {
+            "other": {
+                "n": 3,
+                "edges": [[1, 2], [0, 1]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "is_same_graph_c_directed_vs_undirected_not_same",
+        "origin": "constructed: directed vs undirected, same edges ⇒ not same",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1)], directed=True
+        ),
+        "algo": "is_same_graph",
+        "params": {
+            "other": {
+                "n": 2,
+                "edges": [[0, 1]],
+                "directed": False,
+            }
+        },
+        "expected": False,
+    },
+]
+
 # ALGO-CC-032: Site percolation (vertex activation). Source:
 # connectivity/percolation.c (lines 328-410). Each vertex activates
 # in order; the connecting edges to already-activated neighbors
@@ -2016,6 +2056,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edgelist_percolation": EDGELIST_PERCOLATION_MANIFEST,
     "bond_percolation": BOND_PERCOLATION_MANIFEST,
     "site_percolation": SITE_PERCOLATION_MANIFEST,
+    "is_same_graph": IS_SAME_GRAPH_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

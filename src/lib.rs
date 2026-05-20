@@ -65,6 +65,7 @@ pub use crate::algorithms::operators::complementer::complementer;
 pub use crate::algorithms::operators::difference::difference;
 pub use crate::algorithms::operators::disjoint_union::{disjoint_union, disjoint_union_many};
 pub use crate::algorithms::operators::intersection::intersection;
+pub use crate::algorithms::operators::is_same_graph::is_same_graph;
 pub use crate::algorithms::operators::simplify::simplify;
 pub use crate::algorithms::operators::union::union;
 pub use crate::algorithms::paths::astar::a_star_path;

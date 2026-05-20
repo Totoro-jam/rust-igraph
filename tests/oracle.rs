@@ -1614,6 +1614,76 @@ fn bond_percolation_partial_order_matches_python_reference() {
     bond_percolation_round_trip_via_edgelist_oracle(&g, &[0, 2]);
 }
 
+// ---- ALGO-CORE-001e: is_same_graph oracle tests --------
+
+/// Build an "other graph" wire payload suitable for the oracle's
+/// `params.other` slot. Mirrors the top-level `make_graph` shape.
+fn graph_payload(g: &Graph) -> serde_json::Value {
+    let m = g.ecount();
+    let edges: Vec<[u32; 2]> = (0..m as u32)
+        .map(|e| {
+            let (u, v) = g.edge(e).unwrap();
+            [u, v]
+        })
+        .collect();
+    serde_json::json!({
+        "n": g.vcount(),
+        "edges": edges,
+        "directed": g.is_directed(),
+    })
+}
+
+#[test]
+fn is_same_graph_identical_pair_matches_python_reference() {
+    let mut g1 = Graph::with_vertices(3);
+    g1.add_edges(vec![(0u32, 1u32), (1, 2)]).unwrap();
+    let mut g2 = Graph::with_vertices(3);
+    g2.add_edges(vec![(1u32, 2u32), (0, 1)]).unwrap();
+    let rust = rust_igraph::is_same_graph(&g1, &g2);
+    let py: bool = serde_json::from_value(run_ok(
+        "is_same_graph",
+        &g1,
+        serde_json::json!({"other": graph_payload(&g2)}),
+    ))
+    .expect("decode python is_same_graph");
+    assert_eq!(rust, py);
+    assert!(rust);
+}
+
+#[test]
+fn is_same_graph_different_edge_set_matches_python_reference() {
+    let mut g1 = Graph::with_vertices(3);
+    g1.add_edges(vec![(0u32, 1u32), (1, 2)]).unwrap();
+    let mut g2 = Graph::with_vertices(3);
+    g2.add_edges(vec![(0u32, 2u32), (1, 2)]).unwrap();
+    let rust = rust_igraph::is_same_graph(&g1, &g2);
+    let py: bool = serde_json::from_value(run_ok(
+        "is_same_graph",
+        &g1,
+        serde_json::json!({"other": graph_payload(&g2)}),
+    ))
+    .expect("decode python is_same_graph");
+    assert_eq!(rust, py);
+    assert!(!rust);
+}
+
+#[test]
+fn is_same_graph_directed_vs_undirected_matches_python_reference() {
+    let mut g1 = Graph::new(2, true).unwrap();
+    g1.add_edge(0, 1).unwrap();
+    let mut g2 = Graph::with_vertices(2);
+    g2.add_edge(0, 1).unwrap();
+    let rust = rust_igraph::is_same_graph(&g1, &g2);
+    let py: bool = serde_json::from_value(run_ok(
+        "is_same_graph",
+        &g1,
+        serde_json::json!({"other": graph_payload(&g2)}),
+    ))
+    .expect("decode python is_same_graph");
+    assert_eq!(rust, py);
+    assert!(!rust);
+}
+
 // ---- ALGO-CC-032: site_percolation oracle tests --------
 
 #[derive(serde::Deserialize)]

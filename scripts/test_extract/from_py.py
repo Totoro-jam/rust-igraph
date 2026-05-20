@@ -552,6 +552,45 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CORE-001e: is_same_graph (structural equality). python-igraph
+# does not expose this predicate; hand-computed expected values.
+IS_SAME_GRAPH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_same_graph_py_self_equal",
+        # A graph is the same as itself.
+        "origin": "constructed: triangle compared to itself ⇒ same",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "algo": "is_same_graph",
+        "params": {
+            "other": {
+                "n": 3,
+                "edges": [[0, 1], [0, 2], [1, 2]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "is_same_graph_py_parallel_edge_multiplicity_matters",
+        # {0-1, 0-1} vs {0-1}: ecount differs ⇒ not same.
+        "origin": "constructed: parallel multiplicity differs ⇒ not same",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1)], directed=False
+        ),
+        "algo": "is_same_graph",
+        "params": {
+            "other": {
+                "n": 2,
+                "edges": [[0, 1]],
+                "directed": False,
+            }
+        },
+        "expected": False,
+    },
+]
+
 # ALGO-CC-032: Site percolation. python-igraph does not bind this;
 # hand-computed expected values.
 SITE_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
@@ -1767,6 +1806,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edgelist_percolation": EDGELIST_PERCOLATION_MANIFEST,
     "bond_percolation": BOND_PERCOLATION_MANIFEST,
     "site_percolation": SITE_PERCOLATION_MANIFEST,
+    "is_same_graph": IS_SAME_GRAPH_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

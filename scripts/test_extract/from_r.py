@@ -619,6 +619,45 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CORE-001e: is_same_graph (structural equality). rigraph
+# doesn't expose this directly; hand-computed expected values.
+IS_SAME_GRAPH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_same_graph_R_undirected_endpoint_swap_same",
+        # (0,1) and (1,0) are the same undirected edge ⇒ same.
+        "origin": "constructed (rigraph-style): undirected endpoint swap ⇒ same",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1)], directed=False
+        ),
+        "algo": "is_same_graph",
+        "params": {
+            "other": {
+                "n": 2,
+                "edges": [[1, 0]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "is_same_graph_R_directed_reverse_not_same",
+        # In directed graphs, (0,1) and (1,0) are distinct edges.
+        "origin": "constructed (rigraph-style): directed reverse ⇒ not same",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1)], directed=True
+        ),
+        "algo": "is_same_graph",
+        "params": {
+            "other": {
+                "n": 2,
+                "edges": [[1, 0]],
+                "directed": True,
+            }
+        },
+        "expected": False,
+    },
+]
+
 # ALGO-CC-032: Site percolation. rigraph doesn't bind this; hand-
 # computed expected values.
 SITE_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
@@ -1877,6 +1916,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edgelist_percolation": EDGELIST_PERCOLATION_MANIFEST,
     "bond_percolation": BOND_PERCOLATION_MANIFEST,
     "site_percolation": SITE_PERCOLATION_MANIFEST,
+    "is_same_graph": IS_SAME_GRAPH_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

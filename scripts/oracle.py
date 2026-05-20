@@ -622,6 +622,32 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return None
         return {"vertices": [int(x) for x in vs], "edges": [int(x) for x in es]}
 
+    if algo == "is_same_graph":
+        # Counterpart of igraph_is_same_graph. Compare the wire graph
+        # `g` to a second graph encoded under params.other (same
+        # canonical shape as the top-level payload). python-igraph
+        # does not expose this predicate, so we implement it inline:
+        # match vcount, directedness, and the sorted (canonicalised)
+        # edge multisets.
+        other_payload = params.get("other", {})
+        other = make_graph(other_payload)
+        if g.vcount() != other.vcount():
+            return False
+        if g.ecount() != other.ecount():
+            return False
+        if g.is_directed() != other.is_directed():
+            return False
+        directed = g.is_directed()
+
+        def canonical_edges(graph):
+            pairs = [(e.source, e.target) for e in graph.es]
+            if not directed:
+                pairs = [(min(u, v), max(u, v)) for (u, v) in pairs]
+            pairs.sort()
+            return pairs
+
+        return canonical_edges(g) == canonical_edges(other)
+
     if algo == "site_percolation":
         # Counterpart of igraph_site_percolation. python-igraph does
         # not bind percolation; inline union-find reference, with

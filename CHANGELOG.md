@@ -22,6 +22,28 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(operators)* **ALGO-CORE-001e**: `is_same_graph(g1: &Graph, g2:
+  &Graph) -> bool` — structural equality on labelled vertex/edge
+  sets. Counterpart of `igraph_is_same_graph` from
+  `references/igraph/src/graph/type_indexededgelist.c:1947`. Two
+  graphs are "the same" iff they have the same vertex count, the
+  same directedness, and the same edge multiset (regardless of
+  insertion order; for undirected, endpoint orientation doesn't
+  matter). Distinct from isomorphism — vertex labels matter.
+  Algorithm: canonicalise both edge lists (undirected edges are
+  already stored with `from <= to` by `Graph::add_edge`; directed
+  pairs already canonical), lex-sort, compare. Time `O(E log E)`
+  — slightly worse than upstream's `O(E)` walk over pre-sorted
+  index vectors (private to `Graph`), well under a second up to a
+  few million edges.
+  12 unit tests + 3 oracle tests vs an inline Python reference
+  (python-igraph does not expose this predicate) + 6 conformance
+  fixtures (2 each C/Python/R, with `params.other` carrying the
+  second graph payload) + 1 proptest invariant
+  (`is_same_graph_reflexivity_and_symmetry` — reflexivity,
+  symmetry, vcount-bump breaks equality).
+  Row split: CORE-001e (this) covers the `is_same_graph` slice;
+  remaining property-cache subsystem moves to CORE-001f (todo).
 - *(connectivity)* **ALGO-CC-032**: Site percolation
   (`site_percolation(graph: &Graph, vertex_order: &[VertexId]) ->
   IgraphResult<SitePercolation>`). Counterpart of
