@@ -578,7 +578,7 @@ pub struct DijkstraAllPaths {
     /// chain (including source and v). Empty for unreachable v;
     /// always `[[source]]` for v == source.
     pub vertex_paths: Vec<Vec<Vec<VertexId>>>,
-    /// `edge_paths[v]` mirrors [`vertex_paths`] but with edge ids
+    /// `edge_paths[v]` mirrors [`Self::vertex_paths`] but with edge ids
     /// (length one less than the matching vertex chain). Empty for
     /// unreachable v; `[[]]` for v == source.
     pub edge_paths: Vec<Vec<Vec<EdgeId>>>,
