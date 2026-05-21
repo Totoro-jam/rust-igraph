@@ -611,6 +611,33 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-022: is_acyclic (predicate). Source: properties/trees.c
+# (lines 753-762). Delegates to is_dag for directed; union-find
+# over edges for undirected (cycle ⇔ second edge re-connects two
+# already-connected vertices).
+IS_ACYCLIC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_acyclic_c_undirected_tree_true",
+        "origin": "constructed: undirected P4 — tree, acyclic",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "is_acyclic",
+        "params": {},
+        "expected": True,
+    },
+    {
+        "case": "is_acyclic_c_directed_dag_true",
+        "origin": "constructed: directed P3 — DAG, acyclic",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "algo": "is_acyclic",
+        "params": {},
+        "expected": True,
+    },
+]
+
 # ALGO-PR-021: topological_sorting. Source: properties/dag.c
 # (lines 54-123). Kahn's peel, recording the popped order.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -2113,6 +2140,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_same_graph": IS_SAME_GRAPH_MANIFEST,
     "is_dag": IS_DAG_MANIFEST,
     "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
+    "is_acyclic": IS_ACYCLIC_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

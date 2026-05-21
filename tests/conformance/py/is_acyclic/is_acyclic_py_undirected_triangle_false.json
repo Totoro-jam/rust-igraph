@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed: undirected triangle \u2014 cycle, not acyclic",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_acyclic",
+  "params": {},
+  "expected": false
+}

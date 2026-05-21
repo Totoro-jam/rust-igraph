@@ -552,6 +552,32 @@ DIJKSTRA_CUTOFF_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-022: is_acyclic. python-igraph does not expose this;
+# hand-computed expected values.
+IS_ACYCLIC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_acyclic_py_undirected_triangle_false",
+        "origin": "constructed: undirected triangle — cycle, not acyclic",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "is_acyclic",
+        "params": {},
+        "expected": False,
+    },
+    {
+        "case": "is_acyclic_py_undirected_parallel_edge_false",
+        # Two parallel undirected edges form a 2-cycle.
+        "origin": "constructed: parallel undirected edges — 2-cycle, not acyclic",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1)], directed=False
+        ),
+        "algo": "is_acyclic",
+        "params": {},
+        "expected": False,
+    },
+]
+
 # ALGO-PR-021: topological_sorting. python-igraph exposes
 # `Graph.topological_sorting(mode='OUT'/'IN'/'ALL')`.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -1865,6 +1891,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_same_graph": IS_SAME_GRAPH_MANIFEST,
     "is_dag": IS_DAG_MANIFEST,
     "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
+    "is_acyclic": IS_ACYCLIC_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

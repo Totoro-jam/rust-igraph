@@ -113,6 +113,7 @@ pub use crate::algorithms::properties::eigenvector::eigenvector_centrality;
 pub use crate::algorithms::properties::girth::girth;
 pub use crate::algorithms::properties::harmonic::harmonic_centrality;
 pub use crate::algorithms::properties::harmonic_weighted::harmonic_centrality_weighted;
+pub use crate::algorithms::properties::is_acyclic::is_acyclic;
 pub use crate::algorithms::properties::is_dag::is_dag;
 pub use crate::algorithms::properties::is_simple::{SimpleMode, is_simple, is_simple_with_mode};
 pub use crate::algorithms::properties::knn::{

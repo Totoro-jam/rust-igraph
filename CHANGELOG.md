@@ -22,6 +22,23 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-022**: `is_acyclic(graph: &Graph) ->
+  bool` — generic acyclic predicate. Counterpart of
+  `igraph_is_acyclic` from
+  `references/igraph/src/properties/trees.c:753`. For directed
+  graphs delegates to [`crate::is_dag`]; for undirected graphs
+  runs a union-find pass over the edge list and returns false as
+  soon as an edge re-connects two already-unioned vertices.
+  Self-loops and parallel undirected edges count as cycles.
+  Time `O(V + E·α(E))`.
+  13 unit tests + 3 oracle tests vs an inline Python reference
+  (python-igraph does not expose this directly; mirrors the
+  upstream contract) + 6 conformance fixtures (2 each C/Python/R)
+  + 2 proptest invariants
+  (`is_acyclic_matches_is_dag_for_directed`,
+  `is_acyclic_undirected_implies_forest_edge_count` — every
+  acyclic undirected graph satisfies the forest identity
+  `m == n - cc`).
 - *(properties)* **ALGO-PR-021**: `topological_sorting(graph,
   mode)` — returns a topological ordering of a directed graph's
   vertices. Counterpart of `igraph_topological_sorting` from

@@ -1,0 +1,22 @@
+{
+  "source": "c",
+  "origin": "constructed: directed P3 \u2014 DAG, acyclic",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_acyclic",
+  "params": {},
+  "expected": true
+}

@@ -640,6 +640,33 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         except Exception as exc:
             return {"_error": str(exc)}
 
+    if algo == "is_acyclic":
+        # Counterpart of igraph_is_acyclic. python-igraph does not
+        # expose this predicate directly, but we can replicate it
+        # inline: directed → check is_dag; undirected → union-find
+        # over the edges.
+        if g.is_directed():
+            return bool(g.is_dag())
+        n = g.vcount()
+        parent = list(range(n))
+
+        def find(v):
+            while parent[v] != v:
+                parent[v] = parent[parent[v]]
+                v = parent[v]
+            return v
+
+        for e in g.es:
+            u, v = e.source, e.target
+            if u == v:
+                return False
+            ru = find(u)
+            rv = find(v)
+            if ru == rv:
+                return False
+            parent[ru] = rv
+        return True
+
     if algo == "is_dag":
         # Counterpart of igraph_is_dag. python-igraph exposes
         # `Graph.is_dag()` which returns a bool directly. Returns

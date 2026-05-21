@@ -1,0 +1,22 @@
+{
+  "source": "py",
+  "origin": "constructed: parallel undirected edges \u2014 2-cycle, not acyclic",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_acyclic",
+  "params": {},
+  "expected": false
+}

@@ -1614,6 +1614,42 @@ fn bond_percolation_partial_order_matches_python_reference() {
     bond_percolation_round_trip_via_edgelist_oracle(&g, &[0, 2]);
 }
 
+// ---- ALGO-PR-022: is_acyclic oracle tests --------
+
+#[test]
+fn is_acyclic_undirected_tree_matches_python_reference() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 3)]).unwrap();
+    let rust = rust_igraph::is_acyclic(&g);
+    let py: bool = serde_json::from_value(run_ok("is_acyclic", &g, serde_json::json!({})))
+        .expect("decode python is_acyclic");
+    assert_eq!(rust, py);
+    assert!(rust);
+}
+
+#[test]
+fn is_acyclic_undirected_triangle_matches_python_reference() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 0)]).unwrap();
+    let rust = rust_igraph::is_acyclic(&g);
+    let py: bool = serde_json::from_value(run_ok("is_acyclic", &g, serde_json::json!({})))
+        .expect("decode python is_acyclic");
+    assert_eq!(rust, py);
+    assert!(!rust);
+}
+
+#[test]
+fn is_acyclic_directed_dag_matches_python_reference() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edges(vec![(0u32, 1u32), (0, 2), (1, 3), (2, 3)])
+        .unwrap();
+    let rust = rust_igraph::is_acyclic(&g);
+    let py: bool = serde_json::from_value(run_ok("is_acyclic", &g, serde_json::json!({})))
+        .expect("decode python is_acyclic");
+    assert_eq!(rust, py);
+    assert!(rust);
+}
+
 // ---- ALGO-PR-021: topological_sorting oracle tests --------
 
 /// Helper: verify the topological order is consistent with all

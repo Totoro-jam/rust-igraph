@@ -2037,6 +2037,31 @@ proptest! {
         prop_assert_eq!(&es, &es2);
     }
 
+    /// PR-022 `is_acyclic` invariants:
+    /// - Directed: equals `is_dag` exactly.
+    /// - Undirected with no edges or no vertices: always acyclic.
+    /// - Undirected `m == n - cc` (where cc = number of connected
+    ///   components) iff acyclic AND no parallel/self-loop edges
+    ///   (a forest has exactly n - cc edges; any extra edge closes
+    ///   a cycle). We verify the forward direction: if acyclic then
+    ///   `m == n - cc`.
+    #[test]
+    fn is_acyclic_matches_is_dag_for_directed(g in arb_directed_graph(8)) {
+        prop_assert_eq!(rust_igraph::is_acyclic(&g), rust_igraph::is_dag(&g));
+    }
+
+    #[test]
+    fn is_acyclic_undirected_implies_forest_edge_count(g in arb_graph(8)) {
+        if rust_igraph::is_acyclic(&g) {
+            // Forest invariant: m == n - cc.
+            let cc = rust_igraph::connected_components(&g).unwrap();
+            let m = u32::try_from(g.ecount()).expect("ecount fits in u32 for proptest");
+            let n = g.vcount();
+            let expected = n - cc.count;
+            prop_assert_eq!(m, expected);
+        }
+    }
+
     /// PR-021 `topological_sorting` invariants:
     /// - For DAGs, the result is a permutation of `0..vcount`
     ///   that respects every non-loop directed edge `u → v`
