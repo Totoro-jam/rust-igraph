@@ -2999,4 +2999,48 @@ proptest! {
             }
         }
     }
+
+    /// PR-014c: `count_loops` agrees with the cardinality of `is_loop`.
+    #[test]
+    fn count_loops_agrees_with_is_loop(g in arb_graph(8)) {
+        let n = rust_igraph::count_loops(&g).unwrap();
+        let v = rust_igraph::is_loop(&g).unwrap();
+        prop_assert_eq!(n, v.iter().filter(|&&b| b).count());
+    }
+
+    /// PR-014c: `count_multiple` length matches ecount, every entry is
+    /// at least 1, and `>= 2` exactly when the edge participates in a
+    /// parallel group.
+    #[test]
+    fn count_multiple_invariants(g in arb_graph(8)) {
+        let m = g.ecount();
+        let mults = rust_igraph::count_multiple(&g).unwrap();
+        let is_mult = rust_igraph::is_multiple(&g).unwrap();
+        prop_assert_eq!(mults.len(), m);
+        prop_assert_eq!(is_mult.len(), m);
+        for e in 0..m {
+            prop_assert!(mults[e] >= 1, "edge {} has mult 0", e);
+            // is_multiple ⇒ multiplicity > 1.
+            if is_mult[e] {
+                prop_assert!(mults[e] > 1);
+            }
+        }
+        // Aggregate: there is at least one edge with multiplicity > 1
+        // exactly when has_multiple says so.
+        let any_parallel = mults.iter().any(|&k| k > 1);
+        prop_assert_eq!(any_parallel, rust_igraph::has_multiple(&g).unwrap());
+    }
+
+    /// PR-014c directed variant of the same `count_multiple` invariants.
+    #[test]
+    fn count_multiple_directed_invariants(g in arb_directed_graph(8)) {
+        let m = g.ecount();
+        let mults = rust_igraph::count_multiple(&g).unwrap();
+        prop_assert_eq!(mults.len(), m);
+        for &k in &mults {
+            prop_assert!(k >= 1);
+        }
+        let any_parallel = mults.iter().any(|&k| k > 1);
+        prop_assert_eq!(any_parallel, rust_igraph::has_multiple(&g).unwrap());
+    }
 }

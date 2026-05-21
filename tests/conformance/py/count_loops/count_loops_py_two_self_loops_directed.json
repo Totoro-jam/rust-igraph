@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed: directed (0,0)(1,1)(0,1); count_loops=2",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "count_loops",
+  "params": {},
+  "expected": 2
+}

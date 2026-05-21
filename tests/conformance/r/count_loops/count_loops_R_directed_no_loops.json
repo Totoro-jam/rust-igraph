@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed (0,1)(1,2)(2,0) cycle; count_loops=0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "count_loops",
+  "params": {},
+  "expected": 0
+}

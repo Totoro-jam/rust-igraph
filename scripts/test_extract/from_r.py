@@ -1757,6 +1757,57 @@ HAS_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COUNT_LOOPS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_loops_R_undirected_mixed",
+        # rigraph users typically run sum(which_loop(g)) for the count;
+        # we adopt the same semantics: count edges where source == target.
+        "origin": "constructed (rigraph-style): undirected mixed; count_loops=2",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 0), (0, 1), (1, 2), (3, 3)], directed=False
+        ),
+        "algo": "count_loops",
+        "params": {},
+        "expected": 2,
+    },
+    {
+        "case": "count_loops_R_directed_no_loops",
+        "origin": "constructed (rigraph-style): directed (0,1)(1,2)(2,0) cycle; count_loops=0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "count_loops",
+        "params": {},
+        "expected": 0,
+    },
+]
+
+COUNT_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_multiple_R_directed_mixed",
+        # rigraph: count_multiple(g) gives a per-edge integer vector. With
+        # directed (0,1)(0,1)(1,2)(1,0): edges 0 and 1 share (0,1) → 2,2;
+        # edge 2 alone (1,2) → 1; edge 3 alone (1,0) → 1.
+        "origin": "constructed (rigraph-style): directed (0,1)(0,1)(1,2)(1,0); multiplicity (sorted) = [1,1,2,2]",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 1), (1, 2), (1, 0)], directed=True
+        ),
+        "algo": "count_multiple",
+        "params": {},
+        "expected": [1, 1, 2, 2],
+    },
+    {
+        "case": "count_multiple_R_undirected_simple",
+        "origin": "constructed (rigraph-style): undirected triangle; multiplicity = [1,1,1]",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (0, 2)], directed=False
+        ),
+        "algo": "count_multiple",
+        "params": {},
+        "expected": [1, 1, 1],
+    },
+]
+
 IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_simple_R_parallel_edges_not_simple",
@@ -2170,6 +2221,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "has_multiple": HAS_MULTIPLE_MANIFEST,
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
+    "count_loops": COUNT_LOOPS_MANIFEST,
+    "count_multiple": COUNT_MULTIPLE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "union": UNION_MANIFEST,
     "intersection": INTERSECTION_MANIFEST,

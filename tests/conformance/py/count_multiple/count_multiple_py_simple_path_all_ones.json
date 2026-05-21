@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: undirected path 0-1-2-3; multiplicity = [1,1,1]",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_multiple",
+  "params": {},
+  "expected": [
+    1,
+    1,
+    1
+  ]
+}

@@ -1675,6 +1675,55 @@ HAS_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COUNT_LOOPS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_loops_py_simple_path",
+        # python-igraph: Graph.has_multiple / Graph.is_loop have idiomatic
+        # counterparts; count_loops here is sum(g.is_loop()).
+        "origin": "constructed: 4-path no self-loops; count_loops=0",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "count_loops",
+        "params": {},
+        "expected": 0,
+    },
+    {
+        "case": "count_loops_py_two_self_loops_directed",
+        "origin": "constructed: directed (0,0)(1,1)(0,1); count_loops=2",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 0), (1, 1), (0, 1)], directed=True
+        ),
+        "algo": "count_loops",
+        "params": {},
+        "expected": 2,
+    },
+]
+
+COUNT_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_multiple_py_simple_path_all_ones",
+        # Plain undirected path → every edge is alone in its pair group.
+        "origin": "constructed: undirected path 0-1-2-3; multiplicity = [1,1,1]",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "count_multiple",
+        "params": {},
+        "expected": [1, 1, 1],
+    },
+    {
+        "case": "count_multiple_py_three_parallel_undirected",
+        "origin": "constructed: three parallel undirected (0,1); multiplicity = [3,3,3]",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1), (0, 1)], directed=False
+        ),
+        "algo": "count_multiple",
+        "params": {},
+        "expected": [3, 3, 3],
+    },
+]
+
 IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_simple_py_self_loop_not_simple",
@@ -2048,6 +2097,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "has_multiple": HAS_MULTIPLE_MANIFEST,
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
+    "count_loops": COUNT_LOOPS_MANIFEST,
+    "count_multiple": COUNT_MULTIPLE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "union": UNION_MANIFEST,
     "intersection": INTERSECTION_MANIFEST,

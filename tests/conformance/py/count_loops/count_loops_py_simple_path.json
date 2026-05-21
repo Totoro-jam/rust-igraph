@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-path no self-loops; count_loops=0",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_loops",
+  "params": {},
+  "expected": 0
+}

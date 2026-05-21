@@ -3209,3 +3209,24 @@ fn convergence_degree_three_source_conformance() {
         serde_json::Value::Array(arr)
     });
 }
+
+#[test]
+fn count_loops_three_source_conformance() {
+    // Scalar count, no edge-id alignment issues.
+    run_conformance("count_loops", |g, _params| {
+        let n = rust_igraph::count_loops(g).expect("count_loops");
+        serde_json::json!(n)
+    });
+}
+
+#[test]
+fn count_multiple_three_source_conformance() {
+    // Per-edge multiplicity. Edge ids permute through the wire so we
+    // compare as a sorted multiset — the multi-set of multiplicities is
+    // an invariant of the underlying multigraph.
+    run_conformance("count_multiple", |g, _params| {
+        let mut v = rust_igraph::count_multiple(g).expect("count_multiple");
+        v.sort_unstable();
+        serde_json::json!(v)
+    });
+}

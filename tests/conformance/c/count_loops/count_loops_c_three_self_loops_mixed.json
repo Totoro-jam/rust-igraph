@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "constructed: 4 vertices, edges (0,0)(1,1)(2,2)(0,3); count_loops=3",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_loops",
+  "params": {},
+  "expected": 3
+}

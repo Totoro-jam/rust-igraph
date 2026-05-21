@@ -22,6 +22,30 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-014c**: `count_loops(graph) -> usize` and
+  `count_multiple(graph) -> Vec<usize>`, completing the loops /
+  multiplicity trio alongside PR-014 (`has_*` predicates) and PR-014b
+  (`is_*` per-edge boolean vectors). `count_loops` is a linear scan
+  counting edges where `from == to`; `count_multiple` returns each
+  edge's multiplicity (the size of its endpoint-pair equivalence class)
+  via O(|E| log |E|) sort-and-group. Storage canonicalises undirected
+  pairs to `(min, max)`, so undirected `(a,b)` and `(b,a)` collapse
+  correctly; directed pairs stay ordered. Self-loops at the same
+  vertex are grouped per upstream's `IGRAPH_LOOPS_ONCE` semantics — each
+  loop's multiplicity is the number of loops at that vertex.
+  Counterpart of `igraph_count_loops()` from
+  `references/igraph/src/properties/loops.c:137` and
+  `igraph_count_multiple()` from
+  `references/igraph/src/properties/multiplicity.c:313`. Coverage:
+  12 unit tests (empty/no-loop/no-multi/mixed cases, parallel /
+  loop-grouping, directed mutual-pair distinction, length and
+  consistency invariants vs `is_loop` / `is_multiple` /
+  `has_multiple`), 12 conformance fixtures (C/py/R, 4 each — two for
+  `count_loops`, two for `count_multiple`; `count_multiple` fixtures
+  store pre-sorted multisets since wire-format edge ids permute), and
+  3 proptest invariants (`count_loops` agrees with `is_loop` count;
+  `count_multiple` per-edge ≥ 1 and `> 1` agrees with `has_multiple`;
+  directed-graph variant of the latter).
 - *(properties)* **ALGO-PR-028**: `convergence_degree(graph)` and
   `convergence_degree_full(graph)` — per-edge convergence value in
   `[-1, 1]` (directed) or `[0, 1]` (undirected) measuring whether the

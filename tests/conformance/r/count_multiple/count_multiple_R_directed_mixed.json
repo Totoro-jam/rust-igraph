@@ -1,0 +1,35 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed (0,1)(0,1)(1,2)(1,0); multiplicity (sorted) = [1,1,2,2]",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "count_multiple",
+  "params": {},
+  "expected": [
+    1,
+    1,
+    2,
+    2
+  ]
+}

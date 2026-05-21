@@ -1,0 +1,30 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): undirected triangle; multiplicity = [1,1,1]",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_multiple",
+  "params": {},
+  "expected": [
+    1,
+    1,
+    1
+  ]
+}

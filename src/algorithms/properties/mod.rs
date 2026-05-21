@@ -62,7 +62,7 @@ pub use is_forest::is_forest;
 pub use is_simple::{SimpleMode, is_simple, is_simple_with_mode};
 pub use is_tree::is_tree;
 pub use knn::avg_nearest_neighbor_degree;
-pub use multiplicity::{has_loop, has_multiple, is_loop, is_multiple};
+pub use multiplicity::{count_loops, count_multiple, has_loop, has_multiple, is_loop, is_multiple};
 pub use neighborhood::{
     NeighborhoodMode, neighborhood, neighborhood_size, neighborhood_size_with_mode,
     neighborhood_with_mode,

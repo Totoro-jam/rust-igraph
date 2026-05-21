@@ -1783,6 +1783,62 @@ HAS_LOOP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COUNT_LOOPS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_loops_c_three_self_loops_mixed",
+        # Graph with three self-loops and one normal edge.
+        # references/igraph/src/properties/loops.c:igraph_count_loops semantics:
+        # count edges where IGRAPH_FROM == IGRAPH_TO. Each parallel self-loop
+        # counts separately.
+        "origin": "constructed: 4 vertices, edges (0,0)(1,1)(2,2)(0,3); count_loops=3",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 0), (1, 1), (2, 2), (0, 3)], directed=False
+        ),
+        "algo": "count_loops",
+        "params": {},
+        "expected": 3,
+    },
+    {
+        "case": "count_loops_c_no_loops",
+        # Plain undirected path → no self-loops.
+        "origin": "constructed: undirected path 0-1-2-3; count_loops=0",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "count_loops",
+        "params": {},
+        "expected": 0,
+    },
+]
+
+COUNT_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_multiple_c_undirected_two_parallel",
+        # Three undirected edges; first two share canonical (0,1).
+        # references/igraph/src/properties/multiplicity.c:igraph_count_multiple
+        # semantics with IGRAPH_LOOPS_ONCE / IGRAPH_MULTIPLE: each edge's
+        # entry is the size of the equivalence class of its endpoint pair.
+        "origin": "constructed: undirected (0,1)(0,1)(1,2); multiplicity (sorted) = [1,2,2]",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 1), (1, 2)], directed=False
+        ),
+        "algo": "count_multiple",
+        "params": {},
+        "expected": [1, 2, 2],
+    },
+    {
+        "case": "count_multiple_c_directed_mutual_pair_distinct",
+        # Directed (0,1) and (1,0) are distinct pairs → multiplicity 1 each.
+        "origin": "constructed: directed (0,1)(1,0); multiplicity = [1,1]",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (1, 0)], directed=True
+        ),
+        "algo": "count_multiple",
+        "params": {},
+        "expected": [1, 1],
+    },
+]
+
 HAS_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "has_multiple_c_two_parallel_edges",
@@ -2319,6 +2375,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "has_multiple": HAS_MULTIPLE_MANIFEST,
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
+    "count_loops": COUNT_LOOPS_MANIFEST,
+    "count_multiple": COUNT_MULTIPLE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,
     "union": UNION_MANIFEST,
     "intersection": INTERSECTION_MANIFEST,

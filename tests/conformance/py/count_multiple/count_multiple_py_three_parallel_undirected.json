@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: three parallel undirected (0,1); multiplicity = [3,3,3]",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_multiple",
+  "params": {},
+  "expected": [
+    3,
+    3,
+    3
+  ]
+}

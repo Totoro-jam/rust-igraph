@@ -126,7 +126,7 @@ pub use crate::algorithms::properties::knn::{
     avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, knnk, knnk_weighted,
 };
 pub use crate::algorithms::properties::multiplicity::{
-    has_loop, has_multiple, is_loop, is_multiple,
+    count_loops, count_multiple, has_loop, has_multiple, is_loop, is_multiple,
 };
 pub use crate::algorithms::properties::neighborhood::{
     NeighborhoodMode, neighborhood, neighborhood_size, neighborhood_size_with_mode,
