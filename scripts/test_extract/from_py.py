@@ -683,6 +683,51 @@ NEIGHBORHOOD_SIZE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-027b: neighborhood (vertex lists). Fixtures from
+# tests/test_structural.py:testNeighborhood. All expected lists are
+# sorted (matches `list(map(sorted, g.neighborhood()))` in the upstream
+# test).
+NEIGHBORHOOD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "neighborhood_py_ring10_order_1",
+        "origin": "tests/test_structural.py testNeighborhood — Ring(10, circular=False) order=1",
+        "graph_factory": lambda: ig.Graph.Ring(n=10, circular=False),
+        "algo": "neighborhood",
+        "params": {"order": 1, "mode": "all", "mindist": 0},
+        "expected": [
+            [0, 1],
+            [0, 1, 2],
+            [1, 2, 3],
+            [2, 3, 4],
+            [3, 4, 5],
+            [4, 5, 6],
+            [5, 6, 7],
+            [6, 7, 8],
+            [7, 8, 9],
+            [8, 9],
+        ],
+    },
+    {
+        "case": "neighborhood_py_ring10_order_3",
+        "origin": "tests/test_structural.py testNeighborhood — Ring(10), order=3",
+        "graph_factory": lambda: ig.Graph.Ring(n=10, circular=False),
+        "algo": "neighborhood",
+        "params": {"order": 3, "mode": "all", "mindist": 0},
+        "expected": [
+            [0, 1, 2, 3],
+            [0, 1, 2, 3, 4],
+            [0, 1, 2, 3, 4, 5],
+            [0, 1, 2, 3, 4, 5, 6],
+            [1, 2, 3, 4, 5, 6, 7],
+            [2, 3, 4, 5, 6, 7, 8],
+            [3, 4, 5, 6, 7, 8, 9],
+            [4, 5, 6, 7, 8, 9],
+            [5, 6, 7, 8, 9],
+            [6, 7, 8, 9],
+        ],
+    },
+]
+
 # ALGO-PR-021: topological_sorting. python-igraph exposes
 # `Graph.topological_sorting(mode='OUT'/'IN'/'ALL')`.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -2001,6 +2046,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_forest": IS_FOREST_MANIFEST,
     "is_complete": IS_COMPLETE_MANIFEST,
     "neighborhood_size": NEIGHBORHOOD_SIZE_MANIFEST,
+    "neighborhood": NEIGHBORHOOD_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

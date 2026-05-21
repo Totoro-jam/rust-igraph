@@ -22,6 +22,25 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-027b**: `neighborhood(graph, order)` and
+  `neighborhood_with_mode(graph, order, mode, mindist)` — k-hop
+  neighbourhood vertex lists for every vertex (sibling of PR-027's
+  size variant). For each source `v` returns a `Vec<u32>` of vertices
+  `w` with `mindist <= dist(v, w) <= order`, in BFS visitation order;
+  with `mindist = 0` the source vertex is the first element. Mode +
+  mindist semantics identical to PR-027 and reuse the same parameter
+  validation (`mindist < 0` and finite `mindist > order` both yield
+  `InvalidArgument`). Counterpart of `igraph_neighborhood` from
+  `references/igraph/src/properties/neighborhood.c:208`. Coverage:
+  20 unit tests covering the full C reference fixture
+  (`igraph_neighborhood.c` .out file, set-equality comparison),
+  3 oracle tests, 6 conformance fixtures (C/py/R, 2 each, sorted
+  lists), and 5 proptest invariants (list length == neighborhood_size,
+  mindist=0 includes self, mindist=1 excludes self, IDs in range and
+  unique, monotone-in-order set inclusion). Reuses the BFS-per-source
+  marker array approach from PR-027 with vertex push instead of size
+  increment. `O(V·(V+E))` per call.
+
 - *(properties)* **ALGO-PR-027**: `neighborhood_size(graph, order)` and
   `neighborhood_size_with_mode(graph, order, mode, mindist)` —
   k-hop neighbourhood size for every vertex. For each vertex `v`

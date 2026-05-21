@@ -1086,6 +1086,79 @@ fn neighborhood_size_three_source_conformance() {
 }
 
 #[test]
+fn neighborhood_three_source_conformance() {
+    // PR-027b: neighborhood vertex lists. Fixtures store sorted lists
+    // because the BFS visitation order differs between implementations,
+    // so we sort the Rust output before comparing.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("neighborhood");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let order = case
+                .params
+                .get("order")
+                .and_then(serde_json::Value::as_i64)
+                .and_then(|x| i32::try_from(x).ok())
+                .unwrap_or(1);
+            let mode = match case
+                .params
+                .get("mode")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("all")
+            {
+                "out" => rust_igraph::NeighborhoodMode::Out,
+                "in" => rust_igraph::NeighborhoodMode::In,
+                _ => rust_igraph::NeighborhoodMode::All,
+            };
+            let mindist = case
+                .params
+                .get("mindist")
+                .and_then(serde_json::Value::as_i64)
+                .and_then(|x| i32::try_from(x).ok())
+                .unwrap_or(0);
+            let mut rust = rust_igraph::neighborhood_with_mode(&g, order, mode, mindist)
+                .expect("neighborhood");
+            for inner in &mut rust {
+                inner.sort_unstable();
+            }
+            let rust_json = serde_json::Value::Array(
+                rust.into_iter()
+                    .map(|v| {
+                        serde_json::Value::Array(
+                            v.into_iter().map(serde_json::Value::from).collect(),
+                        )
+                    })
+                    .collect(),
+            );
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "neighborhood");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn is_acyclic_three_source_conformance() {
     for src in ["c", "py", "r"] {
         let dir = workspace_root()

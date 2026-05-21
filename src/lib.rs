@@ -126,7 +126,8 @@ pub use crate::algorithms::properties::multiplicity::{
     has_loop, has_multiple, is_loop, is_multiple,
 };
 pub use crate::algorithms::properties::neighborhood::{
-    NeighborhoodMode, neighborhood_size, neighborhood_size_with_mode,
+    NeighborhoodMode, neighborhood, neighborhood_size, neighborhood_size_with_mode,
+    neighborhood_with_mode,
 };
 pub use crate::algorithms::properties::pagerank::pagerank;
 pub use crate::algorithms::properties::pagerank_weighted::pagerank_weighted;

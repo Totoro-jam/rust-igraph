@@ -799,6 +799,24 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             order = g.vcount()
         return list(g.neighborhood_size(vertices=None, order=order, mode=mode, mindist=mindist))
 
+    if algo == "neighborhood":
+        # Counterpart of igraph_neighborhood (PR-027b). Returns the
+        # vertex lists themselves (not just sizes). Same parameter
+        # handling as neighborhood_size: saturate negative `order`
+        # because python-igraph's wrapper rejects negative values.
+        # Each list is sorted before returning so that comparisons are
+        # order-insensitive (BFS visitation order differs between
+        # adjacency-list traversal strategies).
+        order = int(params.get("order", 1))
+        mode = str(params.get("mode", "all")).lower()
+        if mode not in ("out", "in", "all"):
+            return {"_error": f"invalid mode: {mode}"}
+        mindist = int(params.get("mindist", 0))
+        if order < 0:
+            order = g.vcount()
+        lists = g.neighborhood(vertices=None, order=order, mode=mode, mindist=mindist)
+        return [sorted(int(x) for x in vs) for vs in lists]
+
     if algo == "is_same_graph":
         # Counterpart of igraph_is_same_graph. Compare the wire graph
         # `g` to a second graph encoded under params.other (same

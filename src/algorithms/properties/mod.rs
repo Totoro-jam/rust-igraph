@@ -61,7 +61,10 @@ pub use is_simple::{SimpleMode, is_simple, is_simple_with_mode};
 pub use is_tree::is_tree;
 pub use knn::avg_nearest_neighbor_degree;
 pub use multiplicity::{has_loop, has_multiple, is_loop, is_multiple};
-pub use neighborhood::{NeighborhoodMode, neighborhood_size, neighborhood_size_with_mode};
+pub use neighborhood::{
+    NeighborhoodMode, neighborhood, neighborhood_size, neighborhood_size_with_mode,
+    neighborhood_with_mode,
+};
 pub use pagerank::pagerank;
 pub use pagerank_weighted::pagerank_weighted;
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};

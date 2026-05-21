@@ -756,6 +756,46 @@ NEIGHBORHOOD_SIZE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-027b: neighborhood (vertex lists). Fixtures from
+# tests/testthat/test-aaa-auto.R:neighborhood_impl basic
+# (snapshot in tests/testthat/_snaps/aaa-auto.md). R uses 1-based
+# indexing; the snapshot output `[1] 1 2 5` for vertex 1 means
+# {0, 1, 4} 0-indexed. All expected lists are sorted.
+NEIGHBORHOOD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "neighborhood_R_ring5_order_1_all",
+        "origin": "tests/testthat/test-aaa-auto.R neighborhood_impl basic — make_ring(5) order=1 mode=all",
+        "graph_factory": lambda: ig.Graph.Ring(n=5, circular=True),
+        "algo": "neighborhood",
+        "params": {"order": 1, "mode": "all", "mindist": 0},
+        # R snapshot (0-indexed, sorted):
+        # v0:{0,1,4}, v1:{0,1,2}, v2:{1,2,3}, v3:{2,3,4}, v4:{0,3,4}
+        "expected": [
+            [0, 1, 4],
+            [0, 1, 2],
+            [1, 2, 3],
+            [2, 3, 4],
+            [0, 3, 4],
+        ],
+    },
+    {
+        "case": "neighborhood_R_full5_order_2_excludes_self",
+        # K_5 mirror of the size fixture; the actual vertex lists.
+        "origin": "constructed (rigraph-style): make_full_graph(5) order=2 mindist=1",
+        "graph_factory": lambda: ig.Graph.Full(n=5, directed=False),
+        "algo": "neighborhood",
+        "params": {"order": 2, "mode": "all", "mindist": 1},
+        # Each vertex's 4 non-self peers.
+        "expected": [
+            [1, 2, 3, 4],
+            [0, 2, 3, 4],
+            [0, 1, 3, 4],
+            [0, 1, 2, 4],
+            [0, 1, 2, 3],
+        ],
+    },
+]
+
 # ALGO-PR-021: topological_sorting. rigraph's
 # `topo_sort(g, mode="out"|"in")` returns the order.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -2117,6 +2157,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_forest": IS_FOREST_MANIFEST,
     "is_complete": IS_COMPLETE_MANIFEST,
     "neighborhood_size": NEIGHBORHOOD_SIZE_MANIFEST,
+    "neighborhood": NEIGHBORHOOD_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

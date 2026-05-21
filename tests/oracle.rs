@@ -1801,6 +1801,97 @@ fn neighborhood_size_mindist_2_out_mode_matches_python() {
     assert_eq!(rust, vec![2, 1, 2, 0, 0, 0]);
 }
 
+// ---- ALGO-PR-027b: neighborhood (vertex lists) oracle tests --------
+
+fn sorted_lists(nbh: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
+    nbh.into_iter()
+        .map(|mut v| {
+            v.sort_unstable();
+            v
+        })
+        .collect()
+}
+
+#[test]
+fn neighborhood_path_p10_order_3_matches_python() {
+    let mut g = Graph::with_vertices(10);
+    for i in 0..9u32 {
+        g.add_edge(i, i + 1).unwrap();
+    }
+    let rust = sorted_lists(rust_igraph::neighborhood(&g, 3).unwrap());
+    let py: Vec<Vec<u32>> = serde_json::from_value(run_ok(
+        "neighborhood",
+        &g,
+        serde_json::json!({"order": 3, "mode": "all", "mindist": 0}),
+    ))
+    .expect("decode python neighborhood");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn neighborhood_directed_c_reference_order_1_all_matches_python() {
+    // Same C reference graph as neighborhood_size; order=1 ALL.
+    let mut g = Graph::new(6, true).unwrap();
+    g.add_edges(vec![
+        (0u32, 1u32),
+        (0, 2),
+        (1, 1),
+        (1, 3),
+        (2, 0),
+        (2, 3),
+        (3, 4),
+        (3, 4),
+    ])
+    .unwrap();
+    let rust = sorted_lists(rust_igraph::neighborhood(&g, 1).unwrap());
+    let py: Vec<Vec<u32>> = serde_json::from_value(run_ok(
+        "neighborhood",
+        &g,
+        serde_json::json!({"order": 1, "mode": "all", "mindist": 0}),
+    ))
+    .expect("decode python neighborhood");
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn neighborhood_mindist_2_in_mode_infinite_matches_python() {
+    // Same C reference graph; infinite order, mindist=2, IN mode.
+    let mut g = Graph::new(6, true).unwrap();
+    g.add_edges(vec![
+        (0u32, 1u32),
+        (0, 2),
+        (1, 1),
+        (1, 3),
+        (2, 0),
+        (2, 3),
+        (3, 4),
+        (3, 4),
+    ])
+    .unwrap();
+    let rust = sorted_lists(
+        rust_igraph::neighborhood_with_mode(&g, -1, rust_igraph::NeighborhoodMode::In, 2).unwrap(),
+    );
+    let py: Vec<Vec<u32>> = serde_json::from_value(run_ok(
+        "neighborhood",
+        &g,
+        serde_json::json!({"order": -1, "mode": "in", "mindist": 2}),
+    ))
+    .expect("decode python neighborhood");
+    assert_eq!(rust, py);
+    // C .out: ( ) (2) ( ) (0) (0 1 2) ( )
+    assert_eq!(
+        rust,
+        vec![
+            Vec::<u32>::new(),
+            vec![2],
+            vec![],
+            vec![0],
+            vec![0, 1, 2],
+            vec![],
+        ]
+    );
+}
+
 // ---- ALGO-PR-024: is_forest oracle tests --------
 
 #[derive(Debug, serde::Deserialize)]

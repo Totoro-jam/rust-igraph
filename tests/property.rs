@@ -2232,6 +2232,77 @@ proptest! {
         }
     }
 
+    /// PR-027b `neighborhood` invariants:
+    /// - List length equals `neighborhood_size` at any (order, mindist).
+    /// - mindist=0 always includes the source vertex itself.
+    /// - mindist=1 never includes the source vertex.
+    /// - All listed vertex IDs are in `0..vcount`.
+    /// - No duplicates within a single source's list (BFS marker dedups).
+    /// - Listed set is monotone non-decreasing as order grows.
+    #[test]
+    fn neighborhood_length_matches_size(g in arb_graph(7)) {
+        for &order in &[0_i32, 1, 2, -1] {
+            for &mindist in &[0_i32, 1, 2] {
+                if order >= 0 && mindist > order { continue; }
+                let sizes = rust_igraph::neighborhood_size_with_mode(
+                    &g, order, rust_igraph::NeighborhoodMode::All, mindist).unwrap();
+                let lists = rust_igraph::neighborhood_with_mode(
+                    &g, order, rust_igraph::NeighborhoodMode::All, mindist).unwrap();
+                prop_assert_eq!(sizes.len(), lists.len());
+                for (s, l) in sizes.iter().zip(lists.iter()) {
+                    prop_assert_eq!(*s, u32::try_from(l.len()).unwrap(),
+                        "neighborhood_size != neighborhood list length");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn neighborhood_mindist_0_includes_self(g in arb_graph(7)) {
+        let lists = rust_igraph::neighborhood(&g, 2).unwrap();
+        for (i, l) in lists.iter().enumerate() {
+            let i_u32 = u32::try_from(i).unwrap();
+            prop_assert!(l.contains(&i_u32), "vertex {} not in its own mindist=0 ball", i);
+        }
+    }
+
+    #[test]
+    fn neighborhood_mindist_1_excludes_self(g in arb_graph(7)) {
+        let lists = rust_igraph::neighborhood_with_mode(
+            &g, 2, rust_igraph::NeighborhoodMode::All, 1).unwrap();
+        for (i, l) in lists.iter().enumerate() {
+            let i_u32 = u32::try_from(i).unwrap();
+            prop_assert!(!l.contains(&i_u32), "vertex {} should not be in own mindist=1 ball", i);
+        }
+    }
+
+    #[test]
+    fn neighborhood_ids_in_range_and_unique(g in arb_graph(7)) {
+        let n = g.vcount();
+        let lists = rust_igraph::neighborhood(&g, -1).unwrap();
+        for l in &lists {
+            let mut seen = std::collections::HashSet::new();
+            for &v in l {
+                prop_assert!(v < n, "out-of-range vertex id {} (vcount={})", v, n);
+                prop_assert!(seen.insert(v), "duplicate id {} in same neighborhood", v);
+            }
+        }
+    }
+
+    #[test]
+    fn neighborhood_monotone_in_order(g in arb_graph(7)) {
+        // order 1 set ⊆ order 2 set
+        let l1 = rust_igraph::neighborhood(&g, 1).unwrap();
+        let l2 = rust_igraph::neighborhood(&g, 2).unwrap();
+        for (s1, s2) in l1.iter().zip(l2.iter()) {
+            let set2: std::collections::HashSet<_> = s2.iter().copied().collect();
+            for &v in s1 {
+                prop_assert!(set2.contains(&v),
+                    "vertex {} appears in order-1 ball but not order-2 ball", v);
+            }
+        }
+    }
+
     /// PR-021 `topological_sorting` invariants:
     /// - For DAGs, the result is a permutation of `0..vcount`
     ///   that respects every non-loop directed edge `u → v`
