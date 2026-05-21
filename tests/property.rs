@@ -2932,4 +2932,71 @@ proptest! {
             (a, b) => prop_assert!(false, "A* / dijkstra disagreement: astar={:?} dij={:?}", a, b),
         }
     }
+
+    /// PR-028 convergence_degree invariants on undirected graphs:
+    /// - result length equals edge count
+    /// - every non-NaN value is in [0, 1] (undirected absolute-value rule)
+    /// - per-edge `ins`/`outs` are non-negative
+    /// - if `ins[e] + outs[e] == 0` then `result[e]` is NaN; otherwise it is finite
+    #[test]
+    fn convergence_degree_undirected_invariants(g in arb_graph(8)) {
+        let m = g.ecount();
+        let (r, ins, outs) = rust_igraph::convergence_degree_full(&g).unwrap();
+        prop_assert_eq!(r.len(), m);
+        prop_assert_eq!(ins.len(), m);
+        prop_assert_eq!(outs.len(), m);
+        for e in 0..m {
+            prop_assert!(ins[e] >= 0.0, "ins[{}] = {} negative", e, ins[e]);
+            prop_assert!(outs[e] >= 0.0, "outs[{}] = {} negative", e, outs[e]);
+            let s = ins[e] + outs[e];
+            if s == 0.0 {
+                prop_assert!(r[e].is_nan(),
+                             "expected NaN for unreachable edge {}, got {}", e, r[e]);
+            } else {
+                prop_assert!(r[e].is_finite(),
+                             "result[{}] = {} should be finite", e, r[e]);
+                prop_assert!((-1e-12..=1.0 + 1e-12).contains(&r[e]),
+                             "undirected result[{}] = {} outside [0,1]", e, r[e]);
+            }
+        }
+    }
+
+    /// PR-028 convergence_degree invariants on directed graphs:
+    /// - result length equals edge count
+    /// - every non-NaN value is in [-1, 1]
+    /// - `ins`/`outs` are non-negative
+    #[test]
+    fn convergence_degree_directed_invariants(g in arb_directed_graph(8)) {
+        let m = g.ecount();
+        let (r, ins, outs) = rust_igraph::convergence_degree_full(&g).unwrap();
+        prop_assert_eq!(r.len(), m);
+        for e in 0..m {
+            prop_assert!(ins[e] >= 0.0, "ins[{}] = {}", e, ins[e]);
+            prop_assert!(outs[e] >= 0.0, "outs[{}] = {}", e, outs[e]);
+            let s = ins[e] + outs[e];
+            if s == 0.0 {
+                prop_assert!(r[e].is_nan());
+            } else {
+                prop_assert!((-1.0 - 1e-12..=1.0 + 1e-12).contains(&r[e]),
+                             "directed result[{}] = {} outside [-1,1]", e, r[e]);
+            }
+        }
+    }
+
+    /// PR-028 `convergence_degree` and `convergence_degree_full` agree
+    /// on the result vector (the former is just `_full().0`).
+    #[test]
+    fn convergence_degree_matches_full(g in arb_graph(8)) {
+        let r = rust_igraph::convergence_degree(&g).unwrap();
+        let (r_full, _, _) = rust_igraph::convergence_degree_full(&g).unwrap();
+        prop_assert_eq!(r.len(), r_full.len());
+        for e in 0..r.len() {
+            if r[e].is_nan() {
+                prop_assert!(r_full[e].is_nan());
+            } else {
+                prop_assert!((r[e] - r_full[e]).abs() < 1e-12,
+                             "edge {}: {} vs {}", e, r[e], r_full[e]);
+            }
+        }
+    }
 }

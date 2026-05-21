@@ -1,0 +1,40 @@
+{
+  "source": "c",
+  "origin": "references/igraph/tests/unit/igraph_convergence_degree.c test 2: directed n=6, four leaves into hub then hub\u2192sink",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "convergence_degree",
+  "params": {},
+  "expected": [
+    -0.3333333333333333,
+    -0.3333333333333333,
+    -0.3333333333333333,
+    -0.3333333333333333,
+    0.6666666666666666
+  ]
+}

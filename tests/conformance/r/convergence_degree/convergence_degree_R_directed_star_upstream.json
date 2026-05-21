@@ -1,0 +1,40 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): directed star, matches references/igraph .out test 2",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "convergence_degree",
+  "params": {},
+  "expected": [
+    -0.3333333333333333,
+    -0.3333333333333333,
+    -0.3333333333333333,
+    -0.3333333333333333,
+    0.6666666666666666
+  ]
+}

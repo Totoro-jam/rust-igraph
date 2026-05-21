@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: K_3 \u2014 symmetric, expect all zeros",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "convergence_degree",
+  "params": {},
+  "expected": [
+    0.0,
+    0.0,
+    0.0
+  ]
+}

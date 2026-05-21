@@ -3189,3 +3189,23 @@ fn distances_three_source_conformance() {
         serde_json::json!(d)
     });
 }
+
+#[test]
+fn convergence_degree_three_source_conformance() {
+    // Per-edge convergence values; NaN encodes as JSON `null` to match
+    // the upstream Python/R wire format (closeness uses the same trick).
+    run_conformance("convergence_degree", |g, _params| {
+        let r = rust_igraph::convergence_degree(g).expect("convergence_degree");
+        let arr: Vec<serde_json::Value> = r
+            .into_iter()
+            .map(|x| {
+                if x.is_nan() {
+                    serde_json::Value::Null
+                } else {
+                    serde_json::json!(x)
+                }
+            })
+            .collect();
+        serde_json::Value::Array(arr)
+    });
+}

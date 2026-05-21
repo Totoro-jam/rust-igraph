@@ -164,6 +164,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-016 | `is_complete` (cardinality short-circuit + simple-fast-path + unique-neighbour scan) | properties/complete.c (lines 43-155) | ~110 | adapt | PR-013 | done | (next) | O(V+E) | C:2 / py:2 / R:2 |
 | ALGO-PR-027 | `neighborhood_size` (BFS-based k-hop ball count, OUT/IN/ALL mode, mindist filter) | properties/neighborhood.c (lines 70-164) | ~140 | adapt | CORE-001a/b | done | (next) | O(V·(V+E)) BFS-per-vertex | C:2 / py:2 / R:2 |
 | ALGO-PR-027b | `neighborhood` (BFS-based k-hop vertex lists, OUT/IN/ALL mode, mindist filter) | properties/neighborhood.c (lines 208-303) | ~160 | adapt | PR-027 | done | (next) | O(V·(V+E)) BFS-per-vertex | C:2 / py:2 / R:2 |
+| ALGO-PR-028 | `convergence_degree` (per-edge `(In−Out)/(In+Out)` measure of shortest-path source/sink balance) | properties/convergence_degree.c (lines 21-93) | ~80 | adapt | CORE-001a/b | done | (next) | O(V·(V+E)) BFS-per-vertex | C:2 / py:2 / R:2 |
 
 ## Phase 3 — Centrality + Eigensolver (~65 AWU)
 
@@ -182,10 +183,10 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | total | Conformance fixtures |
 |-------|------|-----|------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 89 | 0 | ~7 | ~96 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; ecc/radius/diameter_with_mode: 9; triangles+transitivity: 10; transitivity_barrat: 3; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001c: no fixtures; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; assortativity_degree_directed_weighted: 3; floyd_warshall_distances: 3; decompose: 3; union: 3; intersection: 3; difference: 3; dijkstra_paths+path_to+cutoff: 9; dijkstra_with_mode+all_shortest_paths: 6; ecc/radius/diameter_weighted_with_mode: 9; a_star_path: 3; bellman_ford_distances: 9; johnson_distances: 6; widest_path_widths: 6; widest_path: 6; widest_path_widths_floyd_warshall: 6; widest_paths_to: 6; widest_paths: 6; edgelist_percolation: 6; bond_percolation: 6; site_percolation: 6; is_same_graph: 6; is_dag: 6; topological_sorting: 6; is_acyclic: 6; is_tree: 6; is_forest: 6; is_complete: 6; neighborhood_size: 6; neighborhood: 6 |
+| 1 | 90 | 0 | ~6 | ~96 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; ecc/radius/diameter_with_mode: 9; triangles+transitivity: 10; transitivity_barrat: 3; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001c: no fixtures; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; assortativity_degree_directed_weighted: 3; floyd_warshall_distances: 3; decompose: 3; union: 3; intersection: 3; difference: 3; dijkstra_paths+path_to+cutoff: 9; dijkstra_with_mode+all_shortest_paths: 6; ecc/radius/diameter_weighted_with_mode: 9; a_star_path: 3; bellman_ford_distances: 9; johnson_distances: 6; widest_path_widths: 6; widest_path: 6; widest_path_widths_floyd_warshall: 6; widest_paths_to: 6; widest_paths: 6; edgelist_percolation: 6; bond_percolation: 6; site_percolation: 6; is_same_graph: 6; is_dag: 6; topological_sorting: 6; is_acyclic: 6; is_tree: 6; is_forest: 6; is_complete: 6; neighborhood_size: 6; neighborhood: 6; convergence_degree: 6 |
 | 2-10 | 0 | 0 | ~543 | ~543 | - |
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 74/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 75/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -230,7 +231,8 @@ A* shortest path with admissible heuristic (SP-005),
 random walk (TR-003, deterministic SplitMix64 PRNG),
 is_complete (PR-016, cardinality + simple-fast-path + unique-neighbour scan),
 neighborhood_size (PR-027, BFS-based k-hop ball count with mindist filter),
-neighborhood (PR-027b, BFS-based k-hop vertex lists with mindist + mode).
+neighborhood (PR-027b, BFS-based k-hop vertex lists with mindist + mode),
+convergence_degree (PR-028, per-edge shortest-path source/sink balance).
 Next options:
 CORE-001c (deletion),
 hub/auth scores,

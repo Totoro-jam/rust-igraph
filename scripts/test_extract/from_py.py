@@ -784,6 +784,35 @@ IS_DAG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-028: convergence_degree. python-igraph exposes
+# `Graph.convergence_degree()` returning a per-edge list. Edges that
+# lie on no shortest path produce NaN; we encode NaN as JSON `null`
+# in the expected vector.
+CONVERGENCE_DEGREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "convergence_degree_py_undirected_triangle",
+        # K_3 — every edge is symmetric ⇒ all zeros.
+        "origin": "constructed: K_3 — symmetric, expect all zeros",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "algo": "convergence_degree",
+        "params": {},
+        "expected": [0.0, 0.0, 0.0],
+    },
+    {
+        "case": "convergence_degree_py_directed_cycle_c3",
+        # Directed 3-cycle — each edge sees one source, one sink ⇒ 0.
+        "origin": "constructed: directed C_3 — balanced ⇒ all zeros",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "convergence_degree",
+        "params": {},
+        "expected": [0.0, 0.0, 0.0],
+    },
+]
+
 # ALGO-CORE-001e: is_same_graph (structural equality). python-igraph
 # does not expose this predicate; hand-computed expected values.
 IS_SAME_GRAPH_MANIFEST: List[Dict[str, Any]] = [
@@ -2039,6 +2068,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bond_percolation": BOND_PERCOLATION_MANIFEST,
     "site_percolation": SITE_PERCOLATION_MANIFEST,
     "is_same_graph": IS_SAME_GRAPH_MANIFEST,
+    "convergence_degree": CONVERGENCE_DEGREE_MANIFEST,
     "is_dag": IS_DAG_MANIFEST,
     "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
     "is_acyclic": IS_ACYCLIC_MANIFEST,

@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: directed C_3 \u2014 balanced \u21d2 all zeros",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "convergence_degree",
+  "params": {},
+  "expected": [
+    0.0,
+    0.0,
+    0.0
+  ]
+}

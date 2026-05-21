@@ -817,6 +817,25 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         lists = g.neighborhood(vertices=None, order=order, mode=mode, mindist=mindist)
         return [sorted(int(x) for x in vs) for vs in lists]
 
+    if algo == "convergence_degree":
+        # Counterpart of igraph_convergence_degree (ALGO-PR-028).
+        # python-igraph exposes Graph.convergence_degree() which returns
+        # the per-edge convergence (no in/out vectors). NaN values are
+        # serialised as None in JSON; the conformance comparator
+        # tolerates None-vs-None equality.
+        vals = list(g.convergence_degree())
+        return [None if (v != v) else float(v) for v in vals]
+    if algo == "convergence_degree_full":
+        # Variant returning {result, ins, outs}. python-igraph exposes
+        # ins/outs via Graph.convergence_field_size() — see graphobject.c.
+        ins, outs = g.convergence_field_size()
+        result = list(g.convergence_degree())
+        return {
+            "result": [None if (v != v) else float(v) for v in result],
+            "ins": [float(x) for x in ins],
+            "outs": [float(x) for x in outs],
+        }
+
     if algo == "is_same_graph":
         # Counterpart of igraph_is_same_graph. Compare the wire graph
         # `g` to a second graph encoded under params.other (same

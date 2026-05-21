@@ -22,6 +22,35 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-028**: `convergence_degree(graph)` and
+  `convergence_degree_full(graph)` — per-edge convergence value in
+  `[-1, 1]` (directed) or `[0, 1]` (undirected) measuring whether the
+  shortest paths through the edge originate from a larger or smaller
+  vertex set than they terminate in. For each edge `e`,
+  `In(e)` counts source vertices whose BFS reaches `e`'s tail-side
+  endpoint and `Out(e)` counts vertices whose IN-BFS reaches `e`'s
+  head-side endpoint; the result is `(In − Out) / (In + Out)` (with
+  the absolute value taken in the undirected variant per upstream).
+  `_full` additionally returns the raw `In` / `Out` counts for
+  diagnostics, mirroring python-igraph's `convergence_field_size`.
+  Edges that lie on no shortest path produce `NaN` (matches upstream's
+  `0/0` semantics). Counterpart of `igraph_convergence_degree` from
+  `references/igraph/src/properties/convergence_degree.c:21`.
+  Algorithm: directed graphs run two BFS-per-source passes (OUT pass
+  feeds `ins`, IN pass feeds `outs`); undirected graphs use a single
+  pass and decide tree-edge orientation by endpoint comparison
+  (`actnode < neighbor` ⇒ `ins`, else `outs`). Both upstream `.out`
+  reference cases (n=7 undirected two-triangle, n=6 directed star)
+  reproduced bit-for-bit in unit tests. Coverage: 17 unit tests
+  (upstream cases, K_4 / K_3 symmetric, balanced cycles, isolated
+  vertices, parallel edges, single-edge sanity, NaN self-loop), 3
+  oracle tests against python-igraph (with dummy weights vector to
+  pin stored-edge-order encoding through the wire), 6 conformance
+  fixtures (C/py/R, 2 each), and 3 proptest invariants
+  (result length matches ecount; values within `[-1,1]` or `[0,1]`;
+  `convergence_degree` agrees with `convergence_degree_full().0`).
+  `O(V·(V+E))` per call.
+
 - *(properties)* **ALGO-PR-027b**: `neighborhood(graph, order)` and
   `neighborhood_with_mode(graph, order, mode, mindist)` — k-hop
   neighbourhood vertex lists for every vertex (sibling of PR-027's

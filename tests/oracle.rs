@@ -1892,6 +1892,108 @@ fn neighborhood_mindist_2_in_mode_infinite_matches_python() {
     );
 }
 
+// ---- ALGO-PR-028: convergence_degree oracle tests --------
+
+fn approx_eq_with_nan(a: f64, b: f64, tol: f64) -> bool {
+    if a.is_nan() && b.is_nan() {
+        return true;
+    }
+    (a - b).abs() <= tol
+}
+
+fn approx_eq_vec_with_nan(a: &[f64], b: &[f64], tol: f64) -> bool {
+    a.len() == b.len()
+        && a.iter()
+            .zip(b.iter())
+            .all(|(x, y)| approx_eq_with_nan(*x, *y, tol))
+}
+
+fn decode_python_convergence(v: &serde_json::Value) -> Vec<f64> {
+    // Python returns NaN as JSON `null`; map back to f64::NAN.
+    v.as_array()
+        .expect("convergence_degree returns array")
+        .iter()
+        .map(|x| x.as_f64().unwrap_or(f64::NAN))
+        .collect()
+}
+
+#[test]
+fn convergence_degree_upstream_undirected_matches_python() {
+    let mut g = Graph::with_vertices(7);
+    g.add_edges(vec![
+        (0u32, 1u32),
+        (0, 2),
+        (0, 3),
+        (1, 2),
+        (1, 3),
+        (2, 3),
+        (3, 4),
+        (4, 5),
+        (4, 6),
+        (5, 6),
+    ])
+    .unwrap();
+    let rust = rust_igraph::convergence_degree(&g).unwrap();
+    let py = decode_python_convergence(&run_ok("convergence_degree", &g, serde_json::json!({})));
+    assert!(
+        approx_eq_vec_with_nan(&rust, &py, 1e-12),
+        "rust = {rust:?}, py = {py:?}"
+    );
+}
+
+#[test]
+fn convergence_degree_upstream_directed_matches_python() {
+    let mut g = Graph::new(6, true).unwrap();
+    g.add_edges(vec![(1u32, 0u32), (2, 0), (3, 0), (4, 0), (0, 5)])
+        .unwrap();
+    let rust = rust_igraph::convergence_degree(&g).unwrap();
+    // Force stored-edge-order encoding by passing dummy weights — the
+    // default `from_graph` payload walks by-vertex which permutes edge
+    // ids in directed graphs.
+    let weights = vec![1.0; g.ecount()];
+    let py = decode_python_convergence(&run_ok_with_weights(
+        "convergence_degree",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ));
+    assert!(
+        approx_eq_vec_with_nan(&rust, &py, 1e-12),
+        "rust = {rust:?}, py = {py:?}"
+    );
+}
+
+#[test]
+fn convergence_degree_full_in_out_match_python() {
+    // python-igraph exposes convergence_field_size() = (ins, outs).
+    #[derive(Debug, serde::Deserialize)]
+    struct Payload {
+        result: Vec<Option<f64>>,
+        ins: Vec<f64>,
+        outs: Vec<f64>,
+    }
+    let mut g = Graph::new(6, true).unwrap();
+    g.add_edges(vec![(1u32, 0u32), (2, 0), (3, 0), (4, 0), (0, 5)])
+        .unwrap();
+    let (rust_r, rust_ins, rust_outs) = rust_igraph::convergence_degree_full(&g).unwrap();
+    let weights = vec![1.0; g.ecount()];
+    let py: Payload = serde_json::from_value(run_ok_with_weights(
+        "convergence_degree_full",
+        &g,
+        Some(weights),
+        serde_json::json!({}),
+    ))
+    .expect("decode convergence_degree_full");
+    let py_result: Vec<f64> = py
+        .result
+        .into_iter()
+        .map(|o| o.unwrap_or(f64::NAN))
+        .collect();
+    assert!(approx_eq_vec_with_nan(&rust_r, &py_result, 1e-12));
+    assert!(approx_eq_vec_with_nan(&rust_ins, &py.ins, 1e-12));
+    assert!(approx_eq_vec_with_nan(&rust_outs, &py.outs, 1e-12));
+}
+
 // ---- ALGO-PR-024: is_forest oracle tests --------
 
 #[derive(Debug, serde::Deserialize)]

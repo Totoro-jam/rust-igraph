@@ -843,6 +843,56 @@ IS_DAG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-028: convergence_degree. Source:
+# references/igraph/tests/unit/igraph_convergence_degree.c.
+# Per-edge value in [-1, 1] (directed) or [0, 1] (undirected)
+# measuring whether shortest paths through the edge originate from
+# a larger or smaller vertex set than they terminate in.
+CONVERGENCE_DEGREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "convergence_degree_c_undirected_two_triangles",
+        # Reproduces the first .out test case verbatim.
+        "origin": (
+            "references/igraph/tests/unit/igraph_convergence_degree.c "
+            "test 1: undirected n=7, two triangles joined by a bridge"
+        ),
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 1), (0, 2), (0, 3), (1, 2), (1, 3),
+                (2, 3), (3, 4), (4, 5), (4, 6), (5, 6),
+            ],
+            directed=False,
+        ),
+        "algo": "convergence_degree",
+        "params": {},
+        "expected": [
+            0.0, 0.0, 0.6, 0.0, 0.6, 0.6,
+            1.0 / 7.0, 2.0 / 3.0, 2.0 / 3.0, 0.0,
+        ],
+    },
+    {
+        "case": "convergence_degree_c_directed_star",
+        # Reproduces the second .out test case verbatim. Directed
+        # graph; expected ordering matches python-igraph's stored
+        # edge ids (insertion order in the factory).
+        "origin": (
+            "references/igraph/tests/unit/igraph_convergence_degree.c "
+            "test 2: directed n=6, four leaves into hub then hub→sink"
+        ),
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(1, 0), (2, 0), (3, 0), (4, 0), (0, 5)],
+            directed=True,
+        ),
+        "algo": "convergence_degree",
+        "params": {},
+        "expected": [
+            -1.0 / 3.0, -1.0 / 3.0, -1.0 / 3.0, -1.0 / 3.0, 2.0 / 3.0,
+        ],
+    },
+]
+
 # ALGO-CORE-001e: is_same_graph (structural equality). Source:
 # graph/type_indexededgelist.c (lines 1947-2003). Compares two
 # graphs as labelled vertex/edge sets — not isomorphism.
@@ -2289,6 +2339,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bond_percolation": BOND_PERCOLATION_MANIFEST,
     "site_percolation": SITE_PERCOLATION_MANIFEST,
     "is_same_graph": IS_SAME_GRAPH_MANIFEST,
+    "convergence_degree": CONVERGENCE_DEGREE_MANIFEST,
     "is_dag": IS_DAG_MANIFEST,
     "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
     "is_acyclic": IS_ACYCLIC_MANIFEST,

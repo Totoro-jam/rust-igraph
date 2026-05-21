@@ -891,6 +891,46 @@ IS_SAME_GRAPH_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-028: convergence_degree. rigraph exposes
+# `convergence_degree(g)` returning a per-edge numeric vector. We
+# encode `NaN` as JSON `null` to match the oracle wire format.
+CONVERGENCE_DEGREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "convergence_degree_R_directed_star_upstream",
+        # Same as the upstream igraph C reference test 2 — n=6 hub
+        # graph: four leaves point at hub 0, hub points at sink 5.
+        "origin": (
+            "constructed (rigraph-style): directed star, "
+            "matches references/igraph .out test 2"
+        ),
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(1, 0), (2, 0), (3, 0), (4, 0), (0, 5)],
+            directed=True,
+        ),
+        "algo": "convergence_degree",
+        "params": {},
+        "expected": [
+            -1.0 / 3.0, -1.0 / 3.0, -1.0 / 3.0, -1.0 / 3.0, 2.0 / 3.0,
+        ],
+    },
+    {
+        "case": "convergence_degree_R_undirected_path",
+        # P_4 path: middle edge sees more crossing pairs than ends.
+        # Computed by hand-running the BFS-per-source algorithm.
+        "origin": "constructed (rigraph-style): P_4 path, hand-checked",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "convergence_degree",
+        "params": {},
+        # edge (0,1): ins=1, outs=3 → |−1/2| = 1/2
+        # edge (1,2): ins=2, outs=2 → 0
+        # edge (2,3): ins=3, outs=1 → 1/2
+        "expected": [0.5, 0.0, 0.5],
+    },
+]
+
 # ALGO-CC-032: Site percolation. rigraph doesn't bind this; hand-
 # computed expected values.
 SITE_PERCOLATION_MANIFEST: List[Dict[str, Any]] = [
@@ -2150,6 +2190,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bond_percolation": BOND_PERCOLATION_MANIFEST,
     "site_percolation": SITE_PERCOLATION_MANIFEST,
     "is_same_graph": IS_SAME_GRAPH_MANIFEST,
+    "convergence_degree": CONVERGENCE_DEGREE_MANIFEST,
     "is_dag": IS_DAG_MANIFEST,
     "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
     "is_acyclic": IS_ACYCLIC_MANIFEST,
