@@ -1,0 +1,25 @@
+{
+  "source": "c",
+  "origin": "igraph_hub_and_authority.c \u2014 'Three vertices, no links' case",
+  "graph": {
+    "n": 3,
+    "edges": [],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "hub_and_authority_scores",
+  "params": {},
+  "expected": {
+    "hub": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "authority": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "eigenvalue": 0.0
+  }
+}

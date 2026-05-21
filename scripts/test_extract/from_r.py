@@ -281,6 +281,48 @@ EIGEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HITS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # R-igraph tests/testthat/test-centrality.R: the g2 fixture in
+        # `authority_score()` and `hub_score()` test_thats. Edges in R
+        # 1-based notation are (1,2)(1,4)(2,3)(2,4)(3,1)(3,5)(4,3)(5,1)(5,2);
+        # translated to 0-based here. Hub and authority vectors below
+        # are copy-pasted verbatim from the R test file (max-abs
+        # normalisation; eigenvalue derived as max|A·Aᵀ·h| at
+        # convergence with h max-normed = the dominant eigenvalue of
+        # A·Aᵀ on this 5x5 directed graph).
+        "case": "hits_R_5v_directed_g2",
+        "origin": "rigraph tests/testthat/test-centrality.R — g2 fixture (hub_score / authority_score)",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (0, 3), (1, 2), (1, 3), (2, 0), (2, 4), (3, 2), (4, 0), (4, 1)],
+            directed=True,
+        ),
+        "algo": "hub_and_authority_scores",
+        "params": {},
+        "expected": {
+            "hub": [
+                1.0,
+                0.763521118433368,
+                0.546200349457203,
+                0.28462967654657,
+                0.918985947228995,
+            ],
+            "authority": [
+                0.763521118433368,
+                1.0,
+                0.546200349457202,
+                0.918985947228995,
+                0.28462967654657,
+            ],
+            # Largest eigenvalue of A·Aᵀ for this graph; computed
+            # exactly as 2 + h[1] + h[4] (the row-0 sum of A·Aᵀ
+            # against the converged hub vector — hand-checked).
+            "eigenvalue": 3.682507065662363,
+        },
+    },
+]
+
 BC_EDGES_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "biconnected_component_edges_R_K4",
@@ -2398,6 +2440,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "biconnected_components": BC_MANIFEST,
     "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
+    "hub_and_authority_scores": HITS_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "avg_nearest_neighbor_degree_weighted": KNN_W_MANIFEST,

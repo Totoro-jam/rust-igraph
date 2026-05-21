@@ -646,6 +646,27 @@ fn eigenvector_centrality_three_source_conformance() {
 }
 
 #[test]
+fn hub_and_authority_scores_three_source_conformance() {
+    // Floor sub-1e-9 magnitudes to 0 to mirror upstream's vector_chop
+    // pre-print step in tests/unit/hub_and_authority.c — without it,
+    // 1e-15-scale numerical drift on "exact zero" entries fails the
+    // 1e-12*scale json-approx-eq check.
+    fn chop(v: &[f64]) -> Vec<f64> {
+        v.iter()
+            .map(|&x| if x.abs() < 1e-9 { 0.0 } else { x })
+            .collect()
+    }
+    run_conformance("hub_and_authority_scores", |g, _params| {
+        let s = rust_igraph::hub_and_authority_scores(g).expect("hub_and_authority_scores");
+        serde_json::json!({
+            "hub": chop(&s.hub),
+            "authority": chop(&s.authority),
+            "eigenvalue": s.eigenvalue,
+        })
+    });
+}
+
+#[test]
 fn biconnected_components_three_source_conformance() {
     run_conformance("biconnected_components", |g, _params| {
         let bc = rust_igraph::biconnected_components(g).expect("biconnected_components");

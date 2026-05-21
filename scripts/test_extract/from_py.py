@@ -239,6 +239,46 @@ EIGEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HITS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # python-igraph: Graph.hub_score / authority_score on a 2x2
+        # bipartite hubs→authorities pattern. With max-abs scaling, the
+        # two source vertices are pure hubs and the two sink vertices
+        # are pure authorities. The largest A·Aᵀ eigenvalue is 4
+        # (block-diagonal 2x2 rank-1 matrix with all-ones on the hub
+        # side).
+        "case": "hits_py_bipartite_2x2",
+        "origin": "constructed: 0,1 → 2,3 — pure hub/authority partition",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 2), (0, 3), (1, 2), (1, 3)], directed=True
+        ),
+        "algo": "hub_and_authority_scores",
+        "params": {},
+        "expected": {
+            "hub": [1.0, 1.0, 0.0, 0.0],
+            "authority": [0.0, 0.0, 1.0, 1.0],
+            "eigenvalue": 4.0,
+        },
+    },
+    {
+        # Directed triangle: every vertex is symmetrically a hub and an
+        # authority of the same magnitude. Aligns with python-igraph's
+        # hub_score/authority_score reporting (max-norm convention).
+        "case": "hits_py_directed_triangle_uniform",
+        "origin": "constructed: 0→1→2→0 — uniform hub & authority, A·Aᵀ eigenvalue 1",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "hub_and_authority_scores",
+        "params": {},
+        "expected": {
+            "hub": [1.0, 1.0, 1.0],
+            "authority": [1.0, 1.0, 1.0],
+            "eigenvalue": 1.0,
+        },
+    },
+]
+
 BC_EDGES_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "biconnected_component_edges_py_triangle_plus_pendant",
@@ -2213,6 +2253,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "biconnected_components": BC_MANIFEST,
     "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
+    "hub_and_authority_scores": HITS_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "avg_nearest_neighbor_degree_weighted": KNN_W_MANIFEST,

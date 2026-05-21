@@ -262,6 +262,41 @@ EIGEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HITS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # Mirrors the "Three vertices, no links" case from upstream
+        # tests/unit/hub_and_authority.c: a directed graph with no
+        # edges falls back to the all-ones convention.
+        "case": "hits_c_directed_no_edges_ones",
+        "origin": "igraph_hub_and_authority.c — 'Three vertices, no links' case",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[], directed=True),
+        "algo": "hub_and_authority_scores",
+        "params": {},
+        "expected": {
+            "hub": [1.0, 1.0, 1.0],
+            "authority": [1.0, 1.0, 1.0],
+            "eigenvalue": 0.0,
+        },
+    },
+    {
+        # Mirrors the "Two hubs and one authority" case from upstream
+        # tests/unit/hub_and_authority.c (unweighted slice — ARPACK
+        # weighted variant ships with PR-017b).
+        "case": "hits_c_two_hubs_one_authority",
+        "origin": "igraph_hub_and_authority.c — 'Two hubs and one authority' (unweighted)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 2), (1, 2)], directed=True
+        ),
+        "algo": "hub_and_authority_scores",
+        "params": {},
+        "expected": {
+            "hub": [1.0, 1.0, 0.0],
+            "authority": [0.0, 0.0, 1.0],
+            "eigenvalue": 2.0,
+        },
+    },
+]
+
 BC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "biconnected_components_c_upstream_fixture",
@@ -2539,6 +2574,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "biconnected_components": BC_MANIFEST,
     "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
+    "hub_and_authority_scores": HITS_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "avg_nearest_neighbor_degree_weighted": KNN_W_MANIFEST,

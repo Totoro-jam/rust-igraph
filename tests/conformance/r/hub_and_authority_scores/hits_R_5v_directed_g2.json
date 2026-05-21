@@ -1,0 +1,66 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-centrality.R \u2014 g2 fixture (hub_score / authority_score)",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        4,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "hub_and_authority_scores",
+  "params": {},
+  "expected": {
+    "hub": [
+      1.0,
+      0.763521118433368,
+      0.546200349457203,
+      0.28462967654657,
+      0.918985947228995
+    ],
+    "authority": [
+      0.763521118433368,
+      1.0,
+      0.546200349457202,
+      0.918985947228995,
+      0.28462967654657
+    ],
+    "eigenvalue": 3.682507065662363
+  }
+}
