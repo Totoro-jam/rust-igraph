@@ -22,6 +22,36 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-024**: `is_forest(graph: &Graph, mode:
+  DijkstraMode) -> IgraphResult<Option<Vec<VertexId>>>` —
+  mode-aware forest predicate. Counterpart of `igraph_is_forest`
+  from `references/igraph/src/properties/trees.c:520`. Returns
+  `Some(roots)` iff the graph is a forest (a disjoint union of
+  trees) under `mode`, otherwise `None`. Unlike [`is_tree`], the
+  null graph **is** considered a forest with empty roots
+  (matches upstream's convention). For undirected graphs the
+  mode argument is ignored; for directed graphs:
+  - `DijkstraMode::Out`: out-forest — every tree is an
+    out-arborescence; roots are vertices with in-degree 0.
+  - `DijkstraMode::In`: in-forest — every tree is an
+    in-arborescence; roots are vertices with out-degree 0.
+  - `DijkstraMode::All`: orientation ignored; roots are the
+    canonical (lowest-id) vertex of each connected component.
+  Implementation pairs a fast `ecount ≤ vcount - 1` cardinality
+  bound with a per-component DFS visitor that detects cycles by
+  popping a vertex that's already marked visited (mirrors
+  upstream's `igraph_i_is_forest_visitor`). Self-loops in the
+  undirected case are caught explicitly. Time `O(V + E)`.
+  17 unit tests + 3 oracle tests vs an inline Python reference
+  (python-igraph does not expose this predicate; the oracle
+  replicates the C contract for both `mode=all` and `mode=out`)
+  + 6 conformance fixtures (2 each C/Python/R, mixing modes and
+  true/false outcomes; payload shape `{is_forest, roots[]}`)
+  + 2 proptest invariants
+  (`is_forest_implies_acyclic_with_forest_edge_count` — every
+  forest under `All` has a root per CC and satisfies the
+  identity `m == n - cc`; `tree_is_forest_with_one_root` —
+  every tree is a forest with exactly the tree root).
 - *(properties)* **ALGO-PR-023**: `is_tree(graph: &Graph, mode:
   DijkstraMode) -> IgraphResult<Option<VertexId>>` — mode-aware
   tree predicate. Counterpart of `igraph_is_tree` from

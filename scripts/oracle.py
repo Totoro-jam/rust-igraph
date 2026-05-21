@@ -667,6 +667,95 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             parent[ru] = rv
         return True
 
+    if algo == "is_forest":
+        # Counterpart of igraph_is_forest. python-igraph does not
+        # expose this predicate, so we replicate it inline.
+        # Returns {"is_forest": bool, "roots": [int, ...]} where
+        # `roots` is empty when not a forest. Mirrors upstream's
+        # behaviour: null graph IS a forest with empty roots; mode
+        # is ignored for undirected graphs; for directed graphs,
+        # OUT roots are in-degree-0 vertices, IN roots are
+        # out-degree-0 vertices, ALL is treated as undirected.
+        mode = str(params.get("mode", "out")).lower()
+        if mode not in ("out", "in", "all"):
+            return {"_error": f"invalid mode: {mode}"}
+        n = g.vcount()
+        m = g.ecount()
+        if n == 0:
+            return {"is_forest": True, "roots": []}
+        if m == 0:
+            return {"is_forest": True, "roots": list(range(n))}
+        # Cardinality bound.
+        if m > n - 1:
+            return {"is_forest": False, "roots": []}
+        directed = g.is_directed()
+        eff_mode = "all" if not directed else mode
+
+        # Adjacency lists in the requested orientation.
+        if eff_mode == "all":
+            adj = [list() for _ in range(n)]
+            for e in g.es:
+                u, v = e.source, e.target
+                adj[u].append((v, e.index))
+                adj[v].append((u, e.index))
+        elif eff_mode == "out":
+            adj = [list() for _ in range(n)]
+            for e in g.es:
+                adj[e.source].append((e.target, e.index))
+        else:  # "in"
+            adj = [list() for _ in range(n)]
+            for e in g.es:
+                adj[e.target].append((e.source, e.index))
+
+        visited = [False] * n
+        visited_count = 0
+        roots: list[int] = []
+
+        def visit(start: int) -> bool:
+            nonlocal visited_count
+            stack = [start]
+            while stack:
+                u = stack.pop()
+                if visited[u]:
+                    return False
+                visited[u] = True
+                visited_count += 1
+                for v, _eid in adj[u]:
+                    if eff_mode == "all":
+                        if not visited[v]:
+                            stack.append(v)
+                        elif v == u:
+                            return False
+                    else:
+                        stack.append(v)
+            return True
+
+        if eff_mode == "all":
+            for v in range(n):
+                if not visited[v]:
+                    roots.append(v)
+                    if not visit(v):
+                        return {"is_forest": False, "roots": []}
+        else:
+            # Counter-direction degree:
+            # OUT-tree → vertices have in-degree ≤ 1
+            # IN-tree  → vertices have out-degree ≤ 1
+            counter = "in" if eff_mode == "out" else "out"
+            for v in range(n):
+                if counter == "in":
+                    d = g.degree(v, mode="in", loops=True)
+                else:
+                    d = g.degree(v, mode="out", loops=True)
+                if d > 1:
+                    return {"is_forest": False, "roots": []}
+                if d == 0:
+                    roots.append(v)
+                    if not visit(v):
+                        return {"is_forest": False, "roots": []}
+        if visited_count != n:
+            return {"is_forest": False, "roots": []}
+        return {"is_forest": True, "roots": roots}
+
     if algo == "is_tree":
         # Counterpart of igraph_is_tree. python-igraph exposes
         # `Graph.is_tree(mode='out'|'in'|'all')` which returns a

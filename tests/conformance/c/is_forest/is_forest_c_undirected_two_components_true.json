@@ -1,0 +1,34 @@
+{
+  "source": "c",
+  "origin": "constructed: 0-1 \u2294 2-3-4 \u2014 2 disjoint trees",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_forest",
+  "params": {
+    "mode": "all"
+  },
+  "expected": {
+    "is_forest": true,
+    "roots": [
+      0,
+      2
+    ]
+  }
+}

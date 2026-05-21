@@ -2096,6 +2096,40 @@ proptest! {
         }
     }
 
+    /// PR-024 `is_forest` invariants:
+    /// - If `is_forest(g, All)` is `Some(roots)` then `g` is
+    ///   acyclic and `m == n - cc.count` (forest identity).
+    /// - Every tree is a forest: if `is_tree(g, mode)` is `Some`
+    ///   then `is_forest(g, mode)` is `Some` with exactly one root.
+    #[test]
+    fn is_forest_implies_acyclic_with_forest_edge_count(g in arb_graph(8)) {
+        let result = rust_igraph::is_forest(&g, rust_igraph::DijkstraMode::All).unwrap();
+        if let Some(roots) = result {
+            prop_assert!(rust_igraph::is_acyclic(&g),
+                "is_forest=Some but is_acyclic=false");
+            let cc = rust_igraph::connected_components(&g).unwrap();
+            // Each component contributes exactly one root (mode=All).
+            let nroots = u32::try_from(roots.len()).expect("roots.len fits in u32");
+            prop_assert_eq!(nroots, cc.count,
+                "forest root count must equal number of CCs");
+            // Forest identity: m == n - cc.count.
+            let m = u32::try_from(g.ecount()).expect("ecount fits in u32");
+            let n = g.vcount();
+            prop_assert_eq!(m, n - cc.count, "forest identity m == n - cc");
+        }
+    }
+
+    #[test]
+    fn tree_is_forest_with_one_root(g in arb_graph(8)) {
+        let tree = rust_igraph::is_tree(&g, rust_igraph::DijkstraMode::All).unwrap();
+        if let Some(tree_root) = tree {
+            let forest = rust_igraph::is_forest(&g, rust_igraph::DijkstraMode::All).unwrap();
+            let roots = forest.expect("a tree must also be a forest");
+            prop_assert_eq!(roots, vec![tree_root],
+                "tree forest must have exactly the tree root");
+        }
+    }
+
     /// PR-021 `topological_sorting` invariants:
     /// - For DAGs, the result is a permutation of `0..vcount`
     ///   that respects every non-loop directed edge `u → v`

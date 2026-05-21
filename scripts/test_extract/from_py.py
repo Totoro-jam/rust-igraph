@@ -605,6 +605,36 @@ IS_TREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-024: is_forest. python-igraph does NOT expose
+# `Graph.is_forest`, so the oracle replicates the C contract
+# inline. The fixtures here mirror common shapes the upstream
+# Python tests exercise (small directed/undirected forests and
+# negative cases).
+IS_FOREST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_forest_py_directed_in_two_anti_arborescences_true",
+        # 1→0, 3→2: every edge points to a sink — two in-trees.
+        "origin": "constructed: 1→0 ⊔ 3→2 — 2 in-arborescences",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(1, 0), (3, 2)], directed=True
+        ),
+        "algo": "is_forest",
+        "params": {"mode": "in"},
+        "expected": {"is_forest": True, "roots": [0, 2]},
+    },
+    {
+        "case": "is_forest_py_undirected_self_loop_false",
+        # Self-loop on vertex 0; rest is forest.
+        "origin": "constructed: self-loop on 0 + edge 1-2 — self-loop = cycle",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 0), (1, 2)], directed=False
+        ),
+        "algo": "is_forest",
+        "params": {"mode": "all"},
+        "expected": {"is_forest": False, "roots": []},
+    },
+]
+
 # ALGO-PR-021: topological_sorting. python-igraph exposes
 # `Graph.topological_sorting(mode='OUT'/'IN'/'ALL')`.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -1920,6 +1950,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
     "is_acyclic": IS_ACYCLIC_MANIFEST,
     "is_tree": IS_TREE_MANIFEST,
+    "is_forest": IS_FOREST_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

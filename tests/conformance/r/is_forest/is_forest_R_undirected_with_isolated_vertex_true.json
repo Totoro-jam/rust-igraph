@@ -1,0 +1,30 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): path + isolated vertex \u2014 2 trees",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_forest",
+  "params": {
+    "mode": "all"
+  },
+  "expected": {
+    "is_forest": true,
+    "roots": [
+      0,
+      3
+    ]
+  }
+}

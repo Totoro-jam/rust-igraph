@@ -1689,6 +1689,57 @@ fn is_tree_directed_out_arborescence_matches_python_reference() {
     assert_eq!(rust, Some(0));
 }
 
+// ---- ALGO-PR-024: is_forest oracle tests --------
+
+#[derive(Debug, serde::Deserialize)]
+struct IsForestPayload {
+    is_forest: bool,
+    roots: Vec<u32>,
+}
+
+#[test]
+fn is_forest_undirected_two_components_matches_python_reference() {
+    // Disjoint edges 0-1 and 2-3-4.
+    let mut g = Graph::with_vertices(5);
+    g.add_edges(vec![(0u32, 1u32), (2, 3), (3, 4)]).unwrap();
+    let rust = rust_igraph::is_forest(&g, rust_igraph::DijkstraMode::All).unwrap();
+    let py: IsForestPayload =
+        serde_json::from_value(run_ok("is_forest", &g, serde_json::json!({"mode": "all"})))
+            .expect("decode python is_forest");
+    assert!(py.is_forest);
+    assert_eq!(
+        rust.as_ref().map(|r| r.as_slice()),
+        Some(py.roots.as_slice())
+    );
+}
+
+#[test]
+fn is_forest_undirected_triangle_matches_python_reference() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 0)]).unwrap();
+    let rust = rust_igraph::is_forest(&g, rust_igraph::DijkstraMode::All).unwrap();
+    let py: IsForestPayload =
+        serde_json::from_value(run_ok("is_forest", &g, serde_json::json!({"mode": "all"})))
+            .expect("decode python is_forest");
+    assert!(!py.is_forest);
+    assert!(rust.is_none());
+}
+
+#[test]
+fn is_forest_directed_out_two_arborescences_matches_python_reference() {
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edges(vec![(0u32, 1u32), (2, 3)]).unwrap();
+    let rust = rust_igraph::is_forest(&g, rust_igraph::DijkstraMode::Out).unwrap();
+    let py: IsForestPayload =
+        serde_json::from_value(run_ok("is_forest", &g, serde_json::json!({"mode": "out"})))
+            .expect("decode python is_forest");
+    assert!(py.is_forest);
+    assert_eq!(
+        rust.as_ref().map(|r| r.as_slice()),
+        Some(py.roots.as_slice())
+    );
+}
+
 // ---- ALGO-PR-021: topological_sorting oracle tests --------
 
 /// Helper: verify the topological order is consistent with all

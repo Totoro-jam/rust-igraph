@@ -664,6 +664,33 @@ IS_TREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-024: is_forest (predicate + roots). Source: properties/
+# trees.c (lines 520-725). Returns {is_forest, roots[]}; roots are
+# the per-tree starting vertices (in-degree-0 for OUT, out-degree-0
+# for IN, lowest-id-per-component for ALL/undirected).
+IS_FOREST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_forest_c_undirected_two_components_true",
+        "origin": "constructed: 0-1 ⊔ 2-3-4 — 2 disjoint trees",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (2, 3), (3, 4)], directed=False
+        ),
+        "algo": "is_forest",
+        "params": {"mode": "all"},
+        "expected": {"is_forest": True, "roots": [0, 2]},
+    },
+    {
+        "case": "is_forest_c_directed_v_pattern_not_out_forest_false",
+        "origin": "constructed: 0→2, 1→2 — vertex 2 has in-degree 2",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 2), (1, 2)], directed=True
+        ),
+        "algo": "is_forest",
+        "params": {"mode": "out"},
+        "expected": {"is_forest": False, "roots": []},
+    },
+]
+
 # ALGO-PR-021: topological_sorting. Source: properties/dag.c
 # (lines 54-123). Kahn's peel, recording the popped order.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -2168,6 +2195,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
     "is_acyclic": IS_ACYCLIC_MANIFEST,
     "is_tree": IS_TREE_MANIFEST,
+    "is_forest": IS_FOREST_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

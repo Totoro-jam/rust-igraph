@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: 1\u21920 \u2294 3\u21922 \u2014 2 in-arborescences",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        3,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_forest",
+  "params": {
+    "mode": "in"
+  },
+  "expected": {
+    "is_forest": true,
+    "roots": [
+      0,
+      2
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): undirected star \u2014 forest",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_forest",
+  "params": {
+    "mode": "all"
+  },
+  "expected": {
+    "is_forest": true,
+    "roots": [
+      0
+    ]
+  }
+}

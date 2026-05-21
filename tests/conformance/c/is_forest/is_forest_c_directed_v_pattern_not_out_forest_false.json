@@ -1,0 +1,27 @@
+{
+  "source": "c",
+  "origin": "constructed: 0\u21922, 1\u21922 \u2014 vertex 2 has in-degree 2",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_forest",
+  "params": {
+    "mode": "out"
+  },
+  "expected": {
+    "is_forest": false,
+    "roots": []
+  }
+}

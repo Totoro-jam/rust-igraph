@@ -673,6 +673,36 @@ IS_TREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-024: is_forest. rigraph's
+# `is_forest(g, mode="out"/"in"/"all", details=TRUE)` returns
+# `list(res = bool, roots = vector)` — fixtures here mirror
+# common rigraph examples (man/is_forest.Rd shows a single tree
+# call and a multi-tree variant).
+IS_FOREST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_forest_R_undirected_star_true",
+        # K_{1,4}: still a forest with one component, root = 0.
+        "origin": "constructed (rigraph-style): undirected star — forest",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (0, 2), (0, 3), (0, 4)], directed=False
+        ),
+        "algo": "is_forest",
+        "params": {"mode": "all"},
+        "expected": {"is_forest": True, "roots": [0]},
+    },
+    {
+        "case": "is_forest_R_undirected_with_isolated_vertex_true",
+        # Path 0-1-2 + isolated vertex 3 — 2 trees.
+        "origin": "constructed (rigraph-style): path + isolated vertex — 2 trees",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "is_forest",
+        "params": {"mode": "all"},
+        "expected": {"is_forest": True, "roots": [0, 3]},
+    },
+]
+
 # ALGO-PR-021: topological_sorting. rigraph's
 # `topo_sort(g, mode="out"|"in")` returns the order.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -2031,6 +2061,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
     "is_acyclic": IS_ACYCLIC_MANIFEST,
     "is_tree": IS_TREE_MANIFEST,
+    "is_forest": IS_FOREST_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,
