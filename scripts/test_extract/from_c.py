@@ -1839,6 +1839,30 @@ COUNT_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COUNT_ADJACENT_TRIANGLES_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_adjacent_triangles_c_k4_each_three",
+        # references/igraph/src/properties/triangles.c:igraph_count_adjacent_triangles
+        # K4: 4 triangles total, every vertex sits in 3 of them.
+        "origin": "constructed: K4 (4 vertices, 6 edges); per-vertex count = [3,3,3,3]",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False, loops=False),
+        "algo": "count_adjacent_triangles",
+        "params": {},
+        "expected": [3, 3, 3, 3],
+    },
+    {
+        "case": "count_adjacent_triangles_c_diamond_k4_minus_edge",
+        # K4 minus edge (0,3); triangles (0,1,2) and (1,2,3).
+        "origin": "constructed: K4 minus edge (0,3); per-vertex count = [1,2,2,1]",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "algo": "count_adjacent_triangles",
+        "params": {},
+        "expected": [1, 2, 2, 1],
+    },
+]
+
 HAS_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "has_multiple_c_two_parallel_edges",
@@ -2375,6 +2399,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "has_multiple": HAS_MULTIPLE_MANIFEST,
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
+    "count_adjacent_triangles": COUNT_ADJACENT_TRIANGLES_MANIFEST,
     "count_loops": COUNT_LOOPS_MANIFEST,
     "count_multiple": COUNT_MULTIPLE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,

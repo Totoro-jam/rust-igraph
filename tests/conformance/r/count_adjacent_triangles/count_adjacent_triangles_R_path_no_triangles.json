@@ -1,0 +1,31 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): undirected 4-path; per-vertex = [0,0,0,0]",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_adjacent_triangles",
+  "params": {},
+  "expected": [
+    0,
+    0,
+    0,
+    0
+  ]
+}

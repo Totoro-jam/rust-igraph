@@ -1,7 +1,8 @@
-//! Triangles and global transitivity (ALGO-PR-002 / 002b / 002c).
+//! Triangles and global transitivity (ALGO-PR-002 / 002b / 002c / 002d).
 //!
 //! Counterparts of:
 //! - `igraph_count_triangles()`             from `references/igraph/src/properties/triangles.c:501`
+//! - `igraph_count_adjacent_triangles()`    from `references/igraph/src/properties/triangles.c:522`
 //! - `igraph_transitivity_undirected()`     from `references/igraph/src/properties/triangles.c:615`
 //! - `igraph_transitivity_local_undirected()` from `references/igraph/src/properties/triangles.c:369`
 //! - `igraph_transitivity_barrat()`         from `references/igraph/src/properties/triangles.c:874`
@@ -33,6 +34,46 @@ use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 pub fn count_triangles(graph: &Graph) -> IgraphResult<u64> {
     let (triangles, _) = triangles_and_triples(graph)?;
     Ok(triangles)
+}
+
+/// Per-vertex adjacent-triangle count. Entry `i` is the number of
+/// triangles vertex `i` participates in. Parallel edges and self-loops
+/// are ignored — the simple graph induced by the OUT-neighbour view is
+/// used (consistent with [`count_triangles`]). For directed graphs that
+/// is not yet the underlying-undirected projection that upstream uses;
+/// see ALGO-PR-002 for the deferred fix.
+///
+/// Counterpart of `igraph_count_adjacent_triangles()` from
+/// `references/igraph/src/properties/triangles.c:522`. Always runs the
+/// "all vertices" path (`adjacent_triangles4`); the C version's
+/// per-vertex `adjacent_triangles1` short-circuit is moot when querying
+/// every vertex.
+///
+/// Invariants: `result.iter().sum::<u64>() == 3 * count_triangles(g)`,
+/// and each entry is bounded by `C(deg, 2)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, count_adjacent_triangles};
+///
+/// // K4: every vertex sees the 3 triangles meeting at it.
+/// let mut g = Graph::with_vertices(4);
+/// for u in 0..4u32 {
+///     for v in (u + 1)..4 {
+///         g.add_edge(u, v).unwrap();
+///     }
+/// }
+/// assert_eq!(count_adjacent_triangles(&g).unwrap(), vec![3, 3, 3, 3]);
+///
+/// // Star centre meets 0 triangles; leaves all 0 as well.
+/// let mut g = Graph::with_vertices(4);
+/// for v in 1..4 { g.add_edge(0, v).unwrap(); }
+/// assert_eq!(count_adjacent_triangles(&g).unwrap(), vec![0, 0, 0, 0]);
+/// ```
+pub fn count_adjacent_triangles(graph: &Graph) -> IgraphResult<Vec<u64>> {
+    let (per_vertex_triangles, _) = per_vertex_triangle_stats(graph)?;
+    Ok(per_vertex_triangles)
 }
 
 /// Global transitivity (clustering coefficient) of `graph` —
@@ -659,6 +700,131 @@ mod tests {
         let mut g = Graph::new(2, true).unwrap();
         g.add_edge(0, 1).unwrap();
         assert!(transitivity_barrat(&g, &[1.0]).is_err());
+    }
+
+    // ---------- count_adjacent_triangles (PR-002d) ----------
+
+    #[test]
+    fn adjacent_triangles_empty_graph() {
+        let g = Graph::with_vertices(0);
+        assert_eq!(count_adjacent_triangles(&g).unwrap(), Vec::<u64>::new());
+    }
+
+    #[test]
+    fn adjacent_triangles_isolated_vertices() {
+        let g = Graph::with_vertices(5);
+        assert_eq!(count_adjacent_triangles(&g).unwrap(), vec![0; 5]);
+    }
+
+    #[test]
+    fn adjacent_triangles_single_triangle() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        assert_eq!(count_adjacent_triangles(&g).unwrap(), vec![1, 1, 1]);
+    }
+
+    #[test]
+    fn adjacent_triangles_k4_each_vertex_sees_3() {
+        let mut g = Graph::with_vertices(4);
+        for u in 0..4u32 {
+            for v in (u + 1)..4 {
+                g.add_edge(u, v).unwrap();
+            }
+        }
+        // K4 has 4 triangles; each vertex is in 3 of them.
+        assert_eq!(count_adjacent_triangles(&g).unwrap(), vec![3, 3, 3, 3]);
+    }
+
+    #[test]
+    fn adjacent_triangles_diamond_k4_minus_edge() {
+        // Triangles (0,1,2) and (1,2,3); deg-by-vertex {0,3} see one
+        // triangle, deg-by-vertex {1,2} see both.
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(2, 3).unwrap();
+        assert_eq!(count_adjacent_triangles(&g).unwrap(), vec![1, 2, 2, 1]);
+    }
+
+    #[test]
+    fn adjacent_triangles_star_all_zero() {
+        let mut g = Graph::with_vertices(5);
+        for v in 1..5u32 {
+            g.add_edge(0, v).unwrap();
+        }
+        assert_eq!(count_adjacent_triangles(&g).unwrap(), vec![0; 5]);
+    }
+
+    #[test]
+    fn adjacent_triangles_self_loops_ignored() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 0).unwrap();
+        g.add_edge(1, 1).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        // Self-loops don't contribute; the (0,1,2) triangle remains.
+        assert_eq!(count_adjacent_triangles(&g).unwrap(), vec![1, 1, 1]);
+    }
+
+    #[test]
+    fn adjacent_triangles_parallel_edges_ignored() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        assert_eq!(count_adjacent_triangles(&g).unwrap(), vec![1, 1, 1]);
+    }
+
+    #[test]
+    fn adjacent_triangles_two_disjoint_triangles() {
+        let mut g = Graph::with_vertices(6);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        g.add_edge(3, 4).unwrap();
+        g.add_edge(4, 5).unwrap();
+        g.add_edge(5, 3).unwrap();
+        assert_eq!(
+            count_adjacent_triangles(&g).unwrap(),
+            vec![1, 1, 1, 1, 1, 1]
+        );
+    }
+
+    #[test]
+    fn adjacent_triangles_sum_equals_three_times_count_triangles() {
+        // K4: count_triangles=4 → sum should equal 12.
+        let mut g = Graph::with_vertices(4);
+        for u in 0..4u32 {
+            for v in (u + 1)..4 {
+                g.add_edge(u, v).unwrap();
+            }
+        }
+        let per_vertex = count_adjacent_triangles(&g).unwrap();
+        let total = count_triangles(&g).unwrap();
+        assert_eq!(per_vertex.iter().sum::<u64>(), 3 * total);
+    }
+
+    #[test]
+    fn adjacent_triangles_consistent_with_local_transitivity() {
+        // For a triangle, each vertex has one adjacent triangle and
+        // simple-degree 2 → local transitivity 2*1/(2*1) = 1.
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        let adj = count_adjacent_triangles(&g).unwrap();
+        let local = transitivity_local_undirected(&g).unwrap();
+        for v in 0..3 {
+            assert_eq!(adj[v], 1);
+            assert_eq!(local[v], Some(1.0));
+        }
     }
 
     #[test]

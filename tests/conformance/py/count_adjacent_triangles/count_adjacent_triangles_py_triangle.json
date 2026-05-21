@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: undirected triangle (0,1)(1,2)(2,0); per-vertex = [1,1,1]",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_adjacent_triangles",
+  "params": {},
+  "expected": [
+    1,
+    1,
+    1
+  ]
+}

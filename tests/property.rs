@@ -3043,4 +3043,28 @@ proptest! {
         let any_parallel = mults.iter().any(|&k| k > 1);
         prop_assert_eq!(any_parallel, rust_igraph::has_multiple(&g).unwrap());
     }
+
+    /// PR-002d: per-vertex triangle counts sum to 3 × scalar count, and
+    /// each entry is bounded by C(deg, 2).
+    #[test]
+    fn count_adjacent_triangles_invariants(g in arb_graph(8)) {
+        let n = g.vcount() as usize;
+        let adj = rust_igraph::count_adjacent_triangles(&g).unwrap();
+        prop_assert_eq!(adj.len(), n);
+
+        let total = rust_igraph::count_triangles(&g).unwrap();
+        prop_assert_eq!(adj.iter().sum::<u64>(), 3 * total);
+
+        // Each entry ≤ C(simple_degree, 2). Use a permissive simple
+        // degree upper bound: total degree counted via neighbours().
+        for v in 0..n as u32 {
+            let raw = g.neighbors(v).unwrap();
+            let mut simple: Vec<_> = raw.into_iter().filter(|&u| u != v).collect();
+            simple.sort_unstable();
+            simple.dedup();
+            let d = simple.len() as u64;
+            let max_t = if d < 2 { 0 } else { d * (d - 1) / 2 };
+            prop_assert!(adj[v as usize] <= max_t);
+        }
+    }
 }

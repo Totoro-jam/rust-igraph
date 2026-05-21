@@ -3230,3 +3230,13 @@ fn count_multiple_three_source_conformance() {
         serde_json::json!(v)
     });
 }
+
+#[test]
+fn count_adjacent_triangles_three_source_conformance() {
+    // Per-vertex adjacent-triangle count. Vertex ids are stable through
+    // the wire, so direct equality works without sorting.
+    run_conformance("count_adjacent_triangles", |g, _params| {
+        let v = rust_igraph::count_adjacent_triangles(g).expect("count_adjacent_triangles");
+        serde_json::json!(v)
+    });
+}

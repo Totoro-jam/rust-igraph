@@ -1,0 +1,36 @@
+{
+  "source": "py",
+  "origin": "constructed: undirected star, centre 0 with 4 leaves; per-vertex = [0,0,0,0,0]",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_adjacent_triangles",
+  "params": {},
+  "expected": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ]
+}

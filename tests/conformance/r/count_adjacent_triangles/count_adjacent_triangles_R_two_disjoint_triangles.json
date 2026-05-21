@@ -1,0 +1,45 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): two disjoint undirected triangles; per-vertex = [1,1,1,1,1,1]",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        3,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_adjacent_triangles",
+  "params": {},
+  "expected": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ]
+}

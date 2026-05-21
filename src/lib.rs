@@ -139,7 +139,8 @@ pub use crate::algorithms::properties::reciprocity::{
 };
 pub use crate::algorithms::properties::topological_sorting::topological_sorting;
 pub use crate::algorithms::properties::triangles::{
-    count_triangles, transitivity_barrat, transitivity_local_undirected, transitivity_undirected,
+    count_adjacent_triangles, count_triangles, transitivity_barrat, transitivity_local_undirected,
+    transitivity_undirected,
 };
 pub use crate::algorithms::traversal::bfs::{BfsTree, bfs, bfs_tree};
 pub use crate::algorithms::traversal::dfs::dfs;

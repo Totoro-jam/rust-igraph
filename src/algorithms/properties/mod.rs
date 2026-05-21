@@ -71,4 +71,7 @@ pub use pagerank::pagerank;
 pub use pagerank_weighted::pagerank_weighted;
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
 pub use topological_sorting::topological_sorting;
-pub use triangles::{count_triangles, transitivity_local_undirected, transitivity_undirected};
+pub use triangles::{
+    count_adjacent_triangles, count_triangles, transitivity_local_undirected,
+    transitivity_undirected,
+};

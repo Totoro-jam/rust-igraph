@@ -1724,6 +1724,32 @@ COUNT_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COUNT_ADJACENT_TRIANGLES_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_adjacent_triangles_py_triangle",
+        # python-igraph: g.count_adjacent_triangles() returns per-vertex
+        # adjacent-triangle counts. For a triangle every vertex sees one.
+        "origin": "constructed: undirected triangle (0,1)(1,2)(2,0); per-vertex = [1,1,1]",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "count_adjacent_triangles",
+        "params": {},
+        "expected": [1, 1, 1],
+    },
+    {
+        "case": "count_adjacent_triangles_py_star_zero",
+        # Star K_{1,4}: no triangles at all.
+        "origin": "constructed: undirected star, centre 0 with 4 leaves; per-vertex = [0,0,0,0,0]",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (0, 2), (0, 3), (0, 4)], directed=False
+        ),
+        "algo": "count_adjacent_triangles",
+        "params": {},
+        "expected": [0, 0, 0, 0, 0],
+    },
+]
+
 IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_simple_py_self_loop_not_simple",
@@ -2097,6 +2123,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "has_multiple": HAS_MULTIPLE_MANIFEST,
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
+    "count_adjacent_triangles": COUNT_ADJACENT_TRIANGLES_MANIFEST,
     "count_loops": COUNT_LOOPS_MANIFEST,
     "count_multiple": COUNT_MULTIPLE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,

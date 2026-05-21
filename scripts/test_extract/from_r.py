@@ -1808,6 +1808,35 @@ COUNT_MULTIPLE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COUNT_ADJACENT_TRIANGLES_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_adjacent_triangles_R_two_disjoint_triangles",
+        # rigraph: count_triangles(g, vids=V(g)) returns per-vertex
+        # adjacent-triangle counts. Two disjoint triangles → every
+        # vertex sees exactly one.
+        "origin": "constructed (rigraph-style): two disjoint undirected triangles; per-vertex = [1,1,1,1,1,1]",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)],
+            directed=False,
+        ),
+        "algo": "count_adjacent_triangles",
+        "params": {},
+        "expected": [1, 1, 1, 1, 1, 1],
+    },
+    {
+        "case": "count_adjacent_triangles_R_path_no_triangles",
+        # 4-path: no triangles anywhere.
+        "origin": "constructed (rigraph-style): undirected 4-path; per-vertex = [0,0,0,0]",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "count_adjacent_triangles",
+        "params": {},
+        "expected": [0, 0, 0, 0],
+    },
+]
+
 IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "is_simple_R_parallel_edges_not_simple",
@@ -2221,6 +2250,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "has_multiple": HAS_MULTIPLE_MANIFEST,
     "is_loop": IS_LOOP_PER_EDGE_MANIFEST,
     "is_multiple": IS_MULTIPLE_PER_EDGE_MANIFEST,
+    "count_adjacent_triangles": COUNT_ADJACENT_TRIANGLES_MANIFEST,
     "count_loops": COUNT_LOOPS_MANIFEST,
     "count_multiple": COUNT_MULTIPLE_MANIFEST,
     "disjoint_union": DISJOINT_UNION_MANIFEST,

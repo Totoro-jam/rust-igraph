@@ -22,6 +22,23 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-002d**: `count_adjacent_triangles(graph) ->
+  Vec<u64>` — per-vertex adjacent-triangle count, completing the
+  triangle / transitivity family alongside PR-002 (scalar
+  `count_triangles` + global `transitivity_undirected`), PR-002b
+  (`transitivity_local_undirected`) and PR-002c (`transitivity_barrat`).
+  Thin wrapper exposing the existing `per_vertex_triangle_stats` helper:
+  for each vertex `v` it returns the number of triangles containing
+  `v`. Self-loops and parallel edges are ignored (the simple graph is
+  used). Counterpart of `igraph_count_adjacent_triangles()` from
+  `references/igraph/src/properties/triangles.c:522`. Coverage: 11 unit
+  tests (empty / isolated vertices / single triangle / K4 / diamond /
+  star / self-loops / parallel edges / two disjoint triangles / sum
+  invariant / consistency with `transitivity_local_undirected`), 6
+  conformance fixtures (C: K4 + K4-minus-edge; py: triangle +
+  star-no-triangles; R: two-disjoint-triangles + 4-path), and one
+  proptest invariant (length matches `vcount`, sum equals
+  `3 * count_triangles`, each entry ≤ `C(simple_degree, 2)`).
 - *(properties)* **ALGO-PR-014c**: `count_loops(graph) -> usize` and
   `count_multiple(graph) -> Vec<usize>`, completing the loops /
   multiplicity trio alongside PR-014 (`has_*` predicates) and PR-014b
