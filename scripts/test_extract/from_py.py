@@ -1889,6 +1889,33 @@ MEANDIST_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+GLOBAL_EFFICIENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "global_efficiency_py_star_4",
+        # Star K_{1,3}: centre at d=1 from leaves; leaves at d=2 to each
+        # other. 12 ordered pairs: 6 at d=1 (between centre/leaf both ways),
+        # 6 at d=2 (between leaves both ways). Sum 1/d = 6 + 3 = 9; /12.
+        "origin": "constructed: star K_{1,3}; global_efficiency=0.75",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "global_efficiency",
+        "params": {},
+        "expected": 0.75,
+    },
+    {
+        "case": "global_efficiency_py_disconnected",
+        # {0-1}, {2}: 2 reachable pairs at d=1; 4 unreachable. Sum=2; /6.
+        "origin": "constructed: edge (0,1) plus isolated 2; global_efficiency=1/3",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1)], directed=False
+        ),
+        "algo": "global_efficiency",
+        "params": {},
+        "expected": 1.0 / 3.0,
+    },
+]
+
 LTRANS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_local_star",
@@ -2113,6 +2140,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitivity_local_undirected": LTRANS_MANIFEST,
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
+    "global_efficiency": GLOBAL_EFFICIENCY_MANIFEST,
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,

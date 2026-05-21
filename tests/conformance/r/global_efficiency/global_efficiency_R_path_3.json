@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "R-style \u2014 undirected path 0-1-2; global efficiency 5/6",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "global_efficiency",
+  "params": {},
+  "expected": 0.8333333333333334
+}

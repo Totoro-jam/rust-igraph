@@ -2035,6 +2035,30 @@ MEANDIST_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+GLOBAL_EFFICIENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "global_efficiency_c_k4",
+        # references/igraph/src/paths/shortest_paths.c:igraph_global_efficiency
+        # K4: every ordered pair at distance 1 → mean 1/d = 1.
+        "origin": "constructed: K4; global_efficiency=1.0",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False, loops=False),
+        "algo": "global_efficiency",
+        "params": {},
+        "expected": 1.0,
+    },
+    {
+        "case": "global_efficiency_c_path3",
+        # 0-1-2: 6 ordered pairs. d=1 ×4, d=2 ×2 → sum = 4 + 1 = 5; /6.
+        "origin": "constructed: undirected path 0-1-2; global_efficiency=5/6",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "global_efficiency",
+        "params": {},
+        "expected": 5.0 / 6.0,
+    },
+]
+
 LTRANS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_local_c_K4",
@@ -2388,6 +2412,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitivity_local_undirected": LTRANS_MANIFEST,
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
+    "global_efficiency": GLOBAL_EFFICIENCY_MANIFEST,
     "eulerian_path": EUL_PATH_MANIFEST,
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,

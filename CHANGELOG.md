@@ -22,6 +22,26 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-029**: `global_efficiency(graph) ->
+  Option<f64>` — Latora–Marchiori average inverse pairwise distance,
+  defined as `(1/(n*(n-1))) * sum_{i!=j} 1/d(i,j)`, where `d(i,j)` is
+  the unweighted shortest-path distance and unreachable pairs
+  contribute `0`. Returns `None` when `vcount() < 2` (no ordered pair
+  exists), and lies in `[0, 1]` for graphs with at least one edge.
+  Implemented as one BFS per source via the existing
+  `distances()` primitive — the same primitive used by
+  `mean_distance` (PR-003) and structurally identical to
+  `harmonic_centrality(graph).iter().sum::<f64>() / n` (PR-009)
+  modulo the leading `1/n` normalisation, which is asserted as a
+  proptest invariant. Counterpart of `igraph_global_efficiency()` from
+  `references/igraph/src/paths/shortest_paths.c:392-486`. Coverage:
+  12 unit tests (empty / singleton → `None`; K3 = K4 = 1.0; path-3 =
+  5/6; path-4 = 13/18; star K_{1,3} = 0.75; disconnected two-island =
+  1/3; directed-path OUT-only; result ∈ [0,1]; matches harmonic
+  average), 6 conformance fixtures (C: K4 + path-3; py: star K_{1,3} +
+  disconnected; R: triangle + undirected path-3), and 1 proptest
+  invariant (`None` iff `vcount < 2`; otherwise value ∈ [0,1] and
+  agrees with mean of `harmonic_centrality` to 1e-9).
 - *(properties)* **ALGO-PR-002d**: `count_adjacent_triangles(graph) ->
   Vec<u64>` — per-vertex adjacent-triangle count, completing the
   triangle / transitivity family alongside PR-002 (scalar

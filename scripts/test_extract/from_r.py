@@ -1998,6 +1998,33 @@ MEANDIST_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+GLOBAL_EFFICIENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "global_efficiency_R_triangle",
+        # Triangle K3: all pairs at distance 1, sum of inverses = 6,
+        # global_efficiency = 6 / (3*2) = 1.0.
+        "origin": "R-style — triangle K3; global efficiency 1.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "global_efficiency",
+        "params": {},
+        "expected": 1.0,
+    },
+    {
+        "case": "global_efficiency_R_path_3",
+        # Undirected path 0-1-2: distances {1,1,2,1,1,2}. sum_inv =
+        # 4*1 + 2*0.5 = 5; global_efficiency = 5 / (3*2) = 5/6.
+        "origin": "R-style — undirected path 0-1-2; global efficiency 5/6",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "global_efficiency",
+        "params": {},
+        "expected": 5.0 / 6.0,
+    },
+]
+
 LTRANS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_local_R_triangle",
@@ -2239,6 +2266,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitivity_local_undirected": LTRANS_MANIFEST,
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
+    "global_efficiency": GLOBAL_EFFICIENCY_MANIFEST,
     "eulerian_path": EUL_PATH_MANIFEST,
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,

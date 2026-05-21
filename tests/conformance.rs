@@ -3073,6 +3073,17 @@ fn mean_distance_three_source_conformance() {
 }
 
 #[test]
+fn global_efficiency_three_source_conformance() {
+    run_conformance("global_efficiency", |g, _params| {
+        let d = rust_igraph::global_efficiency(g).expect("global_efficiency");
+        match d {
+            Some(v) => serde_json::json!(v),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
 fn count_triangles_three_source_conformance() {
     run_conformance("count_triangles", |g, _params| {
         let n = rust_igraph::count_triangles(g).expect("count_triangles");

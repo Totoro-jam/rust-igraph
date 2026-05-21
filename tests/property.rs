@@ -3067,4 +3067,22 @@ proptest! {
             prop_assert!(adj[v as usize] <= max_t);
         }
     }
+
+    /// PR-029: global_efficiency lies in [0, 1] for any unweighted graph,
+    /// and equals the average of harmonic_centrality over all vertices.
+    #[test]
+    fn global_efficiency_invariants(g in arb_graph(8)) {
+        let n = g.vcount();
+        let e = rust_igraph::global_efficiency(&g).unwrap();
+        if n < 2 {
+            prop_assert_eq!(e, None);
+        } else {
+            let val = e.expect("vcount >= 2 should yield Some");
+            prop_assert!((0.0..=1.0).contains(&val));
+
+            let h = rust_igraph::harmonic_centrality(&g).unwrap();
+            let avg: f64 = h.iter().sum::<f64>() / (h.len() as f64);
+            prop_assert!((val - avg).abs() < 1e-9);
+        }
+    }
 }

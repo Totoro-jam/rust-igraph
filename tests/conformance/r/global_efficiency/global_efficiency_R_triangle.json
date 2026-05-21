@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "R-style \u2014 triangle K3; global efficiency 1.0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "global_efficiency",
+  "params": {},
+  "expected": 1.0
+}

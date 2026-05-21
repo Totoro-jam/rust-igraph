@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed: star K_{1,3}; global_efficiency=0.75",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "global_efficiency",
+  "params": {},
+  "expected": 0.75
+}
