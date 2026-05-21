@@ -8,7 +8,13 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 > Pre-1.0 contract: every minor bump (0.x.y → 0.(x+1).0) may break the
 > public API. Patch bumps are bug-fixes / new additive items only.
 
+> Maintenance: when cutting a tag, rename `[Unreleased]` to
+> `[x.y.z] — YYYY-MM-DD` and open a fresh empty `[Unreleased]` block
+> above it. See `.codefuse/tracking/RELEASE.md` for the full checklist.
+
 ## [Unreleased]
+
+## [0.0.1-alpha.1] — 2026-05-21
 
 ### Changed
 - *(ci)* Coverage + test analytics moved out of `.github/workflows/ci.yml`

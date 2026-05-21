@@ -13,6 +13,12 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 - `verified` — passed nightly full-conformance for ≥7 days
 - `blocked` — waiting on a prerequisite AWU or external decision
 - `perf-todo` — functionally `done` but performance > python-igraph × 3
+- `native` — semantically satisfied by Rust standard-library types or
+  the `core/` modules; no per-method translation needed. We **borrow
+  from** igraph C / python-igraph / R-igraph as references and build
+  an idiomatic Rust API, rather than mirroring every C-level data
+  structure. See ARCHITECTURE.md "Why no DS-* per-method translation"
+  for rationale.
 
 ## Complexity legend
 
@@ -68,11 +74,11 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-CORE-001e | `is_same_graph` (structural equality on labelled vertex/edge sets) | type_indexededgelist.c (lines 1947-2003) | 57 | adapt | CORE-001a..d | done | (next) | O(E log E) lex-sort | C:2 / py:2 / R:2 |
 | ALGO-CORE-001f | Property cache subsystem (`is_dag`, `is_forest`, `has_loop`, `has_multi`, `has_mutual` caching) | cache_*.c | ~150 | adapt | CORE-001a..d | todo | - | - | - |
 | ALGO-CORE-010 | basic queries (vcount, ecount, degree, ...) | basic_query.c | 406 | copy | CORE-001a | partial | 2ce55aa | - | - |
-| ALGO-DS-V-001..030 | Vector / VectorInt / VectorBool | vector.c | ~2500 | adapt | - | todo | - | - | - |
-| ALGO-DS-M-001..020 | Matrix / MatrixInt | matrix.c | ~1500 | adapt | - | todo | - | - | - |
-| ALGO-DS-S-001..010 | SparseMatrix CSR/CSC | sparsemat.c | 3251 | rewrite | - | todo | - | - | - |
-| ALGO-DS-SEL-001..010 | VertexSelector / EdgeSelector | iterators.c | 2048 | adapt | - | todo | - | - | - |
-| ALGO-DS-ADJ-001..005 | Adjacency lists | adjlist.c | 1328 | adapt | - | todo | - | - | - |
+| ALGO-DS-V-001..030 | Vector / VectorInt / VectorBool | vector.c | ~2500 | adapt | - | native | - | - | satisfied by `Vec<T>` + `core/types` |
+| ALGO-DS-M-001..020 | Matrix / MatrixInt | matrix.c | ~1500 | adapt | - | native | - | - | satisfied by `ndarray`-style `Vec<Vec<T>>` + `core/matrix` |
+| ALGO-DS-S-001..010 | SparseMatrix CSR/CSC | sparsemat.c | 3251 | rewrite | - | native | - | - | satisfied by `core/sparse` (CSR/COO) when needed per-AWU |
+| ALGO-DS-SEL-001..010 | VertexSelector / EdgeSelector | iterators.c | 2048 | adapt | - | native | - | - | satisfied by Rust iterator protocol (`Iterator<Item = VertexId>`) |
+| ALGO-DS-ADJ-001..005 | Adjacency lists | adjlist.c | 1328 | adapt | - | native | - | - | satisfied by `Graph::neighbors` + `incident_edges` accessors |
 
 ## Phase 2 — Traversal + Shortest Paths + Connectivity (~45 AWU)
 
@@ -184,11 +190,20 @@ Each phase's per-AWU table is materialized here as work approaches.
 
 ## Counters
 
-| Phase | done | wip | todo | total | Conformance fixtures |
-|-------|------|-----|------|-------|----------------------|
-| 0 (BOOT) | 37 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 94 | 0 | ~4 | ~98 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; ecc/radius/diameter_with_mode: 9; triangles+transitivity: 10; transitivity_barrat: 3; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001c: no fixtures; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; assortativity_degree_directed_weighted: 3; floyd_warshall_distances: 3; decompose: 3; union: 3; intersection: 3; difference: 3; dijkstra_paths+path_to+cutoff: 9; dijkstra_with_mode+all_shortest_paths: 6; ecc/radius/diameter_weighted_with_mode: 9; a_star_path: 3; bellman_ford_distances: 9; johnson_distances: 6; widest_path_widths: 6; widest_path: 6; widest_path_widths_floyd_warshall: 6; widest_paths_to: 6; widest_paths: 6; edgelist_percolation: 6; bond_percolation: 6; site_percolation: 6; is_same_graph: 6; is_dag: 6; topological_sorting: 6; is_acyclic: 6; is_tree: 6; is_forest: 6; is_complete: 6; neighborhood_size: 6; neighborhood: 6; convergence_degree: 6; count_loops: 6; count_multiple: 6; count_adjacent_triangles: 6; global_efficiency: 6; local_efficiency+average_local_efficiency: 8 (py skipped) |
-| 2-10 | 0 | 0 | ~543 | ~543 | - |
+| Phase | done | wip | todo | native | total | Conformance fixtures |
+|-------|------|-----|------|--------|-------|----------------------|
+| 0 (BOOT) | 37 | 0 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
+| 1 | 94 | 0 | 4 | 5 (DS-V/M/S/SEL/ADJ) | 103 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; ecc/radius/diameter_with_mode: 9; triangles+transitivity: 10; transitivity_barrat: 3; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001c: no fixtures; CORE-001d: no fixtures; reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; assortativity_degree_directed_weighted: 3; floyd_warshall_distances: 3; decompose: 3; union: 3; intersection: 3; difference: 3; dijkstra_paths+path_to+cutoff: 9; dijkstra_with_mode+all_shortest_paths: 6; ecc/radius/diameter_weighted_with_mode: 9; a_star_path: 3; bellman_ford_distances: 9; johnson_distances: 6; widest_path_widths: 6; widest_path: 6; widest_path_widths_floyd_warshall: 6; widest_paths_to: 6; widest_paths: 6; edgelist_percolation: 6; bond_percolation: 6; site_percolation: 6; is_same_graph: 6; is_dag: 6; topological_sorting: 6; is_acyclic: 6; is_tree: 6; is_forest: 6; is_complete: 6; neighborhood_size: 6; neighborhood: 6; convergence_degree: 6; count_loops: 6; count_multiple: 6; count_adjacent_triangles: 6; global_efficiency: 6; local_efficiency+average_local_efficiency: 8 (py skipped) |
+| 2-10 | 0 | 0 | ~543 | 0 | ~543 | - |
+
+> **Note on `native` rows.** rust-igraph borrows from igraph C / python-igraph
+> / R-igraph as references but does *not* aim for a 1:1 C translation. The
+> DS-* family (Vector / Matrix / SparseMatrix / Selector / AdjList) is
+> covered by Rust standard-library types (`Vec`, `HashMap`, iterator
+> protocol) and the `core/` modules introduced organically by algorithm
+> AWUs. We mark them `native` rather than rolling them into the `done` /
+> `todo` count, since they would otherwise distort the algorithm-progress
+> ratio.
 
 **Phase 0 — complete (37/37)**. **Phase 1 underway**: 79/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
