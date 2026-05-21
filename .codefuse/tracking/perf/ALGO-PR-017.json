@@ -1,0 +1,9 @@
+{
+  "awu": "ALGO-PR-017",
+  "rust_hits_karate_undirected_ns": 20030,
+  "rust_hits_directed_ring_500_ns": 26544,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-22",
+  "git_commit": "0c8eadb",
+  "notes": "Phase 1 HITS via src/algorithms/properties/hits.rs. Undirected path delegates to eigenvector_centrality (~20µs on karate, dominated by the eigenvector-centrality power iter — same cost class as PR-011). Directed power iter on A·Aᵀ for the 500-node directed ring converges in a handful of iterations and lands at ~27µs; rings are well-conditioned for power iter (single dominant eigenvalue, well-separated). The 10% outlier rate on the directed-ring case is the typical criterion variance for sub-30µs micro-bench timings; not load-bearing."
+}
