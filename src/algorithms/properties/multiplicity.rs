@@ -17,6 +17,7 @@
 //! subsystem we don't have yet would shortcut to O(1) on subsequent
 //! calls — that's an ALGO-CORE-001f responsibility).
 
+use crate::core::cache::CachedProperty;
 use crate::core::graph::EdgeId;
 use crate::core::{Graph, IgraphResult};
 
@@ -34,14 +35,19 @@ use crate::core::{Graph, IgraphResult};
 /// assert!(has_loop(&g).unwrap());
 /// ```
 pub fn has_loop(graph: &Graph) -> IgraphResult<bool> {
+    if let Some(v) = graph.cache_get(CachedProperty::HasLoop) {
+        return Ok(v);
+    }
     let m = u32::try_from(graph.ecount())
         .map_err(|_| crate::IgraphError::Internal("ecount exceeds u32::MAX"))?;
     for e in 0..m {
         let (u, v) = graph.edge(e as EdgeId)?;
         if u == v {
+            graph.cache_set(CachedProperty::HasLoop, true);
             return Ok(true);
         }
     }
+    graph.cache_set(CachedProperty::HasLoop, false);
     Ok(false)
 }
 
@@ -70,9 +76,13 @@ pub fn has_loop(graph: &Graph) -> IgraphResult<bool> {
 /// assert!(has_multiple(&g).unwrap());
 /// ```
 pub fn has_multiple(graph: &Graph) -> IgraphResult<bool> {
+    if let Some(v) = graph.cache_get(CachedProperty::HasMulti) {
+        return Ok(v);
+    }
     let m = u32::try_from(graph.ecount())
         .map_err(|_| crate::IgraphError::Internal("ecount exceeds u32::MAX"))?;
     if m < 2 {
+        graph.cache_set(CachedProperty::HasMulti, false);
         return Ok(false);
     }
     let mut pairs: Vec<(u32, u32)> = Vec::with_capacity(m as usize);
@@ -82,9 +92,11 @@ pub fn has_multiple(graph: &Graph) -> IgraphResult<bool> {
     pairs.sort_unstable();
     for i in 1..pairs.len() {
         if pairs[i] == pairs[i - 1] {
+            graph.cache_set(CachedProperty::HasMulti, true);
             return Ok(true);
         }
     }
+    graph.cache_set(CachedProperty::HasMulti, false);
     Ok(false)
 }
 

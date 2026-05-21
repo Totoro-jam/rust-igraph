@@ -14,6 +14,28 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+### Added
+- **ALGO-CORE-001f** — Boolean property cache subsystem.
+  - New `core::cache::CachedProperty` enum (7 variants: `HasLoop`,
+    `HasMulti`, `HasMutual`, `IsWeaklyConnected`, `IsStronglyConnected`,
+    `IsDag`, `IsForest`) and bit-packed `PropertyCache` (interior-mut
+    via `Cell<u32>`) on every `Graph`. Counterpart of
+    `igraph_i_property_cache_t` from `references/igraph/src/graph/caching.{c,h}`.
+  - `Graph::cache_get` / `cache_set` / `cache_invalidate` /
+    `cache_invalidate_all` public helpers — compute functions
+    consult and populate the cache without holding `&mut Graph`,
+    matching igraph C's "compute-is-not-modification" semantics.
+  - Selective invalidation policies (`invalidate_after_add_vertices`,
+    `invalidate_after_add_edges`) preserve cached values that the
+    mutation provably cannot change — e.g. adding an edge keeps
+    `IS_DAG=false`, and adding isolated vertices keeps every edge-level
+    property. Mirrors `type_indexededgelist.c:341-364`. Deletes do a
+    full `invalidate_all` (conservative).
+  - `is_dag`, `is_forest` (in `All` mode), `has_loop`, `has_multiple`
+    now read-or-compute through the cache → repeated calls are O(1).
+  - 12 integration tests in `tests/cache.rs` covering hit/miss across
+    every mutation path; 11 unit tests on the bitfield logic.
+
 ## [0.0.1-alpha.1] — 2026-05-21
 
 ### Changed

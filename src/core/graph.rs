@@ -27,6 +27,9 @@
 //!
 //! Attribute system → ALGO-AT-* (out of scope here).
 
+use super::cache::{
+    CachedProperty, PropertyCache, invalidate_after_add_edges, invalidate_after_add_vertices,
+};
 use super::error::{IgraphError, IgraphResult};
 
 /// Vertex id. The Phase-0 ADR-0007 fixes this to `u32`; `Option<VertexId>`
@@ -63,6 +66,8 @@ pub struct Graph {
     os: Vec<u32>,
     /// `is[v]..is[v+1]` for incoming. Same shape as `os`.
     is: Vec<u32>,
+    /// Boolean property cache. Mirrors `igraph_t::cache`.
+    cache: PropertyCache,
 }
 
 impl Graph {
@@ -80,6 +85,7 @@ impl Graph {
             ii: Vec::new(),
             os: vec![0],
             is: vec![0],
+            cache: PropertyCache::new(),
         };
         g.add_vertices(n)?;
         Ok(g)
@@ -130,6 +136,9 @@ impl Graph {
             self.is.push(ec);
         }
         self.n = new_n;
+        if nv > 0 {
+            invalidate_after_add_vertices(&self.cache);
+        }
         Ok((first, new_n.saturating_sub(1)))
     }
 
@@ -148,6 +157,7 @@ impl Graph {
     where
         I: IntoIterator<Item = (VertexId, VertexId)>,
     {
+        let m_before = self.ecount();
         for (u, v) in edges {
             self.check_vertex(u)?;
             self.check_vertex(v)?;
@@ -161,6 +171,9 @@ impl Graph {
             }
         }
         self.rebuild_indexes()?;
+        if self.ecount() > m_before {
+            invalidate_after_add_edges(&self.cache);
+        }
         Ok(())
     }
 
@@ -491,7 +504,9 @@ impl Graph {
         }
         self.from = new_from;
         self.to = new_to;
-        self.rebuild_indexes()
+        self.rebuild_indexes()?;
+        self.cache.invalidate_all();
+        Ok(())
     }
 
     /// Remove the given vertices and all their incident edges.
@@ -569,8 +584,57 @@ impl Graph {
         self.from = new_from;
         self.to = new_to;
         self.rebuild_indexes()?;
+        self.cache.invalidate_all();
 
         Ok((map, invmap))
+    }
+
+    /// Look up a cached boolean property without computing it.
+    ///
+    /// Returns `None` if the property has not been cached yet. Pair with
+    /// [`Self::cache_set`] in compute functions:
+    ///
+    /// ```ignore
+    /// if let Some(v) = g.cache_get(CachedProperty::IsDag) { return v; }
+    /// let v = compute_is_dag(g);
+    /// g.cache_set(CachedProperty::IsDag, v);
+    /// v
+    /// ```
+    ///
+    /// Counterpart of `igraph_i_property_cache_has` + `_get_bool` from
+    /// `references/igraph/src/graph/caching.c`.
+    #[must_use]
+    pub fn cache_get(&self, prop: CachedProperty) -> Option<bool> {
+        self.cache.get(prop)
+    }
+
+    /// Store the value of a cached boolean property.
+    ///
+    /// Takes `&self` (interior mutability via `Cell`) — populating the
+    /// cache from a compute function is **not** considered a mutation of
+    /// the graph, matching igraph C semantics where compute helpers take
+    /// `const igraph_t *` and still write to the cache.
+    ///
+    /// Counterpart of `igraph_i_property_cache_set_bool`.
+    pub fn cache_set(&self, prop: CachedProperty, value: bool) {
+        self.cache.set(prop, value);
+    }
+
+    /// Drop the cached value of a single property (no-op if not cached).
+    ///
+    /// Use this if you change the graph via a private path that doesn't
+    /// go through `add_edges` / `delete_*`.
+    ///
+    /// Counterpart of `igraph_i_property_cache_invalidate`.
+    pub fn cache_invalidate(&self, prop: CachedProperty) {
+        self.cache.invalidate(prop);
+    }
+
+    /// Drop every cached boolean property.
+    ///
+    /// Counterpart of `igraph_i_property_cache_invalidate_all`.
+    pub fn cache_invalidate_all(&self) {
+        self.cache.invalidate_all();
     }
 
     fn check_vertex(&self, v: VertexId) -> IgraphResult<()> {

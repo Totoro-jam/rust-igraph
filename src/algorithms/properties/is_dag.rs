@@ -18,6 +18,7 @@
 use std::collections::VecDeque;
 
 use crate::core::Graph;
+use crate::core::cache::CachedProperty;
 use crate::core::graph::VertexId;
 
 /// Returns `true` iff `graph` is a directed acyclic graph.
@@ -58,6 +59,9 @@ use crate::core::graph::VertexId;
 pub fn is_dag(graph: &Graph) -> bool {
     if !graph.is_directed() {
         return false;
+    }
+    if let Some(v) = graph.cache_get(CachedProperty::IsDag) {
+        return v;
     }
 
     let n = graph.vcount();
@@ -106,7 +110,9 @@ pub fn is_dag(graph: &Graph) -> bool {
         }
     }
 
-    peeled == n
+    let result = peeled == n;
+    graph.cache_set(CachedProperty::IsDag, result);
+    result
 }
 
 #[cfg(test)]

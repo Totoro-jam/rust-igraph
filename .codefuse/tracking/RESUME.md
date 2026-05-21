@@ -232,3 +232,25 @@ doctest = **61 pass**.
   invariants. Implementation reuses `rebuild_indexes`; no manual
   sort/rebuild. Phase 1: 70/85 done. `cargo test --workspace` →
   660 lib + 79 integration + 72 doctest, all green.
+
+---
+
+## 2026-05-21 — resumed (post-alpha.1, mid-CORE-001f)
+
+- Last commit: `e85f62e` — docs(release): note follow-up to draft
+  GitHub Release once gh authed.
+- v0.0.1-alpha.1 cut and pushed earlier today (94 AWUs landed,
+  Phase 1 ~96% done, 4 todo + 5 native = 103 total).
+- Current AWU: **ALGO-CORE-001f** — property cache subsystem.
+  Recon + design done inline (igraph-c-recon agent unavailable;
+  read `references/igraph/src/graph/caching.{c,h}` and
+  `type_indexededgelist.c:341-364` directly). Skeleton + impl +
+  11 unit tests landed in `src/core/cache.rs`; module registered
+  in `src/core/mod.rs`. Cache field NOT yet wired into `Graph`.
+- Next: add `cache: PropertyCache` to `Graph`, hook
+  `add_vertices` / `add_edges` / `delete_*` to invalidate, then
+  rewrite `is_dag` / `is_forest` / `has_loop` / `has_multiple` to
+  consult+populate the cache via get-or-compute.
+- Working tree dirty for **local-only infra** (must NOT commit):
+  `.claude/hooks/block-dangerous-git.sh` and `.claude/settings.json`
+  — user opted out of git auth prompts for this session.

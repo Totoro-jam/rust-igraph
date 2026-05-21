@@ -30,6 +30,7 @@
 
 use crate::algorithms::paths::dijkstra::DijkstraMode;
 use crate::core::Graph;
+use crate::core::cache::CachedProperty;
 use crate::core::error::IgraphResult;
 use crate::core::graph::{EdgeId, VertexId};
 
@@ -84,21 +85,43 @@ pub fn is_forest(graph: &Graph, mode: DijkstraMode) -> IgraphResult<Option<Vec<V
 
     // Null graph: forest with empty roots.
     if n == 0 {
+        if matches!(
+            (graph.is_directed(), mode),
+            (false, _) | (true, DijkstraMode::All)
+        ) {
+            graph.cache_set(CachedProperty::IsForest, true);
+        }
         return Ok(Some(Vec::new()));
     }
 
     // No edges: every vertex is its own tree, all are roots.
     if m == 0 {
+        if matches!(
+            (graph.is_directed(), mode),
+            (false, _) | (true, DijkstraMode::All)
+        ) {
+            graph.cache_set(CachedProperty::IsForest, true);
+        }
         return Ok(Some((0..n).collect()));
-    }
-
-    // Forest has at most n-1 edges.
-    if m as u64 > u64::from(n).saturating_sub(1) {
-        return Ok(None);
     }
 
     let directed = graph.is_directed();
     let effective_mode = if directed { mode } else { DijkstraMode::All };
+    let cache_eligible = matches!(effective_mode, DijkstraMode::All);
+
+    if cache_eligible {
+        if let Some(false) = graph.cache_get(CachedProperty::IsForest) {
+            return Ok(None);
+        }
+    }
+
+    // Forest has at most n-1 edges.
+    if m as u64 > u64::from(n).saturating_sub(1) {
+        if cache_eligible {
+            graph.cache_set(CachedProperty::IsForest, false);
+        }
+        return Ok(None);
+    }
 
     let n_us = n as usize;
     let mut visited = vec![false; n_us];
@@ -114,13 +137,22 @@ pub fn is_forest(graph: &Graph, mode: DijkstraMode) -> IgraphResult<Option<Vec<V
     )?;
 
     let Some(roots) = roots_opt else {
+        if cache_eligible {
+            graph.cache_set(CachedProperty::IsForest, false);
+        }
         return Ok(None);
     };
 
     // All vertices must be reachable from some root.
     if visited_count == n {
+        if cache_eligible {
+            graph.cache_set(CachedProperty::IsForest, true);
+        }
         Ok(Some(roots))
     } else {
+        if cache_eligible {
+            graph.cache_set(CachedProperty::IsForest, false);
+        }
         Ok(None)
     }
 }
