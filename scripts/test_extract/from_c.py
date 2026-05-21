@@ -719,6 +719,37 @@ IS_COMPLETE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-027: neighborhood_size. Source:
+# tests/unit/igraph_neighborhood_size.c (.out file). Two fixtures
+# from the upstream test driver: the all-mode order-1 case on the
+# directed multigraph and the OUT-mode mindist-2 infinite-order case.
+NEIGHBORHOOD_SIZE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "neighborhood_size_c_directed_loops_order_1_all",
+        "origin": "tests/unit/igraph_neighborhood_size.c — directed n=6 multigraph, order=1 mode=ALL",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 1), (1, 3), (2, 0), (2, 3), (3, 4), (3, 4)],
+            directed=True,
+        ),
+        "algo": "neighborhood_size",
+        "params": {"order": 1, "mode": "all", "mindist": 0},
+        "expected": [3, 3, 3, 4, 2, 1],
+    },
+    {
+        "case": "neighborhood_size_c_directed_loops_infinite_mindist_2_out",
+        "origin": "tests/unit/igraph_neighborhood_size.c — directed n=6, order=infinite mindist=2 mode=OUT",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 1), (1, 3), (2, 0), (2, 3), (3, 4), (3, 4)],
+            directed=True,
+        ),
+        "algo": "neighborhood_size",
+        "params": {"order": -1, "mode": "out", "mindist": 2},
+        "expected": [2, 1, 2, 0, 0, 0],
+    },
+]
+
 # ALGO-PR-021: topological_sorting. Source: properties/dag.c
 # (lines 54-123). Kahn's peel, recording the popped order.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -2225,6 +2256,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_tree": IS_TREE_MANIFEST,
     "is_forest": IS_FOREST_MANIFEST,
     "is_complete": IS_COMPLETE_MANIFEST,
+    "neighborhood_size": NEIGHBORHOOD_SIZE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

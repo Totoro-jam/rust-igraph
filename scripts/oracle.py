@@ -781,6 +781,24 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
         # graphs require both arcs for every pair.
         return bool(g.is_complete())
 
+    if algo == "neighborhood_size":
+        # Counterpart of igraph_neighborhood_size. python-igraph
+        # exposes `Graph.neighborhood_size(vertices=None, order=1,
+        # mode="all", mindist=0)`. We always compute over all
+        # vertices (no vertex selector yet in Rust).
+        order = int(params.get("order", 1))
+        mode = str(params.get("mode", "all")).lower()
+        if mode not in ("out", "in", "all"):
+            return {"_error": f"invalid mode: {mode}"}
+        mindist = int(params.get("mindist", 0))
+        # python-igraph rejects negative order with a ValueError, even
+        # though the underlying C lib treats it as infinite. Saturate
+        # negative orders to `vcount` here (BFS depth is bounded by
+        # n-1, so this is semantically equivalent).
+        if order < 0:
+            order = g.vcount()
+        return list(g.neighborhood_size(vertices=None, order=order, mode=mode, mindist=mindist))
+
     if algo == "is_same_graph":
         # Counterpart of igraph_is_same_graph. Compare the wire graph
         # `g` to a second graph encoded under params.other (same

@@ -1026,6 +1026,66 @@ fn is_complete_three_source_conformance() {
 }
 
 #[test]
+fn neighborhood_size_three_source_conformance() {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("neighborhood_size");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let order = case
+                .params
+                .get("order")
+                .and_then(serde_json::Value::as_i64)
+                .and_then(|x| i32::try_from(x).ok())
+                .unwrap_or(1);
+            let mode = match case
+                .params
+                .get("mode")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("all")
+            {
+                "out" => rust_igraph::NeighborhoodMode::Out,
+                "in" => rust_igraph::NeighborhoodMode::In,
+                _ => rust_igraph::NeighborhoodMode::All,
+            };
+            let mindist = case
+                .params
+                .get("mindist")
+                .and_then(serde_json::Value::as_i64)
+                .and_then(|x| i32::try_from(x).ok())
+                .unwrap_or(0);
+            let rust = rust_igraph::neighborhood_size_with_mode(&g, order, mode, mindist)
+                .expect("neighborhood_size");
+            let rust_json =
+                serde_json::Value::Array(rust.iter().map(|&x| serde_json::json!(x)).collect());
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "neighborhood_size");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn is_acyclic_three_source_conformance() {
     for src in ["c", "py", "r"] {
         let dir = workspace_root()

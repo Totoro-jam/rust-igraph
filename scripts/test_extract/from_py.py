@@ -661,6 +661,28 @@ IS_COMPLETE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-027: neighborhood_size. python-igraph exposes
+# `Graph.neighborhood_size(vertices=None, order=1, mode='all', mindist=0)`.
+# Fixtures from tests/test_structural.py:testNeighborhoodSize.
+NEIGHBORHOOD_SIZE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "neighborhood_size_py_ring10_order_1",
+        "origin": "tests/test_structural.py testNeighborhoodSize — Ring(10, circular=False) order=1",
+        "graph_factory": lambda: ig.Graph.Ring(n=10, circular=False),
+        "algo": "neighborhood_size",
+        "params": {"order": 1, "mode": "all", "mindist": 0},
+        "expected": [2, 3, 3, 3, 3, 3, 3, 3, 3, 2],
+    },
+    {
+        "case": "neighborhood_size_py_ring10_order_3_mindist_2",
+        "origin": "tests/test_structural.py testNeighborhoodSize — Ring(10), order=3 mindist=2",
+        "graph_factory": lambda: ig.Graph.Ring(n=10, circular=False),
+        "algo": "neighborhood_size",
+        "params": {"order": 3, "mode": "all", "mindist": 2},
+        "expected": [2, 2, 3, 4, 4, 4, 4, 3, 2, 2],
+    },
+]
+
 # ALGO-PR-021: topological_sorting. python-igraph exposes
 # `Graph.topological_sorting(mode='OUT'/'IN'/'ALL')`.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -1978,6 +2000,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_tree": IS_TREE_MANIFEST,
     "is_forest": IS_FOREST_MANIFEST,
     "is_complete": IS_COMPLETE_MANIFEST,
+    "neighborhood_size": NEIGHBORHOOD_SIZE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

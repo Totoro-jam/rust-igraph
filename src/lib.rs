@@ -125,6 +125,9 @@ pub use crate::algorithms::properties::knn::{
 pub use crate::algorithms::properties::multiplicity::{
     has_loop, has_multiple, is_loop, is_multiple,
 };
+pub use crate::algorithms::properties::neighborhood::{
+    NeighborhoodMode, neighborhood_size, neighborhood_size_with_mode,
+};
 pub use crate::algorithms::properties::pagerank::pagerank;
 pub use crate::algorithms::properties::pagerank_weighted::pagerank_weighted;
 pub use crate::algorithms::properties::reciprocity::{

@@ -22,6 +22,27 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-027**: `neighborhood_size(graph, order)` and
+  `neighborhood_size_with_mode(graph, order, mode, mindist)` —
+  k-hop neighbourhood size for every vertex. For each vertex `v`
+  returns the number of vertices `w` with `mindist <= dist(v, w) <=
+  order`. Counterpart of `igraph_neighborhood_size` from
+  `references/igraph/src/properties/neighborhood.c:70`. New
+  `NeighborhoodMode` enum (`Out` / `In` / `All`) mirrors
+  `igraph_neimode_t` and is ignored on undirected graphs. Negative
+  `order` is treated as infinity (every reachable vertex within
+  `mindist`+ is counted). Validation: `mindist < 0` and (finite)
+  `mindist > order` both yield `InvalidArgument`. Algorithm: direct
+  BFS-per-source port of the C reference, using an integer
+  "added by source `i+1`" marker array to avoid per-source
+  re-allocation. Loops and multi-edges are tolerated and do not
+  inflate the count. Coverage: 24 unit tests covering the entire
+  C reference fixture (`igraph_neighborhood_size.c` .out file) +
+  the python `Ring(10)` fixture + 3 oracle tests +
+  6 conformance fixtures (C/py/R, 2 each) + 4 proptest invariants
+  (order-0 returns 1, monotone non-decreasing, bounded by vcount,
+  mindist-1 + 1 = mindist-0). `O(V·(V+E))` BFS-per-vertex.
+
 - *(properties)* **ALGO-PR-016**: `is_complete(graph: &Graph) ->
   IgraphResult<bool>` — true iff every distinct pair of vertices
   is adjacent. Counterpart of `igraph_is_complete` from

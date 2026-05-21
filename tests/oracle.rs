@@ -1727,6 +1727,80 @@ fn is_complete_directed_k3_both_arcs_matches_python() {
     assert_eq!(rust, py);
 }
 
+// ---- ALGO-PR-027: neighborhood_size oracle tests --------
+
+#[test]
+fn neighborhood_size_path_p10_matches_python() {
+    let mut g = Graph::with_vertices(10);
+    for i in 0..9u32 {
+        g.add_edge(i, i + 1).unwrap();
+    }
+    let rust = rust_igraph::neighborhood_size(&g, 3).unwrap();
+    let py: Vec<u32> = serde_json::from_value(run_ok(
+        "neighborhood_size",
+        &g,
+        serde_json::json!({"order": 3, "mode": "all", "mindist": 0}),
+    ))
+    .expect("decode python neighborhood_size");
+    assert_eq!(rust, py);
+    assert_eq!(rust, vec![4, 5, 6, 7, 7, 7, 7, 6, 5, 4]);
+}
+
+#[test]
+fn neighborhood_size_directed_c_reference_matches_python() {
+    // The C unit test graph: directed n=6 with self-loop on 1 and a
+    // parallel edge 3->4. order=1 mode=ALL → ( 3 3 3 4 2 1 ).
+    let mut g = Graph::new(6, true).unwrap();
+    g.add_edges(vec![
+        (0u32, 1u32),
+        (0, 2),
+        (1, 1),
+        (1, 3),
+        (2, 0),
+        (2, 3),
+        (3, 4),
+        (3, 4),
+    ])
+    .unwrap();
+    let rust = rust_igraph::neighborhood_size(&g, 1).unwrap();
+    let py: Vec<u32> = serde_json::from_value(run_ok(
+        "neighborhood_size",
+        &g,
+        serde_json::json!({"order": 1, "mode": "all", "mindist": 0}),
+    ))
+    .expect("decode python neighborhood_size");
+    assert_eq!(rust, py);
+    assert_eq!(rust, vec![3, 3, 3, 4, 2, 1]);
+}
+
+#[test]
+fn neighborhood_size_mindist_2_out_mode_matches_python() {
+    // Same C reference graph; order=infinite mindist=2 OUT.
+    let mut g = Graph::new(6, true).unwrap();
+    g.add_edges(vec![
+        (0u32, 1u32),
+        (0, 2),
+        (1, 1),
+        (1, 3),
+        (2, 0),
+        (2, 3),
+        (3, 4),
+        (3, 4),
+    ])
+    .unwrap();
+    let rust =
+        rust_igraph::neighborhood_size_with_mode(&g, -1, rust_igraph::NeighborhoodMode::Out, 2)
+            .unwrap();
+    let py: Vec<u32> = serde_json::from_value(run_ok(
+        "neighborhood_size",
+        &g,
+        serde_json::json!({"order": -1, "mode": "out", "mindist": 2}),
+    ))
+    .expect("decode python neighborhood_size");
+    assert_eq!(rust, py);
+    assert_eq!(rust, vec![2, 1, 2, 0, 0, 0]);
+}
+
 // ---- ALGO-PR-024: is_forest oracle tests --------
 
 #[derive(Debug, serde::Deserialize)]

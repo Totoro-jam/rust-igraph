@@ -732,6 +732,30 @@ IS_COMPLETE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-027: neighborhood_size. rigraph exposes
+# `neighborhood_size(g, order, vids, mode)`. R test fixture from
+# tests/testthat/test-aaa-auto.R:neighborhood_size_impl basic
+# (make_ring(5), order=1, mode="all").
+NEIGHBORHOOD_SIZE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "neighborhood_size_R_ring5_order_1_all",
+        "origin": "tests/testthat/test-aaa-auto.R neighborhood_size_impl basic — make_ring(5) order=1",
+        "graph_factory": lambda: ig.Graph.Ring(n=5, circular=True),
+        "algo": "neighborhood_size",
+        "params": {"order": 1, "mode": "all", "mindist": 0},
+        "expected": [3, 3, 3, 3, 3],
+    },
+    {
+        "case": "neighborhood_size_R_full5_order_2_excludes_self",
+        # K_5: order 2 mindist 1 from every vertex sees the other 4.
+        "origin": "constructed (rigraph-style): make_full_graph(5) order=2 mindist=1",
+        "graph_factory": lambda: ig.Graph.Full(n=5, directed=False),
+        "algo": "neighborhood_size",
+        "params": {"order": 2, "mode": "all", "mindist": 1},
+        "expected": [4, 4, 4, 4, 4],
+    },
+]
+
 # ALGO-PR-021: topological_sorting. rigraph's
 # `topo_sort(g, mode="out"|"in")` returns the order.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -2092,6 +2116,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_tree": IS_TREE_MANIFEST,
     "is_forest": IS_FOREST_MANIFEST,
     "is_complete": IS_COMPLETE_MANIFEST,
+    "neighborhood_size": NEIGHBORHOOD_SIZE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

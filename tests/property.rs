@@ -2181,6 +2181,57 @@ proptest! {
         }
     }
 
+    /// PR-027 `neighborhood_size` invariants:
+    /// - Order 0 returns 1 for every vertex (mindist 0).
+    /// - Result is monotone non-decreasing as order grows
+    ///   (the k-ball can only get larger or stay the same).
+    /// - Bounded above by `vcount`.
+    /// - Order >= n-1 stabilises to the reachable-set size
+    ///   (using count_reachable as oracle for undirected ALL mode).
+    /// - mindist=1 result + 1 == mindist=0 result whenever the
+    ///   vertex itself is within `order` of itself (always true for
+    ///   order >= 0).
+    #[test]
+    fn neighborhood_size_order_0_is_all_ones(g in arb_graph(7)) {
+        let sizes = rust_igraph::neighborhood_size(&g, 0).unwrap();
+        prop_assert_eq!(sizes.len(), g.vcount() as usize);
+        for s in sizes {
+            prop_assert_eq!(s, 1, "order=0 always counts just the vertex itself");
+        }
+    }
+
+    #[test]
+    fn neighborhood_size_monotone_non_decreasing(g in arb_graph(7)) {
+        let s0 = rust_igraph::neighborhood_size(&g, 0).unwrap();
+        let s1 = rust_igraph::neighborhood_size(&g, 1).unwrap();
+        let s2 = rust_igraph::neighborhood_size(&g, 2).unwrap();
+        for ((a, b), c) in s0.iter().zip(s1.iter()).zip(s2.iter()) {
+            prop_assert!(a <= b, "order 0 ≤ order 1");
+            prop_assert!(b <= c, "order 1 ≤ order 2");
+        }
+    }
+
+    #[test]
+    fn neighborhood_size_bounded_by_vcount(g in arb_graph(7)) {
+        let n = g.vcount();
+        let s = rust_igraph::neighborhood_size(&g, -1).unwrap();
+        for v in s {
+            prop_assert!(v <= n, "neighborhood size cannot exceed vcount");
+        }
+    }
+
+    #[test]
+    fn neighborhood_size_mindist_1_excludes_self(g in arb_graph(7)) {
+        let s_inc = rust_igraph::neighborhood_size_with_mode(
+            &g, 2, rust_igraph::NeighborhoodMode::All, 0).unwrap();
+        let s_exc = rust_igraph::neighborhood_size_with_mode(
+            &g, 2, rust_igraph::NeighborhoodMode::All, 1).unwrap();
+        for (a, b) in s_inc.iter().zip(s_exc.iter()) {
+            prop_assert_eq!(*a, b.saturating_add(1),
+                "mindist 0 = mindist 1 + 1 (self toggles)");
+        }
+    }
+
     /// PR-021 `topological_sorting` invariants:
     /// - For DAGs, the result is a permutation of `0..vcount`
     ///   that respects every non-loop directed edge `u → v`

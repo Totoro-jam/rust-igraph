@@ -1,0 +1,44 @@
+{
+  "source": "r",
+  "origin": "tests/testthat/test-aaa-auto.R neighborhood_size_impl basic \u2014 make_ring(5) order=1",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "neighborhood_size",
+  "params": {
+    "order": 1,
+    "mode": "all",
+    "mindist": 0
+  },
+  "expected": [
+    3,
+    3,
+    3,
+    3,
+    3
+  ]
+}
