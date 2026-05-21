@@ -667,6 +667,16 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             parent[ru] = rv
         return True
 
+    if algo == "is_tree":
+        # Counterpart of igraph_is_tree. python-igraph exposes
+        # `Graph.is_tree(mode='out'|'in'|'all')` which returns a
+        # bool. Our Rust API returns `Option<VertexId>` — Some(_) →
+        # true, None → false. Oracle compares the bool.
+        mode = str(params.get("mode", "out")).lower()
+        if mode not in ("out", "in", "all"):
+            return {"_error": f"invalid mode: {mode}"}
+        return bool(g.is_tree(mode=mode))
+
     if algo == "is_dag":
         # Counterpart of igraph_is_dag. python-igraph exposes
         # `Graph.is_dag()` which returns a bool directly. Returns

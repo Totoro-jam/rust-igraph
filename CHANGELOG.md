@@ -22,6 +22,33 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-023**: `is_tree(graph: &Graph, mode:
+  DijkstraMode) -> IgraphResult<Option<VertexId>>` — mode-aware
+  tree predicate. Counterpart of `igraph_is_tree` from
+  `references/igraph/src/properties/trees.c:251`. Returns
+  `Some(root)` iff the graph is a tree under `mode`, otherwise
+  `None`. The null graph (`vcount == 0`) is by convention **not**
+  a tree. For undirected graphs the mode argument is ignored and
+  the canonical root is `0`; for directed graphs:
+  - `DijkstraMode::Out`: out-arborescence — every edge points
+    away from the root (the unique vertex with in-degree 0).
+  - `DijkstraMode::In`: in-arborescence — every edge points
+    towards the root (the unique vertex with out-degree 0).
+  - `DijkstraMode::All`: orientation ignored; canonical root 0.
+  Single-vertex graphs are trees in every mode. The implementation
+  combines a fast `ecount == vcount - 1` check with a DFS
+  reach-all pass from the canonical root, which together imply
+  acyclicity and connectedness in `O(V + E)`.
+  15 unit tests + 3 oracle tests vs `python-igraph`'s
+  `Graph.is_tree(mode=...)` (mode='all' for undirected path/
+  triangle, mode='out' for an out-arborescence) + 6 conformance
+  fixtures (2 each C/Python/R, mixing modes and true/false
+  outcomes) + 2 proptest invariants
+  (`is_tree_implies_acyclic_connected_and_correct_edge_count` —
+  whenever `is_tree(All)` is `Some`, the graph is acyclic, has a
+  single connected component, and `m == n - 1`;
+  `directed_out_tree_is_undirected_tree` — every out-tree is an
+  undirected tree).
 - *(properties)* **ALGO-PR-022**: `is_acyclic(graph: &Graph) ->
   bool` — generic acyclic predicate. Counterpart of
   `igraph_is_acyclic` from

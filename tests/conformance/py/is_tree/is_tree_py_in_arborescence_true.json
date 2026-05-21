@@ -1,0 +1,28 @@
+{
+  "source": "py",
+  "origin": "constructed: in-arborescence rooted at 0",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_tree",
+  "params": {
+    "mode": "in"
+  },
+  "expected": true
+}

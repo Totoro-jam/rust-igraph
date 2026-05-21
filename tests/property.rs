@@ -2062,6 +2062,40 @@ proptest! {
         }
     }
 
+    /// PR-023 `is_tree` invariants:
+    /// - If `is_tree(g, All)` returns `Some`, then `g` is acyclic,
+    ///   connected (`cc.count == 1`), and has exactly `vcount-1`
+    ///   edges. (Forest with a single component.)
+    /// - For directed graphs, `is_tree(g, Out).is_some()` implies
+    ///   `is_tree(g, All).is_some()` — every directed tree is also
+    ///   a tree when orientation is ignored.
+    #[test]
+    fn is_tree_implies_acyclic_connected_and_correct_edge_count(g in arb_graph(8)) {
+        let result = rust_igraph::is_tree(&g, rust_igraph::DijkstraMode::All).unwrap();
+        if result.is_some() {
+            // Tree ⇒ acyclic.
+            prop_assert!(rust_igraph::is_acyclic(&g),
+                "is_tree=Some but is_acyclic=false");
+            // Tree ⇒ single connected component.
+            let cc = rust_igraph::connected_components(&g).unwrap();
+            prop_assert_eq!(cc.count, 1, "tree must have exactly one component");
+            // Tree ⇒ m == n - 1 (edge count by definition).
+            let m = u32::try_from(g.ecount()).expect("ecount fits in u32");
+            let n = g.vcount();
+            prop_assert_eq!(m, n - 1);
+        }
+    }
+
+    #[test]
+    fn directed_out_tree_is_undirected_tree(g in arb_directed_graph(8)) {
+        let out_tree = rust_igraph::is_tree(&g, rust_igraph::DijkstraMode::Out).unwrap();
+        if out_tree.is_some() {
+            let all_tree = rust_igraph::is_tree(&g, rust_igraph::DijkstraMode::All).unwrap();
+            prop_assert!(all_tree.is_some(),
+                "directed out-tree must also be an undirected tree");
+        }
+    }
+
     /// PR-021 `topological_sorting` invariants:
     /// - For DAGs, the result is a permutation of `0..vcount`
     ///   that respects every non-loop directed edge `u → v`

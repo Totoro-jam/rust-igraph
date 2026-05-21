@@ -646,6 +646,33 @@ IS_ACYCLIC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-023: is_tree. rigraph's `is_tree(g, mode="out"/"in"/"all")`
+# returns TRUE/FALSE.
+IS_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_tree_R_undirected_star_true",
+        # K_{1,4}-like star: vertex 0 connected to 1, 2, 3, 4 — undirected tree.
+        "origin": "constructed (rigraph-style): undirected star — tree",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (0, 2), (0, 3), (0, 4)], directed=False
+        ),
+        "algo": "is_tree",
+        "params": {"mode": "all"},
+        "expected": True,
+    },
+    {
+        "case": "is_tree_R_undirected_disconnected_false",
+        # Two disjoint edges — disconnected, not a tree.
+        "origin": "constructed (rigraph-style): two disjoint edges — not a tree",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "algo": "is_tree",
+        "params": {"mode": "all"},
+        "expected": False,
+    },
+]
+
 # ALGO-PR-021: topological_sorting. rigraph's
 # `topo_sort(g, mode="out"|"in")` returns the order.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -2003,6 +2030,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_dag": IS_DAG_MANIFEST,
     "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
     "is_acyclic": IS_ACYCLIC_MANIFEST,
+    "is_tree": IS_TREE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

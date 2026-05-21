@@ -116,6 +116,7 @@ pub use crate::algorithms::properties::harmonic_weighted::harmonic_centrality_we
 pub use crate::algorithms::properties::is_acyclic::is_acyclic;
 pub use crate::algorithms::properties::is_dag::is_dag;
 pub use crate::algorithms::properties::is_simple::{SimpleMode, is_simple, is_simple_with_mode};
+pub use crate::algorithms::properties::is_tree::is_tree;
 pub use crate::algorithms::properties::knn::{
     avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, knnk, knnk_weighted,
 };

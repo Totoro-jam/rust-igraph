@@ -1,0 +1,24 @@
+{
+  "source": "py",
+  "origin": "constructed: V-pattern to centre \u2014 not an out-tree",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_tree",
+  "params": {
+    "mode": "out"
+  },
+  "expected": false
+}

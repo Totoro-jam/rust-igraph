@@ -1650,6 +1650,45 @@ fn is_acyclic_directed_dag_matches_python_reference() {
     assert!(rust);
 }
 
+// ---- ALGO-PR-023: is_tree oracle tests --------
+
+#[test]
+fn is_tree_undirected_path_matches_python_reference() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 3)]).unwrap();
+    let rust = rust_igraph::is_tree(&g, rust_igraph::DijkstraMode::All).unwrap();
+    let py: bool =
+        serde_json::from_value(run_ok("is_tree", &g, serde_json::json!({"mode": "all"})))
+            .expect("decode python is_tree");
+    assert_eq!(rust.is_some(), py);
+    assert!(rust.is_some());
+}
+
+#[test]
+fn is_tree_undirected_triangle_matches_python_reference() {
+    let mut g = Graph::with_vertices(3);
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 0)]).unwrap();
+    let rust = rust_igraph::is_tree(&g, rust_igraph::DijkstraMode::All).unwrap();
+    let py: bool =
+        serde_json::from_value(run_ok("is_tree", &g, serde_json::json!({"mode": "all"})))
+            .expect("decode python is_tree");
+    assert_eq!(rust.is_some(), py);
+    assert!(rust.is_none());
+}
+
+#[test]
+fn is_tree_directed_out_arborescence_matches_python_reference() {
+    // 0→1, 0→2, 1→3.
+    let mut g = Graph::new(4, true).unwrap();
+    g.add_edges(vec![(0u32, 1u32), (0, 2), (1, 3)]).unwrap();
+    let rust = rust_igraph::is_tree(&g, rust_igraph::DijkstraMode::Out).unwrap();
+    let py: bool =
+        serde_json::from_value(run_ok("is_tree", &g, serde_json::json!({"mode": "out"})))
+            .expect("decode python is_tree");
+    assert_eq!(rust.is_some(), py);
+    assert_eq!(rust, Some(0));
+}
+
 // ---- ALGO-PR-021: topological_sorting oracle tests --------
 
 /// Helper: verify the topological order is consistent with all

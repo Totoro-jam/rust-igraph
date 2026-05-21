@@ -578,6 +578,33 @@ IS_ACYCLIC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-023: is_tree. python-igraph exposes
+# `Graph.is_tree(mode='out'/'in'/'all')` returning a bool.
+IS_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_tree_py_in_arborescence_true",
+        # 1→0, 2→0, 3→1: in-tree rooted at 0 (every edge points TO root).
+        "origin": "constructed: in-arborescence rooted at 0",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(1, 0), (2, 0), (3, 1)], directed=True
+        ),
+        "algo": "is_tree",
+        "params": {"mode": "in"},
+        "expected": True,
+    },
+    {
+        "case": "is_tree_py_v_pattern_not_out_tree_false",
+        # 0→2, 1→2: vertex 2 has in-degree 2 — not an out-tree.
+        "origin": "constructed: V-pattern to centre — not an out-tree",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 2), (1, 2)], directed=True
+        ),
+        "algo": "is_tree",
+        "params": {"mode": "out"},
+        "expected": False,
+    },
+]
+
 # ALGO-PR-021: topological_sorting. python-igraph exposes
 # `Graph.topological_sorting(mode='OUT'/'IN'/'ALL')`.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -1892,6 +1919,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_dag": IS_DAG_MANIFEST,
     "topological_sorting": TOPOLOGICAL_SORTING_MANIFEST,
     "is_acyclic": IS_ACYCLIC_MANIFEST,
+    "is_tree": IS_TREE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

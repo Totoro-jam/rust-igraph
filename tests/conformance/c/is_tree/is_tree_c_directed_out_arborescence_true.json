@@ -1,0 +1,28 @@
+{
+  "source": "c",
+  "origin": "constructed: 0\u21921, 0\u21922, 1\u21923 \u2014 out-tree rooted at 0",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "is_tree",
+  "params": {
+    "mode": "out"
+  },
+  "expected": true
+}
