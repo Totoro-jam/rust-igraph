@@ -51,25 +51,60 @@ pub struct HitsScores {
 /// eigenvalue of `A·Aᵀ`. The empty graph yields empty vectors and a
 /// `0.0` eigenvalue.
 ///
+/// On undirected graphs the routine delegates to
+/// [`eigenvector_centrality`], so `hub == authority` exactly and the
+/// reported `eigenvalue` is `λ²` (the square of the dominant
+/// adjacency-matrix eigenvalue).
+///
 /// Counterpart of `igraph_hub_and_authority_scores(g, h, a, &val,
-/// /*weights=*/NULL, /*options=*/NULL)`.
+/// /*weights=*/NULL, /*options=*/NULL)` from `references/igraph/src/centrality/hub_authority.c`.
 ///
 /// # Examples
+///
+/// Pure hub / authority partition on a bipartite directed graph:
 ///
 /// ```
 /// use rust_igraph::{Graph, hub_and_authority_scores};
 ///
-/// // Bipartite hubs→authorities pattern: 0 and 1 both point to 2 and 3.
+/// // 0,1 → 2,3 — vertices 0,1 are pure hubs, 2,3 pure authorities.
 /// let mut g = Graph::new(4, true).unwrap();
 /// g.add_edges(vec![(0u32, 2u32), (0, 3), (1, 2), (1, 3)]).unwrap();
 /// let s = hub_and_authority_scores(&g).unwrap();
-/// // 0 and 1 are hubs (point to authorities), 2 and 3 are authorities.
 /// assert!((s.hub[0] - 1.0).abs() < 1e-9);
 /// assert!((s.hub[1] - 1.0).abs() < 1e-9);
 /// assert!(s.hub[2].abs() < 1e-9);
 /// assert!(s.hub[3].abs() < 1e-9);
 /// assert!((s.authority[2] - 1.0).abs() < 1e-9);
 /// assert!((s.authority[3] - 1.0).abs() < 1e-9);
+/// // Largest eigenvalue of A·Aᵀ for this 2x2 hub-authority block is 4.
+/// assert!((s.eigenvalue - 4.0).abs() < 1e-6);
+/// ```
+///
+/// Cross-relation invariant `h ∝ A·a` after convergence:
+///
+/// ```
+/// use rust_igraph::{Graph, hub_and_authority_scores};
+///
+/// let mut g = Graph::new(5, true).unwrap();
+/// g.add_edges(vec![(0u32, 1u32), (0, 3), (1, 2), (1, 3), (2, 0), (2, 4), (3, 2), (4, 0), (4, 1)])
+///     .unwrap();
+/// let s = hub_and_authority_scores(&g).unwrap();
+///
+/// // Compute A·authority by walking the edge list, then verify it lines
+/// // up with hub after max-norming.
+/// let n = g.vcount() as usize;
+/// let mut a_auth = vec![0.0_f64; n];
+/// for e in 0..g.ecount() {
+///     let (u, v) = g.edge(e as u32).unwrap();
+///     a_auth[u as usize] += s.authority[v as usize];
+/// }
+/// let max = a_auth.iter().fold(0.0_f64, |acc, &x| acc.max(x.abs()));
+/// for x in &mut a_auth {
+///     *x /= max;
+/// }
+/// for u in 0..n {
+///     assert!((a_auth[u] - s.hub[u]).abs() < 1e-6);
+/// }
 /// ```
 pub fn hub_and_authority_scores(graph: &Graph) -> IgraphResult<HitsScores> {
     let n = graph.vcount();
