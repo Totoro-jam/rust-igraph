@@ -635,6 +635,32 @@ IS_FOREST_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-016: is_complete. python-igraph exposes
+# `Graph.is_complete()` natively and returns True for the null
+# and singleton graphs.
+IS_COMPLETE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_complete_py_singleton_true",
+        "origin": "constructed: 1-vertex graph — vacuously complete",
+        "graph_factory": lambda: ig.Graph(n=1, edges=[], directed=False),
+        "algo": "is_complete",
+        "params": {},
+        "expected": True,
+    },
+    {
+        "case": "is_complete_py_k3_with_self_loop_true",
+        # K_3 plus a self-loop at vertex 0 — slow path: ecount > target
+        # but every vertex still sees both other vertices.
+        "origin": "constructed: K_3 + self-loop — slow path returns true",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 2), (1, 2), (0, 0)], directed=False
+        ),
+        "algo": "is_complete",
+        "params": {},
+        "expected": True,
+    },
+]
+
 # ALGO-PR-021: topological_sorting. python-igraph exposes
 # `Graph.topological_sorting(mode='OUT'/'IN'/'ALL')`.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -1951,6 +1977,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_acyclic": IS_ACYCLIC_MANIFEST,
     "is_tree": IS_TREE_MANIFEST,
     "is_forest": IS_FOREST_MANIFEST,
+    "is_complete": IS_COMPLETE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

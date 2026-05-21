@@ -1,0 +1,13 @@
+{
+  "source": "py",
+  "origin": "constructed: 1-vertex graph \u2014 vacuously complete",
+  "graph": {
+    "n": 1,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_complete",
+  "params": {},
+  "expected": true
+}

@@ -990,6 +990,42 @@ fn is_forest_three_source_conformance() {
 }
 
 #[test]
+fn is_complete_three_source_conformance() {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("is_complete");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let rust = rust_igraph::is_complete(&g).expect("is_complete");
+            let rust_json = serde_json::Value::Bool(rust);
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "is_complete");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn is_acyclic_three_source_conformance() {
     for src in ["c", "py", "r"] {
         let dir = workspace_root()

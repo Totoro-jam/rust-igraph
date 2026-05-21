@@ -1689,6 +1689,44 @@ fn is_tree_directed_out_arborescence_matches_python_reference() {
     assert_eq!(rust, Some(0));
 }
 
+// ---- ALGO-PR-016: is_complete oracle tests --------
+
+#[test]
+fn is_complete_k4_undirected_matches_python() {
+    let mut g = Graph::with_vertices(4);
+    g.add_edges(vec![(0u32, 1u32), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)])
+        .unwrap();
+    let rust = rust_igraph::is_complete(&g).unwrap();
+    let py: bool = serde_json::from_value(run_ok("is_complete", &g, serde_json::json!({})))
+        .expect("decode python is_complete");
+    assert!(py);
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn is_complete_path_p4_matches_python() {
+    // Path 0-1-2-3 — not complete.
+    let mut g = Graph::with_vertices(4);
+    g.add_edges(vec![(0u32, 1u32), (1, 2), (2, 3)]).unwrap();
+    let rust = rust_igraph::is_complete(&g).unwrap();
+    let py: bool = serde_json::from_value(run_ok("is_complete", &g, serde_json::json!({})))
+        .expect("decode python is_complete");
+    assert!(!py);
+    assert_eq!(rust, py);
+}
+
+#[test]
+fn is_complete_directed_k3_both_arcs_matches_python() {
+    let mut g = Graph::new(3, true).unwrap();
+    g.add_edges(vec![(0u32, 1u32), (1, 0), (0, 2), (2, 0), (1, 2), (2, 1)])
+        .unwrap();
+    let rust = rust_igraph::is_complete(&g).unwrap();
+    let py: bool = serde_json::from_value(run_ok("is_complete", &g, serde_json::json!({})))
+        .expect("decode python is_complete");
+    assert!(py);
+    assert_eq!(rust, py);
+}
+
 // ---- ALGO-PR-024: is_forest oracle tests --------
 
 #[derive(Debug, serde::Deserialize)]

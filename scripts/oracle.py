@@ -774,6 +774,13 @@ def run(algo: str, g: ig.Graph, params: Dict[str, Any]) -> Any:
             return False
         return bool(g.is_dag())
 
+    if algo == "is_complete":
+        # Counterpart of igraph_is_complete. python-igraph exposes
+        # `Graph.is_complete()` directly (returns True for the null
+        # graph and singleton). Mirrors upstream semantics: directed
+        # graphs require both arcs for every pair.
+        return bool(g.is_complete())
+
     if algo == "is_same_graph":
         # Counterpart of igraph_is_same_graph. Compare the wire graph
         # `g` to a second graph encoded under params.other (same

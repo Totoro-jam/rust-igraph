@@ -2130,6 +2130,57 @@ proptest! {
         }
     }
 
+    /// PR-016 `is_complete` invariants:
+    /// - If complete and simple, ecount must equal `n*(n-1)/2`
+    ///   (undirected) or `n*(n-1)` (directed).
+    /// - Every vertex must have at least `n-1` distinct non-self
+    ///   neighbours when the graph is complete.
+    #[test]
+    fn complete_simple_graph_has_full_edge_count(g in arb_graph(7)) {
+        let n = u64::from(g.vcount());
+        let m = g.ecount() as u64;
+        let directed = g.is_directed();
+        let target = if directed { n * n.saturating_sub(1) }
+                     else        { n * n.saturating_sub(1) / 2 };
+        let complete = rust_igraph::is_complete(&g).unwrap();
+        let simple = rust_igraph::is_simple(&g).unwrap();
+        if complete && simple && n >= 2 {
+            prop_assert_eq!(m, target,
+                "simple complete graph must hit exact target ecount");
+        }
+        // Singleton/empty are always complete.
+        if n <= 1 {
+            prop_assert!(complete, "n<=1 must be complete");
+        }
+    }
+
+    #[test]
+    fn complete_implies_every_vertex_sees_n_minus_1(g in arb_graph(7)) {
+        let n = g.vcount();
+        if !rust_igraph::is_complete(&g).unwrap() {
+            return Ok(());
+        }
+        if n <= 1 {
+            return Ok(());
+        }
+        // For each vertex collect its unique non-self neighbour set
+        // (undirected view; for the directed graph the predicate
+        // requires the same in *both* directions which implies
+        // |N(v) \ {v}| = n-1 in the undirected projection too).
+        for v in 0..n {
+            let mut seen: std::collections::HashSet<u32> =
+                std::collections::HashSet::new();
+            for nei in g.neighbors(v).unwrap() {
+                if nei != v {
+                    seen.insert(nei);
+                }
+            }
+            let seen_count = u32::try_from(seen.len()).expect("seen.len fits in u32");
+            prop_assert_eq!(seen_count, n - 1,
+                "complete: every vertex must see all others");
+        }
+    }
+
     /// PR-021 `topological_sorting` invariants:
     /// - For DAGs, the result is a permutation of `0..vcount`
     ///   that respects every non-loop directed edge `u → v`

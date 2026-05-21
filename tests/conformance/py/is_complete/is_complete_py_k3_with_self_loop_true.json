@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: K_3 + self-loop \u2014 slow path returns true",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_complete",
+  "params": {},
+  "expected": true
+}

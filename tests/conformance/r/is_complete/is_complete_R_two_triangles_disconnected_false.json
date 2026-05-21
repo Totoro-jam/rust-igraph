@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph-style): K_3 \u2294 K_3 \u2014 not complete",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_complete",
+  "params": {},
+  "expected": false
+}

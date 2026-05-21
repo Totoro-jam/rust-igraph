@@ -1,0 +1,38 @@
+{
+  "source": "c",
+  "origin": "constructed: K_4 \u2014 every pair adjacent",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_complete",
+  "params": {},
+  "expected": true
+}

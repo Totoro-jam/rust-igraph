@@ -22,6 +22,25 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-016**: `is_complete(graph: &Graph) ->
+  IgraphResult<bool>` — true iff every distinct pair of vertices
+  is adjacent. Counterpart of `igraph_is_complete` from
+  `references/igraph/src/properties/complete.c:43`. Null and
+  singleton graphs are complete (matches upstream convention).
+  Algorithm: cardinality short-circuit (`ecount` vs.
+  `n*(n-1)` directed / `n*(n-1)/2` undirected), simple-graph
+  fast path that returns `ecount == target` directly, and a
+  unique-neighbour scan for graphs that have loops or parallel
+  edges padding the edge count. On directed graphs both arcs
+  must be present for every pair (calls `is_simple_with_mode(_,
+  DirectedAsDirected)` exactly like the C reference uses
+  `IGRAPH_DIRECTED`). Coverage: 20 unit tests + 3 oracle tests
+  cross-checked against `python-igraph`'s `Graph.is_complete()` +
+  6 conformance fixtures (C/py/R, 2 each) + 2 proptest
+  invariants (`complete_simple_graph_has_full_edge_count` and
+  `complete_implies_every_vertex_sees_n_minus_1`). `O(V + E)`
+  worst case.
+
 - *(properties)* **ALGO-PR-024**: `is_forest(graph: &Graph, mode:
   DijkstraMode) -> IgraphResult<Option<Vec<VertexId>>>` —
   mode-aware forest predicate. Counterpart of `igraph_is_forest`

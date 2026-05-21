@@ -691,6 +691,34 @@ IS_FOREST_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-016: is_complete. Source: properties/complete.c (lines
+# 43-155). Bool predicate: every distinct pair adjacent. Null and
+# singleton are complete; directed graphs need both arcs per pair.
+IS_COMPLETE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_complete_c_k4_undirected_true",
+        "origin": "constructed: K_4 — every pair adjacent",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "algo": "is_complete",
+        "params": {},
+        "expected": True,
+    },
+    {
+        "case": "is_complete_c_path_p4_undirected_false",
+        "origin": "constructed: path 0-1-2-3 — endpoints not adjacent",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "is_complete",
+        "params": {},
+        "expected": False,
+    },
+]
+
 # ALGO-PR-021: topological_sorting. Source: properties/dag.c
 # (lines 54-123). Kahn's peel, recording the popped order.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -2196,6 +2224,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_acyclic": IS_ACYCLIC_MANIFEST,
     "is_tree": IS_TREE_MANIFEST,
     "is_forest": IS_FOREST_MANIFEST,
+    "is_complete": IS_COMPLETE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,

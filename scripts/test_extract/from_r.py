@@ -703,6 +703,35 @@ IS_FOREST_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-016: is_complete. rigraph exposes `is_complete(g)`
+# (man/is_complete.Rd) — returns TRUE for null/singleton, false
+# for any pair without an edge between them.
+IS_COMPLETE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_complete_R_k5_undirected_true",
+        # rigraph's `make_full_graph(5)` is the canonical K_5 example.
+        "origin": "constructed (rigraph-style): make_full_graph(5)",
+        "graph_factory": lambda: ig.Graph.Full(n=5, directed=False),
+        "algo": "is_complete",
+        "params": {},
+        "expected": True,
+    },
+    {
+        "case": "is_complete_R_two_triangles_disconnected_false",
+        # Two K_3 sharing no vertex: each piece is locally complete
+        # but no edges between {0,1,2} and {3,4,5}.
+        "origin": "constructed (rigraph-style): K_3 ⊔ K_3 — not complete",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5)],
+            directed=False,
+        ),
+        "algo": "is_complete",
+        "params": {},
+        "expected": False,
+    },
+]
+
 # ALGO-PR-021: topological_sorting. rigraph's
 # `topo_sort(g, mode="out"|"in")` returns the order.
 TOPOLOGICAL_SORTING_MANIFEST: List[Dict[str, Any]] = [
@@ -2062,6 +2091,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_acyclic": IS_ACYCLIC_MANIFEST,
     "is_tree": IS_TREE_MANIFEST,
     "is_forest": IS_FOREST_MANIFEST,
+    "is_complete": IS_COMPLETE_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,
     "a_star_path": ASTAR_MANIFEST,
     "eccentricity_weighted_with_mode": ECC_W_MANIFEST,
