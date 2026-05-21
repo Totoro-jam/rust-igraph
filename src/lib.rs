@@ -112,7 +112,9 @@ pub use crate::algorithms::properties::convergence_degree::{
 pub use crate::algorithms::properties::coreness::{CorenessMode, coreness, coreness_with_mode};
 pub use crate::algorithms::properties::edge_betweenness::edge_betweenness;
 pub use crate::algorithms::properties::edge_betweenness_weighted::edge_betweenness_weighted;
-pub use crate::algorithms::properties::efficiency::global_efficiency;
+pub use crate::algorithms::properties::efficiency::{
+    average_local_efficiency, global_efficiency, local_efficiency,
+};
 pub use crate::algorithms::properties::eigenvector::eigenvector_centrality;
 pub use crate::algorithms::properties::girth::girth;
 pub use crate::algorithms::properties::harmonic::harmonic_centrality;

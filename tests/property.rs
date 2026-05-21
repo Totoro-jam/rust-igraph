@@ -3085,4 +3085,38 @@ proptest! {
             prop_assert!((val - avg).abs() < 1e-9);
         }
     }
+
+    /// PR-030: per-vertex `local_efficiency` lies in `[0, 1]` and has
+    /// length `vcount`; `average_local_efficiency` equals the mean of
+    /// the per-vertex vector (and is `0` whenever `vcount < 3`).
+    /// Additionally a vertex with fewer than 2 unique non-self
+    /// neighbours must contribute `0`.
+    #[test]
+    fn local_efficiency_invariants(g in arb_graph(8)) {
+        let n = g.vcount();
+        let local = rust_igraph::local_efficiency(&g).unwrap();
+        prop_assert_eq!(local.len(), n as usize);
+        for v in &local {
+            prop_assert!((0.0..=1.0).contains(v));
+        }
+
+        let avg = rust_igraph::average_local_efficiency(&g).unwrap();
+        if n < 3 {
+            prop_assert_eq!(avg, 0.0);
+        } else {
+            let computed = local.iter().sum::<f64>() / (n as f64);
+            prop_assert!((avg - computed).abs() < 1e-12);
+        }
+
+        // Vertices with <2 unique non-self neighbours contribute 0.
+        for v in 0..n {
+            let raw = g.neighbors(v).unwrap();
+            let mut simple: Vec<_> = raw.into_iter().filter(|&u| u != v).collect();
+            simple.sort_unstable();
+            simple.dedup();
+            if simple.len() < 2 {
+                prop_assert_eq!(local[v as usize], 0.0);
+            }
+        }
+    }
 }

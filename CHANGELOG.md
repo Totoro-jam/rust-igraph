@@ -22,6 +22,32 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   lives in `.config/nextest.toml`.
 
 ### Added
+- *(properties)* **ALGO-PR-030**: `local_efficiency(graph) -> Vec<f64>`
+  and `average_local_efficiency(graph) -> f64` — per-vertex local
+  efficiency (Vragović–Louis–Díaz-Guilera, 2005) and its mean. For
+  each vertex `v`, the local efficiency is the average inverse
+  shortest-path distance between every ordered pair of distinct
+  neighbours of `v`, computed in the subgraph `G \ {v}` (paths must
+  not pass through `v`); pairs unreachable in `G \ {v}` contribute 0.
+  Vertices with fewer than two unique non-self neighbours yield 0 by
+  upstream convention. `average_local_efficiency` returns 0 when
+  `vcount < 3`. Implemented as one BFS per source-neighbour with `v`
+  excluded from traversal — O(V·|N(v)|·(V+E)) overall. Counterpart of
+  `igraph_local_efficiency()` and `igraph_average_local_efficiency()`
+  from `references/igraph/src/paths/shortest_paths.c:688-867` (the
+  `directed=true, mode=OUT` slice exposed in this Phase). Coverage: 16
+  unit tests (empty/singleton/n<3 zero baseline; isolated; path-3
+  zero; triangle 1.0 at every vertex; K4 1.0 at every vertex; star
+  zero at every vertex; diamond [5/6, 1, 5/6, 1]; self-loops + parallel
+  edges collapse correctly; `average_local_efficiency` empty/n<3=0,
+  K4=1, diamond=11/12, path-4=0), 8 conformance fixtures (C: K4 +
+  path-3 for `local_efficiency`, K4 + diamond for
+  `average_local_efficiency`; R: triangle + star K_{1,3} for
+  `local_efficiency`, triangle + path-4 for `average_local_efficiency`;
+  py-skipped — python-igraph 0.11 exposes no `local_efficiency` API),
+  and 1 proptest invariant (each per-vertex value in `[0, 1]`; length
+  matches `vcount`; mean matches `average_local_efficiency`; vertices
+  with `<2` unique non-self neighbours contribute 0).
 - *(properties)* **ALGO-PR-029**: `global_efficiency(graph) ->
   Option<f64>` — Latora–Marchiori average inverse pairwise distance,
   defined as `(1/(n*(n-1))) * sum_{i!=j} 1/d(i,j)`, where `d(i,j)` is

@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed: path 0-1-2; per-vertex local_efficiency=[0,0,0]",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "local_efficiency",
+  "params": {},
+  "expected": [
+    0.0,
+    0.0,
+    0.0
+  ]
+}

@@ -2059,6 +2059,57 @@ GLOBAL_EFFICIENCY_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+LOCAL_EFFICIENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "local_efficiency_c_k4",
+        # references/igraph/src/paths/shortest_paths.c:igraph_local_efficiency
+        # K4: each vertex's neighbour set is K3, distances all 1 in
+        # G\{v} → local efficiency = 1.0 at every vertex.
+        "origin": "constructed: K4; per-vertex local_efficiency=[1,1,1,1]",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False, loops=False),
+        "algo": "local_efficiency",
+        "params": {},
+        "expected": [1.0, 1.0, 1.0, 1.0],
+    },
+    {
+        "case": "local_efficiency_c_path3",
+        # Path 0-1-2: vertex 1 has neighbours {0,2} disconnected in G\{1}
+        # → 0; vertices 0, 2 have one neighbour each → 0.
+        "origin": "constructed: path 0-1-2; per-vertex local_efficiency=[0,0,0]",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "local_efficiency",
+        "params": {},
+        "expected": [0.0, 0.0, 0.0],
+    },
+]
+
+AVERAGE_LOCAL_EFFICIENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "average_local_efficiency_c_k4",
+        # references/igraph/src/paths/shortest_paths.c:igraph_average_local_efficiency
+        # K4: all per-vertex 1.0 → mean 1.0.
+        "origin": "constructed: K4; average_local_efficiency=1.0",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False, loops=False),
+        "algo": "average_local_efficiency",
+        "params": {},
+        "expected": 1.0,
+    },
+    {
+        "case": "average_local_efficiency_c_diamond",
+        # Diamond 0-1, 0-2, 0-3, 1-2, 2-3: per-vertex local efficiency is
+        # [5/6, 1, 5/6, 1] → mean = 11/12.
+        "origin": "constructed: diamond; average_local_efficiency=11/12",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "average_local_efficiency",
+        "params": {},
+        "expected": 11.0 / 12.0,
+    },
+]
+
 LTRANS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_local_c_K4",
@@ -2413,6 +2464,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
     "global_efficiency": GLOBAL_EFFICIENCY_MANIFEST,
+    "local_efficiency": LOCAL_EFFICIENCY_MANIFEST,
+    "average_local_efficiency": AVERAGE_LOCAL_EFFICIENCY_MANIFEST,
     "eulerian_path": EUL_PATH_MANIFEST,
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,

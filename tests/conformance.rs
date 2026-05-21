@@ -3084,6 +3084,24 @@ fn global_efficiency_three_source_conformance() {
 }
 
 #[test]
+fn local_efficiency_two_source_conformance() {
+    // python-igraph 0.11 does not expose `local_efficiency`, so the
+    // py source genuinely cannot contribute fixtures.
+    run_conformance_with_skip("local_efficiency", &["py"], |g, _params| {
+        let v = rust_igraph::local_efficiency(g).expect("local_efficiency");
+        serde_json::json!(v)
+    });
+}
+
+#[test]
+fn average_local_efficiency_two_source_conformance() {
+    run_conformance_with_skip("average_local_efficiency", &["py"], |g, _params| {
+        let v = rust_igraph::average_local_efficiency(g).expect("average_local_efficiency");
+        serde_json::json!(v)
+    });
+}
+
+#[test]
 fn count_triangles_three_source_conformance() {
     run_conformance("count_triangles", |g, _params| {
         let n = rust_igraph::count_triangles(g).expect("count_triangles");

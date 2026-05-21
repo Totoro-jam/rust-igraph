@@ -52,7 +52,7 @@ pub use convergence_degree::{convergence_degree, convergence_degree_full};
 pub use coreness::{CorenessMode, coreness, coreness_with_mode};
 pub use edge_betweenness::edge_betweenness;
 pub use edge_betweenness_weighted::edge_betweenness_weighted;
-pub use efficiency::global_efficiency;
+pub use efficiency::{average_local_efficiency, global_efficiency, local_efficiency};
 pub use eigenvector::eigenvector_centrality;
 pub use girth::girth;
 pub use harmonic::harmonic_centrality;

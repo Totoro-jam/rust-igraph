@@ -2025,6 +2025,62 @@ GLOBAL_EFFICIENCY_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+LOCAL_EFFICIENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "local_efficiency_R_triangle",
+        # rigraph/R/efficiency.R: triangle K3 has every vertex's two
+        # neighbours connected by a direct edge in G\{v} → local
+        # efficiency 1.0 at every vertex.
+        "origin": "R-style — triangle K3; local_efficiency=[1,1,1]",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "local_efficiency",
+        "params": {},
+        "expected": [1.0, 1.0, 1.0],
+    },
+    {
+        "case": "local_efficiency_R_star_4",
+        # Star K_{1,3}: centre 0 has 3 mutually disconnected neighbours
+        # in G\{0} → 0; leaves each have one neighbour → 0.
+        "origin": "R-style — star K_{1,3}; local_efficiency=[0,0,0,0]",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "local_efficiency",
+        "params": {},
+        "expected": [0.0, 0.0, 0.0, 0.0],
+    },
+]
+
+AVERAGE_LOCAL_EFFICIENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "average_local_efficiency_R_triangle",
+        # All per-vertex local efficiencies are 1.0 → mean 1.0.
+        "origin": "R-style — triangle K3; average_local_efficiency=1.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "average_local_efficiency",
+        "params": {},
+        "expected": 1.0,
+    },
+    {
+        "case": "average_local_efficiency_R_path_4",
+        # rigraph efficiency.R: undirected path 0-1-2-3. Vertex 1's two
+        # neighbours {0,2} are disconnected in G\{1} → 0; vertex 2
+        # symmetric → 0; vertices 0 and 3 have one neighbour each → 0.
+        # Mean = 0.
+        "origin": "R-style — path 0-1-2-3; average_local_efficiency=0.0",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "average_local_efficiency",
+        "params": {},
+        "expected": 0.0,
+    },
+]
+
 LTRANS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitivity_local_R_triangle",
@@ -2267,6 +2323,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "density": DENSITY_MANIFEST,
     "mean_distance": MEANDIST_MANIFEST,
     "global_efficiency": GLOBAL_EFFICIENCY_MANIFEST,
+    "local_efficiency": LOCAL_EFFICIENCY_MANIFEST,
+    "average_local_efficiency": AVERAGE_LOCAL_EFFICIENCY_MANIFEST,
     "eulerian_path": EUL_PATH_MANIFEST,
     "count_reachable": REACH_MANIFEST,
     "reachability_matrix": REACH_MATRIX_MANIFEST,
