@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "constructed (R-style): make_graph(c(1,2,2,3,3,1), directed=TRUE) \u2014 uniform hub/authority",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "hub_and_authority_scores",
+  "params": {},
+  "expected": {
+    "hub": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "authority": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "eigenvalue": 1.0
+  }
+}

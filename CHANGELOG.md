@@ -15,6 +15,25 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-PR-017** — `hub_and_authority_scores(graph) -> HitsScores`
+  (Kleinberg HITS, unweighted). On directed graphs, runs power
+  iteration on `A·Aᵀ`: hub vector seeded from out-degrees, max-norm
+  rescaling each iteration, eigenvalue read off as `max|A·Aᵀ·h|` at
+  convergence; `authority` recovered as `Aᵀ·h` then max-normed.
+  Sources have authority `0`, sinks have hub `0` by construction.
+  On undirected graphs, delegates to `eigenvector_centrality` per the
+  upstream contract; reported `eigenvalue` is the squared dominant
+  adjacency-matrix eigenvalue. Empty-edge directed graphs fill both
+  vectors with `1.0` and report eigenvalue `0.0`. Counterpart of
+  `igraph_hub_and_authority_scores()` from
+  `references/igraph/src/centrality/hub_authority.c` (unweighted slice;
+  ARPACK weighted variant ships with PR-017b/c). 10 unit tests + 6
+  integration tests in `tests/hits.rs` (including a karate-club
+  identity check `hub == authority == eigenvector_centrality`) + 6
+  three-source conformance fixtures (2 C / 2 py / 2 R) under
+  `tests/conformance/{c,py,r}/hub_and_authority_scores/`. Runnable
+  example at `examples/hits_karate.rs`.
+
 - **ALGO-CORE-001f** — Boolean property cache subsystem.
   - New `core::cache::CachedProperty` enum (7 variants: `HasLoop`,
     `HasMulti`, `HasMutual`, `IsWeaklyConnected`, `IsStronglyConnected`,

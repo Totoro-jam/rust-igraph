@@ -321,6 +321,27 @@ HITS_MANIFEST: List[Dict[str, Any]] = [
             "eigenvalue": 3.682507065662363,
         },
     },
+    {
+        # R-style directed triangle: make_graph(c(1,2,2,3,3,1),
+        # directed = TRUE) — the same canonical fixture used by
+        # several other R-style centrality manifests in this file.
+        # Every vertex is symmetrically a hub and an authority of
+        # equal magnitude; max-norm convention puts all entries at
+        # 1.0. Largest A·Aᵀ eigenvalue is 1 (each row of A·Aᵀ has a
+        # single 1 on the diagonal).
+        "case": "hits_R_directed_triangle",
+        "origin": "constructed (R-style): make_graph(c(1,2,2,3,3,1), directed=TRUE) — uniform hub/authority",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "hub_and_authority_scores",
+        "params": {},
+        "expected": {
+            "hub": [1.0, 1.0, 1.0],
+            "authority": [1.0, 1.0, 1.0],
+            "eigenvalue": 1.0,
+        },
+    },
 ]
 
 BC_EDGES_MANIFEST: List[Dict[str, Any]] = [

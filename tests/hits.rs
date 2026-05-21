@@ -33,6 +33,7 @@ fn directed_path_chain_all_intermediate_zero_loop() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names, clippy::cast_possible_truncation)]
 fn cross_relation_h_eq_a_authority_normalised() {
     // After convergence, h ∝ A·authority (max-normalised both sides).
     let mut g = Graph::new(6, true).unwrap();
@@ -48,8 +49,8 @@ fn cross_relation_h_eq_a_authority_normalised() {
     .unwrap();
     let s = hub_and_authority_scores(&g).unwrap();
 
-    let n = g.vcount() as usize;
-    let mut a_auth = vec![0.0_f64; n];
+    let n = g.vcount();
+    let mut a_auth = vec![0.0_f64; n as usize];
     // Scan the edge list once: a_auth[u] = Σ_{v ∈ out(u)} authority[v].
     for e in 0..g.ecount() {
         let (u, v) = g.edge(e as u32).unwrap();
@@ -61,17 +62,17 @@ fn cross_relation_h_eq_a_authority_normalised() {
             *slot /= max;
         }
     }
-    for u in 0..n {
+    for (u, &val) in a_auth.iter().enumerate() {
         assert!(
-            (a_auth[u] - s.hub[u]).abs() < 1e-6,
-            "vertex {u}: A·a={} hub={}",
-            a_auth[u],
+            (val - s.hub[u]).abs() < 1e-6,
+            "vertex {u}: A·a={val} hub={}",
             s.hub[u]
         );
     }
 }
 
 #[test]
+#[allow(clippy::many_single_char_names, clippy::cast_possible_truncation)]
 fn cross_relation_a_eq_at_hub_normalised() {
     // After convergence, authority ∝ Aᵀ·hub.
     let mut g = Graph::new(5, true).unwrap();
@@ -79,8 +80,8 @@ fn cross_relation_a_eq_at_hub_normalised() {
         .unwrap();
     let s = hub_and_authority_scores(&g).unwrap();
 
-    let n = g.vcount() as usize;
-    let mut at_hub = vec![0.0_f64; n];
+    let n = g.vcount();
+    let mut at_hub = vec![0.0_f64; n as usize];
     for e in 0..g.ecount() {
         let (u, v) = g.edge(e as u32).unwrap();
         at_hub[v as usize] += s.hub[u as usize];
@@ -151,5 +152,5 @@ fn empty_directed_no_edges_returns_ones_zero_eigenvalue() {
     let s = hub_and_authority_scores(&g).unwrap();
     close(&s.hub, &[1.0; 5], 1e-15);
     close(&s.authority, &[1.0; 5], 1e-15);
-    assert_eq!(s.eigenvalue, 0.0);
+    assert!(s.eigenvalue.abs() < f64::EPSILON);
 }

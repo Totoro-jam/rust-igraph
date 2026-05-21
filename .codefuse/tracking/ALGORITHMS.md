@@ -206,7 +206,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 > `todo` count, since they would otherwise distort the algorithm-progress
 > ratio.
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 79/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 80/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -257,9 +257,9 @@ count_loops + count_multiple (PR-014c, scalar + per-edge multiplicity),
 count_adjacent_triangles (PR-002d, per-vertex adjacent triangle count),
 global_efficiency (PR-029, Latora–Marchiori average inverse pairwise distance),
 local_efficiency + average_local_efficiency (PR-030, per-vertex inverse-distance among neighbours of `G\{v}` and its mean),
-property cache subsystem (CORE-001f, bit-packed boolean cache + selective invalidation; is_dag/is_forest/has_loop/has_multiple now O(1) on repeat).
+property cache subsystem (CORE-001f, bit-packed boolean cache + selective invalidation; is_dag/is_forest/has_loop/has_multiple now O(1) on repeat),
+hub_and_authority_scores (PR-017, Kleinberg HITS — directed power-iter on A·Aᵀ; undirected delegates to eigenvector_centrality).
 Next options:
-hub/auth scores (HITS),
 PR-011c (PageRank ARPACK backend),
 PR-012b (directed eigenvector + ARPACK + weighted),
 DS-V/M/S/SEL/ADJ catalog work.

@@ -150,6 +150,7 @@ pub fn hub_and_authority_scores(graph: &Graph) -> IgraphResult<HitsScores> {
     // convergence than a uniform start. Vertices with zero out-degree
     // (sinks) start at 0 and stay 0 through iteration: a sink can
     // never be a hub.
+    #[allow(clippy::cast_precision_loss)]
     let mut h: Vec<f64> = out_adj.iter().map(|nei| nei.len() as f64).collect();
     // Normalise initial seed so the first iteration's eigenvalue
     // estimate is meaningful.
@@ -231,20 +232,20 @@ pub fn hub_and_authority_scores(graph: &Graph) -> IgraphResult<HitsScores> {
 /// fallback path.
 fn dominant_eigenvalue_undirected(graph: &Graph, v: &[f64]) -> f64 {
     let n = graph.vcount();
-    let n_us = n as usize;
-    if n_us == 0 {
+    if n == 0 {
         return 0.0;
     }
     let mut numer = 0.0_f64;
     let mut denom = 0.0_f64;
-    for u in 0..n_us {
-        denom += v[u] * v[u];
-        if let Ok(nei) = graph.neighbors(u as u32) {
+    for u in 0..n {
+        let vu = v[u as usize];
+        denom += vu * vu;
+        if let Ok(nei) = graph.neighbors(u) {
             let mut acc = 0.0_f64;
             for &w in &nei {
                 acc += v[w as usize];
             }
-            numer += v[u] * acc;
+            numer += vu * acc;
         }
     }
     if denom > 0.0 { numer / denom } else { 0.0 }
@@ -276,7 +277,7 @@ mod tests {
         let s = hub_and_authority_scores(&g).unwrap();
         assert!(s.hub.is_empty());
         assert!(s.authority.is_empty());
-        assert_eq!(s.eigenvalue, 0.0);
+        assert!(s.eigenvalue.abs() < f64::EPSILON);
     }
 
     #[test]
@@ -285,7 +286,7 @@ mod tests {
         let s = hub_and_authority_scores(&g).unwrap();
         close(&s.hub, &[1.0, 1.0, 1.0], 1e-12);
         close(&s.authority, &[1.0, 1.0, 1.0], 1e-12);
-        assert_eq!(s.eigenvalue, 0.0);
+        assert!(s.eigenvalue.abs() < f64::EPSILON);
     }
 
     #[test]
@@ -379,14 +380,14 @@ mod tests {
             .unwrap();
         let s = hub_and_authority_scores(&g).unwrap();
         // Verify: A·a should be parallel to h (up to normalisation by max).
-        let n = g.vcount() as usize;
-        let mut a_a = vec![0.0_f64; n];
+        let n = g.vcount();
+        let mut a_a = vec![0.0_f64; n as usize];
         for u in 0..n {
             let mut acc = 0.0_f64;
-            for &v in &g.out_neighbors_vec(u as u32).unwrap() {
+            for &v in &g.out_neighbors_vec(u).unwrap() {
                 acc += s.authority[v as usize];
             }
-            a_a[u] = acc;
+            a_a[u as usize] = acc;
         }
         let max = a_a.iter().fold(0.0_f64, |acc, &x| acc.max(x.abs()));
         if max > 0.0 {
@@ -394,11 +395,10 @@ mod tests {
                 *slot /= max;
             }
         }
-        for u in 0..n {
+        for (u, &val) in a_a.iter().enumerate() {
             assert!(
-                (a_a[u] - s.hub[u]).abs() < 1e-6,
-                "vertex {u}: A·a={} hub={}",
-                a_a[u],
+                (val - s.hub[u]).abs() < 1e-6,
+                "vertex {u}: A·a={val} hub={}",
                 s.hub[u]
             );
         }
