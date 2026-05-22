@@ -3237,4 +3237,72 @@ proptest! {
         prop_assert_eq!(a.membership, b.membership);
         prop_assert!((a.modularity - b.modularity).abs() < 1e-12);
     }
+
+    /// Leiden partition is well-formed: dense labels in [0, k),
+    /// nb_clusters consistent with max label, quality finite, and
+    /// qualities-history length matches n_iterations_run.
+    #[test]
+    fn leiden_partition_well_formed(g in arb_graph(20)) {
+        let r = rust_igraph::leiden(&g).unwrap();
+        let n = g.vcount() as usize;
+        prop_assert_eq!(r.membership.len(), n);
+        if n == 0 {
+            prop_assert_eq!(r.nb_clusters, 0);
+            prop_assert_eq!(r.quality, 0.0);
+        } else {
+            let max_label = *r.membership.iter().max().unwrap();
+            prop_assert!((max_label as usize) < n);
+            prop_assert_eq!(max_label + 1, r.nb_clusters,
+                "nb_clusters {} ≠ max(membership)+1 {}", r.nb_clusters, max_label + 1);
+            let mut seen = vec![false; r.nb_clusters as usize];
+            for &m in &r.membership {
+                seen[m as usize] = true;
+            }
+            prop_assert!(seen.into_iter().all(|b| b),
+                "membership labels must be contiguous in [0, k)");
+            prop_assert!(r.quality.is_finite(), "quality must be finite");
+        }
+        prop_assert_eq!(r.qualities.len() as u32, r.n_iterations_run);
+    }
+
+    /// Unit-weighted Leiden must produce the same quality as
+    /// unweighted Leiden on the same graph (the weight=1.0 path
+    /// reduces exactly to the unweighted formulas).
+    #[test]
+    fn leiden_unit_weighted_matches_unweighted(g in arb_graph(15)) {
+        let a = rust_igraph::leiden(&g).unwrap();
+        let ones = vec![1.0; g.ecount()];
+        let b = rust_igraph::leiden_weighted(&g, &ones).unwrap();
+        prop_assert!((a.quality - b.quality).abs() < 1e-9,
+            "unit-weighted Q={} ≠ unweighted Q={}", b.quality, a.quality);
+    }
+
+    /// Same seed must reproduce the same membership and quality
+    /// bit-for-bit (deterministic SplitMix64 + Fisher-Yates +
+    /// exp(diff/β) sampling).
+    #[test]
+    fn leiden_determinism_under_seed(g in arb_graph(15), seed: u64) {
+        let opts = rust_igraph::LeidenOptions {
+            seed,
+            ..rust_igraph::LeidenOptions::default()
+        };
+        let a = rust_igraph::leiden_with_options(&g, None, &opts).unwrap();
+        let b = rust_igraph::leiden_with_options(&g, None, &opts).unwrap();
+        prop_assert_eq!(a.membership, b.membership);
+        prop_assert!((a.quality - b.quality).abs() < 1e-12);
+    }
+
+    /// CPM with a very large γ ⇒ singleton partition is uniquely
+    /// optimal (every merge costs more than it gains). Leiden's
+    /// argmax-leaning fast moves must land on `k = n`.
+    #[test]
+    fn leiden_cpm_huge_resolution_yields_singletons(g in arb_graph(12)) {
+        let opts = rust_igraph::LeidenOptions {
+            objective: rust_igraph::LeidenObjective::Cpm,
+            resolution: 1.0e6,
+            ..rust_igraph::LeidenOptions::default()
+        };
+        let r = rust_igraph::leiden_with_options(&g, None, &opts).unwrap();
+        prop_assert_eq!(r.nb_clusters as usize, g.vcount() as usize);
+    }
 }
