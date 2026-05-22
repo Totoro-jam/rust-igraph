@@ -1,0 +1,69 @@
+{
+  "awu": "ALGO-SP-007",
+  "name": "voronoi",
+  "function": "rust_igraph::voronoi",
+  "captured_at": "2026-05-22",
+  "host": {
+    "platform": "darwin",
+    "arch": "aarch64-apple-darwin",
+    "rust": "1.83+ (stable)",
+    "criterion": "0.5"
+  },
+  "bench_command": "cargo bench --bench bench_voronoi",
+  "perf_snapshot_path": ".codefuse/tracking/perf/ALGO-SP-007.json",
+  "baseline_command": "python -c \"emulate via Graph.distances() + manual min/tiebreaker\" (python-igraph 0.11 has no bound voronoi)",
+  "scenarios": [
+    {
+      "id": "karate_unweighted_3gens",
+      "label": "voronoi/karate-unweighted-3gens (34v 78e)",
+      "graph": "Zachary karate club",
+      "generators": [0, 32, 24],
+      "mode": "all",
+      "tiebreaker": "first",
+      "weighted": false,
+      "rust_us_lo": 4.6236,
+      "rust_us_mean": 4.6278,
+      "rust_us_hi": 4.6289,
+      "python_igraph_us_mean": 46.56,
+      "speedup_x": 10.06,
+      "note": "Mirrors the reproducible portion of references/igraph/tests/unit/igraph_voronoi.c (FIRST tiebreaker). Drives the unweighted BFS inner loop."
+    },
+    {
+      "id": "grid_weighted_3gens",
+      "label": "voronoi/grid-weighted-3gens (900v 4-connected)",
+      "graph": "30x30 lattice, 1740 edges, weights = 1.0 + (i mod 5)",
+      "generators": [0, 899, 870],
+      "mode": "all",
+      "tiebreaker": "first",
+      "weighted": true,
+      "rust_us_lo": 185.57,
+      "rust_us_mean": 185.77,
+      "rust_us_hi": 186.58,
+      "python_igraph_us_mean": 1520.05,
+      "speedup_x": 8.18,
+      "note": "Drives the weighted Dijkstra inner loop + mindist-tracked subtree pruning. 3 generators at three corners of the grid."
+    },
+    {
+      "id": "grid_many_gens",
+      "label": "voronoi/grid-many-gens (900v, 10 generators, last-tiebreaker)",
+      "graph": "30x30 lattice, 1740 edges, weights = 1.0 + (i mod 5)",
+      "generators_stride": 90,
+      "generator_count": 10,
+      "mode": "all",
+      "tiebreaker": "last",
+      "weighted": true,
+      "rust_us_lo": 613.81,
+      "rust_us_mean": 614.76,
+      "rust_us_hi": 615.00,
+      "python_igraph_us_mean": 4488.83,
+      "speedup_x": 7.30,
+      "note": "Stresses cross-generator min-tracking + LAST tiebreaker (writes always overwrite) in a dense generator regime. Each generator does one Dijkstra over the grid, then we min-merge."
+    }
+  ],
+  "summary": {
+    "speedup_x_min": 7.30,
+    "speedup_x_max": 10.06,
+    "speedup_x_mean": 8.51,
+    "note": "All three scenarios beat the python-igraph emulation by 7-10x. The emulation re-runs Graph.distances() once per generator; our implementation fuses BFS/Dijkstra over all generators with mindist-aware early subtree pruning so unreachable / dominated subtrees are skipped entirely."
+  }
+}

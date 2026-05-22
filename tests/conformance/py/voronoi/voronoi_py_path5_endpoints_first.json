@@ -1,0 +1,52 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.distances() + FIRST tiebreaker: undirected path P5 with generators=[0,4] \u2014 vertex 2 ties (dist=2 to both); FIRST keeps 0.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "voronoi",
+  "params": {
+    "generators": [
+      0,
+      4
+    ],
+    "mode": "all",
+    "tiebreaker": "first"
+  },
+  "expected": {
+    "membership": [
+      0,
+      0,
+      0,
+      1,
+      1
+    ],
+    "distances": [
+      0.0,
+      1.0,
+      2.0,
+      1.0,
+      0.0
+    ]
+  }
+}

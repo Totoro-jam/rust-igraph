@@ -3058,12 +3058,73 @@ SPLIT_JOIN_DISTANCE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+VORONOI_MANIFEST: List[Dict[str, Any]] = [
+    # R-igraph wraps `igraph_voronoi` via `voronoi_cells()` (see
+    # references/rigraph/R/community.R lines 3213-3270). The R API
+    # returns 1-based generator indices in `membership` — we translate
+    # to 0-based to match the Rust API (which uses 0-based vertex /
+    # generator indexing throughout). Expected values are hand-derived
+    # from the canonical BFS computations on each test graph and are
+    # verifiable by running `voronoi_cells(g, generators+1L,
+    # tiebreaker='first')$membership - 1L` in R.
+    {
+        "case": "voronoi_r_path5_endpoints_first",
+        "origin": "R-igraph voronoi_cells(make_graph(c(1,2,2,3,3,4,4,5)), c(1L,5L), "
+        "tiebreaker='first', mode='all') — vertex 2 ties (dist=2); FIRST keeps generator 0.",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "params": {
+            "generators": [0, 4],
+            "mode": "all",
+            "tiebreaker": "first",
+        },
+        "expected": {
+            "membership": [0, 0, 0, 1, 1],
+            "distances": [0.0, 1.0, 2.0, 1.0, 0.0],
+        },
+    },
+    {
+        "case": "voronoi_r_path5_endpoints_last",
+        "origin": "R-igraph voronoi_cells(make_graph(c(1,2,2,3,3,4,4,5)), c(1L,5L), "
+        "tiebreaker='last', mode='all') — vertex 2 ties (dist=2); LAST flips it to generator 1.",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "params": {
+            "generators": [0, 4],
+            "mode": "all",
+            "tiebreaker": "last",
+        },
+        "expected": {
+            "membership": [0, 0, 1, 1, 1],
+            "distances": [0.0, 1.0, 2.0, 1.0, 0.0],
+        },
+    },
+    {
+        "case": "voronoi_r_star_centre_only",
+        "origin": "R-igraph voronoi_cells(make_star(5, mode='undirected'), c(1L), "
+        "tiebreaker='first', mode='all') — single generator at centre absorbs every leaf.",
+        "graph_factory": lambda: ig.Graph.Star(n=5, mode="undirected", center=0),
+        "params": {
+            "generators": [0],
+            "mode": "all",
+            "tiebreaker": "first",
+        },
+        "expected": {
+            "membership": [0, 0, 0, 0, 0],
+            "distances": [0.0, 1.0, 1.0, 1.0, 1.0],
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "split_join_distance": SPLIT_JOIN_DISTANCE_MANIFEST,
+    "voronoi": VORONOI_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,

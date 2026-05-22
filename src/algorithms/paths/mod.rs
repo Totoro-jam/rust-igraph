@@ -15,6 +15,7 @@ pub(crate) mod floyd_warshall;
 pub(crate) mod johnson;
 pub(crate) mod radii;
 pub(crate) mod random_walk;
+pub(crate) mod voronoi;
 pub(crate) mod widest_path;
 
 pub use astar::a_star_path;
@@ -33,3 +34,4 @@ pub use radii::{
     eccentricity_weighted_with_mode, radius, radius_weighted, radius_weighted_with_mode,
 };
 pub use random_walk::random_walk;
+pub use voronoi::{VoronoiPartition, VoronoiTiebreaker, voronoi};

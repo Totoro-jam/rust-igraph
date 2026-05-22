@@ -1,0 +1,51 @@
+{
+  "source": "r",
+  "origin": "R-igraph voronoi_cells(make_star(5, mode='undirected'), c(1L), tiebreaker='first', mode='all') \u2014 single generator at centre absorbs every leaf.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "voronoi",
+  "params": {
+    "generators": [
+      0
+    ],
+    "mode": "all",
+    "tiebreaker": "first"
+  },
+  "expected": {
+    "membership": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "distances": [
+      0.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  }
+}

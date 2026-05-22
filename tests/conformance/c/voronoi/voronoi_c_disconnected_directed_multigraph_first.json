@@ -1,0 +1,72 @@
+{
+  "source": "c",
+  "origin": "C reference paths/voronoi.c igraph_voronoi: disconnected directed multigraph, generators=[0,1], mode=OUT, FIRST tiebreaker",
+  "graph": {
+    "n": 7,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        5,
+        4
+      ],
+      [
+        6,
+        4
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "voronoi",
+  "params": {
+    "generators": [
+      0,
+      1
+    ],
+    "mode": "out",
+    "tiebreaker": "first"
+  },
+  "expected": {
+    "membership": [
+      0,
+      1,
+      0,
+      0,
+      0,
+      null,
+      null
+    ],
+    "distances": [
+      0.0,
+      0.0,
+      1.0,
+      2.0,
+      3.0,
+      null,
+      null
+    ]
+  }
+}

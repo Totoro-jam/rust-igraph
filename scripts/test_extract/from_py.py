@@ -2653,6 +2653,57 @@ SPLIT_JOIN_DISTANCE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+VORONOI_MANIFEST: List[Dict[str, Any]] = [
+    # python-igraph 0.11 does not expose `igraph_voronoi` as a bound
+    # method (the C function exists, but there is no Python wrapper as
+    # of this writing). The fixtures below are derived at extraction
+    # time using `Graph.distances()` plus an in-script FIRST / LAST
+    # tiebreaker pass — that way the "Python source" is still
+    # python-igraph (the BFS / Dijkstra inner loop), just stitched
+    # together with the published Voronoi-cell tiebreaker rule from
+    # `references/igraph/src/paths/voronoi.c` lines 30-309.
+    #
+    # The expected `membership` / `distances` fields are filled in by
+    # the dedicated `voronoi` branch in `emit()` below.
+    {
+        "case": "voronoi_py_path5_endpoints_first",
+        "origin": "python-igraph Graph.distances() + FIRST tiebreaker: "
+        "undirected path P5 with generators=[0,4] — vertex 2 ties (dist=2 to both); FIRST keeps 0.",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "params": {
+            "generators": [0, 4],
+            "mode": "all",
+            "tiebreaker": "first",
+        },
+    },
+    {
+        "case": "voronoi_py_path5_endpoints_last",
+        "origin": "python-igraph Graph.distances() + LAST tiebreaker: "
+        "undirected path P5 with generators=[0,4] — vertex 2 ties (dist=2); LAST flips it to 4.",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "params": {
+            "generators": [0, 4],
+            "mode": "all",
+            "tiebreaker": "last",
+        },
+    },
+    {
+        "case": "voronoi_py_karate_first",
+        "origin": "python-igraph Graph.distances() + FIRST tiebreaker on Zachary karate club: "
+        "generators=[0,32,24], mode=ALL, unweighted.",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "params": {
+            "generators": [0, 32, 24],
+            "mode": "all",
+            "tiebreaker": "first",
+        },
+    },
+]
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # python-igraph does not expose `igraph_reindex_membership`
     # directly; the closest user-facing analogue is
@@ -2800,6 +2851,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "assortativity_degree": ASSORT_MANIFEST,
     "transitivity_barrat": TRANS_BARRAT_MANIFEST,
     "decompose": DECOMPOSE_MANIFEST,
+    "voronoi": VORONOI_MANIFEST,
 }
 
 
@@ -2885,6 +2937,68 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "comm2": comm2,
                 },
                 "expected": entry["expected"],
+            }
+        elif algo == "voronoi":
+            g = entry["graph_factory"]()
+            graph_payload = graph_to_payload(g)
+            weights = entry.get("graph_weights")
+            if weights is not None:
+                graph_payload["weights"] = list(weights)
+            generators = [int(v) for v in entry["params"]["generators"]]
+            mode = str(entry["params"]["mode"]).lower()
+            tiebreaker = str(entry["params"]["tiebreaker"]).lower()
+            ig_mode = {
+                "out": "out",
+                "in": "in",
+                "all": "all",
+            }[mode]
+            # Per-generator distance row from every vertex to that
+            # generator (mode-aware). Then min-merge under the chosen
+            # tiebreaker — exactly mirrors voronoi.c lines 30-309 with
+            # the simplification that we do not need the mindist-aware
+            # early subtree pruning since we are filling a static fixture.
+            dist_matrix = []
+            for gen in generators:
+                # `Graph.distances(source, target, mode)` returns a list
+                # of lists [[source -> v] for v in target]. With a single
+                # source the outer list has length 1.
+                row = g.distances(source=gen, mode=ig_mode, weights=weights)[0]
+                dist_matrix.append(row)
+            n = g.vcount()
+            membership: List[Any] = [None] * n
+            distances: List[Any] = [None] * n
+            for v in range(n):
+                best = None
+                best_idx: Any = None
+                for i in range(len(generators)):
+                    d = dist_matrix[i][v]
+                    if d == float("inf"):
+                        continue
+                    if best is None or d < best:
+                        best = d
+                        best_idx = i
+                    elif d == best and tiebreaker == "last":
+                        best_idx = i
+                if best is None:
+                    membership[v] = None
+                    distances[v] = None
+                else:
+                    membership[v] = int(best_idx)
+                    distances[v] = float(best)
+            payload = {
+                "source": "py",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": {
+                    "generators": generators,
+                    "mode": mode,
+                    "tiebreaker": tiebreaker,
+                },
+                "expected": {
+                    "membership": membership,
+                    "distances": distances,
+                },
             }
         else:
             g: ig.Graph = entry["graph_factory"]()

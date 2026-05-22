@@ -3072,6 +3072,102 @@ SPLIT_JOIN_DISTANCE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+VORONOI_MANIFEST: List[Dict[str, Any]] = [
+    # `igraph_voronoi` reference test at
+    # references/igraph/tests/unit/igraph_voronoi.c. The .out file ships
+    # canonical (deterministic) outputs for FIRST and LAST tiebreakers
+    # on the disconnected-directed-multigraph and the unweighted karate
+    # club. We do NOT extract the RANDOM tiebreaker because the C
+    # default RNG (Mersenne Twister, seeded 42) and our SplitMix64 do
+    # not produce identical tie selections.
+    {
+        "case": "voronoi_c_disconnected_directed_multigraph_first",
+        "origin": "C reference paths/voronoi.c igraph_voronoi: "
+        "disconnected directed multigraph, generators=[0,1], mode=OUT, FIRST tiebreaker",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[(0, 2), (1, 2), (2, 3), (3, 4), (5, 4), (6, 4), (2, 3), (1, 1)],
+            directed=True,
+        ),
+        "algo": "voronoi",
+        "params": {
+            "generators": [0, 1],
+            "mode": "out",
+            "tiebreaker": "first",
+        },
+        "expected": {
+            "membership": [0, 1, 0, 0, 0, None, None],
+            "distances": [0.0, 0.0, 1.0, 2.0, 3.0, None, None],
+        },
+    },
+    {
+        "case": "voronoi_c_disconnected_directed_multigraph_last",
+        "origin": "C reference paths/voronoi.c igraph_voronoi: "
+        "disconnected directed multigraph, generators=[0,1], mode=OUT, LAST tiebreaker",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[(0, 2), (1, 2), (2, 3), (3, 4), (5, 4), (6, 4), (2, 3), (1, 1)],
+            directed=True,
+        ),
+        "algo": "voronoi",
+        "params": {
+            "generators": [0, 1],
+            "mode": "out",
+            "tiebreaker": "last",
+        },
+        "expected": {
+            "membership": [0, 1, 1, 1, 1, None, None],
+            "distances": [0.0, 0.0, 1.0, 2.0, 3.0, None, None],
+        },
+    },
+    {
+        "case": "voronoi_c_karate_unweighted_first",
+        "origin": "C reference paths/voronoi.c igraph_voronoi: "
+        "Zachary karate club, generators=[0,32,24], mode=ALL, FIRST tiebreaker (unweighted)",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "voronoi",
+        "params": {
+            "generators": [0, 32, 24],
+            "mode": "all",
+            "tiebreaker": "first",
+        },
+        "expected": {
+            "membership": [
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
+                0, 1, 0, 1, 0, 1, 1, 2, 2, 1, 2, 0, 1, 1, 0, 1, 1,
+            ],
+            "distances": [
+                0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0,
+                1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                1.0, 1.0, 0.0, 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 1.0, 0.0, 1.0,
+            ],
+        },
+    },
+    {
+        "case": "voronoi_c_karate_unweighted_last",
+        "origin": "C reference paths/voronoi.c igraph_voronoi: "
+        "Zachary karate club, generators=[0,32,24], mode=ALL, LAST tiebreaker (unweighted)",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "voronoi",
+        "params": {
+            "generators": [0, 32, 24],
+            "mode": "all",
+            "tiebreaker": "last",
+        },
+        "expected": {
+            "membership": [
+                0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0,
+                0, 1, 0, 1, 0, 1, 1, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1,
+            ],
+            "distances": [
+                0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0,
+                1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                1.0, 1.0, 0.0, 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 1.0, 0.0, 1.0,
+            ],
+        },
+    },
+]
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # `igraph_reindex_membership` /
     # `igraph_i_reindex_membership_large` in
@@ -3222,6 +3318,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "assortativity_degree": ASSORT_MANIFEST,
     "transitivity_barrat": TRANS_BARRAT_MANIFEST,
     "decompose": DECOMPOSE_MANIFEST,
+    "voronoi": VORONOI_MANIFEST,
 }
 
 

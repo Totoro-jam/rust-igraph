@@ -4746,3 +4746,126 @@ fn split_join_distance_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn voronoi_three_source_conformance() {
+    // `voronoi` (ALGO-SP-007) needs four params from each fixture:
+    // - generators: array of u32 vertex ids
+    // - mode: "out" | "in" | "all" (DijkstraMode)
+    // - tiebreaker: "first" | "last" | "random"
+    // - weights (optional): pulled from graph.weights
+    //
+    // RANDOM tiebreaker fixtures are intentionally not extracted — the C
+    // reference uses Mersenne Twister seeded with 42 while our SplitMix64
+    // produces different tie selections at the same dilation. The runner
+    // still supports tiebreaker="random" so a fixture could opt in later.
+    use rust_igraph::{DijkstraMode, VoronoiTiebreaker, voronoi};
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("voronoi");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes).expect("parse fixture JSON");
+            assert_eq!(case.algo, "voronoi");
+
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone();
+
+            let params = case.params.as_object().expect("params must be an object");
+            let generators: Vec<u32> = params
+                .get("generators")
+                .and_then(serde_json::Value::as_array)
+                .expect("params.generators")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("generator id")).expect("generator id fits u32")
+                })
+                .collect();
+            let mode = match params
+                .get("mode")
+                .and_then(serde_json::Value::as_str)
+                .expect("params.mode")
+            {
+                "out" => DijkstraMode::Out,
+                "in" => DijkstraMode::In,
+                "all" => DijkstraMode::All,
+                other => panic!("{}: unknown mode {other}", path.display()),
+            };
+            let tiebreaker = match params
+                .get("tiebreaker")
+                .and_then(serde_json::Value::as_str)
+                .expect("params.tiebreaker")
+            {
+                "first" => VoronoiTiebreaker::First,
+                "last" => VoronoiTiebreaker::Last,
+                "random" => VoronoiTiebreaker::Random,
+                other => panic!("{}: unknown tiebreaker {other}", path.display()),
+            };
+
+            let got = voronoi(&g, weights.as_deref(), mode, &generators, tiebreaker, 42)
+                .expect("voronoi");
+
+            // Encode actual result the way fixtures encode it: Inf → null,
+            // unreachable membership → null. Then compare via json_approx_eq
+            // so the 1-ULP scale tolerance applies to weighted-distance
+            // cases (none today, but a future fixture set might add some).
+            let mem: Vec<serde_json::Value> = got
+                .membership
+                .iter()
+                .map(|o| match o {
+                    Some(i) => serde_json::json!(i),
+                    None => serde_json::Value::Null,
+                })
+                .collect();
+            let dist: Vec<serde_json::Value> = got
+                .distances
+                .iter()
+                .map(|d| {
+                    if d.is_infinite() {
+                        serde_json::Value::Null
+                    } else {
+                        serde_json::json!(d)
+                    }
+                })
+                .collect();
+            let actual = serde_json::json!({
+                "membership": mem,
+                "distances": dist,
+            });
+
+            assert!(
+                json_approx_eq(&actual, &case.expected),
+                "{}: voronoi mismatch\n  origin:   {}\n  actual:   {}\n  expected: {}",
+                path.display(),
+                case.origin,
+                actual,
+                case.expected,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no voronoi fixtures from source {src}"
+        );
+    }
+}

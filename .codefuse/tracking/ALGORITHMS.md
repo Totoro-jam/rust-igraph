@@ -95,6 +95,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-SP-004 | Floyd-Warshall (`floyd_warshall_distances`, original variant) | paths/floyd_warshall.c:270-365 | 365 | adapt | - | done | (next) | O(V³) triple-loop | C:1 / py:1 / R:1 |
 | ALGO-SP-005 | A* | astar.c | 273 | adapt | TR-001 | done | (next) | O((V+E)log V), better w/ admissible heuristic | C:1 / py:1 / R:1 |
 | ALGO-SP-006 | BFS distances (single-source, unweighted, OUT mode) | unweighted.c:273-325 | 240 | adapt | TR-001 | done | (next) | 2.5 µs/karate | C:1 / py:1 / R:1 |
+| ALGO-SP-007 | Voronoi cells (multi-source BFS / Dijkstra + tiebreaker) | paths/voronoi.c:30-418 | ~420 | adapt | SP-001c, SP-006 | done | (next) | 4.63 µs / karate-3gens (10.06×) | C:4 / py:3 / R:3 |
 | ALGO-SP-010 | Single-source widest-path widths (Dijkstra-style) + mode-aware variant | widest_paths.c (lines 596-741) | 145 | adapt | SP-001 | done | (next) | O((V+E) log V) | C:2 / py:2 / R:2 |
 | ALGO-SP-011 | Single-source single-target widest path (returns path) + mode-aware variant | widest_paths.c (lines 102-405) | 305 | adapt | SP-010 | done | (next) | O((V+E) log V) | C:2 / py:2 / R:2 |
 | ALGO-SP-012 | All-pairs widest widths via Floyd-Warshall + mode-aware variant | widest_paths.c (lines 451-555) | 105 | adapt | SP-010 | done | (next) | O(V³) | C:2 / py:2 / R:2 |

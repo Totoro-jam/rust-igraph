@@ -1,0 +1,52 @@
+{
+  "source": "r",
+  "origin": "R-igraph voronoi_cells(make_graph(c(1,2,2,3,3,4,4,5)), c(1L,5L), tiebreaker='last', mode='all') \u2014 vertex 2 ties (dist=2); LAST flips it to generator 1.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "voronoi",
+  "params": {
+    "generators": [
+      0,
+      4
+    ],
+    "mode": "all",
+    "tiebreaker": "last"
+  },
+  "expected": {
+    "membership": [
+      0,
+      0,
+      1,
+      1,
+      1
+    ],
+    "distances": [
+      0.0,
+      1.0,
+      2.0,
+      1.0,
+      0.0
+    ]
+  }
+}

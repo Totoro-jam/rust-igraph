@@ -15,6 +15,69 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-SP-007** — `voronoi` (multi-source Voronoi cells via BFS or
+  Dijkstra). Counterpart of `igraph_voronoi` in
+  `references/igraph/src/paths/voronoi.c`. Given a set of *generator*
+  vertices, assigns every other vertex to the generator from / to which
+  the shortest-path distance is smallest (under [`DijkstraMode::Out` /
+  `In` / `All`]) and returns the per-vertex `(generator-index, distance)`
+  pair.
+  - `voronoi(graph: &Graph, weights: Option<&[f64]>, mode: DijkstraMode,
+    generators: &[VertexId], tiebreaker: VoronoiTiebreaker, seed: u64)
+    -> IgraphResult<VoronoiPartition>` where `VoronoiPartition {
+    membership: Vec<Option<u32>>, distances: Vec<f64> }`. `None` /
+    `f64::INFINITY` mark vertices unreachable from every generator.
+  - `VoronoiTiebreaker { First, Last, Random }` matches
+    `IGRAPH_VORONOI_{FIRST,LAST,RANDOM}`. `Random` uses a self-rolled
+    seeded `SplitMix64` reservoir sampler (probability `1/k` of replacing
+    after the `k`-th tied generator) — no `rand` crate dependency, fully
+    reproducible per `seed`.
+  - Unweighted graphs take the BFS inner loop; weighted graphs take a
+    binary-heap Dijkstra inner loop (same edge-weight validation as
+    SP-001b: rejects `NaN` and negative weights, accepts `+∞` as
+    "unusable edge"). Both inner loops share a `mindist`-aware early
+    subtree prune — when expanding from generator `g`, a vertex whose
+    current `mindist` already beats the distance it was reached at via
+    `g` is skipped, so subtrees that are dominated by another generator
+    are not explored at all. This is what beats the python emulation by
+    7–10×.
+  - Complexity: O(k · (V + E)) for unweighted, O(k · (V + E) log V) for
+    weighted (`k` = generator count), but the inner-loop pruning makes
+    it sub-additive in practice as soon as cells start overlapping.
+  - Errors: empty `generators` slice → `EmptyGenerators`; out-of-range
+    or duplicate generator id → `InvalidGenerator`; `weights.len() !=
+    ecount()` → `InvalidLength`; `weights` containing `NaN` or a
+    negative entry → `InvalidWeight`.
+  - Test coverage: 15 unit tests (single-generator full-coverage, two
+    generators on the path graph for both tiebreakers, weighted
+    triangle with asymmetric weights, unreachable-vertex handling on a
+    disconnected graph, directed in/out mode parity vs reversed graph,
+    `+∞`-weight edge skipped, `Random` tiebreaker determinism for a
+    fixed seed, all four error paths) + 3 proptests (membership is
+    `None` ⇔ distance is `+∞`, distance(g) = 0 for every generator,
+    `Last` ≥ `First` in lexicographic membership ordering on ties).
+  - Three-source conformance (10 fixtures: 4 C, 3 py, 3 R) covers the
+    disconnected directed multigraph from `igraph_voronoi.c` (FIRST +
+    LAST), the karate club at 3 generators (FIRST + LAST), the
+    path-graph endpoints split (FIRST + LAST from py + R), the karate
+    club FIRST tiebreaker through python-igraph's emulated reference
+    (`Graph.distances()` per generator + manual min/tiebreaker — the
+    upstream python-igraph 0.11 has no bound `voronoi()`), and the
+    R-igraph star-centre singleton case. `Random` tiebreaker fixtures
+    are intentionally omitted (RNG divergence: C uses Mersenne Twister
+    seeded 42, ours uses `SplitMix64`).
+  - Bench: 4.63 µs / karate (34v 78e, 3 generators), 185.77 µs /
+    weighted 30×30 grid (900v 1740e, 3 generators), 614.76 µs / same
+    grid with 10 generators (LAST tiebreaker) — 10.06× / 8.18× / 7.30×
+    faster than python-igraph emulated via `Graph.distances()` per
+    generator. The pruning amortises across generators so even the
+    10-generator dense regime stays linear in `k`.
+  - Runnable example `examples/voronoi_karate.rs` runs FIRST and LAST
+    tiebreakers on Zachary's karate club with generators `[0, 32, 24]`,
+    prints per-cell vertex lists + distances, and confirms 29/34
+    vertices stay on the same cell under both rules (the remaining 5
+    are equidistant ties).
+
 - **ALGO-CM-016** — `split_join_distance` (asymmetric projection-distance
   pair). Pure-function helper mirroring `igraph_split_join_distance` in
   `references/igraph/src/community/community_misc.c`. Returns the
