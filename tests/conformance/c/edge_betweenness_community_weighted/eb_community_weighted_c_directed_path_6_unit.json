@@ -1,0 +1,45 @@
+{
+  "source": "c",
+  "origin": "constructed: directed 6-path; weighted EB community unit weights; k=2; directed-weighted Q = 8/25 \u2248 0.32",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "edge_betweenness_community_weighted",
+  "params": {},
+  "expected": {
+    "modularity_min": 0.31,
+    "modularity_max": 0.33,
+    "k_min": 2,
+    "k_max": 2
+  }
+}

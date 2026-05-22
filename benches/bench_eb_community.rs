@@ -80,11 +80,33 @@ fn bench_karate(c: &mut Criterion) {
     });
 }
 
+fn bench_directed_path_10(c: &mut Criterion) {
+    let mut g = Graph::new(10, true).expect("directed graph");
+    for i in 0..9u32 {
+        g.add_edge(i, i + 1).expect("directed path edge");
+    }
+    c.bench_function("eb_community/directed-path-10 (10v 9e)", |b| {
+        b.iter(|| edge_betweenness_community(&g).unwrap());
+    });
+}
+
+fn bench_directed_two_triangles_bridge(c: &mut Criterion) {
+    let mut g = Graph::new(6, true).expect("directed graph");
+    for &(u, v) in &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (2, 3)] {
+        g.add_edge(u, v).expect("directed edge");
+    }
+    c.bench_function("eb_community/directed-two-triangles-bridge (6v 7e)", |b| {
+        b.iter(|| edge_betweenness_community(&g).unwrap());
+    });
+}
+
 criterion_group!(
     benches,
     bench_path_10,
     bench_two_k4_bridge,
     bench_ring_of_cliques_4x5,
     bench_karate,
+    bench_directed_path_10,
+    bench_directed_two_triangles_bridge,
 );
 criterion_main!(benches);

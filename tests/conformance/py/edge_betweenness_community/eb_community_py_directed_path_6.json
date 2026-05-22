@@ -1,0 +1,39 @@
+{
+  "source": "py",
+  "origin": "directed 6-path; community_edge_betweenness; k=2; directed Q = 8/25 \u2248 0.32",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "edge_betweenness_community",
+  "params": {},
+  "expected": {
+    "modularity_min": 0.31,
+    "modularity_max": 0.33,
+    "k_min": 2,
+    "k_max": 2
+  }
+}

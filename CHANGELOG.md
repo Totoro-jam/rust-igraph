@@ -15,6 +15,44 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CO-006c** — Directed Girvan-Newman edge betweenness community
+  detection (Leicht E. A., Newman M. E. J. 2008, *Community structure in
+  directed networks*, Phys. Rev. Lett. 100, 118703 for the directed
+  modularity objective; Girvan M., Newman M. E. J. 2002 / Newman M. E.
+  J., Girvan M. 2004 for the underlying edge-removal framework). Both
+  existing entrypoints now accept directed graphs:
+  - `edge_betweenness_community(graph) -> Result<EdgeBetweennessResult>`
+    and `edge_betweenness_community_weighted(graph, weights) ->
+    Result<EdgeBetweennessResult>` — the per-removal Brandes /
+    Brandes-Dijkstra pass now walks `Graph::incident(_, Out)` on the
+    forward sweep, the back-pass is driven by predecessor lists
+    populated during the forward sweep, and the per-pair edge
+    contribution is **not halved** for directed graphs (matching the C
+    reference rule `if (!directed) eb /= 2.0;`).
+  - Per-level modularity dispatch: directed graphs use
+    `modularity_directed` (unweighted) or `modularity_weighted_directed`
+    (weighted), so the best-Q cut reflects the Leicht-Newman 2008
+    directed objective `Σ_c [e_{cc}/m − (s^{out}_c/m)·(s^{in}_c/m)]`
+    rather than the symmetric undirected sum.
+  - New public function `modularity_weighted_directed(graph, membership,
+    resolution, weights) -> Result<Option<f64>>` — directed-aware
+    weighted modularity, falling through to `modularity_weighted` when
+    the graph is undirected so callers have a single weighted entry.
+  - Same `EdgeBetweennessResult` shape, same per-vertex `Vec<EdgeId>`
+    masking pattern, same lowest-eid tie-break (documented under
+    3-way Brandes ties via a smoke test).
+  - Tests: directed 4-path eb=4.0 (un-halved) sanity, directed 6-path
+    0→1→2→3→4→5 cuts the middle directed edge first (Q=8/25=0.32, k=2),
+    directed two-triangles+bridge runs cleanly under lowest-eid tie
+    break; weighted unit-weights through the directed entry reproduce
+    the unweighted directed dendrogram bit-for-bit (proptest).
+  - Three-source conformance: 3 directed_path_6 fixtures from each of
+    C / Python / R (Q ∈ [0.31, 0.33], k = 2) for both algos.
+  - Bench: directed-path-10 ~16.4 µs / directed-two-triangles-bridge
+    ~8.3 µs (unweighted), directed-path-10 unit ~11.6 µs /
+    directed-two-triangles-cheap-bridge ~7.5 µs (weighted). Undirected
+    cells unchanged.
+
 - **ALGO-CO-006b** — Weighted edge betweenness community detection
   (Newman M. E. J., Girvan M. 2004, *Finding and evaluating community
   structure in networks*, Phys. Rev. E 69, 026113 — weighted variant of

@@ -13,13 +13,15 @@
 //!   shortest paths (`edge_betweenness_weighted` style) rather than the
 //!   BFS shortest paths used in CO-006.
 //! - Modularity at every dendrogram level uses [`modularity_weighted`]
-//!   so the merge score reflects the weighted edge sums (`m =
-//!   Σ_e w_e`).
+//!   (undirected) or [`modularity_weighted_directed`] (directed) so the
+//!   merge score reflects the weighted edge sums (`m = Σ_e w_e`).
 //! - Weights must be non-negative + finite; weight vector length must
 //!   equal `graph.ecount()`. Both constraints surface as
-//!   `IgraphError::InvalidArgument`. Directed graphs are still
-//!   unsupported (delegated to CO-006c, just like the unweighted
-//!   slice).
+//!   `IgraphError::InvalidArgument`.
+//! - Directed graphs (CO-006c) use OUT-incidence for the Dijkstra
+//!   forward pass and IN-incidence for the dependency-accumulation
+//!   back pass; `edge_betweenness[i]` is **not** halved (matches the
+//!   upstream `if (!directed) eb /= 2.0;` rule).
 //!
 //! Complexity: `O(|V| * |E| * (|E| + |V| log |V|))` — the per-removal
 //! Dijkstra-Brandes pass dominates.
@@ -40,7 +42,7 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
 use crate::algorithms::community::edge_betweenness_community::EdgeBetweennessResult;
-use crate::algorithms::community::modularity::modularity_weighted;
+use crate::algorithms::community::modularity::{modularity_weighted, modularity_weighted_directed};
 use crate::core::graph::EdgeId;
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
@@ -73,13 +75,17 @@ impl PartialOrd for Frontier {
 /// Returns the same [`EdgeBetweennessResult`] shape as the unweighted
 /// CO-006 entrypoint. `edge_betweenness[i]` is the **weighted**
 /// betweenness of the *i*-th removed edge at the moment of removal
-/// (halved for undirected to match the centrality convention). The
-/// per-level modularity uses [`modularity_weighted`] so the best-Q
-/// partition reflects edge weights, not just edge counts.
+/// (halved for undirected to match the centrality convention, left
+/// un-halved for directed). Per-level modularity uses
+/// [`modularity_weighted`] (undirected) or
+/// [`modularity_weighted_directed`] (directed) so the best-Q partition
+/// reflects edge weights, not just edge counts.
+///
+/// Accepts both undirected and directed graphs: the directed branch
+/// uses directed Dijkstra (OUT-incidence forward, IN-incidence
+/// backward) and directed weighted modularity (Leicht-Newman 2008).
 ///
 /// # Errors
-/// - [`IgraphError::Unsupported`] if `graph.is_directed()` (the
-///   directed variant lands in CO-006c).
 /// - [`IgraphError::InvalidArgument`] if `weights.len() != ecount`,
 ///   or if any weight is NaN, negative, or non-finite.
 ///
@@ -105,12 +111,7 @@ pub fn edge_betweenness_community_weighted(
     graph: &Graph,
     weights: &[f64],
 ) -> IgraphResult<EdgeBetweennessResult> {
-    if graph.is_directed() {
-        return Err(IgraphError::Unsupported(
-            "directed edge_betweenness_community_weighted is ALGO-CO-006c; not yet ported",
-        ));
-    }
-
+    let directed = graph.is_directed();
     let n = graph.vcount();
     let m_us = graph.ecount();
     let n_us = n as usize;
@@ -164,10 +165,22 @@ pub fn edge_betweenness_community_weighted(
     }
 
     // --- Stage 1: weighted Girvan-Newman removal order ---
-
-    let mut inc: Vec<Vec<EdgeId>> = (0..n)
+    //
+    // Directed graphs need two adjacency lists: `inc_out` for the
+    // Dijkstra forward pass (`elist_out_p` in the C source) and
+    // `inc_in` for the back-pass dependency accumulation
+    // (`elist_in_p`). Undirected uses a single list for both, exactly
+    // as the C aliases `elist_out_p = elist_in_p = &elist_out`.
+    let mut inc_out: Vec<Vec<EdgeId>> = (0..n)
         .map(|v| graph.incident(v))
         .collect::<IgraphResult<Vec<_>>>()?;
+    let mut inc_in: Vec<Vec<EdgeId>> = if directed {
+        (0..n)
+            .map(|v| graph.incident_in(v))
+            .collect::<IgraphResult<Vec<_>>>()?
+    } else {
+        Vec::new()
+    };
     let mut passive: Vec<bool> = vec![false; m_us];
 
     let mut removed_edges: Vec<EdgeId> = Vec::with_capacity(m_us);
@@ -209,9 +222,14 @@ pub fn edge_betweenness_community_weighted(
                 visited[v_us] = true;
                 stack.push(v);
 
-                for &eid in &inc[v_us] {
+                for &eid in &inc_out[v_us] {
                     let w_edge = weights[eid as usize];
-                    let other = graph.edge_other(eid, v)?;
+                    let other = if directed {
+                        let (_from, to) = graph.edge(eid)?;
+                        to
+                    } else {
+                        graph.edge_other(eid, v)?
+                    };
                     let other_us = other as usize;
                     let nd = d + w_edge;
                     match nd.partial_cmp(&dist[other_us]) {
@@ -259,13 +277,19 @@ pub fn edge_betweenness_community_weighted(
             "edge_betweenness_community_weighted: no active edge to remove",
         ))?;
         removed_edges.push(eid);
-        edge_betweenness_history.push(max_val / 2.0);
+        // Undirected: halve to match the centrality convention.
+        // Directed: leave raw (matches the C `if (!directed) eb /= 2.0;`).
+        edge_betweenness_history.push(if directed { max_val } else { max_val / 2.0 });
         passive[eid as usize] = true;
 
         let (from, to) = graph.edge(eid)?;
-        for endpoint in [from, to] {
-            let list = &mut inc[endpoint as usize];
-            list.retain(|&e| e != eid);
+        if directed {
+            inc_out[from as usize].retain(|&e| e != eid);
+            inc_in[to as usize].retain(|&e| e != eid);
+        } else {
+            for endpoint in [from, to] {
+                inc_out[endpoint as usize].retain(|&e| e != eid);
+            }
         }
     }
 
@@ -276,7 +300,15 @@ pub fn edge_betweenness_community_weighted(
     let mut bridges: Vec<u32> = Vec::new();
     let mut modularity_levels: Vec<f64> = Vec::new();
 
-    let q0 = modularity_weighted(graph, &membership_now, 1.0, weights)?.unwrap_or(0.0);
+    let level_q = |mem: &[u32]| -> IgraphResult<f64> {
+        let opt = if directed {
+            modularity_weighted_directed(graph, mem, 1.0, weights)?
+        } else {
+            modularity_weighted(graph, mem, 1.0, weights)?
+        };
+        Ok(opt.unwrap_or(0.0))
+    };
+    let q0 = level_q(&membership_now)?;
     modularity_levels.push(q0);
     let mut max_mod = q0;
     let mut best_membership: Vec<u32> = membership_now.clone();
@@ -304,7 +336,7 @@ pub fn edge_betweenness_community_weighted(
             }
         }
 
-        let q = modularity_weighted(graph, &membership_now, 1.0, weights)?.unwrap_or(0.0);
+        let q = level_q(&membership_now)?;
         modularity_levels.push(q);
         if q > max_mod {
             max_mod = q;
@@ -443,12 +475,41 @@ mod tests {
     }
 
     #[test]
-    fn directed_graph_rejected() {
-        let mut g = Graph::new(3, true).unwrap();
-        g.add_edge(0, 1).unwrap();
-        g.add_edge(1, 2).unwrap();
-        let err = edge_betweenness_community_weighted(&g, &[1.0, 1.0]).unwrap_err();
-        assert!(matches!(err, IgraphError::Unsupported(_)));
+    fn directed_unit_weights_match_unweighted_path_6() {
+        // Directed 6-path: weighted run with unit weights must produce
+        // the exact same dendrogram as the unweighted entrypoint.
+        let mut g = Graph::new(6, true).unwrap();
+        for i in 0..5u32 {
+            g.add_edge(i, i + 1).unwrap();
+        }
+        let w = vec![1.0_f64; g.ecount()];
+        let rw = edge_betweenness_community_weighted(&g, &w).unwrap();
+        let ru = edge_betweenness_community(&g).unwrap();
+        assert_eq!(rw.nb_clusters, ru.nb_clusters);
+        assert_eq!(rw.removed_edges, ru.removed_edges);
+        assert_eq!(rw.merges, ru.merges);
+        for (a, b) in rw.modularity.iter().zip(ru.modularity.iter()) {
+            assert!((a - b).abs() < 1e-9, "modularity mismatch: {a} vs {b}");
+        }
+    }
+
+    #[test]
+    fn directed_weighted_betweenness_is_not_halved() {
+        // Directed 4-path 0→1→2→3 with unit weights: edge (1,2) lies
+        // on 4 source-target pairs (0→2, 0→3, 1→2, 1→3); the C
+        // reference reports an un-halved 4.0.
+        let mut g = Graph::new(4, true).unwrap();
+        for i in 0..3u32 {
+            g.add_edge(i, i + 1).unwrap();
+        }
+        let r = edge_betweenness_community_weighted(&g, &[1.0; 3]).unwrap();
+        let (from0, to0) = g.edge(r.removed_edges[0]).unwrap();
+        assert_eq!((from0, to0), (1, 2));
+        assert!(
+            (r.edge_betweenness[0] - 4.0).abs() < 1e-9,
+            "expected unhalved eb=4.0, got {}",
+            r.edge_betweenness[0]
+        );
     }
 
     #[test]

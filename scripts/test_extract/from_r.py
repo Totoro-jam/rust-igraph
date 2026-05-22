@@ -2215,6 +2215,29 @@ EB_COMMUNITY_MANIFEST: List[Dict[str, Any]] = [
             "k_max": 4,
         },
     },
+    {
+        "case": "eb_community_R_directed_path_6",
+        # Directed 6-path 0→1→2→3→4→5. The middle edge (2,3) is the
+        # unique maximum-betweenness directed edge (eb = 9) so the
+        # weighted Girvan-Newman pass removes it first, producing the
+        # clean split {0,1,2}|{3,4,5} with directed modularity Q = 8/25.
+        "origin": "constructed (R-style benchmark): directed 6-path; "
+        "cluster_edge_betweenness deterministically cuts the middle "
+        "directed edge; Q ≈ 0.32, k = 2",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)],
+            directed=True,
+        ),
+        "algo": "edge_betweenness_community",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.31,
+            "modularity_max": 0.33,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
 ]
 
 EB_COMMUNITY_WEIGHTED_MANIFEST: List[Dict[str, Any]] = [
@@ -2271,6 +2294,31 @@ EB_COMMUNITY_WEIGHTED_MANIFEST: List[Dict[str, Any]] = [
             "modularity_max": 0.72,
             "k_min": 4,
             "k_max": 4,
+        },
+    },
+    {
+        "case": "eb_community_weighted_R_directed_path_6_unit",
+        # Directed 6-path 0→1→2→3→4→5 with unit weights through the
+        # weighted entry. Weighted Brandes-Dijkstra reproduces the
+        # unweighted dendrogram; the middle directed edge is cut first
+        # and the {0,1,2}|{3,4,5} split achieves directed weighted Q
+        # ≈ 0.32 at k = 2.
+        "origin": "constructed (R-style benchmark): directed 6-path; "
+        "cluster_edge_betweenness(weights=rep(1,5)) cuts middle directed "
+        "edge first; Q ≈ 0.32, k = 2",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)],
+            directed=True,
+        ),
+        "graph_weights": [1.0] * 5,
+        "algo": "edge_betweenness_community_weighted",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.31,
+            "modularity_max": 0.33,
+            "k_min": 2,
+            "k_max": 2,
         },
     },
 ]

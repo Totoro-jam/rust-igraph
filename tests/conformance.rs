@@ -1292,7 +1292,9 @@ fn edge_betweenness_community_three_source_conformance() {
     // by smallest index; our port does the same, but graph ordering can
     // still differ, so we settle on the same Q/k envelope used for the
     // other community detectors.
-    use rust_igraph::{edge_betweenness_community, modularity};
+    // `modularity_directed` falls through to `modularity` on undirected
+    // graphs, so a single dispatch covers both fixture orientations.
+    use rust_igraph::{edge_betweenness_community, modularity_directed};
 
     let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
     for src in ["c", "py", "r"] {
@@ -1318,8 +1320,8 @@ fn edge_betweenness_community_three_source_conformance() {
             // return; we recompute Q here so the test does not depend on
             // any drift between the dendrogram modularity and the
             // standalone `modularity()` implementation.
-            let q = modularity(&g, &r.membership, 1.0)
-                .expect("modularity")
+            let q = modularity_directed(&g, &r.membership, 1.0)
+                .expect("modularity_directed")
                 .unwrap_or(0.0);
             let exp = case
                 .expected
@@ -1485,7 +1487,10 @@ fn edge_betweenness_community_weighted_three_source_conformance() {
     // to tie-breaks across ports, so we accept a Q envelope (recomputed
     // via standalone modularity_weighted) and a k range — same shape as
     // the unweighted CO-006 oracle.
-    use rust_igraph::{edge_betweenness_community_weighted, modularity_weighted};
+    // `modularity_weighted_directed` falls through to
+    // `modularity_weighted` on undirected graphs, so one dispatch
+    // covers both fixture orientations.
+    use rust_igraph::{edge_betweenness_community_weighted, modularity_weighted_directed};
 
     let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
     for src in ["c", "py", "r"] {
@@ -1513,8 +1518,8 @@ fn edge_betweenness_community_weighted_three_source_conformance() {
                 .expect("weighted fixture must carry graph.weights");
             let r = edge_betweenness_community_weighted(&g, &weights)
                 .expect("edge_betweenness_community_weighted");
-            let q = modularity_weighted(&g, &r.membership, 1.0, &weights)
-                .expect("modularity_weighted")
+            let q = modularity_weighted_directed(&g, &r.membership, 1.0, &weights)
+                .expect("modularity_weighted_directed")
                 .unwrap_or(0.0);
             let exp = case
                 .expected

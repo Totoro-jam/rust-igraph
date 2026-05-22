@@ -1,0 +1,45 @@
+{
+  "source": "r",
+  "origin": "constructed (R-style benchmark): directed 6-path; cluster_edge_betweenness(weights=rep(1,5)) cuts middle directed edge first; Q \u2248 0.32, k = 2",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "edge_betweenness_community_weighted",
+  "params": {},
+  "expected": {
+    "modularity_min": 0.31,
+    "modularity_max": 0.33,
+    "k_min": 2,
+    "k_max": 2
+  }
+}

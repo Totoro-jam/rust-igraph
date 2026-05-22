@@ -15,10 +15,18 @@
 //! - M. E. J. Newman. *Analysis of Weighted Networks*,
 //!   Phys. Rev. E 70 (2004). <https://doi.org/10.1103/PhysRevE.70.056131>
 //!
-//! Phase-1 minimal slice: **undirected, unweighted**. Weighted /
-//! length-aware variants and directed-graph support are follow-up AWUs
-//! (CO-006b/c) since they require the weighted Brandes + 2-way heap +
-//! directed modularity that haven't landed yet.
+//! Handles **unweighted, undirected + directed** graphs. The weighted
+//! sibling is in `edge_betweenness_community_weighted.rs` (CO-006b for
+//! undirected, CO-006c for directed). Length-aware (separate length
+//! vector) remains a future AWU.
+//!
+//! Directed handling (CO-006c) follows the C reference:
+//! - traversal uses the OUT-incidence list (`Graph::incident`), back-edge
+//!   dependency accumulation uses the IN-incidence list (`Graph::incident_in`);
+//! - `edge_betweenness[i]` is **not** halved for directed (per the upstream
+//!   centrality convention — `if (!directed) eb /= 2.0;`);
+//! - per-level modularity uses `modularity_directed` (Leicht-Newman 2008)
+//!   so the best-Q cut reflects the directed adjacency.
 //!
 //! Pipeline mirrors the upstream loop:
 //! 1. Build a private mutable incidence list (one `Vec<EdgeId>` per
@@ -52,7 +60,7 @@
 
 use std::collections::VecDeque;
 
-use crate::algorithms::community::modularity::modularity;
+use crate::algorithms::community::modularity::{modularity, modularity_directed};
 use crate::core::graph::EdgeId;
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
@@ -72,6 +80,8 @@ pub struct EdgeBetweennessResult {
     /// Betweenness of each removed edge **at the moment of removal**
     /// (same length and order as [`removed_edges`](Self::removed_edges)).
     /// Halved for undirected graphs to match the centrality convention.
+    /// For directed graphs this is left un-halved, matching the upstream
+    /// `if (!directed) eb /= 2.0;` rule.
     pub edge_betweenness: Vec<f64>,
     /// Merges in dendrogram order. Each row `[c1, c2]` means clusters
     /// `c1` and `c2` are merged into the new cluster `n + i` (where
@@ -93,11 +103,15 @@ pub struct EdgeBetweennessResult {
 ///
 /// Returns the partition with the highest modularity along the
 /// Girvan-Newman dendrogram, plus the full removal history and merges
-/// so callers can replay alternative cuts.
+/// so callers can replay alternative cuts. Accepts both undirected and
+/// directed graphs: the directed branch uses directed shortest paths
+/// (OUT-incidence forward, IN-incidence backward) and directed
+/// modularity (Leicht-Newman 2008) for the per-level Q.
 ///
 /// # Errors
-/// - [`IgraphError::Unsupported`] if `graph.is_directed()` (the
-///   directed variant lands in CO-006c).
+/// Returns `IgraphError` only for internal-consistency failures (edge
+/// id overflow in the dendrogram replay, dangling adjacency entries).
+/// Both graph orientations are supported.
 ///
 /// # Examples
 ///
@@ -118,12 +132,7 @@ pub struct EdgeBetweennessResult {
 /// assert_ne!(r.membership[0], r.membership[3]);
 /// ```
 pub fn edge_betweenness_community(graph: &Graph) -> IgraphResult<EdgeBetweennessResult> {
-    if graph.is_directed() {
-        return Err(IgraphError::Unsupported(
-            "directed edge_betweenness_community is ALGO-CO-006c; not yet ported",
-        ));
-    }
-
+    let directed = graph.is_directed();
     let n = graph.vcount();
     let m_us = graph.ecount();
     let n_us = n as usize;
@@ -158,12 +167,25 @@ pub fn edge_betweenness_community(graph: &Graph) -> IgraphResult<EdgeBetweenness
 
     // --- Stage 1: Girvan-Newman removal order ---
     //
-    // Build a private mutable incidence list keyed on the original edge
+    // Build private mutable incidence lists keyed on the original edge
     // ids. We never call `graph.delete_edges()`, so the original edge
     // ids stay valid throughout.
-    let mut inc: Vec<Vec<EdgeId>> = (0..n)
+    //
+    // Directed graphs need two lists: `inc_out` for the BFS forward pass
+    // (`elist_out_p` in the C source) and `inc_in` for the backward
+    // dependency-accumulation pass (`elist_in_p`). Undirected graphs use
+    // a single list for both roles, exactly as the C aliases
+    // `elist_out_p = elist_in_p = &elist_out`.
+    let mut inc_out: Vec<Vec<EdgeId>> = (0..n)
         .map(|v| graph.incident(v))
         .collect::<IgraphResult<Vec<_>>>()?;
+    let mut inc_in: Vec<Vec<EdgeId>> = if directed {
+        (0..n)
+            .map(|v| graph.incident_in(v))
+            .collect::<IgraphResult<Vec<_>>>()?
+    } else {
+        Vec::new()
+    };
     let mut passive: Vec<bool> = vec![false; m_us];
 
     let mut removed_edges: Vec<EdgeId> = Vec::with_capacity(m_us);
@@ -201,8 +223,20 @@ pub fn edge_betweenness_community(graph: &Graph) -> IgraphResult<EdgeBetweenness
 
             while let Some(v) = queue.pop_front() {
                 stack.push(v);
-                for &e in &inc[v as usize] {
-                    let w = graph.edge_other(e, v)?;
+                // OUT-incidence forward (directed) or full incidence
+                // (undirected). For directed edges, the neighbour is the
+                // target `to`, not `edge_other`; for undirected, both
+                // endpoints appear and `edge_other` returns the correct
+                // one — see the C reference (`elist_out_p`) which uses
+                // OUT-incidence with `IGRAPH_LOOPS_ONCE` for directed and
+                // ALL-incidence with `IGRAPH_LOOPS_TWICE` for undirected.
+                for &e in &inc_out[v as usize] {
+                    let w = if directed {
+                        let (_from, to) = graph.edge(e)?;
+                        to
+                    } else {
+                        graph.edge_other(e, v)?
+                    };
                     if dist[w as usize] < 0 {
                         queue.push_back(w);
                         dist[w as usize] = dist[v as usize] + 1;
@@ -243,18 +277,23 @@ pub fn edge_betweenness_community(graph: &Graph) -> IgraphResult<EdgeBetweenness
         ))?;
         removed_edges.push(eid);
         // Undirected: every unordered pair was counted from both ends —
-        // halve to match the centrality convention.
-        edge_betweenness_history.push(max_val / 2.0);
+        // halve to match the centrality convention. Directed: keep the
+        // raw count (matches the C `if (!directed) eb /= 2.0;` rule).
+        edge_betweenness_history.push(if directed { max_val } else { max_val / 2.0 });
         passive[eid as usize] = true;
 
-        // Detach the chosen edge from both endpoints' incidence lists.
+        // Detach the chosen edge from the incidence lists. Directed: pop
+        // it from `inc_out[from]` and `inc_in[to]`. Undirected: pop from
+        // both endpoints' `inc_out` (the only list). Self-loops appear
+        // twice in undirected incidence; we strip every occurrence.
         let (from, to) = graph.edge(eid)?;
-        for endpoint in [from, to] {
-            let list = &mut inc[endpoint as usize];
-            // Self-loops appear twice in undirected incidence lists; we
-            // strip every occurrence so the BFS no longer sees the edge
-            // even when it lands on both ends of the same vertex.
-            list.retain(|&e| e != eid);
+        if directed {
+            inc_out[from as usize].retain(|&e| e != eid);
+            inc_in[to as usize].retain(|&e| e != eid);
+        } else {
+            for endpoint in [from, to] {
+                inc_out[endpoint as usize].retain(|&e| e != eid);
+            }
         }
     }
 
@@ -274,7 +313,19 @@ pub fn edge_betweenness_community(graph: &Graph) -> IgraphResult<EdgeBetweenness
     let mut modularity_levels: Vec<f64> = Vec::new();
 
     // Initial all-singletons modularity (always defined for m > 0).
-    let q0 = modularity(graph, &membership_now, 1.0)?.unwrap_or(0.0);
+    // Directed graphs use `modularity_directed` (Leicht-Newman 2008);
+    // undirected fall through `modularity_directed` to `modularity`, but
+    // we dispatch explicitly so the unweighted/undirected fast path
+    // stays a single hop.
+    let level_q = |mem: &[u32]| -> IgraphResult<f64> {
+        let opt = if directed {
+            modularity_directed(graph, mem, 1.0)?
+        } else {
+            modularity(graph, mem, 1.0)?
+        };
+        Ok(opt.unwrap_or(0.0))
+    };
+    let q0 = level_q(&membership_now)?;
     modularity_levels.push(q0);
     let mut max_mod = q0;
     let mut best_membership: Vec<u32> = membership_now.clone();
@@ -307,7 +358,7 @@ pub fn edge_betweenness_community(graph: &Graph) -> IgraphResult<EdgeBetweenness
             }
         }
 
-        let q = modularity(graph, &membership_now, 1.0)?.unwrap_or(0.0);
+        let q = level_q(&membership_now)?;
         modularity_levels.push(q);
         if q > max_mod {
             max_mod = q;
@@ -474,12 +525,94 @@ mod tests {
     }
 
     #[test]
-    fn directed_graph_is_rejected() {
-        let mut g = Graph::new(3, true).unwrap();
+    fn directed_path_6_middle_edge_first_split() {
+        // Directed 6-path 0→1→2→3→4→5: edge (2,3) is uniquely the
+        // highest-betweenness edge (it lies on 9 of the 15 reachable
+        // (s,t) pairs vs. 8 for (1,2)/(3,4)). It is removed first and
+        // splits into {0,1,2}|{3,4,5}. Per-level directed modularity
+        // peaks at 8/25 = 0.32 there.
+        let mut g = Graph::new(6, true).unwrap();
+        for i in 0..5u32 {
+            g.add_edge(i, i + 1).unwrap();
+        }
+        let r = edge_betweenness_community(&g).unwrap();
+        well_formed(&r, 6, 5);
+        let (from0, to0) = g.edge(r.removed_edges[0]).unwrap();
+        assert_eq!((from0, to0), (2, 3), "bridge edge must be removed first");
+        assert_eq!(r.nb_clusters, 2);
+        assert_eq!(r.membership[0], r.membership[1]);
+        assert_eq!(r.membership[1], r.membership[2]);
+        assert_eq!(r.membership[3], r.membership[4]);
+        assert_eq!(r.membership[4], r.membership[5]);
+        assert_ne!(r.membership[0], r.membership[3]);
+        // Hand-checked best directed Q.
+        let best = r
+            .modularity
+            .iter()
+            .copied()
+            .fold(f64::NEG_INFINITY, f64::max);
+        assert!(
+            (best - 8.0 / 25.0).abs() < 1e-9,
+            "expected best directed Q ≈ 8/25, got {best}"
+        );
+    }
+
+    #[test]
+    fn directed_two_triangles_bridge_runs_cleanly() {
+        // Directed analogue of two-K3-bridge: 0→1→2→0 + 3→4→5→3 + 2→3.
+        // The cycle structure produces a 3-way Brandes tie at the
+        // central edges (1,2)/(2,3)/(3,4), so tie-breaking by lowest
+        // edge id removes (1,2) first rather than the bridge — every
+        // intermediate dendrogram level then has negative directed Q,
+        // so the algorithm correctly picks the trivial all-one cluster.
+        // Documented here so a future change in tie-breaking is caught.
+        let mut g = Graph::new(6, true).unwrap();
+        for &(u, v) in &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (2, 3)] {
+            g.add_edge(u, v).unwrap();
+        }
+        let r = edge_betweenness_community(&g).unwrap();
+        well_formed(&r, 6, 7);
+        for &q in &r.modularity {
+            assert!(q.is_finite(), "directed modularity is finite");
+            assert!((-1.0..=1.0).contains(&q), "directed Q in plausible range");
+        }
+    }
+
+    #[test]
+    fn directed_betweenness_is_not_halved() {
+        // Directed path 0→1→2→3: edge (1,2) lies on the directed shortest
+        // paths 0→{2,3} and 1→{2,3} → unhalved count is 4.0 (vs. 2.0 for
+        // an undirected path, which would be halved).
+        let mut g = Graph::new(4, true).unwrap();
         g.add_edge(0, 1).unwrap();
         g.add_edge(1, 2).unwrap();
-        let err = edge_betweenness_community(&g).unwrap_err();
-        assert!(matches!(err, IgraphError::Unsupported(_)));
+        g.add_edge(2, 3).unwrap();
+        let r = edge_betweenness_community(&g).unwrap();
+        well_formed(&r, 4, 3);
+        // First removal is the middle edge with max betweenness.
+        let (from0, to0) = g.edge(r.removed_edges[0]).unwrap();
+        assert_eq!((from0, to0), (1, 2));
+        // Unhalved Brandes count for (1,2) on this 4-path is 4
+        // (4 source-target pairs route through it: 0→2, 0→3, 1→2, 1→3).
+        assert!(
+            (r.edge_betweenness[0] - 4.0).abs() < 1e-9,
+            "expected unhalved eb=4.0, got {}",
+            r.edge_betweenness[0]
+        );
+    }
+
+    #[test]
+    fn directed_disconnected_components_yield_singletons_or_components() {
+        // 0→1 and 2→3→4 — two weakly connected components, no bridges
+        // between them. The natural directed cut keeps each component.
+        let mut g = Graph::new(5, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 4).unwrap();
+        let r = edge_betweenness_community(&g).unwrap();
+        well_formed(&r, 5, 3);
+        assert!(r.nb_clusters >= 2);
+        assert_ne!(r.membership[0], r.membership[2]);
     }
 
     #[test]

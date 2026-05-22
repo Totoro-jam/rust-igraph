@@ -3602,3 +3602,52 @@ proptest! {
         }
     }
 }
+
+// ALGO-CO-006c: directed edge_betweenness_community invariants.
+// Directed graphs must produce a well-formed dendrogram (every membership
+// label dense, modularity-history length = merges + 1) and the unit-weights
+// weighted run must reproduce the unweighted-CO-006 dendrogram bit-for-bit.
+#[cfg(feature = "proptest-harness")]
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(40))]
+
+    #[test]
+    fn edge_betweenness_community_directed_partition_well_formed(g in arb_directed_graph(10)) {
+        let n = g.vcount();
+        let m = g.ecount();
+        let r = match rust_igraph::edge_betweenness_community(&g) {
+            Ok(r) => r,
+            Err(_) => return Ok(()),
+        };
+        prop_assert_eq!(r.membership.len() as u32, n);
+        prop_assert_eq!(r.removed_edges.len(), m);
+        prop_assert_eq!(r.edge_betweenness.len(), m);
+        prop_assert_eq!(r.merges.len(), r.bridges.len());
+        prop_assert_eq!(r.modularity.len(), r.merges.len() + 1);
+        for &lbl in &r.membership {
+            prop_assert!(lbl < r.nb_clusters);
+        }
+        for &q in &r.modularity {
+            prop_assert!(q.is_finite());
+            prop_assert!((-1.0..=1.0).contains(&q));
+        }
+    }
+
+    #[test]
+    fn edge_betweenness_community_directed_weighted_unit_matches_unweighted(
+        g in arb_directed_graph(8),
+    ) {
+        let weights = vec![1.0_f64; g.ecount()];
+        let ru = match rust_igraph::edge_betweenness_community(&g) {
+            Ok(r) => r,
+            Err(_) => return Ok(()),
+        };
+        let rw = match rust_igraph::edge_betweenness_community_weighted(&g, &weights) {
+            Ok(r) => r,
+            Err(_) => return Ok(()),
+        };
+        prop_assert_eq!(rw.membership, ru.membership);
+        prop_assert_eq!(rw.removed_edges, ru.removed_edges);
+        prop_assert_eq!(rw.merges, ru.merges);
+    }
+}

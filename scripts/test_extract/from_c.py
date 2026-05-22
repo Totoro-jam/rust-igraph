@@ -2184,6 +2184,27 @@ EB_COMMUNITY_MANIFEST: List[Dict[str, Any]] = [
             "k_max": 2,
         },
     },
+    {
+        "case": "eb_community_c_directed_path_6",
+        # Directed 6-path (CO-006c): edge (2,3) is the unique max-
+        # betweenness edge ⇒ first removal ⇒ {0,1,2}|{3,4,5}.
+        # Directed-modularity envelope hand-checked at 8/25 = 0.32.
+        "origin": "constructed: directed 6-path; EB community on directed graph; "
+        "k=2; directed Q = 8/25 ≈ 0.32",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)],
+            directed=True,
+        ),
+        "algo": "edge_betweenness_community",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.31,
+            "modularity_max": 0.33,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
 ]
 
 # Weighted edge-betweenness community (ALGO-CO-006b). Upstream reference
@@ -2238,6 +2259,27 @@ EB_COMMUNITY_WEIGHTED_MANIFEST: List[Dict[str, Any]] = [
             "modularity_max": 0.50,
             "k_min": 2,
             "k_max": 3,
+        },
+    },
+    {
+        "case": "eb_community_weighted_c_directed_path_6_unit",
+        # Directed 6-path with unit weights (CO-006c): identical
+        # dendrogram to the unweighted directed slice.
+        "origin": "constructed: directed 6-path; weighted EB community unit weights; "
+        "k=2; directed-weighted Q = 8/25 ≈ 0.32",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)],
+            directed=True,
+        ),
+        "graph_weights": [1.0] * 5,
+        "algo": "edge_betweenness_community_weighted",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.31,
+            "modularity_max": 0.33,
+            "k_min": 2,
+            "k_max": 2,
         },
     },
 ]

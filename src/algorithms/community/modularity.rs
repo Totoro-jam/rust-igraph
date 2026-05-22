@@ -379,6 +379,123 @@ pub fn modularity_directed(
     Ok(Some(q))
 }
 
+/// Directed *weighted* modularity (Leicht-Newman, ALGO-CO-006c
+/// follow-up).
+///
+/// Combines the directed normalisation of [`modularity_directed`]
+/// (split out-strength / in-strength) with the per-edge weighting of
+/// [`modularity_weighted`]:
+///
+/// ```text
+/// Q = (1 / W) Σ_{ij} (W_ij − γ s_out_i * s_in_j / W) δ(c_i, c_j)
+/// ```
+///
+/// where `W = Σ_e w_e`, `s_out_i = Σ_{j: i→j} w_{ij}`, `s_in_j = Σ_{i: i→j} w_{ij}`,
+/// and `W_ij` is the weighted adjacency. Undirected graphs route to
+/// [`modularity_weighted`] (matching python-igraph's "directed flag
+/// ignored on undirected" semantics).
+pub fn modularity_weighted_directed(
+    graph: &Graph,
+    membership: &[u32],
+    resolution: f64,
+    weights: &[f64],
+) -> IgraphResult<Option<f64>> {
+    if !graph.is_directed() {
+        return modularity_weighted(graph, membership, resolution, weights);
+    }
+    let n = graph.vcount() as usize;
+    if membership.len() != n {
+        return Err(IgraphError::InvalidArgument(
+            "membership vector size differs from number of vertices".to_string(),
+        ));
+    }
+    if !resolution.is_finite() || resolution < 0.0 {
+        return Err(IgraphError::InvalidArgument(
+            "resolution parameter must be non-negative and finite".to_string(),
+        ));
+    }
+    let ecount = graph.ecount();
+    if weights.len() != ecount {
+        return Err(IgraphError::InvalidArgument(format!(
+            "weights vector size ({}) differs from edge count ({})",
+            weights.len(),
+            ecount
+        )));
+    }
+    for (e, &w) in weights.iter().enumerate() {
+        if w.is_nan() {
+            return Err(IgraphError::InvalidArgument(format!(
+                "weight at edge {e} is NaN"
+            )));
+        }
+        if w < 0.0 {
+            return Err(IgraphError::InvalidArgument(format!(
+                "weight at edge {e} is negative ({w}); modularity is undefined"
+            )));
+        }
+        if !w.is_finite() {
+            return Err(IgraphError::InvalidArgument(format!(
+                "weight at edge {e} is not finite ({w})"
+            )));
+        }
+    }
+    if ecount == 0 {
+        return Ok(None);
+    }
+
+    let max_label = membership.iter().copied().max().unwrap_or(0);
+    let mut remap: Vec<Option<u32>> = vec![None; max_label as usize + 1];
+    let mut next_id: u32 = 0;
+    let mut reindexed: Vec<u32> = Vec::with_capacity(n);
+    for &lbl in membership {
+        let slot = lbl as usize;
+        if remap[slot].is_none() {
+            remap[slot] = Some(next_id);
+            next_id += 1;
+        }
+        reindexed.push(remap[slot].expect("just assigned"));
+    }
+    let no_of_partitions = next_id as usize;
+
+    let mut s_out = vec![0.0_f64; no_of_partitions];
+    let mut s_in = vec![0.0_f64; no_of_partitions];
+    let mut w_internal = 0.0_f64;
+    let mut total_w = 0.0_f64;
+
+    let m_u32 =
+        u32::try_from(ecount).map_err(|_| IgraphError::Internal("ecount exceeds u32::MAX"))?;
+    for eid in 0..m_u32 {
+        let (src, tgt) = graph.edge(eid as EdgeId)?;
+        let w = weights[eid as usize];
+        let cu = reindexed[src as usize];
+        let cv = reindexed[tgt as usize];
+        if cu == cv {
+            w_internal += w;
+        }
+        s_out[cu as usize] += w;
+        s_in[cv as usize] += w;
+        total_w += w;
+    }
+
+    if total_w == 0.0 {
+        return Ok(None);
+    }
+
+    for slot in &mut s_out {
+        *slot /= total_w;
+    }
+    for slot in &mut s_in {
+        *slot /= total_w;
+    }
+    let e_norm = w_internal / total_w;
+
+    let mut q = e_norm;
+    for c in 0..no_of_partitions {
+        q -= resolution * s_out[c] * s_in[c];
+    }
+    Ok(Some(q))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

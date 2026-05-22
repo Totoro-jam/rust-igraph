@@ -65,7 +65,7 @@ pub use crate::algorithms::community::louvain::{
     LouvainResult, louvain, louvain_weighted, louvain_with_options,
 };
 pub use crate::algorithms::community::modularity::{
-    modularity, modularity_directed, modularity_weighted,
+    modularity, modularity_directed, modularity_weighted, modularity_weighted_directed,
 };
 pub use crate::algorithms::connectivity::articulation::articulation_points;
 pub use crate::algorithms::connectivity::biconnected::{

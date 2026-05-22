@@ -212,11 +212,42 @@ fn single_vertex_is_singleton() {
 }
 
 #[test]
-fn rejects_directed_graph() {
-    let mut g = Graph::new(3, true).unwrap();
-    g.add_edge(0, 1).unwrap();
-    g.add_edge(1, 2).unwrap();
-    assert!(edge_betweenness_community(&g).is_err());
+fn directed_path_5_middle_edge_first_split() {
+    // Directed 5-path 0→1→2→3→4: edge (1,2) is on more shortest paths
+    // than (2,3) thanks to the asymmetric reachability (count(1,2)=6,
+    // count(2,3)=6, count(0,1)=4, count(3,4)=4 — middle two tied so
+    // lowest-eid (1,2) wins). First removal must be a directed
+    // middle edge and the dendrogram must split into ≥ 2 clusters.
+    let mut g = Graph::new(5, true).unwrap();
+    for i in 0..4u32 {
+        g.add_edge(i, i + 1).unwrap();
+    }
+    let r = edge_betweenness_community(&g).unwrap();
+    assert_eq!(r.removed_edges.len(), 4);
+    let (from0, to0) = g.edge(r.removed_edges[0]).unwrap();
+    assert!(
+        (from0, to0) == (1, 2) || (from0, to0) == (2, 3),
+        "first removal must be a middle directed edge, got ({from0},{to0})"
+    );
+    assert!(r.nb_clusters >= 2);
+}
+
+#[test]
+fn directed_ring_of_two_k3s_runs_and_returns_valid_result() {
+    // Two directed K3s {0→1→2→0} and {3→4→5→3} joined by a one-way
+    // bridge 2→3. The Brandes tie at central edges means the bridge
+    // may not be removed first — we just sanity-check the output
+    // shape and Q values.
+    let mut g = Graph::new(6, true).unwrap();
+    for &(u, v) in &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (2, 3)] {
+        g.add_edge(u, v).unwrap();
+    }
+    let r = edge_betweenness_community(&g).unwrap();
+    assert_eq!(r.removed_edges.len(), 7);
+    for &q in &r.modularity {
+        assert!(q.is_finite());
+        assert!((-1.0..=1.0).contains(&q));
+    }
 }
 
 #[test]

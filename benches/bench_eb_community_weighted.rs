@@ -85,11 +85,39 @@ fn bench_karate_unit(c: &mut Criterion) {
     });
 }
 
+fn bench_directed_path_10_unit(c: &mut Criterion) {
+    let mut g = Graph::new(10, true).expect("directed graph");
+    for i in 0..9u32 {
+        g.add_edge(i, i + 1).expect("directed path edge");
+    }
+    let w = vec![1.0_f64; g.ecount()];
+    c.bench_function(
+        "eb_community_weighted/directed-path-10 unit (10v 9e)",
+        |b| b.iter(|| edge_betweenness_community_weighted(&g, &w).unwrap()),
+    );
+}
+
+fn bench_directed_two_triangles_bridge_unit(c: &mut Criterion) {
+    let mut g = Graph::new(6, true).expect("directed graph");
+    for &(u, v) in &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (2, 3)] {
+        g.add_edge(u, v).expect("directed edge");
+    }
+    let mut w = vec![1.0_f64; g.ecount()];
+    let bridge_eid = g.ecount() - 1;
+    w[bridge_eid] = 0.1;
+    c.bench_function(
+        "eb_community_weighted/directed-two-triangles-cheap-bridge (6v 7e)",
+        |b| b.iter(|| edge_betweenness_community_weighted(&g, &w).unwrap()),
+    );
+}
+
 criterion_group!(
     benches,
     bench_path_10_unit,
     bench_two_k4_bridge_unit,
     bench_ring_of_cliques_4x5_unit,
     bench_karate_unit,
+    bench_directed_path_10_unit,
+    bench_directed_two_triangles_bridge_unit,
 );
 criterion_main!(benches);

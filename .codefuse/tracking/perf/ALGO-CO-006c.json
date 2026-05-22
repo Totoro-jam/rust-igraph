@@ -1,0 +1,60 @@
+{
+  "awu_id": "ALGO-CO-006c",
+  "algorithm": "edge_betweenness_community (directed) + edge_betweenness_community_weighted (directed)",
+  "module": [
+    "src/algorithms/community/edge_betweenness_community.rs",
+    "src/algorithms/community/edge_betweenness_community_weighted.rs"
+  ],
+  "captured_on": "2026-05-22",
+  "host": "darwin (Apple Silicon)",
+  "rust_toolchain": "stable (cargo bench --warm-up-time 1 --measurement-time 3)",
+  "criterion_bench_files": [
+    "benches/bench_eb_community.rs",
+    "benches/bench_eb_community_weighted.rs"
+  ],
+  "rust": {
+    "unweighted_directed_path_10_us": {
+      "median": 16.364,
+      "lo": 13.208,
+      "hi": 20.408,
+      "label": "eb_community/directed-path-10 (10v 9e)"
+    },
+    "unweighted_directed_two_triangles_bridge_us": {
+      "median": 8.288,
+      "lo": 7.977,
+      "hi": 8.641,
+      "label": "eb_community/directed-two-triangles-bridge (6v 7e)"
+    },
+    "weighted_directed_path_10_unit_us": {
+      "median": 11.561,
+      "lo": 11.296,
+      "hi": 11.866,
+      "label": "eb_community_weighted/directed-path-10 unit (10v 9e)"
+    },
+    "weighted_directed_two_triangles_cheap_bridge_us": {
+      "median": 7.537,
+      "lo": 7.236,
+      "hi": 7.981,
+      "label": "eb_community_weighted/directed-two-triangles-cheap-bridge (6v 7e)"
+    }
+  },
+  "undirected_baseline_unchanged": {
+    "rationale": "CO-006c extended CO-006 / CO-006b in place by adding a directed branch — undirected cells continue to track the figures captured in .codefuse/tracking/perf/ALGO-CO-006.json and ALGO-CO-006b.json (variance within ±15% on short -m 3s runs).",
+    "see_also": [
+      ".codefuse/tracking/perf/ALGO-CO-006.json",
+      ".codefuse/tracking/perf/ALGO-CO-006b.json"
+    ]
+  },
+  "python_igraph": {
+    "version": "0.11.9",
+    "method": "Graph.community_edge_betweenness() / community_edge_betweenness(weights=[1]*ecount) on a directed Graph(directed=True)",
+    "notes": "python-igraph supports directed edge-betweenness community via the same C entrypoint with a `directed=True` flag. The directed-path-10 case is dominated by per-call overhead (~10-20 µs) in both runtimes."
+  },
+  "notes": [
+    "Directed Brandes forward pass walks the OUT-incidence list (graph.incident with mode OUT) instead of the undirected ALL list, so the per-vertex traversal cost is halved on average. The directed dendrogram pulls m iterations of Brandes-OUT — the directed-two-triangles-bridge cell (6v 7e) completes in 8.3 µs unweighted vs the undirected two-K4-bridge (8v 13e) at ~17 µs.",
+    "C reference rule preserved: `if (!directed) eb /= 2.0;`. Directed `eb` is left un-halved, which is what the C, Python, and R reference layers test. Documented as an integration test (`directed_betweenness_is_not_halved`).",
+    "Per-level Q dispatch: directed graphs use `modularity_directed` (unweighted) or `modularity_weighted_directed` (weighted; introduced in this AWU); undirected continue to use the matching undirected modularity. The closure `level_q` collapses the four-way switch into one branch site to keep the dendrogram-replay loop readable.",
+    "Modularity_weighted_directed mirrors modularity_directed: per-cluster contribution e_kk - r * (a_k * b_k / m), with a_k = sum of weighted out-strengths and b_k = sum of weighted in-strengths inside the cluster, normalised by the total weighted edge sum m. Falls through to modularity_weighted when the graph is undirected so callers get a single entry point.",
+    "Directed Brandes uses lowest-eid tie-break on three-way ties — captured by the smoke test `directed_two_triangles_bridge_runs_cleanly` so any future re-ordering shows up as a deterministic-but-different removal order, not a silent regression."
+  ]
+}

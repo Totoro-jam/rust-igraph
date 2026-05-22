@@ -242,13 +242,39 @@ fn edgeless_graph_yields_singletons() {
 }
 
 #[test]
-fn rejects_directed_graph() {
-    let mut g = Graph::new(3, true).unwrap();
-    g.add_edge(0, 1).unwrap();
-    g.add_edge(1, 2).unwrap();
-    let err = edge_betweenness_community_weighted(&g, &[1.0, 1.0]).unwrap_err();
-    let msg = format!("{err:?}");
-    assert!(msg.contains("Unsupported") || msg.contains("CO-006c"));
+fn directed_unit_weights_match_unweighted_path_5() {
+    // Directed 5-path with unit weights: weighted run must reproduce
+    // the unweighted CO-006 dendrogram (modulo equal-weight Dijkstra
+    // tie-breaking, which matches BFS on a path).
+    let mut g = Graph::new(5, true).unwrap();
+    for i in 0..4u32 {
+        g.add_edge(i, i + 1).unwrap();
+    }
+    let w = vec![1.0_f64; g.ecount()];
+    let rw = edge_betweenness_community_weighted(&g, &w).unwrap();
+    let ru = rust_igraph::edge_betweenness_community(&g).unwrap();
+    assert_eq!(rw.nb_clusters, ru.nb_clusters);
+    assert_eq!(rw.removed_edges, ru.removed_edges);
+    assert_eq!(rw.merges, ru.merges);
+}
+
+#[test]
+fn directed_cheap_bridge_first_removal() {
+    // Directed two-triangles + bridge 2→3 with bridge weight 0.1
+    // versus 1.0 elsewhere. The cheap bridge should still be the
+    // weighted-Dijkstra first-removal candidate even though the
+    // directed-Brandes count has 3-way ties on the unweighted side.
+    let mut g = Graph::new(6, true).unwrap();
+    for &(u, v) in &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (2, 3)] {
+        g.add_edge(u, v).unwrap();
+    }
+    let weights = vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.1];
+    let r = edge_betweenness_community_weighted(&g, &weights).unwrap();
+    assert_eq!(r.removed_edges.len(), 7);
+    for &q in &r.modularity {
+        assert!(q.is_finite());
+        assert!((-1.0..=1.0).contains(&q));
+    }
 }
 
 #[test]
