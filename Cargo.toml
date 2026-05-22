@@ -117,6 +117,11 @@ name = "bench_louvain"
 path = "benches/bench_louvain.rs"
 harness = false
 
+[[bench]]
+name = "bench_leiden"
+path = "benches/bench_leiden.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

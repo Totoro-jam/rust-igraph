@@ -15,6 +15,71 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CO-003** — Leiden community detection (Traag, Waltman, van Eck
+  2019 *From Louvain to Leiden: guaranteeing well-connected
+  communities*), the second Phase-4 algorithm. Three public entrypoints
+  sit on a shared three-phase loop (fastmove → refinement →
+  aggregation):
+  - `leiden(graph) -> Result<LeidenResult>` — undirected, unit
+    weights, modularity objective with `γ = 1.0`, `β = 0.01`, two
+    iterations, seed `0`.
+  - `leiden_weighted(graph, weights) -> Result<LeidenResult>` —
+    weighted variant with the same defaults; validates `weights.len()
+    == ecount()` and rejects negative / non-finite weights for the
+    Modularity and ER objectives (CPM allows negative weights).
+  - `leiden_with_options(graph, weights, &LeidenOptions) ->
+    Result<LeidenResult>` — full control via `LeidenOptions`:
+    `objective` (`Modularity` / `Cpm` / `Er`), `resolution` (γ),
+    `beta` (refinement randomness, default
+    `LEIDEN_DEFAULT_BETA = 0.01`), `n_iterations` (negative ⇒
+    iterate until stable; default `LEIDEN_DEFAULT_ITERATIONS = 2`),
+    `seed` (SplitMix64), `start` (optional initial membership).
+  - `LeidenResult { membership, quality, nb_clusters,
+    n_iterations_run, qualities }` exposes the final partition (dense
+    labels in `0..k`), the chosen objective's value, the community
+    count, the number of outer iterations actually executed, and the
+    per-iteration quality history.
+
+  Numerical contract: local-moving computes the chosen objective's
+  gain in the generic Reichardt-Bornholdt form
+  `Q = (1/2m) Σ_c (e_c − γ · N_c²)`; refinement is a singleton-init
+  pass with merges sampled with probability `∝ exp(diff/β)` over the
+  non-negative diffs (the Leiden-vs-Louvain fix that guarantees
+  connected, well-separated communities). Aggregation is the standard
+  Leiden novelty: super-vertices are the **refined** subclusters (not
+  the original clusters); the initial partition of the super-graph
+  maps each refined subcluster back to its parent cluster, so later
+  iterations can recover the splits introduced by refinement.
+  Self-loops follow the **IGRAPH_LOOPS** convention (matching upstream
+  `igraph_community_leiden`), so on loop-free graphs Leiden's internal
+  Q equals the standalone `modularity()` to f64 precision.
+
+  Determinism: `leiden_with_options` is fully reproducible for a fixed
+  `(graph, weights, options)` tuple — same SplitMix64 + Fisher-Yates
+  story as Louvain.
+
+  Conformance & tests: 25 integration tests covering all three
+  objectives, weight validation, seed determinism, start-membership
+  honouring, n_iterations<0 stable-until-no-change semantics, and the
+  full error surface; plus 6 three-source conformance fixtures (2 each
+  from the C, Python and R upstream test suites) with a Q-range +
+  k-window oracle that tolerates shuffle-order drift across
+  implementations; 4 proptest invariants gating partition shape,
+  unit-weighted vs unweighted equivalence, seed determinism, and CPM
+  γ→∞ ⇒ singletons.
+
+  Benchmark vs python-igraph (release build): karate unweighted
+  37.5 µs vs python-igraph 56.0 µs (1.49× faster); karate weighted
+  43.9 µs vs 46.5 µs (1.06×); ring-of-cliques(8×10) 93.4 µs vs
+  78.7 µs (0.84× — hand-tuned igraph C `igraph_community_leiden`
+  still leads on the larger fixture). See
+  `.codefuse/tracking/perf/ALGO-CO-003.json` for the next-step
+  optimisation levers.
+
+  Example: `cargo run --example leiden_karate` demonstrates all three
+  objectives on the karate club graph, including the `modularity()`
+  cross-check.
+
 - **ALGO-CO-002** — Louvain multilevel community detection
   (Blondel, Guillaume, Lambiotte, Lefebvre 2008 *fast unfolding*),
   the first Phase-4 algorithm to land. Three public entrypoints sit

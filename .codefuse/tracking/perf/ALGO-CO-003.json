@@ -1,0 +1,18 @@
+{
+  "awu": "ALGO-CO-003",
+  "rust_karate_unweighted_ns": 37530,
+  "rust_karate_weighted_ns": 43855,
+  "rust_karate_fixed_seed_ns": 52973,
+  "rust_karate_cpm_ns": 56226,
+  "rust_karate_er_ns": 32284,
+  "rust_ring_of_cliques_8x10_ns": 93400,
+  "py_karate_unweighted_ns": 56013,
+  "py_karate_weighted_ns": 46520,
+  "py_ring_of_cliques_8x10_ns": 78701,
+  "speedup_vs_py_karate_unweighted": 1.49,
+  "speedup_vs_py_karate_weighted": 1.06,
+  "speedup_vs_py_ring_of_cliques_8x10": 0.84,
+  "captured_at": "2026-05-22",
+  "git_commit": "1563fe4",
+  "notes": "Phase 4 Leiden (Traag-Waltman-van Eck 2019) three-phase community detection via src/algorithms/community/leiden.rs. Rust beats python-igraph by ~1.5x on the karate unweighted path and is roughly at parity (1.06x) on weighted; the ring-of-cliques 8x10 benchmark currently sits at 0.84x vs python-igraph (it calls into the hand-tuned igraph C `igraph_community_leiden`, which has had ~5y of optimisation). SplitMix64 + Fisher-Yates shuffles match Louvain's determinism story. The three-phase loop (fastmove queue → refinement with exp(diff/β) → aggregation) is intrinsically more expensive than Louvain's two-phase, which is reflected in the ~2-3x absolute time gap to ALGO-CO-002. Top optimisation levers (deferred to a Phase 2 perf pass): (1) dense Vec-keyed weight-to-community accumulator instead of HashMap; (2) skip refinement when fastmove produced ≤1 cluster; (3) reuse RNG state across the aggregated graph levels instead of reseeding."
+}
