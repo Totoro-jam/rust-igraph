@@ -1,0 +1,61 @@
+{
+  "awu_id": "ALGO-CM-014",
+  "algorithm": "reindex_membership",
+  "module": "src/algorithms/community/reindex_membership.rs",
+  "captured_on": "2026-05-22",
+  "host": "darwin (Apple Silicon)",
+  "rust_toolchain": "stable (cargo bench --warm-up 1s --measurement 2s --sample-size 20)",
+  "criterion_bench_file": "benches/bench_reindex_membership.rs",
+  "rust": {
+    "fast_256_8_us": {
+      "median": 0.322,
+      "lo": 0.313,
+      "hi": 0.335,
+      "label": "reindex_membership/fast 256 vertices 8 clusters"
+    },
+    "fast_1024_32_us": {
+      "median": 0.977,
+      "lo": 0.967,
+      "hi": 0.992,
+      "label": "reindex_membership/fast 1024 vertices 32 clusters"
+    },
+    "fast_10000_100_us": {
+      "median": 8.234,
+      "lo": 8.171,
+      "hi": 8.311,
+      "label": "reindex_membership/fast 10000 vertices 100 clusters"
+    },
+    "sparse_1024_32_us": {
+      "median": 5.004,
+      "lo": 4.920,
+      "hi": 5.195,
+      "label": "reindex_membership/sparse 1024 vertices 32 large-ids"
+    },
+    "sparse_10000_100_us": {
+      "median": 63.437,
+      "lo": 60.632,
+      "hi": 67.074,
+      "label": "reindex_membership/sparse 10000 vertices 100 large-ids"
+    }
+  },
+  "python_igraph": {
+    "_meta": "python-igraph 0.11.9 — VertexClustering(g, membership=...).membership is the closest user-facing wrapper that performs the same densification; timed in pure Python over 2000-5000 calls per cell",
+    "fast_256_8_us": 103.11,
+    "fast_1024_32_us": 155.82,
+    "fast_10000_100_us": 881.62,
+    "sparse_1024_32_us": 159.84,
+    "sparse_10000_100_us": 806.82
+  },
+  "speedup_vs_python_igraph": {
+    "fast_256_8": 320.2,
+    "fast_1024_32": 159.5,
+    "fast_10000_100": 107.1,
+    "sparse_1024_32": 31.9,
+    "sparse_10000_100": 12.7
+  },
+  "notes": [
+    "Single-pass O(n) densifier with two branches: fast path (max_id < n) uses a flat Vec<u32> as the old-id -> new-id lookup; sparse fallback uses a BTreeMap when ids overflow that window.",
+    "Allocates: one Vec<u32> of size n (output), one Vec<u32> of size n in the fast path (lookup table), a Vec<u32> of size k (new_to_old). Sparse fallback adds a BTreeMap<u32, u32> with k entries.",
+    "Speedup over python-igraph stays well above 100x in the fast path because VertexClustering's __init__ + .membership access copies the membership through Python several times. The sparse-path advantage narrows toward 10x as the BTreeMap probes start to dominate."
+  ]
+}

@@ -15,6 +15,53 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CM-014** — `reindex_membership` (densify membership labels).
+  Pure-function helper mirroring `igraph_reindex_membership` +
+  `igraph_i_reindex_membership_large` in
+  `references/igraph/src/community/community_misc.c`. Relabels a
+  `membership[v] = c` vector with arbitrary `u32` ids into a contiguous
+  `0..k` labelling assigned in first-occurrence order; also reports the
+  original id behind each new id so callers can round-trip.
+  - `reindex_membership(membership: &[u32]) -> Result<ReindexMembershipResult>` —
+    `ReindexMembershipResult { membership, new_to_old }` where
+    `membership[v] ∈ [0, k)` and `new_to_old[i]` is the original id that
+    now maps to new id `i`; `nb_clusters() -> u32` is a convenience
+    accessor.
+  - Algorithm: two-branch single pass. Fast path when `max_id < n` uses
+    a flat `Vec<u32>` lookup with 0 as the "unseen" sentinel and stores
+    `new_id + 1` so the zero-init is reusable. Sparse fallback uses a
+    `BTreeMap<u32, u32>` keyed by old cluster id when ids overflow the
+    `[0, n)` window so the O(n) flat-Vec path stays bounded. Both
+    branches preserve first-occurrence ordering.
+  - Complexity: O(n) average / O(n log k) sparse; allocates one
+    `Vec<u32>` of size `n` (output) plus the lookup and the `new_to_old`
+    vector of size `k`.
+  - Infallible today; returns `IgraphResult` for API symmetry with
+    other community helpers so future fallible checks can land without
+    a breaking change.
+  - Test coverage: 11 unit tests (empty, identity, singleton collapse,
+    gaps compressed, reverse-order, all-singletons, large-id triggers
+    BTreeMap, fast-path edge `max == n−1`, sparse-path edge
+    `max == n`, partition-preserved over 3 mixed inputs including
+    `u32::MAX`, fast-path-equals-sparse-path bookkeeping check) +
+    4 proptests over 80 cases each (partition preserved across all
+    id-kind branches, ids contiguous in `[0, k)`, `new_to_old`
+    round-trips so `r.new_to_old[r.membership[i]] == input[i]`,
+    idempotent when already dense) + 6 three-source conformance
+    fixtures (2 each from c/py/r, partition-equivalence comparison via
+    canonical first-occurrence relabel + `new_to_old` round-trip check
+    because cluster numbering can differ between C/py/R impls).
+  - Bench (release, criterion 1s warmup / 2s measurement / 20 samples,
+    Apple Silicon): fast 256v/8c 0.32 µs, fast 1024v/32c 0.98 µs,
+    fast 10000v/100c 8.23 µs, sparse 1024v/32c 5.00 µs,
+    sparse 10000v/100c 63.44 µs. Vs python-igraph 0.11.9
+    (`VertexClustering(g, membership=...).membership`): 320×/160×/107×
+    faster on the fast path; 32×/13× on the sparse path.
+  - Example: `cargo run --release --example reindex_membership_walktrap_karate`
+    builds a messy karate membership with cluster ids 1_000 / 4_242 /
+    9_999 (forcing the sparse branch), densifies to `0..k-1`, and
+    verifies modularity Q is preserved bit-for-bit before and after.
+
 - **ALGO-CM-013** — `community_to_membership` (binary dendrogram → membership).
   Pure-function helper mirroring `igraph_community_to_membership` in
   `references/igraph/src/community/community_misc.c`. Cuts a binary

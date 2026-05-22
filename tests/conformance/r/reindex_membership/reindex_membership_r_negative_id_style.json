@@ -1,0 +1,36 @@
+{
+  "source": "r",
+  "origin": "R-igraph make_clusters parity: contiguous ids that happen to start above zero \u2014 densified to 0..k-1",
+  "graph": {
+    "n": 6,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "reindex_membership",
+  "params": {
+    "membership": [
+      3,
+      3,
+      4,
+      5,
+      5,
+      4
+    ]
+  },
+  "expected": {
+    "membership": [
+      0,
+      0,
+      1,
+      2,
+      2,
+      1
+    ],
+    "new_to_old": [
+      3,
+      4,
+      5
+    ]
+  }
+}

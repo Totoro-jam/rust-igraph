@@ -1,0 +1,37 @@
+{
+  "source": "r",
+  "origin": "R-igraph make_clusters parity: alternating pattern where every consecutive pair belongs to a different cluster",
+  "graph": {
+    "n": 7,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "reindex_membership",
+  "params": {
+    "membership": [
+      9,
+      4,
+      9,
+      4,
+      9,
+      4,
+      9
+    ]
+  },
+  "expected": {
+    "membership": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    "new_to_old": [
+      9,
+      4
+    ]
+  }
+}

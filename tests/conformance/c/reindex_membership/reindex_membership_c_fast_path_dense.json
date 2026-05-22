@@ -1,0 +1,36 @@
+{
+  "source": "c",
+  "origin": "C reference community_misc.c igraph_reindex_membership: fast-path branch (max_id < n) on already-dense input \u2014 identity output",
+  "graph": {
+    "n": 6,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "reindex_membership",
+  "params": {
+    "membership": [
+      0,
+      1,
+      2,
+      0,
+      1,
+      2
+    ]
+  },
+  "expected": {
+    "membership": [
+      0,
+      1,
+      2,
+      0,
+      1,
+      2
+    ],
+    "new_to_old": [
+      0,
+      1,
+      2
+    ]
+  }
+}

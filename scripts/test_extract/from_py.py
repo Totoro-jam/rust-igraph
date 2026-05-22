@@ -2600,9 +2600,39 @@ COMMUNITY_TO_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
+    # python-igraph does not expose `igraph_reindex_membership`
+    # directly; the closest user-facing analogue is
+    # `VertexClustering(... reindex=True)` (and `Graph.clusters()` /
+    # `community_*` results, all of which return a densified
+    # membership). The fixtures below encode the same first-occurrence
+    # semantics — they are partition-equivalent to what the C / R
+    # implementations produce, and the conformance test uses
+    # canonical relabelling, so cluster id ordering differences are
+    # absorbed.
+    {
+        "case": "reindex_membership_py_first_occurrence",
+        "origin": "python-igraph VertexClustering(reindex=True) parity: "
+        "out-of-order ids relabelled in first-encounter order",
+        "membership": [2, 2, 0, 1, 0, 2, 1],
+        "expected": {"membership": [0, 0, 1, 2, 1, 0, 2], "new_to_old": [2, 0, 1]},
+    },
+    {
+        "case": "reindex_membership_py_singletons",
+        "origin": "python-igraph VertexClustering(reindex=True) parity: "
+        "every vertex in its own cluster — each gets a fresh id",
+        "membership": [10, 11, 12, 13, 14],
+        "expected": {
+            "membership": [0, 1, 2, 3, 4],
+            "new_to_old": [10, 11, 12, 13, 14],
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
+    "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
@@ -2745,6 +2775,21 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "merges": [list(m) for m in entry["merges"]],
                     "steps": int(entry["steps"]),
                 },
+                "expected": entry["expected"],
+            }
+        elif algo == "reindex_membership":
+            membership = [int(c) for c in entry["membership"]]
+            payload = {
+                "source": "py",
+                "origin": entry["origin"],
+                "graph": {
+                    "n": len(membership),
+                    "edges": [],
+                    "directed": False,
+                    "weights": None,
+                },
+                "algo": algo,
+                "params": {"membership": membership},
                 "expected": entry["expected"],
             }
         else:

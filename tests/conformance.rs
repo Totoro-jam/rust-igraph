@@ -1718,10 +1718,146 @@ fn community_to_membership_three_source_conformance() {
     }
 }
 
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + params decode + canonicalisation
+fn reindex_membership_three_source_conformance() {
+    // Pure helper — densifies a membership vector to 0..k-1 using
+    // first-occurrence ordering. Cluster *labels* across impls may
+    // diverge (the C large-id fallback sorts ascending; R's wrapper
+    // sometimes preserves sort order), so the comparison is
+    // partition-equivalent. We also check that `new_to_old.len() ==
+    // nb_clusters` matches between sources, and that the per-vertex
+    // partition is identical to the input.
+    use rust_igraph::reindex_membership;
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("reindex_membership");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes).expect("parse fixture JSON");
+            assert_eq!(case.algo, "reindex_membership");
+
+            let params = case.params.as_object().expect("params must be an object");
+            let input: Vec<u32> = params
+                .get("membership")
+                .and_then(serde_json::Value::as_array)
+                .expect("params.membership")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("membership entry"))
+                        .expect("membership entry fits u32")
+                })
+                .collect();
+
+            let got = reindex_membership(&input).expect("reindex_membership");
+
+            let exp = case
+                .expected
+                .as_object()
+                .expect("expected must be an object");
+            let exp_membership: Vec<u32> = exp
+                .get("membership")
+                .and_then(serde_json::Value::as_array)
+                .expect("expected.membership")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("membership entry"))
+                        .expect("membership entry fits u32")
+                })
+                .collect();
+            let exp_new_to_old: Vec<u32> = exp
+                .get("new_to_old")
+                .and_then(serde_json::Value::as_array)
+                .expect("expected.new_to_old")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("new_to_old entry"))
+                        .expect("new_to_old entry fits u32")
+                })
+                .collect();
+
+            // Same number of clusters across impls.
+            assert_eq!(
+                got.nb_clusters() as usize,
+                exp_new_to_old.len(),
+                "{}: nb_clusters mismatch — got {}, expected {} (origin: {})",
+                path.display(),
+                got.nb_clusters(),
+                exp_new_to_old.len(),
+                case.origin,
+            );
+
+            // Partition equivalence: canonical labels under the
+            // first-occurrence relabel match exactly.
+            let got_canon = canonicalize_partition(&got.membership);
+            let exp_canon = canonicalize_partition(&exp_membership);
+            assert_eq!(
+                got_canon,
+                exp_canon,
+                "{}: partition mismatch — got {:?}, expected {:?} (origin: {})",
+                path.display(),
+                got.membership,
+                exp_membership,
+                case.origin,
+            );
+
+            // The output also preserves the original partition over
+            // the input.
+            for i in 0..input.len() {
+                for j in (i + 1)..input.len() {
+                    assert_eq!(
+                        input[i] == input[j],
+                        got.membership[i] == got.membership[j],
+                        "{}: partition diverged between input and output at ({i}, {j})",
+                        path.display(),
+                    );
+                }
+            }
+
+            // Round-trip: new_to_old[got.membership[i]] == input[i].
+            for (i, &old) in input.iter().enumerate() {
+                let new = got.membership[i] as usize;
+                assert_eq!(
+                    got.new_to_old[new],
+                    old,
+                    "{}: new_to_old round-trip failed at index {i}",
+                    path.display(),
+                );
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no reindex_membership fixtures from source {src}"
+        );
+    }
+}
+
 /// Relabel cluster ids in order of first occurrence over vertices
 /// `0..n`, so two equivalent partitions with different cluster id
 /// assignments compare equal. Used by
-/// [`community_to_membership_three_source_conformance`].
+/// [`community_to_membership_three_source_conformance`] and
+/// [`reindex_membership_three_source_conformance`].
 fn canonicalize_partition(membership: &[u32]) -> Vec<u32> {
     let mut remap: std::collections::BTreeMap<u32, u32> = std::collections::BTreeMap::new();
     let mut next_id: u32 = 0;

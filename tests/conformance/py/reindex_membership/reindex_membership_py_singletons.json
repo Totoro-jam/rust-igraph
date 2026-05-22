@@ -1,0 +1,36 @@
+{
+  "source": "py",
+  "origin": "python-igraph VertexClustering(reindex=True) parity: every vertex in its own cluster \u2014 each gets a fresh id",
+  "graph": {
+    "n": 5,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "reindex_membership",
+  "params": {
+    "membership": [
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  "expected": {
+    "membership": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "new_to_old": [
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  }
+}

@@ -70,6 +70,9 @@ pub use crate::algorithms::community::louvain::{
 pub use crate::algorithms::community::modularity::{
     modularity, modularity_directed, modularity_weighted, modularity_weighted_directed,
 };
+pub use crate::algorithms::community::reindex_membership::{
+    ReindexMembershipResult, reindex_membership,
+};
 pub use crate::algorithms::community::walktrap::{
     WALKTRAP_DEFAULT_STEPS, WalktrapOptions, WalktrapResult, walktrap, walktrap_weighted,
     walktrap_with_options,

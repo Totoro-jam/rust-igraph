@@ -5,8 +5,9 @@
 //! Traag-Šubelj 2023 fast variant), `fluid_communities`
 //! (Parés et al. 2017), `edge_betweenness_community` (Girvan-Newman 2002),
 //! `fast_greedy_modularity` (Clauset-Newman-Moore 2004),
-//! `walktrap` (Pons-Latapy 2005). Helper: `community_to_membership`
-//! (cut a dendrogram at `k` merges).
+//! `walktrap` (Pons-Latapy 2005). Helpers: `community_to_membership`
+//! (cut a dendrogram at `k` merges), `reindex_membership` (densify a
+//! membership vector to `0..k-1` by first occurrence).
 
 // `pub(crate)` so the inner module name doesn't double-list with the
 // function re-export in rustdoc.
@@ -19,6 +20,7 @@ pub(crate) mod label_propagation;
 pub(crate) mod leiden;
 pub(crate) mod louvain;
 pub(crate) mod modularity;
+pub(crate) mod reindex_membership;
 pub(crate) mod walktrap;
 
 pub use community_to_membership::{CommunityToMembershipResult, community_to_membership};
@@ -41,6 +43,7 @@ pub use leiden::{
 };
 pub use louvain::{LouvainResult, louvain, louvain_weighted, louvain_with_options};
 pub use modularity::{modularity, modularity_directed, modularity_weighted};
+pub use reindex_membership::{ReindexMembershipResult, reindex_membership};
 pub use walktrap::{
     WALKTRAP_DEFAULT_STEPS, WalktrapOptions, WalktrapResult, walktrap, walktrap_weighted,
     walktrap_with_options,

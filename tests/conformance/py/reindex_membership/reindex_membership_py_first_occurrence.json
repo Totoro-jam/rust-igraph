@@ -1,0 +1,38 @@
+{
+  "source": "py",
+  "origin": "python-igraph VertexClustering(reindex=True) parity: out-of-order ids relabelled in first-encounter order",
+  "graph": {
+    "n": 7,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "reindex_membership",
+  "params": {
+    "membership": [
+      2,
+      2,
+      0,
+      1,
+      0,
+      2,
+      1
+    ]
+  },
+  "expected": {
+    "membership": [
+      0,
+      0,
+      1,
+      2,
+      1,
+      0,
+      2
+    ],
+    "new_to_old": [
+      2,
+      0,
+      1
+    ]
+  }
+}

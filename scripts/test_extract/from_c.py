@@ -3020,9 +3020,38 @@ COMMUNITY_TO_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
+    # `igraph_reindex_membership` /
+    # `igraph_i_reindex_membership_large` in
+    # references/igraph/src/community/community_misc.c. C has no
+    # dedicated unit test for this helper either; it ships as
+    # supporting infrastructure for the leading-eigenvector and other
+    # community algos that need contiguous 0..k-1 labels. The
+    # fixtures below mirror the documented contract: first-occurrence
+    # relabelling, identical partition. Cluster labels may differ
+    # between impls (e.g. R's clusters::igraph.reindex.membership
+    # uses sort-by-key for the large-id branch), so the conformance
+    # test compares by partition + canonical relabel.
+    {
+        "case": "reindex_membership_c_fast_path_dense",
+        "origin": "C reference community_misc.c igraph_reindex_membership: "
+        "fast-path branch (max_id < n) on already-dense input — identity output",
+        "membership": [0, 1, 2, 0, 1, 2],
+        "expected": {"membership": [0, 1, 2, 0, 1, 2], "new_to_old": [0, 1, 2]},
+    },
+    {
+        "case": "reindex_membership_c_large_id_sparse",
+        "origin": "C reference community_misc.c igraph_i_reindex_membership_large: "
+        "sparse branch (max_id >> n) — sort-ascending then peel by group",
+        "membership": [1000000, 7, 1000000, 7],
+        "expected": {"membership": [0, 1, 0, 1], "new_to_old": [1000000, 7]},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
+    "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
@@ -3171,6 +3200,22 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "merges": [list(m) for m in entry["merges"]],
                     "steps": int(entry["steps"]),
                 },
+                "expected": entry["expected"],
+            }
+        elif algo == "reindex_membership":
+            # Pure helper on a membership vector — no graph input.
+            membership = [int(c) for c in entry["membership"]]
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": {
+                    "n": len(membership),
+                    "edges": [],
+                    "directed": False,
+                    "weights": None,
+                },
+                "algo": algo,
+                "params": {"membership": membership},
                 "expected": entry["expected"],
             }
         else:

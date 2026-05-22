@@ -1,0 +1,31 @@
+{
+  "source": "c",
+  "origin": "C reference community_misc.c igraph_i_reindex_membership_large: sparse branch (max_id >> n) \u2014 sort-ascending then peel by group",
+  "graph": {
+    "n": 4,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "reindex_membership",
+  "params": {
+    "membership": [
+      1000000,
+      7,
+      1000000,
+      7
+    ]
+  },
+  "expected": {
+    "membership": [
+      0,
+      1,
+      0,
+      1
+    ],
+    "new_to_old": [
+      1000000,
+      7
+    ]
+  }
+}
