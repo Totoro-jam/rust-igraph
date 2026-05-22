@@ -42,6 +42,9 @@ pub mod core;
 // themselves are `pub(crate)` (see each algorithm-group `mod.rs`),
 // so the deep paths stay crate-internal at the type-checker level
 // while rustdoc only renders the function entry.
+pub use crate::algorithms::community::edge_betweenness_community::{
+    EdgeBetweennessResult, edge_betweenness_community,
+};
 pub use crate::algorithms::community::fluid_communities::{
     FLUID_DEFAULT_MAX_ITERATIONS, FluidOptions, FluidResult, fluid_communities,
     fluid_communities_with_options,

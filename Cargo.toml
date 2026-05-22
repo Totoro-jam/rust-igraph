@@ -132,6 +132,11 @@ name = "bench_fluid"
 path = "benches/bench_fluid.rs"
 harness = false
 
+[[bench]]
+name = "bench_eb_community"
+path = "benches/bench_eb_community.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

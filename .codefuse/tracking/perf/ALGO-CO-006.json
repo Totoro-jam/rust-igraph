@@ -1,0 +1,58 @@
+{
+  "awu_id": "ALGO-CO-006",
+  "algorithm": "edge_betweenness_community",
+  "module": "src/algorithms/community/edge_betweenness_community.rs",
+  "captured_on": "2026-05-22",
+  "host": "darwin (Apple Silicon)",
+  "rust_toolchain": "stable (cargo bench)",
+  "criterion_bench_file": "benches/bench_eb_community.rs",
+  "rust": {
+    "path_10_us": {
+      "median": 13.456,
+      "lo": 13.214,
+      "hi": 13.745,
+      "label": "eb_community/path-10 (10v 9e)"
+    },
+    "two_k4_bridge_us": {
+      "median": 14.013,
+      "lo": 13.730,
+      "hi": 14.337,
+      "label": "eb_community/two-K4-bridge (8v 13e)"
+    },
+    "ring_of_cliques_4x5_us": {
+      "median": 115.46,
+      "lo": 112.87,
+      "hi": 118.45,
+      "label": "eb_community/ring-of-cliques 4x5 (20v 44e)"
+    },
+    "karate_us": {
+      "median": 998.08,
+      "lo": 979.12,
+      "hi": 1019.6,
+      "label": "eb_community/karate (34v 78e)"
+    }
+  },
+  "python_igraph": {
+    "version": "0.11.9",
+    "method": "Graph.community_edge_betweenness()",
+    "karate_us": {
+      "median": 1400.282,
+      "lo": 1315.067,
+      "hi": 1651.05,
+      "label": "python-igraph karate (34v 78e)"
+    },
+    "ring_of_cliques_4x5_us": {
+      "median": 128.372,
+      "lo": 116.31,
+      "hi": 204.68,
+      "label": "python-igraph ring-of-cliques 4x5 (20v 44e)"
+    },
+    "notes": "Rust port runs the karate fixture in ~71% of python-igraph's median wall time; on ring-of-cliques 4x5 the two are within noise of one another (Rust 115 µs vs python-igraph 128 µs)."
+  },
+  "notes": [
+    "Hot loop is the Brandes unweighted edge-betweenness pass, executed once per edge removed (m iterations total). Per iteration is O(|V| * |E_active|), matching the C reference O(|V| * |E|^2) overall complexity.",
+    "Scratch buffers (sigma, dist, pred, stack, delta_v, eb_now, queue) are allocated once outside the removal loop and reused; the per-iteration cost is dominated by BFS hops + dependency-accumulation pushes, not allocation.",
+    "Edge removals are implemented by masking (per-endpoint Vec<EdgeId> with retain) rather than mutating the graph, so the original `EdgeId`s remain stable across the whole run and can be replayed by callers.",
+    "Dendrogram replay (stage 2) is O(merges * n) for the label rewrite + O(n) per modularity recompute, totalling O(n^2) — negligible next to the Brandes loop on every graph we benchmark here."
+  ]
+}

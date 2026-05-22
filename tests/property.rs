@@ -3425,4 +3425,71 @@ proptest! {
             _ => prop_assert!(false, "fluid_communities determinism mismatch (Ok vs Err)"),
         }
     }
+
+    // ALGO-CO-006: Edge-betweenness community detection invariants.
+    #[test]
+    fn edge_betweenness_community_partition_well_formed(g in arb_graph(12)) {
+        // Module rejects directed graphs; skip them.
+        if g.is_directed() {
+            return Ok(());
+        }
+        let r = match rust_igraph::edge_betweenness_community(&g) {
+            Ok(r) => r,
+            Err(_) => return Ok(()),
+        };
+        let n = g.vcount();
+        let m = g.ecount();
+        prop_assert_eq!(r.membership.len() as u32, n);
+        prop_assert_eq!(r.removed_edges.len(), m);
+        prop_assert_eq!(r.edge_betweenness.len(), m);
+        prop_assert_eq!(r.merges.len(), r.bridges.len());
+        prop_assert_eq!(r.modularity.len(), r.merges.len() + 1);
+        if n > 0 {
+            for &lbl in &r.membership {
+                prop_assert!(lbl < r.nb_clusters);
+            }
+            // Membership labels are contiguous in [0, nb_clusters).
+            let mut seen = vec![false; r.nb_clusters as usize];
+            for &lbl in &r.membership {
+                seen[lbl as usize] = true;
+            }
+            for b in seen { prop_assert!(b); }
+            // Every removed edge id is in [0, m) and appears exactly once.
+            let mut seen_eid = vec![false; m];
+            for &eid in &r.removed_edges {
+                let idx = eid as usize;
+                prop_assert!(idx < m);
+                prop_assert!(!seen_eid[idx]);
+                seen_eid[idx] = true;
+            }
+        }
+        // Best-Q membership re-feeds modularity() to within ε of
+        // declared best level (only when m > 0).
+        if m > 0 {
+            let best_q = r.modularity.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+            let q_recompute = rust_igraph::modularity(&g, &r.membership, 1.0)
+                .ok()
+                .flatten()
+                .unwrap_or(0.0);
+            prop_assert!((q_recompute - best_q).abs() < 1e-9);
+        }
+    }
+
+    #[test]
+    fn edge_betweenness_community_deterministic(g in arb_graph(10)) {
+        if g.is_directed() {
+            return Ok(());
+        }
+        let a = rust_igraph::edge_betweenness_community(&g);
+        let b = rust_igraph::edge_betweenness_community(&g);
+        match (a, b) {
+            (Ok(a), Ok(b)) => {
+                prop_assert_eq!(a.membership, b.membership);
+                prop_assert_eq!(a.removed_edges, b.removed_edges);
+                prop_assert_eq!(a.merges, b.merges);
+            }
+            (Err(_), Err(_)) => {}
+            _ => prop_assert!(false, "edge_betweenness_community determinism mismatch"),
+        }
+    }
 }

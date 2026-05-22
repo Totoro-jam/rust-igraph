@@ -15,6 +15,81 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CO-006** — Edge betweenness community detection
+  (Girvan M., Newman M. E. J. 2002, *Community Structure in Social and
+  Biological Networks*, PNAS 99 (12) 7821–7826). One public entrypoint:
+  - `edge_betweenness_community(graph) -> Result<EdgeBetweennessResult>`
+    — undirected, unweighted Phase-1 slice. Directed graphs are
+    rejected with
+    `IgraphError::Unsupported("directed edge_betweenness_community is ALGO-CO-006c; not yet ported")`
+    as a follow-up AWU.
+  - `EdgeBetweennessResult { membership, nb_clusters, removed_edges,
+    edge_betweenness, merges, bridges, modularity }` carries the
+    best-modularity dense-labelled partition (`0..nb_clusters`),
+    the full edge-removal order (length = `ecount`) and the
+    betweenness of each edge at the moment it was removed (halved
+    for undirected to match the centrality convention), plus the
+    binary merge dendrogram (`igraph_community_eb_get_merges()`
+    encoding: cluster IDs `[0, n)` are vertex-singletons and each
+    merge produces the new cluster id `n + merge_index`), the
+    "bridges" indices into `removed_edges` where a removal first
+    disconnects a component, and the per-merge modularity
+    trajectory (so callers can replay any cut point).
+
+  Numerical contract: each outer iteration runs a Brandes
+  unweighted edge-betweenness pass *over the active edge set*
+  (BFS layering → reverse dependency accumulation), picks the edge
+  with the largest current betweenness with ties broken by smallest
+  edge id (matching upstream `igraph_i_which_max_active_ratio`),
+  records it, and masks it from both endpoints' incidence lists. The
+  removal loop never mutates the original `Graph` — masking happens
+  in private per-vertex `Vec<EdgeId>` lists via `retain` — so the
+  original `EdgeId`s remain stable for the entire run and can be
+  replayed by callers. Stage 2 walks `removed_edges` in reverse and
+  rebuilds membership by re-joining components: each removal that
+  re-joins two distinct components is a *merge*, modularity is
+  recomputed via the standalone `modularity()` function at every
+  merge, and the partition with the highest Q is densified (first-
+  appearance reindex to `0..nb_clusters`) and returned. The returned
+  `modularity` value matches a fresh `modularity(graph, &membership, 1.0)`
+  to 1e-9 on every test graph. Complexity is the canonical
+  `O(|V|·|E|²)` — the per-removal Brandes pass dominates.
+
+  Test surface: 9 unit tests + 12 integration tests
+  (`tests/edge_betweenness_community.rs`) cover empty graph /
+  edgeless / single-vertex / two-K4-bridge (bridge removed first)
+  / karate (best Q ≥ 0.35 with `modularity()` self-consistency) /
+  ring-of-4-K5-cliques (recovers k=4) / path-5 (first removal is a
+  middle edge) / cycle-4 (modularity monotone at singletons) /
+  already-disconnected components / determinism (repeated calls
+  bit-identical) / dendrogram total-merges invariant / directed
+  rejection. Two proptests (`tests/property.rs`):
+  `edge_betweenness_community_partition_well_formed` checks label
+  contiguity, edge-id uniqueness, and Q ↔ `modularity()` agreement
+  within 1e-9 on `arb_graph(12)`;
+  `edge_betweenness_community_deterministic` checks bit-for-bit
+  reproducibility on `arb_graph(10)`. Three-source conformance: 2
+  fixtures each from C / py / R under
+  `tests/conformance/{c,py,r}/edge_betweenness_community/` —
+  karate / two-K4-bridge / K5+K5+bridge / ring-of-4-K5-cliques,
+  asserting Q ∈ [q_min, q_max] and `nb_clusters` ∈ [k_min, k_max]
+  (envelope form because tie-breaking can drift across upstreams).
+
+  Bench (`benches/bench_eb_community.rs`): path-10 ~13.5 µs,
+  two-K4-bridge ~14.0 µs, ring-of-cliques(4×5) ~115.5 µs,
+  karate ~998 µs on darwin-aarch64. python-igraph 0.11.9's
+  `Graph.community_edge_betweenness()` baseline:
+  karate ~1400 µs, ring-of-cliques(4×5) ~128 µs — Rust runs the
+  karate fixture in ~71% of python-igraph's median wall time and
+  is within noise on the ring-of-cliques. Numbers checked into
+  `.codefuse/tracking/perf/ALGO-CO-006.json`.
+
+  Runnable demo (`examples/eb_community_karate.rs`): loads
+  `fixtures/karate.edges`, prints the best-Q partition (k = 5,
+  Q ≈ 0.40), the first five edge removals with their betweenness
+  at removal, and the tail of the merge dendrogram with per-merge
+  Q. Run with `cargo run --example eb_community_karate`.
+
 - **ALGO-CO-005** — Fluid Communities community detection (Parés F.,
   Gasulla D.G. *et al.* 2018, *Fluid Communities: A Competitive,
   Scalable and Diverse Community Detection Algorithm*). Two public

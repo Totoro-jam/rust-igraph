@@ -2093,6 +2093,51 @@ LEIDEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EB_COMMUNITY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "eb_community_c_karate",
+        # Famous("Zachary") karate club. Girvan-Newman edge-betweenness
+        # routinely lands a partition with Q ≈ 0.40 ± 0.05 and k in [2, 5].
+        # See Girvan & Newman PNAS 2002 Table I.
+        "origin": "Famous('Zachary'); community_edge_betweenness; "
+        "Q ∈ [0.30, 0.45], k ∈ [2, 5]",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "edge_betweenness_community",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.30,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 5,
+        },
+    },
+    {
+        "case": "eb_community_c_two_k4_bridge",
+        # Two K4s joined by a single bridge edge. The bridge has the
+        # largest betweenness and is removed first, cleanly splitting
+        # into 2 clusters; Q ≈ 0.42.
+        "origin": "constructed: two K4 + bridge (3,4); EB community "
+        "k=2; Q ≈ 0.36..0.45",
+        "graph_factory": lambda: ig.Graph(
+            n=8,
+            edges=[
+                (0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3),
+                (4, 5), (4, 6), (4, 7), (5, 6), (5, 7), (6, 7),
+                (3, 4),
+            ],
+            directed=False,
+        ),
+        "algo": "edge_betweenness_community",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.35,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
+]
+
 FLUID_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "fluid_c_karate_k2",
@@ -2764,6 +2809,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "leiden": LEIDEN_MANIFEST,
     "label_propagation": LPA_MANIFEST,
     "fluid_communities": FLUID_MANIFEST,
+    "edge_betweenness_community": EB_COMMUNITY_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,
