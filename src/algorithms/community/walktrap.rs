@@ -576,10 +576,7 @@ fn drive(
 
     // Greedy agglomeration loop: pop neighbour entries until none
     // remain; refine non-exact entries on the fly.
-    loop {
-        let Some(id) = pop_exact(&mut comms) else {
-            break;
-        };
+    while let Some(id) = pop_exact(&mut comms) {
         merge_pair(&mut comms, id, m);
     }
 
