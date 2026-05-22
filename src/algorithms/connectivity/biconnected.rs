@@ -70,7 +70,7 @@ pub struct BiconnectedComponents {
 /// assert_eq!(aps, vec![2, 3]);
 /// // component_edges partitions every edge across all components.
 /// let total: usize = bc.component_edges.iter().map(Vec::len).sum();
-/// assert_eq!(total, g.ecount() as usize);
+/// assert_eq!(total, g.ecount());
 /// ```
 #[allow(clippy::too_many_lines)] // Direct port of upstream's tightly-coupled DFS state.
 pub fn biconnected_components(graph: &Graph) -> IgraphResult<BiconnectedComponents> {

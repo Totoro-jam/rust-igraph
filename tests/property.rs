@@ -3222,7 +3222,7 @@ proptest! {
     #[test]
     fn louvain_unit_weighted_matches_unweighted(g in arb_graph(15)) {
         let a = rust_igraph::louvain(&g).unwrap();
-        let ones = vec![1.0; g.ecount() as usize];
+        let ones = vec![1.0; g.ecount()];
         let b = rust_igraph::louvain_weighted(&g, &ones).unwrap();
         prop_assert!((a.modularity - b.modularity).abs() < 1e-9,
             "unit-weighted Q={} ≠ unweighted Q={}", b.modularity, a.modularity);

@@ -29,7 +29,7 @@ fn bench_weighted_hits_karate(c: &mut Criterion) {
     // Undirected karate under unit weights → exercises the shifted
     // power-iter path on (W + I).
     let g = karate();
-    let weights = vec![1.0; g.ecount() as usize];
+    let weights = vec![1.0; g.ecount()];
     c.bench_function(
         "hits_weighted/karate (34v 78e, undirected, unit weights)",
         |b| {
