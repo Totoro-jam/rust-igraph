@@ -1,0 +1,45 @@
+{
+  "awu_id": "ALGO-CO-005",
+  "algorithm": "fluid_communities",
+  "module": "src/algorithms/community/fluid_communities.rs",
+  "captured_on": "2026-05-22",
+  "host": "darwin (Apple Silicon)",
+  "rust_toolchain": "stable (cargo bench)",
+  "criterion_bench_file": "benches/bench_fluid.rs",
+  "rust": {
+    "karate_k2_us": {
+      "median": 12.767,
+      "lo": 12.238,
+      "hi": 13.522,
+      "label": "fluid/karate k=2 (34v 78e)"
+    },
+    "karate_k4_us": {
+      "median": 9.577,
+      "lo": 9.402,
+      "hi": 9.783,
+      "label": "fluid/karate k=4"
+    },
+    "karate_k3_fixed_seed_us": {
+      "median": 9.562,
+      "lo": 8.981,
+      "hi": 10.637,
+      "label": "fluid/karate k=3 fixed seed (deterministic)"
+    },
+    "ring_of_cliques_8x10_k8_us": {
+      "median": 44.639,
+      "lo": 42.185,
+      "hi": 48.242,
+      "label": "fluid/ring-of-cliques 8x10 (80v 368e, k=8)"
+    }
+  },
+  "python_igraph": {
+    "available": false,
+    "note": "python-igraph 0.11.9 does not expose community_fluid_communities; the upstream C function exists but is not bound at the Python layer in this version. No cross-language timing baseline captured."
+  },
+  "notes": [
+    "Self-rolled SplitMix64 + Fisher-Yates shuffle keeps the per-iteration cost low.",
+    "k=4 on karate is faster than k=2 because Fluid converges in fewer outer iterations when more communities are seeded (each label competes for less territory).",
+    "Ring-of-cliques 8x10 at k=8 exercises 80 vertices over ~5 iterations: ~9 us per outer iteration is in line with the per-vertex adjacency tally cost.",
+    "Iteration count is bounded by FLUID_DEFAULT_MAX_ITERATIONS (1000) but in practice converges in <10 outer iterations on the tested graphs."
+  ]
+}

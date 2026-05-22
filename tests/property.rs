@@ -3379,4 +3379,50 @@ proptest! {
             prop_assert!((max as usize) < g.vcount() as usize);
         }
     }
+
+    /// Fluid Communities on any graph the random generator yields: if
+    /// it satisfies the simple+connected precondition the partition is
+    /// well-formed; otherwise the call must surface an explicit error.
+    #[test]
+    fn fluid_partition_well_formed(g in arb_graph(15), k in 1u32..6) {
+        if g.vcount() == 0 || k > g.vcount() {
+            // Skip degenerate slices — covered by the deterministic
+            // suite already.
+            return Ok(());
+        }
+        let r = rust_igraph::fluid_communities(&g, k);
+        if let Ok(r) = r {
+            prop_assert_eq!(r.membership.len(), g.vcount() as usize);
+            let max = *r.membership.iter().max().unwrap();
+            prop_assert!((max as usize) < g.vcount() as usize);
+            prop_assert_eq!(max + 1, r.nb_clusters);
+            prop_assert!(r.nb_clusters <= k);
+            // contiguous labels
+            let mut seen = vec![false; r.nb_clusters as usize];
+            for &m in &r.membership { seen[m as usize] = true; }
+            prop_assert!(seen.into_iter().all(|b| b));
+        }
+    }
+
+    /// Fluid Communities is deterministic when seeded.
+    #[test]
+    fn fluid_determinism_under_seed(g in arb_graph(15), k in 1u32..5, seed: u64) {
+        if g.vcount() == 0 || k > g.vcount() {
+            return Ok(());
+        }
+        let opts = rust_igraph::FluidOptions {
+            seed,
+            ..rust_igraph::FluidOptions::default()
+        };
+        let a = rust_igraph::fluid_communities_with_options(&g, k, &opts);
+        let b = rust_igraph::fluid_communities_with_options(&g, k, &opts);
+        match (a, b) {
+            (Ok(a), Ok(b)) => {
+                prop_assert_eq!(a.membership, b.membership);
+                prop_assert_eq!(a.nb_clusters, b.nb_clusters);
+            }
+            (Err(_), Err(_)) => {}
+            _ => prop_assert!(false, "fluid_communities determinism mismatch (Ok vs Err)"),
+        }
+    }
 }

@@ -2,15 +2,21 @@
 //! (Newman-Girvan modularity of a partition). Phase 4: `louvain`
 //! multilevel community detection, `leiden` (Traag-Waltman-van Eck 2019),
 //! `label_propagation` (Raghavan-Albert-Kumara 2007 +
-//! Traag-Šubelj 2023 fast variant).
+//! Traag-Šubelj 2023 fast variant), `fluid_communities`
+//! (Parés et al. 2017).
 
 // `pub(crate)` so the inner module name doesn't double-list with the
 // function re-export in rustdoc.
+pub(crate) mod fluid_communities;
 pub(crate) mod label_propagation;
 pub(crate) mod leiden;
 pub(crate) mod louvain;
 pub(crate) mod modularity;
 
+pub use fluid_communities::{
+    FLUID_DEFAULT_MAX_ITERATIONS, FluidOptions, FluidResult, fluid_communities,
+    fluid_communities_with_options,
+};
 pub use label_propagation::{
     LpaOptions, LpaResult, LpaVariant, label_propagation, label_propagation_weighted,
     label_propagation_with_options,

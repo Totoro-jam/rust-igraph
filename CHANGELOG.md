@@ -15,6 +15,57 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CO-005** — Fluid Communities community detection (Parés F.,
+  Gasulla D.G. *et al.* 2018, *Fluid Communities: A Competitive,
+  Scalable and Diverse Community Detection Algorithm*). Two public
+  entrypoints sit on a shared kernel:
+  - `fluid_communities(graph, k) -> Result<FluidResult>` —
+    convenience: `seed = 0`, `max_iterations =
+    FLUID_DEFAULT_MAX_ITERATIONS` (1000).
+  - `fluid_communities_with_options(graph, k, &FluidOptions) ->
+    Result<FluidResult>` — full control via `FluidOptions { seed,
+    max_iterations }`.
+  - `FluidResult { membership, nb_clusters, n_iterations_run }`
+    exposes the final dense-labelled partition (`0..k`), the
+    actual community count (usually exactly `k`, but a community
+    can in principle vanish), and how many outer iterations the
+    convergence loop spent.
+
+  Numerical contract: the algorithm seeds `k` fluids at the first
+  `k` vertices of a shuffled order, each with density `1/size`. Each
+  iteration re-shuffles the visit order and re-evaluates every
+  vertex's label by summing the density contributions of itself and
+  its neighbours, picking the dominant label with an ε = 1e-4 tie
+  band and uniform random tie-break. The vertex's *current* label is
+  pre-loaded into the dominant set so that ties retain it — matching
+  upstream's same-label-stickiness. A vanished community recovers
+  automatically through IEEE-754 `1/0 = +inf` arithmetic: the spike
+  pulls a neighbour back on the next sweep. Iterations stop when no
+  vertex changes label, or at `max_iterations`. Validation rejects
+  `k = 0`, `k > vcount`, non-simple graphs (self-loops / parallel
+  edges) and disconnected graphs.
+
+  Determinism: SplitMix64 + Fisher-Yates duplicated within the
+  module (each AWU keeps its own copy to stay independent of the
+  others). Identical `(graph, k, seed)` triples produce bit-for-bit
+  identical membership vectors.
+
+  Test surface: 14 unit tests + 15 integration tests
+  (`tests/fluid_communities.rs`) cover k=1/k=n/two-K4-bridge/
+  ring-of-4-K5-cliques/empty/single-vertex/all four error paths/
+  determinism/max-iterations cap. Two proptests
+  (`tests/property.rs::fluid_partition_well_formed`,
+  `fluid_determinism_under_seed`). Three-source conformance: 2
+  fixtures each from C / py / R (karate k=2, two-K4-bridge / K5+K5
+  bridge / ring-of-4-K5-cliques k=4) verifying Q ∈ [q_min, q_max]
+  and the user-pinned `k`.
+
+  Bench (`benches/bench_fluid.rs`): karate k=2 ~12.8 µs, karate k=4
+  ~9.6 µs, karate k=3 fixed seed ~9.6 µs, ring-of-cliques(8×10) k=8
+  ~44.6 µs on darwin-aarch64. python-igraph 0.11.9 does not expose
+  `community_fluid_communities`, so no cross-language baseline was
+  captured.
+
 - **ALGO-CO-004** — Label propagation community detection
   (Raghavan, Albert, Kumara 2007 *Near linear time algorithm to detect
   community structures in large-scale networks*; with the Traag &

@@ -2093,6 +2093,48 @@ LEIDEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+FLUID_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "fluid_c_karate_k2",
+        # Famous("Zachary") karate club with k=2. The natural split of
+        # the karate club is along the instructor/officer cleavage; Q of
+        # the Fluid partition lands around 0.36..0.40.
+        "origin": "Famous('Zachary'); fluid_communities k=2; Q ∈ [0.20, 0.42]",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "fluid_communities",
+        "params": {"k": 2},
+        "expected": {
+            "modularity_min": 0.20,
+            "modularity_max": 0.42,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
+    {
+        "case": "fluid_c_two_k4_bridge_k2",
+        # Two K4s joined by a single bridge edge. Fluid with k=2 cleanly
+        # cuts the bridge; Q ≈ 0.42.
+        "origin": "constructed: two K4 + bridge (3,4); fluid k=2; Q ≈ 0.36..0.45",
+        "graph_factory": lambda: ig.Graph(
+            n=8,
+            edges=[
+                (0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3),
+                (4, 5), (4, 6), (4, 7), (5, 6), (5, 7), (6, 7),
+                (3, 4),
+            ],
+            directed=False,
+        ),
+        "algo": "fluid_communities",
+        "params": {"k": 2},
+        "expected": {
+            "modularity_min": 0.35,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
+]
+
 LPA_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "lpa_c_karate_zachary",
@@ -2721,6 +2763,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "louvain": LOUVAIN_MANIFEST,
     "leiden": LEIDEN_MANIFEST,
     "label_propagation": LPA_MANIFEST,
+    "fluid_communities": FLUID_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

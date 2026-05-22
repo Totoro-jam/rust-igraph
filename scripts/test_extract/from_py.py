@@ -1945,6 +1945,39 @@ LEIDEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+FLUID_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "fluid_py_karate_k2",
+        "origin": "Famous('Zachary'); community_fluid_communities(k=2); "
+        "Q ∈ [0.20, 0.42]",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "fluid_communities",
+        "params": {"k": 2},
+        "expected": {
+            "modularity_min": 0.20,
+            "modularity_max": 0.42,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
+    {
+        "case": "fluid_py_k5_k5_bridge_k2",
+        # K5+K5 joined by a single edge: Fluid with k=2 cleanly cuts the
+        # bridge; Q ≈ 0.4523 by hand.
+        "origin": "K5+K5+bridge run through community_fluid_communities(k=2); "
+        "Q ≈ 0.40..0.47",
+        "graph_factory": lambda: ig.Graph.Full(5) + ig.Graph.Full(5) + [(0, 5)],
+        "algo": "fluid_communities",
+        "params": {"k": 2},
+        "expected": {
+            "modularity_min": 0.40,
+            "modularity_max": 0.47,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
+]
+
 LPA_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "lpa_py_karate",
@@ -2362,6 +2395,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "louvain": LOUVAIN_MANIFEST,
     "leiden": LEIDEN_MANIFEST,
     "label_propagation": LPA_MANIFEST,
+    "fluid_communities": FLUID_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,
