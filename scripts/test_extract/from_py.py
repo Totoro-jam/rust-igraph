@@ -2627,6 +2627,32 @@ COMPARE_COMMUNITIES_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+SPLIT_JOIN_DISTANCE_MANIFEST: List[Dict[str, Any]] = [
+    # python-igraph does not expose the asymmetric pair directly
+    # (`igraph.compare_communities(method='split_join')` returns the
+    # symmetric scalar `d12 + d21`). The pair fixtures below are fixed
+    # references derived from the upstream confusion-matrix
+    # decomposition; the sum `d12 + d21` matches
+    # `igraph.compare_communities(method='split_join')` on the same
+    # inputs.
+    {
+        "case": "split_join_distance_py_refinement",
+        "origin": "python-igraph igraph.compare_communities(method='split_join') parity: "
+        "comm2 strictly refines comm1 (b splits each a-cluster into 2-1) ⇒ d12=2, d21=0, sum=2.",
+        "comm1": [0, 0, 0, 1, 1, 1],
+        "comm2": [5, 5, 6, 7, 7, 8],
+        "expected": {"d12": 2, "d21": 0},
+    },
+    {
+        "case": "split_join_distance_py_full_disagreement_2x2",
+        "origin": "python-igraph igraph.compare_communities(method='split_join') parity: "
+        "2x2 full-disagreement (n=4) — d12=d21=2, sum=4.",
+        "comm1": [0, 0, 1, 1],
+        "comm2": [0, 1, 0, 1],
+        "expected": {"d12": 2, "d21": 2},
+    },
+]
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # python-igraph does not expose `igraph_reindex_membership`
     # directly; the closest user-facing analogue is
@@ -2661,6 +2687,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
+    "split_join_distance": SPLIT_JOIN_DISTANCE_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
@@ -2837,6 +2864,25 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "comm1": comm1,
                     "comm2": comm2,
                     "method": entry["method"],
+                },
+                "expected": entry["expected"],
+            }
+        elif algo == "split_join_distance":
+            comm1 = [int(c) for c in entry["comm1"]]
+            comm2 = [int(c) for c in entry["comm2"]]
+            payload = {
+                "source": "py",
+                "origin": entry["origin"],
+                "graph": {
+                    "n": len(comm1),
+                    "edges": [],
+                    "directed": False,
+                    "weights": None,
+                },
+                "algo": algo,
+                "params": {
+                    "comm1": comm1,
+                    "comm2": comm2,
                 },
                 "expected": entry["expected"],
             }

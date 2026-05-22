@@ -4651,3 +4651,98 @@ fn compare_communities_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn split_join_distance_three_source_conformance() {
+    // `split_join_distance` returns the asymmetric pair (d12, d21);
+    // every source emits `expected = {"d12": u64, "d21": u64}`.
+    use rust_igraph::split_join_distance;
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("split_join_distance");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes).expect("parse fixture JSON");
+            assert_eq!(case.algo, "split_join_distance");
+
+            let params = case.params.as_object().expect("params must be an object");
+            let comm1: Vec<u32> = params
+                .get("comm1")
+                .and_then(serde_json::Value::as_array)
+                .expect("params.comm1")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("comm1 entry")).expect("comm1 entry fits u32")
+                })
+                .collect();
+            let comm2: Vec<u32> = params
+                .get("comm2")
+                .and_then(serde_json::Value::as_array)
+                .expect("params.comm2")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("comm2 entry")).expect("comm2 entry fits u32")
+                })
+                .collect();
+
+            let got = split_join_distance(&comm1, &comm2).expect("split_join_distance");
+
+            let exp_obj = case
+                .expected
+                .as_object()
+                .expect("expected must be {d12, d21}");
+            let exp_d12 = exp_obj
+                .get("d12")
+                .and_then(serde_json::Value::as_u64)
+                .expect("expected.d12");
+            let exp_d21 = exp_obj
+                .get("d21")
+                .and_then(serde_json::Value::as_u64)
+                .expect("expected.d21");
+
+            assert_eq!(
+                got.d12,
+                exp_d12,
+                "{}: d12 mismatch — got {}, expected {} (origin: {})",
+                path.display(),
+                got.d12,
+                exp_d12,
+                case.origin,
+            );
+            assert_eq!(
+                got.d21,
+                exp_d21,
+                "{}: d21 mismatch — got {}, expected {} (origin: {})",
+                path.display(),
+                got.d21,
+                exp_d21,
+                case.origin,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no split_join_distance fixtures from source {src}"
+        );
+    }
+}

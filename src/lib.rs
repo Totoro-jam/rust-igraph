@@ -76,6 +76,9 @@ pub use crate::algorithms::community::modularity::{
 pub use crate::algorithms::community::reindex_membership::{
     ReindexMembershipResult, reindex_membership,
 };
+pub use crate::algorithms::community::split_join_distance::{
+    SplitJoinDistance, split_join_distance,
+};
 pub use crate::algorithms::community::walktrap::{
     WALKTRAP_DEFAULT_STEPS, WalktrapOptions, WalktrapResult, walktrap, walktrap_weighted,
     walktrap_with_options,

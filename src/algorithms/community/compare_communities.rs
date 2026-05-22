@@ -220,7 +220,7 @@ fn entropy_and_mutual_information(v1: &[u32], v2: &[u32], n: usize) -> (f64, f64
 /// reindexed membership vectors over `n > 0`. `d12` is `n − Σ_i
 /// max_j |R_i ∩ C_j|` where rows are `v1`-clusters; `d21` swaps
 /// rows/cols.
-fn split_join_distances(v1: &[u32], v2: &[u32], n: usize) -> (u64, u64) {
+pub(crate) fn split_join_distances(v1: &[u32], v2: &[u32], n: usize) -> (u64, u64) {
     let k1 = max_plus_one(v1);
     let k2 = max_plus_one(v2);
 

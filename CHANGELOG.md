@@ -15,6 +15,53 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CM-016** — `split_join_distance` (asymmetric projection-distance
+  pair). Pure-function helper mirroring `igraph_split_join_distance` in
+  `references/igraph/src/community/community_misc.c`. Returns the
+  asymmetric `SplitJoinDistance { d12, d21 }` pair the C reference
+  exposes alongside the symmetric scalar reported by
+  `compare_communities(_, _, SplitJoin)`.
+  - `split_join_distance(comm1: &[u32], comm2: &[u32]) -> IgraphResult<SplitJoinDistance>`
+    with `SplitJoinDistance::total() -> u64` returning `d12 + d21`
+    (matches the CM-015 `SplitJoin` scalar).
+  - `d12 == 0` ⇔ `comm1` is a sub-partition of `comm2`; `d21 == 0` ⇔
+    `comm2` is a sub-partition of `comm1`; both zero ⇔ identical
+    partitions. The asymmetric pair preserves the refinement-relationship
+    information that the symmetric scalar collapses.
+  - Reuses CM-014's `reindex_membership` for densification and CM-015's
+    shared `split_join_distances(pub(crate))` confusion-matrix walk
+    (promoted from `fn` to `pub(crate) fn` so the sibling module imports
+    it without duplicating logic). Complexity: `O(n + S)` where `S` is
+    the number of observed `(comm1, comm2)` cell pairs (≤ `min(k₁·k₂, n)`).
+  - 8 unit tests (empty pair, length-mismatch error, identical zero,
+    full-disagreement 2x2 → `(2, 2)` summing to 4 = CM-015's `SplitJoin`,
+    sub-partition asymmetry → `(0, 1)`, cross-check vs
+    `compare_communities`, relabel-invariance, all-singletons) + 5
+    proptests (non-negative ≤ n, total matches `compare_communities`,
+    relabel-invariance under arbitrary remap, identical → `(0, 0)`,
+    coarsened `b = a/2` ⇒ `d12 == 0`).
+  - Three-source conformance (6 fixtures, 2 each from c/py/r) covering
+    refinement and full-disagreement scenarios. Expected emitted as
+    `{"d12", "d21"}`; conformance test asserts exact `u64` equality on
+    both components. The R-igraph source uses `split_join_distance()`
+    directly; the python-igraph entries are fixed references derived
+    from the upstream confusion-matrix decomposition (python-igraph
+    exposes only the symmetric scalar via
+    `compare_communities(method='split_join')`).
+  - Bench: small 256v/8c ~5.29µs, medium 10000v/100c ~174.74µs,
+    subpartition coarsening 10000v/100c ~172.92µs — 3.31×/3.94×/3.57×
+    faster than python-igraph `compare_communities(method='split_join')`.
+    Speedup is consistent with CM-015 (the asymmetric pair has the same
+    internal cost as the symmetric scalar; the FFI boundary dominates
+    the python-side cost).
+  - Runnable example
+    `examples/split_join_distance_louvain_vs_leiden_karate.rs` runs
+    louvain + leiden + leiden(`n_iterations=6`) on Zachary's karate
+    club, prints `(d12, d21, total)` with a one-line interpretation per
+    pair, demonstrates louvain vs leiden(default) yields
+    `(3, 3, 6)` (neither refines the other) while leiden(default) and
+    leiden(`n_iterations=6`) produce identical partitions.
+
 - **ALGO-CM-015** — `compare_communities` (5 partition-distance metrics).
   Pure-function helper mirroring `igraph_compare_communities` in
   `references/igraph/src/community/community_misc.c`. Given two membership

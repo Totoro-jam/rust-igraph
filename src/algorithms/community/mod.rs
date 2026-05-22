@@ -22,6 +22,7 @@ pub(crate) mod leiden;
 pub(crate) mod louvain;
 pub(crate) mod modularity;
 pub(crate) mod reindex_membership;
+pub(crate) mod split_join_distance;
 pub(crate) mod walktrap;
 
 pub use community_to_membership::{CommunityToMembershipResult, community_to_membership};
@@ -46,6 +47,7 @@ pub use leiden::{
 pub use louvain::{LouvainResult, louvain, louvain_weighted, louvain_with_options};
 pub use modularity::{modularity, modularity_directed, modularity_weighted};
 pub use reindex_membership::{ReindexMembershipResult, reindex_membership};
+pub use split_join_distance::{SplitJoinDistance, split_join_distance};
 pub use walktrap::{
     WALKTRAP_DEFAULT_STEPS, WalktrapOptions, WalktrapResult, walktrap, walktrap_weighted,
     walktrap_with_options,

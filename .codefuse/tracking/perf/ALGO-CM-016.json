@@ -1,0 +1,69 @@
+{
+  "awu": "ALGO-CM-016",
+  "name": "split_join_distance",
+  "function": "rust_igraph::split_join_distance",
+  "captured_at": "2026-05-22",
+  "host": {
+    "platform": "darwin",
+    "arch": "aarch64-apple-darwin",
+    "rust": "1.83+ (stable)",
+    "criterion": "0.5"
+  },
+  "bench_command": "cargo bench --bench bench_split_join_distance",
+  "perf_snapshot_path": ".codefuse/tracking/perf/ALGO-CM-016.json",
+  "scenarios": [
+    {
+      "id": "small_n256_k8",
+      "label": "split_join_distance/small n=256 k=8",
+      "n_vertices": 256,
+      "n_clusters": 8,
+      "perturbation_step": 7,
+      "rust_us_lo": 5.2824,
+      "rust_us_mean": 5.2871,
+      "rust_us_hi": 5.2915,
+      "python_igraph_us_mean": 17.49,
+      "speedup_x": 3.31,
+      "note": "Striped partition with every 7th vertex shifted by one cluster (mod k)."
+    },
+    {
+      "id": "medium_n10000_k100",
+      "label": "split_join_distance/medium n=10000 k=100",
+      "n_vertices": 10000,
+      "n_clusters": 100,
+      "perturbation_step": 13,
+      "rust_us_lo": 174.16,
+      "rust_us_mean": 174.74,
+      "rust_us_hi": 175.55,
+      "python_igraph_us_mean": 688.80,
+      "speedup_x": 3.94,
+      "note": "Larger striped pair, dense confusion matrix (≈k^2 nonzero cells)."
+    },
+    {
+      "id": "subpartition_n10000_k100",
+      "label": "split_join_distance/subpartition n=10000 k=100",
+      "n_vertices": 10000,
+      "n_clusters": 100,
+      "rust_us_lo": 170.71,
+      "rust_us_mean": 172.92,
+      "rust_us_hi": 177.87,
+      "python_igraph_us_mean": 617.42,
+      "speedup_x": 3.57,
+      "note": "Coarsening pair b = a/2: every a-cluster fits in one b-cluster ⇒ d12 = 0; exercises the one-side-dominates path."
+    }
+  ],
+  "summary": {
+    "speedup_range_x": "3.31×–3.94× over python-igraph",
+    "complexity": "O(n) hashing + O(|nz|) row/col-max accumulation; |nz| ≤ min(k1·k2, n).",
+    "memory": "1 HashMap<(u32,u32), u32> + 2 SmallVec-equivalent row/col-max scratch vectors of length k1, k2."
+  },
+  "python_igraph_baseline": {
+    "version": "0.11.x (system venv)",
+    "captured_via": ".venv/bin/python -c '... ig.compare_communities(a, b, method=\"split_join\") ...'",
+    "method_note": "python-igraph exposes the symmetric scalar (d12+d21); the internal C cost is identical to returning the pair."
+  },
+  "notes": [
+    "All scenarios reuse the densified confusion-matrix machinery shared with compare_communities (CM-015).",
+    "Subpartition case has the same asymptotic cost as the perturbed striped case; the speedup ratio is preserved.",
+    "Rust path avoids the python-side dict/list marshalling overhead — the bulk of the python-igraph cost is in the FFI boundary, not in the C algorithm itself."
+  ]
+}

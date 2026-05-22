@@ -1,0 +1,29 @@
+{
+  "source": "py",
+  "origin": "python-igraph igraph.compare_communities(method='split_join') parity: 2x2 full-disagreement (n=4) \u2014 d12=d21=2, sum=4.",
+  "graph": {
+    "n": 4,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "split_join_distance",
+  "params": {
+    "comm1": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "comm2": [
+      0,
+      1,
+      0,
+      1
+    ]
+  },
+  "expected": {
+    "d12": 2,
+    "d21": 2
+  }
+}

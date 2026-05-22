@@ -3048,6 +3048,30 @@ COMPARE_COMMUNITIES_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+SPLIT_JOIN_DISTANCE_MANIFEST: List[Dict[str, Any]] = [
+    # `igraph_split_join_distance` in
+    # references/igraph/src/community/community_misc.c. The C reference
+    # returns the asymmetric (distance12, distance21) pair; the
+    # symmetric scalar reported by `igraph_compare_communities` with
+    # IGRAPH_COMMCMP_SPLIT_JOIN is the sum of the two components.
+    {
+        "case": "split_join_distance_c_subpartition_asymmetric",
+        "origin": "C reference community_misc.c igraph_split_join_distance: "
+        "comm1={{0,1},{2},{3}} is a sub-partition of comm2={{0,1,2},{3}} ⇒ d12=0, d21=1.",
+        "comm1": [0, 0, 1, 2],
+        "comm2": [0, 0, 0, 1],
+        "expected": {"d12": 0, "d21": 1},
+    },
+    {
+        "case": "split_join_distance_c_full_disagreement_2x2",
+        "origin": "C reference community_misc.c igraph_split_join_distance: "
+        "full-disagreement 2x2 confusion (n=4) — d12=d21=2, total=4 matches CM-015's SplitJoin.",
+        "comm1": [0, 0, 1, 1],
+        "comm2": [0, 1, 0, 1],
+        "expected": {"d12": 2, "d21": 2},
+    },
+]
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # `igraph_reindex_membership` /
     # `igraph_i_reindex_membership_large` in
@@ -3081,6 +3105,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
+    "split_join_distance": SPLIT_JOIN_DISTANCE_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
@@ -3265,6 +3290,26 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "comm1": comm1,
                     "comm2": comm2,
                     "method": entry["method"],
+                },
+                "expected": entry["expected"],
+            }
+        elif algo == "split_join_distance":
+            # Pure helper on two membership vectors — returns asymmetric (d12, d21).
+            comm1 = [int(c) for c in entry["comm1"]]
+            comm2 = [int(c) for c in entry["comm2"]]
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": {
+                    "n": len(comm1),
+                    "edges": [],
+                    "directed": False,
+                    "weights": None,
+                },
+                "algo": algo,
+                "params": {
+                    "comm1": comm1,
+                    "comm2": comm2,
                 },
                 "expected": entry["expected"],
             }

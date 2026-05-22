@@ -167,6 +167,11 @@ name = "bench_compare_communities"
 path = "benches/bench_compare_communities.rs"
 harness = false
 
+[[bench]]
+name = "bench_split_join_distance"
+path = "benches/bench_split_join_distance.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

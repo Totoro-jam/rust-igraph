@@ -1,0 +1,33 @@
+{
+  "source": "r",
+  "origin": "R-igraph split_join_distance() parity: comm2 strictly refines comm1 (b splits each a-cluster into 2-1) \u21d2 d12=2, d21=0.",
+  "graph": {
+    "n": 6,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "split_join_distance",
+  "params": {
+    "comm1": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+    ],
+    "comm2": [
+      5,
+      5,
+      6,
+      7,
+      7,
+      8
+    ]
+  },
+  "expected": {
+    "d12": 2,
+    "d21": 0
+  }
+}

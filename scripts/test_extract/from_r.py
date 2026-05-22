@@ -3034,11 +3034,36 @@ COMPARE_COMMUNITIES_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+SPLIT_JOIN_DISTANCE_MANIFEST: List[Dict[str, Any]] = [
+    # R-igraph wraps `igraph_split_join_distance` via
+    # `split_join_distance(comm1, comm2)` which returns the asymmetric
+    # pair as a length-2 integer vector `c(distance12, distance21)`.
+    # Expected values are verified against the upstream confusion-matrix
+    # decomposition and are partition-relabel invariant.
+    {
+        "case": "split_join_distance_r_refinement",
+        "origin": "R-igraph split_join_distance() parity: comm2 strictly "
+        "refines comm1 (b splits each a-cluster into 2-1) ⇒ d12=2, d21=0.",
+        "comm1": [0, 0, 0, 1, 1, 1],
+        "comm2": [5, 5, 6, 7, 7, 8],
+        "expected": {"d12": 2, "d21": 0},
+    },
+    {
+        "case": "split_join_distance_r_full_disagreement_2x2",
+        "origin": "R-igraph split_join_distance() parity: 2x2 "
+        "full-disagreement (n=4) — d12=d21=2.",
+        "comm1": [0, 0, 1, 1],
+        "comm2": [0, 1, 0, 1],
+        "expected": {"d12": 2, "d21": 2},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
+    "split_join_distance": SPLIT_JOIN_DISTANCE_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
@@ -3219,6 +3244,25 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "comm1": comm1,
                     "comm2": comm2,
                     "method": entry["method"],
+                },
+                "expected": entry["expected"],
+            }
+        elif algo == "split_join_distance":
+            comm1 = [int(c) for c in entry["comm1"]]
+            comm2 = [int(c) for c in entry["comm2"]]
+            payload = {
+                "source": "r",
+                "origin": entry["origin"],
+                "graph": {
+                    "n": len(comm1),
+                    "edges": [],
+                    "directed": False,
+                    "weights": None,
+                },
+                "algo": algo,
+                "params": {
+                    "comm1": comm1,
+                    "comm2": comm2,
                 },
                 "expected": entry["expected"],
             }
