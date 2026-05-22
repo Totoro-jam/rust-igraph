@@ -15,6 +15,57 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CO-009** — Voronoi-based community detection (Deritei et al.
+  2014, Molnár et al. 2024). Counterpart of
+  `igraph_community_voronoi` in
+  `references/igraph/src/community/voronoi.c`. Greedy generator picking
+  via Local Relative Density (LRD): each unassigned vertex's LRD is the
+  mean shortest-path distance to all reachable vertices; the
+  lowest-LRD vertex (smallest vertex id on ties — fully deterministic,
+  no RNG) becomes a generator and claims every vertex within radius
+  `r · d̄` where `d̄` is the global mean distance. Repeats until all
+  vertices are assigned, then the final cell membership is computed by
+  `voronoi()` (ALGO-SP-007).
+  - `community_voronoi(graph: &Graph, lengths: Option<&[f64]>, weights:
+    Option<&[f64]>, mode: DijkstraMode, r: f64) -> IgraphResult<
+    CommunityVoronoiResult>`. `lengths` are edge costs for the LRD /
+    Voronoi step (default 1.0); `weights` are edge weights for the
+    modularity computation that auto-r maximises. `mode` is honoured
+    only when the graph is directed (undirected collapses to `All`).
+  - **Auto-r**: passing `r = -1.0` wraps the inner pick+assign in a
+    Brent quadratic-fit 1D optimizer over `r ∈ (0.001·d̄,
+    100·d̄)` with up to 25 iterations, returning the `r` that
+    maximises Newman-Girvan modularity (weighted when `weights` is
+    `Some`). The result's `modularity` field is `Some(q)` for auto-r and
+    fixed `r` runs where modularity is well-defined, `None` for the
+    degenerate single-community case.
+  - **Determinism**: unlike the C reference which uses
+    `igraph_rng_get_integer` to break LRD ties, our implementation
+    breaks ties by smallest vertex id — strictly deterministic, no RNG
+    parameter. On Zachary karate club with `r = -1` (auto-r), this
+    still picks the same generator set `[33, 0, 24]` and produces
+    3 communities as the C reference.
+  - Errors: `InvalidArgument` for `lengths`/`weights` length ≠ `ecount`
+    or containing non-finite/negative values; `Internal` for Brent
+    optimizer degenerate cases (`f1 > f3` at start, or drift outside
+    the initial interval — both indicate a flat / monotone modularity
+    surface on degenerate inputs).
+  - **Perf** (`benches/bench_community_voronoi.rs`, Apple Silicon):
+    - karate fixed-r=1 (34v 78e): **~14.8 µs**;
+    - karate auto-r (34v 78e): **~39.6 µs** (~3× the fixed-r cost for
+      the Brent outer loop);
+    - 20×20 weighted grid fixed-r=1 (400v): **~540 µs**.
+    `python-igraph` 0.11.9 and `rigraph` do not bind
+    `community_voronoi`, so no cross-language baseline is published.
+  - Conformance: 4 fixtures per source (C / py / R, 12 total) under
+    `tests/conformance/{c,py,r}/community_voronoi/`. The runner asserts
+    only on (a) exact picked-generator list and (b) distinct-community
+    count — never on raw membership labels — because the inner
+    `voronoi()` Voronoi-cell tiebreak is RNG-driven in the C reference
+    (`MT19937`) but vertex-id-deterministic here (intentional, to keep
+    the public API RNG-free).
+  - File: `src/algorithms/community/community_voronoi.rs` (~750 LOC).
+  - Example: `examples/community_voronoi_karate.rs`.
 - **ALGO-PR-031** — `ecc` (Radicchi 2004 edge clustering coefficient).
   Counterpart of `igraph_ecc` in `references/igraph/src/properties/ecc.c`
   (lines 33-385). For each edge `(i, j)` returns

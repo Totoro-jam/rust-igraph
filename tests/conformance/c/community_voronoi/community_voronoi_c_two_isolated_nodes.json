@@ -1,0 +1,22 @@
+{
+  "source": "c",
+  "origin": "references/igraph/tests/unit/igraph_community_voronoi.out: two isolated vertices \u2014 each its own generator + community",
+  "graph": {
+    "n": 2,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "community_voronoi",
+  "params": {
+    "mode": "all",
+    "r": -1.0
+  },
+  "expected": {
+    "generators": [
+      0,
+      1
+    ],
+    "community_count": 2
+  }
+}

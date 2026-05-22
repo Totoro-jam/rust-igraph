@@ -3255,6 +3255,55 @@ ECC_PR031_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+COMMUNITY_VORONOI_MANIFEST: List[Dict[str, Any]] = [
+    # `igraph_community_voronoi` reference test at
+    # references/igraph/tests/unit/igraph_community_voronoi.c. Expected
+    # values are transcribed verbatim from
+    # `igraph_community_voronoi.out`. The runner only asserts on
+    # `generators` and the number of distinct community ids — the raw
+    # membership labels depend on the RANDOM-tiebreaker outcome inside
+    # `igraph_voronoi`, which differs between Mersenne Twister (C) and
+    # our SplitMix64. Generator ordering is deterministic (driven by
+    # local relative density), so it survives RNG changes.
+    {
+        "case": "community_voronoi_c_null",
+        "origin": "references/igraph/tests/unit/igraph_community_voronoi.out: "
+        "null graph (n=0) — empty membership + generators",
+        "graph_factory": lambda: ig.Graph(n=0, edges=[], directed=False),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": -1.0},
+        "expected": {"generators": [], "community_count": 0},
+    },
+    {
+        "case": "community_voronoi_c_singleton",
+        "origin": "references/igraph/tests/unit/igraph_community_voronoi.out: "
+        "singleton (n=1) — single self-generator, single community",
+        "graph_factory": lambda: ig.Graph(n=1, edges=[], directed=False),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": -1.0},
+        "expected": {"generators": [0], "community_count": 1},
+    },
+    {
+        "case": "community_voronoi_c_two_isolated_nodes",
+        "origin": "references/igraph/tests/unit/igraph_community_voronoi.out: "
+        "two isolated vertices — each its own generator + community",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[], directed=False),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": -1.0},
+        "expected": {"generators": [0, 1], "community_count": 2},
+    },
+    {
+        "case": "community_voronoi_c_zachary_auto_r",
+        "origin": "references/igraph/tests/unit/igraph_community_voronoi.out: "
+        "Zachary karate club, mode=ALL, r=-1 (auto-r) — generators = (33, 0, 24)",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": -1.0},
+        "expected": {"generators": [33, 0, 24], "community_count": 3},
+    },
+]
+
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # `igraph_reindex_membership` /
     # `igraph_i_reindex_membership_large` in
@@ -3407,6 +3456,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "decompose": DECOMPOSE_MANIFEST,
     "voronoi": VORONOI_MANIFEST,
     "ecc": ECC_PR031_MANIFEST,
+    "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
 }
 
 

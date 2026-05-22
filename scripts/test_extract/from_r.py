@@ -3173,6 +3173,53 @@ VORONOI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COMMUNITY_VORONOI_MANIFEST: List[Dict[str, Any]] = [
+    # R-igraph (rigraph 2.x) exposes `igraph_community_voronoi` through
+    # `cluster_voronoi()` (references/rigraph/R/community.R). R has no
+    # `.out`-style golden output for it; the fixtures below are
+    # hand-derived from the deterministic generator-selection rule
+    # (greedy LRD descent with vertex-id tiebreak), the same as the
+    # python fixtures but exercising different parameter combinations
+    # for cross-source coverage.
+    {
+        "case": "community_voronoi_r_singleton",
+        "origin": "R-igraph cluster_voronoi(make_empty_graph(1)) — single vertex",
+        "graph_factory": lambda: ig.Graph(n=1, edges=[], directed=False),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": -1.0},
+        "expected": {"generators": [0], "community_count": 1},
+    },
+    {
+        "case": "community_voronoi_r_two_isolated_nodes",
+        "origin": "R-igraph cluster_voronoi(make_empty_graph(2)) — two isolated vertices",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[], directed=False),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": -1.0},
+        "expected": {"generators": [0, 1], "community_count": 2},
+    },
+    {
+        "case": "community_voronoi_r_k3_fixed_r0",
+        # K_3 with r=0: every other vertex is at strictly positive
+        # distance, so each pick excludes only the generator itself →
+        # 3 singleton communities. LRD uniform, ties by vertex id.
+        "origin": "R-igraph cluster_voronoi(make_full_graph(3), r=0) — 3 singletons",
+        "graph_factory": lambda: ig.Graph.Full(n=3, directed=False, loops=False),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": 0.0},
+        "expected": {"generators": [0, 1, 2], "community_count": 3},
+    },
+    {
+        "case": "community_voronoi_r_k4_fixed_r0",
+        # K_4 with r=0: uniform LRD, ties by vertex id ⇒ generators
+        # [0,1,2,3]. Independent verification at a different size.
+        "origin": "R-igraph cluster_voronoi(make_full_graph(4), r=0) — 4 singletons",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False, loops=False),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": 0.0},
+        "expected": {"generators": [0, 1, 2, 3], "community_count": 4},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3181,6 +3228,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "split_join_distance": SPLIT_JOIN_DISTANCE_MANIFEST,
     "voronoi": VORONOI_MANIFEST,
     "ecc": ECC_PR031_MANIFEST,
+    "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,

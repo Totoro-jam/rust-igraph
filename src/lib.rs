@@ -45,6 +45,9 @@ pub mod core;
 pub use crate::algorithms::community::community_to_membership::{
     CommunityToMembershipResult, community_to_membership,
 };
+pub use crate::algorithms::community::community_voronoi::{
+    CommunityVoronoiResult, community_voronoi,
+};
 pub use crate::algorithms::community::compare_communities::{
     CommunityComparison, compare_communities,
 };

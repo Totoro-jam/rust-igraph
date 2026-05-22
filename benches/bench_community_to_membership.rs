@@ -16,10 +16,8 @@ fn chain_dendrogram(n: u32) -> Vec<[u32; 2]> {
         return merges;
     }
     merges.push([0, 1]);
-    let mut left: u32 = n;
-    for next_leaf in 2..n {
+    for (left, next_leaf) in (n..).zip(2..n) {
         merges.push([left, next_leaf]);
-        left += 1;
     }
     merges
 }

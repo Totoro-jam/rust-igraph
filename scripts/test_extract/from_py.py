@@ -2758,6 +2758,55 @@ ECC_PR031_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+COMMUNITY_VORONOI_MANIFEST: List[Dict[str, Any]] = [
+    # python-igraph 0.11 does not expose `igraph_community_voronoi`.
+    # The fixtures below are hand-derived from the algorithm's
+    # documented contract (Deritei 2014 / Molnár 2024) and cross-checked
+    # against the C reference `.out`. All assertions are on `generators`
+    # + community count, not raw membership labels — the latter depend
+    # on the random tiebreaker inside the inner `voronoi` call, which is
+    # not reproducible across distinct PRNG families.
+    {
+        "case": "community_voronoi_py_null",
+        "origin": "constructed: null graph (n=0) — empty output",
+        "graph_factory": lambda: ig.Graph(n=0, edges=[], directed=False),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": -1.0},
+        "expected": {"generators": [], "community_count": 0},
+    },
+    {
+        "case": "community_voronoi_py_singleton",
+        "origin": "constructed: single isolated vertex — self-generator",
+        "graph_factory": lambda: ig.Graph(n=1, edges=[], directed=False),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": -1.0},
+        "expected": {"generators": [0], "community_count": 1},
+    },
+    {
+        "case": "community_voronoi_py_k4_fixed_r0",
+        # K_4 with r=0: every other vertex is at strictly positive
+        # distance from any generator, so each pick excludes only the
+        # generator itself → 4 generators, 4 singleton communities.
+        # LRD is uniform across K_4 so ties break by vertex id (0,1,2,3).
+        "origin": "constructed: K_4 with fixed r=0 — 4 singleton communities",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False, loops=False),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": 0.0},
+        "expected": {"generators": [0, 1, 2, 3], "community_count": 4},
+    },
+    {
+        "case": "community_voronoi_py_k5_fixed_r0",
+        # Same as above for K_5 — independent verification at a
+        # different size.
+        "origin": "constructed: K_5 with fixed r=0 — 5 singleton communities",
+        "graph_factory": lambda: ig.Graph.Full(n=5, directed=False, loops=False),
+        "algo": "community_voronoi",
+        "params": {"mode": "all", "r": 0.0},
+        "expected": {"generators": [0, 1, 2, 3, 4], "community_count": 5},
+    },
+]
+
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # python-igraph does not expose `igraph_reindex_membership`
     # directly; the closest user-facing analogue is
@@ -2907,6 +2956,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "decompose": DECOMPOSE_MANIFEST,
     "voronoi": VORONOI_MANIFEST,
     "ecc": ECC_PR031_MANIFEST,
+    "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
 }
 
 

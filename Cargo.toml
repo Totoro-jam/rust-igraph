@@ -182,6 +182,11 @@ name = "bench_ecc"
 path = "benches/bench_ecc.rs"
 harness = false
 
+[[bench]]
+name = "bench_community_voronoi"
+path = "benches/bench_community_voronoi.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

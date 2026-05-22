@@ -1,0 +1,36 @@
+{
+  "source": "r",
+  "origin": "R-igraph cluster_voronoi(make_full_graph(3), r=0) \u2014 3 singletons",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "community_voronoi",
+  "params": {
+    "mode": "all",
+    "r": 0.0
+  },
+  "expected": {
+    "generators": [
+      0,
+      1,
+      2
+    ],
+    "community_count": 3
+  }
+}

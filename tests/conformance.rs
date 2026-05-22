@@ -4923,3 +4923,115 @@ fn voronoi_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn community_voronoi_three_source_conformance() {
+    // `community_voronoi` (ALGO-CO-009) — assertions are on `generators`
+    // (a deterministic ordered list driven by greedy LRD descent) and
+    // `community_count` (distinct values in the membership vector).
+    //
+    // Raw membership labels are NOT compared: the inner `voronoi` call
+    // uses a RANDOM tiebreaker seeded with 42 (matching the C
+    // reference), but our SplitMix64 does not produce identical tie
+    // selections to C's Mersenne Twister, so labels can drift for
+    // vertices that are equidistant to multiple generators. The
+    // generator list is unaffected by the tiebreaker — it is selected
+    // by LRD ordering before voronoi is called — and the number of
+    // communities equals `generators.len()` for the non-degenerate
+    // cases, so both invariants are reproducible.
+    use rust_igraph::{DijkstraMode, community_voronoi};
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("community_voronoi");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes).expect("parse fixture JSON");
+            assert_eq!(case.algo, "community_voronoi");
+
+            let g = build_graph(&case.graph);
+
+            let params = case.params.as_object().expect("params must be an object");
+            let mode = match params
+                .get("mode")
+                .and_then(serde_json::Value::as_str)
+                .expect("params.mode")
+            {
+                "out" => DijkstraMode::Out,
+                "in" => DijkstraMode::In,
+                "all" => DijkstraMode::All,
+                other => panic!("{}: unknown mode {other}", path.display()),
+            };
+            let r = params
+                .get("r")
+                .and_then(serde_json::Value::as_f64)
+                .expect("params.r");
+
+            let got = community_voronoi(&g, None, None, mode, r).expect("community_voronoi");
+
+            let expected_gens: Vec<u32> = case
+                .expected
+                .get("generators")
+                .and_then(serde_json::Value::as_array)
+                .expect("expected.generators")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("generator id")).expect("generator id fits u32")
+                })
+                .collect();
+            assert_eq!(
+                got.generators,
+                expected_gens,
+                "{}: generator list mismatch\n  origin:   {}\n  actual:   {:?}\n  expected: {:?}",
+                path.display(),
+                case.origin,
+                got.generators,
+                expected_gens,
+            );
+
+            let expected_count = usize::try_from(
+                case.expected
+                    .get("community_count")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("expected.community_count"),
+            )
+            .expect("expected.community_count fits usize");
+            let distinct: std::collections::BTreeSet<u32> =
+                got.membership.iter().copied().collect();
+            assert_eq!(
+                distinct.len(),
+                expected_count,
+                "{}: distinct community count mismatch\n  origin:   {}\n  actual:   {} ({:?})\n  expected: {}",
+                path.display(),
+                case.origin,
+                distinct.len(),
+                distinct,
+                expected_count,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no community_voronoi fixtures from source {src}"
+        );
+    }
+}

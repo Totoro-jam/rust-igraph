@@ -1,0 +1,21 @@
+{
+  "source": "c",
+  "origin": "references/igraph/tests/unit/igraph_community_voronoi.out: singleton (n=1) \u2014 single self-generator, single community",
+  "graph": {
+    "n": 1,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "community_voronoi",
+  "params": {
+    "mode": "all",
+    "r": -1.0
+  },
+  "expected": {
+    "generators": [
+      0
+    ],
+    "community_count": 1
+  }
+}

@@ -12,6 +12,7 @@
 // `pub(crate)` so the inner module name doesn't double-list with the
 // function re-export in rustdoc.
 pub(crate) mod community_to_membership;
+pub(crate) mod community_voronoi;
 pub(crate) mod compare_communities;
 pub(crate) mod edge_betweenness_community;
 pub(crate) mod edge_betweenness_community_weighted;
@@ -26,6 +27,7 @@ pub(crate) mod split_join_distance;
 pub(crate) mod walktrap;
 
 pub use community_to_membership::{CommunityToMembershipResult, community_to_membership};
+pub use community_voronoi::{CommunityVoronoiResult, community_voronoi};
 pub use compare_communities::{CommunityComparison, compare_communities};
 pub use edge_betweenness_community::{EdgeBetweennessResult, edge_betweenness_community};
 pub use edge_betweenness_community_weighted::edge_betweenness_community_weighted;

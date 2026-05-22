@@ -1,0 +1,49 @@
+{
+  "source": "r",
+  "origin": "R-igraph cluster_voronoi(make_full_graph(4), r=0) \u2014 4 singletons",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "community_voronoi",
+  "params": {
+    "mode": "all",
+    "r": 0.0
+  },
+  "expected": {
+    "generators": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "community_count": 4
+  }
+}

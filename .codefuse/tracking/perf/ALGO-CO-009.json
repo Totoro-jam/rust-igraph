@@ -1,0 +1,39 @@
+{
+  "awu_id": "ALGO-CO-009",
+  "algorithm": "community_voronoi",
+  "module": "src/algorithms/community/community_voronoi.rs",
+  "captured_on": "2026-05-23",
+  "host": "darwin (Apple Silicon)",
+  "rust_toolchain": "stable (cargo bench)",
+  "criterion_bench_file": "benches/bench_community_voronoi.rs",
+  "rust": {
+    "karate_fixed_r1_us": {
+      "median": 14.772,
+      "lo": 14.471,
+      "hi": 15.216,
+      "label": "community_voronoi/karate-fixed-r1 (34v 78e)"
+    },
+    "karate_auto_r_us": {
+      "median": 39.634,
+      "lo": 38.607,
+      "hi": 41.479,
+      "label": "community_voronoi/karate-auto-r (34v 78e)"
+    },
+    "grid_fixed_r1_us": {
+      "median": 540.72,
+      "lo": 534.37,
+      "hi": 548.82,
+      "label": "community_voronoi/grid-fixed-r1 (400v 4-connected weighted)"
+    }
+  },
+  "python_igraph": {
+    "available": false,
+    "note": "python-igraph 0.11.9 does not expose community_voronoi; the upstream C function exists (igraph_community_voronoi) but is not bound at the Python layer in this version. No cross-language timing baseline captured. R's rigraph also lacks the binding."
+  },
+  "notes": [
+    "Fixed-r runs a single LRD generator-picking pass plus one inner voronoi() assignment; auto-r wraps the same in a Brent quadratic-fit optimizer (up to ~25 iterations, observed ~3x slowdown on karate).",
+    "karate-fixed-r1 mirrors the deterministic portion of references/igraph/tests/unit/igraph_community_voronoi.c. The LRD greedy step does O(n) Dijkstra/BFS work proportional to the picked-generator count.",
+    "grid-fixed-r1 (20x20 = 400v, 760 edges, weights = 1.0 + i mod 5) exercises the weighted Dijkstra LRD path; ~540 us reflects ~1.3 us per vertex, dominated by the binary-heap operations in the inner voronoi() call.",
+    "Auto-r is intentionally not benched on the grid: the outer Brent loop multiplies the per-call cost by ~25 with no algorithmic insight beyond what the karate auto-r number already shows."
+  ]
+}

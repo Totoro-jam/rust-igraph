@@ -1,0 +1,19 @@
+{
+  "source": "py",
+  "origin": "constructed: null graph (n=0) \u2014 empty output",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "community_voronoi",
+  "params": {
+    "mode": "all",
+    "r": -1.0
+  },
+  "expected": {
+    "generators": [],
+    "community_count": 0
+  }
+}
