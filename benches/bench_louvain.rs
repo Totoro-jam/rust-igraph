@@ -1,0 +1,77 @@
+//! Louvain multilevel community detection benchmark. ALGO-CO-002.
+//!
+//! Run: `cargo bench --bench bench_louvain`. Numbers go into
+//! `.codefuse/tracking/perf/ALGO-CO-002.json`. Covers the three code
+//! paths: unweighted (default seed), weighted (varied), and a denser
+//! ring-of-cliques benchmark that exercises the aggregation loop.
+
+use std::fs::File;
+use std::path::PathBuf;
+
+use criterion::{Criterion, criterion_group, criterion_main};
+use rust_igraph::{Graph, louvain, louvain_weighted, louvain_with_options, read_edgelist};
+
+fn karate() -> Graph {
+    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    path.push("fixtures/karate.edges");
+    read_edgelist(File::open(path).expect("open karate fixture")).expect("parse karate")
+}
+
+fn ring_of_cliques(num_cliques: u32, clique_size: u32) -> Graph {
+    let n = num_cliques * clique_size;
+    let mut g = Graph::with_vertices(n);
+    for c in 0..num_cliques {
+        let base = c * clique_size;
+        for u in 0..clique_size {
+            for v in (u + 1)..clique_size {
+                g.add_edge(base + u, base + v).expect("clique edge");
+            }
+        }
+        let next_base = ((c + 1) % num_cliques) * clique_size;
+        g.add_edge(base, next_base).expect("bridge edge");
+    }
+    g
+}
+
+fn bench_karate_unweighted(c: &mut Criterion) {
+    let g = karate();
+    c.bench_function("louvain/karate (34v 78e, unweighted)", |b| {
+        b.iter(|| louvain(&g).unwrap());
+    });
+}
+
+#[allow(clippy::cast_precision_loss)]
+fn bench_karate_weighted(c: &mut Criterion) {
+    let g = karate();
+    let w: Vec<f64> = (0..g.ecount())
+        .map(|i| 1.0 + (i % 5) as f64 * 0.5)
+        .collect();
+    c.bench_function("louvain/karate weighted (varied)", |b| {
+        b.iter(|| louvain_weighted(&g, &w).unwrap());
+    });
+}
+
+fn bench_karate_with_options_fixed_seed(c: &mut Criterion) {
+    let g = karate();
+    c.bench_function("louvain/karate fixed seed (deterministic)", |b| {
+        b.iter(|| louvain_with_options(&g, None, 1.0, 42).unwrap());
+    });
+}
+
+fn bench_ring_of_cliques_8x10(c: &mut Criterion) {
+    // 8 cliques × 10 vertices each = 80v, 8·45 internal + 8 bridge = 368e.
+    // Multi-level: first pass shrinks to ~8 super-vertices.
+    let g = ring_of_cliques(8, 10);
+    c.bench_function("louvain/ring-of-cliques 8x10 (80v 368e)", |b| {
+        b.iter(|| louvain(&g).unwrap());
+    });
+}
+
+criterion_group!(
+    benches,
+    bench_karate_unweighted,
+    bench_karate_weighted,
+    bench_karate_with_options_fixed_seed,
+    bench_ring_of_cliques_8x10,
+);
+criterion_main!(benches);

@@ -1866,6 +1866,49 @@ IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Louvain (ALGO-CO-002). python-igraph exposes Louvain as
+# `Graph.community_multilevel`. Same gain formula as upstream C — its
+# partition varies with shuffle order, so the conformance harness
+# asserts on a modularity range and a community-count window, not on
+# exact membership.
+LOUVAIN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "louvain_py_karate",
+        # The canonical python-igraph test: karate club from
+        # ig.Graph.Famous("Zachary"). community_multilevel hits
+        # Q ≈ 0.39..0.42; partition consistently lands on 4 communities.
+        "origin": "tests/test_clustering.py CommunityDetectionTests "
+        "(Famous('Zachary'), community_multilevel); Q ≈ 0.39..0.42, k=4",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "louvain",
+        "params": {"resolution": 1.0},
+        "expected": {
+            "modularity_min": 0.38,
+            "modularity_max": 0.43,
+            "k_min": 3,
+            "k_max": 5,
+        },
+    },
+    {
+        "case": "louvain_py_full5_full5_bridge",
+        # K5 + K5 + bridge — the same fixture used by test_structural's
+        # modularity test, but here we let Louvain *find* the partition.
+        # Two K5s dominated by 10 internal edges each vs 1 bridge edge;
+        # Louvain must split, k=2.
+        "origin": "test_structural.py-style K5+K5+bridge run through "
+        "community_multilevel; k=2, Q ≈ 0.45",
+        "graph_factory": lambda: ig.Graph.Full(5) + ig.Graph.Full(5) + [(0, 5)],
+        "algo": "louvain",
+        "params": {"resolution": 1.0},
+        "expected": {
+            "modularity_min": 0.42,
+            "modularity_max": 0.47,
+            "k_min": 2,
+            "k_max": 3,
+        },
+    },
+]
+
 MODULARITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_py_full5_full5_bridge",
@@ -2246,6 +2289,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
+    "louvain": LOUVAIN_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

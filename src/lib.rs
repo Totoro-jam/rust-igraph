@@ -42,6 +42,9 @@ pub mod core;
 // themselves are `pub(crate)` (see each algorithm-group `mod.rs`),
 // so the deep paths stay crate-internal at the type-checker level
 // while rustdoc only renders the function entry.
+pub use crate::algorithms::community::louvain::{
+    LouvainResult, louvain, louvain_weighted, louvain_with_options,
+};
 pub use crate::algorithms::community::modularity::{
     modularity, modularity_directed, modularity_weighted,
 };

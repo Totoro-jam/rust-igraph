@@ -1974,6 +1974,72 @@ IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Louvain (ALGO-CO-002). R-igraph exposes Louvain as
+# `cluster_louvain(graph)`. As with the C and Python sources, the
+# partition shifts with shuffle order, so the conformance harness
+# asserts on modularity range and community count, not on exact
+# membership. References:
+# - references/rigraph/R/community.R::cluster_louvain
+# - references/rigraph/tests/testthat tests for community detection
+LOUVAIN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "louvain_R_karate",
+        # The standard cluster_louvain demo graph in R is the karate
+        # club via make_graph("Zachary") or read.graph("karate.gml").
+        # Louvain typically lands on k = 4, Q ≈ 0.42.
+        "origin": "rigraph cluster_louvain example: make_graph('Zachary'); "
+        "Q ≈ 0.39..0.42, k=4",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "louvain",
+        "params": {"resolution": 1.0},
+        "expected": {
+            "modularity_min": 0.38,
+            "modularity_max": 0.43,
+            "k_min": 3,
+            "k_max": 5,
+        },
+    },
+    {
+        "case": "louvain_R_ring_of_4_cliques_5",
+        # Ring of 4 K5 cliques, each pair bridged once around the
+        # cycle. Ground truth is 4 communities; Louvain hits Q ≈ 0.66.
+        "origin": "constructed (R-style benchmark): 4 cliques of size 5 "
+        "joined in a ring; Louvain k=4, Q ≈ 0.66",
+        "graph_factory": lambda: ig.Graph(
+            n=20,
+            edges=[
+                # K5 c0: 0..4
+                (0, 1), (0, 2), (0, 3), (0, 4),
+                (1, 2), (1, 3), (1, 4),
+                (2, 3), (2, 4), (3, 4),
+                # K5 c1: 5..9
+                (5, 6), (5, 7), (5, 8), (5, 9),
+                (6, 7), (6, 8), (6, 9),
+                (7, 8), (7, 9), (8, 9),
+                # K5 c2: 10..14
+                (10, 11), (10, 12), (10, 13), (10, 14),
+                (11, 12), (11, 13), (11, 14),
+                (12, 13), (12, 14), (13, 14),
+                # K5 c3: 15..19
+                (15, 16), (15, 17), (15, 18), (15, 19),
+                (16, 17), (16, 18), (16, 19),
+                (17, 18), (17, 19), (18, 19),
+                # Ring bridges
+                (0, 5), (5, 10), (10, 15), (15, 0),
+            ],
+            directed=False,
+        ),
+        "algo": "louvain",
+        "params": {"resolution": 1.0},
+        "expected": {
+            "modularity_min": 0.60,
+            "modularity_max": 0.70,
+            "k_min": 4,
+            "k_max": 4,
+        },
+    },
+]
+
 MODULARITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_R_path3_split_endpoints",
@@ -2451,6 +2517,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
+    "louvain": LOUVAIN_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

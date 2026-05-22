@@ -3168,4 +3168,73 @@ proptest! {
             }
         }
     }
+
+    /// Louvain partition labels are dense in `[0, k)`, the final
+    /// membership equals the last level snapshot, every level has
+    /// `vcount` entries, and the reported modularity equals what
+    /// `modularity()` computes on the same partition.
+    #[test]
+    fn louvain_partition_well_formed(g in arb_graph(20)) {
+        let r = rust_igraph::louvain(&g).unwrap();
+        let n = g.vcount() as usize;
+        prop_assert_eq!(r.membership.len(), n);
+        if n == 0 {
+            prop_assert!(r.levels.is_empty());
+            prop_assert_eq!(r.modularity, 0.0);
+        } else {
+            let k = r.membership.iter().copied().max().unwrap() + 1;
+            let mut seen = vec![false; k as usize];
+            for &m in &r.membership {
+                prop_assert!((m as usize) < seen.len());
+                seen[m as usize] = true;
+            }
+            prop_assert!(seen.into_iter().all(|b| b),
+                "membership labels must be contiguous in [0, k)");
+            for lvl in &r.levels {
+                prop_assert_eq!(lvl.len(), n);
+            }
+            prop_assert_eq!(r.levels.len(), r.modularities.len());
+            if let Some(last) = r.levels.last() {
+                prop_assert_eq!(last, &r.membership);
+            }
+            // Internal Q must agree with standalone modularity().
+            if let Some(q) = rust_igraph::modularity(&g, &r.membership, 1.0).unwrap() {
+                prop_assert!((r.modularity - q).abs() < 1e-9,
+                    "internal Q = {} ≠ modularity() = {}", r.modularity, q);
+            }
+        }
+    }
+
+    /// Louvain pass-loop only accepts strictly improving merges, so
+    /// per-level modularity must be non-decreasing.
+    #[test]
+    fn louvain_modularity_non_decreasing(g in arb_graph(20)) {
+        let r = rust_igraph::louvain(&g).unwrap();
+        for w in r.modularities.windows(2) {
+            prop_assert!(w[1] + 1e-9 >= w[0],
+                "modularity decreased across levels: {} → {}", w[0], w[1]);
+        }
+    }
+
+    /// Unit-weighted Louvain must produce the same modularity as
+    /// unweighted Louvain on the same graph (gain formula reduces
+    /// exactly when every weight is 1.0).
+    #[test]
+    fn louvain_unit_weighted_matches_unweighted(g in arb_graph(15)) {
+        let a = rust_igraph::louvain(&g).unwrap();
+        let ones = vec![1.0; g.ecount() as usize];
+        let b = rust_igraph::louvain_weighted(&g, &ones).unwrap();
+        prop_assert!((a.modularity - b.modularity).abs() < 1e-9,
+            "unit-weighted Q={} ≠ unweighted Q={}", b.modularity, a.modularity);
+    }
+
+    /// Same seed must reproduce the same membership and modularity
+    /// bit-for-bit (deterministic SplitMix64 + Fisher-Yates).
+    #[test]
+    fn louvain_determinism_under_seed(g in arb_graph(15), seed: u64) {
+        let a = rust_igraph::louvain_with_options(&g, None, 1.0, seed).unwrap();
+        let b = rust_igraph::louvain_with_options(&g, None, 1.0, seed).unwrap();
+        prop_assert_eq!(a.membership, b.membership);
+        prop_assert!((a.modularity - b.modularity).abs() < 1e-12);
+    }
 }

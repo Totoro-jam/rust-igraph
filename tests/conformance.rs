@@ -946,6 +946,104 @@ fn is_multiple_three_source_conformance() {
 }
 
 #[test]
+fn louvain_three_source_conformance() {
+    // Louvain partitions vary with shuffle order across
+    // implementations, so the conformance harness asserts on (a) the
+    // modularity-score window upstream attains and (b) the community
+    // count window. Exact-membership equality would be too brittle:
+    // even a different SplitMix64 seed flips it.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("louvain");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse louvain fixture JSON");
+            let g = build_graph(&case.graph);
+            let resolution = case
+                .params
+                .get("resolution")
+                .and_then(serde_json::Value::as_f64)
+                .unwrap_or(1.0);
+            let r = match case.graph.weights.as_ref() {
+                Some(w) => rust_igraph::louvain_with_options(&g, Some(w), resolution, 0)
+                    .expect("louvain_with_options"),
+                None => rust_igraph::louvain_with_options(&g, None, resolution, 0)
+                    .expect("louvain_with_options"),
+            };
+            let exp = case
+                .expected
+                .as_object()
+                .expect("louvain `expected` must be an object");
+            let q_min = exp
+                .get("modularity_min")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_min");
+            let q_max = exp
+                .get("modularity_max")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_max");
+            let k_min = u32::try_from(
+                exp.get("k_min")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_min"),
+            )
+            .expect("k_min fits u32");
+            let k_max = u32::try_from(
+                exp.get("k_max")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_max"),
+            )
+            .expect("k_max fits u32");
+            let k = r.membership.iter().copied().max().map_or(0, |m| m + 1);
+            assert!(
+                r.modularity >= q_min - 1e-9 && r.modularity <= q_max + 1e-9,
+                "{}: Q = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                r.modularity,
+                q_min,
+                q_max,
+                case.origin,
+            );
+            assert!(
+                (k_min..=k_max).contains(&k),
+                "{}: k = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                k,
+                k_min,
+                k_max,
+                case.origin,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "louvain");
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no louvain fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
 fn modularity_three_source_conformance() {
     run_conformance("modularity", |g, params| {
         let membership: Vec<u32> = params

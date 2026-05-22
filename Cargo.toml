@@ -112,6 +112,11 @@ name = "bench_eigenvector"
 path = "benches/bench_eigenvector.rs"
 harness = false
 
+[[bench]]
+name = "bench_louvain"
+path = "benches/bench_louvain.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

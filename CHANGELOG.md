@@ -15,6 +15,69 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CO-002** — Louvain multilevel community detection
+  (Blondel, Guillaume, Lambiotte, Lefebvre 2008 *fast unfolding*),
+  the first Phase-4 algorithm to land. Three public entrypoints sit
+  on a shared pass-loop / aggregation kernel:
+  - `louvain(graph) -> Result<LouvainResult>` — undirected, unit
+    weights, default seed (`0`), resolution `γ = 1.0`.
+  - `louvain_weighted(graph, weights) -> Result<LouvainResult>` —
+    weighted undirected variant; validates `weights.len() == ecount()`
+    and rejects negative or non-finite values up-front.
+  - `louvain_with_options(graph, weights, resolution, seed) ->
+    Result<LouvainResult>` — full control over γ and the SplitMix64
+    seed driving the per-pass node shuffle.
+  - `LouvainResult { membership, modularity, modularities, levels }`
+    exposes the final partition, its internal Q (matches the
+    standalone `modularity()` to `1e-9` by construction), and the
+    per-level history (super-graph snapshots one entry per pass).
+
+  Numerical contract: the per-pass local-moves loop computes the
+  modularity gain in the same form as upstream
+  `community_multilevel.c`, accepting only strictly improving moves.
+  Self-loops follow the **IGRAPH_LOOPS_TWICE** convention through
+  every level — a loop of weight `w` contributes `2w` to `k_v` both
+  at level 0 and in every aggregated super-graph, so the cross-check
+  vs `modularity()` is exact regardless of whether the input graph
+  starts with loops. The aggregation step re-uses
+  `Graph::init_from_edges` shared with level-0 initialisation, so
+  there is exactly one code path for parallel-edge collapsing.
+
+  Determinism: `louvain_with_options` is fully reproducible for a
+  fixed `(graph, weights, resolution, seed)` tuple. The SplitMix64
+  PRNG + Fisher-Yates shuffle gives stable iteration order across
+  platforms; the convenience entrypoints `louvain` and
+  `louvain_weighted` pin `seed = 0`.
+
+  Errors: rejects directed inputs (`SemanticError("undirected only")`),
+  weight/ecount mismatches, negative weights, non-finite weights,
+  negative/non-finite γ. Empty graphs return an empty membership and
+  `modularity == 0.0`; isolated vertices remain singletons.
+
+  Tests: 19 integration tests in `tests/louvain.rs` cover karate
+  (Q ≈ 0.39..0.42, k ≈ 2..8), ring-of-cliques(4×5) (Q > 0.60, k = 4),
+  weighted-equals-unweighted under unit weights, heavy/thin bridge
+  splits, seed-determinism, γ extremes, every documented error path,
+  empty / isolated / self-loop graphs, and the level-history
+  invariant. 4 proptest invariants
+  (`tests/property.rs::louvain_*`) generalise the well-formedness,
+  non-decreasing per-level Q, unit-weighted equivalence, and
+  seed-determinism guarantees. Conformance: 6 fixtures
+  (C:2, py:2, R:2) at `tests/conformance/{c,py,r}/louvain/*.json`
+  with a Q-range + k-window oracle, since Louvain output varies by
+  shuffle order across implementations.
+
+  Bench (`benches/bench_louvain.rs`, criterion):
+  - karate (34 V, 78 E, unweighted)   — 16.8µs, **2.73×** vs python-igraph
+  - karate (34 V, 78 E, unit-weighted) — 12.1µs, **2.47×**
+  - karate, fixed-seed (`with_options`) — 14.8µs
+  - ring-of-cliques 8×10 (80 V, 288 E) — 29.0µs, **3.61×**
+
+  Snapshot: `.codefuse/tracking/perf/ALGO-CO-002.json`. Runnable demo
+  at `examples/louvain_karate.rs` (loads `fixtures/karate.edges`,
+  runs Louvain, cross-checks vs `modularity()`, prints per-level Q
+  and community memberships).
+
 - **ALGO-PR-012b** — directed + weighted eigenvector centrality. Adds
   four public functions and two types built on a self-rolled
   shifted-power-iter kernel:

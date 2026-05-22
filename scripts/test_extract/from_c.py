@@ -1994,6 +1994,57 @@ IS_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Louvain (ALGO-CO-002). Upstream reference C entry point:
+# references/igraph/src/community/louvain.c
+# `igraph_community_multilevel`. Louvain's exact partition depends on
+# shuffle order, so we assert on the achievable modularity range and on
+# the community count window, not on exact membership.
+LOUVAIN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "louvain_c_karate_zachary",
+        # Zachary's karate club: 34v 78e. The Louvain reference
+        # implementation lands on Q ≈ 0.39..0.42 across shuffle orders;
+        # the partition typically has 4 communities. Mirrors the C-side
+        # use of Famous("Zachary") in references/igraph/examples/.
+        "origin": "Famous('Zachary'); Louvain Q ≈ 0.39..0.42, k ≈ 4 "
+        "(python-igraph community_multilevel cross-checked)",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "louvain",
+        "params": {"resolution": 1.0},
+        "expected": {
+            "modularity_min": 0.38,
+            "modularity_max": 0.43,
+            "k_min": 2,
+            "k_max": 6,
+        },
+    },
+    {
+        "case": "louvain_c_two_k4_bridge",
+        # Two K4s joined by a single bridge edge — Louvain MUST split
+        # the two cliques (the bridge contributes a single edge while
+        # each K4 contributes 6). Reference Q = 0.4231 exactly.
+        "origin": "constructed: two K4 + bridge (3,4); Louvain k=2, "
+        "Q ≈ 0.4231",
+        "graph_factory": lambda: ig.Graph(
+            n=8,
+            edges=[
+                (0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3),
+                (4, 5), (4, 6), (4, 7), (5, 6), (5, 7), (6, 7),
+                (3, 4),
+            ],
+            directed=False,
+        ),
+        "algo": "louvain",
+        "params": {"resolution": 1.0},
+        "expected": {
+            "modularity_min": 0.40,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 3,
+        },
+    },
+]
+
 MODULARITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_c_two_triangles_bridge_split",
@@ -2575,6 +2626,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
+    "louvain": LOUVAIN_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

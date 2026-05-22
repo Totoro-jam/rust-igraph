@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-CO-002",
+  "rust_karate_unweighted_ns": 16843,
+  "rust_karate_weighted_ns": 12066,
+  "rust_karate_fixed_seed_ns": 14788,
+  "rust_ring_of_cliques_8x10_ns": 28983,
+  "py_karate_unweighted_ns": 45970,
+  "py_karate_weighted_ns": 29820,
+  "py_ring_of_cliques_8x10_ns": 104640,
+  "speedup_vs_py_karate_unweighted": 2.73,
+  "speedup_vs_py_karate_weighted": 2.47,
+  "speedup_vs_py_ring_of_cliques_8x10": 3.61,
+  "captured_at": "2026-05-22",
+  "git_commit": "471c2ef",
+  "notes": "Phase 4 Louvain (Blondel et al. 2008) multilevel community detection via src/algorithms/community/louvain.rs. Rust beats python-igraph by 2.5x-3.6x on the small benchmarks: the Cython binding overhead and per-call Python object marshalling dominate for graphs in the karate/ring-of-cliques size range, where our pass loop runs entirely on Vec<f64> with no allocation per pass iteration. SplitMix64 + Fisher-Yates keeps the shuffle hot. Aggregation step rebuilds the super-graph via init_from_edges (shared with the level-0 init) so self-loops at level k+1 honour the IGRAPH_LOOPS_TWICE convention consistently. Next optimisation lever (if we ever need it): swap the per-pass `weight_to_community` HashMap for a dense Vec keyed on community id with a small-int generation tag."
+}
