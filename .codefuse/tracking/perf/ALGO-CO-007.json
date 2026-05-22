@@ -1,0 +1,64 @@
+{
+  "awu_id": "ALGO-CO-007",
+  "algorithm": "fast_greedy_modularity",
+  "module": "src/algorithms/community/fast_greedy_modularity.rs",
+  "captured_on": "2026-05-22",
+  "host": "darwin (Apple Silicon)",
+  "rust_toolchain": "stable (cargo bench --quick)",
+  "criterion_bench_file": "benches/bench_fast_greedy.rs",
+  "rust": {
+    "path_10_us": {
+      "median": 2.5424,
+      "lo": 2.5417,
+      "hi": 2.5455,
+      "label": "fast_greedy/path-10 (10v 9e)"
+    },
+    "two_k5_bridge_us": {
+      "median": 4.7237,
+      "lo": 4.6765,
+      "hi": 4.9122,
+      "label": "fast_greedy/two-K5-bridge (10v 21e)"
+    },
+    "ring_of_cliques_4x5_us": {
+      "median": 10.325,
+      "lo": 10.300,
+      "hi": 10.426,
+      "label": "fast_greedy/ring-of-cliques 4x5 (20v 44e)"
+    },
+    "karate_us": {
+      "median": 36.574,
+      "lo": 35.863,
+      "hi": 36.751,
+      "label": "fast_greedy/karate (34v 78e)"
+    }
+  },
+  "python_igraph": {
+    "version": "0.11.9",
+    "method": "Graph.community_fastgreedy().as_clustering()",
+    "karate_us": {
+      "median": 45.17,
+      "lo": 42.04,
+      "hi": 327.50,
+      "label": "python-igraph karate (34v 78e)"
+    },
+    "two_k5_bridge_us": {
+      "median": 22.69,
+      "lo": 16.54,
+      "hi": 216.38,
+      "label": "python-igraph two-K5-bridge (10v 21e)"
+    },
+    "ring_of_cliques_4x5_us": {
+      "median": 33.67,
+      "lo": 32.96,
+      "hi": 85.54,
+      "label": "python-igraph ring-of-cliques 4x5 (20v 44e)"
+    },
+    "notes": "Rust port runs the karate fixture in ~81% of python-igraph's median wall time; on ring-of-cliques 4x5 the Rust port is ~3.3x faster (10.3 us vs 33.7 us); on two-K5-bridge the Rust port is ~4.8x faster (4.7 us vs 22.7 us). All three implementations land the same best-Q values."
+  },
+  "notes": [
+    "Hot loop is the greedy merge: pop highest dq from a global BinaryHeap, recompute dq for every shared neighbour (Triangle / Chain-1 / Chain-2 update rules), push updated entries. BTreeMap-per-community keeps mirror updates O(log V) per neighbour.",
+    "We use a lazy-deletion strategy on the global heap: stale entries are filtered on pop by validating both endpoints are still alive and that neis[c1][c2] == stored_dq. This avoids the cross-pointer indexed max-heap of the C reference and stays in safe Rust.",
+    "Memory layout: Vec<BTreeMap<u32, f64>> for per-community neighbours (O(V + Σ deg)), Vec<bool> for alive, Vec<u32> for cluster ids, Vec<f64> for a[c], plus one BinaryHeap<HeapEntry> shared across all merges.",
+    "Asymptotic: with the lazy heap approach the worst case is O(E log² V) (E pushes + O(log V) BTreeMap mirror + O(log V) heap), one factor of log V worse than the Wakita-Tsurumi indexed heap; at Phase-1 graph scales the constant factor is well below python-igraph's Python overhead so net throughput is on par or faster."
+  ]
+}

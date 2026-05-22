@@ -1945,6 +1945,42 @@ LEIDEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+FASTGREEDY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "fastgreedy_py_karate",
+        # python-igraph: g.community_fastgreedy().as_clustering().
+        # On Famous('Zachary') python-igraph reports Q ≈ 0.38 with
+        # k ∈ [2, 5] across versions.
+        "origin": "Famous('Zachary'); community_fastgreedy; "
+        "Q ∈ [0.30, 0.45], k ∈ [2, 5]",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "fast_greedy_modularity",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.30,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 5,
+        },
+    },
+    {
+        "case": "fastgreedy_py_k5_k5_bridge",
+        # K5+K5+bridge: fast-greedy cleanly recovers the two K5s,
+        # Q ≈ 0.452 (≈ the C unit-test value).
+        "origin": "K5+K5+bridge (0,5); community_fastgreedy "
+        "k=2; Q ≈ 0.42..0.47",
+        "graph_factory": lambda: ig.Graph.Full(5) + ig.Graph.Full(5) + [(0, 5)],
+        "algo": "fast_greedy_modularity",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.42,
+            "modularity_max": 0.47,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
+]
+
 EB_COMMUNITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "eb_community_py_karate",
@@ -2432,6 +2468,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "label_propagation": LPA_MANIFEST,
     "fluid_communities": FLUID_MANIFEST,
     "edge_betweenness_community": EB_COMMUNITY_MANIFEST,
+    "fast_greedy_modularity": FASTGREEDY_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

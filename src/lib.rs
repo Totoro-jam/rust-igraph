@@ -45,6 +45,9 @@ pub mod core;
 pub use crate::algorithms::community::edge_betweenness_community::{
     EdgeBetweennessResult, edge_betweenness_community,
 };
+pub use crate::algorithms::community::fast_greedy_modularity::{
+    FastGreedyResult, fast_greedy_modularity, fast_greedy_modularity_weighted,
+};
 pub use crate::algorithms::community::fluid_communities::{
     FLUID_DEFAULT_MAX_ITERATIONS, FluidOptions, FluidResult, fluid_communities,
     fluid_communities_with_options,

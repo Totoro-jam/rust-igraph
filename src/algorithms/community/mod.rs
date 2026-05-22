@@ -3,11 +3,13 @@
 //! multilevel community detection, `leiden` (Traag-Waltman-van Eck 2019),
 //! `label_propagation` (Raghavan-Albert-Kumara 2007 +
 //! Traag-Šubelj 2023 fast variant), `fluid_communities`
-//! (Parés et al. 2017), `edge_betweenness_community` (Girvan-Newman 2002).
+//! (Parés et al. 2017), `edge_betweenness_community` (Girvan-Newman 2002),
+//! `fast_greedy_modularity` (Clauset-Newman-Moore 2004).
 
 // `pub(crate)` so the inner module name doesn't double-list with the
 // function re-export in rustdoc.
 pub(crate) mod edge_betweenness_community;
+pub(crate) mod fast_greedy_modularity;
 pub(crate) mod fluid_communities;
 pub(crate) mod label_propagation;
 pub(crate) mod leiden;
@@ -15,6 +17,9 @@ pub(crate) mod louvain;
 pub(crate) mod modularity;
 
 pub use edge_betweenness_community::{EdgeBetweennessResult, edge_betweenness_community};
+pub use fast_greedy_modularity::{
+    FastGreedyResult, fast_greedy_modularity, fast_greedy_modularity_weighted,
+};
 pub use fluid_communities::{
     FLUID_DEFAULT_MAX_ITERATIONS, FluidOptions, FluidResult, fluid_communities,
     fluid_communities_with_options,

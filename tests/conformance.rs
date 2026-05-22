@@ -1382,6 +1382,103 @@ fn edge_betweenness_community_three_source_conformance() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + Q range + k range
+fn fast_greedy_modularity_three_source_conformance() {
+    // Clauset-Newman-Moore (2004) fast greedy modularity. The dendrogram
+    // construction is deterministic given a tie-break rule, but the rule
+    // varies across ports (C uses original-id ordering, R sometimes uses
+    // arbitrary heap order), so we settle on a Q/k envelope around the
+    // upstream values reported in the C unit test.
+    use rust_igraph::{fast_greedy_modularity, modularity};
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("fast_greedy_modularity");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse fast_greedy_modularity fixture JSON");
+            let g = build_graph(&case.graph);
+            let r = fast_greedy_modularity(&g).expect("fast_greedy_modularity");
+            // Best-Q membership is what the upstream community detectors
+            // return; we recompute Q via the standalone modularity() to
+            // remove any in-port drift between the dendrogram trajectory
+            // and our standalone Q implementation.
+            let q = modularity(&g, &r.membership, 1.0)
+                .expect("modularity")
+                .unwrap_or(0.0);
+            let exp = case
+                .expected
+                .as_object()
+                .expect("fast_greedy_modularity `expected` must be an object");
+            let q_min = exp
+                .get("modularity_min")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_min");
+            let q_max = exp
+                .get("modularity_max")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_max");
+            let k_min = u32::try_from(
+                exp.get("k_min")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_min"),
+            )
+            .expect("k_min fits u32");
+            let k_max = u32::try_from(
+                exp.get("k_max")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_max"),
+            )
+            .expect("k_max fits u32");
+            assert!(
+                q >= q_min - 1e-9 && q <= q_max + 1e-9,
+                "{}: Q = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                q,
+                q_min,
+                q_max,
+                case.origin,
+            );
+            assert!(
+                (k_min..=k_max).contains(&r.nb_clusters),
+                "{}: k = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                r.nb_clusters,
+                k_min,
+                k_max,
+                case.origin,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "fast_greedy_modularity");
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no fast_greedy_modularity fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
 #[allow(clippy::too_many_lines)] // three-source dispatch + k pin + Q range
 fn fluid_communities_three_source_conformance() {
     // Fluid Communities (Parés et al. 2017) is stochastic across

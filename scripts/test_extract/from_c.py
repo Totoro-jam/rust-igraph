@@ -2093,6 +2093,54 @@ LEIDEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+FASTGREEDY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "fastgreedy_c_karate",
+        # references/igraph/tests/unit/igraph_community_fastgreedy.c
+        # reports Q = 0.380671 with 3 communities on Famous("Zachary").
+        # Tolerance kept wide to absorb tie-break differences across ports.
+        "origin": "Famous('Zachary'); community_fastgreedy; "
+        "C unit test Q = 0.380671, k = 3",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "fast_greedy_modularity",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.30,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 5,
+        },
+    },
+    {
+        "case": "fastgreedy_c_two_k5_bridge",
+        # references/igraph/tests/unit/igraph_community_fastgreedy.c
+        # reports Q = 0.452381 with k = 2 on two K5 + bridge (0,5).
+        "origin": "two K5 + bridge (0,5); community_fastgreedy "
+        "C unit test Q = 0.452381, k = 2",
+        "graph_factory": lambda: ig.Graph(
+            n=10,
+            edges=[
+                (0, 1), (0, 2), (0, 3), (0, 4),
+                (1, 2), (1, 3), (1, 4),
+                (2, 3), (2, 4), (3, 4),
+                (5, 6), (5, 7), (5, 8), (5, 9),
+                (6, 7), (6, 8), (6, 9),
+                (7, 8), (7, 9), (8, 9),
+                (0, 5),
+            ],
+            directed=False,
+        ),
+        "algo": "fast_greedy_modularity",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.42,
+            "modularity_max": 0.47,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
+]
+
 EB_COMMUNITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "eb_community_c_karate",
@@ -2810,6 +2858,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "label_propagation": LPA_MANIFEST,
     "fluid_communities": FLUID_MANIFEST,
     "edge_betweenness_community": EB_COMMUNITY_MANIFEST,
+    "fast_greedy_modularity": FASTGREEDY_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

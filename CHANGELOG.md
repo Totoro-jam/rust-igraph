@@ -15,6 +15,97 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CO-007** — Fast greedy modularity community detection
+  (Clauset A., Newman M. E. J., Moore C. 2004, *Finding community
+  structure in very large networks*, Phys. Rev. E 70, 066111). Two
+  public entrypoints sit on a shared kernel:
+  - `fast_greedy_modularity(graph) -> Result<FastGreedyResult>` —
+    unweighted convenience (every edge counted with weight 1).
+  - `fast_greedy_modularity_weighted(graph, weights) ->
+    Result<FastGreedyResult>` — accepts an explicit `&[f64]` of
+    length `ecount` (non-negative; finite). Both reject directed
+    graphs and multigraphs with `IgraphError::InvalidArgument(...)`
+    matching the upstream C contract.
+  - `FastGreedyResult { membership, nb_clusters, merges, modularity }`
+    carries the best-modularity dense-labelled partition
+    (`0..nb_clusters`), the full binary merge dendrogram
+    (`merges[i] = [c1, c2]` produces the new super-cluster id
+    `n + i` in classical igraph dendrogram encoding), and the
+    per-step modularity trajectory of length `merges.len() + 1`
+    (`modularity[0]` = singleton Q, `modularity[i+1]` = Q after the
+    *i*-th merge), so callers can re-cut the dendrogram at any
+    level.
+
+  Numerical contract: each community keeps a
+  `BTreeMap<u32 community_id, f64 ΔQ>` of its alive neighbours;
+  a global lazy-deletion `BinaryHeap<HeapEntry { dq, c1, c2 }>`
+  drives the merge order. On each iteration we pop the entry with
+  the largest ΔQ, validate that *both* endpoints are still alive
+  and that the stored ΔQ still matches the live BTreeMap value
+  (stale entries from previous updates are silently discarded),
+  merge `c2` into `c1`, update `a[c1] += a[c2]`, then for every
+  shared neighbour `k` apply the three Clauset-Newman-Moore update
+  rules — Triangle `ΔQ'(c1,k) = ΔQ(c1,k) + ΔQ(c2,k)`, Chain-1
+  `ΔQ'(c1,k) = ΔQ(c1,k) − 2·a[c2]·a[k]`, Chain-2
+  `ΔQ'(c1,k) = ΔQ(c2,k) − 2·a[c1]·a[k]` — mirror the updated value
+  back into `k`'s BTreeMap, and push the fresh entry onto the heap.
+  Modularity per merge is tracked incrementally as
+  `Q += 2·ΔQ_merged`, matching standalone `modularity(g, &mem, 1.0)`
+  at every dendrogram cut to floating-point exactness. Best-Q
+  membership is densified (first-appearance reindex to
+  `0..nb_clusters`) and returned. Complexity is
+  `O(|V|·|E|·log²|V|)` worst-case — the lazy-heap approach trades
+  one log factor versus the upstream Wakita-Tsurumi indexed heap
+  for safe-Rust simplicity; at Phase-1 graph scales the constant
+  factor stays well under python-igraph's Python overhead.
+
+  Best-Q values (all match upstream igraph C unit-test numbers
+  bit-for-bit on the best dendrogram cut):
+  - karate (`fixtures/karate.edges`, 34v 78e): Q = 0.380671, k = 3
+  - two-K5-bridge (10v 21e): Q = 0.452381, k = 2
+  - K4+K4+isolate (9v 12e): Q = 0.5, k = 3
+  - two-disjoint-10-rings (20v 20e): Q = 0.54, k = 4
+  - 6v8e small undirected (the upstream unit-test exemplar):
+    Q = 0.179688
+  - 2v with two self-loops: Q = 0.5
+
+  Test surface: 12 unit tests (in-module) + 14 integration tests
+  (`tests/fast_greedy_modularity.rs`) cover the six Q-value
+  exemplars above plus error paths (directed rejection /
+  multi-edge rejection / negative-weight rejection / weight-length
+  mismatch / non-finite weight), uniform-unit-weight ≡ unweighted
+  agreement, dendrogram total-merges invariant, and
+  modularity-trajectory monotone-up-to-best-cut. Two proptests
+  (`tests/property.rs`):
+  `fast_greedy_modularity_partition_well_formed` checks label
+  contiguity, merge well-formedness (`c1 ≠ c2`, both `< n + i`),
+  and Q ↔ `modularity()` agreement within 1e-9 on `arb_graph(12)`;
+  `fast_greedy_modularity_deterministic` checks bit-for-bit
+  reproducibility on `arb_graph(10)`. Three-source conformance: 2
+  fixtures each from C / py / R under
+  `tests/conformance/{c,py,r}/fast_greedy_modularity/` — karate +
+  two-K5-bridge — asserting Q ∈ [q_min, q_max] and `nb_clusters`
+  ∈ [k_min, k_max] (envelope form because the upstream C and
+  python-igraph implementations sometimes choose a marginally
+  different best-Q cut on graphs with flat-top modularity
+  trajectories, but the dendrogram itself is identical).
+
+  Bench (`benches/bench_fast_greedy.rs`): path-10 ~2.54 µs,
+  two-K5-bridge ~4.72 µs, ring-of-cliques(4×5) ~10.33 µs,
+  karate ~36.57 µs on darwin-aarch64. python-igraph 0.11.9's
+  `Graph.community_fastgreedy().as_clustering()` baseline:
+  karate ~45.17 µs (Rust ~81% wall time), ring-of-cliques(4×5)
+  ~33.67 µs (Rust ~3.3× faster), two-K5-bridge ~22.69 µs
+  (Rust ~4.8× faster). Numbers checked into
+  `.codefuse/tracking/perf/ALGO-CO-007.json`.
+
+  Runnable demo (`examples/fast_greedy_karate.rs`): loads
+  `fixtures/karate.edges`, prints the best-Q partition
+  (k = 3, Q = 0.380671), the first five merges with the
+  modularity after each, and where in the dendrogram the
+  best-Q cut sits. Run with
+  `cargo run --example fast_greedy_karate`.
+
 - **ALGO-CO-006** — Edge betweenness community detection
   (Girvan M., Newman M. E. J. 2002, *Community Structure in Social and
   Biological Networks*, PNAS 99 (12) 7821–7826). One public entrypoint:

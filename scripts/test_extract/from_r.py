@@ -2106,6 +2106,59 @@ LEIDEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+FASTGREEDY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "fastgreedy_R_karate",
+        # rigraph cluster_fast_greedy demo on Zachary's karate club.
+        # Q ≈ 0.38, k ∈ [2, 5].
+        "origin": "rigraph cluster_fast_greedy example: "
+        "make_graph('Zachary'); Q ∈ [0.30, 0.45], k ∈ [2, 5]",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "fast_greedy_modularity",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.30,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 5,
+        },
+    },
+    {
+        "case": "fastgreedy_R_ring_of_4_cliques_5",
+        # Ring of 4 K5 cliques. fast-greedy modularity recovers the 4
+        # cliques (sometimes merging adjacent pairs); Q ≈ 0.5..0.72.
+        "origin": "constructed (R-style benchmark): 4 cliques of size 5 "
+        "joined in a ring; cluster_fast_greedy Q ≈ 0.50..0.72, k ∈ [2, 4]",
+        "graph_factory": lambda: ig.Graph(
+            n=20,
+            edges=[
+                (0, 1), (0, 2), (0, 3), (0, 4),
+                (1, 2), (1, 3), (1, 4),
+                (2, 3), (2, 4), (3, 4),
+                (5, 6), (5, 7), (5, 8), (5, 9),
+                (6, 7), (6, 8), (6, 9),
+                (7, 8), (7, 9), (8, 9),
+                (10, 11), (10, 12), (10, 13), (10, 14),
+                (11, 12), (11, 13), (11, 14),
+                (12, 13), (12, 14), (13, 14),
+                (15, 16), (15, 17), (15, 18), (15, 19),
+                (16, 17), (16, 18), (16, 19),
+                (17, 18), (17, 19), (18, 19),
+                (0, 5), (5, 10), (10, 15), (15, 0),
+            ],
+            directed=False,
+        ),
+        "algo": "fast_greedy_modularity",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.50,
+            "modularity_max": 0.72,
+            "k_min": 2,
+            "k_max": 4,
+        },
+    },
+]
+
 EB_COMMUNITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "eb_community_R_karate",
@@ -2760,6 +2813,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "label_propagation": LPA_MANIFEST,
     "fluid_communities": FLUID_MANIFEST,
     "edge_betweenness_community": EB_COMMUNITY_MANIFEST,
+    "fast_greedy_modularity": FASTGREEDY_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

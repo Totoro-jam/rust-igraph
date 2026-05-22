@@ -3492,4 +3492,68 @@ proptest! {
             _ => prop_assert!(false, "edge_betweenness_community determinism mismatch"),
         }
     }
+
+    // ALGO-CO-007: Fast greedy modularity (Clauset-Newman-Moore 2004) invariants.
+    #[test]
+    fn fast_greedy_modularity_partition_well_formed(g in arb_graph(12)) {
+        if g.is_directed() {
+            return Ok(());
+        }
+        let r = match rust_igraph::fast_greedy_modularity(&g) {
+            Ok(r) => r,
+            Err(_) => return Ok(()),
+        };
+        let n = g.vcount();
+        prop_assert_eq!(r.membership.len() as u32, n);
+        prop_assert_eq!(r.modularity.len(), r.merges.len() + 1);
+        for &lbl in &r.membership {
+            prop_assert!(lbl < r.nb_clusters);
+        }
+        // Dense labels are contiguous in [0, nb_clusters).
+        let mut seen = vec![false; r.nb_clusters as usize];
+        for &lbl in &r.membership {
+            seen[lbl as usize] = true;
+        }
+        for b in seen { prop_assert!(b); }
+        // Each dendrogram row references either an original cluster id
+        // < n or a previously synthesised id of the form n+i'.
+        for (i, row) in r.merges.iter().enumerate() {
+            let cap = n + i as u32;
+            prop_assert!(row[0] < cap, "merge {i} c1 out of range");
+            prop_assert!(row[1] < cap, "merge {i} c2 out of range");
+            prop_assert!(row[0] != row[1], "merge {i} merges a cluster with itself");
+        }
+        // Best-Q membership re-feeds modularity() to within ε of declared
+        // best level (only when edges exist; edgeless => Q = NaN).
+        if g.ecount() > 0 {
+            let finite_qs: Vec<f64> = r.modularity.iter().copied().filter(|q| !q.is_nan()).collect();
+            if !finite_qs.is_empty() {
+                let best_q = finite_qs.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+                let q_recompute = rust_igraph::modularity(&g, &r.membership, 1.0)
+                    .ok()
+                    .flatten()
+                    .unwrap_or(0.0);
+                prop_assert!((q_recompute - best_q).abs() < 1e-9,
+                    "best_q={best_q}, recompute={q_recompute}");
+            }
+        }
+    }
+
+    #[test]
+    fn fast_greedy_modularity_deterministic(g in arb_graph(10)) {
+        if g.is_directed() {
+            return Ok(());
+        }
+        let a = rust_igraph::fast_greedy_modularity(&g);
+        let b = rust_igraph::fast_greedy_modularity(&g);
+        match (a, b) {
+            (Ok(a), Ok(b)) => {
+                prop_assert_eq!(a.membership, b.membership);
+                prop_assert_eq!(a.merges, b.merges);
+                prop_assert_eq!(a.nb_clusters, b.nb_clusters);
+            }
+            (Err(_), Err(_)) => {}
+            _ => prop_assert!(false, "fast_greedy_modularity determinism mismatch"),
+        }
+    }
 }
