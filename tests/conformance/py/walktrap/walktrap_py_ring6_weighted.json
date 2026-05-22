@@ -1,0 +1,52 @@
+{
+  "source": "py",
+  "origin": "constructed: 6-ring + weights [1,0.5,0.25,0.75,1.25,1.5]; community_walktrap.out best Q = 0.146259, k = 3",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      0.5,
+      0.25,
+      0.75,
+      1.25,
+      1.5
+    ]
+  },
+  "algo": "walktrap",
+  "params": {
+    "steps": 4
+  },
+  "expected": {
+    "modularity_min": 0.1,
+    "modularity_max": 0.2,
+    "k_min": 3,
+    "k_max": 3
+  }
+}

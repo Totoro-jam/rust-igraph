@@ -1945,6 +1945,64 @@ LEIDEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+WALKTRAP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "walktrap_py_karate",
+        # python-igraph: g.community_walktrap(steps=4).as_clustering().
+        # On Famous('Zachary') the Pons-Latapy walk picks Q ∈ [0.30, 0.45]
+        # with k ∈ [3, 6] (tie-break varies a tick across ports).
+        "origin": "Famous('Zachary'); community_walktrap steps=4; "
+        "Q ∈ [0.30, 0.45], k ∈ [3, 6]",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "walktrap",
+        "params": {"steps": 4},
+        "expected": {
+            "modularity_min": 0.30,
+            "modularity_max": 0.45,
+            "k_min": 3,
+            "k_max": 6,
+        },
+    },
+    {
+        "case": "walktrap_py_k5_k5_bridge",
+        # K5+K5 joined by a bridge: Walktrap recovers the two cliques at
+        # k = 2 with Q ≈ 0.45 (same envelope as the fast-greedy mirror).
+        "origin": "K5+K5+bridge (0,5); community_walktrap steps=4; "
+        "k=2, Q ≈ 0.42..0.47",
+        "graph_factory": lambda: ig.Graph.Full(5) + ig.Graph.Full(5) + [(0, 5)],
+        "algo": "walktrap",
+        "params": {"steps": 4},
+        "expected": {
+            "modularity_min": 0.42,
+            "modularity_max": 0.47,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
+    {
+        "case": "walktrap_py_ring6_weighted",
+        # Mirror of the C reference ring-6 weighted output: weights
+        # [1.0, 0.5, 0.25, 0.75, 1.25, 1.5] on a 6-cycle. Walktrap with
+        # steps=4 best-cuts at Q ≈ 0.146 with k = 3.
+        "origin": "constructed: 6-ring + weights [1,0.5,0.25,0.75,1.25,1.5]; "
+        "community_walktrap.out best Q = 0.146259, k = 3",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0)],
+            directed=False,
+        ),
+        "graph_weights": [1.0, 0.5, 0.25, 0.75, 1.25, 1.5],
+        "algo": "walktrap_weighted",
+        "params": {"steps": 4},
+        "expected": {
+            "modularity_min": 0.10,
+            "modularity_max": 0.20,
+            "k_min": 3,
+            "k_max": 3,
+        },
+    },
+]
+
 FASTGREEDY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "fastgreedy_py_karate",
@@ -2547,6 +2605,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_betweenness_community": EB_COMMUNITY_MANIFEST,
     "edge_betweenness_community_weighted": EB_COMMUNITY_WEIGHTED_MANIFEST,
     "fast_greedy_modularity": FASTGREEDY_MANIFEST,
+    "walktrap": WALKTRAP_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

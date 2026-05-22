@@ -147,6 +147,11 @@ name = "bench_fast_greedy"
 path = "benches/bench_fast_greedy.rs"
 harness = false
 
+[[bench]]
+name = "bench_walktrap"
+path = "benches/bench_walktrap.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

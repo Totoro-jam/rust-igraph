@@ -14,6 +14,56 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+### Added
+- **ALGO-CO-008** — Walktrap community detection (Pons P., Latapy M.
+  2005, *Computing communities in large networks using random walks*).
+  Random walks of length t (default 4) define a between-vertex distance
+  r²_{ij} = Σ_k (P^t_{ik} − P^t_{jk})²/deg(k); the agglomerative loop
+  greedily merges the pair minimising Δσ — the increase in
+  within-community squared distance — and the dendrogram step with the
+  best Newman modularity Q is returned as the final partition.
+  - `walktrap(graph) -> Result<WalktrapResult>` — unweighted, steps=4.
+  - `walktrap_weighted(graph, weights) -> Result<WalktrapResult>` —
+    edge weights enter both the transition matrix (P_{ij} = w_{ij}/s_i,
+    where s_i is the weighted degree including the synthesized
+    self-loop) and the Newman-Girvan Q used for the best-cut choice.
+  - `walktrap_with_options(graph, weights, opts)` — full control over
+    `steps` (1..=u32::MAX; default `WALKTRAP_DEFAULT_STEPS = 4`).
+  - `WalktrapResult { membership, nb_clusters, merges, modularity }`
+    mirrors `igraph_community_walktrap`: dendrogram `[c1, c2]` rows for
+    the merge tree, full Q trajectory from singletons to one community,
+    and a densified `[0, k)` best-Q membership.
+  - Internal graph adapter synthesizes a per-vertex self-loop with
+    weight = mean incident edge weight (1.0 if isolated) — same fix as
+    upstream issue #2043 — so the random-walk probability vectors
+    handle leaf/isolated vertices without numerical pathology.
+  - Hand-rolled binary min-heap with a lazy-refine pattern (entries
+    with `!exact` are popped, refined via the triangle Δσ formula or a
+    chain lower bound, marked exact, re-inserted) — no external heap
+    dependency, no `unsafe`. Triangle update:
+    `Δσ_new = ((s₁+s_k)·d₁ + (s₂+s_k)·d₂ − s_k·Δσ_old) / (s₁+s₂+s_k)`;
+    chain fallback: `Δσ_new = −1 / min(|adj(new)|, |adj(k)|)`.
+  - Modularity trajectory matches the C `community_walktrap.out`
+    reference (triangle / bug-2042 / 6-ring weighted / isolated) to
+    ~1e-15; conformance tolerance is 1e-12.
+  - Tests (CO-008): 13 unit tests + 2 proptests cover the four C
+    reference cases (exact match), error cases (directed input,
+    `steps=0`, NaN/negative/wrong-length weights), edge cases
+    (empty/single-vertex), and structural cases (two K4 bridge,
+    multi-edge folding). Three-source conformance test covers Zachary
+    karate (Q ∈ [0.30, 0.45], k ∈ [3, 6]), K5+K5+bridge / two-K4-bridge
+    (k=2), ring-of-4-cliques (k=4), and the weighted 6-ring (k=3,
+    Q ≈ 0.146) across `c/`, `py/`, `r/`.
+  - Bench (`benches/bench_walktrap.rs`): triangle ≈ 11 µs, ring-6
+    weighted ≈ 26 µs, ring-of-cliques 4×5 ≈ 262 µs, karate ≈ 932 µs.
+    Rust beats python-igraph at the smallest scales (triangle ~2×,
+    ring-6 weighted ~7×); python-igraph still wins on karate /
+    ring-of-cliques (~3-5×) — gap is from dense Vec<f64> probability
+    vectors (vs the C reference's sparse Map switchover) and per-merge
+    Δσ recomputation; tracked for alpha.3.
+  - Example: `examples/walktrap_karate.rs` (karate club → 4
+    communities at Q ≈ 0.420).
+
 ## [0.0.1-alpha.2] — 2026-05-22
 
 ### Added

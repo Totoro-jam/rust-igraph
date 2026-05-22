@@ -2093,6 +2093,73 @@ LEIDEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+WALKTRAP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "walktrap_c_karate",
+        # references/igraph/tests/unit/community_walktrap.c is the closest
+        # upstream C test. Walktrap on Famous("Zachary") with steps=4
+        # cuts at Q ≈ 0.35..0.42 with k ∈ [4, 6] (varies a tick with
+        # tie-break across ports). Envelope kept wide.
+        "origin": "Famous('Zachary'); community_walktrap steps=4; "
+        "Q ∈ [0.30, 0.45], k ∈ [3, 6]",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "walktrap",
+        "params": {"steps": 4},
+        "expected": {
+            "modularity_min": 0.30,
+            "modularity_max": 0.45,
+            "k_min": 3,
+            "k_max": 6,
+        },
+    },
+    {
+        "case": "walktrap_c_two_k4_bridge",
+        # Two K4s joined by a single bridge edge: Walktrap recovers the
+        # split cleanly at k = 2 with Q ≈ 0.42.
+        "origin": "constructed: two K4 + bridge (3,4); community_walktrap "
+        "steps=4; k=2, Q ≈ 0.36..0.45",
+        "graph_factory": lambda: ig.Graph(
+            n=8,
+            edges=[
+                (0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3),
+                (4, 5), (4, 6), (4, 7), (5, 6), (5, 7), (6, 7),
+                (3, 4),
+            ],
+            directed=False,
+        ),
+        "algo": "walktrap",
+        "params": {"steps": 4},
+        "expected": {
+            "modularity_min": 0.35,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
+    {
+        "case": "walktrap_c_ring6_weighted",
+        # community_walktrap.out "Small weighted graph" case.
+        # 6-ring with weights [1.0, 0.5, 0.25, 0.75, 1.25, 1.5];
+        # steps=4 yields Q = 0.146259 at the best cut with k = 3.
+        "origin": "constructed: 6-ring + weights [1,0.5,0.25,0.75,1.25,1.5]; "
+        "community_walktrap.out best Q = 0.146259, k = 3",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0)],
+            directed=False,
+        ),
+        "graph_weights": [1.0, 0.5, 0.25, 0.75, 1.25, 1.5],
+        "algo": "walktrap_weighted",
+        "params": {"steps": 4},
+        "expected": {
+            "modularity_min": 0.10,
+            "modularity_max": 0.20,
+            "k_min": 3,
+            "k_max": 3,
+        },
+    },
+]
+
 FASTGREEDY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "fastgreedy_c_karate",
@@ -2958,6 +3025,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_betweenness_community": EB_COMMUNITY_MANIFEST,
     "edge_betweenness_community_weighted": EB_COMMUNITY_WEIGHTED_MANIFEST,
     "fast_greedy_modularity": FASTGREEDY_MANIFEST,
+    "walktrap": WALKTRAP_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

@@ -1481,6 +1481,116 @@ fn fast_greedy_modularity_three_source_conformance() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + weighted branch + Q range + k range
+fn walktrap_three_source_conformance() {
+    // Pons-Latapy (2005) random-walk community detection. The merge
+    // trajectory depends on heap tie-breaks, so we keep a Q envelope
+    // (recomputed via the standalone modularity) and a k range. The
+    // weighted fixture (`algo == "walktrap_weighted"`) carries
+    // `graph.weights` and recomputes Q with `modularity_weighted`.
+    use rust_igraph::{modularity, modularity_weighted, walktrap, walktrap_weighted};
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("walktrap");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse walktrap fixture JSON");
+            let g = build_graph(&case.graph);
+            let (membership, nb_clusters, q) = match case.algo.as_str() {
+                "walktrap" => {
+                    let r = walktrap(&g).expect("walktrap");
+                    let q = modularity(&g, &r.membership, 1.0)
+                        .expect("modularity")
+                        .unwrap_or(0.0);
+                    (r.membership, r.nb_clusters, q)
+                }
+                "walktrap_weighted" => {
+                    let weights = case
+                        .graph
+                        .weights
+                        .clone()
+                        .expect("weighted walktrap fixture must carry graph.weights");
+                    let r = walktrap_weighted(&g, &weights).expect("walktrap_weighted");
+                    let q = modularity_weighted(&g, &r.membership, 1.0, &weights)
+                        .expect("modularity_weighted")
+                        .unwrap_or(0.0);
+                    (r.membership, r.nb_clusters, q)
+                }
+                other => panic!("unexpected walktrap fixture algo: {other}"),
+            };
+            let _ = membership;
+            let exp = case
+                .expected
+                .as_object()
+                .expect("walktrap `expected` must be an object");
+            let q_min = exp
+                .get("modularity_min")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_min");
+            let q_max = exp
+                .get("modularity_max")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_max");
+            let k_min = u32::try_from(
+                exp.get("k_min")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_min"),
+            )
+            .expect("k_min fits u32");
+            let k_max = u32::try_from(
+                exp.get("k_max")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_max"),
+            )
+            .expect("k_max fits u32");
+            assert!(
+                q >= q_min - 1e-9 && q <= q_max + 1e-9,
+                "{}: Q = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                q,
+                q_min,
+                q_max,
+                case.origin,
+            );
+            assert!(
+                (k_min..=k_max).contains(&nb_clusters),
+                "{}: k = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                nb_clusters,
+                k_min,
+                k_max,
+                case.origin,
+            );
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no walktrap fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
 #[allow(clippy::too_many_lines)] // three-source dispatch + Q range + k range
 fn edge_betweenness_community_weighted_three_source_conformance() {
     // Weighted Girvan-Newman dendrogram. Best-Q partition is sensitive

@@ -4,7 +4,8 @@
 //! `label_propagation` (Raghavan-Albert-Kumara 2007 +
 //! Traag-Šubelj 2023 fast variant), `fluid_communities`
 //! (Parés et al. 2017), `edge_betweenness_community` (Girvan-Newman 2002),
-//! `fast_greedy_modularity` (Clauset-Newman-Moore 2004).
+//! `fast_greedy_modularity` (Clauset-Newman-Moore 2004),
+//! `walktrap` (Pons-Latapy 2005).
 
 // `pub(crate)` so the inner module name doesn't double-list with the
 // function re-export in rustdoc.
@@ -16,6 +17,7 @@ pub(crate) mod label_propagation;
 pub(crate) mod leiden;
 pub(crate) mod louvain;
 pub(crate) mod modularity;
+pub(crate) mod walktrap;
 
 pub use edge_betweenness_community::{EdgeBetweennessResult, edge_betweenness_community};
 pub use edge_betweenness_community_weighted::edge_betweenness_community_weighted;
@@ -36,3 +38,7 @@ pub use leiden::{
 };
 pub use louvain::{LouvainResult, louvain, louvain_weighted, louvain_with_options};
 pub use modularity::{modularity, modularity_directed, modularity_weighted};
+pub use walktrap::{
+    WALKTRAP_DEFAULT_STEPS, WalktrapOptions, WalktrapResult, walktrap, walktrap_weighted,
+    walktrap_with_options,
+};

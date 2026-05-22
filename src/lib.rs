@@ -67,6 +67,10 @@ pub use crate::algorithms::community::louvain::{
 pub use crate::algorithms::community::modularity::{
     modularity, modularity_directed, modularity_weighted, modularity_weighted_directed,
 };
+pub use crate::algorithms::community::walktrap::{
+    WALKTRAP_DEFAULT_STEPS, WalktrapOptions, WalktrapResult, walktrap, walktrap_weighted,
+    walktrap_with_options,
+};
 pub use crate::algorithms::connectivity::articulation::articulation_points;
 pub use crate::algorithms::connectivity::biconnected::{
     BiconnectedComponents, biconnected_components,

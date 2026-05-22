@@ -1,0 +1,73 @@
+{
+  "awu_id": "ALGO-CO-008",
+  "algorithm": "walktrap",
+  "module": "src/algorithms/community/walktrap.rs",
+  "captured_on": "2026-05-22",
+  "host": "darwin (Apple Silicon)",
+  "rust_toolchain": "stable (cargo bench --warm-up 1s --measurement 2s --sample-size 20)",
+  "criterion_bench_file": "benches/bench_walktrap.rs",
+  "rust": {
+    "triangle_us": {
+      "median": 10.806,
+      "lo": 8.6294,
+      "hi": 13.701,
+      "label": "walktrap/triangle (3v 3e)"
+    },
+    "ring6_weighted_us": {
+      "median": 26.401,
+      "lo": 22.132,
+      "hi": 32.701,
+      "label": "walktrap/ring-6 weighted (6v 6e)"
+    },
+    "two_k5_bridge_us": {
+      "median": 411.99,
+      "lo": 126.67,
+      "hi": 880.89,
+      "label": "walktrap/two-K5-bridge (10v 21e)"
+    },
+    "ring_of_cliques_4x5_us": {
+      "median": 261.89,
+      "lo": 230.57,
+      "hi": 291.44,
+      "label": "walktrap/ring-of-cliques 4x5 (20v 44e)"
+    },
+    "karate_us": {
+      "median": 931.92,
+      "lo": 696.73,
+      "hi": 1278.6,
+      "label": "walktrap/karate (34v 78e)"
+    }
+  },
+  "python_igraph": {
+    "version": "0.11.9",
+    "method": "Graph.community_walktrap(steps=4).as_clustering()",
+    "triangle_us": {
+      "median": 20.95,
+      "label": "python-igraph triangle (3v 3e), n=2000 loops"
+    },
+    "ring6_weighted_us": {
+      "median": 194.39,
+      "label": "python-igraph ring-6 weighted (6v 6e), n=2000 loops"
+    },
+    "two_k5_bridge_us": {
+      "median": 62.45,
+      "label": "python-igraph two-K5-bridge (10v 21e), n=1000 loops"
+    },
+    "ring_of_cliques_4x5_us": {
+      "median": 89.70,
+      "label": "python-igraph ring-of-cliques 4x5 (20v 44e), n=500 loops"
+    },
+    "karate_us": {
+      "median": 191.86,
+      "label": "python-igraph karate (34v 78e), n=500 loops"
+    },
+    "notes": "Rust port wins decisively at the smallest scales (triangle ~2x, ring-6 weighted ~7x) where Python/C-FFI overhead dominates upstream. On the karate / ring-of-cliques exemplars the Rust port is currently ~3-5x slower than python-igraph's native C walktrap; this is the expected gap for a v1 implementation that pays in two places: (1) the inner-loop random-walk probability vectors are dense Vec<f64> instead of the sparse Map<u32, f64> the C reference switches to once communities exceed a threshold, and (2) the per-merge Δσ recomputation walks all shared neighbours rather than reusing pre-computed pair triangles. Both are accuracy-preserving optimisations and tracked for an alpha.3 follow-up."
+  },
+  "notes": [
+    "Hot loop is the agglomerative merge: pop highest -Δσ from a hand-rolled binary min-heap, refine the entry's Δσ via the triangle formula or chain lower bound, then push back if not yet exact. The lazy-refine pattern avoids recomputing every entry per merge.",
+    "Internal graph stores a synthesized self-loop per vertex (weight = mean incident edge weight, or 1.0 if isolated) — same fix as upstream issue #2043. This makes the L2 distance between probability vectors invariant to isolated/leaf-vertex pathology.",
+    "Probability representation: full Vec<f64> sized to vcount. The C reference switches between full and sparse Map<u32, f64> at runtime; we may follow up in alpha.3.",
+    "Modularity trajectory matches the C `community_walktrap.out` reference fixture to ~1e-15 on the 6-ring weighted case (last value -5.55e-17 vs zapsmall(0)); conformance tolerance is 1e-12.",
+    "Two-K5-bridge bench variance is wide because the merge order can flip-flop on tied Δσ rows; once communities polarise this stabilises. Karate variance is similarly wide for the same reason. Per-fixture warmup tightens the band but doesn't change the median."
+  ]
+}
