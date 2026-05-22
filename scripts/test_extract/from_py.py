@@ -1945,6 +1945,40 @@ LEIDEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+LPA_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "lpa_py_karate",
+        "origin": "tests/test_clustering.py CommunityDetectionTests "
+        "(Famous('Zachary'), community_label_propagation); LPA Q ∈ [0.20, 0.42], "
+        "k ∈ [2, 10] (variant-independent envelope)",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "label_propagation",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.20,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 10,
+        },
+    },
+    {
+        "case": "lpa_py_full5_full5_bridge",
+        # K5+K5 joined by a single edge: LPA reliably yields the
+        # natural 2-community split; Q ≈ 0.4523 from ground truth.
+        "origin": "test_structural-style K5+K5+bridge run through "
+        "community_label_propagation; k=2, Q ≈ 0.40..0.47",
+        "graph_factory": lambda: ig.Graph.Full(5) + ig.Graph.Full(5) + [(0, 5)],
+        "algo": "label_propagation",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.40,
+            "modularity_max": 0.47,
+            "k_min": 2,
+            "k_max": 3,
+        },
+    },
+]
+
 MODULARITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_py_full5_full5_bridge",
@@ -2327,6 +2361,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "simplify": SIMPLIFY_MANIFEST,
     "louvain": LOUVAIN_MANIFEST,
     "leiden": LEIDEN_MANIFEST,
+    "label_propagation": LPA_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

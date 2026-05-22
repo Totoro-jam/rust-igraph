@@ -1,13 +1,20 @@
 //! Community-detection algorithms (ALGO-CO-*). Phase 1: `modularity`
 //! (Newman-Girvan modularity of a partition). Phase 4: `louvain`
-//! multilevel community detection, `leiden` (Traag-Waltman-van Eck 2019).
+//! multilevel community detection, `leiden` (Traag-Waltman-van Eck 2019),
+//! `label_propagation` (Raghavan-Albert-Kumara 2007 +
+//! Traag-Šubelj 2023 fast variant).
 
 // `pub(crate)` so the inner module name doesn't double-list with the
 // function re-export in rustdoc.
+pub(crate) mod label_propagation;
 pub(crate) mod leiden;
 pub(crate) mod louvain;
 pub(crate) mod modularity;
 
+pub use label_propagation::{
+    LpaOptions, LpaResult, LpaVariant, label_propagation, label_propagation_weighted,
+    label_propagation_with_options,
+};
 pub use leiden::{
     LEIDEN_DEFAULT_BETA, LEIDEN_DEFAULT_ITERATIONS, LeidenObjective, LeidenOptions, LeidenResult,
     leiden, leiden_weighted, leiden_with_options,

@@ -15,6 +15,63 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CO-004** — Label propagation community detection
+  (Raghavan, Albert, Kumara 2007 *Near linear time algorithm to detect
+  community structures in large-scale networks*; with the Traag &
+  Šubelj 2023 *Fast LPA* improvement). Three public entrypoints sit
+  on a shared variant-dispatched kernel:
+  - `label_propagation(graph) -> Result<LpaResult>` — undirected,
+    unit weights, Fast variant (Traag-Šubelj 2023), seed `0`.
+  - `label_propagation_weighted(graph, weights) -> Result<LpaResult>`
+    — weighted variant with the same defaults; validates
+    `weights.len() == ecount()` and rejects negative / non-finite
+    weights.
+  - `label_propagation_with_options(graph, weights, &LpaOptions) ->
+    Result<LpaResult>` — full control via `LpaOptions`: `variant`
+    (`LpaVariant::Fast` / `Dominance` / `Retention`), `seed`
+    (SplitMix64), optional `initial` membership (with `-1` flagging
+    an unlabelled vertex), optional `fixed` mask for semi-supervised
+    LPA where flagged vertices keep their initial label.
+  - `LpaResult { membership, nb_clusters }` exposes the final
+    partition (dense labels in `0..k`) and the community count;
+    quality is reported via standalone `modularity()` since LPA does
+    not optimise an objective.
+
+  Numerical contract: self-loops follow the **IGRAPH_LOOPS_ONCE**
+  convention so they contribute exactly once to a vertex's own label
+  sum (matching upstream `igraph_community_label_propagation`); after
+  the main loop a final dense-relabel + BFS-fill pass ensures every
+  unlabelled connected component receives its own fresh contiguous
+  label. The Fast variant uses a queue + in-queue bitmap to converge
+  in a single sweep over the work-set; Dominance alternates
+  control/update iterations until no vertex's label flips; Retention
+  keeps the current label when it is still tied for the dominant
+  weight, otherwise picks a random majority-label neighbour.
+
+  Determinism: `label_propagation_with_options` is fully reproducible
+  for a fixed `(graph, weights, options)` tuple — same SplitMix64 +
+  Fisher-Yates shuffle story as Louvain / Leiden.
+
+  Conformance & tests: 16 unit tests + 15 integration tests covering
+  all three variants, weight validation, seed determinism, fixed
+  vertices preserving co-membership, unlabelled isolates becoming
+  singletons, and the full error surface; plus 6 three-source
+  conformance fixtures (2 each from the C, Python and R upstream
+  test suites) with a Q-range + k-window oracle that tolerates
+  shuffle-order drift across implementations; 4 proptest invariants
+  gating partition well-formedness, unit-weighted vs unweighted
+  equivalence, seed determinism across all three variants, and the
+  no-unlabelled-left guarantee.
+
+  Benchmark vs python-igraph (release build): karate Fast 3.9 µs vs
+  python-igraph 17.5 µs (4.49× faster); karate Dominance 8.8 µs;
+  karate Retention 6.1 µs; ring-of-cliques(8×10) Fast 19.2 µs vs
+  24.3 µs (1.27× faster). See `.codefuse/tracking/perf/ALGO-CO-004.json`.
+
+  Example: `cargo run --example lpa_karate` demonstrates all three
+  variants on the karate club graph with the modularity score
+  computed from the partition.
+
 - **ALGO-CO-003** — Leiden community detection (Traag, Waltman, van Eck
   2019 *From Louvain to Leiden: guaranteeing well-connected
   communities*), the second Phase-4 algorithm. Three public entrypoints

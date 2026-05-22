@@ -3305,4 +3305,78 @@ proptest! {
         let r = rust_igraph::leiden_with_options(&g, None, &opts).unwrap();
         prop_assert_eq!(r.nb_clusters as usize, g.vcount() as usize);
     }
+
+    /// Label propagation partition is well-formed: dense labels in
+    /// [0, k), nb_clusters consistent with max label, and every label
+    /// in [0, k) is actually used.
+    #[test]
+    fn lpa_partition_well_formed(g in arb_graph(20)) {
+        let r = rust_igraph::label_propagation(&g).unwrap();
+        let n = g.vcount() as usize;
+        prop_assert_eq!(r.membership.len(), n);
+        if n == 0 {
+            prop_assert_eq!(r.nb_clusters, 0);
+        } else {
+            let max_label = *r.membership.iter().max().unwrap();
+            prop_assert!((max_label as usize) < n);
+            prop_assert_eq!(max_label + 1, r.nb_clusters,
+                "nb_clusters {} ≠ max(membership)+1 {}", r.nb_clusters, max_label + 1);
+            let mut seen = vec![false; r.nb_clusters as usize];
+            for &m in &r.membership {
+                seen[m as usize] = true;
+            }
+            prop_assert!(seen.into_iter().all(|b| b),
+                "membership labels must be contiguous in [0, k)");
+        }
+    }
+
+    /// Unit-weighted LPA must produce the same partition as the
+    /// unweighted variant (the weight=1.0 path is the same algorithm
+    /// applied to identical numbers).
+    #[test]
+    fn lpa_unit_weighted_matches_unweighted(g in arb_graph(15)) {
+        let opts = rust_igraph::LpaOptions { seed: 0, ..rust_igraph::LpaOptions::default() };
+        let a = rust_igraph::label_propagation_with_options(&g, None, &opts).unwrap();
+        let ones = vec![1.0; g.ecount()];
+        let b = rust_igraph::label_propagation_with_options(&g, Some(&ones), &opts).unwrap();
+        prop_assert_eq!(a.membership, b.membership);
+    }
+
+    /// Same seed must reproduce the same membership bit-for-bit across
+    /// all three variants.
+    #[test]
+    fn lpa_determinism_under_seed(
+        g in arb_graph(15),
+        seed: u64,
+        variant_idx in 0u8..3,
+    ) {
+        let variant = match variant_idx {
+            0 => rust_igraph::LpaVariant::Fast,
+            1 => rust_igraph::LpaVariant::Dominance,
+            _ => rust_igraph::LpaVariant::Retention,
+        };
+        let opts = rust_igraph::LpaOptions { variant, seed, ..rust_igraph::LpaOptions::default() };
+        let a = rust_igraph::label_propagation_with_options(&g, None, &opts).unwrap();
+        let b = rust_igraph::label_propagation_with_options(&g, None, &opts).unwrap();
+        prop_assert_eq!(a.membership, b.membership);
+        prop_assert_eq!(a.nb_clusters, b.nb_clusters);
+    }
+
+    /// All variants must produce a complete labelling — no negative
+    /// labels leak through, every vertex ends up in some community.
+    #[test]
+    fn lpa_no_unlabelled_left(g in arb_graph(20), variant_idx in 0u8..3) {
+        let variant = match variant_idx {
+            0 => rust_igraph::LpaVariant::Fast,
+            1 => rust_igraph::LpaVariant::Dominance,
+            _ => rust_igraph::LpaVariant::Retention,
+        };
+        let opts = rust_igraph::LpaOptions { variant, ..rust_igraph::LpaOptions::default() };
+        let r = rust_igraph::label_propagation_with_options(&g, None, &opts).unwrap();
+        prop_assert_eq!(r.membership.len(), g.vcount() as usize);
+        if !r.membership.is_empty() {
+            let max = *r.membership.iter().max().unwrap();
+            prop_assert!((max as usize) < g.vcount() as usize);
+        }
+    }
 }

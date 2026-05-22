@@ -42,6 +42,10 @@ pub mod core;
 // themselves are `pub(crate)` (see each algorithm-group `mod.rs`),
 // so the deep paths stay crate-internal at the type-checker level
 // while rustdoc only renders the function entry.
+pub use crate::algorithms::community::label_propagation::{
+    LpaOptions, LpaResult, LpaVariant, label_propagation, label_propagation_weighted,
+    label_propagation_with_options,
+};
 pub use crate::algorithms::community::leiden::{
     LEIDEN_DEFAULT_BETA, LEIDEN_DEFAULT_ITERATIONS, LeidenObjective, LeidenOptions, LeidenResult,
     leiden, leiden_weighted, leiden_with_options,

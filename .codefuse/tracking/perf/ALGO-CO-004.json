@@ -1,0 +1,68 @@
+{
+  "awu_id": "ALGO-CO-004",
+  "algorithm": "label_propagation",
+  "module": "src/algorithms/community/label_propagation.rs",
+  "captured_on": "2026-05-22",
+  "host": "darwin (Apple Silicon)",
+  "rust_toolchain": "stable (cargo bench)",
+  "criterion_bench_file": "benches/bench_lpa.rs",
+  "rust": {
+    "karate_fast_unweighted_us": {
+      "median": 3.901,
+      "lo": 3.630,
+      "hi": 4.386,
+      "label": "lpa/karate (34v 78e, fast, unweighted)"
+    },
+    "karate_unit_weighted_us": {
+      "median": 3.910,
+      "lo": 3.776,
+      "hi": 4.090,
+      "label": "lpa/karate unit-weighted (fast)"
+    },
+    "karate_fixed_seed_us": {
+      "median": 3.617,
+      "lo": 3.515,
+      "hi": 3.791,
+      "label": "lpa/karate fixed seed (deterministic)"
+    },
+    "karate_dominance_us": {
+      "median": 8.804,
+      "lo": 8.348,
+      "hi": 9.543,
+      "label": "lpa/karate dominance variant"
+    },
+    "karate_retention_us": {
+      "median": 6.123,
+      "lo": 5.885,
+      "hi": 6.350,
+      "label": "lpa/karate retention variant"
+    },
+    "ring_of_cliques_8x10_fast_us": {
+      "median": 19.169,
+      "lo": 18.698,
+      "hi": 19.605,
+      "label": "lpa/ring-of-cliques 8x10 (80v 368e, fast)"
+    }
+  },
+  "python_igraph": {
+    "karate_us": {
+      "mean": 17.509,
+      "iterations": 10000,
+      "note": "ig.Graph.Famous('Zachary').community_label_propagation()"
+    },
+    "ring_of_cliques_8x10_us": {
+      "mean": 24.282,
+      "iterations": 2000,
+      "note": "8 K10 cliques joined in a ring; .community_label_propagation()"
+    }
+  },
+  "rust_vs_py_speedup": {
+    "karate_fast": 4.49,
+    "ring_of_cliques_8x10_fast": 1.27
+  },
+  "notes": [
+    "Fast variant (Traag-Subelj 2023) ~4.5x faster than python-igraph on karate.",
+    "Dominance/Retention are slower per call because they alternate control+update iterations until full convergence; Fast converges in a single sweep with a queue.",
+    "Ring-of-cliques speedup is more modest because the graph density (368e/80v) lets the python C kernel amortize per-call overhead."
+  ]
+}

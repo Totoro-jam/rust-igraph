@@ -2106,6 +2106,64 @@ LEIDEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+LPA_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "lpa_R_karate",
+        # The standard cluster_label_prop demo graph in R is the karate
+        # club via make_graph("Zachary"). With default mode, LPA lands
+        # at k ≈ 3–5, Q ≈ 0.20..0.42 across runs.
+        "origin": "rigraph cluster_label_prop example: make_graph('Zachary'); "
+        "LPA Q ∈ [0.20, 0.42], k ∈ [2, 10]",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "label_propagation",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.20,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 10,
+        },
+    },
+    {
+        "case": "lpa_R_ring_of_4_cliques_5",
+        # Ring of 4 K5 cliques. LPA reliably yields k=4 with Q ≈ 0.66.
+        "origin": "constructed (R-style benchmark): 4 cliques of size 5 "
+        "joined in a ring; LPA k ∈ [3, 5], Q ≈ 0.55..0.70",
+        "graph_factory": lambda: ig.Graph(
+            n=20,
+            edges=[
+                # K5 c0: 0..4
+                (0, 1), (0, 2), (0, 3), (0, 4),
+                (1, 2), (1, 3), (1, 4),
+                (2, 3), (2, 4), (3, 4),
+                # K5 c1: 5..9
+                (5, 6), (5, 7), (5, 8), (5, 9),
+                (6, 7), (6, 8), (6, 9),
+                (7, 8), (7, 9), (8, 9),
+                # K5 c2: 10..14
+                (10, 11), (10, 12), (10, 13), (10, 14),
+                (11, 12), (11, 13), (11, 14),
+                (12, 13), (12, 14), (13, 14),
+                # K5 c3: 15..19
+                (15, 16), (15, 17), (15, 18), (15, 19),
+                (16, 17), (16, 18), (16, 19),
+                (17, 18), (17, 19), (18, 19),
+                # Ring bridges
+                (0, 5), (5, 10), (10, 15), (15, 0),
+            ],
+            directed=False,
+        ),
+        "algo": "label_propagation",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.50,
+            "modularity_max": 0.72,
+            "k_min": 3,
+            "k_max": 5,
+        },
+    },
+]
+
 MODULARITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_R_path3_split_endpoints",
@@ -2585,6 +2643,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "simplify": SIMPLIFY_MANIFEST,
     "louvain": LOUVAIN_MANIFEST,
     "leiden": LEIDEN_MANIFEST,
+    "label_propagation": LPA_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

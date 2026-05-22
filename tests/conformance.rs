@@ -1160,6 +1160,129 @@ fn leiden_three_source_conformance() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + variant enum + dual range
+fn label_propagation_three_source_conformance() {
+    // LPA partitions vary with shuffle order across implementations
+    // (Raghavan–Albert–Kumara 2007, plus the Traag–Šubelj 2023 fast
+    // variant), so the conformance harness asserts on (a) the
+    // modularity-score window upstream attains and (b) the community
+    // count window. `LpaResult` carries no quality field, so we compute
+    // Q from the partition via `modularity_weighted` (which collapses
+    // to the unweighted case under unit weights).
+    use rust_igraph::{
+        LpaOptions, LpaVariant, label_propagation_with_options, modularity, modularity_weighted,
+    };
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("label_propagation");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes).expect("parse lpa fixture JSON");
+            let g = build_graph(&case.graph);
+            let variant = match case
+                .params
+                .get("variant")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("fast")
+            {
+                "fast" => LpaVariant::Fast,
+                "dominance" => LpaVariant::Dominance,
+                "retention" => LpaVariant::Retention,
+                other => panic!("unknown lpa variant: {other}"),
+            };
+            let seed = case
+                .params
+                .get("seed")
+                .and_then(serde_json::Value::as_u64)
+                .unwrap_or(0);
+            let opts = LpaOptions {
+                variant,
+                seed,
+                ..LpaOptions::default()
+            };
+            let r = label_propagation_with_options(&g, case.graph.weights.as_deref(), &opts)
+                .expect("label_propagation_with_options");
+            let q = match case.graph.weights.as_deref() {
+                Some(w) => modularity_weighted(&g, &r.membership, 1.0, w)
+                    .expect("modularity_weighted")
+                    .unwrap_or(0.0),
+                None => modularity(&g, &r.membership, 1.0)
+                    .expect("modularity")
+                    .unwrap_or(0.0),
+            };
+            let exp = case
+                .expected
+                .as_object()
+                .expect("lpa `expected` must be an object");
+            let q_min = exp
+                .get("modularity_min")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_min");
+            let q_max = exp
+                .get("modularity_max")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_max");
+            let k_min = u32::try_from(
+                exp.get("k_min")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_min"),
+            )
+            .expect("k_min fits u32");
+            let k_max = u32::try_from(
+                exp.get("k_max")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_max"),
+            )
+            .expect("k_max fits u32");
+            assert!(
+                q >= q_min - 1e-9 && q <= q_max + 1e-9,
+                "{}: Q = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                q,
+                q_min,
+                q_max,
+                case.origin,
+            );
+            assert!(
+                (k_min..=k_max).contains(&r.nb_clusters),
+                "{}: k = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                r.nb_clusters,
+                k_min,
+                k_max,
+                case.origin,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "label_propagation");
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no label_propagation fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
 fn modularity_three_source_conformance() {
     run_conformance("modularity", |g, params| {
         let membership: Vec<u32> = params
