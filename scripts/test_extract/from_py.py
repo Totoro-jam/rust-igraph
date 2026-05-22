@@ -239,6 +239,28 @@ EIGEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HITS_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # Two hubs into one authority with weights (2, 3). Closed form:
+        # W·W^T (top-left 2x2 = [[4,6],[6,9]]) has λ=13, principal
+        # eigenvector (2/3, 1). Authority = W^T·hub = (0,0,13/3) →
+        # max-norm (0,0,1). Doctest-friendly hand computation.
+        "case": "hits_w_py_two_hubs_one_authority_weighted",
+        "origin": "constructed: 0→2 (w=2), 1→2 (w=3); λ=13 closed form",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 2), (1, 2)], directed=True
+        ),
+        "graph_weights": [2.0, 3.0],
+        "algo": "hub_and_authority_scores_weighted",
+        "params": {},
+        "expected": {
+            "hub": [2.0 / 3.0, 1.0, 0.0],
+            "authority": [0.0, 0.0, 1.0],
+            "eigenvalue": 13.0,
+        },
+    },
+]
+
 HITS_MANIFEST: List[Dict[str, Any]] = [
     {
         # python-igraph: Graph.hub_score / authority_score on a 2x2
@@ -2254,6 +2276,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
     "hub_and_authority_scores": HITS_MANIFEST,
+    "hub_and_authority_scores_weighted": HITS_W_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "avg_nearest_neighbor_degree_weighted": KNN_W_MANIFEST,

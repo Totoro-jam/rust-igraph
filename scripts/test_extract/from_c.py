@@ -297,6 +297,27 @@ HITS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HITS_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # Same "Two hubs and one authority" topology as the unweighted
+        # C fixture, but driven through the weighted code path with
+        # unit weights — must produce the same result.
+        "case": "hits_w_c_two_hubs_one_authority_unit",
+        "origin": "igraph_hub_and_authority.c — 'Two hubs and one authority' weighted with unit weights",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 2), (1, 2)], directed=True
+        ),
+        "graph_weights": [1.0, 1.0],
+        "algo": "hub_and_authority_scores_weighted",
+        "params": {},
+        "expected": {
+            "hub": [1.0, 1.0, 0.0],
+            "authority": [0.0, 0.0, 1.0],
+            "eigenvalue": 2.0,
+        },
+    },
+]
+
 BC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "biconnected_components_c_upstream_fixture",
@@ -2575,6 +2596,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
     "hub_and_authority_scores": HITS_MANIFEST,
+    "hub_and_authority_scores_weighted": HITS_W_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "avg_nearest_neighbor_degree_weighted": KNN_W_MANIFEST,

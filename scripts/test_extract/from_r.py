@@ -344,6 +344,29 @@ HITS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+HITS_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # R-style: hub_score(g, weights = c(3, 4)) on a 2-hub→1-auth
+        # bipartite graph. Closed form on W·Wᵀ (top-left 2x2 =
+        # [[9,12],[12,16]]) gives λ = 25, hub = (3/4, 1, 0),
+        # authority = (0, 0, 1). All-positive weights so sign-cleanup
+        # is in effect.
+        "case": "hits_R_w_two_hubs_one_authority_weighted",
+        "origin": "constructed (R-style): hub_score(weights=c(3,4)) on 0→2, 1→2; λ=25 closed form",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 2), (1, 2)], directed=True
+        ),
+        "graph_weights": [3.0, 4.0],
+        "algo": "hub_and_authority_scores_weighted",
+        "params": {},
+        "expected": {
+            "hub": [0.75, 1.0, 0.0],
+            "authority": [0.0, 0.0, 1.0],
+            "eigenvalue": 25.0,
+        },
+    },
+]
+
 BC_EDGES_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "biconnected_component_edges_R_K4",
@@ -2462,6 +2485,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
     "hub_and_authority_scores": HITS_MANIFEST,
+    "hub_and_authority_scores_weighted": HITS_W_MANIFEST,
     "reciprocity": RECIP_MANIFEST,
     "avg_nearest_neighbor_degree": KNN_MANIFEST,
     "avg_nearest_neighbor_degree_weighted": KNN_W_MANIFEST,

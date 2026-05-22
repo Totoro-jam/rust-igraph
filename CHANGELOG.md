@@ -15,6 +15,34 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-PR-017b** — `hub_and_authority_scores_weighted(graph, weights)
+  -> HitsScores` (Kleinberg HITS, weighted). Builds the weighted matrix
+  `W[i,j] = Σ_{e: i→j} w_e` implicitly: each power-iter step walks
+  every incident edge with multiplicative `w_e * h[other]`, avoiding
+  any dense materialisation. On directed graphs, runs power iteration
+  on `W·Wᵀ` with hub seeded from weighted out-strength (falling back
+  to out-degree when negative weights are present, matching the
+  upstream contract). On undirected graphs, runs a self-rolled shifted
+  power-iter on `W + I` and recovers the dominant eigenvalue via the
+  Rayleigh quotient — this private helper will be promoted to a public
+  `eigenvector_centrality_weighted` once PR-012b lands. For non-negative
+  weights, sign cleanup keeps both vectors elementwise `>= 0`; with
+  negative weights we track the signed component of greatest magnitude
+  (matches C's `which='LA'`). Validates `weights.len() == ecount()` and
+  returns `InvalidArgument` otherwise. Empty-edge graphs and all-zero
+  weights both fill both vectors with `1.0` and report eigenvalue `0.0`.
+  Counterpart of the weighted branch in
+  `references/igraph/src/centrality/hub_authority.c` (lines 130-176,
+  333-505). 10 unit tests + 8 integration tests in
+  `tests/hits_weighted.rs` (parity with unweighted under unit weights
+  on a directed chain + karate, both cross-relations
+  `hub ∝ W·authority` and `authority ∝ Wᵀ·hub`, length-mismatch error,
+  positive-only non-negativity, empty/all-zero sentinels) + 3
+  three-source conformance fixtures (1 C / 1 py / 1 R, each a
+  two-hubs-one-authority configuration with closed-form expected
+  values) under
+  `tests/conformance/{c,py,r}/hub_and_authority_scores_weighted/`.
+
 - **ALGO-PR-017** — `hub_and_authority_scores(graph) -> HitsScores`
   (Kleinberg HITS, unweighted). On directed graphs, runs power
   iteration on `A·Aᵀ`: hub vector seeded from out-degrees, max-norm

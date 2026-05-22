@@ -1,0 +1,37 @@
+{
+  "source": "r",
+  "origin": "constructed (R-style): hub_score(weights=c(3,4)) on 0\u21922, 1\u21922; \u03bb=25 closed form",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      3.0,
+      4.0
+    ]
+  },
+  "algo": "hub_and_authority_scores_weighted",
+  "params": {},
+  "expected": {
+    "hub": [
+      0.75,
+      1.0,
+      0.0
+    ],
+    "authority": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "eigenvalue": 25.0
+  }
+}

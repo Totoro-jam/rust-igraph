@@ -1,0 +1,9 @@
+{
+  "awu": "ALGO-PR-017b",
+  "rust_hits_weighted_karate_undirected_ns": 45351,
+  "rust_hits_weighted_directed_ring_500_ns": 22199000,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-22",
+  "git_commit": "cffa042",
+  "notes": "Phase 1 weighted HITS via src/algorithms/properties/hits.rs::hub_and_authority_scores_weighted. Undirected unit-weight karate runs ~2.2× slower than the unweighted path (45µs vs 20µs) — expected, since the weighted code path uses a self-rolled shifted power iter on (W+I) over incident-edge walks rather than delegating to PR-011's eigenvector centrality. The directed ring (500 verts, varied weights) is dominated by the inner W·Wᵀ matvec — each step walks every edge twice with f64 multiplies, ~22ms total. This is the conformance-quality build; revisit with CSR or BLAS-style fused matvec once PR-012b lands a shared kernel. Tolerance to ARPACK numerical drift was chosen at 1e-9 for the three-source conformance suite."
+}

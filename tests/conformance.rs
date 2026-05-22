@@ -667,6 +667,54 @@ fn hub_and_authority_scores_three_source_conformance() {
 }
 
 #[test]
+fn hub_and_authority_scores_weighted_three_source_conformance() {
+    // Bespoke fixture-walking runner (needs case.graph.weights).
+    fn chop(v: &[f64]) -> Vec<f64> {
+        v.iter()
+            .map(|&x| if x.abs() < 1e-9 { 0.0 } else { x })
+            .collect()
+    }
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("hub_and_authority_scores_weighted");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let s = rust_igraph::hub_and_authority_scores_weighted(&g, &weights)
+                .expect("hub_and_authority_scores_weighted");
+            let actual = serde_json::json!({
+                "hub": chop(&s.hub),
+                "authority": chop(&s.authority),
+                "eigenvalue": s.eigenvalue,
+            });
+            assert!(
+                json_approx_eq(&actual, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                actual,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "hub_and_authority_scores_weighted");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn biconnected_components_three_source_conformance() {
     run_conformance("biconnected_components", |g, _params| {
         let bc = rust_igraph::biconnected_components(g).expect("biconnected_components");

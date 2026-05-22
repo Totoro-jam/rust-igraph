@@ -102,6 +102,11 @@ name = "bench_hits"
 path = "benches/bench_hits.rs"
 harness = false
 
+[[bench]]
+name = "bench_hits_weighted"
+path = "benches/bench_hits_weighted.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

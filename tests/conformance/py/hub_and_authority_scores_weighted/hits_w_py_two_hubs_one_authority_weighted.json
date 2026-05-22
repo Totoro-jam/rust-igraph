@@ -1,0 +1,37 @@
+{
+  "source": "py",
+  "origin": "constructed: 0\u21922 (w=2), 1\u21922 (w=3); \u03bb=13 closed form",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      2.0,
+      3.0
+    ]
+  },
+  "algo": "hub_and_authority_scores_weighted",
+  "params": {},
+  "expected": {
+    "hub": [
+      0.6666666666666666,
+      1.0,
+      0.0
+    ],
+    "authority": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "eigenvalue": 13.0
+  }
+}
