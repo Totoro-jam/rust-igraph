@@ -1,0 +1,63 @@
+{
+  "awu_id": "ALGO-CO-006b",
+  "algorithm": "edge_betweenness_community_weighted",
+  "module": "src/algorithms/community/edge_betweenness_community_weighted.rs",
+  "captured_on": "2026-05-22",
+  "host": "darwin (Apple Silicon)",
+  "rust_toolchain": "stable (cargo bench)",
+  "criterion_bench_file": "benches/bench_eb_community_weighted.rs",
+  "rust": {
+    "path_10_unit_us": {
+      "median": 35.727,
+      "lo": 33.254,
+      "hi": 38.941,
+      "label": "eb_community_weighted/path-10 unit (10v 9e)"
+    },
+    "two_k4_bridge_unit_us": {
+      "median": 36.447,
+      "lo": 31.997,
+      "hi": 42.232,
+      "label": "eb_community_weighted/two-K4-bridge unit (8v 13e)"
+    },
+    "ring_of_cliques_4x5_unit_us": {
+      "median": 217.79,
+      "lo": 194.12,
+      "hi": 253.12,
+      "label": "eb_community_weighted/ring-of-cliques 4x5 unit (20v 44e)"
+    },
+    "karate_unit_us": {
+      "median": 1756.8,
+      "lo": 1677.1,
+      "hi": 1870.2,
+      "label": "eb_community_weighted/karate unit (34v 78e)"
+    }
+  },
+  "python_igraph": {
+    "version": "0.11.9",
+    "method": "Graph.community_edge_betweenness(weights=[1.0]*ecount)",
+    "path_10_unit_us": {
+      "median": 16.44,
+      "label": "python-igraph weighted path-10 (10v 9e)"
+    },
+    "two_k4_bridge_unit_us": {
+      "median": 18.64,
+      "label": "python-igraph weighted two-K4-bridge (8v 13e)"
+    },
+    "ring_of_cliques_4x5_unit_us": {
+      "median": 205.77,
+      "label": "python-igraph weighted ring-of-cliques 4x5 (20v 44e)"
+    },
+    "karate_unit_us": {
+      "median": 2228.35,
+      "label": "python-igraph weighted karate (34v 78e)"
+    },
+    "notes": "Rust port matches python-igraph within noise on ring-of-cliques (218 µs vs 206 µs) and is ~21% faster on karate (1757 µs vs 2228 µs). On tiny cells (path-10, two-K4-bridge) python-igraph is faster because its per-call Python overhead amortises over a C inner loop that uses bucket-queue Dijkstra — our BinaryHeap version pays log(|V|) per push. Tiny-cell gap will close once we add a bucket-queue specialisation for integer-spaced weights."
+  },
+  "notes": [
+    "Hot loop is the Brandes-Dijkstra weighted edge-betweenness pass, executed once per edge removed (m iterations total). Per iteration is O(|V| * (|E_active| + |V| log |V|)).",
+    "Scratch buffers (sigma, dist, visited, pred, stack, delta_v, eb_now, BinaryHeap) are allocated once outside the removal loop and reused; per-iteration cost is dominated by heap pushes / pops, not allocation.",
+    "Frontier uses f64::total_cmp ordering after rejecting NaN / negative weights up front, keeping the heap deterministic without an Ord-impl footgun.",
+    "Unit weights through this entrypoint reproduce the unweighted CO-006 dendrogram bit-for-bit: enforced by the `unit_weights_match_unweighted_*` integration tests and by 2 proptests (membership/k/dendrogram + repeated-call determinism).",
+    "Slowdown vs. CO-006 (~2.6x on karate) is the unavoidable Dijkstra-vs-BFS overhead: BinaryHeap push/pop replaces the O(1) queue ops, and edges that would terminate early in BFS keep re-entering the heap until visited."
+  ]
+}

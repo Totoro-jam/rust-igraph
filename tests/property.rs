@@ -3556,4 +3556,49 @@ proptest! {
             _ => prop_assert!(false, "fast_greedy_modularity determinism mismatch"),
         }
     }
+
+    // ALGO-CO-006b: Weighted edge_betweenness_community invariants. Unit
+    // weights through the weighted entrypoint must reproduce the
+    // unweighted CO-006 dendrogram bit-for-bit (same shortest paths).
+    #[test]
+    fn edge_betweenness_community_weighted_unit_matches_unweighted(g in arb_graph(10)) {
+        if g.is_directed() {
+            return Ok(());
+        }
+        let weights = vec![1.0_f64; g.ecount()];
+        let ru = match rust_igraph::edge_betweenness_community(&g) {
+            Ok(r) => r,
+            Err(_) => return Ok(()),
+        };
+        let rw = match rust_igraph::edge_betweenness_community_weighted(&g, &weights) {
+            Ok(r) => r,
+            Err(_) => return Ok(()),
+        };
+        prop_assert_eq!(rw.nb_clusters, ru.nb_clusters);
+        prop_assert_eq!(rw.removed_edges, ru.removed_edges);
+        prop_assert_eq!(rw.merges, ru.merges);
+        for (a, b) in rw.modularity.iter().zip(ru.modularity.iter()) {
+            prop_assert!((a - b).abs() < 1e-9,
+                "modularity divergence on unit weights: {} vs {}", a, b);
+        }
+    }
+
+    #[test]
+    fn edge_betweenness_community_weighted_deterministic(g in arb_graph(10)) {
+        if g.is_directed() {
+            return Ok(());
+        }
+        let weights = vec![1.0_f64; g.ecount()];
+        let a = rust_igraph::edge_betweenness_community_weighted(&g, &weights);
+        let b = rust_igraph::edge_betweenness_community_weighted(&g, &weights);
+        match (a, b) {
+            (Ok(a), Ok(b)) => {
+                prop_assert_eq!(a.membership, b.membership);
+                prop_assert_eq!(a.removed_edges, b.removed_edges);
+                prop_assert_eq!(a.merges, b.merges);
+            }
+            (Err(_), Err(_)) => {}
+            _ => prop_assert!(false, "edge_betweenness_community_weighted determinism mismatch"),
+        }
+    }
 }

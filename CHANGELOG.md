@@ -15,6 +15,72 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CO-006b** — Weighted edge betweenness community detection
+  (Newman M. E. J., Girvan M. 2004, *Finding and evaluating community
+  structure in networks*, Phys. Rev. E 69, 026113 — weighted variant of
+  the Girvan-Newman 2002 algorithm). New public entrypoint:
+  - `edge_betweenness_community_weighted(graph, weights) ->
+    Result<EdgeBetweennessResult>` — reuses the same
+    `EdgeBetweennessResult { membership, nb_clusters, removed_edges,
+    edge_betweenness, merges, bridges, modularity }` as the unweighted
+    CO-006 slice. Accepts an explicit `&[f64]` of length `ecount`;
+    rejects directed graphs with `IgraphError::Unsupported(...)`
+    (delegated to ALGO-CO-006c) and rejects any NaN / negative /
+    non-finite weight with `IgraphError::InvalidArgument(...)`.
+  - Per removal: weighted Brandes pass over Dijkstra shortest paths
+    (`BinaryHeap<Frontier>` min-heap; `Frontier` ordering uses
+    `f64::total_cmp` after weight validation so the heap stays
+    deterministic) restricted to the *active* edge mask. Tie-break is
+    the smallest active edge id, mirroring the upstream linear scan.
+    `edge_betweenness[i]` is the weighted betweenness of the *i*-th
+    removed edge at the moment of removal (halved for undirected to
+    match the centrality convention).
+  - Stage 2 replays removals in reverse to build the binary dendrogram
+    and recomputes modularity at every merge via the standalone
+    `modularity_weighted` (so `m = Σ w_e`, not `m = ecount`); best-Q
+    membership is densified to `0..nb_clusters` and returned.
+  - Edges are masked via private per-vertex `Vec<EdgeId>` incidence
+    lists with `retain`, never via `graph.delete_edges`, so the
+    original `EdgeId`s stay stable across the whole run and callers
+    can replay any cut from `removed_edges`.
+  - Invariant: with `weights = [1.0; ecount]` this entrypoint must
+    reproduce the unweighted CO-006 dendrogram bit-for-bit (membership,
+    nb_clusters, removed_edges, merges identical; modularity within
+    1e-9). Enforced by 3 integration tests
+    (`unit_weights_match_unweighted_on_karate`,
+    `unit_weights_match_unweighted_on_two_triangles_bridge`,
+    `unit_weights_match_unweighted_path_5`) and 2 proptests on
+    `arb_graph(10)` (`edge_betweenness_community_weighted_unit_matches_unweighted`
+    + `edge_betweenness_community_weighted_deterministic`).
+  - Cheap-bridge fixtures: two K4 + bridge w=0.1 (the bridge sits on
+    every cross-clique shortest path → carries the largest weighted
+    betweenness → first removed, K4s stay internally connected at the
+    best cut, k = 2); two K3 + bridge w=0.1 (analogous on triangles);
+    karate weighted-Q ≥ 0.35 self-consistent with `modularity_weighted`
+    of the returned partition.
+  - Complexity: `O(|V| · |E| · (|E| + |V| log |V|))` — the per-removal
+    Dijkstra-Brandes pass dominates.
+  - Test surface: 11 unit tests in module + 13 integration tests in
+    `tests/edge_betweenness_community_weighted.rs` + 2 proptests in
+    `tests/property.rs` + 6 conformance fixtures across C/py/R
+    (`tests/conformance/{c,py,r}/edge_betweenness_community_weighted/`).
+    Conformance test exercises the Q envelope + k range via
+    `modularity_weighted` of the returned partition (same shape as the
+    fast_greedy and unweighted-EB conformance oracles).
+  - Bench (`benches/bench_eb_community_weighted.rs`, Apple Silicon):
+    path-10 unit ~35.7 µs / two-K4-bridge unit ~36.4 µs /
+    ring-of-cliques(4×5) unit ~218 µs / karate unit ~1.76 ms; baseline
+    via `python-igraph 0.11.9
+    Graph.community_edge_betweenness(weights=[1.0]*ecount)` — Rust
+    runs karate in ~79% of python-igraph wall time and matches
+    ring-of-cliques(4×5) within noise. ~2.6× slower than the
+    unweighted CO-006 on karate as expected from the Dijkstra-vs-BFS
+    heap overhead. Perf snapshot:
+    `.codefuse/tracking/perf/ALGO-CO-006b.json`.
+  - Example: `examples/eb_community_weighted_karate.rs` runs the karate
+    fixture once with unit weights, once with a tilted weight vector,
+    and prints the best partition + first few removals.
+
 - **ALGO-CO-007** — Fast greedy modularity community detection
   (Clauset A., Newman M. E. J., Moore C. 2004, *Finding community
   structure in very large networks*, Phys. Rev. E 70, 066111). Two

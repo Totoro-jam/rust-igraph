@@ -138,6 +138,11 @@ path = "benches/bench_eb_community.rs"
 harness = false
 
 [[bench]]
+name = "bench_eb_community_weighted"
+path = "benches/bench_eb_community_weighted.rs"
+harness = false
+
+[[bench]]
 name = "bench_fast_greedy"
 path = "benches/bench_fast_greedy.rs"
 harness = false

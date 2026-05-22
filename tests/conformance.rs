@@ -1479,6 +1479,104 @@ fn fast_greedy_modularity_three_source_conformance() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + Q range + k range
+fn edge_betweenness_community_weighted_three_source_conformance() {
+    // Weighted Girvan-Newman dendrogram. Best-Q partition is sensitive
+    // to tie-breaks across ports, so we accept a Q envelope (recomputed
+    // via standalone modularity_weighted) and a k range — same shape as
+    // the unweighted CO-006 oracle.
+    use rust_igraph::{edge_betweenness_community_weighted, modularity_weighted};
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("edge_betweenness_community_weighted");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes)
+                .expect("parse edge_betweenness_community_weighted fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case
+                .graph
+                .weights
+                .clone()
+                .expect("weighted fixture must carry graph.weights");
+            let r = edge_betweenness_community_weighted(&g, &weights)
+                .expect("edge_betweenness_community_weighted");
+            let q = modularity_weighted(&g, &r.membership, 1.0, &weights)
+                .expect("modularity_weighted")
+                .unwrap_or(0.0);
+            let exp = case
+                .expected
+                .as_object()
+                .expect("edge_betweenness_community_weighted `expected` must be an object");
+            let q_min = exp
+                .get("modularity_min")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_min");
+            let q_max = exp
+                .get("modularity_max")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_max");
+            let k_min = u32::try_from(
+                exp.get("k_min")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_min"),
+            )
+            .expect("k_min fits u32");
+            let k_max = u32::try_from(
+                exp.get("k_max")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_max"),
+            )
+            .expect("k_max fits u32");
+            assert!(
+                q >= q_min - 1e-9 && q <= q_max + 1e-9,
+                "{}: weighted Q = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                q,
+                q_min,
+                q_max,
+                case.origin,
+            );
+            assert!(
+                (k_min..=k_max).contains(&r.nb_clusters),
+                "{}: k = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                r.nb_clusters,
+                k_min,
+                k_max,
+                case.origin,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "edge_betweenness_community_weighted");
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no edge_betweenness_community_weighted fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
 #[allow(clippy::too_many_lines)] // three-source dispatch + k pin + Q range
 fn fluid_communities_three_source_conformance() {
     // Fluid Communities (Parés et al. 2017) is stochastic across

@@ -2186,6 +2186,62 @@ EB_COMMUNITY_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Weighted edge-betweenness community (ALGO-CO-006b). Upstream reference
+# C entry point: references/igraph/src/community/edge_betweenness.c
+# `igraph_community_edge_betweenness(..., weights=&w, ...)`. The C test
+# `igraph_community_edge_betweenness.c` exercises the unweighted path;
+# the weighted path is covered by the python-igraph oracle (same
+# algorithm with weights=...). Unit weights ≡ unweighted result.
+EB_COMMUNITY_WEIGHTED_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "eb_community_weighted_c_karate_unit",
+        # Famous("Zachary") with all unit weights — must reproduce the
+        # unweighted Girvan-Newman dendrogram exactly. Q/k envelope is
+        # identical to the unweighted slice.
+        "origin": "Famous('Zachary'); weighted EB community, unit weights; "
+        "Q ∈ [0.30, 0.45], k ∈ [2, 5]",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "graph_weights": [1.0] * 78,
+        "algo": "edge_betweenness_community_weighted",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.30,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 5,
+        },
+    },
+    {
+        "case": "eb_community_weighted_c_two_k4_cheap_bridge",
+        # Two K4s joined by a single bridge with weight 0.1; intra-clique
+        # edges have weight 1.0. The cheap bridge sits on every
+        # cross-component shortest path → first removed; best-Q under
+        # weighted modularity keeps each K4 intact. Q range widens
+        # slightly versus the unit case because the heavy intra-cluster
+        # edges dominate m = Σ w_e.
+        "origin": "two K4 + cheap-bridge (3,4) w=0.1; weighted EB community "
+        "k=2; Q ∈ [0.30, 0.50]",
+        "graph_factory": lambda: ig.Graph(
+            n=8,
+            edges=[
+                (0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3),
+                (4, 5), (4, 6), (4, 7), (5, 6), (5, 7), (6, 7),
+                (3, 4),
+            ],
+            directed=False,
+        ),
+        "graph_weights": [1.0] * 12 + [0.1],
+        "algo": "edge_betweenness_community_weighted",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.30,
+            "modularity_max": 0.50,
+            "k_min": 2,
+            "k_max": 3,
+        },
+    },
+]
+
 FLUID_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "fluid_c_karate_k2",
@@ -2858,6 +2914,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "label_propagation": LPA_MANIFEST,
     "fluid_communities": FLUID_MANIFEST,
     "edge_betweenness_community": EB_COMMUNITY_MANIFEST,
+    "edge_betweenness_community_weighted": EB_COMMUNITY_WEIGHTED_MANIFEST,
     "fast_greedy_modularity": FASTGREEDY_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,

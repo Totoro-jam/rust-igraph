@@ -9,6 +9,7 @@
 // `pub(crate)` so the inner module name doesn't double-list with the
 // function re-export in rustdoc.
 pub(crate) mod edge_betweenness_community;
+pub(crate) mod edge_betweenness_community_weighted;
 pub(crate) mod fast_greedy_modularity;
 pub(crate) mod fluid_communities;
 pub(crate) mod label_propagation;
@@ -17,6 +18,7 @@ pub(crate) mod louvain;
 pub(crate) mod modularity;
 
 pub use edge_betweenness_community::{EdgeBetweennessResult, edge_betweenness_community};
+pub use edge_betweenness_community_weighted::edge_betweenness_community_weighted;
 pub use fast_greedy_modularity::{
     FastGreedyResult, fast_greedy_modularity, fast_greedy_modularity_weighted,
 };

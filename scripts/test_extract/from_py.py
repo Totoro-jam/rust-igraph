@@ -2016,6 +2016,45 @@ EB_COMMUNITY_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Weighted edge-betweenness community (ALGO-CO-006b). python-igraph maps
+# to `g.community_edge_betweenness(weights=...)`. Unit-weight invocations
+# must reproduce the unweighted dendrogram identically; non-unit weights
+# bias the per-removal Brandes pass toward cheap-bridge first removals.
+EB_COMMUNITY_WEIGHTED_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "eb_community_weighted_py_karate_unit",
+        "origin": "Famous('Zachary'); community_edge_betweenness(weights=[1]*78); "
+        "Q ∈ [0.30, 0.45], k ∈ [2, 5]",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "graph_weights": [1.0] * 78,
+        "algo": "edge_betweenness_community_weighted",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.30,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 5,
+        },
+    },
+    {
+        "case": "eb_community_weighted_py_k5_k5_bridge_unit",
+        # Same K5+K5+bridge as the unweighted slice but routed through the
+        # weighted pipeline with unit weights ⇒ identical Q envelope.
+        "origin": "K5+K5+bridge (0,5); community_edge_betweenness(weights=[1]*21); "
+        "k=2; Q ∈ [0.40, 0.47]",
+        "graph_factory": lambda: ig.Graph.Full(5) + ig.Graph.Full(5) + [(0, 5)],
+        "graph_weights": [1.0] * 21,
+        "algo": "edge_betweenness_community_weighted",
+        "params": {},
+        "expected": {
+            "modularity_min": 0.40,
+            "modularity_max": 0.47,
+            "k_min": 2,
+            "k_max": 2,
+        },
+    },
+]
+
 FLUID_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "fluid_py_karate_k2",
@@ -2468,6 +2507,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "label_propagation": LPA_MANIFEST,
     "fluid_communities": FLUID_MANIFEST,
     "edge_betweenness_community": EB_COMMUNITY_MANIFEST,
+    "edge_betweenness_community_weighted": EB_COMMUNITY_WEIGHTED_MANIFEST,
     "fast_greedy_modularity": FASTGREEDY_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
