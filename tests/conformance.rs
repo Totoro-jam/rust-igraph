@@ -1044,6 +1044,122 @@ fn louvain_three_source_conformance() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + objective enum + dual range
+fn leiden_three_source_conformance() {
+    // Leiden partitions vary with shuffle order across implementations
+    // (Traag-Waltman-van Eck 2019 uses both a queue-based fast-move
+    // and an exp(diff/β) randomized refinement), so the conformance
+    // harness asserts on (a) the modularity-score window upstream
+    // attains and (b) the community count window. Exact-membership
+    // equality would be too brittle even within a single seed family.
+    use rust_igraph::{LeidenObjective, LeidenOptions, leiden_with_options};
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("leiden");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse leiden fixture JSON");
+            let g = build_graph(&case.graph);
+            let objective = match case
+                .params
+                .get("objective")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("modularity")
+            {
+                "modularity" => LeidenObjective::Modularity,
+                "cpm" | "CPM" => LeidenObjective::Cpm,
+                "er" | "ER" => LeidenObjective::Er,
+                other => panic!("unknown leiden objective: {other}"),
+            };
+            let resolution = case
+                .params
+                .get("resolution")
+                .and_then(serde_json::Value::as_f64)
+                .unwrap_or(1.0);
+            let opts = LeidenOptions {
+                objective,
+                resolution,
+                ..LeidenOptions::default()
+            };
+            let r = leiden_with_options(&g, case.graph.weights.as_deref(), &opts)
+                .expect("leiden_with_options");
+            let exp = case
+                .expected
+                .as_object()
+                .expect("leiden `expected` must be an object");
+            let q_min = exp
+                .get("modularity_min")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_min");
+            let q_max = exp
+                .get("modularity_max")
+                .and_then(serde_json::Value::as_f64)
+                .expect("modularity_max");
+            let k_min = u32::try_from(
+                exp.get("k_min")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_min"),
+            )
+            .expect("k_min fits u32");
+            let k_max = u32::try_from(
+                exp.get("k_max")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("k_max"),
+            )
+            .expect("k_max fits u32");
+            // Leiden's internal Q uses IGRAPH_LOOPS; on loop-free graphs
+            // this equals standalone modularity. All Leiden fixtures are
+            // loop-free, so r.quality is directly comparable.
+            assert!(
+                r.quality >= q_min - 1e-9 && r.quality <= q_max + 1e-9,
+                "{}: Q = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                r.quality,
+                q_min,
+                q_max,
+                case.origin,
+            );
+            assert!(
+                (k_min..=k_max).contains(&r.nb_clusters),
+                "{}: k = {} outside [{}, {}] (origin: {})",
+                path.display(),
+                r.nb_clusters,
+                k_min,
+                k_max,
+                case.origin,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "leiden");
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no leiden fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
 fn modularity_three_source_conformance() {
     run_conformance("modularity", |g, params| {
         let membership: Vec<u32> = params

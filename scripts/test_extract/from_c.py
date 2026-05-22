@@ -2045,6 +2045,54 @@ LOUVAIN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Leiden (ALGO-CO-003). Upstream reference C entry point:
+# references/igraph/src/community/leiden.c
+# `igraph_community_leiden` / `igraph_community_leiden_simple`. Leiden
+# is non-deterministic across implementations (different shuffle / RNG /
+# tie-breaking strategies), so we assert on a Q-range and a k-window
+# rather than an exact membership vector — same pattern as Louvain.
+LEIDEN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "leiden_c_karate_zachary",
+        "origin": "Famous('Zachary'); Leiden Modularity Q ≈ 0.39..0.45, "
+        "k ≈ 4 (python-igraph community_leiden cross-checked, "
+        "objective=\"modularity\")",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "leiden",
+        "params": {"objective": "modularity", "resolution": 1.0},
+        "expected": {
+            "modularity_min": 0.36,
+            "modularity_max": 0.46,
+            "k_min": 2,
+            "k_max": 8,
+        },
+    },
+    {
+        "case": "leiden_c_two_k4_bridge",
+        # Two K4s joined by a single bridge edge — Leiden must split
+        # them with Q in the same range as Louvain (≈ 0.4231).
+        "origin": "constructed: two K4 + bridge (3,4); Leiden k=2, "
+        "Q ≈ 0.4231",
+        "graph_factory": lambda: ig.Graph(
+            n=8,
+            edges=[
+                (0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3),
+                (4, 5), (4, 6), (4, 7), (5, 6), (5, 7), (6, 7),
+                (3, 4),
+            ],
+            directed=False,
+        ),
+        "algo": "leiden",
+        "params": {"objective": "modularity", "resolution": 1.0},
+        "expected": {
+            "modularity_min": 0.40,
+            "modularity_max": 0.45,
+            "k_min": 2,
+            "k_max": 3,
+        },
+    },
+]
+
 MODULARITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_c_two_triangles_bridge_split",
@@ -2627,6 +2675,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
     "louvain": LOUVAIN_MANIFEST,
+    "leiden": LEIDEN_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,

@@ -1909,6 +1909,42 @@ LOUVAIN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Leiden (ALGO-CO-003). python-igraph entrypoint:
+# `Graph.community_leiden`. Same Q-range + k-window oracle as Louvain;
+# Leiden is non-deterministic across implementations so we never assert
+# exact membership.
+LEIDEN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "leiden_py_karate",
+        "origin": "tests/test_clustering.py CommunityDetectionTests "
+        "(Famous('Zachary'), community_leiden); modularity objective, "
+        "Q ≈ 0.39..0.45, k ≈ 4",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "algo": "leiden",
+        "params": {"objective": "modularity", "resolution": 1.0},
+        "expected": {
+            "modularity_min": 0.36,
+            "modularity_max": 0.46,
+            "k_min": 2,
+            "k_max": 8,
+        },
+    },
+    {
+        "case": "leiden_py_full5_full5_bridge",
+        "origin": "test_structural.py-style K5+K5+bridge run through "
+        "community_leiden; k=2, Q ≈ 0.45",
+        "graph_factory": lambda: ig.Graph.Full(5) + ig.Graph.Full(5) + [(0, 5)],
+        "algo": "leiden",
+        "params": {"objective": "modularity", "resolution": 1.0},
+        "expected": {
+            "modularity_min": 0.42,
+            "modularity_max": 0.47,
+            "k_min": 2,
+            "k_max": 3,
+        },
+    },
+]
+
 MODULARITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "modularity_py_full5_full5_bridge",
@@ -2290,6 +2326,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
     "louvain": LOUVAIN_MANIFEST,
+    "leiden": LEIDEN_MANIFEST,
     "modularity": MODULARITY_MANIFEST,
     "is_simple": IS_SIMPLE_MANIFEST,
     "has_loop": HAS_LOOP_MANIFEST,
