@@ -1,0 +1,102 @@
+{
+  "awu_id": "ALGO-CM-015",
+  "algorithm": "compare_communities",
+  "module": "src/algorithms/community/compare_communities.rs",
+  "captured_on": "2026-05-22",
+  "host": "darwin (Apple Silicon)",
+  "rust_toolchain": "stable (cargo bench --quick)",
+  "criterion_bench_file": "benches/bench_compare_communities.rs",
+  "rust": {
+    "vi_small_us": {
+      "median": 6.36,
+      "lo": 6.34,
+      "hi": 6.37,
+      "label": "compare_communities/vi small n=256 k=8"
+    },
+    "vi_medium_us": {
+      "median": 196.59,
+      "lo": 196.57,
+      "hi": 196.66,
+      "label": "compare_communities/vi medium n=10000 k=100"
+    },
+    "nmi_small_us": {
+      "median": 6.31,
+      "lo": 6.28,
+      "hi": 6.32,
+      "label": "compare_communities/nmi small n=256 k=8"
+    },
+    "nmi_medium_us": {
+      "median": 197.06,
+      "lo": 196.81,
+      "hi": 197.13,
+      "label": "compare_communities/nmi medium n=10000 k=100"
+    },
+    "split_join_small_us": {
+      "median": 5.46,
+      "lo": 5.46,
+      "hi": 5.49,
+      "label": "compare_communities/split_join small n=256 k=8"
+    },
+    "split_join_medium_us": {
+      "median": 207.85,
+      "lo": 206.94,
+      "hi": 208.08,
+      "label": "compare_communities/split_join medium n=10000 k=100"
+    },
+    "rand_small_us": {
+      "median": 5.54,
+      "lo": 5.52,
+      "hi": 5.64,
+      "label": "compare_communities/rand small n=256 k=8"
+    },
+    "rand_medium_us": {
+      "median": 182.23,
+      "lo": 182.07,
+      "hi": 182.87,
+      "label": "compare_communities/rand medium n=10000 k=100"
+    },
+    "adjusted_rand_small_us": {
+      "median": 5.52,
+      "lo": 5.51,
+      "hi": 5.52,
+      "label": "compare_communities/adjusted_rand small n=256 k=8"
+    },
+    "adjusted_rand_medium_us": {
+      "median": 184.27,
+      "lo": 182.47,
+      "hi": 191.46,
+      "label": "compare_communities/adjusted_rand medium n=10000 k=100"
+    }
+  },
+  "python_igraph": {
+    "_meta": "python-igraph 0.11.9 — igraph.compare_communities(comm1, comm2, method=...). Method names: 'vi','nmi','split_join','rand','adjusted_rand'. Timed over 100 calls/sample, 5 samples, min reported.",
+    "vi_small_us": 15.58,
+    "vi_medium_us": 542.91,
+    "nmi_small_us": 15.48,
+    "nmi_medium_us": 542.38,
+    "split_join_small_us": 14.94,
+    "split_join_medium_us": 518.72,
+    "rand_small_us": 15.41,
+    "rand_medium_us": 539.25,
+    "adjusted_rand_small_us": 15.61,
+    "adjusted_rand_medium_us": 547.26
+  },
+  "speedup_vs_python_igraph": {
+    "vi_small": 2.45,
+    "vi_medium": 2.76,
+    "nmi_small": 2.45,
+    "nmi_medium": 2.75,
+    "split_join_small": 2.74,
+    "split_join_medium": 2.50,
+    "rand_small": 2.78,
+    "rand_medium": 2.96,
+    "adjusted_rand_small": 2.83,
+    "adjusted_rand_medium": 2.97
+  },
+  "notes": [
+    "All five methods share the same sparse confusion-matrix build (HashMap<(u32,u32), u32>); per-method cost differs only in the post-build summary (entropy/log for VI/NMI, max-row/max-col for split_join, pair-counting for rand/adjusted_rand).",
+    "Per upstream convention this implementation uses natural logarithms throughout (matches python-igraph docstring: 'igraph uses natural logarithms').",
+    "VI/NMI are 1.5-3% slower than rand at medium size because the entropy pass walks the dense p1/p2 vectors with log; rand only counts pair sums.",
+    "Speedup over python-igraph is modest (~2.5-3x) because python-igraph delegates to the C core for the heavy lifting — the gap mostly reflects FFI overhead avoided."
+  ]
+}

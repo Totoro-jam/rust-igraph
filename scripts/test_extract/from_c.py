@@ -3020,6 +3020,34 @@ COMMUNITY_TO_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COMPARE_COMMUNITIES_MANIFEST: List[Dict[str, Any]] = [
+    # `igraph_compare_communities` in
+    # references/igraph/src/community/community_misc.c. The C
+    # reference ships a `community_comparison.out` printer but its
+    # numeric outputs come from running the same algorithm under the
+    # listed method. The fixtures below cover the closed-form values
+    # for identical / partially overlapping / fully-disagreeing
+    # partitions, each method gets at least one fixture.
+    {
+        "case": "compare_communities_c_identical_nmi_1",
+        "origin": "C reference community_misc.c igraph_compare_communities: "
+        "identical partitions on n=6 — NMI=1, VI=0, SJ=0, Rand=1, AR=1.",
+        "comm1": [0, 0, 1, 1, 2, 2],
+        "comm2": [7, 7, 3, 3, 9, 9],
+        "method": "normalized_mutual_information",
+        "expected": {"value": 1.0},
+    },
+    {
+        "case": "compare_communities_c_full_disagreement_2x2",
+        "origin": "C reference community_misc.c igraph_compare_communities: "
+        "full-disagreement 2x2 confusion (n=4) — Rand index = 1/3.",
+        "comm1": [0, 0, 1, 1],
+        "comm2": [0, 1, 0, 1],
+        "method": "rand",
+        "expected": {"value": 1.0 / 3.0},
+    },
+]
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # `igraph_reindex_membership` /
     # `igraph_i_reindex_membership_large` in
@@ -3051,6 +3079,7 @@ REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
+    "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
@@ -3216,6 +3245,27 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 },
                 "algo": algo,
                 "params": {"membership": membership},
+                "expected": entry["expected"],
+            }
+        elif algo == "compare_communities":
+            # Pure helper on two membership vectors — no graph input.
+            comm1 = [int(c) for c in entry["comm1"]]
+            comm2 = [int(c) for c in entry["comm2"]]
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": {
+                    "n": len(comm1),
+                    "edges": [],
+                    "directed": False,
+                    "weights": None,
+                },
+                "algo": algo,
+                "params": {
+                    "comm1": comm1,
+                    "comm2": comm2,
+                    "method": entry["method"],
+                },
                 "expected": entry["expected"],
             }
         else:

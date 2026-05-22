@@ -15,6 +15,60 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CM-015** — `compare_communities` (5 partition-distance metrics).
+  Pure-function helper mirroring `igraph_compare_communities` in
+  `references/igraph/src/community/community_misc.c`. Given two membership
+  vectors of equal length, computes one of five partition-distance
+  measures and returns it as a single `f64`.
+  - `compare_communities(comm1: &[u32], comm2: &[u32], method: CommunityComparison) -> IgraphResult<f64>`
+    with `CommunityComparison { VariationOfInformation,
+    NormalizedMutualInformation, SplitJoin, Rand, AdjustedRand }`.
+  - Methods: `VariationOfInformation` (Meilă 2003, `VI = H(C₁|C₂) +
+    H(C₂|C₁)`, natural-log basis matching igraph C / python-igraph);
+    `NormalizedMutualInformation` (Danon 2005, `2·I(C₁,C₂)/(H₁+H₂)`
+    clamped to `[0,1]`; the `H₁ = H₂ = 0` degenerate case returns 1);
+    `SplitJoin` (van Dongen 2000, `2n − Σᵢmax_j n_ij − Σⱼmax_i n_ij`);
+    `Rand` (Rand 1971, agreeing pairs / total pairs in `[0,1]`);
+    `AdjustedRand` (Hubert-Arabie 1985, `(RI − E[RI])/(max RI − E[RI])`
+    with `0/0 → 1` per sklearn for single-cluster pairs).
+  - Algorithm: densifies both inputs via `reindex_membership` (CM-014),
+    then builds a sparse `HashMap<(u32, u32), u32>` confusion matrix
+    (O(observed) memory, not dense O(k₁·k₂)). Per-method post-processing
+    walks the dense `p₁`/`p₂` marginals plus a single sparse-matrix
+    pass.
+  - Complexity: O(n + S) where S is the number of observed sparse cells;
+    allocates the two densified vectors plus the confusion-matrix
+    `HashMap`.
+  - Empty inputs: VI=0 / NMI=1 / SJ=0; Rand and AdjustedRand error
+    (pair-count denominator is 0).
+  - Test coverage: 11 unit tests (identical 6v partition with relabel,
+    two-class disagreement closed-form `VI = 2·ln(2)`, four-vertex
+    full disagreement closed-form `Rand = 1/3` `AR = −0.5` `SJ = 4`,
+    single-cluster vs single-cluster `NMI = 1` and `AR = 1` 0/0 case,
+    three-way subpartition split-join, empty input degenerate cases,
+    the three error paths) + 7 proptests over 64 cases each
+    (NMI ∈ [0,1], VI ≥ 0, Rand ∈ [0,1], AR ≤ 1, relabel-invariance
+    under arbitrary id remap, NMI symmetric in arguments,
+    identical-partition extremals: VI=0 / NMI=1 / SJ=0 / Rand=1 /
+    AR=1) + 6 three-source conformance fixtures (2 each from c/py/r
+    covering all 5 methods at least once; expected scalar comparison
+    within 1e-9 to closed-form arithmetic; the conformance test accepts
+    both `{"value": f64}` (C/py) and bare scalar (R), and both
+    snake_case (`nmi`, `split_join`, ...) and Rust CamelCase
+    (`NormalizedMutualInformation`, ...) method names).
+  - Bench (release, criterion `--quick`, Apple Silicon): VI/NMI small
+    256v/8c ~6.4 µs, medium 10000v/100c ~197 µs; Rand/AdjustedRand
+    small ~5.5 µs, medium ~183 µs; SplitJoin small ~5.5 µs, medium
+    ~208 µs. Vs python-igraph 0.11.9 `igraph.compare_communities`:
+    2.5–3× faster across all 5 methods at both sizes (modest because
+    python-igraph itself delegates to the C core; the gap mostly
+    reflects FFI overhead avoided).
+  - Example: `cargo run --release --example
+    compare_communities_walktrap_louvain_karate` runs walktrap and
+    louvain on Zachary's karate club, prints all 5 metrics for the
+    walktrap-vs-louvain pair (NMI ≈ 0.82, AR ≈ 0.77) plus a
+    walktrap-stability cell at steps=4 vs steps=8 (AR ≈ 0.53).
+
 - **ALGO-CM-014** — `reindex_membership` (densify membership labels).
   Pure-function helper mirroring `igraph_reindex_membership` +
   `igraph_i_reindex_membership_large` in

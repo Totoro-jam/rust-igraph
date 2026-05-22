@@ -4546,3 +4546,108 @@ fn count_adjacent_triangles_three_source_conformance() {
         serde_json::json!(v)
     });
 }
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + 5 method decode
+fn compare_communities_three_source_conformance() {
+    // Partition-distance helper. Each fixture carries two membership
+    // vectors and the method name; the expected value is a scalar f64
+    // that we compare within 1e-9 tolerance (Meilă/Danon/Hubert-Arabie
+    // formulas are closed-form rationals, so the only float drift comes
+    // from log2 rounding).
+    use rust_igraph::{CommunityComparison, compare_communities};
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("compare_communities");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes).expect("parse fixture JSON");
+            assert_eq!(case.algo, "compare_communities");
+
+            let params = case.params.as_object().expect("params must be an object");
+            let comm1: Vec<u32> = params
+                .get("comm1")
+                .and_then(serde_json::Value::as_array)
+                .expect("params.comm1")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("comm1 entry")).expect("comm1 entry fits u32")
+                })
+                .collect();
+            let comm2: Vec<u32> = params
+                .get("comm2")
+                .and_then(serde_json::Value::as_array)
+                .expect("params.comm2")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("comm2 entry")).expect("comm2 entry fits u32")
+                })
+                .collect();
+            let method_str = params
+                .get("method")
+                .and_then(serde_json::Value::as_str)
+                .expect("params.method");
+            // Accept both Rust CamelCase (the R-igraph manifest, for
+            // consistency with the public enum) and the upstream
+            // snake_case spelling used in igraph C / python-igraph.
+            let method = match method_str {
+                "VariationOfInformation" | "vi" | "variation_of_information" => {
+                    CommunityComparison::VariationOfInformation
+                }
+                "NormalizedMutualInformation" | "nmi" | "normalized_mutual_information" => {
+                    CommunityComparison::NormalizedMutualInformation
+                }
+                "SplitJoin" | "split_join" => CommunityComparison::SplitJoin,
+                "Rand" | "rand" => CommunityComparison::Rand,
+                "AdjustedRand" | "adjusted_rand" => CommunityComparison::AdjustedRand,
+                other => panic!("unknown method {other} in {}", path.display()),
+            };
+
+            let got = compare_communities(&comm1, &comm2, method).expect("compare_communities");
+            // Accept either a bare scalar (R manifest) or `{"value": f64}`
+            // (C and py manifests).
+            let expected = case
+                .expected
+                .as_f64()
+                .or_else(|| {
+                    case.expected
+                        .as_object()
+                        .and_then(|m| m.get("value"))
+                        .and_then(serde_json::Value::as_f64)
+                })
+                .expect("expected must be f64 or {value: f64}");
+
+            assert!(
+                (got - expected).abs() < 1e-9,
+                "{}: {method_str} mismatch — got {got}, expected {expected} (origin: {})",
+                path.display(),
+                case.origin,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no compare_communities fixtures from source {src}"
+        );
+    }
+}

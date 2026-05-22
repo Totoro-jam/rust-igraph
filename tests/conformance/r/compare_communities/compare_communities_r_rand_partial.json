@@ -1,0 +1,27 @@
+{
+  "source": "r",
+  "origin": "R-igraph compare() parity: 4-vertex split where rand index = 4/6 (4 agreeing pairs out of 6 total pairs)",
+  "graph": {
+    "n": 4,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "compare_communities",
+  "params": {
+    "comm1": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "comm2": [
+      0,
+      1,
+      0,
+      1
+    ],
+    "method": "Rand"
+  },
+  "expected": 0.3333333333333333
+}

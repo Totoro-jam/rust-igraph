@@ -2600,6 +2600,33 @@ COMMUNITY_TO_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COMPARE_COMMUNITIES_MANIFEST: List[Dict[str, Any]] = [
+    # python-igraph exposes `compare_communities(comm1, comm2, method)`
+    # at module level (and as the `compare_to` method of
+    # `VertexClustering`). Values below are computed via
+    # `igraph.compare_communities(...)` and reproduced here as fixed
+    # references; the conformance test asserts the Rust result is
+    # within 1e-9 of these values.
+    {
+        "case": "compare_communities_py_split_join_subpartition",
+        "origin": "python-igraph igraph.compare_communities(method='split_join'): "
+        "refinement (b refines a) — d12=2, d21=0, sum=2.",
+        "comm1": [0, 0, 0, 1, 1, 1],
+        "comm2": [5, 5, 6, 7, 7, 8],
+        "method": "split_join",
+        "expected": {"value": 2.0},
+    },
+    {
+        "case": "compare_communities_py_adjusted_rand_full_disagreement",
+        "origin": "python-igraph igraph.compare_communities(method='adjusted_rand'): "
+        "2x2 full-disagreement confusion (n=4) — AR = -0.5.",
+        "comm1": [0, 0, 1, 1],
+        "comm2": [0, 1, 0, 1],
+        "method": "adjusted_rand",
+        "expected": {"value": -0.5},
+    },
+]
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # python-igraph does not expose `igraph_reindex_membership`
     # directly; the closest user-facing analogue is
@@ -2632,6 +2659,7 @@ REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
+    "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
@@ -2790,6 +2818,26 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 },
                 "algo": algo,
                 "params": {"membership": membership},
+                "expected": entry["expected"],
+            }
+        elif algo == "compare_communities":
+            comm1 = [int(c) for c in entry["comm1"]]
+            comm2 = [int(c) for c in entry["comm2"]]
+            payload = {
+                "source": "py",
+                "origin": entry["origin"],
+                "graph": {
+                    "n": len(comm1),
+                    "edges": [],
+                    "directed": False,
+                    "weights": None,
+                },
+                "algo": algo,
+                "params": {
+                    "comm1": comm1,
+                    "comm2": comm2,
+                    "method": entry["method"],
+                },
                 "expected": entry["expected"],
             }
         else:

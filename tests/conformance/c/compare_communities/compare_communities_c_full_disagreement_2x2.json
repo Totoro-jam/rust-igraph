@@ -1,0 +1,29 @@
+{
+  "source": "c",
+  "origin": "C reference community_misc.c igraph_compare_communities: full-disagreement 2x2 confusion (n=4) \u2014 Rand index = 1/3.",
+  "graph": {
+    "n": 4,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "compare_communities",
+  "params": {
+    "comm1": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "comm2": [
+      0,
+      1,
+      0,
+      1
+    ],
+    "method": "rand"
+  },
+  "expected": {
+    "value": 0.3333333333333333
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "source": "py",
+  "origin": "python-igraph igraph.compare_communities(method='adjusted_rand'): 2x2 full-disagreement confusion (n=4) \u2014 AR = -0.5.",
+  "graph": {
+    "n": 4,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "compare_communities",
+  "params": {
+    "comm1": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "comm2": [
+      0,
+      1,
+      0,
+      1
+    ],
+    "method": "adjusted_rand"
+  },
+  "expected": {
+    "value": -0.5
+  }
+}

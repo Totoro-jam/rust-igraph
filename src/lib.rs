@@ -45,6 +45,9 @@ pub mod core;
 pub use crate::algorithms::community::community_to_membership::{
     CommunityToMembershipResult, community_to_membership,
 };
+pub use crate::algorithms::community::compare_communities::{
+    CommunityComparison, compare_communities,
+};
 pub use crate::algorithms::community::edge_betweenness_community::{
     EdgeBetweennessResult, edge_betweenness_community,
 };

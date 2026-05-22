@@ -162,6 +162,11 @@ name = "bench_reindex_membership"
 path = "benches/bench_reindex_membership.rs"
 harness = false
 
+[[bench]]
+name = "bench_compare_communities"
+path = "benches/bench_compare_communities.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

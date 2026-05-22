@@ -1,0 +1,31 @@
+{
+  "source": "r",
+  "origin": "R-igraph compare() parity: identical partitions \u21d2 variation of information is 0",
+  "graph": {
+    "n": 6,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "compare_communities",
+  "params": {
+    "comm1": [
+      0,
+      0,
+      1,
+      1,
+      2,
+      2
+    ],
+    "comm2": [
+      3,
+      3,
+      4,
+      4,
+      5,
+      5
+    ],
+    "method": "VariationOfInformation"
+  },
+  "expected": 0.0
+}

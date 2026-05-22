@@ -1,0 +1,33 @@
+{
+  "source": "c",
+  "origin": "C reference community_misc.c igraph_compare_communities: identical partitions on n=6 \u2014 NMI=1, VI=0, SJ=0, Rand=1, AR=1.",
+  "graph": {
+    "n": 6,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "compare_communities",
+  "params": {
+    "comm1": [
+      0,
+      0,
+      1,
+      1,
+      2,
+      2
+    ],
+    "comm2": [
+      7,
+      7,
+      3,
+      3,
+      9,
+      9
+    ],
+    "method": "normalized_mutual_information"
+  },
+  "expected": {
+    "value": 1.0
+  }
+}

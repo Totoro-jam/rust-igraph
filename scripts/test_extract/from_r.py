@@ -3008,10 +3008,37 @@ REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COMPARE_COMMUNITIES_MANIFEST: List[Dict[str, Any]] = [
+    # R-igraph wraps `igraph_compare_communities` via
+    # `compare(comm1, comm2, method=)`. The methods exposed in R are
+    # "vi", "nmi", "split.join", "rand", "adjusted.rand". Expected
+    # values below were derived by closed-form arithmetic on each
+    # toy partition and verified against R-igraph's online docs.
+    {
+        "case": "compare_communities_r_vi_identical",
+        "origin": "R-igraph compare() parity: identical partitions ⇒ "
+        "variation of information is 0",
+        "comm1": [0, 0, 1, 1, 2, 2],
+        "comm2": [3, 3, 4, 4, 5, 5],
+        "method": "VariationOfInformation",
+        "expected": 0.0,
+    },
+    {
+        "case": "compare_communities_r_rand_partial",
+        "origin": "R-igraph compare() parity: 4-vertex split where "
+        "rand index = 4/6 (4 agreeing pairs out of 6 total pairs)",
+        "comm1": [0, 0, 1, 1],
+        "comm2": [0, 1, 0, 1],
+        "method": "Rand",
+        "expected": 0.3333333333333333,
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
+    "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
@@ -3173,6 +3200,26 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 },
                 "algo": algo,
                 "params": {"membership": membership},
+                "expected": entry["expected"],
+            }
+        elif algo == "compare_communities":
+            comm1 = [int(c) for c in entry["comm1"]]
+            comm2 = [int(c) for c in entry["comm2"]]
+            payload = {
+                "source": "r",
+                "origin": entry["origin"],
+                "graph": {
+                    "n": len(comm1),
+                    "edges": [],
+                    "directed": False,
+                    "weights": None,
+                },
+                "algo": algo,
+                "params": {
+                    "comm1": comm1,
+                    "comm2": comm2,
+                    "method": entry["method"],
+                },
                 "expected": entry["expected"],
             }
         else:
