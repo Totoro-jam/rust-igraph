@@ -281,6 +281,41 @@ EIGEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EIGEN_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # K_3 with weights [2,2,2] — scaling the weights only scales the
+        # eigenvalue, the eigenvector (max-1) is unchanged. λ = 2·2 = 4.
+        "case": "eigenvector_w_R_K3_doubled",
+        "origin": "constructed (R-style): K_3 with weights 2.0 each; vec=[1,1,1], λ=4",
+        "graph_factory": lambda: ig.Graph.Full(n=3, directed=False),
+        "graph_weights": [2.0, 2.0, 2.0],
+        "algo": "eigenvector_centrality_weighted",
+        "params": {},
+        "expected": {
+            "vector": [1.0, 1.0, 1.0],
+            "eigenvalue": 4.0,
+        },
+    },
+]
+
+EIGEN_DIR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # Directed out-star (DAG): 0→{1..4}. ARPACK fallback returns
+        # 1s on sinks; with mode=OUT, sinks are leaves 1..4. λ=0.
+        "case": "eigenvector_dir_R_out_star_dag",
+        "origin": "DAG sentinel: directed out-star, mode=OUT; leaves=1, root=0",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (0, 2), (0, 3), (0, 4)], directed=True
+        ),
+        "algo": "eigenvector_centrality_directed",
+        "params": {"mode": "out"},
+        "expected": {
+            "vector": [0.0, 1.0, 1.0, 1.0, 1.0],
+            "eigenvalue": 0.0,
+        },
+    },
+]
+
 HITS_MANIFEST: List[Dict[str, Any]] = [
     {
         # R-igraph tests/testthat/test-centrality.R: the g2 fixture in
@@ -2484,6 +2519,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "biconnected_components": BC_MANIFEST,
     "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
+    "eigenvector_centrality_weighted": EIGEN_W_MANIFEST,
+    "eigenvector_centrality_directed": EIGEN_DIR_MANIFEST,
     "hub_and_authority_scores": HITS_MANIFEST,
     "hub_and_authority_scores_weighted": HITS_W_MANIFEST,
     "reciprocity": RECIP_MANIFEST,

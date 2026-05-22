@@ -262,6 +262,54 @@ EIGEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EIGEN_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # Upstream golden test (igraph_eigenvector_centrality.c):
+        # K_{1,4} star with unit weights — λ=2, vec=[1, 0.5, 0.5, 0.5, 0.5].
+        "case": "eigenvector_w_c_star_unit",
+        "origin": "igraph_eigenvector_centrality.c — weighted K_{1,4} with unit weights",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (0, 2), (0, 3), (0, 4)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0, 1.0, 1.0],
+        "algo": "eigenvector_centrality_weighted",
+        "params": {},
+        "expected": {
+            "vector": [1.0, 0.5, 0.5, 0.5, 0.5],
+            "eigenvalue": 2.0,
+        },
+    },
+]
+
+EIGEN_DIR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # Upstream golden test (igraph_eigenvector_centrality.c) —
+        # directed 4-cycle + chord 1→3 with mode=OUT. Real-root
+        # eigenvalue ≈ 1.220744, max-1 vec ≈ [0.819, 0.671, 0.550, 1.0].
+        "case": "eigenvector_dir_c_cycle_chord_out",
+        "origin": "igraph_eigenvector_centrality.c — directed 4-cycle+chord, mode=OUT",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 0), (1, 3)],
+            directed=True,
+        ),
+        "algo": "eigenvector_centrality_directed",
+        "params": {"mode": "out"},
+        # Reference values from python-igraph ARPACK on this exact graph.
+        # Our shifted-power-iter agrees to ~1e-12 (within json_approx_eq
+        # relative tolerance).
+        "expected": {
+            "vector": [
+                0.8191725133961644,
+                0.6710436067037893,
+                0.5497004779019702,
+                1.0,
+            ],
+            "eigenvalue": 1.2207440846057593,
+        },
+    },
+]
+
 HITS_MANIFEST: List[Dict[str, Any]] = [
     {
         # Mirrors the "Three vertices, no links" case from upstream
@@ -2595,6 +2643,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "biconnected_components": BC_MANIFEST,
     "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
+    "eigenvector_centrality_weighted": EIGEN_W_MANIFEST,
+    "eigenvector_centrality_directed": EIGEN_DIR_MANIFEST,
     "hub_and_authority_scores": HITS_MANIFEST,
     "hub_and_authority_scores_weighted": HITS_W_MANIFEST,
     "reciprocity": RECIP_MANIFEST,

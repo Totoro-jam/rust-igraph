@@ -1,0 +1,44 @@
+{
+  "source": "c",
+  "origin": "igraph_eigenvector_centrality.c \u2014 weighted K_{1,4} with unit weights",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "algo": "eigenvector_centrality_weighted",
+  "params": {},
+  "expected": {
+    "vector": [
+      1.0,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+    ],
+    "eigenvalue": 2.0
+  }
+}

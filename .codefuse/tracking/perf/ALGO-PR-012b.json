@@ -1,0 +1,11 @@
+{
+  "awu": "ALGO-PR-012b",
+  "rust_eigenvector_undirected_karate_ns": 14690,
+  "rust_eigenvector_undirected_karate_weighted_ns": 27600,
+  "rust_eigenvector_directed_ring_500_ns": 17377,
+  "rust_eigenvector_directed_ring_500_weighted_ns": 6231400,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-22",
+  "git_commit": "ecc131c",
+  "notes": "PR-012b adds the weighted + directed eigenvector centrality variants (EigenvectorMode, EigenvectorScores, _weighted, _directed, _directed_weighted, _full master). Implementation is self-rolled shifted-power-iter on (M+σI) with σ = max_row_norm+1 — guarantees the largest-real eigenvalue of non-negative M becomes the unique largest-magnitude eigenvalue of M+σI by Perron-Frobenius, so plain power iter converges. Rayleigh quotient is used for the final λ. Undirected karate ~15µs / 28µs (unit vs varied weights, ~2× slowdown matches PR-017b's pattern). Directed ring(500) unweighted converges in 1 step (uniform circulant fixed point) → 17µs; weighted ring is the matvec-dominated case at 6.2ms. DAG short-circuit returns 1s on sinks (Out) / sources (In) as upstream does. Negative-weight branch tracks signed pivot for largest-real convergence. Future optimization: CSR layout + fused matvec would amortize the per-iter walk cost on dense weighted graphs; the structure already mirrors hits.rs so a shared kernel is feasible. Tolerance to ARPACK numerical drift chosen at 1e-9 for three-source conformance."
+}

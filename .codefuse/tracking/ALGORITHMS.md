@@ -146,7 +146,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-011b | Weighted PageRank (`pagerank_weighted`, power iteration) | centrality/pagerank.c | ~180 | adapt | PR-011 | done | (next) | O(iter*(V+E)) power | C:1 / py:1 / R:1 |
 | ALGO-PR-011c | PageRank ARPACK backend | centrality/pagerank.c | ~250 | rewrite | PR-011 | todo | - | - | - |
 | ALGO-PR-012 | Eigenvector centrality (`eigenvector_centrality`, undirected) | centrality/eigenvector.c | ~120 | adapt | - | done | (next) | shifted power | C:1 / py:1 / R:1 |
-| ALGO-PR-012b | Directed eigenvector + ARPACK + weighted | centrality/eigenvector.c | ~250 | rewrite | PR-012 | todo | - | - | - |
+| ALGO-PR-012b | Directed eigenvector + weighted (`eigenvector_centrality_weighted`, `eigenvector_centrality_directed`, `eigenvector_centrality_directed_weighted`, `eigenvector_centrality_full`; self-rolled shifted power-iter on (M+σI), Perron-Frobenius guarantee, DAG sentinel, Rayleigh-quotient λ) | centrality/eigenvector.c | ~600 | rewrite | PR-012 | done | (next) | shifted power on (M+σI) | weighted: C:1/py:1/R:1; directed: C:1/py:1/R:1 |
 | ALGO-OP-001 | Simplify graph (`simplify`: remove loops + multi-edges) | operators/simplify.c | ~200 | adapt | CORE-001a/d | done | (next) | O(V + E log E) | C:1 / py:1 / R:1 |
 | ALGO-OP-002 | Disjoint union (`disjoint_union`, two-graph variant) | operators/disjoint_union.c | ~80 | adapt | CORE-001a | done | (next) | O(V + E) | C:1 / py:1 / R:1 |
 | ALGO-OP-002b | Multi-arg `disjoint_union_many` | operators/disjoint_union.c | ~80 | adapt | OP-002 | done | (next) | O(ΣV + ΣE) | C:1 / py:1 / R:1 |
@@ -195,7 +195,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 | Phase | done | wip | todo | native | total | Conformance fixtures |
 |-------|------|-----|------|--------|-------|----------------------|
 | 0 (BOOT) | 37 | 0 | 0 | 0 | 37 | bfs: 4 (C:2, py:1, R:1) |
-| 1 | 97 | 0 | 1 | 5 (DS-V/M/S/SEL/ADJ) | 103 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; ecc/radius/diameter_with_mode: 9; triangles+transitivity: 10; transitivity_barrat: 3; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001c: no fixtures; CORE-001d: no fixtures; CORE-001f: no fixtures (internal cache); reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; assortativity_degree_directed_weighted: 3; floyd_warshall_distances: 3; decompose: 3; union: 3; intersection: 3; difference: 3; dijkstra_paths+path_to+cutoff: 9; dijkstra_with_mode+all_shortest_paths: 6; ecc/radius/diameter_weighted_with_mode: 9; a_star_path: 3; bellman_ford_distances: 9; johnson_distances: 6; widest_path_widths: 6; widest_path: 6; widest_path_widths_floyd_warshall: 6; widest_paths_to: 6; widest_paths: 6; edgelist_percolation: 6; bond_percolation: 6; site_percolation: 6; is_same_graph: 6; is_dag: 6; topological_sorting: 6; is_acyclic: 6; is_tree: 6; is_forest: 6; is_complete: 6; neighborhood_size: 6; neighborhood: 6; convergence_degree: 6; count_loops: 6; count_multiple: 6; count_adjacent_triangles: 6; global_efficiency: 6; local_efficiency+average_local_efficiency: 8 (py skipped); hub_and_authority_scores: 6; hub_and_authority_scores_weighted: 3 |
+| 1 | 98 | 0 | 0 | 5 (DS-V/M/S/SEL/ADJ) | 103 | dfs: 3; cc: 4; scc: 4; distances: 3; is_eulerian: 5 (py skipped); articulation: 3; bridges: 4; is_biconnected: 4; girth: 4; ecc/radius/diameter: 9; ecc/radius/diameter_with_mode: 9; triangles+transitivity: 10; transitivity_barrat: 3; density+mean_distance: 6; eulerian_path: 3 (py skipped); count_reachable: 3; reciprocity: 3; knn: 3; assortativity: 3; CORE-001c: no fixtures; CORE-001d: no fixtures; CORE-001f: no fixtures (internal cache); reachability_matrix: 3; transitive_closure: 3; closeness: 3; harmonic: 3; betweenness: 3; edge_betweenness: 3; pagerank: 3; biconnected_components: 3; eigenvector: 3; simplify: 3; modularity: 3; is_simple: 3; has_loop+has_multiple: 6; is_loop+is_multiple: 6; disjoint_union: 3; dijkstra_distances: 3; complementer: 3; closeness_weighted: 3; harmonic_centrality_weighted: 3; betweenness_weighted: 3; edge_betweenness_weighted: 3; pagerank_weighted: 3; assortativity_degree_weighted: 3; assortativity_degree_directed_weighted: 3; floyd_warshall_distances: 3; decompose: 3; union: 3; intersection: 3; difference: 3; dijkstra_paths+path_to+cutoff: 9; dijkstra_with_mode+all_shortest_paths: 6; ecc/radius/diameter_weighted_with_mode: 9; a_star_path: 3; bellman_ford_distances: 9; johnson_distances: 6; widest_path_widths: 6; widest_path: 6; widest_path_widths_floyd_warshall: 6; widest_paths_to: 6; widest_paths: 6; edgelist_percolation: 6; bond_percolation: 6; site_percolation: 6; is_same_graph: 6; is_dag: 6; topological_sorting: 6; is_acyclic: 6; is_tree: 6; is_forest: 6; is_complete: 6; neighborhood_size: 6; neighborhood: 6; convergence_degree: 6; count_loops: 6; count_multiple: 6; count_adjacent_triangles: 6; global_efficiency: 6; local_efficiency+average_local_efficiency: 8 (py skipped); hub_and_authority_scores: 6; hub_and_authority_scores_weighted: 3; eigenvector_centrality_weighted: 3; eigenvector_centrality_directed: 3 |
 | 2-10 | 0 | 0 | ~543 | 0 | ~543 | - |
 
 > **Note on `native` rows.** rust-igraph borrows from igraph C / python-igraph
@@ -207,7 +207,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 > `todo` count, since they would otherwise distort the algorithm-progress
 > ratio.
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 81/85 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 82/85 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -260,10 +260,11 @@ global_efficiency (PR-029, Latora–Marchiori average inverse pairwise distance)
 local_efficiency + average_local_efficiency (PR-030, per-vertex inverse-distance among neighbours of `G\{v}` and its mean),
 property cache subsystem (CORE-001f, bit-packed boolean cache + selective invalidation; is_dag/is_forest/has_loop/has_multiple now O(1) on repeat),
 hub_and_authority_scores (PR-017, Kleinberg HITS — directed power-iter on A·Aᵀ; undirected delegates to eigenvector_centrality),
-hub_and_authority_scores_weighted (PR-017b, weighted Kleinberg HITS — directed power-iter on W·Wᵀ via incident-edge walks; undirected self-rolled shifted power-iter on W+I until PR-012b lands).
+hub_and_authority_scores_weighted (PR-017b, weighted Kleinberg HITS — directed power-iter on W·Wᵀ via incident-edge walks; undirected self-rolled shifted power-iter on W+I until PR-012b lands),
+PR-012b (directed + weighted eigenvector centrality — `eigenvector_centrality_weighted`, `eigenvector_centrality_directed`, `eigenvector_centrality_directed_weighted`, `eigenvector_centrality_full` master; self-rolled shifted-power-iter on (M+σI) with σ = max_row_norm+1 — Perron-Frobenius guarantees the largest-real eigenvalue of non-negative M becomes the unique largest-magnitude eigenvalue of M+σI so plain power iter converges; DAG short-circuit returns 1s on sinks (Out) / sources (In); Rayleigh quotient for λ; negative-weight path uses signed-pivot for largest-real convergence; bench: karate ~15µs/28µs, directed ring(500) ~17µs unweighted / 6.2ms weighted).
 Next options:
-PR-011c (PageRank ARPACK backend),
-PR-012b (directed eigenvector + ARPACK + weighted),
-DS-V/M/S/SEL/ADJ catalog work.
+PR-011c (PageRank ARPACK backend; may be redefined under self-roll guidance since PR-011 already converges via shifted power-iter parity to ARPACK),
+DS-V/M/S/SEL/ADJ catalog work,
+Phase 4 community detection (Louvain / Leiden / Label Propagation / Walktrap / Infomap, ~17 AWUs).
 
 > Update the counters after every PR merge.

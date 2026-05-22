@@ -239,6 +239,45 @@ EIGEN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+EIGEN_W_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # Triangle with unit weights — weighted adjacency = unweighted
+        # adjacency; closed-form vec=[1,1,1], λ=2.
+        "case": "eigenvector_w_py_triangle_unit",
+        "origin": "constructed: triangle with unit weights; vec=[1,1,1], λ=2",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0, 1.0],
+        "algo": "eigenvector_centrality_weighted",
+        "params": {},
+        "expected": {
+            "vector": [1.0, 1.0, 1.0],
+            "eigenvalue": 2.0,
+        },
+    },
+]
+
+EIGEN_DIR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # Directed K_5 (complete digraph, no loops): every vertex has
+        # equal centrality 1.0; eigenvalue = n-1 = 4. Mode = OUT.
+        "case": "eigenvector_dir_py_k5_directed_out",
+        "origin": "constructed: directed K5 (no loops); vec=[1,1,1,1,1], λ=4",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(u, v) for u in range(5) for v in range(5) if u != v],
+            directed=True,
+        ),
+        "algo": "eigenvector_centrality_directed",
+        "params": {"mode": "out"},
+        "expected": {
+            "vector": [1.0, 1.0, 1.0, 1.0, 1.0],
+            "eigenvalue": 4.0,
+        },
+    },
+]
+
 HITS_W_MANIFEST: List[Dict[str, Any]] = [
     {
         # Two hubs into one authority with weights (2, 3). Closed form:
@@ -2275,6 +2314,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "biconnected_components": BC_MANIFEST,
     "biconnected_component_edges": BC_EDGES_MANIFEST,
     "eigenvector_centrality": EIGEN_MANIFEST,
+    "eigenvector_centrality_weighted": EIGEN_W_MANIFEST,
+    "eigenvector_centrality_directed": EIGEN_DIR_MANIFEST,
     "hub_and_authority_scores": HITS_MANIFEST,
     "hub_and_authority_scores_weighted": HITS_W_MANIFEST,
     "reciprocity": RECIP_MANIFEST,

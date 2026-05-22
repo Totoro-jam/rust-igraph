@@ -646,6 +646,75 @@ fn eigenvector_centrality_three_source_conformance() {
 }
 
 #[test]
+fn eigenvector_centrality_weighted_three_source_conformance() {
+    // Bespoke fixture-walking runner (needs case.graph.weights).
+    fn chop(v: &[f64]) -> Vec<f64> {
+        v.iter()
+            .map(|&x| if x.abs() < 1e-9 { 0.0 } else { x })
+            .collect()
+    }
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("eigenvector_centrality_weighted");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone().unwrap_or_default();
+            let s = rust_igraph::eigenvector_centrality_weighted(&g, &weights)
+                .expect("eigenvector_centrality_weighted");
+            let actual = serde_json::json!({
+                "vector": chop(&s.vector),
+                "eigenvalue": s.eigenvalue,
+            });
+            assert!(
+                json_approx_eq(&actual, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                actual,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "eigenvector_centrality_weighted");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
+fn eigenvector_centrality_directed_three_source_conformance() {
+    fn chop(v: &[f64]) -> Vec<f64> {
+        v.iter()
+            .map(|&x| if x.abs() < 1e-9 { 0.0 } else { x })
+            .collect()
+    }
+    run_conformance("eigenvector_centrality_directed", |g, params| {
+        let mode = match params.get("mode").and_then(|v| v.as_str()).unwrap_or("out") {
+            "in" => rust_igraph::EigenvectorMode::In,
+            "all" => rust_igraph::EigenvectorMode::All,
+            _ => rust_igraph::EigenvectorMode::Out,
+        };
+        let s = rust_igraph::eigenvector_centrality_directed(g, mode)
+            .expect("eigenvector_centrality_directed");
+        serde_json::json!({
+            "vector": chop(&s.vector),
+            "eigenvalue": s.eigenvalue,
+        })
+    });
+}
+
+#[test]
 fn hub_and_authority_scores_three_source_conformance() {
     // Floor sub-1e-9 magnitudes to 0 to mirror upstream's vector_chop
     // pre-print step in tests/unit/hub_and_authority.c — without it,

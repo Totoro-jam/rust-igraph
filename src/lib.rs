@@ -115,7 +115,11 @@ pub use crate::algorithms::properties::edge_betweenness_weighted::edge_betweenne
 pub use crate::algorithms::properties::efficiency::{
     average_local_efficiency, global_efficiency, local_efficiency,
 };
-pub use crate::algorithms::properties::eigenvector::eigenvector_centrality;
+pub use crate::algorithms::properties::eigenvector::{
+    EigenvectorMode, EigenvectorScores, eigenvector_centrality, eigenvector_centrality_directed,
+    eigenvector_centrality_directed_weighted, eigenvector_centrality_full,
+    eigenvector_centrality_weighted,
+};
 pub use crate::algorithms::properties::girth::girth;
 pub use crate::algorithms::properties::harmonic::harmonic_centrality;
 pub use crate::algorithms::properties::harmonic_weighted::harmonic_centrality_weighted;

@@ -1,0 +1,41 @@
+{
+  "source": "r",
+  "origin": "DAG sentinel: directed out-star, mode=OUT; leaves=1, root=0",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "eigenvector_centrality_directed",
+  "params": {
+    "mode": "out"
+  },
+  "expected": {
+    "vector": [
+      0.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "eigenvalue": 0.0
+  }
+}

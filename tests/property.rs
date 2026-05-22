@@ -259,6 +259,55 @@ proptest! {
                      "max(ec) = {} should be 1.0 (within fp tol)", maxabs);
     }
 
+    /// Weighted eigenvector centrality under unit weights must match
+    /// the unweighted path bit-for-bit (within fp tolerance). Length
+    /// validation: passing a wrong-length weights vector errors.
+    #[test]
+    fn eigenvector_centrality_weighted_unit_matches_unweighted(g in arb_graph(8)) {
+        let m = g.ecount();
+        let unw = rust_igraph::eigenvector_centrality(&g).unwrap();
+        let w = rust_igraph::eigenvector_centrality_weighted(&g, &vec![1.0; m]).unwrap();
+        prop_assert_eq!(unw.len(), w.vector.len());
+        for (v, (&a, &b)) in unw.iter().zip(w.vector.iter()).enumerate() {
+            prop_assert!((a - b).abs() < 1e-6,
+                         "vertex {}: unweighted={} weighted-unit={}", v, a, b);
+        }
+        // Length-mismatch error path.
+        if m > 0 {
+            let err = rust_igraph::eigenvector_centrality_weighted(&g, &vec![1.0; m + 1]);
+            prop_assert!(err.is_err(), "expected length-mismatch error for m+1 weights");
+        }
+    }
+
+    /// Directed eigenvector centrality invariants:
+    /// - max-abs of the vector is 1.0 (or zero for empty graphs)
+    /// - eigenvalue is non-negative (Perron-Frobenius on non-negative M)
+    /// - entries are non-negative (after sign cleanup)
+    #[test]
+    fn eigenvector_centrality_directed_invariants(g in arb_directed_graph(8)) {
+        let s = rust_igraph::eigenvector_centrality_directed(
+            &g,
+            rust_igraph::EigenvectorMode::Out,
+        ).unwrap();
+        if s.vector.is_empty() { return Ok(()); }
+        let mut maxabs = 0.0_f64;
+        for (v, &x) in s.vector.iter().enumerate() {
+            prop_assert!(x.is_finite(), "vec[{}] = {} not finite", v, x);
+            prop_assert!(x >= -1e-9, "vec[{}] = {} negative (non-negative M)", v, x);
+            maxabs = maxabs.max(x.abs());
+        }
+        // Either every entry is zero (rare DAG-pathological) or the
+        // vector is max-1 normalised.
+        if maxabs > 0.0 {
+            prop_assert!((maxabs - 1.0).abs() < 1e-6,
+                         "max(vec) = {} should be 1.0", maxabs);
+        }
+        prop_assert!(s.eigenvalue >= -1e-9,
+                     "eigenvalue {} < 0 for non-negative M", s.eigenvalue);
+        prop_assert!(s.eigenvalue.is_finite(),
+                     "eigenvalue {} not finite", s.eigenvalue);
+    }
+
     /// Biconnected components invariants:
     /// - count equals components.len() == tree_edges.len()
     /// - the AP set from `biconnected_components` matches CC-010 `articulation_points`

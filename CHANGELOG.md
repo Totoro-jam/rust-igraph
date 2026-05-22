@@ -15,6 +15,57 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-PR-012b** — directed + weighted eigenvector centrality. Adds
+  four public functions and two types built on a self-rolled
+  shifted-power-iter kernel:
+  - `EigenvectorMode { Out, In, All }` — selects which arc direction
+    is followed for the dominant left/right eigenvector of the
+    adjacency matrix (matches upstream's `IGRAPH_REVERSE_MODE`
+    semantics at the directed entrypoint).
+  - `EigenvectorScores { vector, eigenvalue, options }` — return type
+    parallel to `HitsScores`.
+  - `eigenvector_centrality_weighted(graph, weights) -> EigenvectorScores`
+    — undirected weighted, validates `weights.len() == ecount()` and
+    short-circuits all-zero weights / empty edges to ones.
+  - `eigenvector_centrality_directed(graph, mode) -> EigenvectorScores`
+    — directed unweighted, runs shifted power-iter on the adjacency
+    walked in `mode`. For DAGs (non-negative weights) the spectrum
+    collapses to zero, so we return a sentinel: ones on sinks (Out) /
+    sources (In), with `eigenvalue = 0.0`.
+  - `eigenvector_centrality_directed_weighted(graph, mode, weights)
+    -> EigenvectorScores` — directed weighted; same shifted-pivot
+    kernel parameterised by per-edge weights.
+  - `eigenvector_centrality_full(graph, mode, weights) -> EigenvectorScores`
+    — single master entrypoint that dispatches to the right
+    undirected/directed × unweighted/weighted leaf based on
+    `graph.is_directed()` and `weights`.
+
+  Numerical contract: iterates on `(M + σI)` where
+  `σ = max_row_norm + 1`. For a non-negative `M` Perron-Frobenius
+  guarantees the largest-real eigenvalue is real and non-negative;
+  the shift then makes it the **unique** largest-magnitude eigenvalue
+  of `M + σI`, so plain max-norm power-iter converges without ARPACK.
+  The dominant eigenvalue of `M` itself is recovered via the Rayleigh
+  quotient `xᵀMx / xᵀx` after vector convergence. For the
+  negative-weight branch we track the signed-pivot component of
+  greatest magnitude (mirrors C's `which='LA'`). Tolerance for
+  conformance against ARPACK is `1e-9`.
+
+  Counterpart of the weighted + directed branches in
+  `references/igraph/src/centrality/eigenvector.c`. 20 unit tests
+  (lib) + 18 integration tests (`tests/eigenvector_weighted.rs`,
+  `tests/eigenvector_directed.rs`) + 2 proptest invariants
+  (weighted-unit parity with unweighted; directed-finite + max-1
+  normalisation + non-negative λ) + 6 three-source conformance
+  fixtures (1 C / 1 py / 1 R per signature, including the
+  cycle-with-chord ARPACK golden at 16-digit precision and the
+  DAG out-star sentinel) under
+  `tests/conformance/{c,py,r}/eigenvector_centrality_{weighted,directed}/`.
+  Bench at `benches/bench_eigenvector.rs`, perf snapshot at
+  `.codefuse/tracking/perf/ALGO-PR-012b.json`: karate undirected
+  ~15µs (unit) / ~28µs (varied), directed ring(500) ~17µs unweighted
+  / ~6.2ms weighted.
+
 - **ALGO-PR-017b** — `hub_and_authority_scores_weighted(graph, weights)
   -> HitsScores` (Kleinberg HITS, weighted). Builds the weighted matrix
   `W[i,j] = Σ_{e: i→j} w_e` implicitly: each power-iter step walks

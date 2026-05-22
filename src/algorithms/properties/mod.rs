@@ -54,7 +54,11 @@ pub use coreness::{CorenessMode, coreness, coreness_with_mode};
 pub use edge_betweenness::edge_betweenness;
 pub use edge_betweenness_weighted::edge_betweenness_weighted;
 pub use efficiency::{average_local_efficiency, global_efficiency, local_efficiency};
-pub use eigenvector::eigenvector_centrality;
+pub use eigenvector::{
+    EigenvectorMode, EigenvectorScores, eigenvector_centrality, eigenvector_centrality_directed,
+    eigenvector_centrality_directed_weighted, eigenvector_centrality_full,
+    eigenvector_centrality_weighted,
+};
 pub use girth::girth;
 pub use harmonic::harmonic_centrality;
 pub use harmonic_weighted::harmonic_centrality_weighted;

@@ -1,0 +1,37 @@
+{
+  "source": "r",
+  "origin": "constructed (R-style): K_3 with weights 2.0 each; vec=[1,1,1], \u03bb=4",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      2.0,
+      2.0,
+      2.0
+    ]
+  },
+  "algo": "eigenvector_centrality_weighted",
+  "params": {},
+  "expected": {
+    "vector": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "eigenvalue": 4.0
+  }
+}
