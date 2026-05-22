@@ -152,6 +152,11 @@ name = "bench_walktrap"
 path = "benches/bench_walktrap.rs"
 harness = false
 
+[[bench]]
+name = "bench_community_to_membership"
+path = "benches/bench_community_to_membership.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

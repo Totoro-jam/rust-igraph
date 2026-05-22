@@ -1,0 +1,43 @@
+{
+  "source": "py",
+  "origin": "python-igraph VertexDendrogram.as_clustering: 6 leaves, three parallel merges [[0,1],[2,3],[4,5]], steps=3 -> three pairs",
+  "graph": {
+    "n": 6,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "community_to_membership",
+  "params": {
+    "merges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "steps": 3
+  },
+  "expected": {
+    "membership": [
+      0,
+      0,
+      1,
+      1,
+      2,
+      2
+    ],
+    "csize": [
+      2,
+      2,
+      2
+    ]
+  }
+}

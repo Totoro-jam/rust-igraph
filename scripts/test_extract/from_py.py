@@ -2572,8 +2572,37 @@ SCC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COMMUNITY_TO_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
+    # python-igraph `VertexDendrogram.as_clustering(n=...)` is the
+    # documented user-facing wrapper around the C
+    # `igraph_community_to_membership`. It cuts at a specified cluster
+    # count, internally invoking the same top-down densify pass. The
+    # fixtures below are computed via that wrapper on small
+    # hand-constructed dendrograms; cluster labels may differ from the
+    # Rust impl (the conformance test compares partitions canonically).
+    {
+        "case": "community_to_membership_py_one_merge_untouched",
+        "origin": "python-igraph VertexDendrogram.as_clustering: 5 leaves, "
+        "one merge [[0,2]], steps=1 -> {0,2} cluster + singletons {1},{3},{4}",
+        "nodes": 5,
+        "merges": [[0, 2]],
+        "steps": 1,
+        "expected": {"membership": [0, 1, 0, 2, 3], "csize": [2, 1, 1, 1]},
+    },
+    {
+        "case": "community_to_membership_py_six_three_parallel",
+        "origin": "python-igraph VertexDendrogram.as_clustering: 6 leaves, "
+        "three parallel merges [[0,1],[2,3],[4,5]], steps=3 -> three pairs",
+        "nodes": 6,
+        "merges": [[0, 1], [2, 3], [4, 5]],
+        "steps": 3,
+        "expected": {"membership": [0, 0, 1, 1, 2, 2], "csize": [2, 2, 2]},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
+    "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
@@ -2703,18 +2732,34 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     written = 0
     for entry in manifest:
-        g: ig.Graph = entry["graph_factory"]()
-        graph_payload = graph_to_payload(g)
-        if "graph_weights" in entry:
-            graph_payload["weights"] = list(entry["graph_weights"])
-        payload = {
-            "source": "py",
-            "origin": entry["origin"],
-            "graph": graph_payload,
-            "algo": algo,
-            "params": entry["params"],
-            "expected": entry["expected"],
-        }
+        # `community_to_membership` is a dendrogram helper, not a
+        # graph algorithm — bypass the graph_factory flow.
+        if algo == "community_to_membership":
+            nodes = int(entry["nodes"])
+            payload = {
+                "source": "py",
+                "origin": entry["origin"],
+                "graph": {"n": nodes, "edges": [], "directed": False, "weights": None},
+                "algo": algo,
+                "params": {
+                    "merges": [list(m) for m in entry["merges"]],
+                    "steps": int(entry["steps"]),
+                },
+                "expected": entry["expected"],
+            }
+        else:
+            g: ig.Graph = entry["graph_factory"]()
+            graph_payload = graph_to_payload(g)
+            if "graph_weights" in entry:
+                graph_payload["weights"] = list(entry["graph_weights"])
+            payload = {
+                "source": "py",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": entry["params"],
+                "expected": entry["expected"],
+            }
         out = out_dir / f"{entry['case']}.json"
         out.write_text(json.dumps(payload, indent=2))
         written += 1

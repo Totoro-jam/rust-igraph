@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "R-igraph cut_at: 4 leaves, two merges [[0,1],[2,3]], steps=0 -> 4 singletons",
+  "graph": {
+    "n": 4,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "community_to_membership",
+  "params": {
+    "merges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "steps": 0
+  },
+  "expected": {
+    "membership": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "csize": [
+      1,
+      1,
+      1,
+      1
+    ]
+  }
+}

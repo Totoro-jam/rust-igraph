@@ -2988,8 +2988,41 @@ SCC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+COMMUNITY_TO_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
+    # `igraph_community_to_membership` in
+    # references/igraph/src/community/community_misc.c. The C reference
+    # has no dedicated unit test (the helper is exercised through
+    # walktrap / fast_greedy_modularity / edge_betweenness_community
+    # tests). The fixtures below mirror its documented contract on
+    # small hand-constructed dendrograms: walk merges top-down,
+    # assigning supercluster ids; densify with untouched leaves as
+    # singletons. Expected membership/csize computed via python-igraph
+    # `VertexDendrogram.as_clustering(n)` (semantically identical) and
+    # then partition-equivalence-compared against the Rust impl
+    # (cluster labels may differ).
+    {
+        "case": "community_to_membership_c_balanced_4_cut2",
+        "origin": "C reference community_misc.c igraph_community_to_membership: "
+        "4 leaves, balanced merges [[0,1],[2,3],[4,5]], steps=2 -> 2 clusters",
+        "nodes": 4,
+        "merges": [[0, 1], [2, 3], [4, 5]],
+        "steps": 2,
+        "expected": {"membership": [0, 0, 1, 1], "csize": [2, 2]},
+    },
+    {
+        "case": "community_to_membership_c_chain_full_collapse",
+        "origin": "C reference community_misc.c igraph_community_to_membership: "
+        "4 leaves, chain merges [[0,1],[4,2],[5,3]], steps=3 -> 1 cluster of 4",
+        "nodes": 4,
+        "merges": [[0, 1], [4, 2], [5, 3]],
+        "steps": 3,
+        "expected": {"membership": [0, 0, 0, 0], "csize": [4]},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
+    "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
@@ -3123,18 +3156,36 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     written = 0
     for entry in manifest:
-        g: ig.Graph = entry["graph_factory"]()
-        graph_payload = graph_to_payload(g)
-        if "graph_weights" in entry:
-            graph_payload["weights"] = list(entry["graph_weights"])
-        payload = {
-            "source": "c",
-            "origin": entry["origin"],
-            "graph": graph_payload,
-            "algo": algo,
-            "params": entry["params"],
-            "expected": entry["expected"],
-        }
+        # `community_to_membership` is a pure-function helper on a dendrogram
+        # (merges matrix + leaf count + cut steps) and has no graph input.
+        # The manifest entry carries the dendrogram directly; the graph block
+        # is stubbed (only `n` matters, to carry the leaf count).
+        if algo == "community_to_membership":
+            nodes = int(entry["nodes"])
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": {"n": nodes, "edges": [], "directed": False, "weights": None},
+                "algo": algo,
+                "params": {
+                    "merges": [list(m) for m in entry["merges"]],
+                    "steps": int(entry["steps"]),
+                },
+                "expected": entry["expected"],
+            }
+        else:
+            g: ig.Graph = entry["graph_factory"]()
+            graph_payload = graph_to_payload(g)
+            if "graph_weights" in entry:
+                graph_payload["weights"] = list(entry["graph_weights"])
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": entry["params"],
+                "expected": entry["expected"],
+            }
         out = out_dir / f"{entry['case']}.json"
         out.write_text(json.dumps(payload, indent=2))
         written += 1

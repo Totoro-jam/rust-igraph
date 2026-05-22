@@ -1,0 +1,35 @@
+{
+  "source": "py",
+  "origin": "python-igraph VertexDendrogram.as_clustering: 5 leaves, one merge [[0,2]], steps=1 -> {0,2} cluster + singletons {1},{3},{4}",
+  "graph": {
+    "n": 5,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "community_to_membership",
+  "params": {
+    "merges": [
+      [
+        0,
+        2
+      ]
+    ],
+    "steps": 1
+  },
+  "expected": {
+    "membership": [
+      0,
+      1,
+      0,
+      2,
+      3
+    ],
+    "csize": [
+      2,
+      1,
+      1,
+      1
+    ]
+  }
+}

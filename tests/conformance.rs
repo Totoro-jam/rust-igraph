@@ -1591,6 +1591,153 @@ fn walktrap_three_source_conformance() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + params decode + canonicalisation
+fn community_to_membership_three_source_conformance() {
+    // Pure-function helper that cuts a binary dendrogram. Fixtures
+    // embed the dendrogram (merges + nodes + steps) in `params` and
+    // the expected partition in `expected.membership/csize`. Cluster
+    // labels can differ between implementations (python-igraph labels
+    // by first-leaf-encounter order; our Rust impl labels by top-down
+    // merge traversal), so the comparison is partition-equivalent:
+    // both labelings are canonicalised to first-occurrence order over
+    // vertices 0..n, and csize is compared as a multiset.
+    use rust_igraph::community_to_membership;
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("community_to_membership");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes).expect("parse fixture JSON");
+            assert_eq!(case.algo, "community_to_membership");
+
+            let params = case.params.as_object().expect("params must be an object");
+            let steps = u32::try_from(
+                params
+                    .get("steps")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("steps"),
+            )
+            .expect("steps fits u32");
+            let merges_arr = params
+                .get("merges")
+                .and_then(serde_json::Value::as_array)
+                .expect("merges array");
+            let merges: Vec<[u32; 2]> = merges_arr
+                .iter()
+                .map(|row| {
+                    let r = row.as_array().expect("merge row array");
+                    let c1 =
+                        u32::try_from(r.first().and_then(serde_json::Value::as_u64).expect("c1"))
+                            .expect("c1 fits u32");
+                    let c2 =
+                        u32::try_from(r.get(1).and_then(serde_json::Value::as_u64).expect("c2"))
+                            .expect("c2 fits u32");
+                    [c1, c2]
+                })
+                .collect();
+            let nodes = case.graph.n;
+
+            let got =
+                community_to_membership(&merges, nodes, steps).expect("community_to_membership");
+
+            let exp = case
+                .expected
+                .as_object()
+                .expect("expected must be an object");
+            let exp_membership: Vec<u32> = exp
+                .get("membership")
+                .and_then(serde_json::Value::as_array)
+                .expect("expected.membership")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("membership entry"))
+                        .expect("membership entry fits u32")
+                })
+                .collect();
+            let exp_csize: Vec<u32> = exp
+                .get("csize")
+                .and_then(serde_json::Value::as_array)
+                .expect("expected.csize")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("csize entry")).expect("csize entry fits u32")
+                })
+                .collect();
+
+            let got_canon = canonicalize_partition(&got.membership);
+            let exp_canon = canonicalize_partition(&exp_membership);
+            assert_eq!(
+                got_canon,
+                exp_canon,
+                "{}: partition mismatch — got {:?}, expected {:?} (origin: {})",
+                path.display(),
+                got.membership,
+                exp_membership,
+                case.origin,
+            );
+
+            let mut got_sizes = got.csize.clone();
+            got_sizes.sort_unstable();
+            let mut exp_sizes = exp_csize.clone();
+            exp_sizes.sort_unstable();
+            assert_eq!(
+                got_sizes,
+                exp_sizes,
+                "{}: csize multiset mismatch — got {:?}, expected {:?} (origin: {})",
+                path.display(),
+                got.csize,
+                exp_csize,
+                case.origin,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no community_to_membership fixtures from source {src}"
+        );
+    }
+}
+
+/// Relabel cluster ids in order of first occurrence over vertices
+/// `0..n`, so two equivalent partitions with different cluster id
+/// assignments compare equal. Used by
+/// [`community_to_membership_three_source_conformance`].
+fn canonicalize_partition(membership: &[u32]) -> Vec<u32> {
+    let mut remap: std::collections::BTreeMap<u32, u32> = std::collections::BTreeMap::new();
+    let mut next_id: u32 = 0;
+    let mut out = Vec::with_capacity(membership.len());
+    for &c in membership {
+        let canon = *remap.entry(c).or_insert_with(|| {
+            let id = next_id;
+            next_id += 1;
+            id
+        });
+        out.push(canon);
+    }
+    out
+}
+
+#[test]
 #[allow(clippy::too_many_lines)] // three-source dispatch + Q range + k range
 fn edge_betweenness_community_weighted_three_source_conformance() {
     // Weighted Girvan-Newman dendrogram. Best-Q partition is sensitive

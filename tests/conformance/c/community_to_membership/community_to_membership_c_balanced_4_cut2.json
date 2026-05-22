@@ -1,0 +1,40 @@
+{
+  "source": "c",
+  "origin": "C reference community_misc.c igraph_community_to_membership: 4 leaves, balanced merges [[0,1],[2,3],[4,5]], steps=2 -> 2 clusters",
+  "graph": {
+    "n": 4,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "community_to_membership",
+  "params": {
+    "merges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "steps": 2
+  },
+  "expected": {
+    "membership": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "csize": [
+      2,
+      2
+    ]
+  }
+}

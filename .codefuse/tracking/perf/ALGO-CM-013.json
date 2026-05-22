@@ -1,0 +1,61 @@
+{
+  "awu_id": "ALGO-CM-013",
+  "algorithm": "community_to_membership",
+  "module": "src/algorithms/community/community_to_membership.rs",
+  "captured_on": "2026-05-22",
+  "host": "darwin (Apple Silicon)",
+  "rust_toolchain": "stable (cargo bench --warm-up 1s --measurement 2s --sample-size 20)",
+  "criterion_bench_file": "benches/bench_community_to_membership.rs",
+  "rust": {
+    "chain_64_full_us": {
+      "median": 0.470,
+      "lo": 0.465,
+      "hi": 0.479,
+      "label": "community_to_membership/chain 64 full collapse"
+    },
+    "balanced_256_full_us": {
+      "median": 1.697,
+      "lo": 1.690,
+      "hi": 1.703,
+      "label": "community_to_membership/balanced 256 full collapse"
+    },
+    "balanced_1024_full_us": {
+      "median": 6.630,
+      "lo": 6.361,
+      "hi": 7.163,
+      "label": "community_to_membership/balanced 1024 full collapse"
+    },
+    "balanced_1024_half_us": {
+      "median": 2.952,
+      "lo": 2.884,
+      "hi": 3.055,
+      "label": "community_to_membership/balanced 1024 half cut"
+    },
+    "balanced_1024_zero_us": {
+      "median": 1.256,
+      "lo": 1.251,
+      "hi": 1.263,
+      "label": "community_to_membership/balanced 1024 zero steps"
+    }
+  },
+  "python_igraph": {
+    "_meta": "python-igraph 0.11.9 — VertexDendrogram.as_clustering(n) wraps the same igraph_community_to_membership; timed in pure Python over 500-5000 calls",
+    "chain_64_full_us": 13.93,
+    "balanced_256_full_us": 49.36,
+    "balanced_1024_full_us": 189.66,
+    "balanced_1024_half_us": 311.93,
+    "balanced_1024_zero_us": 430.23
+  },
+  "speedup_vs_python_igraph": {
+    "chain_64_full": 29.6,
+    "balanced_256_full": 29.1,
+    "balanced_1024_full": 28.6,
+    "balanced_1024_half": 105.7,
+    "balanced_1024_zero": 342.5
+  },
+  "notes": [
+    "Pure-function helper: walks merges top-down (O(steps)) then densifies leaves (O(n)). Total work is O(steps + n).",
+    "Allocates: one Vec<u32> of size n (membership), one Vec<bool> of size n+steps (already_merged bitmap), one Vec<u32> of size steps (tmp supercluster ids), and the final csize Vec<u32>.",
+    "Speedup over python-igraph grows as the cut depth shrinks because python-igraph's VertexDendrogram.as_clustering(n) constructs intermediate Python objects per call, while our impl reuses a single allocation pass."
+  ]
+}

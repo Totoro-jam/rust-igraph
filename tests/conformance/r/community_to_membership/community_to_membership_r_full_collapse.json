@@ -1,0 +1,39 @@
+{
+  "source": "r",
+  "origin": "R-igraph cut_at: 4 leaves, balanced [[0,1],[2,3],[4,5]], steps=3 -> single cluster of 4",
+  "graph": {
+    "n": 4,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "community_to_membership",
+  "params": {
+    "merges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "steps": 3
+  },
+  "expected": {
+    "membership": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "csize": [
+      4
+    ]
+  }
+}

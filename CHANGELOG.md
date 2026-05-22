@@ -15,6 +15,47 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CM-013** — `community_to_membership` (binary dendrogram → membership).
+  Pure-function helper mirroring `igraph_community_to_membership` in
+  `references/igraph/src/community/community_misc.c`. Cuts a binary
+  dendrogram at `steps` merges and returns a densified `0..k` membership
+  vector plus per-cluster size vector.
+  - `community_to_membership(merges, nodes, steps) -> Result<CommunityToMembershipResult>` —
+    `merges[i] = [c1, c2]` combines dendrogram nodes `c1` and `c2` into
+    `nodes + i`; leaves are `0..nodes`.
+  - `CommunityToMembershipResult { membership, csize }` — `membership[v] ∈ [0, k)`,
+    `csize[c]` is the number of vertices in cluster `c`.
+  - Algorithm: walks merges top-down (`steps-1 → 0`) assigning 1-based
+    supercluster ids via a `tmp` slot per row, marks `already_merged`
+    to detect double-merges, propagates ids down through internal
+    nodes; final pass densifies leaves with cid==0 as fresh singletons.
+    O(steps + n) total work; allocates a `Vec<u32>` of size `n`, a
+    `Vec<bool>` of size `n + steps`, and a `Vec<u32>` of size `steps`.
+  - Errors: `InvalidArgument` when `steps > merges.len()`, when a
+    dendrogram node is merged twice, when a row references a node
+    `≥ nodes + i` (i.e. itself or a future merge), or on usize
+    overflow of `nodes + steps`.
+  - Test coverage: 11 unit tests (zero steps, full collapse,
+    intermediate cut, untouched leaves, chained merges, empty graph,
+    all 3 error paths, partial dendrogram, end-to-end against
+    `walktrap` on two K4 + bridge) + 3 proptests (`zero_steps` yields
+    singletons, `full_collapse` yields one cluster, cut invariants:
+    csize sums to n, cluster count = n − steps, every membership entry
+    < cluster count) + 6 three-source conformance fixtures (2 each
+    from c/py/r, partition-equivalence comparison because cluster
+    labels can differ between implementations).
+  - Bench (release, criterion 1s warmup / 2s measurement / 20 samples,
+    Apple Silicon): chain-64 full collapse 470 ns,
+    balanced-256 full collapse 1.7 µs, balanced-1024 full collapse
+    6.6 µs, balanced-1024 half cut 2.95 µs, balanced-1024 zero
+    steps 1.26 µs. Vs python-igraph 0.11.9
+    (`VertexDendrogram.as_clustering`): ~28–30× faster on full
+    collapses, ~106× on a half cut, ~342× at zero steps.
+  - Example: `cargo run --release --example community_to_membership_walktrap_karate`
+    drives Walktrap on the karate club then re-cuts the resulting
+    dendrogram at 0, 8, 16, 29, 33 steps and reports modularity at
+    each depth.
+
 - **ALGO-CO-008** — Walktrap community detection (Pons P., Latapy M.
   2005, *Computing communities in large networks using random walks*).
   Random walks of length t (default 4) define a between-vertex distance

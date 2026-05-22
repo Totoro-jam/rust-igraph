@@ -5,10 +5,12 @@
 //! Traag-Šubelj 2023 fast variant), `fluid_communities`
 //! (Parés et al. 2017), `edge_betweenness_community` (Girvan-Newman 2002),
 //! `fast_greedy_modularity` (Clauset-Newman-Moore 2004),
-//! `walktrap` (Pons-Latapy 2005).
+//! `walktrap` (Pons-Latapy 2005). Helper: `community_to_membership`
+//! (cut a dendrogram at `k` merges).
 
 // `pub(crate)` so the inner module name doesn't double-list with the
 // function re-export in rustdoc.
+pub(crate) mod community_to_membership;
 pub(crate) mod edge_betweenness_community;
 pub(crate) mod edge_betweenness_community_weighted;
 pub(crate) mod fast_greedy_modularity;
@@ -19,6 +21,7 @@ pub(crate) mod louvain;
 pub(crate) mod modularity;
 pub(crate) mod walktrap;
 
+pub use community_to_membership::{CommunityToMembershipResult, community_to_membership};
 pub use edge_betweenness_community::{EdgeBetweennessResult, edge_betweenness_community};
 pub use edge_betweenness_community_weighted::edge_betweenness_community_weighted;
 pub use fast_greedy_modularity::{
