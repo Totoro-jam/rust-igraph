@@ -1,10 +1,10 @@
 [package]
 name = "rust-igraph"
-version = "0.0.1-alpha.1"
+version = "0.0.1-alpha.2"
 edition = "2024"
 rust-version = "1.85"
 license = "GPL-2.0-or-later"
-description = "Pure-Rust port of the igraph network analysis library (alpha — Phase 1)."
+description = "Pure-Rust port of the igraph network analysis library (alpha — Phase 1 complete)."
 repository = "https://github.com/Totoro-jam/rust-igraph"
 homepage = "https://Totoro-jam.github.io/rust-igraph"
 documentation = "https://docs.rs/rust-igraph"

@@ -14,6 +14,8 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+## [0.0.1-alpha.2] — 2026-05-22
+
 ### Added
 - **ALGO-CO-006c** — Directed Girvan-Newman edge betweenness community
   detection (Leicht E. A., Newman M. E. J. 2008, *Community structure in
