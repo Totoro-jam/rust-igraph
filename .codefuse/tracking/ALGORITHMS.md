@@ -191,6 +191,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-PR-028 | `convergence_degree` (per-edge `(In−Out)/(In+Out)` measure of shortest-path source/sink balance) | properties/convergence_degree.c (lines 21-93) | ~80 | adapt | CORE-001a/b | done | (next) | O(V·(V+E)) BFS-per-vertex | C:2 / py:2 / R:2 |
 | ALGO-PR-029 | `global_efficiency` (Latora–Marchiori average inverse pairwise distance) | paths/shortest_paths.c (lines 392-486) | ~95 | adapt | SP-001 | done | (next) | O(V·(V+E)) BFS-per-vertex | C:2 / py:2 / R:2 |
 | ALGO-PR-030 | `local_efficiency` + `average_local_efficiency` (per-vertex inverse-distance among neighbours in `G\{v}`, plus its mean) | paths/shortest_paths.c (lines 688-867) | ~180 | adapt | PR-029 | done | (next) | O(V·\|N(v)\|·(V+E)) BFS-per-source | C:4 / py:0 (skipped — py-igraph 0.11 lacks API) / R:4 |
+| ALGO-PR-031 | `ecc` (Radicchi 2004 edge clustering coefficient, k=3 triangle + k=4 square, offset & normalize flags, loop-aware degree, NaN for degenerate denominators) | properties/ecc.c (lines 33-385) | ~330 | adapt | core/Graph | done | (next) | O(E·d_max) intersection-per-edge | C:5 / py:4 (hand-derived — py-igraph 0.11 lacks API) / R:4 (hand-derived — R only exports internal `ecc_impl`) |
 
 ## Phase 3 — Centrality + Eigensolver (~65 AWU)
 

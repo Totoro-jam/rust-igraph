@@ -2704,6 +2704,60 @@ VORONOI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ECC_PR031_MANIFEST: List[Dict[str, Any]] = [
+    # python-igraph 0.11 does not expose `igraph_ecc`. The fixtures
+    # below are hand-derived from Radicchi 2004's definition,
+    # `C^(k)_ij = (z + offset) / s` with `s_3 = min(d_i,d_j) - 1` and
+    # `s_4 = (d_i-1)(d_j-1)`. They are small enough that the expected
+    # values follow directly from manual neighbour enumeration, so the
+    # parity check is genuinely meaningful even without a python-igraph
+    # binding to call.
+    {
+        "case": "ecc_py_k3_triangle_normalized",
+        # K_3: every edge sits in 1 triangle (z=1), every vertex has
+        # degree 2 → s = 1. C = 1/1 = 1 for all 3 edges.
+        "origin": "constructed: K_3, k=3, offset=false, normalize=true → all 1.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "ecc",
+        "params": {"k": 3, "offset": False, "normalize": True},
+        "expected": [1.0, 1.0, 1.0],
+    },
+    {
+        "case": "ecc_py_k3_k4_normalized_offset_false",
+        # K_4: every edge sits in 2 triangles (z=2), degrees all 3 →
+        # s = 2. C = 1 for all 6 edges.
+        "origin": "constructed: K_4, k=3, offset=false, normalize=true → all 1.0",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False, loops=False),
+        "algo": "ecc",
+        "params": {"k": 3, "offset": False, "normalize": True},
+        "expected": [1.0] * 6,
+    },
+    {
+        "case": "ecc_py_k4_k4_offset_false_normalize_true",
+        # K_4 at k=4: each non-edge endpoint contributes one 4-cycle,
+        # giving z=2, s=(3-1)*(3-1)=4 → 0.5.
+        "origin": "constructed: K_4, k=4, offset=false, normalize=true → all 0.5",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False, loops=False),
+        "algo": "ecc",
+        "params": {"k": 4, "offset": False, "normalize": True},
+        "expected": [0.5] * 6,
+    },
+    {
+        "case": "ecc_py_p2_offset_false_normalize_true_is_nan",
+        # P_2 (single edge): s = min(1,1) - 1 = 0 → NaN.
+        "origin": "constructed: P_2, k=3, normalize=true → NaN (s = 0)",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1)], directed=False
+        ),
+        "algo": "ecc",
+        "params": {"k": 3, "offset": False, "normalize": True},
+        "expected": [None],
+    },
+]
+
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # python-igraph does not expose `igraph_reindex_membership`
     # directly; the closest user-facing analogue is
@@ -2852,6 +2906,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitivity_barrat": TRANS_BARRAT_MANIFEST,
     "decompose": DECOMPOSE_MANIFEST,
     "voronoi": VORONOI_MANIFEST,
+    "ecc": ECC_PR031_MANIFEST,
 }
 
 

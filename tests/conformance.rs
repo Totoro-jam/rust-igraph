@@ -4379,6 +4379,60 @@ fn average_local_efficiency_two_source_conformance() {
 }
 
 #[test]
+fn ecc_three_source_conformance() {
+    // ALGO-PR-031: edge clustering coefficient (Radicchi 2004).
+    // python-igraph 0.11 and R-igraph both lack a user-facing
+    // `ecc()` (R has the internal `ecc_impl()`); the corresponding
+    // manifests are hand-derived parity fixtures.
+    use rust_igraph::ecc;
+    run_conformance("ecc", |g, params| {
+        let k = u32::try_from(
+            params
+                .get("k")
+                .and_then(serde_json::Value::as_u64)
+                .expect("`k` param required"),
+        )
+        .expect("k fits in u32");
+        let offset = params
+            .get("offset")
+            .and_then(serde_json::Value::as_bool)
+            .expect("`offset` param required");
+        let normalize = params
+            .get("normalize")
+            .and_then(serde_json::Value::as_bool)
+            .expect("`normalize` param required");
+        let eids: Option<Vec<u32>> = params.get("eids").and_then(|v| {
+            v.as_array().map(|arr| {
+                arr.iter()
+                    .map(|e| {
+                        u32::try_from(
+                            e.as_u64()
+                                .expect("eids entries must be non-negative integers"),
+                        )
+                        .expect("eid fits in u32")
+                    })
+                    .collect()
+            })
+        });
+        let values = ecc(g, eids.as_deref(), k, offset, normalize).expect("ecc");
+        // Encode NaN as JSON null — the fixtures use null for NaN
+        // since `serde_json` rejects NaN in floats.
+        serde_json::Value::Array(
+            values
+                .into_iter()
+                .map(|v| {
+                    if v.is_nan() {
+                        serde_json::Value::Null
+                    } else {
+                        serde_json::json!(v)
+                    }
+                })
+                .collect(),
+        )
+    });
+}
+
+#[test]
 fn count_triangles_three_source_conformance() {
     run_conformance("count_triangles", |g, _params| {
         let n = rust_igraph::count_triangles(g).expect("count_triangles");

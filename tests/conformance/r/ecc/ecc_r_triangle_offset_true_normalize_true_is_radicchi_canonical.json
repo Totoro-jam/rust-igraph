@@ -1,0 +1,34 @@
+{
+  "source": "r",
+  "origin": "R-style \u2014 K_3, k=3, Radicchi canonical (offset+normalize) \u2192 2.0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "ecc",
+  "params": {
+    "k": 3,
+    "offset": true,
+    "normalize": true
+  },
+  "expected": [
+    2.0,
+    2.0,
+    2.0
+  ]
+}

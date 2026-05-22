@@ -1,0 +1,34 @@
+{
+  "source": "py",
+  "origin": "constructed: K_3, k=3, offset=false, normalize=true \u2192 all 1.0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "ecc",
+  "params": {
+    "k": 3,
+    "offset": false,
+    "normalize": true
+  },
+  "expected": [
+    1.0,
+    1.0,
+    1.0
+  ]
+}

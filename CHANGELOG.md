@@ -15,6 +15,50 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-PR-031** — `ecc` (Radicchi 2004 edge clustering coefficient).
+  Counterpart of `igraph_ecc` in `references/igraph/src/properties/ecc.c`
+  (lines 33-385). For each edge `(i, j)` returns
+  `C^(k)_ij = (z^(k)_ij + offset) / s^(k)_ij`, where `z` counts the
+  number of `k`-cycles the edge belongs to and `s` is the maximum
+  number of such cycles allowed by the endpoint degrees:
+  - `k = 3` (triangle): `s = min(d_i, d_j) - 1`,
+  - `k = 4` (square): `s = (d_i - 1) · (d_j - 1)`.
+  - `ecc(graph: &Graph, eids: Option<&[EdgeId]>, k: u32, offset: bool,
+    normalize: bool) -> IgraphResult<Vec<f64>>`. `eids = None` walks
+    every edge in id order; `Some(&[...])` walks just those edges, in
+    the order given. `offset` toggles the canonical Radicchi `+1`;
+    `normalize` toggles the division by `s`. Passing `(true, true)`
+    reproduces the paper's `C^(k)_ij = (z + 1) / s` exactly.
+  - Self-loop semantics match the C reference: cycle counts `z` ignore
+    multi-edges and self-loops (the dedup'd simple-adjacency view is
+    used), but the normaliser `s` uses the **loop-aware** degree (each
+    self-loop contributes 2 to the undirected degree, i.e.
+    `IGRAPH_LOOPS` mode). A self-loop edge yields `NaN` when
+    normalising; any edge with `s ≤ 0` (e.g. a degree-1 endpoint of a
+    star or `P_2`) also yields `NaN`.
+  - Errors: `InvalidArgument` for `k < 3`, `Unsupported` for `k > 4`
+    (Radicchi only defines 3 and 4), `EdgeOutOfRange` for invalid
+    `eids` entries.
+  - Complexity: O(E · d̄) for k=3 (one sorted-merge intersection per
+    edge), O(E · d̄²) worst-case for k=4 (iterates the smaller-degree
+    endpoint and intersects per intermediate). The k=4 path picks the
+    smaller-degree endpoint as the iterator to keep cost bounded by
+    `min(d_i, d_j)`, mirroring `igraph_i_ecc4_*`.
+  - Tests: 18 unit cases + 3 proptest invariants
+    (non-negative-integer `z` without normalisation; `(offset=true) -
+    (offset=false) = 1` for finite edges; subset-eids preserves order
+    against the full sweep) under `--features proptest-harness`.
+  - Conformance: 13 fixtures across all three sources — 5 from the C
+    reference (`tests/unit/igraph_ecc.out` lines 11-85: K_5 k=3 / k=4,
+    K_5 + self-loops k=3 / k=4, and a multigraph), 4 hand-derived
+    Python fixtures (python-igraph 0.11 has no bound `Graph.ecc()`),
+    and 4 hand-derived R fixtures (R only exports the internal
+    `ecc_impl`, not as a user-facing API).
+  - Performance (criterion, release, `git d06e63a`): karate k=3
+    `~4.1 µs`, karate k=4 `~8.5 µs`, 30×30 grid k=3 `~74 µs`. Sits in
+    the same micro-bench class as `count_triangles` (`~2.7 µs` on
+    karate) since both are essentially one adjlist + intersection
+    sweep.
 - **ALGO-SP-007** — `voronoi` (multi-source Voronoi cells via BFS or
   Dijkstra). Counterpart of `igraph_voronoi` in
   `references/igraph/src/paths/voronoi.c`. Given a set of *generator*

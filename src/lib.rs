@@ -149,6 +149,7 @@ pub use crate::algorithms::properties::convergence_degree::{
     convergence_degree, convergence_degree_full,
 };
 pub use crate::algorithms::properties::coreness::{CorenessMode, coreness, coreness_with_mode};
+pub use crate::algorithms::properties::ecc::ecc;
 pub use crate::algorithms::properties::edge_betweenness::edge_betweenness;
 pub use crate::algorithms::properties::edge_betweenness_weighted::edge_betweenness_weighted;
 pub use crate::algorithms::properties::efficiency::{

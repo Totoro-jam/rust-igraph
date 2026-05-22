@@ -1,0 +1,39 @@
+{
+  "source": "r",
+  "origin": "R-style \u2014 C_4, k=3, normalize=true \u2192 all 0.0 (no triangles)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "ecc",
+  "params": {
+    "k": 3,
+    "offset": false,
+    "normalize": true
+  },
+  "expected": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "awu": "ALGO-PR-031",
+  "rust_ecc_karate_k3_normalize_ns": 4091,
+  "rust_ecc_karate_k4_normalize_ns": 8540,
+  "rust_ecc_grid_30x30_k3_normalize_ns": 74071,
+  "py_karate_ns": null,
+  "captured_at": "2026-05-22",
+  "git_commit": "d06e63a",
+  "notes": "Phase 1 edge clustering coefficient via src/algorithms/properties/ecc.rs. The k=3 inner loop is one sorted-merge intersection of neighbour lists per edge (78 edges × ~5 deg ≈ 4µs total on karate — same micro-bench class as count_triangles at 2.7µs, since both are essentially an adjlist + intersection sweep). The k=4 path iterates over the smaller-degree endpoint and does an inner intersection per intermediate vertex, so it costs ~2× the k=3 path on karate (8.5µs vs 4.1µs). The 30×30 grid is the sparse-but-large regime: 1740 edges, uniform degree ≤ 4, so the per-edge intersection cost is tiny and the run is dominated by edge-count overhead — 74µs lands ~18× karate which tracks edges (1740 / 78 ≈ 22×) net of constant-time loop overhead. python-igraph 0.11 lacks a bound ecc() so no cross-comparison; the C reference reports only correctness in .out fixtures, no timings."
+}

@@ -1,0 +1,24 @@
+{
+  "source": "py",
+  "origin": "constructed: P_2, k=3, normalize=true \u2192 NaN (s = 0)",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "ecc",
+  "params": {
+    "k": 3,
+    "offset": false,
+    "normalize": true
+  },
+  "expected": [
+    null
+  ]
+}

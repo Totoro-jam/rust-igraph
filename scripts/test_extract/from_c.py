@@ -3168,6 +3168,93 @@ VORONOI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ECC_PR031_MANIFEST: List[Dict[str, Any]] = [
+    # `igraph_ecc` reference test at
+    # references/igraph/tests/unit/igraph_ecc.c. Expected values are
+    # transcribed verbatim from `igraph_ecc.out` and re-cross-checked
+    # by hand. NaN entries are encoded as JSON `null` (the conformance
+    # runner converts NaN ↔ null both ways).
+    {
+        "case": "ecc_c_k5_k3_normalized",
+        "origin": "references/igraph/tests/unit/igraph_ecc.out line 33: "
+        "K_5, k=3, offset=false, normalize=true → every edge yields 1.0",
+        "graph_factory": lambda: ig.Graph.Full(n=5, directed=False, loops=False),
+        "algo": "ecc",
+        "params": {"k": 3, "offset": False, "normalize": True},
+        "expected": [1.0] * 10,
+    },
+    {
+        "case": "ecc_c_k5_k4_normalized",
+        "origin": "references/igraph/tests/unit/igraph_ecc.out line 38: "
+        "K_5, k=4, offset=false, normalize=true → every edge yields 2/3",
+        "graph_factory": lambda: ig.Graph.Full(n=5, directed=False, loops=False),
+        "algo": "ecc",
+        "params": {"k": 4, "offset": False, "normalize": True},
+        "expected": [2.0 / 3.0] * 10,
+    },
+    {
+        "case": "ecc_c_k5_with_loops_k3_normalized",
+        "origin": "references/igraph/tests/unit/igraph_ecc.out line 43: "
+        "K_5 with self-loops, k=3, offset=false, normalize=true",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[
+                (0, 0), (0, 1), (0, 2), (0, 3), (0, 4),
+                (1, 1), (1, 2), (1, 3), (1, 4),
+                (2, 2), (2, 3), (2, 4),
+                (3, 3), (3, 4),
+                (4, 4),
+            ],
+            directed=False,
+        ),
+        "algo": "ecc",
+        "params": {"k": 3, "offset": False, "normalize": True},
+        "expected": [
+            None, 0.6, 0.6, 0.6, 0.6, None, 0.6, 0.6, 0.6, None,
+            0.6, 0.6, None, 0.6, None,
+        ],
+    },
+    {
+        "case": "ecc_c_k5_with_loops_k4_normalized",
+        "origin": "references/igraph/tests/unit/igraph_ecc.out line 48: "
+        "K_5 with self-loops, k=4, offset=false, normalize=true",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[
+                (0, 0), (0, 1), (0, 2), (0, 3), (0, 4),
+                (1, 1), (1, 2), (1, 3), (1, 4),
+                (2, 2), (2, 3), (2, 4),
+                (3, 3), (3, 4),
+                (4, 4),
+            ],
+            directed=False,
+        ),
+        "algo": "ecc",
+        "params": {"k": 4, "offset": False, "normalize": True},
+        "expected": [
+            None, 0.24, 0.24, 0.24, 0.24, None, 0.24, 0.24, 0.24, None,
+            0.24, 0.24, None, 0.24, None,
+        ],
+    },
+    {
+        "case": "ecc_c_multigraph_k3_normalized",
+        "origin": "references/igraph/tests/unit/igraph_ecc.out line 53: "
+        "multigraph with loops + parallel edges, k=3, normalize=true",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[
+                (0, 1), (1, 2), (2, 0), (0, 1), (1, 3),
+                (3, 4), (4, 0), (0, 5), (5, 5), (5, 5), (1, 4),
+            ],
+            directed=False,
+        ),
+        "algo": "ecc",
+        "params": {"k": 3, "offset": False, "normalize": True},
+        "expected": [0.5, 1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 0.0, None, None, 1.0],
+    },
+]
+
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # `igraph_reindex_membership` /
     # `igraph_i_reindex_membership_large` in
@@ -3319,6 +3406,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitivity_barrat": TRANS_BARRAT_MANIFEST,
     "decompose": DECOMPOSE_MANIFEST,
     "voronoi": VORONOI_MANIFEST,
+    "ecc": ECC_PR031_MANIFEST,
 }
 
 

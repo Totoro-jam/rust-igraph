@@ -1,0 +1,94 @@
+{
+  "source": "c",
+  "origin": "references/igraph/tests/unit/igraph_ecc.out line 43: K_5 with self-loops, k=3, offset=false, normalize=true",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "ecc",
+  "params": {
+    "k": 3,
+    "offset": false,
+    "normalize": true
+  },
+  "expected": [
+    null,
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    null,
+    0.6,
+    0.6,
+    0.6,
+    null,
+    0.6,
+    0.6,
+    null,
+    0.6,
+    null
+  ]
+}

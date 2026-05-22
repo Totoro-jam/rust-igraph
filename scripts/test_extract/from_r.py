@@ -2986,6 +2986,61 @@ COMMUNITY_TO_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ECC_PR031_MANIFEST: List[Dict[str, Any]] = [
+    # R-igraph has `ecc_impl()` (auto-generated wrapper around
+    # `igraph_ecc`) but does not yet export it as a public
+    # user-facing function. The fixtures below mirror the Radicchi
+    # definition and exercise the same shapes the C reference test
+    # exercises, with values computed by hand on tiny graphs.
+    {
+        "case": "ecc_r_c4_k3_normalized_offset_false",
+        # C_4 (4-cycle): no triangles → z = 0 everywhere. Degrees all
+        # 2, so s = 1; result = 0/1 = 0 for every edge.
+        "origin": "R-style — C_4, k=3, normalize=true → all 0.0 (no triangles)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=False
+        ),
+        "algo": "ecc",
+        "params": {"k": 3, "offset": False, "normalize": True},
+        "expected": [0.0, 0.0, 0.0, 0.0],
+    },
+    {
+        "case": "ecc_r_c4_k4_normalized_offset_false",
+        # C_4 at k=4: each edge sits in exactly one 4-cycle (z = 1),
+        # degrees all 2 → s = (2-1)*(2-1) = 1; result = 1 everywhere.
+        "origin": "R-style — C_4, k=4, normalize=true → all 1.0 (one 4-cycle each)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=False
+        ),
+        "algo": "ecc",
+        "params": {"k": 4, "offset": False, "normalize": True},
+        "expected": [1.0, 1.0, 1.0, 1.0],
+    },
+    {
+        "case": "ecc_r_star_k3_normalize_true_is_nan",
+        # K_{1,3} star: leaf has degree 1, s = min(1,3) - 1 = 0 → NaN.
+        "origin": "R-style — K_{1,3} star, k=3, normalize=true → NaN per edge (s = 0)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "algo": "ecc",
+        "params": {"k": 3, "offset": False, "normalize": True},
+        "expected": [None, None, None],
+    },
+    {
+        "case": "ecc_r_triangle_offset_true_normalize_true_is_radicchi_canonical",
+        # K_3 with Radicchi canonical (z + 1) / s: z=1, s=1 → 2.0.
+        "origin": "R-style — K_3, k=3, Radicchi canonical (offset+normalize) → 2.0",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "ecc",
+        "params": {"k": 3, "offset": True, "normalize": True},
+        "expected": [2.0, 2.0, 2.0],
+    },
+]
+
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # R-igraph exposes `igraph_reindex_membership` indirectly through
     # the C glue used by `make_clusters()` and community methods. The
@@ -3125,6 +3180,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "split_join_distance": SPLIT_JOIN_DISTANCE_MANIFEST,
     "voronoi": VORONOI_MANIFEST,
+    "ecc": ECC_PR031_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,
     "strongly_connected_components": SCC_MANIFEST,
