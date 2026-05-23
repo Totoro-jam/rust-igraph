@@ -1,0 +1,25 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_simple_interconnected_islands_game(islands_n=1, islands_pin=1.0)): single clique K_15",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "simple_interconnected_islands_game",
+  "params": {
+    "islands_n": 1,
+    "islands_size": 15,
+    "islands_pin": 1.0,
+    "n_inter": 0,
+    "seed": 5550003
+  },
+  "expected": {
+    "vcount": 15,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 105,
+    "ecount_max": 105
+  }
+}

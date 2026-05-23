@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-GN-007",
+  "captured_at": "2026-05-23",
+  "git_commit": "77fa9ec",
+  "rust_n_islands_4_total_vcount_200_ns": 23620,
+  "rust_n_islands_20_total_vcount_1000_ns": 298570,
+  "rust_n_islands_100_total_vcount_5000_ns": 1870100,
+  "rust_pin_sweep_pin5_ns": 19972,
+  "rust_pin_sweep_pin20_ns": 45724,
+  "rust_pin_sweep_pin50_ns": 103450,
+  "py_baseline_ns": null,
+  "notes": "Simple interconnected islands generator (igraph_simple_interconnected_islands_game). Per island: Batagelj-Brandes geometric-skip across the strict upper triangle in O(island_size + |E_i|). Per unordered island pair: Floyd distinct-sample of n_inter bipartite edges from islands_size^2 cells, expected O(n_inter). Total cost O(N + |E|) with N = islands_n * islands_size. The n_islands sweep at fixed island_size = 50, islands_pin = 0.10, n_inter = 3 shows throughput dropping from ~8.5 Melem/s at 4 islands to ~2.7 Melem/s at 100 islands because the C(islands_n, 2) inter-island bipartite slices grow quadratically — at islands_n = 100 there are 4950 bipartite slices, each doing a Floyd sample. The pin_sweep at islands_n = 10, islands_size = 30 confirms the intra-island dominant term: throughput halves with each ~3-4x density increase since Batagelj-Brandes emits proportionally more edges and each edge incurs a triangle-decode (sqrt + floor). No oracle baseline: python-igraph and rigraph wrap the same C entry point but RNG state is not portable, so the three-source conformance harness asserts structural invariants only (vcount, directed = false, is_simple via HashSet canonical-pair check, ecount band built from E[intra] + exact_inter). Numbers from cargo bench --bench bench_islands on Darwin/M-series release build."
+}

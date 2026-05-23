@@ -26,10 +26,10 @@
 //! MVP scope ports the most-used path: **simple graphs**, with `loops`
 //! optionally enabled. Multigraphs (`multiple = true`) and the
 //! edge-labeled IEA variant are out of scope for this AWU — they will
-//! land as follow-up AWUs if real users ask for them. Returning
-//! [`IgraphError::Unimplemented`] from a hypothetical multigraph flag
-//! would be the wrong API shape (the flag could never be true), so we
-//! simply omit it from the public surface.
+//! land as follow-up AWUs if real users ask for them. Returning an
+//! `IgraphError::Unimplemented`-style variant from a hypothetical
+//! multigraph flag would be the wrong API shape (the flag could never
+//! be true), so we simply omit it from the public surface.
 //!
 //! ## References
 //!

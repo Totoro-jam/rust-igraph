@@ -15,6 +15,48 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-007** — `simple_interconnected_islands_game` random graph
+  generator. Counterpart of
+  `igraph_simple_interconnected_islands_game()` in
+  `references/igraph/src/games/islands.c:55-176`. Builds `islands_n`
+  Erdős–Rényi G(n, p) islands of equal size and connects every pair of
+  islands with exactly `n_inter` bipartite edges sampled uniformly at
+  random from the `islands_size × islands_size` cell.
+  - `simple_interconnected_islands_game(islands_n: u32, islands_size: u32, islands_pin: f64, n_inter: u32, seed: u64) -> IgraphResult<Graph>`.
+  - Intra-island sampling uses Batagelj–Brandes geometric-skip over the
+    strict upper triangle (cost `O(islands_size + |E_i|)`). Inter-island
+    sampling uses Floyd's distinct-sample to draw `n_inter` edges from
+    `islands_size²` cells (expected `O(n_inter)`).
+  - Validation: `islands_pin ∈ [0, 1]` (NaN/Inf rejected),
+    `n_inter ≤ islands_size²`, and `islands_n · islands_size ≤ u32::MAX`.
+  - Output is always undirected and always simple — the intra slice is
+    strictly upper-triangular, and the inter slice samples a bipartite
+    cell whose index space is disjoint from every intra slice by
+    construction.
+  - Edge cases: `islands_n = 0` or `islands_size = 0` returns an empty
+    graph; `islands_pin = 0` skips intra sampling entirely; the
+    `n_inter = islands_size²` saturation case is exercised by tests.
+  - Deterministic given `(islands_n, islands_size, islands_pin, n_inter,
+    seed)` via `SplitMix64`.
+  - Conformance: 9 fixtures (3 C + 3 py + 3 R) under
+    `tests/conformance/{c,py,r}/simple_interconnected_islands_game/`.
+    RNG state is not portable across implementations, so fixtures
+    assert structural invariants only — `vcount`, `directed = false`,
+    `is_simple` (canonical-pair `HashSet`), and an `ecount` band built
+    from `E[intra] = islands_n · C(size, 2) · pin` plus
+    `exact_inter = C(islands_n, 2) · n_inter`.
+  - Bench at `benches/bench_islands.rs`: an `islands_n` scaling sweep
+    at fixed `islands_size = 50, islands_pin = 0.10, n_inter = 3`, plus
+    a `pin_sweep` at `islands_n = 10, islands_size = 30`. Baseline at
+    `.codefuse/tracking/perf/ALGO-GN-007.json`: 8.5 / 3.3 / 2.7 Melem/s
+    at `islands_n = 4 / 20 / 100`; pin sweep 15.0 / 6.6 / 2.9 Melem/s at
+    `pin = 0.05 / 0.20 / 0.50`.
+  - Example: `examples/islands_demo.rs` builds a 6 × 25 lattice and
+    prints the per-island intra-edge counts plus the per-pair
+    inter-edge counts so the block structure is visible in plain text;
+    every bipartite slice should hit exactly `n_inter`.
+  - Re-exported as `rust_igraph::simple_interconnected_islands_game`.
+
 - **ALGO-GN-006** — `forest_fire_game` Leskovec–Kleinberg–Faloutsos
   forest-fire random graph generator (KDD'05). Counterpart of
   `igraph_forest_fire_game()` in

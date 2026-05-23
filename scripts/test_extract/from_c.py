@@ -3822,6 +3822,74 @@ FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ISLANDS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "islands_c_4islands_size20_pin03_inter2",
+        "origin": "constructed (mirrors igraph_simple_interconnected_islands_game"
+        "(islands_n=4, islands_size=20, islands_pin=0.3, n_inter=2)): "
+        "four moderate-density islands wired together",
+        "algo": "simple_interconnected_islands_game",
+        "params": {
+            "islands_n": 4,
+            "islands_size": 20,
+            "islands_pin": 0.3,
+            "n_inter": 2,
+            "seed": 5_550_001,
+        },
+        "expected": {
+            # E[intra] = 4 · C(20,2) · 0.3 = 4 · 190 · 0.3 = 228
+            # exact_inter = C(4,2) · 2 = 12
+            # total ≈ 240; allow ±50% on the random part.
+            "vcount": 80,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 124,  # 0.5 · 228 + 12 ≈ 126
+            "ecount_max": 364,  # 1.5 · 228 + 12 ≈ 354 — round up
+        },
+    },
+    {
+        "case": "islands_c_pin0_only_inter",
+        "origin": "constructed (mirrors igraph_simple_interconnected_islands_game"
+        "(islands_pin=0)): exact inter-island count",
+        "algo": "simple_interconnected_islands_game",
+        "params": {
+            "islands_n": 5,
+            "islands_size": 6,
+            "islands_pin": 0.0,
+            "n_inter": 3,
+            "seed": 5_550_002,
+        },
+        "expected": {
+            # No intra edges (p=0); exactly C(5,2) · 3 = 30 inter edges.
+            "vcount": 30,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 30,
+            "ecount_max": 30,
+        },
+    },
+    {
+        "case": "islands_c_single_island_pin_one_clique",
+        "origin": "constructed (mirrors igraph_simple_interconnected_islands_game"
+        "(islands_n=1, islands_pin=1.0)): single clique K_15",
+        "algo": "simple_interconnected_islands_game",
+        "params": {
+            "islands_n": 1,
+            "islands_size": 15,
+            "islands_pin": 1.0,
+            "n_inter": 0,
+            "seed": 5_550_003,
+        },
+        "expected": {
+            "vcount": 15,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 105,  # K_15 = 15·14/2 = 105
+            "ecount_max": 105,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3955,6 +4023,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "tree_game_lerw": TREE_LERW_MANIFEST,
     "grg_game": GRG_MANIFEST,
     "forest_fire_game": FOREST_FIRE_MANIFEST,
+    "simple_interconnected_islands_game": ISLANDS_MANIFEST,
 }
 
 
@@ -4054,6 +4123,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "tree_game_lerw",
             "grg_game",
             "forest_fire_game",
+            "simple_interconnected_islands_game",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

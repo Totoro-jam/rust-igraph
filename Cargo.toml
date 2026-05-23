@@ -222,6 +222,11 @@ name = "bench_forestfire"
 path = "benches/bench_forestfire.rs"
 harness = false
 
+[[bench]]
+name = "bench_islands"
+path = "benches/bench_islands.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

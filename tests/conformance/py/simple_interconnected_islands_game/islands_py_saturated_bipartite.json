@@ -1,0 +1,25 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.SimpleInterconnectedIslands(islands_n=2, islands_size=4, islands_pin=0.5, n_inter=16)): n_inter = size\u00b2 saturates the bipartite slice",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "simple_interconnected_islands_game",
+  "params": {
+    "islands_n": 2,
+    "islands_size": 4,
+    "islands_pin": 0.5,
+    "n_inter": 16,
+    "seed": 7770103
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 19,
+    "ecount_max": 25
+  }
+}

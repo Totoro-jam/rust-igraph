@@ -3683,6 +3683,83 @@ FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
+# `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
+# (the canonical R wrapper for
+# `igraph_simple_interconnected_islands_game`). RNG state is not
+# portable across implementations, so the manifest records only
+# structural invariants: vcount, directed = FALSE, is_simple, and
+# an ecount band built from E[intra] = islands_n · C(size, 2) · pin
+# plus exact_inter = C(islands_n, 2) · n_inter.
+ISLANDS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "islands_r_5islands_size12_pin025_inter2",
+        "origin": "constructed (mirrors sample_islands(islands.n=5, "
+        "islands.size=12, islands.pin=0.25, n.inter=2)): five small "
+        "islands stitched together with two cross-edges each",
+        "algo": "simple_interconnected_islands_game",
+        "params": {
+            "islands_n": 5,
+            "islands_size": 12,
+            "islands_pin": 0.25,
+            "n_inter": 2,
+            "seed": 9_990_101,
+        },
+        "expected": {
+            "vcount": 60,
+            "directed": False,
+            "is_simple": True,
+            # E[intra] = 5 * 12*11/2 * 0.25 = 82.5; exact_inter = C(5,2)*2 = 20.
+            # Band [0.6*82.5 + 20, 1.4*82.5 + 20] = [69, 135].
+            "ecount_min": 69,
+            "ecount_max": 135,
+        },
+    },
+    {
+        "case": "islands_r_pin0_only_inter",
+        "origin": "constructed (mirrors sample_islands(islands.n=6, "
+        "islands.size=10, islands.pin=0, n.inter=1)): no intra edges, "
+        "exactly C(6,2)·1 = 15 inter-island edges",
+        "algo": "simple_interconnected_islands_game",
+        "params": {
+            "islands_n": 6,
+            "islands_size": 10,
+            "islands_pin": 0.0,
+            "n_inter": 1,
+            "seed": 9_990_102,
+        },
+        "expected": {
+            "vcount": 60,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 15,
+            "ecount_max": 15,
+        },
+    },
+    {
+        "case": "islands_r_single_island_pin_one_clique",
+        "origin": "constructed (mirrors sample_islands(islands.n=1, "
+        "islands.size=12, islands.pin=1, n.inter=0)): degenerate "
+        "single island with pin=1 becomes K_12",
+        "algo": "simple_interconnected_islands_game",
+        "params": {
+            "islands_n": 1,
+            "islands_size": 12,
+            "islands_pin": 1.0,
+            "n_inter": 0,
+            "seed": 9_990_103,
+        },
+        "expected": {
+            "vcount": 12,
+            "directed": False,
+            "is_simple": True,
+            # K_12 = 12*11/2 = 66 edges.
+            "ecount_min": 66,
+            "ecount_max": 66,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3816,6 +3893,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "tree_game_lerw": TREE_LERW_MANIFEST,
     "grg_game": GRG_MANIFEST,
     "forest_fire_game": FOREST_FIRE_MANIFEST,
+    "simple_interconnected_islands_game": ISLANDS_MANIFEST,
 }
 
 
@@ -3910,6 +3988,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "tree_game_lerw",
             "grg_game",
             "forest_fire_game",
+            "simple_interconnected_islands_game",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

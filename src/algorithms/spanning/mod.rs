@@ -7,7 +7,7 @@
 //! loop-erased random-walk (LERW) random spanning tree.
 //!
 //! Currently hosts:
-//! - [`mst`] (`ALGO-MST-001`): `minimum_spanning_tree` — Prim / Kruskal /
+//! - `mst` (`ALGO-MST-001`): [`minimum_spanning_tree`] — Prim / Kruskal /
 //!   Unweighted / Automatic with a `Vec<EdgeId>` return type.
 
 pub(crate) mod mst;

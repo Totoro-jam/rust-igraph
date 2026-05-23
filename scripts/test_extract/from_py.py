@@ -3423,6 +3423,84 @@ FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-007: simple_interconnected_islands_game. Mirrors
+# `ig.Graph.SBM`-like factory `ig.Graph.SimpleInterconnectedIslands(
+# islands_n, islands_size, islands_pin, n_inter)` (Cython wrapper on
+# `igraph_simple_interconnected_islands_game`). RNG state is not
+# portable; we encode structural invariants — vcount, directed=False,
+# is_simple (no loops + no parallels), and an ecount band built from
+# expected_intra = islands_n * C(size, 2) * pin and exact
+# expected_inter = C(islands_n, 2) * n_inter.
+ISLANDS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "islands_py_3islands_size15_pin04_inter1",
+        "origin": "constructed (mirrors ig.Graph.SimpleInterconnectedIslands("
+        "islands_n=3, islands_size=15, islands_pin=0.4, n_inter=1)): "
+        "three medium islands with one cross-bridge each",
+        "algo": "simple_interconnected_islands_game",
+        "params": {
+            "islands_n": 3,
+            "islands_size": 15,
+            "islands_pin": 0.4,
+            "n_inter": 1,
+            "seed": 7_770_101,
+        },
+        "expected": {
+            "vcount": 45,
+            "directed": False,
+            "is_simple": True,
+            # E[intra] = 3 * 15*14/2 * 0.4 = 126; exact_inter = 3*1 = 3.
+            # Band [0.6*126 + 3, 1.4*126 + 3] = [78, 179].
+            "ecount_min": 78,
+            "ecount_max": 179,
+        },
+    },
+    {
+        "case": "islands_py_pin0_pure_bipartite",
+        "origin": "constructed (mirrors ig.Graph.SimpleInterconnectedIslands("
+        "islands_n=4, islands_size=8, islands_pin=0.0, n_inter=2)): "
+        "no intra edges → exact C(4,2)·2 = 12 inter-island edges",
+        "algo": "simple_interconnected_islands_game",
+        "params": {
+            "islands_n": 4,
+            "islands_size": 8,
+            "islands_pin": 0.0,
+            "n_inter": 2,
+            "seed": 7_770_102,
+        },
+        "expected": {
+            "vcount": 32,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 12,
+            "ecount_max": 12,
+        },
+    },
+    {
+        "case": "islands_py_saturated_bipartite",
+        "origin": "constructed (mirrors ig.Graph.SimpleInterconnectedIslands("
+        "islands_n=2, islands_size=4, islands_pin=0.5, n_inter=16)): "
+        "n_inter = size² saturates the bipartite slice",
+        "algo": "simple_interconnected_islands_game",
+        "params": {
+            "islands_n": 2,
+            "islands_size": 4,
+            "islands_pin": 0.5,
+            "n_inter": 16,
+            "seed": 7_770_103,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "is_simple": True,
+            # E[intra] = 2 * 4*3/2 * 0.5 = 6; exact_inter = 1*16 = 16.
+            # Band [0.6*6 + 16, 1.4*6 + 16] = [19, 25].
+            "ecount_min": 19,
+            "ecount_max": 25,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3552,6 +3630,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "tree_game_lerw": TREE_LERW_MANIFEST,
     "grg_game": GRG_MANIFEST,
     "forest_fire_game": FOREST_FIRE_MANIFEST,
+    "simple_interconnected_islands_game": ISLANDS_MANIFEST,
 }
 
 
@@ -3646,6 +3725,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "tree_game_lerw",
             "grg_game",
             "forest_fire_game",
+            "simple_interconnected_islands_game",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

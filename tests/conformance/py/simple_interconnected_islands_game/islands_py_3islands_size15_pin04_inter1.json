@@ -1,0 +1,25 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.SimpleInterconnectedIslands(islands_n=3, islands_size=15, islands_pin=0.4, n_inter=1)): three medium islands with one cross-bridge each",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "simple_interconnected_islands_game",
+  "params": {
+    "islands_n": 3,
+    "islands_size": 15,
+    "islands_pin": 0.4,
+    "n_inter": 1,
+    "seed": 7770101
+  },
+  "expected": {
+    "vcount": 45,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 78,
+    "ecount_max": 179
+  }
+}
