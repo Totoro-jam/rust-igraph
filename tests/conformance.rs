@@ -5793,3 +5793,121 @@ fn tree_game_lerw_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn grg_game_three_source_conformance() {
+    // Geometric random graph generator. Structural invariants only —
+    // RNG state is not portable across implementations:
+    //   * vcount = params.n (exact)
+    //   * directed flag exact (always false in upstream)
+    //   * is_simple: no self-loops and no multi-edges (HashSet size)
+    //   * ecount_min <= ecount <= ecount_max (loose RNG-tolerant band
+    //     centred on E[edges] = n(n-1)/2 · π·r² for the plane interior)
+    use rust_igraph::grg_game;
+    use std::collections::HashSet;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("grg_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "grg_game");
+
+            let n = er_param_u32(&case, "n", &path);
+            let radius = er_param_f64(&case, "radius", &path);
+            let torus = er_param_bool(&case, "torus", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = grg_game(n, radius, torus, seed)
+                .expect("grg_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_is_simple = er_expected_bool(&case, "is_simple", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            if want_is_simple {
+                let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+                let mut canonical: HashSet<(u32, u32)> = HashSet::with_capacity(n_edges as usize);
+                for eid in 0..n_edges {
+                    let (a, b) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for grg fixture");
+                    assert_ne!(
+                        a,
+                        b,
+                        "self-loop in {} (edge {eid})\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                    let pair = if a <= b { (a, b) } else { (b, a) };
+                    assert!(
+                        canonical.insert(pair),
+                        "multi-edge {pair:?} in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no grg_game fixtures from source {src}"
+        );
+    }
+}

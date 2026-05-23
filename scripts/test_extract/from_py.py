@@ -3284,6 +3284,70 @@ TREE_LERW_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-005: grg_game. python-igraph ships `ig.Graph.GRG(n, radius,
+# torus=False, return_coordinates=False)`. RNG is not portable so we
+# encode structural invariants only — vcount, undirected, simple, and a
+# loose ±60 % band around the Poisson mean for the predicted edge count.
+GRG_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "grg_py_plane_n40_r025",
+        "origin": "constructed (mirrors ig.Graph.GRG(n=40, radius=0.25, "
+        "torus=False)): low-density disk graph",
+        "algo": "grg_game",
+        # n=40, r=0.25: predicted ≈ 153 edges; band [60, 250].
+        "params": {"n": 40, "radius": 0.25, "torus": False, "seed": 6_660_001},
+        "expected": {
+            "vcount": 40,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 60,
+            "ecount_max": 260,
+        },
+    },
+    {
+        "case": "grg_py_torus_n60_r018",
+        "origin": "constructed (mirrors ig.Graph.GRG(n=60, radius=0.18, "
+        "torus=True)): torus with wrap-around",
+        "algo": "grg_game",
+        # n=60, r=0.18: predicted ≈ 60·59/2 · π·0.0324 ≈ 180 edges.
+        "params": {"n": 60, "radius": 0.18, "torus": True, "seed": 6_660_002},
+        "expected": {
+            "vcount": 60,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 70,
+            "ecount_max": 290,
+        },
+    },
+    {
+        "case": "grg_py_dense_n25_r200",
+        "origin": "constructed (mirrors ig.Graph.GRG(n=25, radius=2.0, "
+        "torus=False)): radius > sqrt(2) yields complete graph",
+        "algo": "grg_game",
+        "params": {"n": 25, "radius": 2.0, "torus": False, "seed": 6_660_003},
+        "expected": {
+            "vcount": 25,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 300,  # 25*24/2 = 300 exactly
+            "ecount_max": 300,
+        },
+    },
+    {
+        "case": "grg_py_singleton",
+        "origin": "constructed: n=1 returns a singleton",
+        "algo": "grg_game",
+        "params": {"n": 1, "radius": 0.5, "torus": False, "seed": 6_660_004},
+        "expected": {
+            "vcount": 1,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3411,6 +3475,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,
     "growing_random_game": GROWING_RANDOM_MANIFEST,
     "tree_game_lerw": TREE_LERW_MANIFEST,
+    "grg_game": GRG_MANIFEST,
 }
 
 
@@ -3503,6 +3568,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "barabasi_game_bag",
             "growing_random_game",
             "tree_game_lerw",
+            "grg_game",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

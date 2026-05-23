@@ -1,0 +1,24 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_grg(nodes=50, radius=0.15, torus=TRUE)): undirected torus GRG",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "grg_game",
+  "params": {
+    "n": 50,
+    "radius": 0.15,
+    "torus": true,
+    "seed": 808802
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 25,
+    "ecount_max": 200
+  }
+}

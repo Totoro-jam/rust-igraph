@@ -1,0 +1,24 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_grg(nodes=20, radius=2.0, torus=FALSE)): radius > sqrt(2) \u2192 complete graph",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "grg_game",
+  "params": {
+    "n": 20,
+    "radius": 2.0,
+    "torus": false,
+    "seed": 909903
+  },
+  "expected": {
+    "vcount": 20,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 190,
+    "ecount_max": 190
+  }
+}

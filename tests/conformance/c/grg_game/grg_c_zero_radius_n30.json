@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_grg_game boundary r=0): no edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "grg_game",
+  "params": {
+    "n": 30,
+    "radius": 0.0,
+    "torus": false,
+    "seed": 5550003
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 0
+  }
+}

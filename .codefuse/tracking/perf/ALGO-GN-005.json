@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-GN-005",
+  "captured_at": "2026-05-23",
+  "git_commit": "ed539b7",
+  "rust_plane_n100_ns": 12282,
+  "rust_plane_n1000_ns": 216270,
+  "rust_plane_n10000_ns": 3641400,
+  "rust_torus_n100_ns": 19382,
+  "rust_torus_n1000_ns": 318970,
+  "rust_torus_n10000_ns": 4957200,
+  "py_baseline_ns": null,
+  "notes": "Geometric random graph via x-sweep with width-radius window (igraph_grg_game). Radius is auto-tuned per n so the expected average degree stays near 10 (sparse regime): r = sqrt(10 / (pi * (n-1))). The sort cost O(n log n) dominates below n ~ 1 000 while the inner sweep is O(n + |E|); at n = 10 000 the throughput drops from 8.1 to 2.7 Melem/s because the xs buffer (~80 KB) exits L1 and the sort plus per-i window walk both incur L2 traffic. Torus mode is ~20-35 % slower across the board: each forward-window candidate pays an extra `if dy > 0.5` wrap fold, and the wrap-around tail revisits low-index points (k < i) whenever the forward window reached j == n. The wrap tail's guard (xi - xs[k] >= radius) keeps the per-i work bounded by the radius/1 fraction of n, so torus stays linear in |E| just like the plane mode. No oracle baseline: python-igraph exposes Graph.GRG and rigraph exposes sample_grg, but the RNG state is not portable, so conformance asserts structural invariants only (vcount, undirected, is_simple via HashSet, ecount band derived from E[edges] = C(n,2)*pi*r^2). Numbers from cargo bench --bench bench_grg -- --quick on Darwin/M-series release build."
+}

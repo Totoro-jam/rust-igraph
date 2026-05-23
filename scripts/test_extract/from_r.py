@@ -3552,6 +3552,58 @@ TREE_LERW_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-005: grg_game (geometric random graph). Mirrors rigraph's
+# `sample_grg(nodes, radius, torus = FALSE)`. Generator — RNG not
+# portable across implementations, so we assert structural invariants
+# only (vcount, undirected, simple) and a loose ecount band derived
+# from the bulk expectation E[edges] = n(n-1)/2 · π·r² (interior).
+GRG_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "grg_r_plane_n40_r020",
+        "origin": "constructed (mirrors sample_grg(nodes=40, radius=0.20, "
+        "torus=FALSE)): undirected plane GRG",
+        "algo": "grg_game",
+        "params": {"n": 40, "radius": 0.20, "torus": False, "seed": 707_701},
+        "expected": {
+            "vcount": 40,
+            "directed": False,
+            "is_simple": True,
+            # bulk = C(40,2)·π·0.04 ≈ 98; loose 30..200 covers RNG spread.
+            "ecount_min": 30,
+            "ecount_max": 200,
+        },
+    },
+    {
+        "case": "grg_r_torus_n50_r015",
+        "origin": "constructed (mirrors sample_grg(nodes=50, radius=0.15, "
+        "torus=TRUE)): undirected torus GRG",
+        "algo": "grg_game",
+        "params": {"n": 50, "radius": 0.15, "torus": True, "seed": 808_802},
+        "expected": {
+            "vcount": 50,
+            "directed": False,
+            "is_simple": True,
+            # bulk = C(50,2)·π·0.0225 ≈ 86; loose 25..200.
+            "ecount_min": 25,
+            "ecount_max": 200,
+        },
+    },
+    {
+        "case": "grg_r_dense_complete_n20",
+        "origin": "constructed (mirrors sample_grg(nodes=20, radius=2.0, "
+        "torus=FALSE)): radius > sqrt(2) → complete graph",
+        "algo": "grg_game",
+        "params": {"n": 20, "radius": 2.0, "torus": False, "seed": 909_903},
+        "expected": {
+            "vcount": 20,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 190,  # C(20,2) = 190 exactly
+            "ecount_max": 190,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3683,6 +3735,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,
     "growing_random_game": GROWING_RANDOM_MANIFEST,
     "tree_game_lerw": TREE_LERW_MANIFEST,
+    "grg_game": GRG_MANIFEST,
 }
 
 
@@ -3775,6 +3828,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "barabasi_game_bag",
             "growing_random_game",
             "tree_game_lerw",
+            "grg_game",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

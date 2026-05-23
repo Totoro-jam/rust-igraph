@@ -212,6 +212,11 @@ name = "bench_tree_game"
 path = "benches/bench_tree_game.rs"
 harness = false
 
+[[bench]]
+name = "bench_grg"
+path = "benches/bench_grg.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

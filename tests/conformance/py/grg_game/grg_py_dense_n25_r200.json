@@ -1,0 +1,24 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.GRG(n=25, radius=2.0, torus=False)): radius > sqrt(2) yields complete graph",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "grg_game",
+  "params": {
+    "n": 25,
+    "radius": 2.0,
+    "torus": false,
+    "seed": 6660003
+  },
+  "expected": {
+    "vcount": 25,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 300,
+    "ecount_max": 300
+  }
+}

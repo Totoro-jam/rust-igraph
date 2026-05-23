@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_grg_game(n=80, r=0.15, torus=true)): torus boundary",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "grg_game",
+  "params": {
+    "n": 80,
+    "radius": 0.15,
+    "torus": true,
+    "seed": 5550002
+  },
+  "expected": {
+    "vcount": 80,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 90,
+    "ecount_max": 360
+  }
+}

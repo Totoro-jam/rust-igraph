@@ -15,6 +15,46 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-005** — `grg_game` geometric random graph generator.
+  Counterpart of `igraph_grg_game()` in
+  `references/igraph/src/games/grg.c:56-174`. Drops `n` uniform points
+  on the unit square and connects every pair within Euclidean distance
+  strictly less than `radius`, with optional periodic boundary
+  conditions (`torus = true`).
+  - `grg_game(n: u32, radius: f64, torus: bool, seed: u64) -> IgraphResult<Graph>`.
+  - `grg_game_with_coords(n, radius, torus, seed) -> IgraphResult<(Graph, Vec<f64>, Vec<f64>)>`
+    returns the sorted `xs` and the original-order `ys`, faithfully
+    mirroring upstream's `igraph_vector_sort(xx)` which sorts only the
+    x-array (the (x, y) pairing is intentionally broken — the joint
+    marginal is still uniform because the two axes were independent).
+  - Algorithm: O(n log n) sort + O(n + |E|) x-sweep with a width-`radius`
+    window — each candidate pair is inspected exactly once. Torus mode
+    adds a wrap-around tail gated on `j == n` and the
+    `xi − xs[k] >= radius` guard to avoid double-counting.
+  - Output is always undirected and simple — the sweep starts at
+    `j = i + 1` (no self-loops) and visits each pair once (no
+    multi-edges). Negative or zero radius yields an empty graph
+    (matching upstream's strict `<` comparison).
+  - Deterministic given `(n, radius, torus, seed)` via `SplitMix64`.
+  - Conformance: 10 fixtures (3 C + 4 py + 3 R) under
+    `tests/conformance/{c,py,r}/grg_game/`. RNG state is not portable,
+    so fixtures assert structural invariants only — `vcount`,
+    `directed == false`, `is_simple` (no loops, no multi-edges via
+    canonical-pair `HashSet`), and a loose `ecount` band derived from
+    `E[edges] = C(n,2) · π · r²` (interior bulk) with ±50 % tolerance.
+    The dense fixture (`r > sqrt(2)`) pins the count to `C(n,2)` exactly.
+  - Bench at `benches/bench_grg.rs` (plane + torus groups,
+    `n ∈ {100, 1 000, 10 000}`) with the radius auto-tuned for an
+    expected average degree of ~10. Baseline at
+    `.codefuse/tracking/perf/ALGO-GN-005.json`: 8.1 Melem/s at
+    `n = 100`, 4.6 Melem/s at `n = 1 000`, 2.7 Melem/s at `n = 10 000`
+    on the plane; torus runs ~20-35 % slower from the per-pair y-wrap
+    fold and the wrap-around tail.
+  - Example: `examples/grg_demo.rs` contrasting plane vs. torus mean
+    degree against the `E[deg] = (n − 1) · π · r²` bulk and reporting
+    the largest connected component.
+  - Re-exported as `rust_igraph::{grg_game, grg_game_with_coords}`.
+
 - **ALGO-GN-004** — `tree_game_lerw` uniform random labelled-tree generator
   via Wilson's loop-erased random walk. Counterpart of
   `igraph_tree_game(..., IGRAPH_RANDOM_TREE_LERW)` in
