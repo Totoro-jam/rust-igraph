@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-GN-002",
+  "captured_at": "2026-05-23",
+  "git_commit": "2b30175",
+  "rust_directed_m2_n100_ns": 7370,
+  "rust_directed_m2_n1000_ns": 72830,
+  "rust_directed_m2_n10000_ns": 924100,
+  "rust_directed_m5_n100_ns": 16153,
+  "rust_directed_m5_n1000_ns": 193490,
+  "rust_directed_m5_n10000_ns": 2408700,
+  "rust_undirected_m2_n100_ns": 7400,
+  "rust_undirected_m2_n1000_ns": 74158,
+  "rust_undirected_m2_n10000_ns": 993230,
+  "py_baseline_ns": null,
+  "notes": "Barabási–Albert (BAG variant) baseline. Pre-allocated Vec bag + edge buffer keyed on the exact upper bound (n + (n-1)·m + outpref·(n-1)·m), SplitMix64 RNG, two-pass per-step structure mirroring barabasi.c:158-170 (sample first, write back later). Throughput is constant ≈13-14 Melem/s vertices for n=100→1000 at m=2 (cache-resident bag), dropping to ~10-11 Melem/s at n=10000 once bag overflows L2 (bag_capacity ≈ 50KB at m=2 directed, 100KB undirected). m=5 sits at 4-6 Melem/s vertices: edge-count scales linearly with m, so per-edge throughput is comparable to m=2 (~5 ns/edge). Undirected forces outpref=true (per barabasi.c:83-85), doubling the per-step bag pushes — visible as a small slowdown at large n (10.4 vs 10.8 Melem/s at n=10000). Total cost is dominated by the bag pushes, not the RNG draws (gen_index is a single SplitMix64 step + modulo). No comparable python-igraph timing captured here; future perf pass should add ig.Graph.Barabasi side-by-side via the bench oracle. Numbers from cargo bench --warm-up-time 1 --measurement-time 2 on Darwin/M-series release build; ±3% noise across runs."
+}

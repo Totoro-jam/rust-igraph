@@ -1,0 +1,24 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors rigraph sample_pa(n=30, m=1, directed=TRUE, algorithm='bag')): m=1 yields exactly n-1 edges (tree-shaped DAG)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "barabasi_game_bag",
+  "params": {
+    "n": 30,
+    "m": 1,
+    "outpref": false,
+    "directed": true,
+    "seed": 161803
+  },
+  "expected": {
+    "vcount": 30,
+    "ecount": 29,
+    "directed": true,
+    "ba_temporal_order": true
+  }
+}

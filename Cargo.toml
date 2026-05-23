@@ -197,6 +197,11 @@ name = "bench_erdos_renyi"
 path = "benches/bench_erdos_renyi.rs"
 harness = false
 
+[[bench]]
+name = "bench_barabasi"
+path = "benches/bench_barabasi.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

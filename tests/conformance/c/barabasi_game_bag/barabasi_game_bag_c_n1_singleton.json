@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_barabasi_game boundary n=1): single vertex, no edges regardless of m",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "barabasi_game_bag",
+  "params": {
+    "n": 1,
+    "m": 3,
+    "outpref": false,
+    "directed": true,
+    "seed": 42
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 0,
+    "directed": true,
+    "ba_temporal_order": true
+  }
+}

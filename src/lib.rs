@@ -101,6 +101,7 @@ pub use crate::algorithms::connectivity::reachability::count_reachable;
 pub use crate::algorithms::connectivity::reachability_matrix::reachability_matrix;
 pub use crate::algorithms::connectivity::strong::strongly_connected_components;
 pub use crate::algorithms::connectivity::transitive_closure::transitive_closure;
+pub use crate::algorithms::games::barabasi::barabasi_game_bag;
 pub use crate::algorithms::games::erdos_renyi::{erdos_renyi_gnm, erdos_renyi_gnp};
 pub use crate::algorithms::io::edgelist::read_edgelist;
 pub use crate::algorithms::operators::complementer::complementer;

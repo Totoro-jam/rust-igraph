@@ -3057,6 +3057,97 @@ ERDOS_RENYI_GNM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-002: barabasi_game_bag. Like ER, this is a generator —
+# cross-implementation seed portability is impossible, but the BAG
+# variant happens to be **deterministic in edge count** when `m` is a
+# constant: exactly `(n - 1) · m` edges. We also encode the BA temporal
+# ordering invariant (`dst < src` for every edge) via a flag in
+# `expected`. The conformance harness verifies these structurally for
+# any seed.
+#
+# python-igraph reference API: `ig.Graph.Barabasi(n=n, m=m, power=1.0,
+# outpref=outpref, directed=directed)`. Not invoked here — seed is
+# RNG-dependent.
+BARABASI_BAG_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "barabasi_game_bag_py_directed_n30_m2",
+        "origin": "constructed (mirrors ig.Graph.Barabasi(n=30, m=2, "
+        "outpref=False, directed=True)): edge count exact, BA "
+        "temporal ordering",
+        "algo": "barabasi_game_bag",
+        "params": {
+            "n": 30,
+            "m": 2,
+            "outpref": False,
+            "directed": True,
+            "seed": 11_111,
+        },
+        "expected": {
+            "vcount": 30,
+            "ecount": 58,
+            "directed": True,
+            "ba_temporal_order": True,
+        },
+    },
+    {
+        "case": "barabasi_game_bag_py_undirected_n40_m3",
+        "origin": "constructed (mirrors ig.Graph.Barabasi(n=40, m=3, "
+        "outpref=True, directed=False)): undirected forces outpref=True",
+        "algo": "barabasi_game_bag",
+        "params": {
+            "n": 40,
+            "m": 3,
+            "outpref": False,
+            "directed": False,
+            "seed": 22_222,
+        },
+        "expected": {
+            "vcount": 40,
+            "ecount": 117,
+            "directed": False,
+            "ba_temporal_order": True,
+        },
+    },
+    {
+        "case": "barabasi_game_bag_py_directed_outpref_n20_m4",
+        "origin": "constructed (mirrors ig.Graph.Barabasi(n=20, m=4, "
+        "outpref=True, directed=True)): outpref biases on out-degree",
+        "algo": "barabasi_game_bag",
+        "params": {
+            "n": 20,
+            "m": 4,
+            "outpref": True,
+            "directed": True,
+            "seed": 33_333,
+        },
+        "expected": {
+            "vcount": 20,
+            "ecount": 76,
+            "directed": True,
+            "ba_temporal_order": True,
+        },
+    },
+    {
+        "case": "barabasi_game_bag_py_m0_no_edges_n10",
+        "origin": "constructed (mirrors ig.Graph.Barabasi(n=10, m=0)): "
+        "m=0 yields n isolated vertices",
+        "algo": "barabasi_game_bag",
+        "params": {
+            "n": 10,
+            "m": 0,
+            "outpref": False,
+            "directed": True,
+            "seed": 44_444,
+        },
+        "expected": {
+            "vcount": 10,
+            "ecount": 0,
+            "directed": True,
+            "ba_temporal_order": True,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3181,6 +3272,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
+    "barabasi_game_bag": BARABASI_BAG_MANIFEST,
 }
 
 
@@ -3267,10 +3359,11 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 },
                 "expected": entry["expected"],
             }
-        elif algo in ("erdos_renyi_gnp", "erdos_renyi_gnm"):
-            # ER generators produce a graph from params alone; the
+        elif algo in ("erdos_renyi_gnp", "erdos_renyi_gnm", "barabasi_game_bag"):
+            # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries
-            # structural invariants (vcount/ecount/directed).
+            # structural invariants (vcount/ecount/directed and, for BA,
+            # the `ba_temporal_order` flag).
             payload = {
                 "source": "py",
                 "origin": entry["origin"],

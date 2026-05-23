@@ -4,4 +4,5 @@
 //! [`crate::core::rng::SplitMix64`] PRNG, so callers get fully
 //! reproducible graphs without pulling in a `rand` dependency.
 
+pub mod barabasi;
 pub mod erdos_renyi;

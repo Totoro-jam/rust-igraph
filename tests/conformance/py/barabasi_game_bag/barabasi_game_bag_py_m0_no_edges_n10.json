@@ -1,0 +1,24 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Barabasi(n=10, m=0)): m=0 yields n isolated vertices",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "barabasi_game_bag",
+  "params": {
+    "n": 10,
+    "m": 0,
+    "outpref": false,
+    "directed": true,
+    "seed": 44444
+  },
+  "expected": {
+    "vcount": 10,
+    "ecount": 0,
+    "directed": true,
+    "ba_temporal_order": true
+  }
+}

@@ -3515,6 +3515,83 @@ ERDOS_RENYI_GNM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-002: barabasi_game_bag. Mirrors the BAG branch of
+# `igraph_barabasi_game()` in games/barabasi.c:67-178. Like ER,
+# generator RNG state isn't portable from C to Rust, so we capture the
+# **structural invariants** that the upstream example
+# `examples/simple/igraph_barabasi_game.c` and the unit test
+# `tests/unit/igraph_barabasi_game.c` rely on:
+#
+#   * vcount: exact match with `params["n"]`.
+#   * ecount: **exact** match with `(n - 1) * m` — the BAG variant is
+#     deterministic in edge count when `m` is a scalar (see the
+#     `outseq == NULL` branch at barabasi.c:113-117).
+#   * directed: exact boolean match.
+#   * ba_temporal_order: every edge `(src, dst)` satisfies `dst < src`
+#     — preferential-attachment edges always point from the newly added
+#     vertex to an earlier one (barabasi.c:158-170).
+BARABASI_BAG_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "barabasi_game_bag_c_directed_n50_m2_no_outpref",
+        "origin": "constructed (mirrors igraph_barabasi_game(n=50, "
+        "m=2, outpref=0, algo=IGRAPH_BARABASI_BAG, directed=1)): "
+        "edge count exact, BA temporal ordering",
+        "algo": "barabasi_game_bag",
+        "params": {
+            "n": 50,
+            "m": 2,
+            "outpref": False,
+            "directed": True,
+            "seed": 1_234_567,
+        },
+        "expected": {
+            "vcount": 50,
+            "ecount": 98,
+            "directed": True,
+            "ba_temporal_order": True,
+        },
+    },
+    {
+        "case": "barabasi_game_bag_c_undirected_n25_m4",
+        "origin": "constructed (mirrors igraph_barabasi_game(n=25, "
+        "m=4, outpref=0, algo=IGRAPH_BARABASI_BAG, directed=0)): "
+        "undirected forces outpref=true per barabasi.c:83-85",
+        "algo": "barabasi_game_bag",
+        "params": {
+            "n": 25,
+            "m": 4,
+            "outpref": False,
+            "directed": False,
+            "seed": 7_654_321,
+        },
+        "expected": {
+            "vcount": 25,
+            "ecount": 96,
+            "directed": False,
+            "ba_temporal_order": True,
+        },
+    },
+    {
+        "case": "barabasi_game_bag_c_n1_singleton",
+        "origin": "constructed (mirrors igraph_barabasi_game boundary "
+        "n=1): single vertex, no edges regardless of m",
+        "algo": "barabasi_game_bag",
+        "params": {
+            "n": 1,
+            "m": 3,
+            "outpref": False,
+            "directed": True,
+            "seed": 42,
+        },
+        "expected": {
+            "vcount": 1,
+            "ecount": 0,
+            "directed": True,
+            "ba_temporal_order": True,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3643,6 +3720,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
+    "barabasi_game_bag": BARABASI_BAG_MANIFEST,
 }
 
 
@@ -3734,11 +3812,12 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 },
                 "expected": entry["expected"],
             }
-        elif algo in ("erdos_renyi_gnp", "erdos_renyi_gnm"):
-            # ER generators produce a graph from params alone — graph
+        elif algo in ("erdos_renyi_gnp", "erdos_renyi_gnm", "barabasi_game_bag"):
+            # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural
-            # invariants the upstream `igraph_erdos_renyi_game_*`
-            # example asserts.
+            # invariants the upstream examples assert
+            # (`igraph_erdos_renyi_game_*` for ER, `igraph_barabasi_game`
+            # for BA-BAG).
             payload = {
                 "source": "c",
                 "origin": entry["origin"],

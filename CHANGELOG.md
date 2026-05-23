@@ -15,6 +15,42 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-002** — `barabasi_game_bag` preferential-attachment random
+  graph generator (BAG variant). Counterpart of the
+  `IGRAPH_BARABASI_BAG` branch of `igraph_barabasi_game()` in
+  `references/igraph/src/games/barabasi.c:67-178`.
+  - `barabasi_game_bag(n: u32, m: u32, outpref: bool, directed: bool,
+    seed: u64) -> IgraphResult<Graph>`. Classical Albert–Barabási "bag"
+    mechanism: a multiset whose multiplicity of vertex `v` equals
+    `deg(v) + 1`, so a uniform draw is proportional to degree. MVP
+    scope hardcodes `power = 1`, `A = 1` (the only setting BAG
+    supports per upstream `barabasi.c:567-574`), constant `m` (no
+    `outseq`), and seeds with the singleton `[0]` (no `start_from`).
+    `outpref` is forced to `true` for undirected graphs to match
+    upstream `barabasi.c:83-85`. Total cost: `O(n · m)` work, `O(n ·
+    m)` memory for bag + edge list.
+  - Edge count is deterministic given `(n, m)`: exactly `(n - 1) · m`
+    edges. Since the bag is sampled with replacement, the output may
+    contain multi-edges. Self-loops are *not* produced because the
+    algorithm pushes vertex `i` to the bag *after* its own draws.
+  - Deterministic given `(n, m, outpref, directed, seed)` via the
+    `SplitMix64` PRNG shared with the other generators.
+  - Conformance: 10 fixtures (3 C + 4 py + 3 R) under
+    `tests/conformance/{c,py,r}/barabasi_game_bag/`. Since
+    cross-implementation RNG state is not portable, the fixtures are
+    hand-derived and assert structural invariants only — `vcount` and
+    `ecount` are exact, `is_directed` is exact, and the BA temporal
+    ordering (`dst < src` for every edge in the directed case;
+    no-self-loop in the undirected case where the storage layer
+    canonicalises endpoints) is verified per-edge.
+  - Bench at `benches/bench_barabasi.rs` (directed `m = 2`, directed
+    `m = 5`, undirected `m = 2` with auto-promoted `outpref`). Baseline
+    at `.codefuse/tracking/perf/ALGO-GN-002.json`: ≈ 13–14 Melem/s
+    vertices for `m = 2` at `n ≤ 1 000` (cache-resident bag), dropping
+    to ~10 Melem/s at `n = 10 000` once the bag overflows L2.
+  - Example: `examples/barabasi_demo.rs` showing the degree-hub
+    concentration (vertex 0 dominates as expected).
+  - Re-exported as `rust_igraph::barabasi_game_bag`.
 - **ALGO-GN-001** — `erdos_renyi_gnp` + `erdos_renyi_gnm` random
   graph generators. Counterparts of `igraph_erdos_renyi_game_gnp` /
   `igraph_erdos_renyi_game_gnm` in

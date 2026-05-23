@@ -3392,6 +3392,71 @@ ERDOS_RENYI_GNM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-002: barabasi_game_bag. Mirrors rigraph's `sample_pa()` /
+# `barabasi.game()` with the BAG algorithm choice. Structural
+# invariants only — R's RNG state isn't portable.
+BARABASI_BAG_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "barabasi_game_bag_r_directed_n40_m3",
+        "origin": "constructed (mirrors rigraph sample_pa(n=40, "
+        "power=1, m=3, out.pref=FALSE, directed=TRUE, "
+        "algorithm='bag'))",
+        "algo": "barabasi_game_bag",
+        "params": {
+            "n": 40,
+            "m": 3,
+            "outpref": False,
+            "directed": True,
+            "seed": 314_159,
+        },
+        "expected": {
+            "vcount": 40,
+            "ecount": 117,
+            "directed": True,
+            "ba_temporal_order": True,
+        },
+    },
+    {
+        "case": "barabasi_game_bag_r_undirected_n20_m2",
+        "origin": "constructed (mirrors rigraph sample_pa(n=20, m=2, "
+        "directed=FALSE, algorithm='bag')): undirected forces outpref",
+        "algo": "barabasi_game_bag",
+        "params": {
+            "n": 20,
+            "m": 2,
+            "outpref": False,
+            "directed": False,
+            "seed": 271_828,
+        },
+        "expected": {
+            "vcount": 20,
+            "ecount": 38,
+            "directed": False,
+            "ba_temporal_order": True,
+        },
+    },
+    {
+        "case": "barabasi_game_bag_r_m1_tree_n30",
+        "origin": "constructed (mirrors rigraph sample_pa(n=30, m=1, "
+        "directed=TRUE, algorithm='bag')): m=1 yields exactly n-1 edges "
+        "(tree-shaped DAG)",
+        "algo": "barabasi_game_bag",
+        "params": {
+            "n": 30,
+            "m": 1,
+            "outpref": False,
+            "directed": True,
+            "seed": 161_803,
+        },
+        "expected": {
+            "vcount": 30,
+            "ecount": 29,
+            "directed": True,
+            "ba_temporal_order": True,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3520,6 +3585,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
+    "barabasi_game_bag": BARABASI_BAG_MANIFEST,
 }
 
 
@@ -3606,12 +3672,13 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 },
                 "expected": entry["expected"],
             }
-        elif algo in ("erdos_renyi_gnp", "erdos_renyi_gnm"):
-            # ER generators produce a graph from params alone; graph
+        elif algo in ("erdos_renyi_gnp", "erdos_renyi_gnm", "barabasi_game_bag"):
+            # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural
-            # invariants (vcount/ecount/directed). Mirrors the
-            # invariants asserted in rigraph's `test-sample-gnp.R` /
-            # `test-sample-gnm.R`.
+            # invariants (vcount/ecount/directed and, for BA,
+            # `ba_temporal_order`). Mirrors the invariants asserted in
+            # rigraph's `test-sample-gnp.R` / `test-sample-gnm.R` /
+            # `test-sample-pa.R`.
             payload = {
                 "source": "r",
                 "origin": entry["origin"],

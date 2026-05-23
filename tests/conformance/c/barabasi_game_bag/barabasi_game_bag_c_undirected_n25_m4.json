@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_barabasi_game(n=25, m=4, outpref=0, algo=IGRAPH_BARABASI_BAG, directed=0)): undirected forces outpref=true per barabasi.c:83-85",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "barabasi_game_bag",
+  "params": {
+    "n": 25,
+    "m": 4,
+    "outpref": false,
+    "directed": false,
+    "seed": 7654321
+  },
+  "expected": {
+    "vcount": 25,
+    "ecount": 96,
+    "directed": false,
+    "ba_temporal_order": true
+  }
+}

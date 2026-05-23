@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_barabasi_game(n=50, m=2, outpref=0, algo=IGRAPH_BARABASI_BAG, directed=1)): edge count exact, BA temporal ordering",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "barabasi_game_bag",
+  "params": {
+    "n": 50,
+    "m": 2,
+    "outpref": false,
+    "directed": true,
+    "seed": 1234567
+  },
+  "expected": {
+    "vcount": 50,
+    "ecount": 98,
+    "directed": true,
+    "ba_temporal_order": true
+  }
+}
