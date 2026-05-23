@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_k_regular_game(n=10, k=4, directed=false, multiple=false)): every vertex has degree 4, graph is simple",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "k_regular_game",
+  "params": {
+    "n": 10,
+    "k": 4,
+    "directed": false,
+    "multiple": false,
+    "seed": 8880001
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 20,
+    "ecount_max": 20,
+    "every_degree": 4
+  }
+}

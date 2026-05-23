@@ -3501,6 +3501,74 @@ ISLANDS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+K_REGULAR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "k_regular_py_undirected_simple_n12_k4",
+        "origin": "constructed (mirrors ig.Graph.K_Regular(n=12, k=4, "
+        "directed=False, multiple=False)): every vertex has degree 4",
+        "algo": "k_regular_game",
+        "params": {
+            "n": 12,
+            "k": 4,
+            "directed": False,
+            "multiple": False,
+            "seed": 7_770_201,
+        },
+        "expected": {
+            "vcount": 12,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 24,
+            "ecount_max": 24,
+            "every_degree": 4,
+        },
+    },
+    {
+        "case": "k_regular_py_directed_simple_n6_k2",
+        "origin": "constructed (mirrors ig.Graph.K_Regular(n=6, k=2, "
+        "directed=True, multiple=False)): every vertex has "
+        "out-degree = in-degree = 2",
+        "algo": "k_regular_game",
+        "params": {
+            "n": 6,
+            "k": 2,
+            "directed": True,
+            "multiple": False,
+            "seed": 7_770_202,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 12,
+            "ecount_max": 12,
+            "every_out_degree": 2,
+            "every_in_degree": 2,
+        },
+    },
+    {
+        "case": "k_regular_py_k_zero_isolated",
+        "origin": "constructed (mirrors ig.Graph.K_Regular(n=7, k=0)): "
+        "edge-less 7-vertex graph with every vertex isolated",
+        "algo": "k_regular_game",
+        "params": {
+            "n": 7,
+            "k": 0,
+            "directed": False,
+            "multiple": False,
+            "seed": 7_770_203,
+        },
+        "expected": {
+            "vcount": 7,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "every_degree": 0,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3631,6 +3699,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "grg_game": GRG_MANIFEST,
     "forest_fire_game": FOREST_FIRE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
+    "k_regular_game": K_REGULAR_MANIFEST,
 }
 
 
@@ -3726,6 +3795,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "grg_game",
             "forest_fire_game",
             "simple_interconnected_islands_game",
+            "k_regular_game",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

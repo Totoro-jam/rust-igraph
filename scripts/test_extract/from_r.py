@@ -3760,6 +3760,82 @@ ISLANDS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-008: k_regular_game. Mirrors rigraph's
+# `sample_k_regular(no.of.nodes, k, directed, multiple)` (the canonical
+# R wrapper for `igraph_k_regular_game`). RNG state is not portable
+# across implementations, so the manifest records only structural
+# invariants: vcount, directed, is_simple, ecount band, and
+# every_degree / every_out_degree / every_in_degree assertions.
+K_REGULAR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "k_regular_r_undirected_simple_n14_k4",
+        "origin": "constructed (mirrors sample_k_regular(no.of.nodes=14, "
+        "k=4, directed=FALSE, multiple=FALSE)): every vertex has "
+        "degree 4 in a simple graph",
+        "algo": "k_regular_game",
+        "params": {
+            "n": 14,
+            "k": 4,
+            "directed": False,
+            "multiple": False,
+            "seed": 7_770_001,
+        },
+        "expected": {
+            "vcount": 14,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 28,  # n * k / 2
+            "ecount_max": 28,
+            "every_degree": 4,
+        },
+    },
+    {
+        "case": "k_regular_r_directed_simple_n9_k2",
+        "origin": "constructed (mirrors sample_k_regular(no.of.nodes=9, "
+        "k=2, directed=TRUE, multiple=FALSE)): every vertex has "
+        "out-degree = in-degree = 2 in a simple directed graph",
+        "algo": "k_regular_game",
+        "params": {
+            "n": 9,
+            "k": 2,
+            "directed": True,
+            "multiple": False,
+            "seed": 7_770_002,
+        },
+        "expected": {
+            "vcount": 9,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 18,  # n * k
+            "ecount_max": 18,
+            "every_out_degree": 2,
+            "every_in_degree": 2,
+        },
+    },
+    {
+        "case": "k_regular_r_undirected_multi_n6_k5",
+        "origin": "constructed (mirrors sample_k_regular(no.of.nodes=6, "
+        "k=5, directed=FALSE, multiple=TRUE)): n*k=30 is even, every "
+        "vertex has degree 5, self-loops and parallel edges allowed",
+        "algo": "k_regular_game",
+        "params": {
+            "n": 6,
+            "k": 5,
+            "directed": False,
+            "multiple": True,
+            "seed": 7_770_003,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "is_simple": False,
+            "ecount_min": 15,  # n * k / 2
+            "ecount_max": 15,
+            "every_degree": 5,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3894,6 +3970,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "grg_game": GRG_MANIFEST,
     "forest_fire_game": FOREST_FIRE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
+    "k_regular_game": K_REGULAR_MANIFEST,
 }
 
 
@@ -3989,6 +4066,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "grg_game",
             "forest_fire_game",
             "simple_interconnected_islands_game",
+            "k_regular_game",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

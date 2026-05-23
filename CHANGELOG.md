@@ -15,6 +15,60 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-008** — `k_regular_game` random graph generator (k-regular
+  sampler). Counterpart of `igraph_k_regular_game()` in
+  `references/igraph/src/games/degree_sequence.c:38-122` which itself
+  thinly wraps `igraph_degree_sequence_game()` on a length-`n` constant
+  degree sequence (CONFIGURATION for multigraph, FAST_HEUR_SIMPLE for
+  simple). Self-rolled rather than porting the 8-mode 864-line
+  `degree_sequence` machinery — only the two paths the public API needs
+  are implemented.
+  - `k_regular_game(n: u32, k: u32, directed: bool, multiple: bool, seed: u64) -> IgraphResult<Graph>`.
+  - Multigraph path (`multiple = true`) is the configuration model —
+    build `n · k` stubs, Fisher-Yates shuffle once, pair adjacent. For
+    directed graphs there are separate out-bag and in-bag, each shuffled
+    independently and zipped. Output is allowed to have self-loops and
+    parallel edges; total cost `O(n · k)`.
+  - Simple path (`multiple = false`) is the fast-heur sampler — same
+    stub bag, but each pair is rejected if it would create a self-loop
+    or duplicate (`HashSet` adjacency check). Rejected stubs are carried
+    over to the next sweep; when no more feasible pairs remain, the run
+    restarts from scratch. Capped at 1024 restarts to guarantee
+    termination on pathological inputs.
+  - Validation: `n · k` must fit in `u32`; for undirected sampling
+    `n · k` must be even (handshake parity); for simple sampling
+    `k ≤ n − 1` (so the sampler is not asked to draw more distinct
+    neighbours than exist).
+  - Edge cases: `n = 0` returns an empty graph; `k = 0` returns an
+    edgeless `n`-vertex graph; `k = n − 1` on the simple path is a
+    deterministic complete graph.
+  - Deterministic given `(n, k, directed, multiple, seed)` via
+    `SplitMix64`.
+  - Conformance: 9 fixtures (3 C + 3 py + 3 R) under
+    `tests/conformance/{c,py,r}/k_regular_game/`. RNG state is not
+    portable across implementations, so fixtures assert structural
+    invariants only — `vcount = n`, `directed` flag matches, `ecount`
+    exact band (`n · k / 2` undirected, `n · k` directed),
+    `every_degree` / `every_out_degree` / `every_in_degree` per-vertex
+    assertions, and `is_simple` (canonical-pair `HashSet`) for the
+    simple-path fixtures.
+  - Bench at `benches/bench_k_regular.rs`: an `n_scaling/simple` sweep
+    at fixed `k = 6` (`n ∈ {50, 200, 1 000}`), a `k_sweep/simple` at
+    `n = 200` (`k ∈ {4, 16, 64}`), a `multigraph/configuration` point
+    at `n = 500, k = 10`, and a `directed/simple` point at
+    `n = 200, k = 8`. Baseline at
+    `.codefuse/tracking/perf/ALGO-GN-008.json`: simple n-scaling sits
+    around 4 Melem/s up to `n = 1 000`; the simple k-sweep falls from
+    4.5 Melem/s at `k = 4` to 232 Kelem/s at `k = 64` because the
+    HashSet-based rejection rate rises with density; the configuration
+    multigraph path runs at ~4.8 Melem/s.
+  - Example: `examples/k_regular_demo.rs` generates one undirected
+    simple 4-regular, one directed simple 3-regular, and one undirected
+    multigraph 6-regular sample, then prints per-vertex degree (or
+    `(out, in)` pair) so the regularity invariant is visible in plain
+    text.
+  - Re-exported as `rust_igraph::k_regular_game`.
+
 - **ALGO-GN-007** — `simple_interconnected_islands_game` random graph
   generator. Counterpart of
   `igraph_simple_interconnected_islands_game()` in

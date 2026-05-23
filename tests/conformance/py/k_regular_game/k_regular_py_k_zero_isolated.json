@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.K_Regular(n=7, k=0)): edge-less 7-vertex graph with every vertex isolated",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "k_regular_game",
+  "params": {
+    "n": 7,
+    "k": 0,
+    "directed": false,
+    "multiple": false,
+    "seed": 7770203
+  },
+  "expected": {
+    "vcount": 7,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 0,
+    "every_degree": 0
+  }
+}

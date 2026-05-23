@@ -6164,3 +6164,195 @@ fn simple_interconnected_islands_game_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + invariant checks
+fn k_regular_game_three_source_conformance() {
+    // K-regular sampler. RNG state is not portable across
+    // implementations, so we check structural invariants only:
+    //   * vcount = n (exact)
+    //   * directed matches the param flag
+    //   * ecount = n*k/2 (undirected) or n*k (directed) — recorded as
+    //     an exact ecount band per fixture
+    //   * every_degree (undirected) or every_out_degree/every_in_degree
+    //     (directed) — every vertex hits exactly k
+    //   * is_simple: when multiple=false, no self-loops and no parallel
+    //     edges (HashSet canonical-pair check)
+    use rust_igraph::k_regular_game;
+    use std::collections::HashSet;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("k_regular_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "k_regular_game");
+
+            let n = er_param_u32(&case, "n", &path);
+            let k = er_param_u32(&case, "k", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let multiple = er_param_bool(&case, "multiple", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = k_regular_game(n, k, directed, multiple, seed)
+                .expect("k_regular_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_is_simple = er_expected_bool(&case, "is_simple", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let vcount_usize = graph.vcount() as usize;
+            let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+
+            if want_is_simple {
+                let mut canonical: HashSet<(u32, u32)> = HashSet::with_capacity(n_edges as usize);
+                for eid in 0..n_edges {
+                    let (a, b) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for k_regular fixture");
+                    assert_ne!(
+                        a,
+                        b,
+                        "self-loop in {} (edge {eid})\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                    let pair = if directed || a <= b { (a, b) } else { (b, a) };
+                    assert!(
+                        canonical.insert(pair),
+                        "multi-edge {pair:?} in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            if directed {
+                let want_out = case
+                    .expected
+                    .get("every_out_degree")
+                    .and_then(serde_json::Value::as_u64);
+                let want_in = case
+                    .expected
+                    .get("every_in_degree")
+                    .and_then(serde_json::Value::as_u64);
+                if let (Some(out_k), Some(in_k)) = (want_out, want_in) {
+                    let mut out_deg = vec![0u64; vcount_usize];
+                    let mut in_deg = vec![0u64; vcount_usize];
+                    for eid in 0..n_edges {
+                        let (u, v) = graph
+                            .edge(eid)
+                            .expect("edge id within bounds for k_regular fixture");
+                        out_deg[u as usize] += 1;
+                        in_deg[v as usize] += 1;
+                    }
+                    for (v, d) in out_deg.iter().enumerate() {
+                        assert_eq!(
+                            *d,
+                            out_k,
+                            "out-degree of vertex {v} = {d}, expected {out_k} in {}\n  source: {}\n  origin: {}",
+                            path.display(),
+                            case.source,
+                            case.origin,
+                        );
+                    }
+                    for (v, d) in in_deg.iter().enumerate() {
+                        assert_eq!(
+                            *d,
+                            in_k,
+                            "in-degree of vertex {v} = {d}, expected {in_k} in {}\n  source: {}\n  origin: {}",
+                            path.display(),
+                            case.source,
+                            case.origin,
+                        );
+                    }
+                }
+            } else if let Some(every_deg) = case
+                .expected
+                .get("every_degree")
+                .and_then(serde_json::Value::as_u64)
+            {
+                let mut deg = vec![0u64; vcount_usize];
+                for eid in 0..n_edges {
+                    let (u, v) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for k_regular fixture");
+                    deg[u as usize] += 1;
+                    // Self-loop contributes 2 to undirected degree; both
+                    // increments coincide when u == v.
+                    deg[v as usize] += 1;
+                }
+                for (v, d) in deg.iter().enumerate() {
+                    assert_eq!(
+                        *d,
+                        every_deg,
+                        "degree of vertex {v} = {d}, expected {every_deg} in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no k_regular_game fixtures from source {src}"
+        );
+    }
+}

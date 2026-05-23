@@ -1,0 +1,15 @@
+{
+  "awu": "ALGO-GN-008",
+  "captured_at": "2026-05-23",
+  "git_commit": "6b397b6",
+  "rust_n_scaling_simple_n50_k6_ns": 12538,
+  "rust_n_scaling_simple_n200_k6_ns": 41857,
+  "rust_n_scaling_simple_n1000_k6_ns": 318670,
+  "rust_k_sweep_simple_n200_k4_ns": 44449,
+  "rust_k_sweep_simple_n200_k16_ns": 173980,
+  "rust_k_sweep_simple_n200_k64_ns": 859800,
+  "rust_multigraph_configuration_n500_k10_undirected_ns": 105010,
+  "rust_directed_simple_n200_k8_ns": 310510,
+  "py_baseline_ns": null,
+  "notes": "K-regular sampler (igraph_k_regular_game). Two paths share the public API: (1) configuration model for multigraph — build n·k stubs, Fisher-Yates shuffle once, pair adjacent (directed: separate in-bag/out-bag, zip after shuffle) for O(n·k) total cost; (2) fast-heur simple sampler — stub-pair with HashSet-based duplicate-check + per-sweep residual carry-over + per-attempt full restart, capped at 1024 restarts. n_scaling at fixed k=6 shows throughput sitting at ~4 Melem/s up to n=1000 because the per-sweep stub-pairing loop is O(n·k) with HashSet inserts. The k_sweep at fixed n=200 shows the simple-graph cost growing super-linearly with k: at k=4 throughput is ~4.5 Melem/s, at k=64 throughput drops to ~232 Kelem/s because duplicate-rejection rate climbs as k approaches n-1=199 (k=64 is k/n ≈ 0.32 dense — most random pairs are still feasible but the residual carry-over loop iterates more). The multigraph configuration path at n=500, k=10 hits ~4.8 Melem/s (no rejection, single shuffle). Directed simple at n=200, k=8 is slower than undirected (~640 Kelem/s) because the directed feasibility check scans incomplete_out × incomplete_in pairwise rather than a single incomplete vector. No oracle baseline: python-igraph and rigraph wrap the same C entry point but RNG state is not portable, so the three-source conformance harness asserts structural invariants only (vcount, directed flag, ecount = n·k/2 or n·k, every_degree / every_out_degree / every_in_degree, is_simple via HashSet canonical-pair check). Numbers from cargo bench --bench bench_k_regular --quick on Darwin/M-series release build."
+}

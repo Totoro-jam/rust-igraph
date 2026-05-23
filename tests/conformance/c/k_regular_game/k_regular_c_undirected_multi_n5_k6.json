@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_k_regular_game(n=5, k=6, directed=false, multiple=true)): every vertex has degree 6 in a multigraph where self-loops and parallel edges are allowed",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "k_regular_game",
+  "params": {
+    "n": 5,
+    "k": 6,
+    "directed": false,
+    "multiple": true,
+    "seed": 8880003
+  },
+  "expected": {
+    "vcount": 5,
+    "directed": false,
+    "is_simple": false,
+    "ecount_min": 15,
+    "ecount_max": 15,
+    "every_degree": 6
+  }
+}

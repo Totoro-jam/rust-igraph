@@ -3890,6 +3890,76 @@ ISLANDS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+K_REGULAR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "k_regular_c_undirected_simple_n10_k4",
+        "origin": "constructed (mirrors igraph_k_regular_game(n=10, k=4, "
+        "directed=false, multiple=false)): every vertex has degree 4, "
+        "graph is simple",
+        "algo": "k_regular_game",
+        "params": {
+            "n": 10,
+            "k": 4,
+            "directed": False,
+            "multiple": False,
+            "seed": 8_880_001,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 20,  # n * k / 2
+            "ecount_max": 20,
+            "every_degree": 4,
+        },
+    },
+    {
+        "case": "k_regular_c_directed_simple_n8_k3",
+        "origin": "constructed (mirrors igraph_k_regular_game(n=8, k=3, "
+        "directed=true, multiple=false)): every vertex has out-degree "
+        "= in-degree = 3, graph is simple directed",
+        "algo": "k_regular_game",
+        "params": {
+            "n": 8,
+            "k": 3,
+            "directed": True,
+            "multiple": False,
+            "seed": 8_880_002,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 24,  # n * k
+            "ecount_max": 24,
+            "every_out_degree": 3,
+            "every_in_degree": 3,
+        },
+    },
+    {
+        "case": "k_regular_c_undirected_multi_n5_k6",
+        "origin": "constructed (mirrors igraph_k_regular_game(n=5, k=6, "
+        "directed=false, multiple=true)): every vertex has degree 6 in "
+        "a multigraph where self-loops and parallel edges are allowed",
+        "algo": "k_regular_game",
+        "params": {
+            "n": 5,
+            "k": 6,
+            "directed": False,
+            "multiple": True,
+            "seed": 8_880_003,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "is_simple": False,  # multigraph is allowed to have loops / parallels
+            "ecount_min": 15,  # n * k / 2 = 30 / 2
+            "ecount_max": 15,
+            "every_degree": 6,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -4024,6 +4094,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "grg_game": GRG_MANIFEST,
     "forest_fire_game": FOREST_FIRE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
+    "k_regular_game": K_REGULAR_MANIFEST,
 }
 
 
@@ -4124,6 +4195,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "grg_game",
             "forest_fire_game",
             "simple_interconnected_islands_game",
+            "k_regular_game",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

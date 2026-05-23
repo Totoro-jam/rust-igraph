@@ -1,0 +1,27 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.K_Regular(n=6, k=2, directed=True, multiple=False)): every vertex has out-degree = in-degree = 2",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "k_regular_game",
+  "params": {
+    "n": 6,
+    "k": 2,
+    "directed": true,
+    "multiple": false,
+    "seed": 7770202
+  },
+  "expected": {
+    "vcount": 6,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 12,
+    "ecount_max": 12,
+    "every_out_degree": 2,
+    "every_in_degree": 2
+  }
+}

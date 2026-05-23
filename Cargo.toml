@@ -227,6 +227,11 @@ name = "bench_islands"
 path = "benches/bench_islands.rs"
 harness = false
 
+[[bench]]
+name = "bench_k_regular"
+path = "benches/bench_k_regular.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 
