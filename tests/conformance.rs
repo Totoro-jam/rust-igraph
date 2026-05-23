@@ -5521,3 +5521,120 @@ fn barabasi_game_bag_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn growing_random_game_three_source_conformance() {
+    // Growing-random is a *generator*; expected block is structural only:
+    //   * vcount: exact match with params.n
+    //   * ecount: exact (n - 1) * m
+    //   * directed: exact boolean
+    //   * ba_temporal_order: only set when citation=true. Same canonical-
+    //     storage caveat applies for undirected: the temporal order is
+    //     lost, but the citation kernel never picks (i, i), so the
+    //     "no self-loops" invariant survives canonicalisation.
+    use rust_igraph::growing_random_game;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("growing_random_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "growing_random_game");
+
+            let n = er_param_u32(&case, "n", &path);
+            let m = er_param_u32(&case, "m", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let citation = er_param_bool(&case, "citation", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = growing_random_game(n, m, directed, citation, seed)
+                .expect("growing_random_game should succeed on conformance fixtures");
+
+            let got_vertices = graph.vcount();
+            let got_edges = graph.ecount() as u64;
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_edges = er_expected_u64(&case, "ecount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_temporal = er_expected_bool(&case, "ba_temporal_order", &path);
+
+            assert_eq!(
+                got_vertices,
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                got_edges,
+                want_edges,
+                "ecount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            if want_temporal {
+                let n_edges =
+                    u32::try_from(graph.ecount()).expect("ecount fits in u32 in conformance");
+                for eid in 0..n_edges {
+                    let (src_v, dst_v) = graph.edge(eid).expect("conformance edge id in bounds");
+                    if graph.is_directed() {
+                        assert!(
+                            dst_v < src_v,
+                            "citation temporal-order violation in {}: edge ({src_v} -> {dst_v})\n  source: {}\n  origin: {}",
+                            path.display(),
+                            case.source,
+                            case.origin,
+                        );
+                    } else {
+                        assert_ne!(
+                            src_v,
+                            dst_v,
+                            "citation mode must not produce self-loops in {}: edge ({src_v}, {dst_v})\n  source: {}\n  origin: {}",
+                            path.display(),
+                            case.source,
+                            case.origin,
+                        );
+                    }
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no growing_random_game fixtures from source {src}"
+        );
+    }
+}

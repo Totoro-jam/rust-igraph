@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-GN-003",
+  "captured_at": "2026-05-23",
+  "git_commit": "278b657",
+  "rust_citation_m2_n100_ns": 7104,
+  "rust_citation_m2_n1000_ns": 70354,
+  "rust_citation_m2_n10000_ns": 894180,
+  "rust_free_m2_n100_ns": 7558,
+  "rust_free_m2_n1000_ns": 79651,
+  "rust_free_m2_n10000_ns": 1054200,
+  "rust_citation_m5_n100_ns": 16506,
+  "rust_citation_m5_n1000_ns": 203790,
+  "rust_citation_m5_n10000_ns": 2483700,
+  "py_baseline_ns": null,
+  "notes": "Growing random graph (uniform-kernel growth) baseline. Pre-allocated Vec<(u32, u32)> sized exactly (n-1)*m, SplitMix64 RNG, single linear pass per step matching growing_random.c:55-105. Citation mode is the cheapest path — one RNG draw per edge (gen_index(i)) for the sink, src fixed at i. Free mode is roughly 17 % slower at large n because both endpoints come from independent gen_index calls (gen_index(i+1) for from and gen_index(i) for to). Per-vertex throughput is constant ~14 Melem/s at m=2 for n ∈ {100, 1000} then drops to ~11 Melem/s at n=10000 as the edge buffer exits L2 (≈80 KB at m=2). m=5 scales linearly with edges per step — per-edge cost stays ≈25 ns (matches m=2 normalised). No oracle baseline yet; python-igraph exposes Growing_Random but their RNG path is not portable so only structural invariants land in conformance. Numbers from cargo bench --quick on Darwin/M-series release build."
+}

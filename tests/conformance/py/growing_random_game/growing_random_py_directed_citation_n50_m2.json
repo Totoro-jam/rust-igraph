@@ -1,0 +1,24 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Growing_Random(n=50, m=2, directed=True, citation=True)): edge count exact, citation temporal ordering",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "growing_random_game",
+  "params": {
+    "n": 50,
+    "m": 2,
+    "directed": true,
+    "citation": true,
+    "seed": 55555
+  },
+  "expected": {
+    "vcount": 50,
+    "ecount": 98,
+    "directed": true,
+    "ba_temporal_order": true
+  }
+}

@@ -3148,6 +3148,97 @@ BARABASI_BAG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-003: growing_random_game. Generator — seed portability is
+# impossible, so we encode structural invariants only:
+#   - vcount = n
+#   - ecount = (n - 1) · m  (exact)
+#   - directed matches the requested flag
+#   - citation=true ⇒ BA-style temporal order (`dst < src` for directed,
+#     `src != dst` for undirected since storage canonicalizes min/max)
+#
+# python-igraph reference API: `ig.Graph.Growing_Random(n=n, m=m,
+# directed=directed, citation=citation)`. Not invoked here — seed is
+# RNG-dependent.
+GROWING_RANDOM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "growing_random_py_directed_citation_n50_m2",
+        "origin": "constructed (mirrors ig.Graph.Growing_Random(n=50, m=2, "
+        "directed=True, citation=True)): edge count exact, citation "
+        "temporal ordering",
+        "algo": "growing_random_game",
+        "params": {
+            "n": 50,
+            "m": 2,
+            "directed": True,
+            "citation": True,
+            "seed": 55_555,
+        },
+        "expected": {
+            "vcount": 50,
+            "ecount": 98,
+            "directed": True,
+            "ba_temporal_order": True,
+        },
+    },
+    {
+        "case": "growing_random_py_directed_free_n40_m3",
+        "origin": "constructed (mirrors ig.Graph.Growing_Random(n=40, m=3, "
+        "directed=True, citation=False)): free-mode picks both endpoints",
+        "algo": "growing_random_game",
+        "params": {
+            "n": 40,
+            "m": 3,
+            "directed": True,
+            "citation": False,
+            "seed": 66_666,
+        },
+        "expected": {
+            "vcount": 40,
+            "ecount": 117,
+            "directed": True,
+            "ba_temporal_order": False,
+        },
+    },
+    {
+        "case": "growing_random_py_undirected_citation_n30_m2",
+        "origin": "constructed (mirrors ig.Graph.Growing_Random(n=30, m=2, "
+        "directed=False, citation=True)): undirected citation",
+        "algo": "growing_random_game",
+        "params": {
+            "n": 30,
+            "m": 2,
+            "directed": False,
+            "citation": True,
+            "seed": 77_777,
+        },
+        "expected": {
+            "vcount": 30,
+            "ecount": 58,
+            "directed": False,
+            "ba_temporal_order": True,
+        },
+    },
+    {
+        "case": "growing_random_py_m0_no_edges_n15",
+        "origin": "constructed (mirrors ig.Graph.Growing_Random(n=15, m=0)): "
+        "m=0 yields n isolated vertices",
+        "algo": "growing_random_game",
+        "params": {
+            "n": 15,
+            "m": 0,
+            "directed": True,
+            "citation": True,
+            "seed": 88_888,
+        },
+        "expected": {
+            "vcount": 15,
+            "ecount": 0,
+            "directed": True,
+            "ba_temporal_order": False,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3273,6 +3364,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,
+    "growing_random_game": GROWING_RANDOM_MANIFEST,
 }
 
 
@@ -3359,7 +3451,12 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 },
                 "expected": entry["expected"],
             }
-        elif algo in ("erdos_renyi_gnp", "erdos_renyi_gnm", "barabasi_game_bag"):
+        elif algo in (
+            "erdos_renyi_gnp",
+            "erdos_renyi_gnm",
+            "barabasi_game_bag",
+            "growing_random_game",
+        ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries
             # structural invariants (vcount/ecount/directed and, for BA,

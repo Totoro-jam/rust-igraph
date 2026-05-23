@@ -3457,6 +3457,70 @@ BARABASI_BAG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-003: growing_random_game. Mirrors rigraph's
+# `sample_growing()` / `growing.random.game()`. Structural invariants
+# only — R's RNG state isn't portable.
+GROWING_RANDOM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "growing_random_r_directed_citation_n30_m4",
+        "origin": "constructed (mirrors rigraph sample_growing(n=30, "
+        "m=4, directed=TRUE, citation=TRUE))",
+        "algo": "growing_random_game",
+        "params": {
+            "n": 30,
+            "m": 4,
+            "directed": True,
+            "citation": True,
+            "seed": 414_141,
+        },
+        "expected": {
+            "vcount": 30,
+            "ecount": 116,
+            "directed": True,
+            "ba_temporal_order": True,
+        },
+    },
+    {
+        "case": "growing_random_r_directed_free_n25_m1",
+        "origin": "constructed (mirrors rigraph sample_growing(n=25, "
+        "m=1, directed=TRUE, citation=FALSE)): m=1 is the smallest "
+        "non-trivial step",
+        "algo": "growing_random_game",
+        "params": {
+            "n": 25,
+            "m": 1,
+            "directed": True,
+            "citation": False,
+            "seed": 282_828,
+        },
+        "expected": {
+            "vcount": 25,
+            "ecount": 24,
+            "directed": True,
+            "ba_temporal_order": False,
+        },
+    },
+    {
+        "case": "growing_random_r_undirected_citation_n50_m2",
+        "origin": "constructed (mirrors rigraph sample_growing(n=50, "
+        "m=2, directed=FALSE, citation=TRUE)): undirected citation",
+        "algo": "growing_random_game",
+        "params": {
+            "n": 50,
+            "m": 2,
+            "directed": False,
+            "citation": True,
+            "seed": 535_353,
+        },
+        "expected": {
+            "vcount": 50,
+            "ecount": 98,
+            "directed": False,
+            "ba_temporal_order": True,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3586,6 +3650,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,
+    "growing_random_game": GROWING_RANDOM_MANIFEST,
 }
 
 
@@ -3672,7 +3737,12 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 },
                 "expected": entry["expected"],
             }
-        elif algo in ("erdos_renyi_gnp", "erdos_renyi_gnm", "barabasi_game_bag"):
+        elif algo in (
+            "erdos_renyi_gnp",
+            "erdos_renyi_gnm",
+            "barabasi_game_bag",
+            "growing_random_game",
+        ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural
             # invariants (vcount/ecount/directed and, for BA,

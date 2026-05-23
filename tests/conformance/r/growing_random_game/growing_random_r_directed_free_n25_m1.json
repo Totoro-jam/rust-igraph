@@ -1,0 +1,24 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors rigraph sample_growing(n=25, m=1, directed=TRUE, citation=FALSE)): m=1 is the smallest non-trivial step",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "growing_random_game",
+  "params": {
+    "n": 25,
+    "m": 1,
+    "directed": true,
+    "citation": false,
+    "seed": 282828
+  },
+  "expected": {
+    "vcount": 25,
+    "ecount": 24,
+    "directed": true,
+    "ba_temporal_order": false
+  }
+}

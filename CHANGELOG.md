@@ -15,6 +15,49 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-003** — `growing_random_game` uniform-kernel growing random
+  graph generator. Counterpart of `igraph_growing_random_game()` in
+  `references/igraph/src/games/growing_random.c:55-105`.
+  - `growing_random_game(n: u32, m: u32, directed: bool, citation: bool,
+    seed: u64) -> IgraphResult<Graph>`. The graph starts as a single
+    seed vertex; on each of the remaining `n - 1` steps a fresh vertex
+    arrives together with exactly `m` new edges. Two endpoint-selection
+    rules are exposed:
+    * **Citation** (`citation = true`): every new edge originates at
+      the freshly-added vertex `i` and lands on a uniformly chosen
+      earlier vertex `to ∈ [0, i - 1]`. Result is strictly
+      time-ordered (directed: `dst < src` for every edge), free of
+      self-loops, and vertex 0 never appears as a source.
+    * **Free** (`citation = false`): both endpoints are uniformly
+      sampled within the current frontier — `from ∈ [0, i]` (new vertex
+      allowed) and `to ∈ [1, i]` (vertex 0 excluded from sinks),
+      mirroring the asymmetric closed intervals upstream.
+  - Edge count is deterministic given `(n, m)`: exactly `(n - 1) · m`
+    edges. Total cost: `O(n · m)` work, `O(n · m)` memory for the edge
+    list only — no degree bookkeeping (the kernel is uniform, not
+    preferential).
+  - Deterministic given `(n, m, directed, citation, seed)` via the
+    `SplitMix64` PRNG shared with the other generators.
+  - Allocation-safe: `validate_inputs` caps `(n - 1) · m` at
+    `u32::MAX` (`IGRAPH_ECOUNT_MAX` convention) so absurd inputs error
+    cleanly rather than panic at `Vec::with_capacity`.
+  - Conformance: 10 fixtures (3 C + 4 py + 3 R) under
+    `tests/conformance/{c,py,r}/growing_random_game/`. RNG state is
+    not portable across implementations, so fixtures are hand-derived
+    and assert structural invariants only — `vcount`, `ecount`, and
+    `is_directed` are exact, and (when applicable) the BA-style
+    temporal-ordering assertion is reused (`dst < src` directed,
+    `src != dst` undirected).
+  - Bench at `benches/bench_growing_random.rs` (citation `m = 2`, free
+    `m = 2`, citation `m = 5`). Baseline at
+    `.codefuse/tracking/perf/ALGO-GN-003.json`: ≈ 14 Melem/s vertices
+    for `m = 2` at `n ≤ 1 000` (citation, single RNG draw per edge),
+    dropping to ≈ 11 Melem/s at `n = 10 000` as the edge buffer leaves
+    L2. Free mode is ≈ 15 % slower because each edge takes two RNG
+    draws.
+  - Example: `examples/growing_random_demo.rs` showing the
+    citation-mode DAG structure and the in-degree distribution.
+  - Re-exported as `rust_igraph::growing_random_game`.
 - **ALGO-GN-002** — `barabasi_game_bag` preferential-attachment random
   graph generator (BAG variant). Counterpart of the
   `IGRAPH_BARABASI_BAG` branch of `igraph_barabasi_game()` in

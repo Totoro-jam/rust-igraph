@@ -202,6 +202,11 @@ name = "bench_barabasi"
 path = "benches/bench_barabasi.rs"
 harness = false
 
+[[bench]]
+name = "bench_growing_random"
+path = "benches/bench_growing_random.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

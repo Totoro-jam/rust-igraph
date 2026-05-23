@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_growing_random_game(n=20, m=2, directed=0, citation=0)): free-mode picks both endpoints",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "growing_random_game",
+  "params": {
+    "n": 20,
+    "m": 2,
+    "directed": false,
+    "citation": false,
+    "seed": 1357911
+  },
+  "expected": {
+    "vcount": 20,
+    "ecount": 38,
+    "directed": false,
+    "ba_temporal_order": false
+  }
+}
