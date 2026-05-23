@@ -1,0 +1,47 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_sbm_game with k=3, sizes=[10, 10, 10], block-diagonal pref (in-block 0.3, off-diagonal 0.0)): every realised edge stays inside a block \u2014 checks block_of(u) == block_of(v) invariant",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "sbm_game",
+  "params": {
+    "pref_matrix": [
+      [
+        0.3,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.3,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.3
+      ]
+    ],
+    "block_sizes": [
+      10,
+      10,
+      10
+    ],
+    "directed": false,
+    "loops": false,
+    "multiple": false,
+    "seed": 10000003
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 15,
+    "ecount_max": 75,
+    "diagonal_only_pref": true
+  }
+}

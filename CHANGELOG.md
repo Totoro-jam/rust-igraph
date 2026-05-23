@@ -15,6 +15,69 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-010** — `sbm_game` Stochastic Block Model random graph
+  generator. Counterpart of `igraph_sbm_game()` in
+  `references/igraph/src/games/sbm.c:78`. Given a `k × k` preference
+  matrix `P` and a `k`-vector of `block_sizes` summing to `n`, every
+  pair `(u, v)` is connected independently with probability
+  `P[block(u)][block(v)]` (or, in multigraph mode, with
+  `Pascal`-distributed multiplicity of mean `P[..][..]`).
+  - `sbm_game(pref_matrix: &[Vec<f64>], block_sizes: &[u32], directed: bool, loops: bool, multiple: bool, seed: u64) -> IgraphResult<Graph>`.
+  - Each block-pair is sampled independently with a Batagelj–Brandes
+    geometric-skip sampler over the local pair-index space. Four
+    `PairShape` decoders select the right index → `(vfrom, vto)`
+    formula per pair: `Rect` for off-diagonal (or directed-with-loops
+    diagonal) blocks, `RectNoDiag` for the directed-no-loops diagonal
+    (the diagonal element is folded into the last column), `TriInclDiag`
+    for the undirected-with-loops diagonal, and `TriExclDiag` for the
+    undirected-no-loops diagonal. Total cost is `O(n + m + k²)` where
+    `m` is the realised edge count.
+  - Multigraph mode replaces the per-pair connection probability `p`
+    with `p / (1 + p)` and drops the `+1` step in the geometric-skip
+    loop. This is exact Pascal-distributed multiplicity sampling — no
+    rejection, no per-pair retry; the geometric draws give edge
+    *multiplicities* directly.
+  - Validation: every pref-matrix row must have length `k`, every entry
+    must be finite, in `[0, 1]` (probability mode) or non-negative
+    (multigraph mode); `pref_matrix` must be symmetric when `!directed`;
+    `sum(block_sizes)` must fit in `u32`.
+  - Edge cases: empty `block_sizes` or `n = 0` returns an empty graph;
+    zero-sized intermediate blocks are skipped; `pref_matrix[i][j] = 0`
+    short-circuits the corresponding sampler entirely so the seed is
+    irrelevant for that block-pair.
+  - Deterministic given `(pref_matrix, block_sizes, directed, loops,
+    multiple, seed)` via `SplitMix64`.
+  - Conformance: 9 fixtures (3 C + 3 py + 3 R) under
+    `tests/conformance/{c,py,r}/sbm_game/`. RNG state is not portable
+    across implementations, so fixtures assert structural invariants
+    only — `vcount = sum(block_sizes)` (exact), `directed` flag (exact),
+    `ecount` band (hand-derived from the expected `Σ P[i][j] · pairs(i,j)`
+    plus tolerance), `is_simple` via canonical-pair `HashSet` when
+    `multiple = false` and `loops = false`, and `diagonal_only_pref`
+    which asserts no between-block edges exist when the pref matrix is
+    block-diagonal (every cross-block edge would imply a sampling bug).
+  - Bench at `benches/bench_sbm.rs`: a
+    `size_scaling/balanced_k4` sweep (`total ∈ {500, 5_000}`,
+    assortative `p_in = 0.05 / p_off = 0.005`), a
+    `sparsity/off_diagonal_k4_n2000` sweep over `p_off ∈ {0.0, 0.001,
+    0.005, 0.05}` at fixed `p_in = 0.05`, a `density_sweep/k4_n2000`
+    over `p_in ∈ {0.01, 0.05, 0.10, 0.30}` at fixed `p_off = 0.005`, a
+    `directed/k4_n2000_asym` point with an asymmetric pref matrix, and
+    a `multigraph/k4_n2000_dense` point exercising the Pascal fast
+    path. Baseline at `.codefuse/tracking/perf/ALGO-GN-010.json`: the
+    n=500 / k=4 / assortative path runs at ~90 µs; n=5000 at ~12.4 ms
+    (≈10× edges scale n²); the density sweep grows roughly linearly
+    with within-block edges as expected from the geometric-skip cost
+    being dominated by `Vec::push` + `gen_geom`; the directed
+    asymmetric variant takes ~2.2× the equivalent undirected because
+    directed touches twice as many pair shapes.
+  - Example: `examples/sbm_demo.rs` generates a 4-community SBM on 100
+    vertices (within-block `p = 0.30`, between-block `p = 0.02`) and
+    prints per-block edge counts, density, mean degree, the symmetric
+    `k × k` block-edge matrix, and the top-3 highest-degree vertices in
+    each block — the planted communities are visible at a glance.
+  - Re-exported as `rust_igraph::sbm_game`.
+
 - **ALGO-GN-009** — `watts_strogatz_game` Watts–Strogatz 1-D small-world
   random graph generator. Counterpart of `igraph_watts_strogatz_game()`
   in `references/igraph/src/games/watts_strogatz.c:75-118` for the

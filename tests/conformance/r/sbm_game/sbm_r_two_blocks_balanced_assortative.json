@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors R sample_sbm(n=20, pref.matrix=rbind(c(0.35, 0.05), c(0.05, 0.35)), block.sizes=c(10, 10), directed=FALSE, loops=FALSE)): canonical two-community SBM",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "sbm_game",
+  "params": {
+    "pref_matrix": [
+      [
+        0.35,
+        0.05
+      ],
+      [
+        0.05,
+        0.35
+      ]
+    ],
+    "block_sizes": [
+      10,
+      10
+    ],
+    "directed": false,
+    "loops": false,
+    "multiple": false,
+    "seed": 10200001
+  },
+  "expected": {
+    "vcount": 20,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 18,
+    "ecount_max": 75
+  }
+}

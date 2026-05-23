@@ -237,6 +237,11 @@ name = "bench_watts"
 path = "benches/bench_watts.rs"
 harness = false
 
+[[bench]]
+name = "bench_sbm"
+path = "benches/bench_sbm.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

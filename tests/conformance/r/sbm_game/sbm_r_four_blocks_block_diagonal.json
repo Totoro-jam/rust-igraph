@@ -1,0 +1,57 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors R sample_sbm with sizes=c(8, 8, 8, 8), block-diagonal pref (in-block 0.4, off-diagonal 0.0)): every realised edge stays inside a block \u2014 checks block_of(u) == block_of(v) invariant",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "sbm_game",
+  "params": {
+    "pref_matrix": [
+      [
+        0.4,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.4,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.4,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.4
+      ]
+    ],
+    "block_sizes": [
+      8,
+      8,
+      8,
+      8
+    ],
+    "directed": false,
+    "loops": false,
+    "multiple": false,
+    "seed": 10200002
+  },
+  "expected": {
+    "vcount": 32,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 20,
+    "ecount_max": 90,
+    "diagonal_only_pref": true
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.SBM with sizes=[10, 10], asymmetric pref=[[0.2, 0.3], [0.05, 0.2]], directed=true, no loops): directed SBM, pref need not be symmetric",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "sbm_game",
+  "params": {
+    "pref_matrix": [
+      [
+        0.2,
+        0.3
+      ],
+      [
+        0.05,
+        0.2
+      ]
+    ],
+    "block_sizes": [
+      10,
+      10
+    ],
+    "directed": true,
+    "loops": false,
+    "multiple": false,
+    "seed": 10100003
+  },
+  "expected": {
+    "vcount": 20,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 30,
+    "ecount_max": 130
+  }
+}

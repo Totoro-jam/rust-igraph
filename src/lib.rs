@@ -108,6 +108,7 @@ pub use crate::algorithms::games::grg::{grg_game, grg_game_with_coords};
 pub use crate::algorithms::games::growing_random::growing_random_game;
 pub use crate::algorithms::games::islands::simple_interconnected_islands_game;
 pub use crate::algorithms::games::k_regular::k_regular_game;
+pub use crate::algorithms::games::sbm::sbm_game;
 pub use crate::algorithms::games::tree::tree_game_lerw;
 pub use crate::algorithms::games::watts::watts_strogatz_game;
 pub use crate::algorithms::io::edgelist::read_edgelist;

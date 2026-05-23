@@ -1,0 +1,46 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.SBM with sizes=[12, 12, 12], in-block p=0.3, between-block p=0.04, undirected, no loops): three communities with weak inter-block coupling",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "sbm_game",
+  "params": {
+    "pref_matrix": [
+      [
+        0.3,
+        0.04,
+        0.04
+      ],
+      [
+        0.04,
+        0.3,
+        0.04
+      ],
+      [
+        0.04,
+        0.04,
+        0.3
+      ]
+    ],
+    "block_sizes": [
+      12,
+      12,
+      12
+    ],
+    "directed": false,
+    "loops": false,
+    "multiple": false,
+    "seed": 10100002
+  },
+  "expected": {
+    "vcount": 36,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 40,
+    "ecount_max": 150
+  }
+}

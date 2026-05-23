@@ -3639,6 +3639,84 @@ WATTS_STROGATZ_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-010: sbm_game. Mirrors ig.Graph.SBM. RNG state is not
+# portable across implementations, so each fixture pins parameter
+# values and bands the structural invariants:
+#   * vcount = sum(block_sizes) (exact);
+#   * directed matches the flag;
+#   * ecount lies in a generous band around the model mean;
+#   * is_simple when loops=false and multiple=false;
+#   * when the pref matrix is block-diagonal, every edge stays
+#     on-diagonal (encoded via `diagonal_only_pref: true`).
+SBM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "sbm_py_single_block_n25_p_quarter",
+        "origin": "constructed (mirrors ig.Graph.SBM with n=25, "
+        "pref_matrix=[[0.25]], block_sizes=[25], directed=false, "
+        "loops=false): single-block reduces to undirected G(n,p)",
+        "algo": "sbm_game",
+        "params": {
+            "pref_matrix": [[0.25]],
+            "block_sizes": [25],
+            "directed": False,
+            "loops": False,
+            "multiple": False,
+            "seed": 10_100_001,
+        },
+        "expected": {
+            "vcount": 25,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 40,
+            "ecount_max": 140,
+        },
+    },
+    {
+        "case": "sbm_py_three_blocks_assortative",
+        "origin": "constructed (mirrors ig.Graph.SBM with sizes=[12, 12, 12], "
+        "in-block p=0.3, between-block p=0.04, undirected, no loops): "
+        "three communities with weak inter-block coupling",
+        "algo": "sbm_game",
+        "params": {
+            "pref_matrix": [[0.3, 0.04, 0.04], [0.04, 0.3, 0.04], [0.04, 0.04, 0.3]],
+            "block_sizes": [12, 12, 12],
+            "directed": False,
+            "loops": False,
+            "multiple": False,
+            "seed": 10_100_002,
+        },
+        "expected": {
+            "vcount": 36,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 40,
+            "ecount_max": 150,
+        },
+    },
+    {
+        "case": "sbm_py_directed_two_blocks_asymmetric",
+        "origin": "constructed (mirrors ig.Graph.SBM with sizes=[10, 10], "
+        "asymmetric pref=[[0.2, 0.3], [0.05, 0.2]], directed=true, "
+        "no loops): directed SBM, pref need not be symmetric",
+        "algo": "sbm_game",
+        "params": {
+            "pref_matrix": [[0.2, 0.3], [0.05, 0.2]],
+            "block_sizes": [10, 10],
+            "directed": True,
+            "loops": False,
+            "multiple": False,
+            "seed": 10_100_003,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 30,
+            "ecount_max": 130,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3771,6 +3849,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
+    "sbm_game": SBM_MANIFEST,
 }
 
 
@@ -3868,6 +3947,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",
+            "sbm_game",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

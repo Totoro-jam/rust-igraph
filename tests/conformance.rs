@@ -6506,3 +6506,223 @@ fn watts_strogatz_game_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn sbm_game_three_source_conformance() {
+    // Stochastic Block Model sampler. RNG state is not portable across
+    // implementations, so each fixture pins parameters and bands the
+    // structural invariants:
+    //   * vcount = sum(block_sizes) (exact);
+    //   * directed matches the flag;
+    //   * ecount lies in a generous band [ecount_min, ecount_max];
+    //   * when expected.is_simple = true, no self-loops and no
+    //     parallel edges;
+    //   * when expected.diagonal_only_pref = true, every edge stays
+    //     inside a single block (only meaningful when the manifest's
+    //     pref matrix is block-diagonal).
+    use rust_igraph::sbm_game;
+    use std::collections::HashSet;
+
+    fn parse_pref_matrix(case: &Conformance, path: &std::path::Path) -> Vec<Vec<f64>> {
+        let rows = case
+            .params
+            .get("pref_matrix")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| {
+                panic!(
+                    "SBM fixture {}: param `pref_matrix` missing or not array",
+                    path.display()
+                )
+            });
+        rows.iter()
+            .map(|row| {
+                row.as_array()
+                    .unwrap_or_else(|| {
+                        panic!("SBM fixture {}: pref_matrix row not array", path.display())
+                    })
+                    .iter()
+                    .map(|cell| {
+                        cell.as_f64().unwrap_or_else(|| {
+                            panic!("SBM fixture {}: pref_matrix cell not f64", path.display())
+                        })
+                    })
+                    .collect()
+            })
+            .collect()
+    }
+
+    fn parse_block_sizes(case: &Conformance, path: &std::path::Path) -> Vec<u32> {
+        case.params
+            .get("block_sizes")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| {
+                panic!(
+                    "SBM fixture {}: param `block_sizes` missing or not array",
+                    path.display()
+                )
+            })
+            .iter()
+            .map(|cell| {
+                let v = cell.as_u64().unwrap_or_else(|| {
+                    panic!("SBM fixture {}: block_sizes cell not u64", path.display())
+                });
+                u32::try_from(v).unwrap_or_else(|_| {
+                    panic!(
+                        "SBM fixture {}: block_sizes cell {} does not fit in u32",
+                        path.display(),
+                        v
+                    )
+                })
+            })
+            .collect()
+    }
+
+    fn block_of(v: u32, offsets: &[u32]) -> usize {
+        // `offsets` has `k + 1` entries: [0, s0, s0+s1, ..., n].
+        // Returns the largest i with offsets[i] <= v.
+        for (i, &boundary) in offsets.iter().enumerate().skip(1) {
+            if v < boundary {
+                return i - 1;
+            }
+        }
+        offsets.len().saturating_sub(2)
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("sbm_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "sbm_game");
+
+            let pref_matrix = parse_pref_matrix(&case, &path);
+            let block_sizes = parse_block_sizes(&case, &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let loops = er_param_bool(&case, "loops", &path);
+            let multiple = er_param_bool(&case, "multiple", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = sbm_game(&pref_matrix, &block_sizes, directed, loops, multiple, seed)
+                .expect("sbm_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_is_simple = er_expected_bool(&case, "is_simple", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+
+            if want_is_simple {
+                let mut canonical: HashSet<(u32, u32)> = HashSet::with_capacity(n_edges as usize);
+                for eid in 0..n_edges {
+                    let (a, b) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for sbm fixture");
+                    assert_ne!(
+                        a,
+                        b,
+                        "self-loop in {} (edge {eid})\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                    let pair = if directed || a <= b { (a, b) } else { (b, a) };
+                    assert!(
+                        canonical.insert(pair),
+                        "multi-edge {pair:?} in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            if let Some(true) = case
+                .expected
+                .get("diagonal_only_pref")
+                .and_then(serde_json::Value::as_bool)
+            {
+                let mut offsets: Vec<u32> = Vec::with_capacity(block_sizes.len() + 1);
+                offsets.push(0);
+                let mut acc: u32 = 0;
+                for &s in &block_sizes {
+                    acc = acc.checked_add(s).expect("block-size sum fits in u32");
+                    offsets.push(acc);
+                }
+                for eid in 0..n_edges {
+                    let (u, v) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for sbm fixture");
+                    let bu = block_of(u, &offsets);
+                    let bv = block_of(v, &offsets);
+                    assert_eq!(
+                        bu,
+                        bv,
+                        "edge {u}-{v} crosses blocks ({bu} vs {bv}) in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no sbm_game fixtures from source {src}"
+        );
+    }
+}

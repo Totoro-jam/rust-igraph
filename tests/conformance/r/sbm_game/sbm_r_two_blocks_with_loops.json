@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors R sample_sbm with sizes=c(15, 15), uniform pref=0.2, undirected, loops=TRUE): on-diagonal block may produce self-loops; not necessarily simple",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "sbm_game",
+  "params": {
+    "pref_matrix": [
+      [
+        0.2,
+        0.2
+      ],
+      [
+        0.2,
+        0.2
+      ]
+    ],
+    "block_sizes": [
+      15,
+      15
+    ],
+    "directed": false,
+    "loops": true,
+    "multiple": false,
+    "seed": 10200003
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": false,
+    "is_simple": false,
+    "ecount_min": 40,
+    "ecount_max": 160
+  }
+}

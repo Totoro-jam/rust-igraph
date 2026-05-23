@@ -1,0 +1,19 @@
+{
+  "awu": "ALGO-GN-010",
+  "captured_at": "2026-05-23",
+  "git_commit": "fed26c6",
+  "size_scaling_balanced_k4_n500_ns": 89802,
+  "size_scaling_balanced_k4_n5000_ns": 12398733,
+  "sparsity_off_diagonal_k4_n2000_poff_0p000_ns": 1006932,
+  "sparsity_off_diagonal_k4_n2000_poff_0p001_ns": 1471253,
+  "sparsity_off_diagonal_k4_n2000_poff_0p005_ns": 1802383,
+  "sparsity_off_diagonal_k4_n2000_poff_0p050_ns": 5924458,
+  "density_sweep_k4_n2000_pin_0p01_ns": 659784,
+  "density_sweep_k4_n2000_pin_0p05_ns": 1785530,
+  "density_sweep_k4_n2000_pin_0p10_ns": 3277806,
+  "density_sweep_k4_n2000_pin_0p30_ns": 9400622,
+  "directed_k4_n2000_asym_ns": 3944223,
+  "multigraph_k4_n2000_dense_ns": 7676392,
+  "py_baseline_ns": null,
+  "notes": "Stochastic Block Model (Faust-Wasserman / Holland-Laskey-Leinhardt). Implementation is k² independent Batagelj-Brandes geometric-skip samplers — one per block-pair — selected by a `PairShape` enum: `Rect` (off-diagonal blocks or directed-with-loops diagonal), `RectNoDiag` (directed, no loops, on-diagonal — remaps the diagonal to the last column), `TriInclDiag` (undirected loops), `TriExclDiag` (undirected, no loops). Per-pair cost is `O(maxedges_pair · p + skip-draws)` where skip-draws is geometric and totals roughly the realised edge count plus the false-step tail. Balanced-k4 size sweep: 90 µs at n=500 (45 edges expected per diagonal block ~625 pairs at p=0.05 ≈ 31 within-block edges per block × 4 blocks, plus 0.005·500·500/2 between-block) scaling to 12.4 ms at n=5000 (≈10× edges since pairs scale n²). Off-diagonal sparsity sweep at n=2000: p_off=0 → 1.0 ms (pure diagonal work — 4 Tri samplers cover ~500²/2 each), p_off=0.05 → 5.9 ms (off-diagonal dominates, ≈75 k between-block edges). In-block density sweep at n=2000, p_off=0.005: 0.66 ms at p_in=0.01 grows roughly linearly to 9.4 ms at p_in=0.3 — confirms the per-edge cost is bounded by `Vec::push` + `gen_geom`. Directed asymmetric variant at n=2000 takes 3.94 ms — about 2.2× the equivalent undirected at p_in=0.05/p_off=0.005, matching that directed touches 2× as many pair shapes (off-diagonal Rect handled twice). Multigraph at expected-edge-density (0.2 in / 0.02 out) reaches 7.7 ms via the `p/(1+p)` Pascal trick, no rejection cost. No oracle baseline: igraph_sbm_game uses GLIBC RNG / python-igraph and rigraph each their own — RNG state isn't portable, so conformance asserts structural invariants only (vcount exact, ecount band, is_simple via canonical-pair HashSet, diagonal_only_pref via block-of check). Numbers from `cargo bench --bench bench_sbm -- --warm-up-time 1 --measurement-time 3 --sample-size 30` on Darwin/M-series release build."
+}

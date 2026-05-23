@@ -11,5 +11,6 @@ pub mod grg;
 pub mod growing_random;
 pub mod islands;
 pub mod k_regular;
+pub mod sbm;
 pub mod tree;
 pub mod watts;

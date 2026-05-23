@@ -3912,6 +3912,92 @@ WATTS_STROGATZ_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-010: sbm_game. Mirrors R `sample_sbm(n, pref.matrix, block.sizes,
+# directed, loops)`. RNG state is not portable across implementations, so
+# each fixture pins parameter values and bands the structural invariants:
+#   * vcount = sum(block_sizes) (exact);
+#   * directed matches the flag;
+#   * ecount lies in a generous band around the model mean;
+#   * is_simple (R's sample_sbm produces simple graphs);
+#   * when the pref matrix is block-diagonal, every edge stays
+#     on-diagonal (encoded via `diagonal_only_pref: true`).
+SBM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "sbm_r_two_blocks_balanced_assortative",
+        "origin": "constructed (mirrors R sample_sbm(n=20, "
+        "pref.matrix=rbind(c(0.35, 0.05), c(0.05, 0.35)), "
+        "block.sizes=c(10, 10), directed=FALSE, loops=FALSE)): canonical "
+        "two-community SBM",
+        "algo": "sbm_game",
+        "params": {
+            "pref_matrix": [[0.35, 0.05], [0.05, 0.35]],
+            "block_sizes": [10, 10],
+            "directed": False,
+            "loops": False,
+            "multiple": False,
+            "seed": 10_200_001,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 18,
+            "ecount_max": 75,
+        },
+    },
+    {
+        "case": "sbm_r_four_blocks_block_diagonal",
+        "origin": "constructed (mirrors R sample_sbm with sizes=c(8, 8, 8, 8), "
+        "block-diagonal pref (in-block 0.4, off-diagonal 0.0)): every "
+        "realised edge stays inside a block — checks block_of(u) == "
+        "block_of(v) invariant",
+        "algo": "sbm_game",
+        "params": {
+            "pref_matrix": [
+                [0.4, 0.0, 0.0, 0.0],
+                [0.0, 0.4, 0.0, 0.0],
+                [0.0, 0.0, 0.4, 0.0],
+                [0.0, 0.0, 0.0, 0.4],
+            ],
+            "block_sizes": [8, 8, 8, 8],
+            "directed": False,
+            "loops": False,
+            "multiple": False,
+            "seed": 10_200_002,
+        },
+        "expected": {
+            "vcount": 32,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 20,
+            "ecount_max": 90,
+            "diagonal_only_pref": True,
+        },
+    },
+    {
+        "case": "sbm_r_two_blocks_with_loops",
+        "origin": "constructed (mirrors R sample_sbm with sizes=c(15, 15), "
+        "uniform pref=0.2, undirected, loops=TRUE): on-diagonal block "
+        "may produce self-loops; not necessarily simple",
+        "algo": "sbm_game",
+        "params": {
+            "pref_matrix": [[0.2, 0.2], [0.2, 0.2]],
+            "block_sizes": [15, 15],
+            "directed": False,
+            "loops": True,
+            "multiple": False,
+            "seed": 10_200_003,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "is_simple": False,
+            "ecount_min": 40,
+            "ecount_max": 160,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -4048,6 +4134,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
+    "sbm_game": SBM_MANIFEST,
 }
 
 
@@ -4145,6 +4232,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",
+            "sbm_game",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural
