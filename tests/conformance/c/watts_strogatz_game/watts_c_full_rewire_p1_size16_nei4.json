@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_watts_strogatz_game(dim=1, size=16, nei=4, p=1.0, loops=false, multiple=false)): every endpoint rewired \u2014 result is essentially a random regular-ish graph, edge count preserved",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "watts_strogatz_game",
+  "params": {
+    "size": 16,
+    "nei": 4,
+    "p": 1.0,
+    "loops": false,
+    "multiple": false,
+    "seed": 9000003
+  },
+  "expected": {
+    "vcount": 16,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 64,
+    "ecount_max": 64
+  }
+}

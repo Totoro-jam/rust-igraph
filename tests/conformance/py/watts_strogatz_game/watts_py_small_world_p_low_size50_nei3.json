@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Watts_Strogatz(dim=1, size=50, nei=3, p=0.1)): small-world regime \u2014 most of the ring preserved with a few long-range rewires, still simple",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "watts_strogatz_game",
+  "params": {
+    "size": 50,
+    "nei": 3,
+    "p": 0.1,
+    "loops": false,
+    "multiple": false,
+    "seed": 9100002
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 150,
+    "ecount_max": 150
+  }
+}

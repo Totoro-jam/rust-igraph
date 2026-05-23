@@ -6356,3 +6356,153 @@ fn k_regular_game_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + invariant checks
+fn watts_strogatz_game_three_source_conformance() {
+    // Watts-Strogatz 1-D small-world sampler. RNG state is not portable
+    // across implementations, so only structural invariants are checked:
+    //   * vcount = size (exact)
+    //   * directed = false (model is always undirected)
+    //   * ecount = size*nei (rewire preserves edge count, never adds /
+    //     drops edges)
+    //   * every_degree (when present) — undirected degree per vertex
+    //   * is_simple: when multiple=false and loops=false, no self-loops
+    //     and no parallel edges (HashSet canonical-pair check)
+    use rust_igraph::watts_strogatz_game;
+    use std::collections::HashSet;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("watts_strogatz_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "watts_strogatz_game");
+
+            let size = er_param_u32(&case, "size", &path);
+            let nei = er_param_u32(&case, "nei", &path);
+            let p = er_param_f64(&case, "p", &path);
+            let loops = er_param_bool(&case, "loops", &path);
+            let multiple = er_param_bool(&case, "multiple", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = watts_strogatz_game(size, nei, p, loops, multiple, seed)
+                .expect("watts_strogatz_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_is_simple = er_expected_bool(&case, "is_simple", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let vcount_usize = graph.vcount() as usize;
+            let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+
+            if want_is_simple {
+                let mut canonical: HashSet<(u32, u32)> = HashSet::with_capacity(n_edges as usize);
+                for eid in 0..n_edges {
+                    let (a, b) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for watts fixture");
+                    assert_ne!(
+                        a,
+                        b,
+                        "self-loop in {} (edge {eid})\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                    let pair = if a <= b { (a, b) } else { (b, a) };
+                    assert!(
+                        canonical.insert(pair),
+                        "multi-edge {pair:?} in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            if let Some(every_deg) = case
+                .expected
+                .get("every_degree")
+                .and_then(serde_json::Value::as_u64)
+            {
+                let mut deg = vec![0u64; vcount_usize];
+                for eid in 0..n_edges {
+                    let (u, v) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for watts fixture");
+                    deg[u as usize] += 1;
+                    deg[v as usize] += 1;
+                }
+                for (v, d) in deg.iter().enumerate() {
+                    assert_eq!(
+                        *d,
+                        every_deg,
+                        "degree of vertex {v} = {d}, expected {every_deg} in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no watts_strogatz_game fixtures from source {src}"
+        );
+    }
+}

@@ -3836,6 +3836,82 @@ K_REGULAR_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-009: watts_strogatz_game. Mirrors rigraph's
+# `sample_smallworld(dim, size, nei, p, loops, multiple)` (the canonical R
+# wrapper for `igraph_watts_strogatz_game`). RNG state is not portable
+# across implementations, so only structural invariants are asserted —
+# vcount, directed, ecount = size*nei (rewire is endpoint-preserving),
+# and is_simple in the simple-graph regime.
+WATTS_STROGATZ_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "watts_r_ring_lattice_p0_size14_nei2",
+        "origin": "constructed (mirrors sample_smallworld(dim=1, size=14, "
+        "nei=2, p=0, loops=FALSE, multiple=FALSE)): pure ring lattice, "
+        "every vertex has degree 4, edges = size * nei = 28",
+        "algo": "watts_strogatz_game",
+        "params": {
+            "size": 14,
+            "nei": 2,
+            "p": 0.0,
+            "loops": False,
+            "multiple": False,
+            "seed": 9_200_001,
+        },
+        "expected": {
+            "vcount": 14,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 28,
+            "ecount_max": 28,
+            "every_degree": 4,
+        },
+    },
+    {
+        "case": "watts_r_small_world_p_low_size40_nei2",
+        "origin": "constructed (mirrors sample_smallworld(dim=1, size=40, "
+        "nei=2, p=0.05, loops=FALSE, multiple=FALSE)): small-world "
+        "regime — sparse rewiring keeps the graph simple",
+        "algo": "watts_strogatz_game",
+        "params": {
+            "size": 40,
+            "nei": 2,
+            "p": 0.05,
+            "loops": False,
+            "multiple": False,
+            "seed": 9_200_002,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 80,
+            "ecount_max": 80,
+        },
+    },
+    {
+        "case": "watts_r_dense_rewire_p_high_size24_nei5",
+        "origin": "constructed (mirrors sample_smallworld(dim=1, size=24, "
+        "nei=5, p=0.8, loops=FALSE, multiple=FALSE)): heavy-rewire "
+        "regime — almost-random simple graph, edge count preserved",
+        "algo": "watts_strogatz_game",
+        "params": {
+            "size": 24,
+            "nei": 5,
+            "p": 0.8,
+            "loops": False,
+            "multiple": False,
+            "seed": 9_200_003,
+        },
+        "expected": {
+            "vcount": 24,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 120,
+            "ecount_max": 120,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3971,6 +4047,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "forest_fire_game": FOREST_FIRE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
+    "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
 }
 
 
@@ -4067,6 +4144,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "forest_fire_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
+            "watts_strogatz_game",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

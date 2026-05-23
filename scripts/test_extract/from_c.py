@@ -3960,6 +3960,77 @@ K_REGULAR_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+WATTS_STROGATZ_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "watts_c_ring_lattice_p0_size20_nei2",
+        "origin": "constructed (mirrors igraph_watts_strogatz_game(dim=1, "
+        "size=20, nei=2, p=0)): pure 1-D ring lattice, every vertex has "
+        "degree 4, edge count = size * nei = 40",
+        "algo": "watts_strogatz_game",
+        "params": {
+            "size": 20,
+            "nei": 2,
+            "p": 0.0,
+            "loops": False,
+            "multiple": False,
+            "seed": 9_000_001,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 40,  # size * nei
+            "ecount_max": 40,
+            "every_degree": 4,
+        },
+    },
+    {
+        "case": "watts_c_small_world_p_half_size30_nei3",
+        "origin": "constructed (mirrors igraph_watts_strogatz_game(dim=1, "
+        "size=30, nei=3, p=0.5, loops=false, multiple=false)): rewires "
+        "half the endpoints — edge count preserved, still simple",
+        "algo": "watts_strogatz_game",
+        "params": {
+            "size": 30,
+            "nei": 3,
+            "p": 0.5,
+            "loops": False,
+            "multiple": False,
+            "seed": 9_000_002,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 90,  # size * nei
+            "ecount_max": 90,
+        },
+    },
+    {
+        "case": "watts_c_full_rewire_p1_size16_nei4",
+        "origin": "constructed (mirrors igraph_watts_strogatz_game(dim=1, "
+        "size=16, nei=4, p=1.0, loops=false, multiple=false)): every "
+        "endpoint rewired — result is essentially a random regular-ish "
+        "graph, edge count preserved",
+        "algo": "watts_strogatz_game",
+        "params": {
+            "size": 16,
+            "nei": 4,
+            "p": 1.0,
+            "loops": False,
+            "multiple": False,
+            "seed": 9_000_003,
+        },
+        "expected": {
+            "vcount": 16,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 64,  # size * nei
+            "ecount_max": 64,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -4095,6 +4166,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "forest_fire_game": FOREST_FIRE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
+    "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
 }
 
 
@@ -4196,6 +4268,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "forest_fire_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
+            "watts_strogatz_game",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

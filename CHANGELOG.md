@@ -15,6 +15,62 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-009** — `watts_strogatz_game` Watts–Strogatz 1-D small-world
+  random graph generator. Counterpart of `igraph_watts_strogatz_game()`
+  in `references/igraph/src/games/watts_strogatz.c:75-118` for the
+  `dim = 1` case — by far the dominant use case and the original
+  Nature '98 Watts & Strogatz model. The upstream C entry point
+  delegates to `igraph_square_lattice` + `igraph_rewire_edges`; both
+  helpers are folded into a single `src/algorithms/games/watts.rs`
+  rather than ported as standalone public APIs.
+  - `watts_strogatz_game(size: u32, nei: u32, p: f64, loops: bool, multiple: bool, seed: u64) -> IgraphResult<Graph>`.
+  - Step 1 builds a periodic 1-D ring lattice: every vertex `v` emits
+    forward edges to `(v + 1) % size, …, (v + nei) % size`. Total degree
+    per vertex is `2 · nei`; total edges is `size · nei`.
+  - Step 2 walks the edge list twice (one pass per endpoint side, mirroring
+    upstream's `igraph_rewire_edges`) and rewires each endpoint with
+    probability `p`, sampled via geometric skips (`SplitMix64::gen_geom`).
+    Replacement vertices are drawn uniformly from `[0, size)` with optional
+    rejection — `loops = false` uses the C "draw from `[0, size-1)` and
+    remap forbidden→`size-1`" trick for O(1) uniform sampling minus one
+    vertex; `multiple = false` rejects candidates that would create a
+    duplicate edge via a `HashSet<(u32, u32)>` of canonical pairs (C uses
+    a stub linked-list with the same asymptotics).
+  - Validation: `size ≥ 1`, `2 · nei + 1 ≤ size` (so the ring lattice
+    does not self-overlap), `p ∈ [0, 1]` and finite.
+  - Edge invariants: rewire never adds or drops edges, only mutates
+    endpoints. Edge count `size · nei` is preserved for all `p`. Output is
+    always undirected.
+  - Edge cases: `nei = 0` returns an edgeless graph; `2 · nei + 1 = size`
+    (the upper-bound case) is the complete graph `K_size`; `p = 0`
+    short-circuits the rewire entirely so the seed is irrelevant.
+  - Deterministic given `(size, nei, p, loops, multiple, seed)` via
+    `SplitMix64`.
+  - Conformance: 9 fixtures (3 C + 3 py + 3 R) under
+    `tests/conformance/{c,py,r}/watts_strogatz_game/`. RNG state is not
+    portable across implementations, so fixtures assert structural
+    invariants only — `vcount = size`, `directed = false`, `ecount`
+    exact (`size · nei`), `every_degree` per-vertex (for `p = 0`
+    fixtures), and `is_simple` (canonical-pair `HashSet`) for fixtures
+    with `multiple = false` and `loops = false`.
+  - Bench at `benches/bench_watts.rs`: a `size_scaling/p0_ring` sweep at
+    fixed `nei = 4` (`size ∈ {100, 1 000, 10 000}`), a
+    `size_scaling/p_half_simple` sweep at the same sizes with `p = 0.5`,
+    a `p_sweep/size1000_nei4` curve over `p ∈ {0.01, 0.10, 0.50, 1.00}`,
+    and a `multigraph/fast_path` point at `size = 10 000, nei = 4,
+    p = 0.5, loops = true, multiple = true`. Baseline at
+    `.codefuse/tracking/perf/ALGO-GN-009.json`: the pure ring path
+    (`p = 0`) runs at 5.8–7.4 Melem/s; the simple-graph small-world
+    (`p = 0.5`) is ~3.5× slower (1.6 Melem/s) because of the canonical-
+    pair `HashSet` work per rewire; the multigraph fast path runs at
+    3.9 Melem/s — ~2.5× faster than the simple-graph equivalent because
+    the rejection set is skipped entirely.
+  - Example: `examples/watts_demo.rs` sweeps `p ∈ {0.0, 0.05, 0.3, 1.0}`
+    on a 32-vertex `nei = 2` ring and prints the count of "long-range"
+    edges (ring-distance > `nei`) at each `p`, tracing the lattice →
+    small-world → random transition in plain text.
+  - Re-exported as `rust_igraph::watts_strogatz_game`.
+
 - **ALGO-GN-008** — `k_regular_game` random graph generator (k-regular
   sampler). Counterpart of `igraph_k_regular_game()` in
   `references/igraph/src/games/degree_sequence.c:38-122` which itself
