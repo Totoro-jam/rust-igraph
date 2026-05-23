@@ -1,0 +1,38 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors what an ig.Graph.HSBM(n=12, m=6, rho=[0.5, 0.5], C=[[1.0, 1.0], [1.0, 1.0]], p=0) call would do): two macros, each = K_6 (intra micro-pair fully connected), no inter \u2014 exactly 2 \u00d7 C(6,2) = 30 edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "hsbm_game",
+  "params": {
+    "n": 12,
+    "m": 6,
+    "rho": [
+      0.5,
+      0.5
+    ],
+    "c": [
+      [
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    "p": 0.0,
+    "seed": 11010001
+  },
+  "expected": {
+    "vcount": 12,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 30,
+    "ecount_max": 30
+  }
+}

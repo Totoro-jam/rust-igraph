@@ -3717,6 +3717,168 @@ SBM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-011: hsbm_game. python-igraph does not expose HSBM under a
+# dedicated factory (the C `igraph_hsbm_game` is unwrapped at the time
+# of writing). Each fixture stays deterministic by pinning corner-case
+# probability values (p=0 isolates macros; p=1 fully connects across
+# macros) so the resulting ecount can be pinned exactly without needing
+# the Python binding to roll its own RNG. Structural invariants:
+#   * vcount = n;
+#   * directed = false;
+#   * ecount band — exact when p∈{0, 1}, otherwise a wide model band;
+#   * is_simple = true (HSBM never produces loops or multi-edges).
+HSBM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "hsbm_py_two_macros_p0_full_intra",
+        "origin": "constructed (mirrors what an ig.Graph.HSBM(n=12, m=6, "
+        "rho=[0.5, 0.5], C=[[1.0, 1.0], [1.0, 1.0]], p=0) call would do): "
+        "two macros, each = K_6 (intra micro-pair fully connected), "
+        "no inter — exactly 2 × C(6,2) = 30 edges",
+        "algo": "hsbm_game",
+        "params": {
+            "n": 12,
+            "m": 6,
+            "rho": [0.5, 0.5],
+            "c": [[1.0, 1.0], [1.0, 1.0]],
+            "p": 0.0,
+            "seed": 11_010_001,
+        },
+        "expected": {
+            "vcount": 12,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 30,
+            "ecount_max": 30,
+        },
+    },
+    {
+        "case": "hsbm_py_two_macros_p1_no_intra",
+        "origin": "constructed (mirrors what an ig.Graph.HSBM(n=12, m=6, "
+        "rho=[0.5, 0.5], C=[[0.0, 0.0], [0.0, 0.0]], p=1) call would do): "
+        "two macros with empty intra, full inter K_{6,6}=36 edges only",
+        "algo": "hsbm_game",
+        "params": {
+            "n": 12,
+            "m": 6,
+            "rho": [0.5, 0.5],
+            "c": [[0.0, 0.0], [0.0, 0.0]],
+            "p": 1.0,
+            "seed": 11_010_002,
+        },
+        "expected": {
+            "vcount": 12,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 36,
+            "ecount_max": 36,
+        },
+    },
+    {
+        "case": "hsbm_py_two_macros_mid_p_band",
+        "origin": "constructed (mirrors ig.Graph.HSBM(n=20, m=10, "
+        "rho=[0.3, 0.7], C=[[0.5, 0.2], [0.2, 0.5]], p=0.3)): mid-density "
+        "fixture; ecount falls in a generous model band",
+        "algo": "hsbm_game",
+        "params": {
+            "n": 20,
+            "m": 10,
+            "rho": [0.3, 0.7],
+            "c": [[0.5, 0.2], [0.2, 0.5]],
+            "p": 0.3,
+            "seed": 11_010_003,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 30,
+            "ecount_max": 140,
+        },
+    },
+]
+
+# ALGO-GN-011: hsbm_list_game. python-igraph does not expose this
+# either, so fixtures pin corner-case p values for exact ecounts.
+HSBM_LIST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "hsbm_list_py_two_unequal_macros_p0",
+        "origin": "constructed (mirrors an ig.Graph.HSBMList(n=15, "
+        "m_list=[5, 10], rho_list=[[1.0], [0.5, 0.5]], c_list=[[[1.0]], "
+        "[[1.0, 1.0], [1.0, 1.0]]], p=0) call): macro 1 = K_5 = 10 edges, "
+        "macro 2 = K_10 = 45 edges, no inter — 55 edges total",
+        "algo": "hsbm_list_game",
+        "params": {
+            "n": 15,
+            "m_list": [5, 10],
+            "rho_list": [[1.0], [0.5, 0.5]],
+            "c_list": [
+                [[1.0]],
+                [[1.0, 1.0], [1.0, 1.0]],
+            ],
+            "p": 0.0,
+            "seed": 11_110_001,
+        },
+        "expected": {
+            "vcount": 15,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 55,
+            "ecount_max": 55,
+        },
+    },
+    {
+        "case": "hsbm_list_py_two_unequal_macros_p1",
+        "origin": "constructed (mirrors the same HSBMList shape above "
+        "but with p=1): 55 intra + K_{5,10}=50 inter = 105 edges",
+        "algo": "hsbm_list_game",
+        "params": {
+            "n": 15,
+            "m_list": [5, 10],
+            "rho_list": [[1.0], [0.5, 0.5]],
+            "c_list": [
+                [[1.0]],
+                [[1.0, 1.0], [1.0, 1.0]],
+            ],
+            "p": 1.0,
+            "seed": 11_110_002,
+        },
+        "expected": {
+            "vcount": 15,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 105,
+            "ecount_max": 105,
+        },
+    },
+    {
+        "case": "hsbm_list_py_three_macros_p_band",
+        "origin": "constructed (mirrors ig.Graph.HSBMList(n=30, "
+        "m_list=[10, 10, 10], rho_list=[[0.5,0.5], [0.3,0.7], [1.0]], "
+        "c_list=[block-anti, block-diag, scalar 0.5], p=0.2)): mid-density "
+        "three-macro fixture; ecount lies in a generous model band",
+        "algo": "hsbm_list_game",
+        "params": {
+            "n": 30,
+            "m_list": [10, 10, 10],
+            "rho_list": [[0.5, 0.5], [0.3, 0.7], [1.0]],
+            "c_list": [
+                [[0.0, 1.0], [1.0, 0.0]],
+                [[0.5, 0.0], [0.0, 0.5]],
+                [[0.5]],
+            ],
+            "p": 0.2,
+            "seed": 11_110_003,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 60,
+            "ecount_max": 260,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3850,6 +4012,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
     "sbm_game": SBM_MANIFEST,
+    "hsbm_game": HSBM_MANIFEST,
+    "hsbm_list_game": HSBM_LIST_MANIFEST,
 }
 
 
@@ -3948,6 +4112,8 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "k_regular_game",
             "watts_strogatz_game",
             "sbm_game",
+            "hsbm_game",
+            "hsbm_list_game",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

@@ -1,0 +1,44 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_hsbm_list_game with n=10, m_list=[10], rho_list=[[0.6, 0.4]], c_list=[[[0.0, 1.0], [1.0, 0.0]]], p=0): single macro of two micro-clusters (6 and 4) bipartite \u2014 exactly K_{6,4} = 24 edges (matches C .out)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "hsbm_list_game",
+  "params": {
+    "n": 10,
+    "m_list": [
+      10
+    ],
+    "rho_list": [
+      [
+        0.6,
+        0.4
+      ]
+    ],
+    "c_list": [
+      [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ]
+    ],
+    "p": 0.0,
+    "seed": 11100002
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 24,
+    "ecount_max": 24
+  }
+}

@@ -3998,6 +3998,188 @@ SBM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-011: hsbm_game. Mirrors R `sample_hierarchical_sbm(n, m, rho, C, p)`
+# (see references/rigraph/tests/testthat/test-games.R). RNG state is
+# not portable, so fixtures pin corner-case probabilities (p=0 or p=1)
+# for exact ecounts, plus one mid-density band fixture.
+HSBM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "hsbm_r_three_clusters_p0_band",
+        "origin": "constructed (mirrors R sample_hierarchical_sbm(n=20, m=10, "
+        "rho=c(0.3, 0.3, 0.4), C=symmetric mix, p=0)): two macros each with "
+        "three micro-clusters; ecount stays within a model-determined band",
+        "algo": "hsbm_game",
+        "params": {
+            "n": 20,
+            "m": 10,
+            "rho": [0.3, 0.3, 0.4],
+            "c": [[1.0, 0.5, 0.0], [0.5, 0.0, 0.5], [0.0, 0.5, 0.5]],
+            "p": 0.0,
+            "seed": 11_020_001,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 10,
+            "ecount_max": 80,
+        },
+    },
+    {
+        "case": "hsbm_r_one_cluster_per_block_p1",
+        "origin": "constructed (mirrors R sample_hierarchical_sbm(10, 5, rho=1, "
+        "C=matrix(0), p=1)): two macros each with a single micro-cluster, "
+        "no intra edges (C=0), full inter K_{5,5}=25 — exactly 25 edges",
+        "algo": "hsbm_game",
+        "params": {
+            "n": 10,
+            "m": 5,
+            "rho": [1.0],
+            "c": [[0.0]],
+            "p": 1.0,
+            "seed": 11_020_002,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 25,
+            "ecount_max": 25,
+        },
+    },
+    {
+        "case": "hsbm_r_two_macros_p_half_band",
+        "origin": "constructed (mirrors R sample_hierarchical_sbm(n=20, m=10, "
+        "rho=c(0.5, 0.5), C=block-diag (0.2, 0.1), p=0.5)): mid-density "
+        "two-macro fixture; ecount stays within a wide model band",
+        "algo": "hsbm_game",
+        "params": {
+            "n": 20,
+            "m": 10,
+            "rho": [0.5, 0.5],
+            "c": [[0.2, 0.1], [0.1, 0.2]],
+            "p": 0.5,
+            "seed": 11_020_003,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 25,
+            "ecount_max": 130,
+        },
+    },
+]
+
+# ALGO-GN-011: hsbm_list_game. Mirrors R sample_hierarchical_sbm called
+# with per-macro `m`, `rho`, and `C` lists (the "HSBM with list arguments
+# works" testthat block at references/rigraph/tests/testthat/test-games.R
+# lines 650-767). Two of the three fixtures mirror the test that uses
+# m=c(3, 10, 5, 3) with C all-zero or all-one — those give exact ecounts.
+HSBM_LIST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "hsbm_list_r_uniform_equivalent_band",
+        "origin": "constructed (mirrors R sample_hierarchical_sbm called with "
+        "m=rep(10, 5) and rho/C replicated 5 times — the 'HSBM with list "
+        "arguments works' equivalence test): five identical macros, "
+        "p=0 stays within a model band",
+        "algo": "hsbm_list_game",
+        "params": {
+            "n": 50,
+            "m_list": [10, 10, 10, 10, 10],
+            "rho_list": [
+                [0.3, 0.3, 0.4],
+                [0.3, 0.3, 0.4],
+                [0.3, 0.3, 0.4],
+                [0.3, 0.3, 0.4],
+                [0.3, 0.3, 0.4],
+            ],
+            "c_list": [
+                [[1.0, 0.5, 0.0], [0.5, 0.0, 0.5], [0.0, 0.5, 0.5]],
+                [[1.0, 0.5, 0.0], [0.5, 0.0, 0.5], [0.0, 0.5, 0.5]],
+                [[1.0, 0.5, 0.0], [0.5, 0.0, 0.5], [0.0, 0.5, 0.5]],
+                [[1.0, 0.5, 0.0], [0.5, 0.0, 0.5], [0.0, 0.5, 0.5]],
+                [[1.0, 0.5, 0.0], [0.5, 0.0, 0.5], [0.0, 0.5, 0.5]],
+            ],
+            "p": 0.0,
+            "seed": 11_120_001,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 30,
+            "ecount_max": 220,
+        },
+    },
+    {
+        "case": "hsbm_list_r_mixed_p1_intra_zero",
+        "origin": "constructed (mirrors R 'g_hsbm5' with m=c(3, 10, 5, 3), "
+        "rho/C as four separate lists with all-zero C entries, p=1): "
+        "intra-macro edges are all zero, inter-macro is full bipartite "
+        "between every macro pair — sum_{i<j} m_i*m_j = "
+        "3*10+3*5+3*3+10*5+10*3+5*3 = 149",
+        "algo": "hsbm_list_game",
+        "params": {
+            "n": 21,
+            "m_list": [3, 10, 5, 3],
+            "rho_list": [
+                [1.0 / 3.0, 2.0 / 3.0],
+                [0.3, 0.3, 0.4],
+                [1.0],
+                [2.0 / 3.0, 1.0 / 3.0],
+            ],
+            "c_list": [
+                [[0.0, 0.0], [0.0, 0.0]],
+                [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+                [[0.0]],
+                [[0.0, 0.0], [0.0, 0.0]],
+            ],
+            "p": 1.0,
+            "seed": 11_120_002,
+        },
+        "expected": {
+            "vcount": 21,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 149,
+            "ecount_max": 149,
+        },
+    },
+    {
+        "case": "hsbm_list_r_mixed_p0_intra_one",
+        "origin": "constructed (mirrors R 'g_hsbm7' with the same m=c(3, 10, "
+        "5, 3) shape but all-ones C and p=0): intra-macro is K_{m_i}, no "
+        "inter — K_3+K_10+K_5+K_3 = 3+45+10+3 = 61 edges",
+        "algo": "hsbm_list_game",
+        "params": {
+            "n": 21,
+            "m_list": [3, 10, 5, 3],
+            "rho_list": [
+                [1.0 / 3.0, 2.0 / 3.0],
+                [0.3, 0.3, 0.4],
+                [1.0],
+                [2.0 / 3.0, 1.0 / 3.0],
+            ],
+            "c_list": [
+                [[1.0, 1.0], [1.0, 1.0]],
+                [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
+                [[1.0]],
+                [[1.0, 1.0], [1.0, 1.0]],
+            ],
+            "p": 0.0,
+            "seed": 11_120_003,
+        },
+        "expected": {
+            "vcount": 21,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 61,
+            "ecount_max": 61,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -4135,6 +4317,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
     "sbm_game": SBM_MANIFEST,
+    "hsbm_game": HSBM_MANIFEST,
+    "hsbm_list_game": HSBM_LIST_MANIFEST,
 }
 
 
@@ -4233,6 +4417,8 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "k_regular_game",
             "watts_strogatz_game",
             "sbm_game",
+            "hsbm_game",
+            "hsbm_list_game",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

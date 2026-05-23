@@ -63,7 +63,7 @@ use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 /// Per-block-pair sampling kind. Determines the local `maxedges`
 /// formula and the index → `(vfrom, vto)` decoder.
 #[derive(Clone, Copy)]
-enum PairShape {
+pub(crate) enum PairShape {
     /// Rectangular `fromsize × tosize` grid (off-diagonal block, or
     /// directed-with-loops diagonal block).
     Rect,
@@ -81,7 +81,7 @@ enum PairShape {
 impl PairShape {
     /// Decode a pair-index into `(vfrom, vto)` within the block pair's
     /// **local** coordinate frame. Caller adds the block offsets.
-    fn decode(self, idx: u64, fromsize: u32) -> (u32, u32) {
+    pub(crate) fn decode(self, idx: u64, fromsize: u32) -> (u32, u32) {
         let fs = u64::from(fromsize);
         match self {
             Self::Rect => {
@@ -204,7 +204,7 @@ fn validate(
 }
 
 /// Build cumulative block offsets and return the total vertex count.
-fn block_offsets(block_sizes: &[u32]) -> IgraphResult<(Vec<u32>, u32)> {
+pub(crate) fn block_offsets(block_sizes: &[u32]) -> IgraphResult<(Vec<u32>, u32)> {
     let mut offsets: Vec<u32> = Vec::with_capacity(block_sizes.len() + 1);
     offsets.push(0);
     let mut acc: u32 = 0;
@@ -221,7 +221,7 @@ fn block_offsets(block_sizes: &[u32]) -> IgraphResult<(Vec<u32>, u32)> {
 /// geometric skip and emit decoded `(vfrom + fromoff, vto + tooff)`
 /// edges into the buffer.
 #[allow(clippy::too_many_arguments)]
-fn sample_pair_with_max(
+pub(crate) fn sample_pair_with_max(
     rng: &mut SplitMix64,
     edges: &mut Vec<(VertexId, VertexId)>,
     fromsize: u32,

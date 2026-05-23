@@ -15,6 +15,77 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-011** — `hsbm_game` + `hsbm_list_game` Hierarchical Stochastic
+  Block Model random graph generator. Counterparts of
+  `igraph_hsbm_game()` and `igraph_hsbm_list_game()` in
+  `references/igraph/src/games/sbm.c:267-481`. A two-level community
+  structure: `K` macro-blocks, each running its own internal SBM over
+  `k_b` micro-clusters, plus a single Bernoulli rate `p` for every edge
+  crossing two distinct macro-blocks.
+  - `hsbm_game(n: u32, m: u32, rho: &[f64], c: &[Vec<f64>], p: f64, seed: u64) -> IgraphResult<Graph>`
+    (uniform variant — every macro has size `m`, the same `rho`, the
+    same `c`).
+  - `hsbm_list_game(n: u32, m_list: &[u32], rho_list: &[Vec<f64>], c_list: &[Vec<Vec<f64>>], p: f64, seed: u64) -> IgraphResult<Graph>`
+    (list variant — every macro carries its own size, `rho`, and `c`).
+  - Phase 1 generates intra-macro edges by running an SBM independently
+    inside each macro over its `csizes = round(rho_b * m_b)` micro
+    clusters with pref matrix `c_b`. Phase 2 emits inter-macro edges by
+    one cross-pair Batagelj–Brandes geometric-skip sampler per unordered
+    macro pair. Total cost is
+    `O(Σ_b m_b² · c_max + Σ_{b<b'} m_b · m_{b'} · p + macros²)`.
+  - Validation: `n ≥ 1`; for the uniform variant `n % m == 0`; `rho`
+    sums to 1 within `√DBL_EPSILON ≈ 1.49e-8`; every `rho[j] * m` rounds
+    to an integer within the same tolerance; `c` is `k × k`, symmetric,
+    entries in `[0, 1]`; `p ∈ [0, 1]`. The list variant additionally
+    requires `m_list.len() == rho_list.len() == c_list.len()`,
+    `sum(m_list) == n`, and every `m_list[b] ≥ 1`.
+  - Output is always undirected and (modulo Bernoulli realization)
+    simple — Phase 1 produces a simple graph and Phase 2 only adds
+    edges across different vertex groups.
+  - Deterministic given `(n, m, rho, c, p, seed)` (uniform) or
+    `(n, m_list, rho_list, c_list, p, seed)` (list) via `SplitMix64`.
+  - Conformance: 18 fixtures total — 9 for `hsbm_game` (3 C + 3 py +
+    3 R) under `tests/conformance/{c,py,r}/hsbm_game/` and 9 for
+    `hsbm_list_game` under `tests/conformance/{c,py,r}/hsbm_list_game/`.
+    RNG state is not portable across implementations, so fixtures
+    assert structural invariants only — `vcount` exact, `directed = false`,
+    `ecount` band (exact for the `p = 0` and `p = 1` corner cases like
+    the C `igraph_hsbm_game.out` K_{6,4} `n=10/m=10/rho=[0.6,0.4]`
+    bipartite shape with `c = [[0,1],[1,0]]` giving exactly `6·4 = 24`
+    edges, or the `p = 1 / c = 0` complete-`K_n`-between-macros R
+    `g_hsbm5` giving exactly `m·m'` edges), and `is_simple` (canonical-
+    pair `HashSet`) for the deterministic fixtures. The list-variant
+    test additionally asserts `vcount == sum(m_list)` to catch manifest
+    typos.
+  - Bench at `benches/bench_hsbm.rs`: a
+    `size_scaling/uniform_k2` sweep (`n ∈ {200, 1 000, 4 000}` at fixed
+    `m = 50`, two-cluster `c` with `p_in = 0.1 / p_off = 0.02`,
+    inter-macro `p = 0.01`), a `density_sweep/uniform_n2000_m50` over
+    in-cluster `p ∈ {0.01, 0.05, 0.10, 0.30}`, a
+    `p_sweep/uniform_n2000_m100` over inter-macro
+    `p ∈ {0.0, 0.01, 0.10, 0.50, 1.00}`, a `list_vs_uniform/n2000_k20`
+    pair comparing the uniform and list APIs on the same shape, and a
+    `list_irregular/n2200_jagged` point with non-uniform macro sizes
+    `m_list = [40, 80, 120, 160, 200, 240, 280, 320, 360, 400]` and
+    per-macro variable `rho`/`c`. Baseline at
+    `.codefuse/tracking/perf/ALGO-GN-011.json`: at `n = 200`,
+    `m = 50`, uniform runs at 19.5 µs; scales to 5.24 ms at `n = 4000`
+    (80 macros, ~3160 inter-macro pairs). The `p_sweep` at
+    `n = 2000 / m = 100` reveals the inter-macro Bernoulli sweep cost:
+    246 µs at `p = 0` (pure intra-macro) up to 123.8 ms at `p = 1`
+    (dense — ~1.9M cross-macro edges). The list variant
+    `list_equivalent` runs at 1.37 ms vs the uniform `1.40 ms` —
+    confirms the per-macro dispatcher overhead is essentially free.
+  - Example: `examples/hsbm_demo.rs` generates a 3-level hierarchy
+    (`n = 120`, `4` macros of `m = 30`, each with `3` equal
+    micro-clusters of `10`, `p_in = 0.40 / p_off = 0.05` within macros,
+    inter-macro `p = 0.01`) and prints the `4 × 4` macro-block edge
+    matrix, per-macro `3 × 3` micro-cluster edge matrices, and mean
+    degree per macro — the planted three-level community structure is
+    visible at the command line. The same shape is replayed through
+    `hsbm_list_game` to confirm the APIs are interchangeable.
+  - Re-exported as `rust_igraph::{hsbm_game, hsbm_list_game}`.
+
 - **ALGO-GN-010** — `sbm_game` Stochastic Block Model random graph
   generator. Counterpart of `igraph_sbm_game()` in
   `references/igraph/src/games/sbm.c:78`. Given a `k × k` preference

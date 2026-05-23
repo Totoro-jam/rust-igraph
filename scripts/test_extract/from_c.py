@@ -4113,6 +4113,168 @@ SBM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-011: hsbm_game (uniform-per-macro Hierarchical SBM). Mirrors
+# `igraph_hsbm_game` in references/igraph/src/games/sbm.c and the three
+# deterministic fixtures in references/igraph/tests/unit/igraph_hsbm_game.out.
+# Each macro-block has the same micro-block structure (m, rho, C). The
+# Rust port is deterministic per `seed`; the C oracle does not share RNG
+# state, so we encode the structural invariants the C test asserts:
+#   * vcount = n (exact);
+#   * directed = false (HSBM is always undirected);
+#   * for the three C deterministic fixtures the ecount is exact, so
+#     band = [exact, exact];
+#   * is_simple = true (HSBM produces simple graphs).
+HSBM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "hsbm_c_trivial_one_vertex",
+        "origin": "constructed (mirrors igraph_hsbm_game with n=1, m=1, "
+        "rho=[1.0], C=[[0.0]], p=0): one macro of one micro-cluster "
+        "of one vertex — no edges possible",
+        "algo": "hsbm_game",
+        "params": {
+            "n": 1,
+            "m": 1,
+            "rho": [1.0],
+            "c": [[0.0]],
+            "p": 0.0,
+            "seed": 11_000_001,
+        },
+        "expected": {
+            "vcount": 1,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "hsbm_c_one_macro_bipartite_k64",
+        "origin": "constructed (mirrors igraph_hsbm_game with n=10, m=10, "
+        "rho=[0.6, 0.4], C=[[0.0, 1.0], [1.0, 0.0]], p=0): single macro "
+        "of two micro-clusters (size 6 and 4) with off-diagonal C=1 — "
+        "exactly K_{6,4} = 24 edges",
+        "algo": "hsbm_game",
+        "params": {
+            "n": 10,
+            "m": 10,
+            "rho": [0.6, 0.4],
+            "c": [[0.0, 1.0], [1.0, 0.0]],
+            "p": 0.0,
+            "seed": 11_000_002,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 24,
+            "ecount_max": 24,
+        },
+    },
+    {
+        "case": "hsbm_c_two_macros_bipartite_p1",
+        "origin": "constructed (mirrors igraph_hsbm_game with n=10, m=5, "
+        "rho=[0.6, 0.4], C=[[0.0, 1.0], [1.0, 0.0]], p=1): two macros "
+        "each holding K_{3,2}=6 intra-macro edges, plus full K_{5,5}=25 "
+        "inter-macro edges — exactly 6+6+25=37 edges (matches C .out)",
+        "algo": "hsbm_game",
+        "params": {
+            "n": 10,
+            "m": 5,
+            "rho": [0.6, 0.4],
+            "c": [[0.0, 1.0], [1.0, 0.0]],
+            "p": 1.0,
+            "seed": 11_000_003,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 37,
+            "ecount_max": 37,
+        },
+    },
+]
+
+# ALGO-GN-011: hsbm_list_game (per-macro list Hierarchical SBM). Mirrors
+# `igraph_hsbm_list_game` in references/igraph/src/games/sbm.c and the
+# three fixtures in references/igraph/tests/unit/igraph_hsbm_list_game.out.
+# Per-macro (m_i, rho_i, C_i) — generalisation of `hsbm_game` where
+# every macro can have its own micro-structure.
+HSBM_LIST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "hsbm_list_c_trivial_one_vertex",
+        "origin": "constructed (mirrors igraph_hsbm_list_game with n=1, "
+        "m_list=[1], rho_list=[[1.0]], c_list=[[[0.0]]], p=0): single "
+        "macro of one vertex — no edges possible",
+        "algo": "hsbm_list_game",
+        "params": {
+            "n": 1,
+            "m_list": [1],
+            "rho_list": [[1.0]],
+            "c_list": [[[0.0]]],
+            "p": 0.0,
+            "seed": 11_100_001,
+        },
+        "expected": {
+            "vcount": 1,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "hsbm_list_c_one_macro_bipartite_k64",
+        "origin": "constructed (mirrors igraph_hsbm_list_game with n=10, "
+        "m_list=[10], rho_list=[[0.6, 0.4]], c_list=[[[0.0, 1.0], "
+        "[1.0, 0.0]]], p=0): single macro of two micro-clusters "
+        "(6 and 4) bipartite — exactly K_{6,4} = 24 edges (matches C .out)",
+        "algo": "hsbm_list_game",
+        "params": {
+            "n": 10,
+            "m_list": [10],
+            "rho_list": [[0.6, 0.4]],
+            "c_list": [[[0.0, 1.0], [1.0, 0.0]]],
+            "p": 0.0,
+            "seed": 11_100_002,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 24,
+            "ecount_max": 24,
+        },
+    },
+    {
+        "case": "hsbm_list_c_two_macros_replicated_p1",
+        "origin": "constructed (mirrors igraph_hsbm_list_game with n=10, "
+        "m_list=[5, 5], rho_list both = [0.6, 0.4], c_list both = "
+        "[[0.0, 1.0], [1.0, 0.0]], p=1): two macros each = K_{3,2}=6, "
+        "plus K_{5,5}=25 inter-macro — exactly 6+6+25=37 edges "
+        "(matches C .out)",
+        "algo": "hsbm_list_game",
+        "params": {
+            "n": 10,
+            "m_list": [5, 5],
+            "rho_list": [[0.6, 0.4], [0.6, 0.4]],
+            "c_list": [
+                [[0.0, 1.0], [1.0, 0.0]],
+                [[0.0, 1.0], [1.0, 0.0]],
+            ],
+            "p": 1.0,
+            "seed": 11_100_003,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 37,
+            "ecount_max": 37,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -4250,6 +4412,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
     "sbm_game": SBM_MANIFEST,
+    "hsbm_game": HSBM_MANIFEST,
+    "hsbm_list_game": HSBM_LIST_MANIFEST,
 }
 
 
@@ -4353,6 +4517,8 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "k_regular_game",
             "watts_strogatz_game",
             "sbm_game",
+            "hsbm_game",
+            "hsbm_list_game",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

@@ -1,0 +1,22 @@
+{
+  "awu": "ALGO-GN-011",
+  "captured_at": "2026-05-23",
+  "git_commit": "a22ae58",
+  "size_scaling_uniform_k2_n200_ns": 19549,
+  "size_scaling_uniform_k2_n1000_ns": 310720,
+  "size_scaling_uniform_k2_n4000_ns": 5235200,
+  "density_sweep_uniform_n2000_m50_pin_0p01_ns": 132580,
+  "density_sweep_uniform_n2000_m50_pin_0p05_ns": 179390,
+  "density_sweep_uniform_n2000_m50_pin_0p10_ns": 251000,
+  "density_sweep_uniform_n2000_m50_pin_0p30_ns": 512260,
+  "p_sweep_uniform_n2000_m100_p_0p00_ns": 246130,
+  "p_sweep_uniform_n2000_m100_p_0p01_ns": 1318700,
+  "p_sweep_uniform_n2000_m100_p_0p10_ns": 11545000,
+  "p_sweep_uniform_n2000_m100_p_0p50_ns": 64853000,
+  "p_sweep_uniform_n2000_m100_p_1p00_ns": 123790000,
+  "list_vs_uniform_n2000_k20_uniform_ns": 1401900,
+  "list_vs_uniform_n2000_k20_list_equivalent_ns": 1374800,
+  "list_irregular_n2200_jagged_ns": 1609500,
+  "py_baseline_ns": null,
+  "notes": "Hierarchical Stochastic Block Model — two-phase generator: (1) per-macro intra-block SBM via igraph_sbm_game over the macro's k_b micro-clusters; (2) one cross-macro Bernoulli rectangular sampler (Batagelj-Brandes geometric-skip) for every unordered macro pair. Uniform variant cost is `K · O(m² · c_max + per_pair_overhead) + O(K² · p · m²)` where K = n/m macros; list variant amortises the same total work with per-macro variable rho/c. Uniform-k2 size sweep (m=50, p_in=0.1, p_off=0.02 within macro, p_inter=0.01): 19.5 µs at n=200 (4 macros, ~50 intra + ~7 inter edges) → 5.24 ms at n=4000 (80 macros, ~3160 inter-macro pairs at 50² each, ~0.01 density = ~7900 inter edges plus ~2000 intra). Density sweep at n=2000/m=50 (40 macros) shows the intra-cluster cost dominates between 130 µs (p_in=0.01) and 512 µs (p_in=0.3) — linear in expected per-block edge count. p_sweep at n=2000/m=100 (20 macros = 190 unordered macro pairs, each 100×100 = 10_000 candidate slots) reveals the inter-macro Bernoulli sweep cost: 246 µs at p=0 (pure intra), 1.32 ms at p=0.01 (~19k extra edges), 11.5 ms at p=0.1 (~190k inter edges), 64.9 ms at p=0.5 (~950k), 123.8 ms at p=1.0 (~1.9M cross-macro edges — the dense regime, dominated by Vec::push and add_edges canonicalisation). list_vs_uniform at n=2000/k=20: uniform=1.40 ms, list_equivalent=1.37 ms — confirms the per-macro dispatcher in hsbm_list_game is essentially free (the per-macro setup amortises into the K=20 inner SBMs). list_irregular at n=2200 (10 macros sized 40..400, alternating 1/2/3-cluster rho across macros) clocks 1.61 ms — small overhead over the uniform 1.40 ms attributable to the heterogeneous c-matrix shapes. No oracle baseline: igraph_hsbm_game / python-igraph HSBM / rigraph hsbm all share igraph's GLIBC RNG semantics but their seeds are not portable to a SplitMix64-based engine — conformance asserts structural invariants only (vcount exact, undirected, ecount band, is_simple for the p=0/p=1 corner cases and the deterministic K_{a,b} structures). Numbers from `cargo bench --bench bench_hsbm -- --warm-up-time 1 --measurement-time 3 --sample-size 30` on Darwin/M-series release build."
+}

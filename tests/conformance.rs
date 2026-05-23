@@ -6726,3 +6726,406 @@ fn sbm_game_three_source_conformance() {
         );
     }
 }
+
+/// Helper: parse a JSON array-of-numbers param into Vec<f64>.
+fn er_param_f64_vec(case: &Conformance, key: &str, path: &std::path::Path) -> Vec<f64> {
+    case.params
+        .get(key)
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "HSBM fixture {}: param `{}` missing or not array",
+                path.display(),
+                key
+            )
+        })
+        .iter()
+        .map(|cell| {
+            cell.as_f64().unwrap_or_else(|| {
+                panic!(
+                    "HSBM fixture {}: param `{}` cell is not f64",
+                    path.display(),
+                    key
+                )
+            })
+        })
+        .collect()
+}
+
+/// Helper: parse a JSON array-of-arrays-of-numbers param into Vec<Vec<f64>>.
+fn er_param_f64_matrix(case: &Conformance, key: &str, path: &std::path::Path) -> Vec<Vec<f64>> {
+    case.params
+        .get(key)
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "HSBM fixture {}: param `{}` missing or not array-of-arrays",
+                path.display(),
+                key
+            )
+        })
+        .iter()
+        .map(|row| {
+            row.as_array()
+                .unwrap_or_else(|| {
+                    panic!(
+                        "HSBM fixture {}: param `{}` row is not array",
+                        path.display(),
+                        key
+                    )
+                })
+                .iter()
+                .map(|cell| {
+                    cell.as_f64().unwrap_or_else(|| {
+                        panic!(
+                            "HSBM fixture {}: param `{}` cell is not f64",
+                            path.display(),
+                            key
+                        )
+                    })
+                })
+                .collect()
+        })
+        .collect()
+}
+
+fn assert_no_self_loops_no_multi_edges(
+    graph: &rust_igraph::Graph,
+    path: &std::path::Path,
+    source: &str,
+    origin: &str,
+) {
+    use std::collections::HashSet;
+    let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+    let mut canonical: HashSet<(u32, u32)> = HashSet::with_capacity(n_edges as usize);
+    for eid in 0..n_edges {
+        let (a, b) = graph.edge(eid).expect("edge id within bounds");
+        assert_ne!(
+            a,
+            b,
+            "self-loop in {} (edge {eid})\n  source: {}\n  origin: {}",
+            path.display(),
+            source,
+            origin,
+        );
+        let pair = if a <= b { (a, b) } else { (b, a) };
+        assert!(
+            canonical.insert(pair),
+            "multi-edge {pair:?} in {}\n  source: {}\n  origin: {}",
+            path.display(),
+            source,
+            origin,
+        );
+    }
+}
+
+#[test]
+fn hsbm_game_three_source_conformance() {
+    // Hierarchical Stochastic Block Model (uniform-per-macro variant).
+    // RNG state is not portable across implementations, so each fixture
+    // pins parameters and checks the structural invariants:
+    //   * vcount = n (exact);
+    //   * directed = false (HSBM is always undirected);
+    //   * ecount lies in [ecount_min, ecount_max] (band — exact when the
+    //     fixture uses p∈{0, 1} and pins the C entries);
+    //   * no self-loops, no parallel edges (HSBM produces simple graphs).
+    use rust_igraph::hsbm_game;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("hsbm_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "hsbm_game");
+
+            let n = er_param_u32(&case, "n", &path);
+            let m = er_param_u32(&case, "m", &path);
+            let rho = er_param_f64_vec(&case, "rho", &path);
+            let c_matrix = er_param_f64_matrix(&case, "c", &path);
+            let p = er_param_f64(&case, "p", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = hsbm_game(n, m, &rho, &c_matrix, p, seed)
+                .expect("hsbm_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_is_simple = er_expected_bool(&case, "is_simple", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            if want_is_simple {
+                assert_no_self_loops_no_multi_edges(&graph, &path, &case.source, &case.origin);
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no hsbm_game fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn hsbm_list_game_three_source_conformance() {
+    // Hierarchical SBM with per-macro `m_list`, `rho_list`, `c_list`.
+    // Same invariants as `hsbm_game_three_source_conformance`, with the
+    // added constraint that vcount = sum(m_list).
+    use rust_igraph::hsbm_list_game;
+
+    fn parse_m_list(case: &Conformance, path: &std::path::Path) -> Vec<u32> {
+        case.params
+            .get("m_list")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| {
+                panic!(
+                    "HSBM-list fixture {}: param `m_list` missing or not array",
+                    path.display()
+                )
+            })
+            .iter()
+            .map(|cell| {
+                let v = cell.as_u64().unwrap_or_else(|| {
+                    panic!(
+                        "HSBM-list fixture {}: m_list cell is not u64",
+                        path.display()
+                    )
+                });
+                u32::try_from(v).unwrap_or_else(|_| {
+                    panic!(
+                        "HSBM-list fixture {}: m_list cell {} does not fit in u32",
+                        path.display(),
+                        v
+                    )
+                })
+            })
+            .collect()
+    }
+
+    fn parse_rho_list(case: &Conformance, path: &std::path::Path) -> Vec<Vec<f64>> {
+        case.params
+            .get("rho_list")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| {
+                panic!(
+                    "HSBM-list fixture {}: param `rho_list` missing or not array",
+                    path.display()
+                )
+            })
+            .iter()
+            .map(|row| {
+                row.as_array()
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "HSBM-list fixture {}: rho_list row is not array",
+                            path.display()
+                        )
+                    })
+                    .iter()
+                    .map(|cell| {
+                        cell.as_f64().unwrap_or_else(|| {
+                            panic!(
+                                "HSBM-list fixture {}: rho_list cell is not f64",
+                                path.display()
+                            )
+                        })
+                    })
+                    .collect()
+            })
+            .collect()
+    }
+
+    fn parse_c_list(case: &Conformance, path: &std::path::Path) -> Vec<Vec<Vec<f64>>> {
+        case.params
+            .get("c_list")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| {
+                panic!(
+                    "HSBM-list fixture {}: param `c_list` missing or not array",
+                    path.display()
+                )
+            })
+            .iter()
+            .map(|matrix| {
+                matrix
+                    .as_array()
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "HSBM-list fixture {}: c_list matrix is not array",
+                            path.display()
+                        )
+                    })
+                    .iter()
+                    .map(|row| {
+                        row.as_array()
+                            .unwrap_or_else(|| {
+                                panic!(
+                                    "HSBM-list fixture {}: c_list row is not array",
+                                    path.display()
+                                )
+                            })
+                            .iter()
+                            .map(|cell| {
+                                cell.as_f64().unwrap_or_else(|| {
+                                    panic!(
+                                        "HSBM-list fixture {}: c_list cell is not f64",
+                                        path.display()
+                                    )
+                                })
+                            })
+                            .collect()
+                    })
+                    .collect()
+            })
+            .collect()
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("hsbm_list_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "hsbm_list_game");
+
+            let n = er_param_u32(&case, "n", &path);
+            let m_list = parse_m_list(&case, &path);
+            let rho_list = parse_rho_list(&case, &path);
+            let c_list = parse_c_list(&case, &path);
+            let p = er_param_f64(&case, "p", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = hsbm_list_game(n, &m_list, &rho_list, &c_list, p, seed)
+                .expect("hsbm_list_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_is_simple = er_expected_bool(&case, "is_simple", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            // Extra invariant for the list variant: vcount must equal
+            // sum(m_list). Catches manifest-typo bugs early.
+            let m_sum: u64 = m_list.iter().copied().map(u64::from).sum();
+            assert_eq!(
+                u64::from(want_vertices),
+                m_sum,
+                "manifest mismatch in {}: vcount={} but sum(m_list)={}",
+                path.display(),
+                want_vertices,
+                m_sum,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            if want_is_simple {
+                assert_no_self_loops_no_multi_edges(&graph, &path, &case.source, &case.origin);
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no hsbm_list_game fixtures from source {src}"
+        );
+    }
+}

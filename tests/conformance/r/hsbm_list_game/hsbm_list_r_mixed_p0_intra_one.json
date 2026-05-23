@@ -1,0 +1,91 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors R 'g_hsbm7' with the same m=c(3, 10, 5, 3) shape but all-ones C and p=0): intra-macro is K_{m_i}, no inter \u2014 K_3+K_10+K_5+K_3 = 3+45+10+3 = 61 edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "hsbm_list_game",
+  "params": {
+    "n": 21,
+    "m_list": [
+      3,
+      10,
+      5,
+      3
+    ],
+    "rho_list": [
+      [
+        0.3333333333333333,
+        0.6666666666666666
+      ],
+      [
+        0.3,
+        0.3,
+        0.4
+      ],
+      [
+        1.0
+      ],
+      [
+        0.6666666666666666,
+        0.3333333333333333
+      ]
+    ],
+    "c_list": [
+      [
+        [
+          1.0,
+          1.0
+        ],
+        [
+          1.0,
+          1.0
+        ]
+      ],
+      [
+        [
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          1.0,
+          1.0,
+          1.0
+        ]
+      ],
+      [
+        [
+          1.0
+        ]
+      ],
+      [
+        [
+          1.0,
+          1.0
+        ],
+        [
+          1.0,
+          1.0
+        ]
+      ]
+    ],
+    "p": 0.0,
+    "seed": 11120003
+  },
+  "expected": {
+    "vcount": 21,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 61,
+    "ecount_max": 61
+  }
+}

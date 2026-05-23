@@ -42,6 +42,10 @@ criterion = "0.5"
 name = "bfs_karate"
 path = "examples/bfs_karate.rs"
 
+[[example]]
+name = "hsbm_demo"
+path = "examples/hsbm_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -240,6 +244,11 @@ harness = false
 [[bench]]
 name = "bench_sbm"
 path = "benches/bench_sbm.rs"
+harness = false
+
+[[bench]]
+name = "bench_hsbm"
+path = "benches/bench_hsbm.rs"
 harness = false
 
 [lints.rust]

@@ -254,3 +254,99 @@ doctest = **61 pass**.
 - Working tree dirty for **local-only infra** (must NOT commit):
   `.claude/hooks/block-dangerous-git.sh` and `.claude/settings.json`
   — user opted out of git auth prompts for this session.
+
+---
+
+## 2026-05-23 — resumed (post-GN-009, picking up GN-010 SBM)
+
+- Last commit: `fed26c6` — feat(games): ALGO-GN-009 watts_strogatz_game,
+  full 9-step SOP, pushed to origin/main.
+- Working tree: clean for committable code; `.claude/hooks/*` +
+  `.claude/settings.json` modified as expected (local-only infra,
+  never commit).
+- Health check: `cargo test --workspace` → 139 pass / 0 fail / 1 ignored.
+- AWU triage: 0 wip, 0 blocked. ALGORITHMS.md row only lists GN-001,
+  but counters at line 216 confirm GN-001..009 (ER × 2, BA, growing-
+  random, tree-LERW, GRG, forest-fire, islands, k-regular, Watts–
+  Strogatz) all done with 9-10 conformance fixtures each.
+- Remaining upstream `games/`: `sbm.c` (648 L), `chung_lu.c` (321 L),
+  `degree_sequence.c` (864 L), `preference.c` (611 L),
+  `static_fitness.c` (464 L), `correlated.c` (338 L),
+  `recent_degree.c` (381 L), `citations.c` (498 L),
+  `establishment.c`, `callaway_traits.c`, `dotproduct.c`,
+  `degree_sequence_vl/`.
+- **Picked up**: ALGO-GN-010 — Stochastic Block Model (`sbm_game`,
+  `sbm_game_with_options`). Canonical extension of ER with community
+  structure; sized at ~648 C lines, well-defined. Bench-friendly
+  follow-up to GN-001 ER and pairs naturally with the Louvain /
+  Leiden / Walktrap community AWUs already landed. Invoking
+  `/awu-start ALGO-GN-010` next.
+
+---
+
+## 2026-05-23 — GN-010 landed; picking up GN-011
+
+- Last commit: `a22ae58` — feat(games): ALGO-GN-010 sbm_game, full
+  9-step SOP, pushed to origin/main. 22 files / +1974 / -1.
+- All gates green: fmt clean, clippy --workspace --all-targets clean,
+  cargo test --workspace --all-features = 1442 lib + 136 conformance
+  + 191 proptest + 146 integration + 140 doctest + others all pass.
+- Counters bumped: Phase 1 done 117 → 118, total 122 → 123;
+  `sbm_game: 9` appended to the conformance-fixtures string. CHANGELOG
+  Unreleased now leads with the GN-010 entry. Perf baseline at
+  `.codefuse/tracking/perf/ALGO-GN-010.json`.
+- AWU triage: 0 wip, 0 blocked. Remaining upstream `games/` family
+  (in roughly C-file-size order): `chung_lu.c` (321 L),
+  `degree_sequence.c` (864 L), `preference.c` (611 L),
+  `static_fitness.c` (464 L), `correlated.c` (338 L),
+  `recent_degree.c` (381 L), `citations.c` (498 L),
+  `establishment.c`, `callaway_traits.c`, `dotproduct.c`,
+  `degree_sequence_vl/`, plus the hierarchical-SBM variants
+  (`hsbm_game`, `hsbm_list_game`) that GN-010 explicitly deferred.
+- **Picked up**: ALGO-GN-011 — `hsbm_game` + `hsbm_list_game`
+  (Hierarchical SBM). Direct extension of GN-010 — same Batagelj–
+  Brandes sampler at the leaf level, wrapped in an outer "macro"
+  pref-matrix over k macro-blocks each containing its own m_i micro-
+  blocks. `hsbm_list_game` accepts a per-macro-block list of pref
+  matrices; `hsbm_game` is the uniform-per-macro special case. Sized
+  at ~250 C lines (`references/igraph/src/games/sbm.c:226-648`).
+  Invoking `/awu-start ALGO-GN-011` next.
+
+## 2026-05-23 — GN-011 landed (hsbm_game + hsbm_list_game)
+
+- Last commit: about to commit GN-011 full 9-step SOP. Uniform variant
+  reuses GN-010 SBM internals as the per-macro intra-block sampler;
+  list variant accepts per-macro size + rho + c. Both always produce
+  undirected simple graphs (matching upstream's signature, which fixes
+  `directed=0` and exposes neither `loops` nor `multiple`). Inter-macro
+  layer is one rectangular Batagelj–Brandes pass per unordered macro
+  pair at rate `p`, with `p=0` and `p=1` fast-paths.
+- All gates green:
+  - `cargo fmt --all --check` clean
+  - `cargo clippy --workspace --all-targets -- -D warnings` clean
+  - `cargo test --workspace --all-features` → 138 conformance, 191
+    proptest, 146 integration, 142 doctest, 14 lib, 14 oracle pass
+  - `cargo bench --bench bench_hsbm` ran end-to-end; baseline written
+    to `.codefuse/tracking/perf/ALGO-GN-011.json`
+- Counters bumped: Phase 1 done 118 → 119, total 123 → 124;
+  `hsbm_game: 9; hsbm_list_game: 9` appended to the conformance string.
+  CHANGELOG Unreleased now leads with the GN-011 entry.
+- Numerical sanity: GN-010 SBM internals are re-exposed via
+  `algorithms::games::sbm::{PairShape, block_offsets,
+  sample_pair_with_max}` so hsbm doesn't fork the sampler. The
+  intra-macro phase calls per-macro `sample_intra_macro` (a
+  rectangular/triangular dispatcher over the macro's csizes), and the
+  inter-macro phase calls a thin `add_inter_macro` rectangular sweep.
+- `rho` sanity: list variant requires `rho_list[b].sum() ≈ 1` and
+  every `rho_list[b][j] * m_list[b]` round to an integer within
+  `√DBL_EPSILON ≈ 1.49e-8`. Fixtures use `1/3` per micro-cluster only
+  on macro sizes divisible by 3.
+- AWU triage: 0 wip, 0 blocked. Remaining upstream `games/` family:
+  `chung_lu.c` (321 L), `degree_sequence.c` (864 L), `preference.c`
+  (611 L), `static_fitness.c` (464 L), `correlated.c` (338 L),
+  `recent_degree.c` (381 L), `citations.c` (498 L), `establishment.c`,
+  `callaway_traits.c`, `dotproduct.c`, `degree_sequence_vl/`.
+- **Picked up**: next AWU is **ALGO-GN-012 — `chung_lu_game`**
+  (~321 C lines in `references/igraph/src/games/chung_lu.c`).
+  Chung–Lu expected-degree model: per-vertex weight vector → edge
+  prob ≈ w_i w_j / Σ w. Self-contained, no graph-product structure.

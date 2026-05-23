@@ -1,0 +1,144 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors R sample_hierarchical_sbm called with m=rep(10, 5) and rho/C replicated 5 times \u2014 the 'HSBM with list arguments works' equivalence test): five identical macros, p=0 stays within a model band",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "hsbm_list_game",
+  "params": {
+    "n": 50,
+    "m_list": [
+      10,
+      10,
+      10,
+      10,
+      10
+    ],
+    "rho_list": [
+      [
+        0.3,
+        0.3,
+        0.4
+      ],
+      [
+        0.3,
+        0.3,
+        0.4
+      ],
+      [
+        0.3,
+        0.3,
+        0.4
+      ],
+      [
+        0.3,
+        0.3,
+        0.4
+      ],
+      [
+        0.3,
+        0.3,
+        0.4
+      ]
+    ],
+    "c_list": [
+      [
+        [
+          1.0,
+          0.5,
+          0.0
+        ],
+        [
+          0.5,
+          0.0,
+          0.5
+        ],
+        [
+          0.0,
+          0.5,
+          0.5
+        ]
+      ],
+      [
+        [
+          1.0,
+          0.5,
+          0.0
+        ],
+        [
+          0.5,
+          0.0,
+          0.5
+        ],
+        [
+          0.0,
+          0.5,
+          0.5
+        ]
+      ],
+      [
+        [
+          1.0,
+          0.5,
+          0.0
+        ],
+        [
+          0.5,
+          0.0,
+          0.5
+        ],
+        [
+          0.0,
+          0.5,
+          0.5
+        ]
+      ],
+      [
+        [
+          1.0,
+          0.5,
+          0.0
+        ],
+        [
+          0.5,
+          0.0,
+          0.5
+        ],
+        [
+          0.0,
+          0.5,
+          0.5
+        ]
+      ],
+      [
+        [
+          1.0,
+          0.5,
+          0.0
+        ],
+        [
+          0.5,
+          0.0,
+          0.5
+        ],
+        [
+          0.0,
+          0.5,
+          0.5
+        ]
+      ]
+    ],
+    "p": 0.0,
+    "seed": 11120001
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 30,
+    "ecount_max": 220
+  }
+}

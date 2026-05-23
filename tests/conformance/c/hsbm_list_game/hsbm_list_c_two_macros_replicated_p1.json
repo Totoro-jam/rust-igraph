@@ -1,0 +1,59 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_hsbm_list_game with n=10, m_list=[5, 5], rho_list both = [0.6, 0.4], c_list both = [[0.0, 1.0], [1.0, 0.0]], p=1): two macros each = K_{3,2}=6, plus K_{5,5}=25 inter-macro \u2014 exactly 6+6+25=37 edges (matches C .out)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "hsbm_list_game",
+  "params": {
+    "n": 10,
+    "m_list": [
+      5,
+      5
+    ],
+    "rho_list": [
+      [
+        0.6,
+        0.4
+      ],
+      [
+        0.6,
+        0.4
+      ]
+    ],
+    "c_list": [
+      [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ]
+    ],
+    "p": 1.0,
+    "seed": 11100003
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 37,
+    "ecount_max": 37
+  }
+}

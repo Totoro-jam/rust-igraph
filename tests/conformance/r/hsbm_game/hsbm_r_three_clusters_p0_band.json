@@ -1,0 +1,46 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors R sample_hierarchical_sbm(n=20, m=10, rho=c(0.3, 0.3, 0.4), C=symmetric mix, p=0)): two macros each with three micro-clusters; ecount stays within a model-determined band",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "hsbm_game",
+  "params": {
+    "n": 20,
+    "m": 10,
+    "rho": [
+      0.3,
+      0.3,
+      0.4
+    ],
+    "c": [
+      [
+        1.0,
+        0.5,
+        0.0
+      ],
+      [
+        0.5,
+        0.0,
+        0.5
+      ],
+      [
+        0.0,
+        0.5,
+        0.5
+      ]
+    ],
+    "p": 0.0,
+    "seed": 11020001
+  },
+  "expected": {
+    "vcount": 20,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 10,
+    "ecount_max": 80
+  }
+}

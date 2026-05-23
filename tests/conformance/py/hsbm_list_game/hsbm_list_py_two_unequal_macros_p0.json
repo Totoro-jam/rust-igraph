@@ -1,0 +1,53 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors an ig.Graph.HSBMList(n=15, m_list=[5, 10], rho_list=[[1.0], [0.5, 0.5]], c_list=[[[1.0]], [[1.0, 1.0], [1.0, 1.0]]], p=0) call): macro 1 = K_5 = 10 edges, macro 2 = K_10 = 45 edges, no inter \u2014 55 edges total",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "hsbm_list_game",
+  "params": {
+    "n": 15,
+    "m_list": [
+      5,
+      10
+    ],
+    "rho_list": [
+      [
+        1.0
+      ],
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "c_list": [
+      [
+        [
+          1.0
+        ]
+      ],
+      [
+        [
+          1.0,
+          1.0
+        ],
+        [
+          1.0,
+          1.0
+        ]
+      ]
+    ],
+    "p": 0.0,
+    "seed": 11110001
+  },
+  "expected": {
+    "vcount": 15,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 55,
+    "ecount_max": 55
+  }
+}
