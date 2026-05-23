@@ -3348,6 +3348,81 @@ GRG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
+# fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
+# wrapper on the same `igraph_forest_fire_game` C entry point). RNG
+# state is not portable, so we encode structural invariants only —
+# vcount, directed, is_simple (no loops + no parallels), and a loose
+# ecount band anchored on the per-actnode lower bound (n-1 when ambs > 0)
+# and a generous upper band tolerant of burn-tail variance.
+FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "forest_fire_py_directed_n100_fw015_bw03_ambs2",
+        "origin": "constructed (mirrors ig.Graph.Forest_Fire(n=100, "
+        "fw_prob=0.15, bw_factor=0.3, ambs=2, directed=True)): "
+        "moderate-burn directed graph",
+        "algo": "forest_fire_game",
+        "params": {
+            "n": 100,
+            "fw_prob": 0.15,
+            "bw_factor": 0.3,
+            "ambs": 2,
+            "directed": True,
+            "seed": 7_770_001,
+        },
+        "expected": {
+            "vcount": 100,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 99,
+            "ecount_max": 10000,
+        },
+    },
+    {
+        "case": "forest_fire_py_undirected_n60_fw025_bw04_ambs3",
+        "origin": "constructed (mirrors ig.Graph.Forest_Fire(n=60, "
+        "fw_prob=0.25, bw_factor=0.4, ambs=3, directed=False)): "
+        "warmer burn with three ambassadors",
+        "algo": "forest_fire_game",
+        "params": {
+            "n": 60,
+            "fw_prob": 0.25,
+            "bw_factor": 0.4,
+            "ambs": 3,
+            "directed": False,
+            "seed": 7_770_002,
+        },
+        "expected": {
+            "vcount": 60,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 59,
+            "ecount_max": 6000,
+        },
+    },
+    {
+        "case": "forest_fire_py_n1_singleton",
+        "origin": "constructed (mirrors ig.Graph.Forest_Fire boundary n=1): "
+        "singleton has no edges regardless of burn params",
+        "algo": "forest_fire_game",
+        "params": {
+            "n": 1,
+            "fw_prob": 0.3,
+            "bw_factor": 0.5,
+            "ambs": 2,
+            "directed": True,
+            "seed": 7_770_003,
+        },
+        "expected": {
+            "vcount": 1,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3476,6 +3551,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "growing_random_game": GROWING_RANDOM_MANIFEST,
     "tree_game_lerw": TREE_LERW_MANIFEST,
     "grg_game": GRG_MANIFEST,
+    "forest_fire_game": FOREST_FIRE_MANIFEST,
 }
 
 
@@ -3569,6 +3645,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "growing_random_game",
             "tree_game_lerw",
             "grg_game",
+            "forest_fire_game",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_forest_fire_game boundary ambs=0): edgeless graph regardless of fw_prob/bw_factor",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "forest_fire_game",
+  "params": {
+    "n": 40,
+    "fw_prob": 0.2,
+    "bw_factor": 0.5,
+    "ambs": 0,
+    "directed": true,
+    "seed": 4440003
+  },
+  "expected": {
+    "vcount": 40,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 0
+  }
+}

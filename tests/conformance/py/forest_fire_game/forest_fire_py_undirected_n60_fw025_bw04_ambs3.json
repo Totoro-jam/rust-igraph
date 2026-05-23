@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Forest_Fire(n=60, fw_prob=0.25, bw_factor=0.4, ambs=3, directed=False)): warmer burn with three ambassadors",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "forest_fire_game",
+  "params": {
+    "n": 60,
+    "fw_prob": 0.25,
+    "bw_factor": 0.4,
+    "ambs": 3,
+    "directed": false,
+    "seed": 7770002
+  },
+  "expected": {
+    "vcount": 60,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 59,
+    "ecount_max": 6000
+  }
+}

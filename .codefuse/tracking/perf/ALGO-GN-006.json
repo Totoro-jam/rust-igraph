@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-GN-006",
+  "captured_at": "2026-05-23",
+  "git_commit": "e79a8cd",
+  "rust_directed_n100_ns": 25004,
+  "rust_directed_n1000_ns": 446790,
+  "rust_directed_n10000_ns": 6197200,
+  "rust_undirected_n100_ns": 45742,
+  "rust_undirected_n1000_ns": 514070,
+  "rust_undirected_n10000_ns": 6185700,
+  "py_baseline_ns": null,
+  "notes": "Forest-fire random-graph generator (Leskovec-Kleinberg-Faloutsos KDD'05, corrected variant). The model picks `ambs` ambassador vertices for each new node and then BFS-burns from each via geometric-distributed out/in neighbour counts (Geom(1-fw_prob) and Geom(1-fw_prob*bw_factor) respectively). At fw_prob = 0.20, bw_factor = 0.40, ambs = 2 the burn radius stays bounded by the geometric tail; throughput hovers near 1.6-2 Melem/s up to n = 10 000 because the per-actnode work is dominated by VecDeque push/pop and per-vertex Vec<u32> growth as the in/out neighbourhood lists accumulate (the only real bookkeeping cost beyond the SplitMix64 geometric draw). Directed and undirected mostly track each other since the Graph backing structure differs only in adjacency-edge insertion. No oracle baseline: python-igraph exposes Graph.Forest_Fire and rigraph exposes sample_forestfire, but RNG state is not portable, so conformance asserts structural invariants only (vcount, directed flag, is_simple via HashSet canonical-pair check, ecount band). Numbers from cargo bench --bench bench_forestfire -- --quick on Darwin/M-series release build."
+}

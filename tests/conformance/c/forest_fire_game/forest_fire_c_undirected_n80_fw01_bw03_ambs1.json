@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_forest_fire_game(n=80, fw_prob=0.1, bw_factor=0.3, ambs=1, directed=false)): cool burn with single ambassador",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "forest_fire_game",
+  "params": {
+    "n": 80,
+    "fw_prob": 0.1,
+    "bw_factor": 0.3,
+    "ambs": 1,
+    "directed": false,
+    "seed": 4440002
+  },
+  "expected": {
+    "vcount": 80,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 79,
+    "ecount_max": 8000
+  }
+}

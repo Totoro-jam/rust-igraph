@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Forest_Fire(n=100, fw_prob=0.15, bw_factor=0.3, ambs=2, directed=True)): moderate-burn directed graph",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "forest_fire_game",
+  "params": {
+    "n": 100,
+    "fw_prob": 0.15,
+    "bw_factor": 0.3,
+    "ambs": 2,
+    "directed": true,
+    "seed": 7770001
+  },
+  "expected": {
+    "vcount": 100,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 99,
+    "ecount_max": 10000
+  }
+}

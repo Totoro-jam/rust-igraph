@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Forest_Fire boundary n=1): singleton has no edges regardless of burn params",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "forest_fire_game",
+  "params": {
+    "n": 1,
+    "fw_prob": 0.3,
+    "bw_factor": 0.5,
+    "ambs": 2,
+    "directed": true,
+    "seed": 7770003
+  },
+  "expected": {
+    "vcount": 1,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 0
+  }
+}

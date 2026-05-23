@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_forest_fire_game(n=50, fw_prob=0.2, bw_factor=0.5, ambs=2, directed=true)): low-burn directed graph",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "forest_fire_game",
+  "params": {
+    "n": 50,
+    "fw_prob": 0.2,
+    "bw_factor": 0.5,
+    "ambs": 2,
+    "directed": true,
+    "seed": 4440001
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 49,
+    "ecount_max": 5000
+  }
+}

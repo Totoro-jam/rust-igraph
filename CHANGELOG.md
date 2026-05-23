@@ -15,6 +15,44 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-006** — `forest_fire_game` Leskovec–Kleinberg–Faloutsos
+  forest-fire random graph generator (KDD'05). Counterpart of
+  `igraph_forest_fire_game()` in
+  `references/igraph/src/games/forestfire.c:106-257`. Nodes arrive one
+  at a time; each new node cites `ambs` ambassador vertices and then
+  BFS-burns outward, drawing `Geom(1 − fw_prob)` outgoing and
+  `Geom(1 − fw_prob · bw_factor)` incoming neighbours per ambassador on
+  the burn frontier.
+  - `forest_fire_game(n: u32, fw_prob: f64, bw_factor: f64, ambs: u32, directed: bool, seed: u64) -> IgraphResult<Graph>`.
+  - Mirrors the corrected variant from the CMU tech report — a single
+    geometric draw rather than the published paper's `mean = p/(1−p)`.
+  - Validation: `fw_prob ∈ [0, 1)` (strict upper bound so the geometric
+    draw is finite) and `bw_factor · fw_prob ∈ [0, 1)`; NaN/Inf rejected.
+  - Edge cases: `n = 0` returns an empty graph; `n = 1` returns a
+    singleton; `ambs = 0` shortcuts to an edgeless `n`-vertex graph.
+  - Output is loop-free and parallel-edge-free by construction (the
+    per-actnode `visited` stamp prevents both); when `directed = true`
+    every emitted edge has `src > dst`, so the graph is a DAG.
+  - Deterministic given `(n, fw_prob, bw_factor, ambs, directed, seed)`
+    via `SplitMix64`.
+  - Conformance: 9 fixtures (3 C + 3 py + 3 R) under
+    `tests/conformance/{c,py,r}/forest_fire_game/`. RNG state is not
+    portable, so fixtures assert structural invariants only — `vcount`,
+    `directed` flag, `is_simple` (no self-loops, no multi-edges via
+    canonical-pair `HashSet`), and a loose `ecount` band (lower
+    bound = `n − 1` when `ambs > 0` since each new node contributes at
+    least one fresh citation).
+  - Bench at `benches/bench_forestfire.rs` (directed + undirected groups,
+    `n ∈ {100, 1 000, 10 000}`) at the operating point
+    `fw_prob = 0.20, bw_factor = 0.40, ambs = 2`. Baseline at
+    `.codefuse/tracking/perf/ALGO-GN-006.json`: 4.0 / 2.2 / 1.6 Melem/s
+    directed, 2.2 / 1.9 / 1.6 Melem/s undirected.
+  - Example: `examples/forestfire_demo.rs` runs the model on 2 000
+    vertices and reports the top-10 in-degree hubs plus a power-of-2
+    in-degree histogram showing the heavy-tailed degree distribution
+    that motivated the model in the first place.
+  - Re-exported as `rust_igraph::forest_fire_game`.
+
 - **ALGO-GN-005** — `grg_game` geometric random graph generator.
   Counterpart of `igraph_grg_game()` in
   `references/igraph/src/games/grg.c:56-174`. Drops `n` uniform points

@@ -6,6 +6,7 @@
 
 pub mod barabasi;
 pub mod erdos_renyi;
+pub mod forestfire;
 pub mod grg;
 pub mod growing_random;
 pub mod tree;

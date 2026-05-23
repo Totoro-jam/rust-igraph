@@ -3604,6 +3604,85 @@ GRG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-006: forest_fire_game. Mirrors rigraph's
+# `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
+# Generator — RNG state not portable across implementations, so we
+# encode structural invariants only (vcount, directed flag, is_simple)
+# and a loose ecount band. Lower bound is n-1 when ambs >= 1 (each new
+# vertex contributes at least one ambassador citation); upper bound is
+# generous to absorb burn-tail variance.
+FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "forest_fire_r_directed_n50_fw02_bw03_ambs1",
+        "origin": "constructed (mirrors sample_forestfire(nodes=50, "
+        "fw.prob=0.2, bw.factor=0.3, ambs=1, directed=TRUE)): single "
+        "ambassador directed graph",
+        "algo": "forest_fire_game",
+        "params": {
+            "n": 50,
+            "fw_prob": 0.2,
+            "bw_factor": 0.3,
+            "ambs": 1,
+            "directed": True,
+            "seed": 9_990_001,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 49,
+            "ecount_max": 5000,
+        },
+    },
+    {
+        "case": "forest_fire_r_undirected_n100_fw01_bw05_ambs2",
+        "origin": "constructed (mirrors sample_forestfire(nodes=100, "
+        "fw.prob=0.1, bw.factor=0.5, ambs=2, directed=FALSE)): cool "
+        "burn undirected graph",
+        "algo": "forest_fire_game",
+        "params": {
+            "n": 100,
+            "fw_prob": 0.1,
+            "bw_factor": 0.5,
+            "ambs": 2,
+            "directed": False,
+            "seed": 9_990_002,
+        },
+        "expected": {
+            "vcount": 100,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 99,
+            "ecount_max": 10000,
+        },
+    },
+    {
+        "case": "forest_fire_r_no_burn_n20_fw0_bw0_ambs2",
+        "origin": "constructed (mirrors sample_forestfire(nodes=20, "
+        "fw.prob=0, bw.factor=0, ambs=2, directed=TRUE)): zero burn "
+        "probability ⇒ only ambassadors cited",
+        "algo": "forest_fire_game",
+        "params": {
+            "n": 20,
+            "fw_prob": 0.0,
+            "bw_factor": 0.0,
+            "ambs": 2,
+            "directed": True,
+            "seed": 9_990_003,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": True,
+            "is_simple": True,
+            # actnode k (1..19) draws 2 ambassadors from [0,k):
+            # min 1 (both hit same; k=1 always), max min(2, k).
+            # Total bounded by 1+19 = 20 below, sum_{k=1..19} min(2,k) = 1 + 2*18 = 37 above.
+            "ecount_min": 19,
+            "ecount_max": 37,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3736,6 +3815,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "growing_random_game": GROWING_RANDOM_MANIFEST,
     "tree_game_lerw": TREE_LERW_MANIFEST,
     "grg_game": GRG_MANIFEST,
+    "forest_fire_game": FOREST_FIRE_MANIFEST,
 }
 
 
@@ -3829,6 +3909,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "growing_random_game",
             "tree_game_lerw",
             "grg_game",
+            "forest_fire_game",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

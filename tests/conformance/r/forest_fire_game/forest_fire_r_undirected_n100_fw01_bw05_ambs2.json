@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_forestfire(nodes=100, fw.prob=0.1, bw.factor=0.5, ambs=2, directed=FALSE)): cool burn undirected graph",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "forest_fire_game",
+  "params": {
+    "n": 100,
+    "fw_prob": 0.1,
+    "bw_factor": 0.5,
+    "ambs": 2,
+    "directed": false,
+    "seed": 9990002
+  },
+  "expected": {
+    "vcount": 100,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 99,
+    "ecount_max": 10000
+  }
+}

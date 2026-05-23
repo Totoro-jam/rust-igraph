@@ -3747,6 +3747,81 @@ GRG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-006: forest_fire_game. Mirrors `igraph_forest_fire_game` in
+# games/forestfire.c:106-257 (Leskovec-Kleinberg-Faloutsos KDD'05,
+# corrected variant). RNG state is not portable, so we capture
+# structural invariants only — vcount, directed flag, is_simple (no
+# self-loops, no duplicate directed edges, no parallels) and a loose
+# ecount band: lower bound ≈ n-1 (one ambassador edge per new vertex),
+# upper bound generous to absorb burn-tail variance.
+FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
+        "origin": "constructed (mirrors igraph_forest_fire_game(n=50, "
+        "fw_prob=0.2, bw_factor=0.5, ambs=2, directed=true)): low-burn "
+        "directed graph",
+        "algo": "forest_fire_game",
+        "params": {
+            "n": 50,
+            "fw_prob": 0.2,
+            "bw_factor": 0.5,
+            "ambs": 2,
+            "directed": True,
+            "seed": 4_440_001,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 49,
+            "ecount_max": 5000,
+        },
+    },
+    {
+        "case": "forest_fire_c_undirected_n80_fw01_bw03_ambs1",
+        "origin": "constructed (mirrors igraph_forest_fire_game(n=80, "
+        "fw_prob=0.1, bw_factor=0.3, ambs=1, directed=false)): cool "
+        "burn with single ambassador",
+        "algo": "forest_fire_game",
+        "params": {
+            "n": 80,
+            "fw_prob": 0.1,
+            "bw_factor": 0.3,
+            "ambs": 1,
+            "directed": False,
+            "seed": 4_440_002,
+        },
+        "expected": {
+            "vcount": 80,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 79,
+            "ecount_max": 8000,
+        },
+    },
+    {
+        "case": "forest_fire_c_ambs0_edgeless_n40",
+        "origin": "constructed (mirrors igraph_forest_fire_game boundary "
+        "ambs=0): edgeless graph regardless of fw_prob/bw_factor",
+        "algo": "forest_fire_game",
+        "params": {
+            "n": 40,
+            "fw_prob": 0.2,
+            "bw_factor": 0.5,
+            "ambs": 0,
+            "directed": True,
+            "seed": 4_440_003,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3879,6 +3954,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "growing_random_game": GROWING_RANDOM_MANIFEST,
     "tree_game_lerw": TREE_LERW_MANIFEST,
     "grg_game": GRG_MANIFEST,
+    "forest_fire_game": FOREST_FIRE_MANIFEST,
 }
 
 
@@ -3977,6 +4053,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "growing_random_game",
             "tree_game_lerw",
             "grg_game",
+            "forest_fire_game",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural
