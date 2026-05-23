@@ -1,0 +1,23 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors examples/simple/igraph_erdos_renyi_game.c: GNM IGRAPH_DIRECTED + IGRAPH_LOOPS_SW)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "erdos_renyi_gnm",
+  "params": {
+    "n": 6,
+    "m": 12,
+    "directed": true,
+    "loops": true,
+    "seed": 777
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 12,
+    "directed": true
+  }
+}

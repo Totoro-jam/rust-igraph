@@ -1,0 +1,23 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=5, m=10)): m equals max_edges, must be K5",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "erdos_renyi_gnm",
+  "params": {
+    "n": 5,
+    "m": 10,
+    "directed": false,
+    "loops": false,
+    "seed": 1000
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 10,
+    "directed": false
+  }
+}

@@ -5118,3 +5118,282 @@ fn minimum_spanning_tree_three_source_conformance() {
         );
     }
 }
+
+/// Helper: extract a typed param from the conformance JSON. Panics
+/// with a fixture path on missing/wrong-type so failures point at the
+/// offending fixture rather than producing an opaque `serde` error.
+fn er_param_u32(case: &Conformance, key: &str, path: &std::path::Path) -> u32 {
+    case.params
+        .get(key)
+        .and_then(serde_json::Value::as_u64)
+        .and_then(|v| u32::try_from(v).ok())
+        .unwrap_or_else(|| {
+            panic!(
+                "ER fixture {}: param `{}` missing or not u32",
+                path.display(),
+                key
+            )
+        })
+}
+
+fn er_param_u64(case: &Conformance, key: &str, path: &std::path::Path) -> u64 {
+    case.params
+        .get(key)
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or_else(|| {
+            panic!(
+                "ER fixture {}: param `{}` missing or not u64",
+                path.display(),
+                key
+            )
+        })
+}
+
+fn er_param_f64(case: &Conformance, key: &str, path: &std::path::Path) -> f64 {
+    case.params
+        .get(key)
+        .and_then(serde_json::Value::as_f64)
+        .unwrap_or_else(|| {
+            panic!(
+                "ER fixture {}: param `{}` missing or not f64",
+                path.display(),
+                key
+            )
+        })
+}
+
+fn er_param_bool(case: &Conformance, key: &str, path: &std::path::Path) -> bool {
+    case.params
+        .get(key)
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or_else(|| {
+            panic!(
+                "ER fixture {}: param `{}` missing or not bool",
+                path.display(),
+                key
+            )
+        })
+}
+
+fn er_expected_u32(case: &Conformance, key: &str, path: &std::path::Path) -> u32 {
+    let v = case
+        .expected
+        .get(key)
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or_else(|| {
+            panic!(
+                "ER fixture {}: expected.{} missing or not u64",
+                path.display(),
+                key
+            )
+        });
+    u32::try_from(v).unwrap_or_else(|_| {
+        panic!(
+            "ER fixture {}: expected.{} = {} doesn't fit in u32",
+            path.display(),
+            key,
+            v
+        )
+    })
+}
+
+fn er_expected_u64(case: &Conformance, key: &str, path: &std::path::Path) -> u64 {
+    case.expected
+        .get(key)
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or_else(|| {
+            panic!(
+                "ER fixture {}: expected.{} missing or not u64",
+                path.display(),
+                key
+            )
+        })
+}
+
+fn er_expected_bool(case: &Conformance, key: &str, path: &std::path::Path) -> bool {
+    case.expected
+        .get(key)
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or_else(|| {
+            panic!(
+                "ER fixture {}: expected.{} missing or not bool",
+                path.display(),
+                key
+            )
+        })
+}
+
+#[test]
+fn erdos_renyi_gnp_three_source_conformance() {
+    // ER is a *generator* — no input graph, no portable RNG seed across
+    // implementations. Each fixture's `params` carries (n, p, directed,
+    // loops, seed) and `expected` carries the structural invariants we
+    // can check independently of the RNG: vcount exact, ecount inside
+    // a ±6σ Binomial band, directed flag exact.
+    use rust_igraph::erdos_renyi_gnp;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("erdos_renyi_gnp");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "erdos_renyi_gnp");
+
+            let n = er_param_u32(&case, "n", &path);
+            let p = er_param_f64(&case, "p", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let loops = er_param_bool(&case, "loops", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = erdos_renyi_gnp(n, p, directed, loops, seed)
+                .expect("erdos_renyi_gnp should succeed on conformance fixtures");
+
+            let got_vertices = graph.vcount();
+            let got_edges = graph.ecount() as u64;
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let edges_low = er_expected_u64(&case, "ecount_min", &path);
+            let edges_high = er_expected_u64(&case, "ecount_max", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+
+            assert_eq!(
+                got_vertices,
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert!(
+                got_edges >= edges_low && got_edges <= edges_high,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                got_edges,
+                edges_low,
+                edges_high,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no erdos_renyi_gnp fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
+fn erdos_renyi_gnm_three_source_conformance() {
+    // G(n, m) samples without replacement → ecount is a *sharp*
+    // constraint (equals m), not a band. vcount and directed are also
+    // exact.
+    use rust_igraph::erdos_renyi_gnm;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("erdos_renyi_gnm");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "erdos_renyi_gnm");
+
+            let n = er_param_u32(&case, "n", &path);
+            let m = er_param_u64(&case, "m", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let loops = er_param_bool(&case, "loops", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = erdos_renyi_gnm(n, m, directed, loops, seed)
+                .expect("erdos_renyi_gnm should succeed on conformance fixtures");
+
+            let got_vertices = graph.vcount();
+            let got_edges = graph.ecount() as u64;
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_edges = er_expected_u64(&case, "ecount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+
+            assert_eq!(
+                got_vertices,
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                got_edges,
+                want_edges,
+                "ecount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no erdos_renyi_gnm fixtures from source {src}"
+        );
+    }
+}

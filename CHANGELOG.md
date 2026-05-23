@@ -15,6 +15,41 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-001** — `erdos_renyi_gnp` + `erdos_renyi_gnm` random
+  graph generators. Counterparts of `igraph_erdos_renyi_game_gnp` /
+  `igraph_erdos_renyi_game_gnm` in
+  `references/igraph/src/games/erdos_renyi.c`. Both honour the four
+  (directed × loops) cases.
+  - `erdos_renyi_gnp(n: u32, p: f64, directed: bool, loops: bool, seed:
+    u64) -> IgraphResult<Graph>`. Batagelj–Brandes geometric-skip
+    sampling: O(n + m_expected) work, where `m_expected = p ·
+    max_edges`. `p` must lie in `[0, 1]` and be non-NaN; `n = 0`
+    returns an empty graph; `p = 0` returns a graph with no edges;
+    `p = 1` returns the complete graph (with self-loops if `loops`).
+  - `erdos_renyi_gnm(n: u32, m: u64, directed: bool, loops: bool, seed:
+    u64) -> IgraphResult<Graph>`. Floyd distinct-sample: O(n + m) work
+    selecting `m` edges uniformly without replacement from the
+    `max_edges` possible pairs. Errors when `m > max_edges`.
+  - Both accept an explicit `seed: u64` for reproducibility — the
+    generators are deterministic given `(n, p|m, directed, loops,
+    seed)`. SplitMix64 PRNG promoted to `src/core/rng.rs` and is
+    available to subsequent generator AWUs.
+  - Conformance: 20 fixtures (3 C + 4 py + 3 R for `gnp`, 3 C + 4 py +
+    3 R for `gnm`) under
+    `tests/conformance/{c,py,r}/erdos_renyi_{gnp,gnm}/`. Since the
+    upstream C/py/R RNGs are not portable, each fixture is
+    hand-derived and asserts the structural invariants only —
+    `vcount` is exact, `is_directed` is exact, `gnp` ecount is bounded
+    by a ±6σ Binomial band around `µ = p · max_edges`, `gnm` ecount is
+    exact.
+  - Benches at `benches/bench_erdos_renyi.rs` (sparse `gnp` at average
+    degree ≈ 4, dense `gnp` at `p = 0.5`, sparse `gnm` at `m = 2n`).
+    Baseline at `.codefuse/tracking/perf/ALGO-GN-001.json`: ≈ 13–15
+    Melem/s edges for sparse `gnp` and ≈ 19–22 Melem/s for `gnm`
+    across `n ∈ {100, 1 000, 10 000}` on Apple Silicon.
+  - Example: `examples/erdos_renyi_demo.rs`.
+  - The placeholder synthetic generator in `benches/bench_bfs.rs` now
+    delegates to `erdos_renyi_gnp`, eliminating the BFS bench TODO.
 - **ALGO-MST-001** — `minimum_spanning_tree` (Prim / Kruskal /
   Unweighted / Automatic). Counterpart of
   `igraph_minimum_spanning_tree` in

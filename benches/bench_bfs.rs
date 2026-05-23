@@ -8,7 +8,7 @@ use std::fs::File;
 use std::path::PathBuf;
 
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use rust_igraph::{Graph, bfs, read_edgelist};
+use rust_igraph::{Graph, bfs, erdos_renyi_gnp, read_edgelist};
 
 fn karate() -> Graph {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -16,17 +16,11 @@ fn karate() -> Graph {
     read_edgelist(File::open(path).expect("open karate fixture")).expect("parse karate")
 }
 
-/// Synthetic ER-like sparse graph: a path + a few cross-edges. Replaced by a
-/// real ER generator once `ALGO-GN-001` (Erdős–Rényi) lands.
+/// Synthetic sparse ER graph at average degree ≈ 4 — exercises BFS on
+/// a realistic adjacency-list workload (constant average branching).
 fn synthetic(n: u32) -> Graph {
-    let mut g = Graph::with_vertices(n);
-    for i in 0..n.saturating_sub(1) {
-        g.add_edge(i, i + 1).unwrap();
-    }
-    for i in 0..n.saturating_sub(7) {
-        g.add_edge(i, i + 7).unwrap();
-    }
-    g
+    let p = 4.0 / f64::from(n.saturating_sub(1).max(1));
+    erdos_renyi_gnp(n, p, false, false, 0x0BF5_BE0C_0001).expect("ER synthetic")
 }
 
 fn bench_bfs_karate(c: &mut Criterion) {

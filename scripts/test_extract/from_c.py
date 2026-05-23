@@ -3388,6 +3388,133 @@ SPANNING_TREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-001: erdos_renyi_gnp / erdos_renyi_gnm. Mirrors the cases
+# checked by `examples/simple/igraph_erdos_renyi_game.c` upstream:
+# vcount must equal `n`, ecount must match the binomial expectation
+# within a wide band for gnp and exactly for gnm. RNG state isn't
+# portable from C to Rust, so we only assert structural invariants —
+# the same shape the upstream example asserts via `igraph_vcount` and
+# `igraph_ecount`.
+ERDOS_RENYI_GNP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "erdos_renyi_gnp_c_undirected_no_loops_n30_p02",
+        # G(30, 0.2). max_edges = 30·29/2 = 435. µ = 87, σ ≈ 8.34,
+        # ±6σ band ≈ [37, 137] → use [35, 140].
+        "origin": "constructed (mirrors examples/simple/"
+        "igraph_erdos_renyi_game.c: IGRAPH_UNDIRECTED + no loops "
+        "vcount/ecount sanity invariants)",
+        "algo": "erdos_renyi_gnp",
+        "params": {
+            "n": 30,
+            "p": 0.2,
+            "directed": False,
+            "loops": False,
+            "seed": 8_675_309,
+        },
+        "expected": {
+            "vcount": 30,
+            "ecount_min": 35,
+            "ecount_max": 140,
+            "directed": False,
+        },
+    },
+    {
+        "case": "erdos_renyi_gnp_c_directed_loops_n12_p04",
+        # Directed with loops. max_edges = 12·12 = 144 (n² including
+        # diagonal). µ = 57.6, σ ≈ 5.88, ±6σ band ≈ [22, 93] → [20, 95].
+        "origin": "constructed (mirrors examples/simple/"
+        "igraph_erdos_renyi_game.c: IGRAPH_DIRECTED + IGRAPH_LOOPS_SW)",
+        "algo": "erdos_renyi_gnp",
+        "params": {
+            "n": 12,
+            "p": 0.4,
+            "directed": True,
+            "loops": True,
+            "seed": 1_618_033,
+        },
+        "expected": {
+            "vcount": 12,
+            "ecount_min": 20,
+            "ecount_max": 95,
+            "directed": True,
+        },
+    },
+    {
+        "case": "erdos_renyi_gnp_c_undirected_loops_n6_p05",
+        # Small undirected with self-loops. max_edges = 6·7/2 = 21
+        # (triangular incl. diagonal). µ = 10.5, σ ≈ 2.29, ±6σ band
+        # ≈ [-3, 24] → clamp to [0, 21].
+        "origin": "constructed (mirrors examples/simple/"
+        "igraph_erdos_renyi_game.c: IGRAPH_UNDIRECTED + IGRAPH_LOOPS_SW, "
+        "small-n boundary)",
+        "algo": "erdos_renyi_gnp",
+        "params": {
+            "n": 6,
+            "p": 0.5,
+            "directed": False,
+            "loops": True,
+            "seed": 271_828,
+        },
+        "expected": {
+            "vcount": 6,
+            "ecount_min": 0,
+            "ecount_max": 21,
+            "directed": False,
+        },
+    },
+]
+
+ERDOS_RENYI_GNM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "erdos_renyi_gnm_c_undirected_n20_m30",
+        # G(20, 30) undirected, no loops. Sampling without replacement
+        # → ecount exact.
+        "origin": "constructed (mirrors examples/simple/"
+        "igraph_erdos_renyi_game.c: GNM IGRAPH_UNDIRECTED, ecount==m)",
+        "algo": "erdos_renyi_gnm",
+        "params": {
+            "n": 20,
+            "m": 30,
+            "directed": False,
+            "loops": False,
+            "seed": 90_210,
+        },
+        "expected": {"vcount": 20, "ecount": 30, "directed": False},
+    },
+    {
+        "case": "erdos_renyi_gnm_c_directed_loops_n6_m12",
+        # Directed with self-loops allowed. max_edges = 36, picks 12.
+        "origin": "constructed (mirrors examples/simple/"
+        "igraph_erdos_renyi_game.c: GNM IGRAPH_DIRECTED + IGRAPH_LOOPS_SW)",
+        "algo": "erdos_renyi_gnm",
+        "params": {
+            "n": 6,
+            "m": 12,
+            "directed": True,
+            "loops": True,
+            "seed": 777,
+        },
+        "expected": {"vcount": 6, "ecount": 12, "directed": True},
+    },
+    {
+        "case": "erdos_renyi_gnm_c_n0_m0_empty",
+        # n=0 forces an empty graph regardless of seed — guards the
+        # zero-vertex boundary that igraph C explicitly handles in
+        # games/erdos_renyi.c.
+        "origin": "constructed (mirrors igraph_erdos_renyi_game_gnm "
+        "boundary: n=0 returns empty graph)",
+        "algo": "erdos_renyi_gnm",
+        "params": {
+            "n": 0,
+            "m": 0,
+            "directed": False,
+            "loops": False,
+            "seed": 0,
+        },
+        "expected": {"vcount": 0, "ecount": 0, "directed": False},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3514,6 +3641,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "ecc": ECC_PR031_MANIFEST,
     "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
+    "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
+    "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
 }
 
 
@@ -3603,6 +3732,24 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "comm1": comm1,
                     "comm2": comm2,
                 },
+                "expected": entry["expected"],
+            }
+        elif algo in ("erdos_renyi_gnp", "erdos_renyi_gnm"):
+            # ER generators produce a graph from params alone — graph
+            # payload is a placeholder, expected carries the structural
+            # invariants the upstream `igraph_erdos_renyi_game_*`
+            # example asserts.
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": {
+                    "n": 0,
+                    "edges": [],
+                    "directed": False,
+                    "weights": None,
+                },
+                "algo": algo,
+                "params": entry["params"],
                 "expected": entry["expected"],
             }
         else:

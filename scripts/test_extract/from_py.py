@@ -2886,6 +2886,177 @@ SPANNING_TREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-001: erdos_renyi_gnp / erdos_renyi_gnm. ER generators don't
+# operate on an input graph — they produce one. Cross-implementation
+# seed portability is impossible (each library uses its own RNG), so we
+# capture **structural invariants** only:
+#
+#   * vcount: exact match with `params["n"]`
+#   * ecount (gnp): inside a ±6σ band around µ = p · max_edges, where
+#     ecount ~ Binomial(max_edges, p). 6σ gives a one-in-a-billion false
+#     positive even at the band edges, well above CI flake tolerance.
+#   * ecount (gnm): exact match with `params["m"]` — the algorithm
+#     samples without replacement, so this is a sharp constraint.
+#   * directed: exact boolean match.
+#
+# python-igraph's API for reference: `ig.Graph.Erdos_Renyi(n, p=p, m=m,
+# directed=False, loops=False)`. We don't actually invoke it from this
+# extractor — the seed is RNG-dependent so the captured ecount wouldn't
+# be portable. Bands are hand-derived once per case and reviewed by the
+# AWU author.
+ERDOS_RENYI_GNP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "erdos_renyi_gnp_py_undirected_no_loops_n20_p05",
+        # G(20, 0.5) undirected, no self-loops. max_edges = 20·19/2 = 190.
+        # µ = 95, σ ≈ 6.89, ±6σ band ≈ [54, 136] → use [50, 140] for
+        # safety.
+        "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=20, p=0.5, "
+        "directed=False, loops=False)): expected µ=95 edges, "
+        "Binomial(190, 0.5) ±6σ band",
+        "algo": "erdos_renyi_gnp",
+        "params": {
+            "n": 20,
+            "p": 0.5,
+            "directed": False,
+            "loops": False,
+            "seed": 12_345,
+        },
+        "expected": {
+            "vcount": 20,
+            "ecount_min": 50,
+            "ecount_max": 140,
+            "directed": False,
+        },
+    },
+    {
+        "case": "erdos_renyi_gnp_py_directed_no_loops_n15_p03",
+        # Directed G(15, 0.3) without loops. max_edges = 15·14 = 210.
+        # µ = 63, σ ≈ 6.64, ±6σ band ≈ [23, 103] → use [25, 100].
+        "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=15, p=0.3, "
+        "directed=True, loops=False)): Binomial(210, 0.3) band",
+        "algo": "erdos_renyi_gnp",
+        "params": {
+            "n": 15,
+            "p": 0.3,
+            "directed": True,
+            "loops": False,
+            "seed": 4_242,
+        },
+        "expected": {
+            "vcount": 15,
+            "ecount_min": 25,
+            "ecount_max": 100,
+            "directed": True,
+        },
+    },
+    {
+        "case": "erdos_renyi_gnp_py_p0_no_edges_n10",
+        # p = 0 → empty graph regardless of seed. Sharp test of the
+        # boundary case.
+        "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=10, p=0.0)): "
+        "p=0 forces empty edge set",
+        "algo": "erdos_renyi_gnp",
+        "params": {
+            "n": 10,
+            "p": 0.0,
+            "directed": False,
+            "loops": False,
+            "seed": 7,
+        },
+        "expected": {
+            "vcount": 10,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "directed": False,
+        },
+    },
+    {
+        "case": "erdos_renyi_gnp_py_p1_complete_n8",
+        # p = 1 → complete graph (K8 with 28 edges). Sharp test on the
+        # other boundary.
+        "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=8, p=1.0)): "
+        "p=1 forces complete graph K8",
+        "algo": "erdos_renyi_gnp",
+        "params": {
+            "n": 8,
+            "p": 1.0,
+            "directed": False,
+            "loops": False,
+            "seed": 99,
+        },
+        "expected": {
+            "vcount": 8,
+            "ecount_min": 28,
+            "ecount_max": 28,
+            "directed": False,
+        },
+    },
+]
+
+ERDOS_RENYI_GNM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "erdos_renyi_gnm_py_undirected_n10_m15",
+        # G(10, 15) undirected, no loops. Sampling without replacement
+        # → ecount = 15 exactly.
+        "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=10, m=15)): "
+        "uniform without-replacement sampling, ecount exact",
+        "algo": "erdos_renyi_gnm",
+        "params": {
+            "n": 10,
+            "m": 15,
+            "directed": False,
+            "loops": False,
+            "seed": 67_890,
+        },
+        "expected": {"vcount": 10, "ecount": 15, "directed": False},
+    },
+    {
+        "case": "erdos_renyi_gnm_py_complete_n5_m10",
+        # m == max_edges → must produce K5 every time, regardless of seed.
+        "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=5, m=10)): "
+        "m equals max_edges, must be K5",
+        "algo": "erdos_renyi_gnm",
+        "params": {
+            "n": 5,
+            "m": 10,
+            "directed": False,
+            "loops": False,
+            "seed": 1_000,
+        },
+        "expected": {"vcount": 5, "ecount": 10, "directed": False},
+    },
+    {
+        "case": "erdos_renyi_gnm_py_directed_n8_m20",
+        # Directed G(8, 20). max_edges = 56, picks 20 ordered pairs.
+        "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=8, m=20, "
+        "directed=True)): ordered pair sampling",
+        "algo": "erdos_renyi_gnm",
+        "params": {
+            "n": 8,
+            "m": 20,
+            "directed": True,
+            "loops": False,
+            "seed": 55_555,
+        },
+        "expected": {"vcount": 8, "ecount": 20, "directed": True},
+    },
+    {
+        "case": "erdos_renyi_gnm_py_m0_no_edges_n12",
+        # m = 0 → empty graph regardless of seed.
+        "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=12, m=0)): "
+        "m=0 forces empty edge set",
+        "algo": "erdos_renyi_gnm",
+        "params": {
+            "n": 12,
+            "m": 0,
+            "directed": False,
+            "loops": False,
+            "seed": 31_415,
+        },
+        "expected": {"vcount": 12, "ecount": 0, "directed": False},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3008,6 +3179,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "ecc": ECC_PR031_MANIFEST,
     "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
+    "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
+    "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
 }
 
 
@@ -3092,6 +3265,23 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "comm1": comm1,
                     "comm2": comm2,
                 },
+                "expected": entry["expected"],
+            }
+        elif algo in ("erdos_renyi_gnp", "erdos_renyi_gnm"):
+            # ER generators produce a graph from params alone; the
+            # graph payload is a placeholder. The expected block carries
+            # structural invariants (vcount/ecount/directed).
+            payload = {
+                "source": "py",
+                "origin": entry["origin"],
+                "graph": {
+                    "n": 0,
+                    "edges": [],
+                    "directed": False,
+                    "weights": None,
+                },
+                "algo": algo,
+                "params": entry["params"],
                 "expected": entry["expected"],
             }
         elif algo == "voronoi":

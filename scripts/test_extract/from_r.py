@@ -3272,6 +3272,126 @@ SPANNING_TREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-001: erdos_renyi_gnp / erdos_renyi_gnm. rigraph's API is
+# `sample_gnp(n, p, directed=FALSE, loops=FALSE)` and
+# `sample_gnm(n, m, directed=FALSE, loops=FALSE)`. Same invariant-only
+# coverage as the C/py manifests, with different seeds and shapes so
+# the three sources stay independent rather than redundant.
+ERDOS_RENYI_GNP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "erdos_renyi_gnp_r_undirected_n25_p04",
+        # G(25, 0.4). max_edges = 300, µ = 120, σ ≈ 8.49, ±6σ band
+        # ≈ [69, 171] → [65, 175].
+        "origin": "constructed (mirrors rigraph sample_gnp(25, 0.4)): "
+        "Binomial(300, 0.4) ±6σ band",
+        "algo": "erdos_renyi_gnp",
+        "params": {
+            "n": 25,
+            "p": 0.4,
+            "directed": False,
+            "loops": False,
+            "seed": 2_718_281,
+        },
+        "expected": {
+            "vcount": 25,
+            "ecount_min": 65,
+            "ecount_max": 175,
+            "directed": False,
+        },
+    },
+    {
+        "case": "erdos_renyi_gnp_r_directed_n10_p06",
+        # Directed G(10, 0.6) no loops. max_edges = 90, µ = 54, σ ≈ 4.65,
+        # ±6σ band ≈ [26, 82] → [25, 85].
+        "origin": "constructed (mirrors rigraph sample_gnp(10, 0.6, "
+        "directed=TRUE)): ordered-pair binomial",
+        "algo": "erdos_renyi_gnp",
+        "params": {
+            "n": 10,
+            "p": 0.6,
+            "directed": True,
+            "loops": False,
+            "seed": 1_414_213,
+        },
+        "expected": {
+            "vcount": 10,
+            "ecount_min": 25,
+            "ecount_max": 85,
+            "directed": True,
+        },
+    },
+    {
+        "case": "erdos_renyi_gnp_r_n1_singleton",
+        # n=1 → at most one self-loop if loops=TRUE, otherwise empty.
+        # We pick loops=FALSE so the boundary is exact: vcount=1, ecount=0.
+        "origin": "constructed (mirrors rigraph sample_gnp(1, 0.5)): "
+        "singleton has no edges without loops",
+        "algo": "erdos_renyi_gnp",
+        "params": {
+            "n": 1,
+            "p": 0.5,
+            "directed": False,
+            "loops": False,
+            "seed": 123,
+        },
+        "expected": {
+            "vcount": 1,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "directed": False,
+        },
+    },
+]
+
+ERDOS_RENYI_GNM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "erdos_renyi_gnm_r_undirected_n15_m25",
+        # G(15, 25) undirected, no loops. Distinct-sample → ecount exact.
+        "origin": "constructed (mirrors rigraph sample_gnm(15, 25)): "
+        "ecount equals m, without-replacement sampling",
+        "algo": "erdos_renyi_gnm",
+        "params": {
+            "n": 15,
+            "m": 25,
+            "directed": False,
+            "loops": False,
+            "seed": 161_803,
+        },
+        "expected": {"vcount": 15, "ecount": 25, "directed": False},
+    },
+    {
+        "case": "erdos_renyi_gnm_r_directed_n12_m30",
+        # Directed G(12, 30). max_edges = 132.
+        "origin": "constructed (mirrors rigraph sample_gnm(12, 30, "
+        "directed=TRUE)): ordered pair sampling",
+        "algo": "erdos_renyi_gnm",
+        "params": {
+            "n": 12,
+            "m": 30,
+            "directed": True,
+            "loops": False,
+            "seed": 333_333,
+        },
+        "expected": {"vcount": 12, "ecount": 30, "directed": True},
+    },
+    {
+        "case": "erdos_renyi_gnm_r_complete_directed_n4_m12",
+        # Directed K4 without loops: max_edges = 12. m == max forces
+        # the complete directed graph regardless of seed.
+        "origin": "constructed (mirrors rigraph sample_gnm(4, 12, "
+        "directed=TRUE)): m=max_edges yields complete directed graph",
+        "algo": "erdos_renyi_gnm",
+        "params": {
+            "n": 4,
+            "m": 12,
+            "directed": True,
+            "loops": False,
+            "seed": 50_000,
+        },
+        "expected": {"vcount": 4, "ecount": 12, "directed": True},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3398,6 +3518,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitivity_barrat": TRANS_BARRAT_MANIFEST,
     "decompose": DECOMPOSE_MANIFEST,
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
+    "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
+    "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
 }
 
 
@@ -3482,6 +3604,25 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "comm1": comm1,
                     "comm2": comm2,
                 },
+                "expected": entry["expected"],
+            }
+        elif algo in ("erdos_renyi_gnp", "erdos_renyi_gnm"):
+            # ER generators produce a graph from params alone; graph
+            # payload is a placeholder, expected carries structural
+            # invariants (vcount/ecount/directed). Mirrors the
+            # invariants asserted in rigraph's `test-sample-gnp.R` /
+            # `test-sample-gnm.R`.
+            payload = {
+                "source": "r",
+                "origin": entry["origin"],
+                "graph": {
+                    "n": 0,
+                    "edges": [],
+                    "directed": False,
+                    "weights": None,
+                },
+                "algo": algo,
+                "params": entry["params"],
                 "expected": entry["expected"],
             }
         else:

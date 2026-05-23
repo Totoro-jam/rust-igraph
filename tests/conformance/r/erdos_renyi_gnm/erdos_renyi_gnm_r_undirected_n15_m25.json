@@ -1,0 +1,23 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors rigraph sample_gnm(15, 25)): ecount equals m, without-replacement sampling",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "erdos_renyi_gnm",
+  "params": {
+    "n": 15,
+    "m": 25,
+    "directed": false,
+    "loops": false,
+    "seed": 161803
+  },
+  "expected": {
+    "vcount": 15,
+    "ecount": 25,
+    "directed": false
+  }
+}

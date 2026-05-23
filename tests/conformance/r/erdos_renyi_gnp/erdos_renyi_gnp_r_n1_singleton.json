@@ -1,0 +1,24 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors rigraph sample_gnp(1, 0.5)): singleton has no edges without loops",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "erdos_renyi_gnp",
+  "params": {
+    "n": 1,
+    "p": 0.5,
+    "directed": false,
+    "loops": false,
+    "seed": 123
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount_min": 0,
+    "ecount_max": 0,
+    "directed": false
+  }
+}

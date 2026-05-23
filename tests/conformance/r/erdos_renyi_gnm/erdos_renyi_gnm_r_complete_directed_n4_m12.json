@@ -1,0 +1,23 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors rigraph sample_gnm(4, 12, directed=TRUE)): m=max_edges yields complete directed graph",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "erdos_renyi_gnm",
+  "params": {
+    "n": 4,
+    "m": 12,
+    "directed": true,
+    "loops": false,
+    "seed": 50000
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 12,
+    "directed": true
+  }
+}

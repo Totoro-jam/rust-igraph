@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors examples/simple/igraph_erdos_renyi_game.c: IGRAPH_UNDIRECTED + IGRAPH_LOOPS_SW, small-n boundary)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "erdos_renyi_gnp",
+  "params": {
+    "n": 6,
+    "p": 0.5,
+    "directed": false,
+    "loops": true,
+    "seed": 271828
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount_min": 0,
+    "ecount_max": 21,
+    "directed": false
+  }
+}

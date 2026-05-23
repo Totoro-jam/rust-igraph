@@ -1,0 +1,24 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=8, p=1.0)): p=1 forces complete graph K8",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "erdos_renyi_gnp",
+  "params": {
+    "n": 8,
+    "p": 1.0,
+    "directed": false,
+    "loops": false,
+    "seed": 99
+  },
+  "expected": {
+    "vcount": 8,
+    "ecount_min": 28,
+    "ecount_max": 28,
+    "directed": false
+  }
+}

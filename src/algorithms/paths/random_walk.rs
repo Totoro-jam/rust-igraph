@@ -21,42 +21,8 @@
 
 use crate::algorithms::paths::dijkstra::DijkstraMode;
 use crate::core::graph::EdgeId;
+use crate::core::rng::SplitMix64;
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
-
-/// Minimal `SplitMix64` PRNG. Stateless across the public API but
-/// internally tracks one `u64`. Used solely to keep this AWU
-/// dependency-free; not exposed.
-struct SplitMix64(u64);
-
-impl SplitMix64 {
-    fn new(seed: u64) -> Self {
-        Self(seed)
-    }
-    fn next_u64(&mut self) -> u64 {
-        self.0 = self.0.wrapping_add(0x9E37_79B9_7F4A_7C15);
-        let mut z = self.0;
-        z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
-        z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
-        z ^ (z >> 31)
-    }
-    /// Uniform integer in `[0, bound)`. `bound > 0`.
-    fn gen_index(&mut self, bound: usize) -> usize {
-        // Standard rejection-free modulo for our scope; bound stays
-        // well under 2^32 in any realistic graph.
-        let r = self.next_u64() % (bound as u64);
-        usize::try_from(r).expect("bound fits in usize by construction")
-    }
-    /// Uniform float in `[0, 1)`. Uses 53 mantissa bits.
-    fn gen_unit(&mut self) -> f64 {
-        // Take the 53 high bits of the PRNG output and scale into [0,1).
-        let bits = self.next_u64() >> 11; // now in [0, 2^53)
-        // Both `bits` (in [0, 2^53)) and `2^53` are exactly representable
-        // as f64; the divisor is a hex float literal to keep clippy happy.
-        #[allow(clippy::cast_precision_loss)]
-        let numerator = bits as f64;
-        numerator * (1.0_f64 / 9_007_199_254_740_992.0_f64)
-    }
-}
 
 fn validate_weights(graph: &Graph, weights: Option<&[f64]>) -> IgraphResult<()> {
     let Some(w) = weights else {

@@ -1,0 +1,24 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors rigraph sample_gnp(10, 0.6, directed=TRUE)): ordered-pair binomial",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "erdos_renyi_gnp",
+  "params": {
+    "n": 10,
+    "p": 0.6,
+    "directed": true,
+    "loops": false,
+    "seed": 1414213
+  },
+  "expected": {
+    "vcount": 10,
+    "ecount_min": 25,
+    "ecount_max": 85,
+    "directed": true
+  }
+}

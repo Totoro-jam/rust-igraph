@@ -1,0 +1,23 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=8, m=20, directed=True)): ordered pair sampling",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "erdos_renyi_gnm",
+  "params": {
+    "n": 8,
+    "m": 20,
+    "directed": true,
+    "loops": false,
+    "seed": 55555
+  },
+  "expected": {
+    "vcount": 8,
+    "ecount": 20,
+    "directed": true
+  }
+}

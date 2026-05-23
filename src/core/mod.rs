@@ -8,6 +8,7 @@
 pub mod cache;
 pub mod error;
 pub mod graph;
+pub mod rng;
 
 pub use cache::CachedProperty;
 pub use error::{IgraphError, IgraphResult};

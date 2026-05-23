@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-GN-001",
+  "captured_at": "2026-05-23",
+  "git_commit": "ae91a49",
+  "rust_gnp_sparse_n100_ns": 7201,
+  "rust_gnp_sparse_n1000_ns": 65530,
+  "rust_gnp_sparse_n10000_ns": 775560,
+  "rust_gnp_dense_n100_ns": 76114,
+  "rust_gnp_dense_n500_ns": 2408100,
+  "rust_gnp_dense_n1000_ns": 10214000,
+  "rust_gnm_sparse_n100_ns": 9695,
+  "rust_gnm_sparse_n1000_ns": 88437,
+  "rust_gnm_sparse_n10000_ns": 1041200,
+  "py_baseline_ns": null,
+  "notes": "Erdős–Rényi G(n,p) / G(n,m) baseline. SplitMix64 + Batagelj–Brandes geometric-skip for gnp, Floyd's distinct-sample for gnm. gnp scales linearly with expected edge count (n=100→10000 at p=4/(n-1) is ~11x for 100x vertices ⇒ throughput ≈ const at 13–15 Melem/s edges) — this is the expected behaviour for a sampler that pays O(log_(1-p)) per skip. Dense p=0.5 grows quadratically with n as required (max_edges grows quadratically). gnm sustains 19–22 Melem/s edges across the size sweep, slightly faster than gnp because Floyd's algorithm makes exactly m draws with no rejection. No comparable python-igraph timing captured here; future perf pass should add an ig.Graph.Erdos_Renyi side-by-side via the bench oracle. No allocator hot-spot — the gnp HashSet is reserved by capacity hint (max_edges-bounded). Numbers from cargo bench --quick on Darwin/M-series release build; +/-2% noise across runs."
+}

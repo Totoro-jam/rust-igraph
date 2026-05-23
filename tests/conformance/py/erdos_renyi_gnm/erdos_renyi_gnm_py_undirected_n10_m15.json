@@ -1,0 +1,23 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Erdos_Renyi(n=10, m=15)): uniform without-replacement sampling, ecount exact",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "erdos_renyi_gnm",
+  "params": {
+    "n": 10,
+    "m": 15,
+    "directed": false,
+    "loops": false,
+    "seed": 67890
+  },
+  "expected": {
+    "vcount": 10,
+    "ecount": 15,
+    "directed": false
+  }
+}

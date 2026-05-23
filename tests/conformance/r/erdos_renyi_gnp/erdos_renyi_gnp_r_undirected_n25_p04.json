@@ -1,0 +1,24 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors rigraph sample_gnp(25, 0.4)): Binomial(300, 0.4) \u00b16\u03c3 band",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "erdos_renyi_gnp",
+  "params": {
+    "n": 25,
+    "p": 0.4,
+    "directed": false,
+    "loops": false,
+    "seed": 2718281
+  },
+  "expected": {
+    "vcount": 25,
+    "ecount_min": 65,
+    "ecount_max": 175,
+    "directed": false
+  }
+}
