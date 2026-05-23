@@ -1,0 +1,27 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Chung_Lu([1.0], loops=True, variant='original')): single vertex; loops=True allows a self loop but never a parallel one.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chung_lu_game",
+  "params": {
+    "out_weights": [
+      1.0
+    ],
+    "in_weights": null,
+    "loops": true,
+    "variant": "original",
+    "seed": 12010008
+  },
+  "expected": {
+    "vcount": 1,
+    "directed": false,
+    "no_multi_edges": true,
+    "ecount_min": 0,
+    "ecount_max": 1
+  }
+}

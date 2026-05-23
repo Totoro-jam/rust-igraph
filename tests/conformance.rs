@@ -7129,3 +7129,239 @@ fn hsbm_list_game_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn chung_lu_game_three_source_conformance() {
+    // Chung–Lu expected-degree sampler (Miller–Hagberg). RNG state is not
+    // portable across implementations, so each fixture pins:
+    //   * vcount = len(out_weights) (exact);
+    //   * directed = (in_weights is not None) (exact);
+    //   * ecount within [ecount_min, ecount_max] (band — exact when the
+    //     weights are all-zero or the variant degenerates);
+    //   * is_simple when set true → no self-loops + no parallel edges;
+    //   * no_multi_edges (when set true, allows loops but never parallel).
+    use rust_igraph::{ChungLuVariant, chung_lu_game};
+    use std::collections::HashSet;
+
+    fn parse_variant(case: &Conformance, path: &std::path::Path) -> ChungLuVariant {
+        let s = case
+            .params
+            .get("variant")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_else(|| {
+                panic!(
+                    "Chung-Lu fixture {}: param `variant` missing or not string",
+                    path.display()
+                )
+            });
+        match s.to_ascii_lowercase().as_str() {
+            "original" => ChungLuVariant::Original,
+            "maxent" => ChungLuVariant::Maxent,
+            "nr" => ChungLuVariant::Nr,
+            other => panic!(
+                "Chung-Lu fixture {}: unknown variant `{}` (want original|maxent|nr)",
+                path.display(),
+                other,
+            ),
+        }
+    }
+
+    fn parse_optional_f64_vec(
+        case: &Conformance,
+        key: &str,
+        path: &std::path::Path,
+    ) -> Option<Vec<f64>> {
+        let v = case.params.get(key).unwrap_or_else(|| {
+            panic!(
+                "Chung-Lu fixture {}: param `{}` missing (must be null or array)",
+                path.display(),
+                key
+            )
+        });
+        if v.is_null() {
+            return None;
+        }
+        let arr = v.as_array().unwrap_or_else(|| {
+            panic!(
+                "Chung-Lu fixture {}: param `{}` must be null or array of numbers",
+                path.display(),
+                key
+            )
+        });
+        Some(
+            arr.iter()
+                .map(|cell| {
+                    cell.as_f64().unwrap_or_else(|| {
+                        panic!(
+                            "Chung-Lu fixture {}: param `{}` cell is not f64",
+                            path.display(),
+                            key
+                        )
+                    })
+                })
+                .collect(),
+        )
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("chung_lu_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "chung_lu_game");
+
+            let out_weights = er_param_f64_vec(&case, "out_weights", &path);
+            let in_weights = parse_optional_f64_vec(&case, "in_weights", &path);
+            let loops = er_param_bool(&case, "loops", &path);
+            let variant = parse_variant(&case, &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = chung_lu_game(&out_weights, in_weights.as_deref(), loops, variant, seed)
+                .expect("chung_lu_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            // vcount must equal len(out_weights); the directed flag must
+            // equal in_weights.is_some(). Both are deterministic regardless
+            // of seed — catches manifest-typo bugs early.
+            assert_eq!(
+                want_vertices as usize,
+                out_weights.len(),
+                "manifest mismatch in {}: vcount={} but len(out_weights)={}",
+                path.display(),
+                want_vertices,
+                out_weights.len(),
+            );
+            assert_eq!(
+                want_directed,
+                in_weights.is_some(),
+                "manifest mismatch in {}: directed={} but in_weights.is_some()={}",
+                path.display(),
+                want_directed,
+                in_weights.is_some(),
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let want_is_simple = case
+                .expected
+                .get("is_simple")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false);
+            let want_no_multi = case
+                .expected
+                .get("no_multi_edges")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false);
+
+            if want_is_simple || want_no_multi {
+                // is_simple → no self-loops + no parallel edges.
+                // no_multi_edges → loops allowed, parallel edges forbidden.
+                // For directed graphs, (a, b) and (b, a) are distinct
+                // edges and must NOT be canonicalized together.
+                let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+                let mut canonical: HashSet<(u32, u32)> = HashSet::with_capacity(n_edges as usize);
+                for eid in 0..n_edges {
+                    let (a, b) = graph.edge(eid).expect("edge id within bounds");
+                    if want_is_simple {
+                        assert_ne!(
+                            a,
+                            b,
+                            "self-loop in {} (edge {eid})\n  source: {}\n  origin: {}",
+                            path.display(),
+                            case.source,
+                            case.origin,
+                        );
+                    }
+                    let pair = if want_directed || a <= b {
+                        (a, b)
+                    } else {
+                        (b, a)
+                    };
+                    assert!(
+                        canonical.insert(pair),
+                        "parallel edge {pair:?} in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            if !loops {
+                // Sanity: with loops=false, the sampler must never emit a
+                // self-loop. This holds even when is_simple is not set.
+                let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+                for eid in 0..n_edges {
+                    let (a, b) = graph.edge(eid).expect("edge id within bounds");
+                    assert_ne!(
+                        a,
+                        b,
+                        "self-loop with loops=false in {} (edge {eid})\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no chung_lu_game fixtures from source {src}"
+        );
+    }
+}

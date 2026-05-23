@@ -1,0 +1,34 @@
+{
+  "source": "r",
+  "origin": "mirrors sample_chung_lu(c(1, 0, 2.5, 2, 3, 2, 1.5), loops=TRUE, variant='original'): same weights as the C test_unit fixture but exercised under R's defaults.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chung_lu_game",
+  "params": {
+    "out_weights": [
+      1.0,
+      0.0,
+      2.5,
+      2.0,
+      3.0,
+      2.0,
+      1.5
+    ],
+    "in_weights": null,
+    "loops": true,
+    "variant": "original",
+    "seed": 12020008
+  },
+  "expected": {
+    "vcount": 7,
+    "directed": false,
+    "is_simple": false,
+    "no_multi_edges": true,
+    "ecount_min": 0,
+    "ecount_max": 28
+  }
+}

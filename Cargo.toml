@@ -46,6 +46,10 @@ path = "examples/bfs_karate.rs"
 name = "hsbm_demo"
 path = "examples/hsbm_demo.rs"
 
+[[example]]
+name = "chung_lu_demo"
+path = "examples/chung_lu_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -249,6 +253,11 @@ harness = false
 [[bench]]
 name = "bench_hsbm"
 path = "benches/bench_hsbm.rs"
+harness = false
+
+[[bench]]
+name = "bench_chung_lu"
+path = "benches/bench_chung_lu.rs"
 harness = false
 
 [lints.rust]

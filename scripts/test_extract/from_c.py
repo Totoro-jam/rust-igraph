@@ -4275,6 +4275,209 @@ HSBM_LIST_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-012: chung_lu_game (Miller-Hagberg expected-degree sampler).
+# Mirrors `igraph_chung_lu_game` in references/igraph/src/games/chung_lu.c
+# and the deterministic assertions in
+# references/igraph/tests/unit/igraph_chung_lu_game.c. The C test pins
+# vcount + directedness + (for `loops=false`) is_simple over every
+# combination of {ORIGINAL, MAXENT, NR} × {undirected (in_weights=None),
+# directed (in_weights=&indeg)} × {loops=false, loops=true}. RNG state is
+# not portable across implementations, so the ecount band is left wide on
+# the mid-density fixtures; one zero-weight fixture pins ecount=0 exactly.
+CHUNG_LU_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "chung_lu_c_zero_weights_undirected_empty",
+        "origin": "constructed (mirrors igraph_chung_lu_game with all-zero "
+        "out_weights and in_weights=NULL): expected degree is zero "
+        "everywhere → no edges can be sampled, exactly 0 edges.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [0.0, 0.0, 0.0, 0.0, 0.0],
+            "in_weights": None,
+            "loops": True,
+            "variant": "original",
+            "seed": 12_000_001,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "chung_lu_c_zero_weights_directed_empty",
+        "origin": "constructed (mirrors igraph_chung_lu_game with all-zero "
+        "out_weights and matching all-zero in_weights → directed empty graph).",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [0.0, 0.0, 0.0, 0.0, 0.0],
+            "in_weights": [0.0, 0.0, 0.0, 0.0, 0.0],
+            "loops": True,
+            "variant": "original",
+            "seed": 12_000_002,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "chung_lu_c_original_undirected_no_loops",
+        "origin": "mirrors igraph_chung_lu_game(out=[1,0,2.5,2,3,2,1.5], "
+        "in=NULL, loops=false, ORIGINAL): C test asserts undirected + simple. "
+        "Sum(q_ij) = (Σw)²/(2Σw) = 6.0, so ecount sits in a wide model band.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [1.0, 0.0, 2.5, 2.0, 3.0, 2.0, 1.5],
+            "in_weights": None,
+            "loops": False,
+            "variant": "original",
+            "seed": 12_000_003,
+        },
+        "expected": {
+            "vcount": 7,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 21,
+        },
+    },
+    {
+        "case": "chung_lu_c_original_undirected_loops",
+        "origin": "mirrors igraph_chung_lu_game(out=[1,0,2.5,2,3,2,1.5], "
+        "in=NULL, loops=true, ORIGINAL): C test asserts undirected + "
+        "no parallel edges (is_simple covers no-multi but allows loops).",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [1.0, 0.0, 2.5, 2.0, 3.0, 2.0, 1.5],
+            "in_weights": None,
+            "loops": True,
+            "variant": "original",
+            "seed": 12_000_004,
+        },
+        "expected": {
+            "vcount": 7,
+            "directed": False,
+            "is_simple": False,
+            "no_multi_edges": True,
+            "ecount_min": 0,
+            "ecount_max": 28,
+        },
+    },
+    {
+        "case": "chung_lu_c_original_directed_no_loops",
+        "origin": "mirrors igraph_chung_lu_game(out=[1,0,2.5,2,3,2,1.5], "
+        "in=[2,2,2,2,0,2,2], loops=false, ORIGINAL): C test asserts "
+        "directed + simple. Σw_out = Σw_in = 12.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [1.0, 0.0, 2.5, 2.0, 3.0, 2.0, 1.5],
+            "in_weights": [2.0, 2.0, 2.0, 2.0, 0.0, 2.0, 2.0],
+            "loops": False,
+            "variant": "original",
+            "seed": 12_000_005,
+        },
+        "expected": {
+            "vcount": 7,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 42,
+        },
+    },
+    {
+        "case": "chung_lu_c_maxent_undirected_no_loops",
+        "origin": "mirrors igraph_chung_lu_game(out=[189,0,2.5,12,3,2,1.5], "
+        "in=NULL, loops=false, MAXENT): C test asserts undirected + "
+        "simple. Maxent transforms q→q/(1+q) so very large weights "
+        "saturate near 1 but stay bounded — band is wide.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [189.0, 0.0, 2.5, 12.0, 3.0, 2.0, 1.5],
+            "in_weights": None,
+            "loops": False,
+            "variant": "maxent",
+            "seed": 12_000_006,
+        },
+        "expected": {
+            "vcount": 7,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 21,
+        },
+    },
+    {
+        "case": "chung_lu_c_maxent_directed_no_loops",
+        "origin": "mirrors igraph_chung_lu_game(out=[189,0,2.5,12,3,2,1.5], "
+        "in=[2,2,2,2,0,200,2], loops=false, MAXENT): C test asserts "
+        "directed + simple.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [189.0, 0.0, 2.5, 12.0, 3.0, 2.0, 1.5],
+            "in_weights": [2.0, 2.0, 2.0, 2.0, 0.0, 200.0, 2.0],
+            "loops": False,
+            "variant": "maxent",
+            "seed": 12_000_007,
+        },
+        "expected": {
+            "vcount": 7,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 42,
+        },
+    },
+    {
+        "case": "chung_lu_c_nr_undirected_no_loops",
+        "origin": "mirrors igraph_chung_lu_game(out=[189,0,2.5,12,3,2,1.5], "
+        "in=NULL, loops=false, NR): C test asserts undirected + simple. "
+        "NR transforms q→1-exp(-q); large weights saturate near 1.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [189.0, 0.0, 2.5, 12.0, 3.0, 2.0, 1.5],
+            "in_weights": None,
+            "loops": False,
+            "variant": "nr",
+            "seed": 12_000_008,
+        },
+        "expected": {
+            "vcount": 7,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 21,
+        },
+    },
+    {
+        "case": "chung_lu_c_nr_directed_no_loops",
+        "origin": "mirrors igraph_chung_lu_game(out=[189,0,2.5,12,3,2,1.5], "
+        "in=[2,2,2,2,0,200,2], loops=false, NR): C test asserts "
+        "directed + simple.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [189.0, 0.0, 2.5, 12.0, 3.0, 2.0, 1.5],
+            "in_weights": [2.0, 2.0, 2.0, 2.0, 0.0, 200.0, 2.0],
+            "loops": False,
+            "variant": "nr",
+            "seed": 12_000_009,
+        },
+        "expected": {
+            "vcount": 7,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 42,
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -4414,6 +4617,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "sbm_game": SBM_MANIFEST,
     "hsbm_game": HSBM_MANIFEST,
     "hsbm_list_game": HSBM_LIST_MANIFEST,
+    "chung_lu_game": CHUNG_LU_MANIFEST,
 }
 
 
@@ -4519,6 +4723,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "sbm_game",
             "hsbm_game",
             "hsbm_list_game",
+            "chung_lu_game",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

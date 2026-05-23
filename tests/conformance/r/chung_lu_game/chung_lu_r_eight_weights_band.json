@@ -1,0 +1,34 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_chung_lu(c(2,2,2,2,2,2,2,2), loops=FALSE, variant='original')): uniform weights of 2 across n=8 \u2192 q_ij = 4/16 = 0.25 for every pair; expected edges \u2248 0.25*C(8,2) = 7; band is wide.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chung_lu_game",
+  "params": {
+    "out_weights": [
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0
+    ],
+    "in_weights": null,
+    "loops": false,
+    "variant": "original",
+    "seed": 12020009
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 28
+  }
+}

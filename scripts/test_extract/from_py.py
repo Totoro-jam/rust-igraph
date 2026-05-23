@@ -3879,6 +3879,206 @@ HSBM_LIST_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-012: chung_lu_game. python-igraph exposes Graph.Chung_Lu(out,
+# in_=None, loops=True, variant="original") — see
+# references/python-igraph/src/_igraph/graphobject.c lines 2200-2240.
+# RNG is not portable across implementations, so fixtures pin vcount,
+# directedness, and (when loops=False) is_simple, plus an exact ecount
+# in the zero-weight degenerate cases. Variants exercised: original,
+# maxent, nr. Both undirected (in_=None) and directed (in_=list) shapes
+# are covered.
+CHUNG_LU_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "chung_lu_py_zero_weights_loops_true_empty",
+        "origin": "constructed (mirrors Graph.Chung_Lu([0]*6, loops=True, "
+        "variant='original')): all-zero out → 0 edges.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            "in_weights": None,
+            "loops": True,
+            "variant": "original",
+            "seed": 12_010_001,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "chung_lu_py_original_undirected_no_loops",
+        "origin": "constructed (mirrors Graph.Chung_Lu([3, 3, 2, 2, 1, 1], "
+        "loops=False, variant='original')): same weights as the R test "
+        "in test-games.R:175 — original variant on n=6, low expected "
+        "degrees → simple graph.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [3.0, 3.0, 2.0, 2.0, 1.0, 1.0],
+            "in_weights": None,
+            "loops": False,
+            "variant": "original",
+            "seed": 12_010_002,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 15,
+        },
+    },
+    {
+        "case": "chung_lu_py_maxent_undirected_no_loops",
+        "origin": "constructed (mirrors Graph.Chung_Lu([3, 3, 2, 2, 1, 1], "
+        "loops=False, variant='maxent')): same weights, maxent variant.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [3.0, 3.0, 2.0, 2.0, 1.0, 1.0],
+            "in_weights": None,
+            "loops": False,
+            "variant": "maxent",
+            "seed": 12_010_003,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 15,
+        },
+    },
+    {
+        "case": "chung_lu_py_nr_undirected_no_loops",
+        "origin": "constructed (mirrors Graph.Chung_Lu([3, 3, 2, 2, 1, 1], "
+        "loops=False, variant='nr')): same weights, NR variant.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [3.0, 3.0, 2.0, 2.0, 1.0, 1.0],
+            "in_weights": None,
+            "loops": False,
+            "variant": "nr",
+            "seed": 12_010_004,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 15,
+        },
+    },
+    {
+        "case": "chung_lu_py_directed_original_no_loops",
+        "origin": "constructed (mirrors Graph.Chung_Lu([1, 3, 2, 1], "
+        "in_=[2, 1, 2, 2], loops=False, variant='original')): mirrors "
+        "the R doc-example call in games.R:3104; in/out sums both = 7.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [1.0, 3.0, 2.0, 1.0],
+            "in_weights": [2.0, 1.0, 2.0, 2.0],
+            "loops": False,
+            "variant": "original",
+            "seed": 12_010_005,
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 12,
+        },
+    },
+    {
+        "case": "chung_lu_py_directed_maxent_no_loops",
+        "origin": "constructed (mirrors Graph.Chung_Lu([1, 3, 2, 1], "
+        "in_=[2, 1, 2, 2], loops=False, variant='maxent')): mirrors the "
+        "second R doc example with maxent variant.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [1.0, 3.0, 2.0, 1.0],
+            "in_weights": [2.0, 1.0, 2.0, 2.0],
+            "loops": False,
+            "variant": "maxent",
+            "seed": 12_010_006,
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 12,
+        },
+    },
+    {
+        "case": "chung_lu_py_large_n_original_band",
+        "origin": "constructed (mirrors Graph.Chung_Lu(uniform 1.0 weights "
+        "of length 30, loops=False, variant='original')): uniform weights "
+        "give q = 1/30 for every off-diagonal pair; expected edges ≈ "
+        "0.5*C(30,2) = 217.5; band is wide.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [1.0] * 30,
+            "in_weights": None,
+            "loops": False,
+            "variant": "original",
+            "seed": 12_010_007,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 5,
+            "ecount_max": 435,
+        },
+    },
+    {
+        "case": "chung_lu_py_vertex_count_single",
+        "origin": "constructed (mirrors Graph.Chung_Lu([1.0], loops=True, "
+        "variant='original')): single vertex; loops=True allows a self "
+        "loop but never a parallel one.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [1.0],
+            "in_weights": None,
+            "loops": True,
+            "variant": "original",
+            "seed": 12_010_008,
+        },
+        "expected": {
+            "vcount": 1,
+            "directed": False,
+            "no_multi_edges": True,
+            "ecount_min": 0,
+            "ecount_max": 1,
+        },
+    },
+    {
+        "case": "chung_lu_py_directed_nr_no_loops",
+        "origin": "constructed (mirrors Graph.Chung_Lu([1, 3, 2, 1], "
+        "in_=[2, 1, 2, 2], loops=False, variant='nr')): exercises the "
+        "NR variant under the directed shape.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [1.0, 3.0, 2.0, 1.0],
+            "in_weights": [2.0, 1.0, 2.0, 2.0],
+            "loops": False,
+            "variant": "nr",
+            "seed": 12_010_009,
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 12,
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -4014,6 +4214,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "sbm_game": SBM_MANIFEST,
     "hsbm_game": HSBM_MANIFEST,
     "hsbm_list_game": HSBM_LIST_MANIFEST,
+    "chung_lu_game": CHUNG_LU_MANIFEST,
 }
 
 
@@ -4114,6 +4315,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "sbm_game",
             "hsbm_game",
             "hsbm_list_game",
+            "chung_lu_game",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

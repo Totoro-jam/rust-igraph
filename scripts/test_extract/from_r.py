@@ -4180,6 +4180,206 @@ HSBM_LIST_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-012: chung_lu_game. R exposes `sample_chung_lu(weights,
+# in_weights = NULL, loops = FALSE, variant = c("original", "maxent",
+# "nr"))` in references/rigraph/R/games.R:3100-3138. The test suite
+# fixtures live at references/rigraph/tests/testthat/test-games.R:174-198
+# ("sample_chung_lu works") — they apply the same weight vector
+# c(3, 3, 2, 2, 1, 1) across all three variants with loops=FALSE,
+# asserting is_simple. RNG state is not portable, so the ecount band
+# is wide; structural invariants (vcount, directed, is_simple when
+# loops=FALSE) are pinned.
+CHUNG_LU_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "chung_lu_r_small_no_multi",
+        "origin": "mirrors test-games.R:175 sample_chung_lu(c(3,3,2,2,1,1)) "
+        "with default loops=FALSE + variant='original' (the R default "
+        "for sample_chung_lu): asserts !any_multiple.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [3.0, 3.0, 2.0, 2.0, 1.0, 1.0],
+            "in_weights": None,
+            "loops": False,
+            "variant": "original",
+            "seed": 12_020_001,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 15,
+        },
+    },
+    {
+        "case": "chung_lu_r_no_loop_original",
+        "origin": "mirrors test-games.R:178-183 — variant='original', "
+        "loops=FALSE: expect_true(is_simple(...)).",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [3.0, 3.0, 2.0, 2.0, 1.0, 1.0],
+            "in_weights": None,
+            "loops": False,
+            "variant": "original",
+            "seed": 12_020_002,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 15,
+        },
+    },
+    {
+        "case": "chung_lu_r_no_loop_maxent",
+        "origin": "mirrors test-games.R:185-190 — variant='maxent', "
+        "loops=FALSE.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [3.0, 3.0, 2.0, 2.0, 1.0, 1.0],
+            "in_weights": None,
+            "loops": False,
+            "variant": "maxent",
+            "seed": 12_020_003,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 15,
+        },
+    },
+    {
+        "case": "chung_lu_r_no_loop_nr",
+        "origin": "mirrors test-games.R:192-197 — variant='nr', "
+        "loops=FALSE.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [3.0, 3.0, 2.0, 2.0, 1.0, 1.0],
+            "in_weights": None,
+            "loops": False,
+            "variant": "nr",
+            "seed": 12_020_004,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 15,
+        },
+    },
+    {
+        "case": "chung_lu_r_zero_weights_directed_empty",
+        "origin": "constructed (mirrors sample_chung_lu(rep(0, 4), "
+        "in_weights=rep(0, 4))): directed zero-weight graph has no "
+        "edges regardless of variant.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [0.0, 0.0, 0.0, 0.0],
+            "in_weights": [0.0, 0.0, 0.0, 0.0],
+            "loops": True,
+            "variant": "original",
+            "seed": 12_020_005,
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "chung_lu_r_directed_doc_example",
+        "origin": "mirrors games.R:3104 sample_chung_lu(c(1,3,2,1), "
+        "c(2,1,2,2)): the R rdoc example. Directed, defaults to "
+        "variant='original' loops=FALSE.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [1.0, 3.0, 2.0, 1.0],
+            "in_weights": [2.0, 1.0, 2.0, 2.0],
+            "loops": False,
+            "variant": "original",
+            "seed": 12_020_006,
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 12,
+        },
+    },
+    {
+        "case": "chung_lu_r_directed_doc_example_maxent",
+        "origin": "mirrors games.R:3109 sample_chung_lu(c(1,3,2,1), "
+        "c(2,1,2,2), variant='maxent'): second R rdoc example.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [1.0, 3.0, 2.0, 1.0],
+            "in_weights": [2.0, 1.0, 2.0, 2.0],
+            "loops": False,
+            "variant": "maxent",
+            "seed": 12_020_007,
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 12,
+        },
+    },
+    {
+        "case": "chung_lu_r_seven_weights_loops_original",
+        "origin": "mirrors sample_chung_lu(c(1, 0, 2.5, 2, 3, 2, 1.5), "
+        "loops=TRUE, variant='original'): same weights as the C "
+        "test_unit fixture but exercised under R's defaults.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [1.0, 0.0, 2.5, 2.0, 3.0, 2.0, 1.5],
+            "in_weights": None,
+            "loops": True,
+            "variant": "original",
+            "seed": 12_020_008,
+        },
+        "expected": {
+            "vcount": 7,
+            "directed": False,
+            "is_simple": False,
+            "no_multi_edges": True,
+            "ecount_min": 0,
+            "ecount_max": 28,
+        },
+    },
+    {
+        "case": "chung_lu_r_eight_weights_band",
+        "origin": "constructed (mirrors sample_chung_lu(c(2,2,2,2,2,2,2,2), "
+        "loops=FALSE, variant='original')): uniform weights of 2 across "
+        "n=8 → q_ij = 4/16 = 0.25 for every pair; expected edges "
+        "≈ 0.25*C(8,2) = 7; band is wide.",
+        "algo": "chung_lu_game",
+        "params": {
+            "out_weights": [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
+            "in_weights": None,
+            "loops": False,
+            "variant": "original",
+            "seed": 12_020_009,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 28,
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -4319,6 +4519,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "sbm_game": SBM_MANIFEST,
     "hsbm_game": HSBM_MANIFEST,
     "hsbm_list_game": HSBM_LIST_MANIFEST,
+    "chung_lu_game": CHUNG_LU_MANIFEST,
 }
 
 
@@ -4419,6 +4620,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "sbm_game",
             "hsbm_game",
             "hsbm_list_game",
+            "chung_lu_game",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

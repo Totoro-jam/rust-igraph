@@ -350,3 +350,46 @@ doctest = **61 pass**.
   (~321 C lines in `references/igraph/src/games/chung_lu.c`).
   Chung–Lu expected-degree model: per-vertex weight vector → edge
   prob ≈ w_i w_j / Σ w. Self-contained, no graph-product structure.
+
+## 2026-05-23 — GN-012 landed (chung_lu_game)
+
+- Last commit: about to commit GN-012 full 9-step SOP. Miller–Hagberg
+  O(|V|+|E|) sampler: descending-weight sort + per-source row sweep
+  using a running upper-bound `p` and `gen_geom(p)` to skip non-edge
+  slots. Three variants (`Original` / `Maxent` / `Nr`) differ only in
+  the per-edge `q → p` transform. Directed shape sweeps the full
+  `n × n` slot space; undirected starts each row at `j = i`.
+- All gates green:
+  - `cargo fmt --all --check` clean
+  - `rustup run stable cargo clippy --workspace --all-targets -- -D
+    warnings` clean
+  - `cargo test --workspace --all-features` → 1490 lib + 139
+    conformance + 191 proptest + 146 integration + 143 doctest pass
+  - `cargo bench --bench bench_chung_lu` ran end-to-end; baseline
+    written to `.codefuse/tracking/perf/ALGO-GN-012.json`
+- Counters bumped: Phase 1 done 119 → 120, total 124 → 125;
+  `chung_lu_game: 27` appended to the conformance string (27 fixtures
+  = 9 C + 9 py + 9 R).  CHANGELOG Unreleased now leads with the
+  GN-012 entry.
+- Numerical sanity: the directed-vs-undirected canonical-edge helper
+  in `tests/conformance.rs` was the one subtle bug — the shared
+  `assert_no_self_loops_no_multi_edges` collapses (a,b) and (b,a) to
+  the same pair, which is correct only for undirected graphs. Fixed
+  by inlining the check with `let pair = if want_directed || a <= b
+  { (a, b) } else { (b, a) };`. Worth keeping in mind for any future
+  directed-graph generator AWU.
+- AWU triage: 0 wip, 0 blocked. Remaining upstream `games/` family:
+  `degree_sequence.c` (864 L), `preference.c` (611 L),
+  `static_fitness.c` (464 L), `correlated.c` (338 L),
+  `recent_degree.c` (381 L), `citations.c` (498 L),
+  `establishment.c`, `callaway_traits.c`, `dotproduct.c`,
+  `degree_sequence_vl/`.
+- **Picked up**: next AWU candidate is **ALGO-GN-013 —
+  `static_fitness_game`** (~464 C lines in
+  `references/igraph/src/games/static_fitness.c`). Conceptually the
+  closest sibling to chung_lu (per-vertex fitness instead of expected
+  degree, same per-source sweep style), so the bench and conformance
+  infrastructure carries over cleanly. Alternative: jump to
+  `degree_sequence.c` which is the largest remaining file but
+  requires a Viger-Latapy / Erdős–Gallai sampler that is its own
+  ~800-line algorithmic island.

@@ -15,6 +15,38 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-012** — `chung_lu_game` Chung–Lu expected-degree random graph
+  generator. Counterpart of `igraph_chung_lu_game()` in
+  `references/igraph/src/games/chung_lu.c`. Given a per-vertex weight
+  vector `w` (and optional `in_weights` for the directed shape), the
+  base connection probability is `q_ij = w_i · w_j / Σ w_k`; one of
+  three closed-form transforms picks the actual edge probability:
+  - `pub fn chung_lu_game(out_weights: &[f64], in_weights: Option<&[f64]>, loops: bool, variant: ChungLuVariant, seed: u64) -> IgraphResult<Graph>`.
+  - `pub enum ChungLuVariant { Original, Maxent, Nr }`:
+    - `Original` — `p_ij = min(q_ij, 1)` (Chung–Lu 2002),
+    - `Maxent` — `p_ij = q_ij / (1 + q_ij)` (Park & Newman 2004),
+    - `Nr` — `p_ij = 1 − exp(−q_ij)` (Norros–Reittu 2006).
+  - Miller–Hagberg O(|V| + |E|) sampler: vertices are sorted descending
+    by in-weight, then a per-source row sweep uses a running upper-bound
+    probability `p` and `gen_geom(p)` to skip non-edge slots without
+    visiting every candidate pair. The descending sort guarantees `q ≤
+    p` along the row so the rejection ratio `q / p` is always in `[0,
+    1]`.
+  - Validation: weights must be finite and non-negative; in the directed
+    case `in_weights.len() == out_weights.len()` and the two sums are
+    bit-exactly equal (matching the C reference's `IGRAPH_EQUALITY`
+    contract); the all-zero-weight input short-circuits to an empty
+    graph regardless of variant; vertex count is bounded by `2^53`
+    (`IGRAPH_MAX_EXACT_REAL`).
+  - Coverage: 16 unit tests + 3 proptests (`vcount`/`directed`
+    invariants, `loops=false` → no self-loops, `Original ≥ Maxent ≥ Nr`
+    edge-count ordering on the same seed) + 27 three-source conformance
+    fixtures (9 each from C / py / R) asserting vcount / directedness /
+    ecount band / simple-no-loops semantics — direct sample comparison
+    is not portable across SplitMix64 vs igraph's GLIBC RNG, so we
+    assert structural invariants only. Bench snapshot under
+    `.codefuse/tracking/perf/ALGO-GN-012.json` (e.g. uniform `w=10` at
+    `n=5_000` ≈ 1.71 ms). Example under `examples/chung_lu_demo.rs`.
 - **ALGO-GN-011** — `hsbm_game` + `hsbm_list_game` Hierarchical Stochastic
   Block Model random graph generator. Counterparts of
   `igraph_hsbm_game()` and `igraph_hsbm_list_game()` in

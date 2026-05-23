@@ -1,0 +1,41 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_chung_lu_game(out=[189,0,2.5,12,3,2,1.5], in=[2,2,2,2,0,200,2], loops=false, MAXENT): C test asserts directed + simple.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chung_lu_game",
+  "params": {
+    "out_weights": [
+      189.0,
+      0.0,
+      2.5,
+      12.0,
+      3.0,
+      2.0,
+      1.5
+    ],
+    "in_weights": [
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      0.0,
+      200.0,
+      2.0
+    ],
+    "loops": false,
+    "variant": "maxent",
+    "seed": 12000007
+  },
+  "expected": {
+    "vcount": 7,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 42
+  }
+}

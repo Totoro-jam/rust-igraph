@@ -1,0 +1,20 @@
+{
+  "awu": "ALGO-GN-012",
+  "captured_at": "2026-05-23",
+  "git_commit": "2e9188e",
+  "size_scaling_uniform_undirected_n500_ns": 156220,
+  "size_scaling_uniform_undirected_n5000_ns": 1713000,
+  "variant_sweep_uniform_n2000_original_ns": 498210,
+  "variant_sweep_uniform_n2000_maxent_ns": 522880,
+  "variant_sweep_uniform_n2000_nr_ns": 638540,
+  "weight_skew_n2000_maxent_uniform_w8_ns": 537960,
+  "weight_skew_n2000_maxent_powerlawish_basescale_ns": 623290,
+  "directed_n2000_directed_no_loops_ns": 1065500,
+  "directed_n2000_undirected_no_loops_ns": 513410,
+  "density_sweep_maxent_n2000_w1_ns": 95146,
+  "density_sweep_maxent_n2000_w5_ns": 342850,
+  "density_sweep_maxent_n2000_w20_ns": 1296500,
+  "density_sweep_maxent_n2000_w100_ns": 6038600,
+  "py_baseline_ns": null,
+  "notes": "Chung–Lu expected-degree generator via the Miller–Hagberg O(|V|+|E|) sampler (descending-weight sort + running upper-bound geometric skip). `size_scaling` uniform `w=10` (mean degree ≈ 10) shows the dominant cost is linear in realised edges: 156 µs at n=500 (~2.5k edges) → 1.71 ms at n=5_000 (~25k edges), i.e. ≈ 11× for 10× n at fixed mean degree — the extra ≈ 10% comes from the `O(n log n)` descending-sort and the wider geometric-skip tail. `variant_sweep` at n=2_000, uniform w=8 (mean degree ≈ 8, ≈ 8k edges): Original=498 µs / Maxent=523 µs / Nr=639 µs — the per-edge `q → p` transform marginal cost is ~5% (Maxent: one divide) and ~28% (Nr: `exp`). `weight_skew` at n=2_000/Maxent: uniform=538 µs vs power-law-ish ramp (`w_i ∝ 1+0.5i` rescaled to same total mass)=623 µs — the heavy-tailed variant adds ~16% because the running `p` upper bound drops more slowly across the hub-heavy prefix, so more candidate slots survive the geometric skip. `directed` at n=2_000 confirms the directed path's full `n×n` sweep roughly doubles cost: 1.07 ms directed vs 513 µs undirected at uniform w=8. `density_sweep` (uniform Maxent at n=2_000, varying w) sweeps mean degree from ≈ 1 to ≈ 100: 95 µs (w=1, ~1k edges) → 343 µs (w=5, ~5k) → 1.30 ms (w=20, ~20k) → 6.04 ms (w=100, ~100k edges) — almost perfectly linear in realised |E|, confirming the sampler's expected O(|V|+|E|) bound. No oracle baseline: igraph C / python-igraph / R-igraph all share igraph's GLIBC-RNG semantics and their seeds are not portable to a SplitMix64-based engine; conformance asserts structural invariants only (vcount exact, directedness, ecount band, simple/no-loops semantics, and zero-weight → empty-graph corner). Numbers from `cargo bench --bench bench_chung_lu -- --warm-up-time 1 --measurement-time 3 --sample-size 30` on Darwin/M-series release build."
+}

@@ -1,0 +1,56 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Chung_Lu(uniform 1.0 weights of length 30, loops=False, variant='original')): uniform weights give q = 1/30 for every off-diagonal pair; expected edges \u2248 0.5*C(30,2) = 217.5; band is wide.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chung_lu_game",
+  "params": {
+    "out_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "in_weights": null,
+    "loops": false,
+    "variant": "original",
+    "seed": 12010007
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 5,
+    "ecount_max": 435
+  }
+}

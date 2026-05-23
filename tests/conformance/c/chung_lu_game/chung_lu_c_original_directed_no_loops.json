@@ -1,0 +1,41 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_chung_lu_game(out=[1,0,2.5,2,3,2,1.5], in=[2,2,2,2,0,2,2], loops=false, ORIGINAL): C test asserts directed + simple. \u03a3w_out = \u03a3w_in = 12.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chung_lu_game",
+  "params": {
+    "out_weights": [
+      1.0,
+      0.0,
+      2.5,
+      2.0,
+      3.0,
+      2.0,
+      1.5
+    ],
+    "in_weights": [
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      0.0,
+      2.0,
+      2.0
+    ],
+    "loops": false,
+    "variant": "original",
+    "seed": 12000005
+  },
+  "expected": {
+    "vcount": 7,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 42
+  }
+}

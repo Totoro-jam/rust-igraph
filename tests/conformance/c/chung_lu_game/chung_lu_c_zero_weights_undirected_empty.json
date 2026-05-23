@@ -1,0 +1,31 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_chung_lu_game with all-zero out_weights and in_weights=NULL): expected degree is zero everywhere \u2192 no edges can be sampled, exactly 0 edges.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chung_lu_game",
+  "params": {
+    "out_weights": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "in_weights": null,
+    "loops": true,
+    "variant": "original",
+    "seed": 12000001
+  },
+  "expected": {
+    "vcount": 5,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 0
+  }
+}

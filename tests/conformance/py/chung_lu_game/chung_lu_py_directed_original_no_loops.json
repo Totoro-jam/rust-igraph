@@ -1,0 +1,35 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Chung_Lu([1, 3, 2, 1], in_=[2, 1, 2, 2], loops=False, variant='original')): mirrors the R doc-example call in games.R:3104; in/out sums both = 7.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chung_lu_game",
+  "params": {
+    "out_weights": [
+      1.0,
+      3.0,
+      2.0,
+      1.0
+    ],
+    "in_weights": [
+      2.0,
+      1.0,
+      2.0,
+      2.0
+    ],
+    "loops": false,
+    "variant": "original",
+    "seed": 12010005
+  },
+  "expected": {
+    "vcount": 4,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 12
+  }
+}
