@@ -4079,6 +4079,249 @@ CHUNG_LU_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-GN-013 (static_fitness_game). python-igraph exposes
+# Graph.Static_Fitness(m, fitness_out, fitness_in=None, loops=False,
+# multiple=False) — see references/python-igraph/src/_igraph/graphobject.c
+# StaticFitness binding. Cases here mirror the binding's documented
+# behaviour: empty graph, undirected/directed shapes, simple/loops/multi
+# combinations. RNG state is not portable, so structural invariants only.
+STATIC_FITNESS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "static_fitness_py_zero_edges_undirected",
+        "origin": "constructed (mirrors Graph.Static_Fitness(0, "
+        "[1,2,3,4,5])): m=0 yields five isolated vertices.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 0,
+            "fitness_out": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "fitness_in": None,
+            "loops": False,
+            "multiple": False,
+            "seed": 12_011_001,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "static_fitness_py_undirected_simple",
+        "origin": "constructed (mirrors Graph.Static_Fitness(15, "
+        "[1,2,3,4,5,6,7,8])): undirected simple, capacity C(8,2)=28 ≥ 15.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 15,
+            "fitness_out": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0],
+            "fitness_in": None,
+            "loops": False,
+            "multiple": False,
+            "seed": 12_011_002,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 15,
+            "ecount_max": 15,
+        },
+    },
+    {
+        "case": "static_fitness_py_undirected_multi_loops",
+        "origin": "constructed (mirrors Graph.Static_Fitness(20, "
+        "[2]*5, loops=True, multiple=True)): permissive — any pair "
+        "including self-loops; ecount = m exactly.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 20,
+            "fitness_out": [2.0, 2.0, 2.0, 2.0, 2.0],
+            "fitness_in": None,
+            "loops": True,
+            "multiple": True,
+            "seed": 12_011_003,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "ecount_min": 20,
+            "ecount_max": 20,
+        },
+    },
+    {
+        "case": "static_fitness_py_directed_simple",
+        "origin": "constructed (mirrors Graph.Static_Fitness(20, "
+        "[1,2,3,4,5,6], [1,2,3,4,5,6])): directed simple — fitness_in "
+        "list provided. Capacity n*(n-1) = 30 ≥ 20.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 20,
+            "fitness_out": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            "fitness_in": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            "loops": False,
+            "multiple": False,
+            "seed": 12_011_004,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 20,
+            "ecount_max": 20,
+        },
+    },
+    {
+        "case": "static_fitness_py_directed_loops_only",
+        "origin": "constructed (mirrors Graph.Static_Fitness(15, "
+        "[1,2,3,4,5,6], [6,5,4,3,2,1], loops=True)): directed, "
+        "loops allowed but parallel edges forbidden.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 15,
+            "fitness_out": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            "fitness_in": [6.0, 5.0, 4.0, 3.0, 2.0, 1.0],
+            "loops": True,
+            "multiple": False,
+            "seed": 12_011_005,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": True,
+            "is_simple": False,
+            "no_multi_edges": True,
+            "ecount_min": 15,
+            "ecount_max": 15,
+        },
+    },
+]
+
+
+# ALGO-GN-013 (static_power_law_game). python-igraph exposes
+# Graph.Static_Power_Law(n, m, exponent_out, exponent_in=-1, loops=False,
+# multiple=False, finite_size_correction=True). A negative exponent_in
+# selects undirected. Cases mirror the canonical happy paths the C
+# reference exercises, plus a parity case under FSC=False.
+STATIC_POWER_LAW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "static_power_law_py_zero_edges_undirected",
+        "origin": "constructed (mirrors Graph.Static_Power_Law(8, 0, 2.5)): "
+        "m=0 yields isolated graph regardless of exponent.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 8,
+            "no_of_edges": 0,
+            "exponent_out": 2.5,
+            "exponent_in": None,
+            "loops": False,
+            "multiple": False,
+            "finite_size_correction": True,
+            "seed": 12_011_101,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "static_power_law_py_undirected_simple",
+        "origin": "constructed (mirrors Graph.Static_Power_Law(50, 80, "
+        "2.5, finite_size_correction=True)): undirected simple. "
+        "Capacity C(50,2) = 1225 ≫ 80.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 50,
+            "no_of_edges": 80,
+            "exponent_out": 2.5,
+            "exponent_in": None,
+            "loops": False,
+            "multiple": False,
+            "finite_size_correction": True,
+            "seed": 12_011_102,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 80,
+            "ecount_max": 80,
+        },
+    },
+    {
+        "case": "static_power_law_py_undirected_no_fsc",
+        "origin": "constructed (mirrors Graph.Static_Power_Law(60, 100, "
+        "3.0, finite_size_correction=False)): exponent above the FSC "
+        "threshold — `α = -1/(γ-1) = -0.5`, no shift required.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 60,
+            "no_of_edges": 100,
+            "exponent_out": 3.0,
+            "exponent_in": None,
+            "loops": False,
+            "multiple": False,
+            "finite_size_correction": False,
+            "seed": 12_011_103,
+        },
+        "expected": {
+            "vcount": 60,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 100,
+            "ecount_max": 100,
+        },
+    },
+    {
+        "case": "static_power_law_py_directed_loops_multi",
+        "origin": "constructed (mirrors Graph.Static_Power_Law(40, 60, "
+        "2.5, exponent_in=2.5, loops=True, multiple=True)): directed, "
+        "fully permissive.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 40,
+            "no_of_edges": 60,
+            "exponent_out": 2.5,
+            "exponent_in": 2.5,
+            "loops": True,
+            "multiple": True,
+            "finite_size_correction": True,
+            "seed": 12_011_104,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 60,
+            "ecount_max": 60,
+        },
+    },
+    {
+        "case": "static_power_law_py_undirected_multi_only",
+        "origin": "constructed (mirrors Graph.Static_Power_Law(30, 80, "
+        "2.5, multiple=True)): multi parallel edges allowed, no loops.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 30,
+            "no_of_edges": 80,
+            "exponent_out": 2.5,
+            "exponent_in": None,
+            "loops": False,
+            "multiple": True,
+            "finite_size_correction": True,
+            "seed": 12_011_105,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "ecount_min": 80,
+            "ecount_max": 80,
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -4215,6 +4458,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "hsbm_game": HSBM_MANIFEST,
     "hsbm_list_game": HSBM_LIST_MANIFEST,
     "chung_lu_game": CHUNG_LU_MANIFEST,
+    "static_fitness_game": STATIC_FITNESS_MANIFEST,
+    "static_power_law_game": STATIC_POWER_LAW_MANIFEST,
 }
 
 
@@ -4316,6 +4561,8 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "hsbm_game",
             "hsbm_list_game",
             "chung_lu_game",
+            "static_fitness_game",
+            "static_power_law_game",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

@@ -14,5 +14,6 @@ pub mod hsbm;
 pub mod islands;
 pub mod k_regular;
 pub mod sbm;
+pub mod static_fitness;
 pub mod tree;
 pub mod watts;

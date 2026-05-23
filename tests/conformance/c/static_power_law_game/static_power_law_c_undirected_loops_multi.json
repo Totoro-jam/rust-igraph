@@ -1,0 +1,27 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_static_power_law_game.c:42 (n=100, m=30, exp_out=2.0, exp_in=-2.0 \u2192 undirected, LOOPS|MULTI). C asserts vcount==100 && ecount==30.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_power_law_game",
+  "params": {
+    "no_of_nodes": 100,
+    "no_of_edges": 30,
+    "exponent_out": 2.0,
+    "exponent_in": null,
+    "loops": true,
+    "multiple": true,
+    "finite_size_correction": true,
+    "seed": 12002003
+  },
+  "expected": {
+    "vcount": 100,
+    "directed": false,
+    "ecount_min": 30,
+    "ecount_max": 30
+  }
+}

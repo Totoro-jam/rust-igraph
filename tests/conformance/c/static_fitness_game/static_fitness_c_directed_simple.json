@@ -1,0 +1,40 @@
+{
+  "source": "c",
+  "origin": "constructed: directed simple \u2014 separate fitness_in vector. Capacity = n*(n-1) = 30 (no loops) \u2265 12.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_fitness_game",
+  "params": {
+    "no_of_edges": 12,
+    "fitness_out": [
+      3.0,
+      2.0,
+      1.0,
+      4.0,
+      2.0,
+      1.0
+    ],
+    "fitness_in": [
+      1.0,
+      2.0,
+      3.0,
+      1.0,
+      2.0,
+      4.0
+    ],
+    "loops": false,
+    "multiple": false,
+    "seed": 12001006
+  },
+  "expected": {
+    "vcount": 6,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 12,
+    "ecount_max": 12
+  }
+}

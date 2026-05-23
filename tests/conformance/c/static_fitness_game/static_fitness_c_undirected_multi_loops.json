@@ -1,0 +1,34 @@
+{
+  "source": "c",
+  "origin": "constructed: undirected, loops=true, multiple=true. Both self-loops and parallel edges allowed; ecount = m exactly.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_fitness_game",
+  "params": {
+    "no_of_edges": 25,
+    "fitness_out": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "fitness_in": null,
+    "loops": true,
+    "multiple": true,
+    "seed": 12001005
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": false,
+    "ecount_min": 25,
+    "ecount_max": 25
+  }
+}

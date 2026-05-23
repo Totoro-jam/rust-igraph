@@ -4478,6 +4478,392 @@ CHUNG_LU_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-GN-013 (static_fitness_game). The C reference at
+# references/igraph/src/games/static_fitness.c:110 has no dedicated unit
+# test for this entry point — the only public C test exercises the
+# power-law wrapper. Cases below are constructed to mirror the happy
+# paths the C source explicitly handles: empty graph (n=0), zero-edge
+# requests on positive n, all-zero fitness pinning ecount=0, and
+# loops/multiple combinations with realisable demand. Our sampler is
+# deterministic per seed and always reaches the requested edge count
+# unless capacity is exceeded (rejected upfront), so ecount is pinned
+# exactly. RNG is not portable across implementations — only structural
+# invariants are asserted.
+STATIC_FITNESS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "static_fitness_c_zero_vertices_undirected",
+        "origin": "constructed (mirrors igraph_static_fitness_game with n=0, "
+        "fitness_in=NULL): degenerate empty undirected graph.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 0,
+            "fitness_out": [],
+            "fitness_in": None,
+            "loops": False,
+            "multiple": False,
+            "seed": 12_001_001,
+        },
+        "expected": {
+            "vcount": 0,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "static_fitness_c_zero_edges_simple",
+        "origin": "constructed: ten vertices, m=0 → isolated graph regardless "
+        "of fitness shape.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 0,
+            "fitness_out": [1.0, 2.0, 3.0, 4.0, 5.0, 1.0, 2.0, 3.0, 4.0, 5.0],
+            "fitness_in": None,
+            "loops": False,
+            "multiple": False,
+            "seed": 12_001_002,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "static_fitness_c_undirected_simple",
+        "origin": "constructed: monotone-decreasing fitness, undirected simple "
+        "(loops=false, multiple=false). Capacity = C(8,2) = 28 ≥ 10.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 10,
+            "fitness_out": [8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0],
+            "fitness_in": None,
+            "loops": False,
+            "multiple": False,
+            "seed": 12_001_003,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 10,
+            "ecount_max": 10,
+        },
+    },
+    {
+        "case": "static_fitness_c_undirected_loops_no_multi",
+        "origin": "constructed: undirected, loops=true, multiple=false. "
+        "no_multi_edges holds (rejection drops parallel pairs) but "
+        "is_simple is false because self-loops are permitted.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 12,
+            "fitness_out": [3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0],
+            "fitness_in": None,
+            "loops": True,
+            "multiple": False,
+            "seed": 12_001_004,
+        },
+        "expected": {
+            "vcount": 7,
+            "directed": False,
+            "is_simple": False,
+            "no_multi_edges": True,
+            "ecount_min": 12,
+            "ecount_max": 12,
+        },
+    },
+    {
+        "case": "static_fitness_c_undirected_multi_loops",
+        "origin": "constructed: undirected, loops=true, multiple=true. Both "
+        "self-loops and parallel edges allowed; ecount = m exactly.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 25,
+            "fitness_out": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+            "fitness_in": None,
+            "loops": True,
+            "multiple": True,
+            "seed": 12_001_005,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "ecount_min": 25,
+            "ecount_max": 25,
+        },
+    },
+    {
+        "case": "static_fitness_c_directed_simple",
+        "origin": "constructed: directed simple — separate fitness_in vector. "
+        "Capacity = n*(n-1) = 30 (no loops) ≥ 12.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 12,
+            "fitness_out": [3.0, 2.0, 1.0, 4.0, 2.0, 1.0],
+            "fitness_in": [1.0, 2.0, 3.0, 1.0, 2.0, 4.0],
+            "loops": False,
+            "multiple": False,
+            "seed": 12_001_006,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 12,
+            "ecount_max": 12,
+        },
+    },
+    {
+        "case": "static_fitness_c_directed_multi_loops",
+        "origin": "constructed: directed, loops=true, multiple=true. "
+        "ecount = m exactly. Larger sample to exercise the trivial "
+        "sample-and-keep branch.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 50,
+            "fitness_out": [5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
+            "fitness_in": [5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
+            "loops": True,
+            "multiple": True,
+            "seed": 12_001_007,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": True,
+            "ecount_min": 50,
+            "ecount_max": 50,
+        },
+    },
+    {
+        "case": "static_fitness_c_single_vertex_loops_multi",
+        "origin": "constructed: single vertex, loops=true, multiple=true, "
+        "every edge is the (0,0) self-loop.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 5,
+            "fitness_out": [1.0],
+            "fitness_in": None,
+            "loops": True,
+            "multiple": True,
+            "seed": 12_001_008,
+        },
+        "expected": {
+            "vcount": 1,
+            "directed": False,
+            "ecount_min": 5,
+            "ecount_max": 5,
+        },
+    },
+]
+
+
+# ALGO-GN-013 (static_power_law_game). Mirrors the eight happy-path
+# tests in references/igraph/tests/unit/igraph_static_power_law_game.c.
+# Each C test asserts vcount and ecount exactly. The flag combinations
+# decode as:
+#   IGRAPH_SIMPLE_SW   → loops=false, multiple=false
+#   IGRAPH_LOOPS_SW    → loops=true,  multiple=false
+#   IGRAPH_MULTI_SW    → loops=false, multiple=true
+#   LOOPS_SW|MULTI_SW  → loops=true,  multiple=true
+# A negative `exponent_in` in the C call selects undirected (passes
+# fitness_in=NULL down the stack); a non-negative value selects
+# directed. RNG is not portable, so we pin ecount_min = ecount_max = m.
+STATIC_POWER_LAW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "static_power_law_c_no_vertices_directed",
+        "origin": "mirrors igraph_static_power_law_game.c:28 "
+        "(n=0, m=0, exp_out=2.0, exp_in=2.0, SIMPLE).",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 0,
+            "no_of_edges": 0,
+            "exponent_out": 2.0,
+            "exponent_in": 2.0,
+            "loops": False,
+            "multiple": False,
+            "finite_size_correction": True,
+            "seed": 12_002_001,
+        },
+        "expected": {
+            "vcount": 0,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "static_power_law_c_no_edges_undirected",
+        "origin": "mirrors igraph_static_power_law_game.c:35 "
+        "(n=10, m=0, exp_out=2.0, exp_in=-2.0 → undirected, SIMPLE).",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 10,
+            "no_of_edges": 0,
+            "exponent_out": 2.0,
+            "exponent_in": None,
+            "loops": False,
+            "multiple": False,
+            "finite_size_correction": True,
+            "seed": 12_002_002,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "static_power_law_c_undirected_loops_multi",
+        "origin": "mirrors igraph_static_power_law_game.c:42 "
+        "(n=100, m=30, exp_out=2.0, exp_in=-2.0 → undirected, "
+        "LOOPS|MULTI). C asserts vcount==100 && ecount==30.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 100,
+            "no_of_edges": 30,
+            "exponent_out": 2.0,
+            "exponent_in": None,
+            "loops": True,
+            "multiple": True,
+            "finite_size_correction": True,
+            "seed": 12_002_003,
+        },
+        "expected": {
+            "vcount": 100,
+            "directed": False,
+            "ecount_min": 30,
+            "ecount_max": 30,
+        },
+    },
+    {
+        "case": "static_power_law_c_undirected_loops_only",
+        "origin": "mirrors igraph_static_power_law_game.c:49 "
+        "(n=90, m=40, exp_out=2.0, exp_in=-2.0 → undirected, LOOPS). "
+        "loops=true, multiple=false → no_multi_edges only.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 90,
+            "no_of_edges": 40,
+            "exponent_out": 2.0,
+            "exponent_in": None,
+            "loops": True,
+            "multiple": False,
+            "finite_size_correction": True,
+            "seed": 12_002_004,
+        },
+        "expected": {
+            "vcount": 90,
+            "directed": False,
+            "is_simple": False,
+            "no_multi_edges": True,
+            "ecount_min": 40,
+            "ecount_max": 40,
+        },
+    },
+    {
+        "case": "static_power_law_c_undirected_multi_only",
+        "origin": "mirrors igraph_static_power_law_game.c:56 "
+        "(n=110, m=50, exp_out=2.0, exp_in=-2.0 → undirected, MULTI). "
+        "loops=false, multiple=true.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 110,
+            "no_of_edges": 50,
+            "exponent_out": 2.0,
+            "exponent_in": None,
+            "loops": False,
+            "multiple": True,
+            "finite_size_correction": True,
+            "seed": 12_002_005,
+        },
+        "expected": {
+            "vcount": 110,
+            "directed": False,
+            "ecount_min": 50,
+            "ecount_max": 50,
+        },
+    },
+    {
+        "case": "static_power_law_c_directed_loops_multi",
+        "origin": "mirrors igraph_static_power_law_game.c:63 "
+        "(n=100, m=30, exp_out=2.0, exp_in=2.0, LOOPS|MULTI). "
+        "Directed.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 100,
+            "no_of_edges": 30,
+            "exponent_out": 2.0,
+            "exponent_in": 2.0,
+            "loops": True,
+            "multiple": True,
+            "finite_size_correction": True,
+            "seed": 12_002_006,
+        },
+        "expected": {
+            "vcount": 100,
+            "directed": True,
+            "ecount_min": 30,
+            "ecount_max": 30,
+        },
+    },
+    {
+        "case": "static_power_law_c_directed_loops_only",
+        "origin": "mirrors igraph_static_power_law_game.c:70 "
+        "(n=90, m=40, exp_out=2.0, exp_in=2.2, LOOPS). Directed, "
+        "loops=true, multiple=false.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 90,
+            "no_of_edges": 40,
+            "exponent_out": 2.0,
+            "exponent_in": 2.2,
+            "loops": True,
+            "multiple": False,
+            "finite_size_correction": True,
+            "seed": 12_002_007,
+        },
+        "expected": {
+            "vcount": 90,
+            "directed": True,
+            "is_simple": False,
+            "no_multi_edges": True,
+            "ecount_min": 40,
+            "ecount_max": 40,
+        },
+    },
+    {
+        "case": "static_power_law_c_directed_multi_only",
+        "origin": "mirrors igraph_static_power_law_game.c:77 "
+        "(n=110, m=50, exp_out=2.0, exp_in=2.5, MULTI). Directed, "
+        "loops=false, multiple=true.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 110,
+            "no_of_edges": 50,
+            "exponent_out": 2.0,
+            "exponent_in": 2.5,
+            "loops": False,
+            "multiple": True,
+            "finite_size_correction": True,
+            "seed": 12_002_008,
+        },
+        "expected": {
+            "vcount": 110,
+            "directed": True,
+            "ecount_min": 50,
+            "ecount_max": 50,
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -4618,6 +5004,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "hsbm_game": HSBM_MANIFEST,
     "hsbm_list_game": HSBM_LIST_MANIFEST,
     "chung_lu_game": CHUNG_LU_MANIFEST,
+    "static_fitness_game": STATIC_FITNESS_MANIFEST,
+    "static_power_law_game": STATIC_POWER_LAW_MANIFEST,
 }
 
 
@@ -4724,6 +5112,8 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "hsbm_game",
             "hsbm_list_game",
             "chung_lu_game",
+            "static_fitness_game",
+            "static_power_law_game",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

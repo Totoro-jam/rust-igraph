@@ -1,0 +1,35 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_fitness(40, c(1,2,3,4), c(4,3,2,1), loops=TRUE, multiple=TRUE)): directed, fully permissive.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_fitness_game",
+  "params": {
+    "no_of_edges": 40,
+    "fitness_out": [
+      1.0,
+      2.0,
+      3.0,
+      4.0
+    ],
+    "fitness_in": [
+      4.0,
+      3.0,
+      2.0,
+      1.0
+    ],
+    "loops": true,
+    "multiple": true,
+    "seed": 12021005
+  },
+  "expected": {
+    "vcount": 4,
+    "directed": true,
+    "ecount_min": 40,
+    "ecount_max": 40
+  }
+}

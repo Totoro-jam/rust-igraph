@@ -1,0 +1,35 @@
+{
+  "source": "c",
+  "origin": "constructed: monotone-decreasing fitness, undirected simple (loops=false, multiple=false). Capacity = C(8,2) = 28 \u2265 10.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_fitness_game",
+  "params": {
+    "no_of_edges": 10,
+    "fitness_out": [
+      8.0,
+      7.0,
+      6.0,
+      5.0,
+      4.0,
+      3.0,
+      2.0,
+      1.0
+    ],
+    "fitness_in": null,
+    "loops": false,
+    "multiple": false,
+    "seed": 12001003
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 10,
+    "ecount_max": 10
+  }
+}

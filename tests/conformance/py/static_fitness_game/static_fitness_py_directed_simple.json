@@ -1,0 +1,40 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Static_Fitness(20, [1,2,3,4,5,6], [1,2,3,4,5,6])): directed simple \u2014 fitness_in list provided. Capacity n*(n-1) = 30 \u2265 20.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_fitness_game",
+  "params": {
+    "no_of_edges": 20,
+    "fitness_out": [
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0
+    ],
+    "fitness_in": [
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0
+    ],
+    "loops": false,
+    "multiple": false,
+    "seed": 12011004
+  },
+  "expected": {
+    "vcount": 6,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 20,
+    "ecount_max": 20
+  }
+}

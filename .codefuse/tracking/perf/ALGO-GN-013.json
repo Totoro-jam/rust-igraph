@@ -1,0 +1,21 @@
+{
+  "awu": "ALGO-GN-013",
+  "captured_at": "2026-05-23",
+  "git_commit": "9123af7",
+  "rust_fitness_size_n500_ns": 251980,
+  "rust_fitness_size_n5000_ns": 3777800,
+  "rust_fitness_n2000_simple_no_loops_ns": 1896000,
+  "rust_fitness_n2000_multi_with_loops_ns": 1354200,
+  "rust_fitness_n2000_directed_simple_ns": 1936500,
+  "rust_fitness_n2000_undirected_simple_ns": 1903400,
+  "rust_fitness_n2000_uniform_simple_ns": 1903500,
+  "rust_fitness_n2000_skewed_simple_ns": 1939400,
+  "rust_powerlaw_n2000_g21_ns": 950910,
+  "rust_powerlaw_n2000_g25_ns": 946790,
+  "rust_powerlaw_n2000_g30_ns": 949090,
+  "rust_powerlaw_n2000_g40_ns": 955160,
+  "rust_powerlaw_n2000_g25_fsc_on_ns": 949940,
+  "rust_powerlaw_n2000_g25_fsc_off_ns": 972050,
+  "py_baseline_ns": null,
+  "notes": "Static-fitness (Goh-Kahng-Kim 2001) + static power-law (delegates to fitness with f_i = (i + i0)^(-alpha+1)) generators. Implementation: build cumulative-fitness prefix sum once (O(n)), then sample each edge endpoint via binary search (O(log n)) — overall O(m log n). Loops/multiple-edge filtering uses an explicit retry loop with a HashSet<(u32,u32)> deduplicator and capacity-validated upfront so termination is guaranteed. Numbers above are median wall time per generator call from cargo bench --bench bench_static_fitness -- --warm-up-time 1 --measurement-time 3 --sample-size 10 on Darwin/M-series release build. Throughput is per-vertex (n) so larger n samples lower elem/s as the binary-search log factor kicks in (1.97 Melem/s at n=500 → 1.32 Melem/s at n=5000 for size_scaling). multi_with_loops ≈ 0.7× simple_no_loops because rejection sampling drops 0% of edges in the multi case; directed mirrors undirected closely because the only extra step in undirected is the canonical (min, max) tuple ordering. Power-law sweep is exponent-flat (~950 µs across γ ∈ [2.1, 4.0]) because computing the fitness vector is O(n) regardless of γ and the cumulative-sum binary search is data-pattern insensitive. FSC toggle costs ~2% (949 µs vs 972 µs at γ=2.5); the on-path solves a 1-D fixed point for i0 via Newton iterations on a power-sum, the off-path uses the closed-form Goh expression. No oracle baseline: python-igraph and rigraph both expose static_fitness_game / static_power_law_game, but RNG state is not portable to igraph's GLIBC RNG, so conformance asserts structural invariants only (vcount, ecount, directed flag, is_simple via canonical-pair set check, no_multi_edges)."
+}

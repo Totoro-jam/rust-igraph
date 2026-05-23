@@ -1,0 +1,41 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Static_Fitness(15, [1,2,3,4,5,6], [6,5,4,3,2,1], loops=True)): directed, loops allowed but parallel edges forbidden.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_fitness_game",
+  "params": {
+    "no_of_edges": 15,
+    "fitness_out": [
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0
+    ],
+    "fitness_in": [
+      6.0,
+      5.0,
+      4.0,
+      3.0,
+      2.0,
+      1.0
+    ],
+    "loops": true,
+    "multiple": false,
+    "seed": 12011005
+  },
+  "expected": {
+    "vcount": 6,
+    "directed": true,
+    "is_simple": false,
+    "no_multi_edges": true,
+    "ecount_min": 15,
+    "ecount_max": 15
+  }
+}

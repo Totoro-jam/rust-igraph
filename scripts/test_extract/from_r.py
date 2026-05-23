@@ -4380,6 +4380,248 @@ CHUNG_LU_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-GN-013 (static_fitness_game). rigraph exposes
+# sample_fitness(no.of.edges, fitness.out, fitness.in=NULL,
+# loops=FALSE, multiple=FALSE) — see references/rigraph/R/games.R.
+# Cases mirror the binding's documented happy paths. RNG state is not
+# portable; structural invariants only.
+STATIC_FITNESS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "static_fitness_r_zero_edges",
+        "origin": "constructed (mirrors sample_fitness(0, c(1,2,3,4,5))): "
+        "five isolated vertices.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 0,
+            "fitness_out": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "fitness_in": None,
+            "loops": False,
+            "multiple": False,
+            "seed": 12_021_001,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "static_fitness_r_undirected_simple",
+        "origin": "constructed (mirrors sample_fitness(12, c(1,2,3,4,5,6))): "
+        "default loops=FALSE, multiple=FALSE → simple undirected graph. "
+        "Capacity C(6,2) = 15 ≥ 12.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 12,
+            "fitness_out": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            "fitness_in": None,
+            "loops": False,
+            "multiple": False,
+            "seed": 12_021_002,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 12,
+            "ecount_max": 12,
+        },
+    },
+    {
+        "case": "static_fitness_r_undirected_loops_multi",
+        "origin": "constructed (mirrors sample_fitness(15, c(1,1,1,1,1,1), "
+        "loops=TRUE, multiple=TRUE)): permissive sampling.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 15,
+            "fitness_out": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+            "fitness_in": None,
+            "loops": True,
+            "multiple": True,
+            "seed": 12_021_003,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": False,
+            "ecount_min": 15,
+            "ecount_max": 15,
+        },
+    },
+    {
+        "case": "static_fitness_r_directed_simple",
+        "origin": "constructed (mirrors sample_fitness(15, "
+        "c(1,2,3,4,5), c(5,4,3,2,1))): directed simple. Capacity "
+        "5*4 = 20 ≥ 15.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 15,
+            "fitness_out": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "fitness_in": [5.0, 4.0, 3.0, 2.0, 1.0],
+            "loops": False,
+            "multiple": False,
+            "seed": 12_021_004,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 15,
+            "ecount_max": 15,
+        },
+    },
+    {
+        "case": "static_fitness_r_directed_loops_multi",
+        "origin": "constructed (mirrors sample_fitness(40, c(1,2,3,4), "
+        "c(4,3,2,1), loops=TRUE, multiple=TRUE)): directed, fully "
+        "permissive.",
+        "algo": "static_fitness_game",
+        "params": {
+            "no_of_edges": 40,
+            "fitness_out": [1.0, 2.0, 3.0, 4.0],
+            "fitness_in": [4.0, 3.0, 2.0, 1.0],
+            "loops": True,
+            "multiple": True,
+            "seed": 12_021_005,
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": True,
+            "ecount_min": 40,
+            "ecount_max": 40,
+        },
+    },
+]
+
+
+# ALGO-GN-013 (static_power_law_game). rigraph exposes
+# sample_fitness_pl(no.of.nodes, no.of.edges, exponent.out,
+# exponent.in=-1, loops=FALSE, multiple=FALSE,
+# finite.size.correction=TRUE). Negative exponent.in selects
+# undirected (passes -1 down to igraph C). Cases mirror the C-test
+# happy paths under R defaults.
+STATIC_POWER_LAW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "static_power_law_r_zero_edges",
+        "origin": "constructed (mirrors sample_fitness_pl(10, 0, 2.5)): "
+        "isolated graph regardless of exponent.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 10,
+            "no_of_edges": 0,
+            "exponent_out": 2.5,
+            "exponent_in": None,
+            "loops": False,
+            "multiple": False,
+            "finite_size_correction": True,
+            "seed": 12_021_101,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+        },
+    },
+    {
+        "case": "static_power_law_r_undirected_simple",
+        "origin": "constructed (mirrors sample_fitness_pl(40, 60, 2.5)): "
+        "undirected simple under R defaults.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 40,
+            "no_of_edges": 60,
+            "exponent_out": 2.5,
+            "exponent_in": None,
+            "loops": False,
+            "multiple": False,
+            "finite_size_correction": True,
+            "seed": 12_021_102,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 60,
+            "ecount_max": 60,
+        },
+    },
+    {
+        "case": "static_power_law_r_undirected_loops_only",
+        "origin": "constructed (mirrors sample_fitness_pl(60, 80, 2.2, "
+        "loops=TRUE)): undirected, loops allowed, no parallel edges.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 60,
+            "no_of_edges": 80,
+            "exponent_out": 2.2,
+            "exponent_in": None,
+            "loops": True,
+            "multiple": False,
+            "finite_size_correction": True,
+            "seed": 12_021_103,
+        },
+        "expected": {
+            "vcount": 60,
+            "directed": False,
+            "is_simple": False,
+            "no_multi_edges": True,
+            "ecount_min": 80,
+            "ecount_max": 80,
+        },
+    },
+    {
+        "case": "static_power_law_r_directed_simple",
+        "origin": "constructed (mirrors sample_fitness_pl(50, 80, 2.5, "
+        "exponent.in=2.8)): directed simple — non-negative exponent.in "
+        "selects directed shape.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 50,
+            "no_of_edges": 80,
+            "exponent_out": 2.5,
+            "exponent_in": 2.8,
+            "loops": False,
+            "multiple": False,
+            "finite_size_correction": True,
+            "seed": 12_021_104,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 80,
+            "ecount_max": 80,
+        },
+    },
+    {
+        "case": "static_power_law_r_directed_multi",
+        "origin": "constructed (mirrors sample_fitness_pl(40, 100, 2.5, "
+        "exponent.in=2.5, loops=TRUE, multiple=TRUE)): directed fully "
+        "permissive.",
+        "algo": "static_power_law_game",
+        "params": {
+            "no_of_nodes": 40,
+            "no_of_edges": 100,
+            "exponent_out": 2.5,
+            "exponent_in": 2.5,
+            "loops": True,
+            "multiple": True,
+            "finite_size_correction": True,
+            "seed": 12_021_105,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 100,
+            "ecount_max": 100,
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -4520,6 +4762,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "hsbm_game": HSBM_MANIFEST,
     "hsbm_list_game": HSBM_LIST_MANIFEST,
     "chung_lu_game": CHUNG_LU_MANIFEST,
+    "static_fitness_game": STATIC_FITNESS_MANIFEST,
+    "static_power_law_game": STATIC_POWER_LAW_MANIFEST,
 }
 
 
@@ -4621,6 +4865,8 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "hsbm_game",
             "hsbm_list_game",
             "chung_lu_game",
+            "static_fitness_game",
+            "static_power_law_game",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

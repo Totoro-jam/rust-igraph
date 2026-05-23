@@ -1,0 +1,27 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Static_Power_Law(30, 80, 2.5, multiple=True)): multi parallel edges allowed, no loops.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_power_law_game",
+  "params": {
+    "no_of_nodes": 30,
+    "no_of_edges": 80,
+    "exponent_out": 2.5,
+    "exponent_in": null,
+    "loops": false,
+    "multiple": true,
+    "finite_size_correction": true,
+    "seed": 12011105
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": false,
+    "ecount_min": 80,
+    "ecount_max": 80
+  }
+}

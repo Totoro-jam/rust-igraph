@@ -260,6 +260,11 @@ name = "bench_chung_lu"
 path = "benches/bench_chung_lu.rs"
 harness = false
 
+[[bench]]
+name = "bench_static_fitness"
+path = "benches/bench_static_fitness.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

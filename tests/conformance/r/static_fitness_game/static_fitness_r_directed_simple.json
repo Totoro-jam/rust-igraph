@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_fitness(15, c(1,2,3,4,5), c(5,4,3,2,1))): directed simple. Capacity 5*4 = 20 \u2265 15.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_fitness_game",
+  "params": {
+    "no_of_edges": 15,
+    "fitness_out": [
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0
+    ],
+    "fitness_in": [
+      5.0,
+      4.0,
+      3.0,
+      2.0,
+      1.0
+    ],
+    "loops": false,
+    "multiple": false,
+    "seed": 12021004
+  },
+  "expected": {
+    "vcount": 5,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 15,
+    "ecount_max": 15
+  }
+}

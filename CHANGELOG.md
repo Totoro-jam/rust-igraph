@@ -15,6 +15,44 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-013** — `static_fitness_game` + `static_power_law_game`
+  static-fitness / static-power-law random-graph generators. Counterparts
+  of `igraph_static_fitness_game()` and `igraph_static_power_law_game()`
+  in `references/igraph/src/games/static_fitness.c`. Both place edges by
+  drawing endpoints proportional to a per-vertex *fitness* score; the
+  power-law variant synthesises that fitness as `f_i = j^α` with
+  `α = -1/(γ-1)` (so the marginal degree distribution is asymptotically
+  `P(k) ∝ k^-γ`).
+  - `pub fn static_fitness_game(no_of_edges: u32, fitness_out: &[f64], fitness_in: Option<&[f64]>, loops: bool, multiple: bool, seed: u64) -> IgraphResult<Graph>`.
+  - `pub fn static_power_law_game(no_of_nodes: u32, no_of_edges: u32, exponent_out: f64, exponent_in: Option<f64>, loops: bool, multiple: bool, finite_size_correction: bool, seed: u64) -> IgraphResult<Graph>`.
+  - Sampler: build the cumulative-fitness prefix sum once (`O(n)`), then
+    sample each edge endpoint via `binsearch_cum_first_ge` (`O(log n)`)
+    against `U(0, Σf)`. Loops/multi-edge filtering uses an explicit retry
+    loop with a `HashSet<(u32, u32)>` deduplicator and a
+    `max_edges()`-validated capacity check upfront so termination is
+    guaranteed. Power-law also exposes the **Cho et al. (2009)
+    finite-size correction**: when `α < -0.5` the fitness offset is
+    shifted by an analytic factor that compensates for the heavy-tail
+    cut-off at finite `n`.
+  - Validation: fitness scores must be finite and non-negative; vertex
+    count bounded by `2^53` (`IGRAPH_MAX_EXACT_REAL`); `fitness_in.len()`
+    must match `fitness_out.len()` for the directed shape; for the
+    power-law variant `γ ≥ 2` (in **and** out) and not NaN; the
+    requested edge count must not exceed `max_edges(...)` capacity given
+    `loops` / `multiple` toggles.
+  - Coverage: 24 unit tests + 5 proptests (vcount / ecount / directed
+    flag invariants, `multiple=false` ⇒ no duplicate canonical pairs,
+    `loops=false` ⇒ no self-loops, `multiple=false ⇒ ecount = m`
+    exactly, exponent-NaN-rejected, fitness-correlates-with-degree at
+    `n=300`, FSC-on/off both produce valid graphs) + 36 three-source
+    conformance fixtures (16 C + 10 py + 10 R, evenly split across both
+    algorithms) asserting vcount / ecount / directedness / `is_simple` /
+    `no_multi_edges` semantics — RNG state is not portable across
+    SplitMix64 vs igraph's GLIBC RNG, so we assert structural invariants
+    only. Bench snapshot under `.codefuse/tracking/perf/ALGO-GN-013.json`
+    (e.g. uniform `f` at `n=5_000` ≈ 3.78 ms; γ-sweep at `n=2_000` ≈
+    0.95 ms across γ ∈ [2.1, 4.0]). Example under
+    `examples/static_fitness_demo.rs`.
 - **ALGO-GN-012** — `chung_lu_game` Chung–Lu expected-degree random graph
   generator. Counterpart of `igraph_chung_lu_game()` in
   `references/igraph/src/games/chung_lu.c`. Given a per-vertex weight

@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_fitness_pl(60, 80, 2.2, loops=TRUE)): undirected, loops allowed, no parallel edges.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_power_law_game",
+  "params": {
+    "no_of_nodes": 60,
+    "no_of_edges": 80,
+    "exponent_out": 2.2,
+    "exponent_in": null,
+    "loops": true,
+    "multiple": false,
+    "finite_size_correction": true,
+    "seed": 12021103
+  },
+  "expected": {
+    "vcount": 60,
+    "directed": false,
+    "is_simple": false,
+    "no_multi_edges": true,
+    "ecount_min": 80,
+    "ecount_max": 80
+  }
+}

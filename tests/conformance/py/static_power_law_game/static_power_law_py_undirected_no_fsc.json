@@ -1,0 +1,28 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Static_Power_Law(60, 100, 3.0, finite_size_correction=False)): exponent above the FSC threshold \u2014 `\u03b1 = -1/(\u03b3-1) = -0.5`, no shift required.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_power_law_game",
+  "params": {
+    "no_of_nodes": 60,
+    "no_of_edges": 100,
+    "exponent_out": 3.0,
+    "exponent_in": null,
+    "loops": false,
+    "multiple": false,
+    "finite_size_correction": false,
+    "seed": 12011103
+  },
+  "expected": {
+    "vcount": 60,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 100,
+    "ecount_max": 100
+  }
+}

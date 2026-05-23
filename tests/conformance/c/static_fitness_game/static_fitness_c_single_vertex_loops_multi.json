@@ -1,0 +1,27 @@
+{
+  "source": "c",
+  "origin": "constructed: single vertex, loops=true, multiple=true, every edge is the (0,0) self-loop.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_fitness_game",
+  "params": {
+    "no_of_edges": 5,
+    "fitness_out": [
+      1.0
+    ],
+    "fitness_in": null,
+    "loops": true,
+    "multiple": true,
+    "seed": 12001008
+  },
+  "expected": {
+    "vcount": 1,
+    "directed": false,
+    "ecount_min": 5,
+    "ecount_max": 5
+  }
+}

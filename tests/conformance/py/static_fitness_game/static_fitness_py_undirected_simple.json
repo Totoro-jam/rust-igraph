@@ -1,0 +1,35 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Static_Fitness(15, [1,2,3,4,5,6,7,8])): undirected simple, capacity C(8,2)=28 \u2265 15.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_fitness_game",
+  "params": {
+    "no_of_edges": 15,
+    "fitness_out": [
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0
+    ],
+    "fitness_in": null,
+    "loops": false,
+    "multiple": false,
+    "seed": 12011002
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 15,
+    "ecount_max": 15
+  }
+}

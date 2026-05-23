@@ -1,0 +1,35 @@
+{
+  "source": "c",
+  "origin": "constructed: undirected, loops=true, multiple=false. no_multi_edges holds (rejection drops parallel pairs) but is_simple is false because self-loops are permitted.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_fitness_game",
+  "params": {
+    "no_of_edges": 12,
+    "fitness_out": [
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0
+    ],
+    "fitness_in": null,
+    "loops": true,
+    "multiple": false,
+    "seed": 12001004
+  },
+  "expected": {
+    "vcount": 7,
+    "directed": false,
+    "is_simple": false,
+    "no_multi_edges": true,
+    "ecount_min": 12,
+    "ecount_max": 12
+  }
+}

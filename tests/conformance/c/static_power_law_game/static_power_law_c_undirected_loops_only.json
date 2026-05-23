@@ -1,0 +1,29 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_static_power_law_game.c:49 (n=90, m=40, exp_out=2.0, exp_in=-2.0 \u2192 undirected, LOOPS). loops=true, multiple=false \u2192 no_multi_edges only.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_power_law_game",
+  "params": {
+    "no_of_nodes": 90,
+    "no_of_edges": 40,
+    "exponent_out": 2.0,
+    "exponent_in": null,
+    "loops": true,
+    "multiple": false,
+    "finite_size_correction": true,
+    "seed": 12002004
+  },
+  "expected": {
+    "vcount": 90,
+    "directed": false,
+    "is_simple": false,
+    "no_multi_edges": true,
+    "ecount_min": 40,
+    "ecount_max": 40
+  }
+}

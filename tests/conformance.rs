@@ -7365,3 +7365,315 @@ fn chung_lu_game_three_source_conformance() {
         );
     }
 }
+
+fn parse_optional_f64_vec_named(
+    case: &Conformance,
+    key: &str,
+    label: &str,
+    path: &std::path::Path,
+) -> Option<Vec<f64>> {
+    let v = case.params.get(key).unwrap_or_else(|| {
+        panic!(
+            "{label} fixture {}: param `{}` missing (must be null or array)",
+            path.display(),
+            key
+        )
+    });
+    if v.is_null() {
+        return None;
+    }
+    let arr = v.as_array().unwrap_or_else(|| {
+        panic!(
+            "{label} fixture {}: param `{}` must be null or array of numbers",
+            path.display(),
+            key
+        )
+    });
+    Some(
+        arr.iter()
+            .map(|cell| {
+                cell.as_f64().unwrap_or_else(|| {
+                    panic!(
+                        "{label} fixture {}: param `{}` cell is not f64",
+                        path.display(),
+                        key
+                    )
+                })
+            })
+            .collect(),
+    )
+}
+
+fn assert_static_invariants(
+    graph: &rust_igraph::Graph,
+    case: &Conformance,
+    path: &std::path::Path,
+    want_directed: bool,
+    loops: bool,
+) {
+    use std::collections::HashSet;
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_ecount_min = er_expected_u64(case, "ecount_min", path);
+    let want_ecount_max = er_expected_u64(case, "ecount_max", path);
+
+    assert_eq!(
+        graph.vcount(),
+        want_vertices,
+        "vcount mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+    assert_eq!(
+        graph.is_directed(),
+        want_directed,
+        "directed mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+
+    let ecount = graph.ecount() as u64;
+    assert!(
+        ecount >= want_ecount_min && ecount <= want_ecount_max,
+        "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+        ecount,
+        want_ecount_min,
+        want_ecount_max,
+        path.display(),
+        case.source,
+        case.origin,
+    );
+
+    let want_is_simple = case
+        .expected
+        .get("is_simple")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false);
+    let want_no_multi = case
+        .expected
+        .get("no_multi_edges")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false);
+
+    if want_is_simple || want_no_multi {
+        let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+        let mut canonical: HashSet<(u32, u32)> = HashSet::with_capacity(n_edges as usize);
+        for eid in 0..n_edges {
+            let (a, b) = graph.edge(eid).expect("edge id within bounds");
+            if want_is_simple {
+                assert_ne!(
+                    a,
+                    b,
+                    "self-loop in {} (edge {eid})\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+            }
+            let pair = if want_directed || a <= b {
+                (a, b)
+            } else {
+                (b, a)
+            };
+            assert!(
+                canonical.insert(pair),
+                "parallel edge {pair:?} in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+        }
+    }
+
+    if !loops {
+        let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+        for eid in 0..n_edges {
+            let (a, b) = graph.edge(eid).expect("edge id within bounds");
+            assert_ne!(
+                a,
+                b,
+                "self-loop with loops=false in {} (edge {eid})\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+        }
+    }
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn static_fitness_game_three_source_conformance() {
+    // Goh-Kahng-Kim cumulative-fitness sampler. RNG state is not portable
+    // across implementations, so each fixture pins:
+    //   * vcount = len(fitness_out) (exact);
+    //   * directed = (fitness_in is not None) (exact);
+    //   * ecount in [ecount_min, ecount_max] — pinned tight to m exactly
+    //     for non-empty cases since the sampler always reaches the
+    //     requested edge count when capacity > m;
+    //   * is_simple ⇔ no self-loops and no parallel edges;
+    //   * no_multi_edges ⇔ parallel edges forbidden but loops permitted.
+    use rust_igraph::static_fitness_game;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("static_fitness_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "static_fitness_game");
+
+            let no_of_edges = er_param_u32(&case, "no_of_edges", &path);
+            let fitness_out = er_param_f64_vec(&case, "fitness_out", &path);
+            let fitness_in =
+                parse_optional_f64_vec_named(&case, "fitness_in", "static_fitness", &path);
+            let loops = er_param_bool(&case, "loops", &path);
+            let multiple = er_param_bool(&case, "multiple", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = static_fitness_game(
+                no_of_edges,
+                &fitness_out,
+                fitness_in.as_deref(),
+                loops,
+                multiple,
+                seed,
+            )
+            .expect("static_fitness_game should succeed on conformance fixtures");
+
+            let want_directed = er_expected_bool(&case, "directed", &path);
+
+            // vcount ≡ len(fitness_out); directed ≡ fitness_in.is_some().
+            // Catches manifest-typo bugs early.
+            assert_eq!(
+                want_directed,
+                fitness_in.is_some(),
+                "manifest mismatch in {}: directed={} but fitness_in.is_some()={}",
+                path.display(),
+                want_directed,
+                fitness_in.is_some(),
+            );
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            assert_eq!(
+                want_vertices as usize,
+                fitness_out.len(),
+                "manifest mismatch in {}: vcount={} but len(fitness_out)={}",
+                path.display(),
+                want_vertices,
+                fitness_out.len(),
+            );
+
+            assert_static_invariants(&graph, &case, &path, want_directed, loops);
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no static_fitness_game fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn static_power_law_game_three_source_conformance() {
+    // Goh et al. (2001) power-law wrapper around static_fitness_game with
+    // the Cho et al. (2009) finite-size correction. RNG state is not
+    // portable; each fixture pins vcount, directedness, ecount band, and
+    // is_simple / no_multi_edges where applicable.
+    use rust_igraph::static_power_law_game;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("static_power_law_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "static_power_law_game");
+
+            let no_of_nodes = er_param_u32(&case, "no_of_nodes", &path);
+            let no_of_edges = er_param_u32(&case, "no_of_edges", &path);
+            let exponent_out = er_param_f64(&case, "exponent_out", &path);
+            let exponent_in: Option<f64> = case
+                .params
+                .get("exponent_in")
+                .and_then(|v| if v.is_null() { None } else { v.as_f64() });
+            let loops = er_param_bool(&case, "loops", &path);
+            let multiple = er_param_bool(&case, "multiple", &path);
+            let finite_size_correction = er_param_bool(&case, "finite_size_correction", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = static_power_law_game(
+                no_of_nodes,
+                no_of_edges,
+                exponent_out,
+                exponent_in,
+                loops,
+                multiple,
+                finite_size_correction,
+                seed,
+            )
+            .expect("static_power_law_game should succeed on conformance fixtures");
+
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            assert_eq!(
+                want_directed,
+                exponent_in.is_some(),
+                "manifest mismatch in {}: directed={} but exponent_in.is_some()={}",
+                path.display(),
+                want_directed,
+                exponent_in.is_some(),
+            );
+
+            assert_static_invariants(&graph, &case, &path, want_directed, loops);
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no static_power_law_game fixtures from source {src}"
+        );
+    }
+}

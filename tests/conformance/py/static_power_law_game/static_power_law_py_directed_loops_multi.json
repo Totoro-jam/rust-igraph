@@ -1,0 +1,27 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Static_Power_Law(40, 60, 2.5, exponent_in=2.5, loops=True, multiple=True)): directed, fully permissive.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_power_law_game",
+  "params": {
+    "no_of_nodes": 40,
+    "no_of_edges": 60,
+    "exponent_out": 2.5,
+    "exponent_in": 2.5,
+    "loops": true,
+    "multiple": true,
+    "finite_size_correction": true,
+    "seed": 12011104
+  },
+  "expected": {
+    "vcount": 40,
+    "directed": true,
+    "ecount_min": 60,
+    "ecount_max": 60
+  }
+}

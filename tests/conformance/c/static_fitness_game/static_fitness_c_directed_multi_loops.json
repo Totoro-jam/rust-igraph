@@ -1,0 +1,39 @@
+{
+  "source": "c",
+  "origin": "constructed: directed, loops=true, multiple=true. ecount = m exactly. Larger sample to exercise the trivial sample-and-keep branch.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "static_fitness_game",
+  "params": {
+    "no_of_edges": 50,
+    "fitness_out": [
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0
+    ],
+    "fitness_in": [
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0
+    ],
+    "loops": true,
+    "multiple": true,
+    "seed": 12001007
+  },
+  "expected": {
+    "vcount": 6,
+    "directed": true,
+    "ecount_min": 50,
+    "ecount_max": 50
+  }
+}
