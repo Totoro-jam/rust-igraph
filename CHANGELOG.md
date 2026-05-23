@@ -15,6 +15,61 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-015** — `establishment_game` Caldarelli et al. (2002)
+  sample-traits growing random graph generator. Counterpart of
+  `igraph_establishment_game()` in
+  `references/igraph/src/games/citations.c:159-274`. The generator
+  starts from `k` empty seed vertices; on each subsequent step a fresh
+  vertex `i` is assigned a categorical type from `type_dist` (uniform
+  when `None`), Floyd-distinct samples `k` previous vertices, and emits
+  each candidate edge `(i, j)` independently with probability
+  `pref_matrix[type[i]][type[j]]`. Output is always simple by
+  construction — `floyd_distinct_sample` guarantees the `k` neighbours
+  are distinct, and the candidate set is always strictly previous
+  vertices, so no self-loops or multi-edges can ever appear.
+  - `pub fn establishment_game(nodes: u32, types: u32, k: u32, type_dist: Option<&[f64]>, pref_matrix: &[Vec<f64>], directed: bool, seed: u64) -> IgraphResult<(Graph, Vec<u32>)>`.
+  - Validation: `types ≥ 1`; `pref_matrix` is `types × types`,
+    finite, non-NaN, entries in `[0, 1]`; when `directed = false`,
+    `pref_matrix` must be symmetric; `type_dist` (when set) length
+    matches `types`, entries finite and non-negative.
+  - Edge cases: `nodes = 0` returns an empty `(Graph, vec![])`;
+    `nodes ≤ k` returns a `nodes`-vertex edgeless graph (the loop body
+    runs only for `i ≥ k`); `k = 0` returns an edgeless graph
+    regardless of `pref_matrix`. Per-vertex types are still assigned in
+    every case so the returned `Vec<u32>` always has length `nodes`.
+  - Coverage: 21 unit tests + 5 proptests (`types_in_range`,
+    `ecount_band`, `deterministic`, `diagonal_pref_stays_within_types`,
+    `cross_only_pref_yields_cross_edges`) under
+    `--features proptest-harness` + 9 three-source conformance
+    fixtures (3 each from C / py / R) under
+    `tests/conformance/{c,py,r}/establishment_game/` asserting
+    structural invariants only — RNG state is not portable across
+    SplitMix64 vs igraph's GLIBC RNG, so we assert `vcount = nodes`
+    (exact), `directed` flag (exact), `ecount` band (hand-derived
+    from `Σ pair-cells × p_avg` plus tolerance), `is_simple` via
+    canonical-pair `HashSet`, `max_type < types`, and (where
+    applicable) the `diagonal_only_pref` / `cross_only_pref` flags
+    that pin the edge-coloring shape.
+  - Bench at `benches/bench_establishment.rs`: a
+    `size_scaling/k4_diag` sweep at fixed `types = 4, k = 4` with a
+    diagonal `p = 0.20` pref matrix (`n ∈ {500, 5_000}`), a
+    `k_count/n1000_full` sweep at `n = 1_000, types = 2, p = 1.0`
+    over `k ∈ {1, 4, 16}`, and a `directed/n1000_3types` point with
+    an asymmetric `3 × 3` pref matrix at `n = 1_000, k = 4`.
+    Baseline at `.codefuse/tracking/perf/ALGO-GN-015.json`: the
+    size-scaling axis sits near 7.3 Melem/s (effectively linear in
+    `n`); the k-sweep degrades roughly linearly in `k` (11.5 → 4.6 →
+    1.27 Melem/s for `k = 1 → 16`); the directed asymmetric variant
+    holds 7.1 Melem/s.
+  - Example: `examples/establishment_demo.rs` builds a 2 000-vertex
+    undirected graph with `types = 3`, an assortative pref matrix
+    (0.30 within / 0.02 across), and a skewed `type_dist =
+    [0.50, 0.25, 0.25]`; prints per-type vertex counts, the
+    within-vs-cross-type edge split, and the per-type mean degree —
+    the planted assortative structure shows up as
+    > 90% within-type edges with the diagonal-heavy pref matrix.
+  - Re-exported as `rust_igraph::establishment_game`.
+
 - **ALGO-GN-014** — `preference_game` + `asymmetric_preference_game`
   block-model random-graph generators. Counterparts of
   `igraph_preference_game()` and `igraph_asymmetric_preference_game()`

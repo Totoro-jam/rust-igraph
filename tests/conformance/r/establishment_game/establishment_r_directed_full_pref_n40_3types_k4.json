@@ -1,0 +1,44 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_traits with directed=TRUE and an asymmetric pref.matrix all = 1)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "establishment_game",
+  "params": {
+    "nodes": 40,
+    "types": 3,
+    "k": 4,
+    "type_dist": null,
+    "pref_matrix": [
+      [
+        1.0,
+        0.5,
+        0.2
+      ],
+      [
+        0.5,
+        1.0,
+        0.5
+      ],
+      [
+        0.2,
+        0.5,
+        1.0
+      ]
+    ],
+    "directed": true,
+    "seed": 2222002
+  },
+  "expected": {
+    "vcount": 40,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 50,
+    "ecount_max": 144,
+    "max_type": 2
+  }
+}

@@ -55,7 +55,8 @@
     clippy::float_cmp,
     clippy::too_many_arguments,
     clippy::similar_names,
-    clippy::many_single_char_names
+    clippy::many_single_char_names,
+    clippy::needless_range_loop
 )]
 
 use crate::algorithms::games::sbm::PairShape;

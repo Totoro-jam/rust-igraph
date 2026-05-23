@@ -7,6 +7,7 @@
 pub mod barabasi;
 pub mod chung_lu;
 pub mod erdos_renyi;
+pub mod establishment;
 pub mod forestfire;
 pub mod grg;
 pub mod growing_random;

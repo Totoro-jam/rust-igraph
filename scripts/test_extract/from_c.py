@@ -3932,6 +3932,93 @@ PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ESTABLISHMENT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "establishment_c_zero_pref_no_edges_n20_2types",
+        "origin": "tests/unit/igraph_establishment_game.c:58-62 — "
+        "n=20, types=2, k=5, type_dist=(1,0), pref diag (0,1), "
+        "undirected; only type 0 sampled, p_00=0 so no edges",
+        "algo": "establishment_game",
+        "params": {
+            "nodes": 20,
+            "types": 2,
+            "k": 5,
+            "type_dist": [1.0, 0.0],
+            "pref_matrix": [
+                [0.0, 0.0],
+                [0.0, 1.0],
+            ],
+            "directed": False,
+            "seed": 9_990_001,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "max_type": 0,
+        },
+    },
+    {
+        "case": "establishment_c_bipartite_directed_n20_2types_cross_pref",
+        "origin": "tests/unit/igraph_establishment_game.c:65-72 — "
+        "n=20, types=2, k=5, type_dist=(1,1), pref off-diag 1, "
+        "directed; produces a bipartite directed graph",
+        "algo": "establishment_game",
+        "params": {
+            "nodes": 20,
+            "types": 2,
+            "k": 5,
+            "type_dist": [1.0, 1.0],
+            "pref_matrix": [
+                [0.0, 1.0],
+                [1.0, 0.0],
+            ],
+            "directed": True,
+            "seed": 9_990_002,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": True,
+            "is_simple": True,
+            # Vertices [k, n) each contribute 0..k cross edges; band wide.
+            "ecount_min": 0,
+            "ecount_max": 75,  # (n-k)*k = 75 upper bound
+            "cross_only_pref": True,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "establishment_c_full_p1_n50_3types_k4",
+        "origin": "constructed (mirrors igraph_establishment_game(n=50, "
+        "types=3, k=4, type_dist=(1,1,1), pref_matrix=ones)): every "
+        "candidate edge accepts ⇒ exactly (n-k)*k edges",
+        "algo": "establishment_game",
+        "params": {
+            "nodes": 50,
+            "types": 3,
+            "k": 4,
+            "type_dist": [1.0, 1.0, 1.0],
+            "pref_matrix": [
+                [1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0],
+            ],
+            "directed": False,
+            "seed": 9_990_003,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 184,  # (50-4)*4 = 184
+            "ecount_max": 184,
+            "max_type": 2,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -5200,6 +5287,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "forest_fire_game": FOREST_FIRE_MANIFEST,
     "preference_game": PREFERENCE_MANIFEST,
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
+    "establishment_game": ESTABLISHMENT_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5310,6 +5398,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "forest_fire_game",
             "preference_game",
             "asymmetric_preference_game",
+            "establishment_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

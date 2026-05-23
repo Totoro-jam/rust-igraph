@@ -1,0 +1,48 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_establishment_game(n=50, types=3, k=4, type_dist=(1,1,1), pref_matrix=ones)): every candidate edge accepts \u21d2 exactly (n-k)*k edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "establishment_game",
+  "params": {
+    "nodes": 50,
+    "types": 3,
+    "k": 4,
+    "type_dist": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "pref_matrix": [
+      [
+        1.0,
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0,
+        1.0
+      ]
+    ],
+    "directed": false,
+    "seed": 9990003
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 184,
+    "ecount_max": 184,
+    "max_type": 2
+  }
+}

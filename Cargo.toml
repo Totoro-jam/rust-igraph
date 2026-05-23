@@ -50,6 +50,10 @@ path = "examples/hsbm_demo.rs"
 name = "chung_lu_demo"
 path = "examples/chung_lu_demo.rs"
 
+[[example]]
+name = "establishment_demo"
+path = "examples/establishment_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -268,6 +272,11 @@ harness = false
 [[bench]]
 name = "bench_preference"
 path = "benches/bench_preference.rs"
+harness = false
+
+[[bench]]
+name = "bench_establishment"
+path = "benches/bench_establishment.rs"
 harness = false
 
 [lints.rust]

@@ -1,0 +1,40 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_establishment_game.c:58-62 \u2014 n=20, types=2, k=5, type_dist=(1,0), pref diag (0,1), undirected; only type 0 sampled, p_00=0 so no edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "establishment_game",
+  "params": {
+    "nodes": 20,
+    "types": 2,
+    "k": 5,
+    "type_dist": [
+      1.0,
+      0.0
+    ],
+    "pref_matrix": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0
+      ]
+    ],
+    "directed": false,
+    "seed": 9990001
+  },
+  "expected": {
+    "vcount": 20,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 0,
+    "max_type": 0
+  }
+}

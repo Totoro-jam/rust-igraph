@@ -3879,6 +3879,96 @@ ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-015: establishment_game. Mirrors rigraph's
+# `sample_traits(nodes, types, k, type.dist, pref.matrix, directed)`
+# — a thin R wrapper on `igraph_establishment_game`. RNG state is not
+# portable, so we encode structural invariants only.
+ESTABLISHMENT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "establishment_r_uniform_p05_n50_2types_k3",
+        "origin": "tests/testthat/test-aaa-auto.R::sample_traits "
+        "basic — sample_traits(nodes=50, types=2, k=3, "
+        "pref.matrix=full(0.5))",
+        "algo": "establishment_game",
+        "params": {
+            "nodes": 50,
+            "types": 2,
+            "k": 3,
+            "type_dist": [1.0, 1.0],
+            "pref_matrix": [
+                [0.5, 0.5],
+                [0.5, 0.5],
+            ],
+            "directed": False,
+            "seed": 2_222_001,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": False,
+            "is_simple": True,
+            # E[edges] ≈ (n-k)*k * 0.5 = 47*3*0.5 = 70.5
+            "ecount_min": 35,
+            "ecount_max": 110,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "establishment_r_directed_full_pref_n40_3types_k4",
+        "origin": "constructed (mirrors sample_traits with directed=TRUE "
+        "and an asymmetric pref.matrix all = 1)",
+        "algo": "establishment_game",
+        "params": {
+            "nodes": 40,
+            "types": 3,
+            "k": 4,
+            "type_dist": None,
+            "pref_matrix": [
+                [1.0, 0.5, 0.2],
+                [0.5, 1.0, 0.5],
+                [0.2, 0.5, 1.0],
+            ],
+            "directed": True,
+            "seed": 2_222_002,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "is_simple": True,
+            # E[edges] ≈ (40-4)*4 * mean(pref) = 144 * (5.4/9) = 86.4
+            "ecount_min": 50,
+            "ecount_max": 144,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "establishment_r_full_p1_three_types_k1",
+        "origin": "constructed (mirrors sample_traits with k=1 and "
+        "pref.matrix=ones): exactly (n-k) edges",
+        "algo": "establishment_game",
+        "params": {
+            "nodes": 25,
+            "types": 3,
+            "k": 1,
+            "type_dist": None,
+            "pref_matrix": [
+                [1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0],
+            ],
+            "directed": False,
+            "seed": 2_222_003,
+        },
+        "expected": {
+            "vcount": 25,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 24,  # (n-k)*k = 24
+            "ecount_max": 24,
+            "max_type": 2,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -4953,6 +5043,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "forest_fire_game": FOREST_FIRE_MANIFEST,
     "preference_game": PREFERENCE_MANIFEST,
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
+    "establishment_game": ESTABLISHMENT_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5058,6 +5149,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "forest_fire_game",
             "preference_game",
             "asymmetric_preference_game",
+            "establishment_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

@@ -3620,6 +3620,98 @@ ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-015: establishment_game. Mirrors ig.Graph.Establishment(
+# n, k, type_dist, pref_matrix, ...) — Cython wrapper on
+# `igraph_establishment_game`. RNG state is not portable across
+# implementations; structural invariants only.
+ESTABLISHMENT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "establishment_py_uniform_full_p1_n40_2types_k3",
+        "origin": "tests/test_games.py::testEstablishment — "
+        "Graph.Establishment(n=40, k=3, type_dist=None, "
+        "pref_matrix=ones(2,2)): every Floyd pick accepts ⇒ "
+        "exactly (n-k)*k = 111 edges",
+        "algo": "establishment_game",
+        "params": {
+            "nodes": 40,
+            "types": 2,
+            "k": 3,
+            "type_dist": None,
+            "pref_matrix": [
+                [1.0, 1.0],
+                [1.0, 1.0],
+            ],
+            "directed": False,
+            "seed": 9_992_001,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 111,
+            "ecount_max": 111,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "establishment_py_diag_only_n60_3types_k4",
+        "origin": "constructed (mirrors Graph.Establishment): three types "
+        "at uniform mass, diagonal pref 0.5; edges stay within types",
+        "algo": "establishment_game",
+        "params": {
+            "nodes": 60,
+            "types": 3,
+            "k": 4,
+            "type_dist": [1.0, 1.0, 1.0],
+            "pref_matrix": [
+                [0.5, 0.0, 0.0],
+                [0.0, 0.5, 0.0],
+                [0.0, 0.0, 0.5],
+            ],
+            "directed": False,
+            "seed": 9_992_002,
+        },
+        "expected": {
+            "vcount": 60,
+            "directed": False,
+            "is_simple": True,
+            # Each step accepts diagonal candidates only when same-type
+            # neighbour is sampled. Pr[same type] = 1/3 at uniform; expected
+            # edges ≈ (60-4)*4 * (1/3) * 0.5 ≈ 37; band wide.
+            "ecount_min": 12,
+            "ecount_max": 80,
+            "diagonal_only_pref": True,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "establishment_py_zero_pref_edgeless_n30",
+        "origin": "constructed (mirrors Graph.Establishment with pref=0): "
+        "isolated vertices, types still assigned",
+        "algo": "establishment_game",
+        "params": {
+            "nodes": 30,
+            "types": 2,
+            "k": 5,
+            "type_dist": None,
+            "pref_matrix": [
+                [0.0, 0.0],
+                [0.0, 0.0],
+            ],
+            "directed": False,
+            "seed": 9_992_003,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "max_type": 1,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors
 # `ig.Graph.SBM`-like factory `ig.Graph.SimpleInterconnectedIslands(
 # islands_n, islands_size, islands_pin, n_inter)` (Cython wrapper on
@@ -4650,6 +4742,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "forest_fire_game": FOREST_FIRE_MANIFEST,
     "preference_game": PREFERENCE_MANIFEST,
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
+    "establishment_game": ESTABLISHMENT_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -4755,6 +4848,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "forest_fire_game",
             "preference_game",
             "asymmetric_preference_game",
+            "establishment_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

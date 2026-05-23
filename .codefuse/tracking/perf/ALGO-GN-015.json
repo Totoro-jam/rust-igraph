@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-GN-015",
+  "captured_at": "2026-05-24",
+  "git_commit": "ce04c46",
+  "rust_size_k4_diag_n500_ns": 68301,
+  "rust_size_k4_diag_n5000_ns": 677680,
+  "rust_k1_n1000_full_ns": 86534,
+  "rust_k4_n1000_full_ns": 215320,
+  "rust_k16_n1000_full_ns": 788230,
+  "rust_directed_3types_n1000_ns": 140600,
+  "py_baseline_ns": null,
+  "notes": "Establishment / sample-traits growing model (Caldarelli et al. 2002). Each new vertex i >= k Floyd-samples k distinct previous vertices and accepts every candidate edge (i, j) with probability pref_matrix[type[i]][type[j]]; vertex types are categorical-sampled (or uniform when type_dist=None) and stored alongside the Graph in the returned tuple. Throughput stays near 7-7.4 Melem/s on the size_scaling/k4_diag axis (effectively linear-time in n: each new vertex does k Floyd picks + k cumdist binary-searches for type lookups + k Bernoulli draws), and degrades roughly linearly in k on the k_count axis (n=1000, p=1 saturates accept), as expected. The directed/n1000_3types case at 140.6 us holds in-line with the diagonal-only undirected case once you account for the asymmetric pref matrix paying a slightly higher edge-ecount cost. No oracle baseline: igraph C exposes igraph_establishment_game and python-igraph exposes Graph.Establishment but the RNG state isn't portable, so conformance asserts structural invariants only (vcount, max_type < types, ecount band, simple-by-construction, optional diagonal_only / cross_only edge-coloring flags). Numbers from cargo bench --bench bench_establishment -- --quick on Darwin/M-series release build."
+}
