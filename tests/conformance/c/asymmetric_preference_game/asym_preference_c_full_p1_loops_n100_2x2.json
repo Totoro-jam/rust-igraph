@@ -1,0 +1,38 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_preference_game.c:193-212 \u2014 n=100, 2x2 pref all 1, loops on; ecount = 10000 exactly, 100 self-loops",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "asymmetric_preference_game",
+  "params": {
+    "nodes": 100,
+    "no_out_types": 2,
+    "no_in_types": 2,
+    "type_dist_matrix": null,
+    "pref_matrix": [
+      [
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    "loops": true,
+    "seed": 8880002
+  },
+  "expected": {
+    "vcount": 100,
+    "directed": true,
+    "is_simple": false,
+    "ecount_min": 10000,
+    "ecount_max": 10000,
+    "max_out_type": 1,
+    "max_in_type": 1
+  }
+}

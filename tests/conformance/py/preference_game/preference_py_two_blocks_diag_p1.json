@@ -1,0 +1,42 @@
+{
+  "source": "py",
+  "origin": "tests/test_games.py::testPreference \u2014 Graph.Preference(100, [1,1], [[1,0],[0,1]]) yields exactly 2 connected components (each a complete graph on ~50 vertices)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "preference_game",
+  "params": {
+    "nodes": 100,
+    "types": 2,
+    "type_dist": [
+      1.0,
+      1.0
+    ],
+    "fixed_sizes": false,
+    "pref_matrix": [
+      [
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0
+      ]
+    ],
+    "directed": false,
+    "loops": false,
+    "seed": 9990001
+  },
+  "expected": {
+    "vcount": 100,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 1700,
+    "ecount_max": 2700,
+    "diagonal_only_pref": true,
+    "max_type": 1
+  }
+}

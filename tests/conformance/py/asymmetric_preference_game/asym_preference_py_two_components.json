@@ -1,0 +1,47 @@
+{
+  "source": "py",
+  "origin": "tests/test_games.py::testAsymmetricPreference \u2014 Graph.Asymmetric_Preference(100, [[0,1],[1,0]], [[0,1],[1,0]]) yields 2 weakly connected components (vertices with same out_type/in_type pair stay disjoint)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "asymmetric_preference_game",
+  "params": {
+    "nodes": 100,
+    "no_out_types": 2,
+    "no_in_types": 2,
+    "type_dist_matrix": [
+      [
+        0.0,
+        1.0
+      ],
+      [
+        1.0,
+        0.0
+      ]
+    ],
+    "pref_matrix": [
+      [
+        0.0,
+        1.0
+      ],
+      [
+        1.0,
+        0.0
+      ]
+    ],
+    "loops": false,
+    "seed": 9991001
+  },
+  "expected": {
+    "vcount": 100,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 4500,
+    "ecount_max": 5500,
+    "max_out_type": 1,
+    "max_in_type": 1
+  }
+}

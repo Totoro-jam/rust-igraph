@@ -265,6 +265,11 @@ name = "bench_static_fitness"
 path = "benches/bench_static_fitness.rs"
 harness = false
 
+[[bench]]
+name = "bench_preference"
+path = "benches/bench_preference.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

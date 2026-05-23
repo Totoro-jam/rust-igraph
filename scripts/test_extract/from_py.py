@@ -3423,6 +3423,203 @@ FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-014: preference_game. Mirrors ig.Graph.Preference(n, type_dist,
+# pref_matrix, ...) — Cython wrapper on `igraph_preference_game`. RNG
+# state is not portable across implementations, so we capture
+# structural invariants only.
+PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "preference_py_two_blocks_diag_p1",
+        "origin": "tests/test_games.py::testPreference — "
+        "Graph.Preference(100, [1,1], [[1,0],[0,1]]) yields exactly 2 "
+        "connected components (each a complete graph on ~50 vertices)",
+        "algo": "preference_game",
+        "params": {
+            "nodes": 100,
+            "types": 2,
+            "type_dist": [1.0, 1.0],
+            "fixed_sizes": False,
+            "pref_matrix": [
+                [1.0, 0.0],
+                [0.0, 1.0],
+            ],
+            "directed": False,
+            "loops": False,
+            "seed": 9_990_001,
+        },
+        "expected": {
+            "vcount": 100,
+            "directed": False,
+            "is_simple": True,
+            # Two K_~50 cliques: each ~50*49/2 ≈ 1225, total ≈ 2450.
+            # Use a generous band tolerant to type-balance variance.
+            "ecount_min": 1_700,
+            "ecount_max": 2_700,
+            "diagonal_only_pref": True,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "preference_py_three_blocks_diag_sparse",
+        "origin": "constructed (mirrors ig.Graph.Preference): three "
+        "balanced blocks at p=0.4 within, 0 across",
+        "algo": "preference_game",
+        "params": {
+            "nodes": 60,
+            "types": 3,
+            "type_dist": None,
+            "fixed_sizes": True,
+            "pref_matrix": [
+                [0.4, 0.0, 0.0],
+                [0.0, 0.4, 0.0],
+                [0.0, 0.0, 0.4],
+            ],
+            "directed": False,
+            "loops": False,
+            "seed": 9_990_002,
+        },
+        "expected": {
+            "vcount": 60,
+            "directed": False,
+            "is_simple": True,
+            # 3 blocks of size 20: 3 * C(20,2) * 0.4 ≈ 228; band ±50%.
+            "ecount_min": 130,
+            "ecount_max": 340,
+            "diagonal_only_pref": True,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "preference_py_zero_pref_isolates",
+        "origin": "constructed (mirrors ig.Graph.Preference with "
+        "pref_matrix all zero): vcount preserved, edgeless",
+        "algo": "preference_game",
+        "params": {
+            "nodes": 30,
+            "types": 2,
+            "type_dist": [1.0, 1.0],
+            "fixed_sizes": False,
+            "pref_matrix": [
+                [0.0, 0.0],
+                [0.0, 0.0],
+            ],
+            "directed": False,
+            "loops": False,
+            "seed": 9_990_003,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "diagonal_only_pref": False,
+            "max_type": 1,
+        },
+    },
+]
+
+# ALGO-GN-014: asymmetric_preference_game. Mirrors
+# ig.Graph.Asymmetric_Preference(n, type_dist_matrix, pref_matrix, ...).
+ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "asym_preference_py_two_components",
+        "origin": "tests/test_games.py::testAsymmetricPreference — "
+        "Graph.Asymmetric_Preference(100, [[0,1],[1,0]], [[0,1],[1,0]]) "
+        "yields 2 weakly connected components (vertices with same "
+        "out_type/in_type pair stay disjoint)",
+        "algo": "asymmetric_preference_game",
+        "params": {
+            "nodes": 100,
+            "no_out_types": 2,
+            "no_in_types": 2,
+            "type_dist_matrix": [
+                [0.0, 1.0],
+                [1.0, 0.0],
+            ],
+            "pref_matrix": [
+                [0.0, 1.0],
+                [1.0, 0.0],
+            ],
+            "loops": False,
+            "seed": 9_991_001,
+        },
+        "expected": {
+            "vcount": 100,
+            "directed": True,
+            "is_simple": True,
+            # Vertices split into two halves with (out=0,in=1) and
+            # (out=1,in=0). Cross edges populate (0,1) and (1,0)
+            # cells at p=1, intra-cell at p=0. Approx 100*100/2 ≈ 5000
+            # off-diag cell rich; conservative band.
+            "ecount_min": 4_500,
+            "ecount_max": 5_500,
+            "max_out_type": 1,
+            "max_in_type": 1,
+        },
+    },
+    {
+        "case": "asym_preference_py_balanced_diag",
+        "origin": "constructed (mirrors Graph.Asymmetric_Preference): "
+        "joint type_dist diagonal so out_type==in_type for every "
+        "vertex; pref_matrix diagonal at p=0.6",
+        "algo": "asymmetric_preference_game",
+        "params": {
+            "nodes": 40,
+            "no_out_types": 2,
+            "no_in_types": 2,
+            "type_dist_matrix": [
+                [1.0, 0.0],
+                [0.0, 1.0],
+            ],
+            "pref_matrix": [
+                [0.6, 0.0],
+                [0.0, 0.6],
+            ],
+            "loops": False,
+            "seed": 9_991_002,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "is_simple": True,
+            # 2 balanced blocks of size ~20; each at p=0.6 over 20*20-20
+            # off-diag slots ≈ 0.6*380 ≈ 228; total ≈ 456.
+            "ecount_min": 250,
+            "ecount_max": 600,
+            "max_out_type": 1,
+            "max_in_type": 1,
+        },
+    },
+    {
+        "case": "asym_preference_py_zero_pref_edgeless",
+        "origin": "constructed (mirrors Graph.Asymmetric_Preference "
+        "with pref_matrix all zero): edgeless, types in range",
+        "algo": "asymmetric_preference_game",
+        "params": {
+            "nodes": 25,
+            "no_out_types": 2,
+            "no_in_types": 3,
+            "type_dist_matrix": None,
+            "pref_matrix": [
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+            ],
+            "loops": False,
+            "seed": 9_991_003,
+        },
+        "expected": {
+            "vcount": 25,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "max_out_type": 1,
+            "max_in_type": 2,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors
 # `ig.Graph.SBM`-like factory `ig.Graph.SimpleInterconnectedIslands(
 # islands_n, islands_size, islands_pin, n_inter)` (Cython wrapper on
@@ -4451,6 +4648,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "tree_game_lerw": TREE_LERW_MANIFEST,
     "grg_game": GRG_MANIFEST,
     "forest_fire_game": FOREST_FIRE_MANIFEST,
+    "preference_game": PREFERENCE_MANIFEST,
+    "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -4554,6 +4753,8 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "tree_game_lerw",
             "grg_game",
             "forest_fire_game",
+            "preference_game",
+            "asymmetric_preference_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

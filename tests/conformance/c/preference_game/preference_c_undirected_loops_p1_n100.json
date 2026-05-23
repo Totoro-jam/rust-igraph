@@ -1,0 +1,50 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_preference_game.c:97-114 \u2014 n=100, types=3, pref diag=1.0, undirected with loops; ecount lower bound 1395 from upstream assertion",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "preference_game",
+  "params": {
+    "nodes": 100,
+    "types": 3,
+    "type_dist": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "fixed_sizes": false,
+    "pref_matrix": [
+      [
+        1.0,
+        0.1,
+        0.1
+      ],
+      [
+        0.1,
+        1.0,
+        0.1
+      ],
+      [
+        0.1,
+        0.1,
+        1.0
+      ]
+    ],
+    "directed": false,
+    "loops": true,
+    "seed": 7770002
+  },
+  "expected": {
+    "vcount": 100,
+    "directed": false,
+    "is_simple": false,
+    "ecount_min": 1395,
+    "ecount_max": 5500,
+    "diagonal_only_pref": false,
+    "max_type": 2
+  }
+}

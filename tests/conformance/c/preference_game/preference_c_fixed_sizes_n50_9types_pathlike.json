@@ -1,0 +1,130 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_preference_game.c:139-160 \u2014 n=50 split evenly into 9 types, off-tridiagonal pref 0.1, undirected, no loops",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "preference_game",
+  "params": {
+    "nodes": 50,
+    "types": 9,
+    "type_dist": null,
+    "fixed_sizes": true,
+    "pref_matrix": [
+      [
+        0.0,
+        0.1,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.1,
+        0.0,
+        0.1,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.1,
+        0.0,
+        0.1,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.1,
+        0.0,
+        0.1,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.1,
+        0.0,
+        0.1,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.1,
+        0.0,
+        0.1,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.1,
+        0.0,
+        0.1,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.1,
+        0.0,
+        0.1
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.1,
+        0.0
+      ]
+    ],
+    "directed": false,
+    "loops": false,
+    "seed": 7770003
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 8,
+    "ecount_max": 80,
+    "diagonal_only_pref": false,
+    "max_type": 8
+  }
+}

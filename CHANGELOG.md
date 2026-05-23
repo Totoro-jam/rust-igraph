@@ -15,6 +15,39 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-014** — `preference_game` + `asymmetric_preference_game`
+  block-model random-graph generators. Counterparts of
+  `igraph_preference_game()` and `igraph_asymmetric_preference_game()`
+  in `references/igraph/src/games/preference.c`. The symmetric variant
+  draws a single per-vertex type from a categorical `type_dist` (or
+  partitions vertices deterministically when `fixed_sizes=true`), then
+  for each block pair `(i, j)` runs the Batagelj–Brandes geometric-skip
+  sampler over the `vids_by_type[i] × vids_by_type[j]` indirection.
+  The asymmetric variant draws each vertex's `(out_type, in_type)` from
+  a joint cumulative distribution over `type_dist_matrix` and is always
+  directed; it reuses the `PairShape` enum from `sbm.rs` to iterate
+  every `(out_type, in_type)` cell.
+  - `pub fn preference_game(nodes: u32, types: u32, type_dist: Option<&[f64]>, fixed_sizes: bool, pref_matrix: &[Vec<f64>], directed: bool, loops: bool, seed: u64) -> IgraphResult<(Graph, Vec<u32>)>`.
+  - `pub fn asymmetric_preference_game(nodes: u32, no_out_types: u32, no_in_types: u32, type_dist_matrix: Option<&[Vec<f64>]>, pref_matrix: &[Vec<f64>], loops: bool, seed: u64) -> IgraphResult<(Graph, Vec<u32>, Vec<u32>)>`.
+  - Validation: `pref_matrix` square (symmetric variant) or
+    `no_out_types × no_in_types` (asymmetric); when undirected,
+    `pref_matrix` must be symmetric; `type_dist` length matches `types`
+    and entries non-negative; when `fixed_sizes=true` and `type_dist`
+    is provided, the entries are interpreted as integer block sizes
+    that must sum to `nodes`; `type_dist_matrix` (when set) is a
+    `no_out_types × no_in_types` non-negative matrix.
+  - Coverage: 39 unit tests + 8 proptests (vcount / directed flag /
+    no-self-loops when `loops=false` / diagonal-pref keeps edges
+    in-block / `fixed_sizes` equal-split counts / determinism per
+    seed for both shapes / asymmetric vcount / asymmetric
+    no-self-loops / asymmetric determinism) + 18 three-source
+    conformance fixtures (3 C + 3 py + 3 R per algorithm) asserting
+    structural invariants only — RNG state is not portable across
+    SplitMix64 vs igraph's GLIBC RNG. Bench snapshot under
+    `.codefuse/tracking/perf/ALGO-GN-014.json` (size scaling at
+    `n=5_000, k=4` ≈ 19.6 ms; `k=2 → 8` sweep at `n=1_000` shows
+    cost shrinks as block size drops; asymmetric at `n=1_000, 2×3` ≈
+    2.07 ms no-loops). Example under `examples/preference_demo.rs`.
 - **ALGO-GN-013** — `static_fitness_game` + `static_power_law_game`
   static-fitness / static-power-law random-graph generators. Counterparts
   of `igraph_static_fitness_game()` and `igraph_static_power_law_game()`

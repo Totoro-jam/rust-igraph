@@ -3822,6 +3822,207 @@ FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-014: preference_game. Mirrors `igraph_preference_game` in
+# games/preference.c (Faust–Wasserman block model). RNG state is not
+# portable across implementations, so we capture structural invariants
+# only — vcount, directed flag, types-in-range, no_loops/no_multiple
+# (when expected.is_simple), per-block edge containment when the pref
+# matrix is block-diagonal, and a generous ecount band.
+PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "preference_c_undirected_n1000_3types_diag02",
+        "origin": "tests/unit/igraph_preference_game.c:46-65 — "
+        "n=1000, types=3, type_dist=(1,1,1), pref diag=0.2, "
+        "undirected, no loops",
+        "algo": "preference_game",
+        "params": {
+            "nodes": 1000,
+            "types": 3,
+            "type_dist": [1.0, 1.0, 1.0],
+            "fixed_sizes": False,
+            "pref_matrix": [
+                [0.2, 0.0, 0.0],
+                [0.0, 0.2, 0.0],
+                [0.0, 0.0, 0.2],
+            ],
+            "directed": False,
+            "loops": False,
+            "seed": 7_770_001,
+        },
+        "expected": {
+            "vcount": 1000,
+            "directed": False,
+            "is_simple": True,
+            # Each diagonal block is K(~333) with edge probability 0.2.
+            # E[edges] ≈ 3 · C(333,2) · 0.2 ≈ 33222, give a wide band.
+            "ecount_min": 25_000,
+            "ecount_max": 42_000,
+            "diagonal_only_pref": True,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "preference_c_undirected_loops_p1_n100",
+        "origin": "tests/unit/igraph_preference_game.c:97-114 — "
+        "n=100, types=3, pref diag=1.0, undirected with loops; "
+        "ecount lower bound 1395 from upstream assertion",
+        "algo": "preference_game",
+        "params": {
+            "nodes": 100,
+            "types": 3,
+            "type_dist": [1.0, 1.0, 1.0],
+            "fixed_sizes": False,
+            "pref_matrix": [
+                [1.0, 0.1, 0.1],
+                [0.1, 1.0, 0.1],
+                [0.1, 0.1, 1.0],
+            ],
+            "directed": False,
+            "loops": True,
+            "seed": 7_770_002,
+        },
+        "expected": {
+            "vcount": 100,
+            "directed": False,
+            "is_simple": False,
+            # 3 diag blocks × C(~33+loops,2) at p=1, plus off-diag at 0.1.
+            "ecount_min": 1_395,
+            "ecount_max": 5_500,
+            "diagonal_only_pref": False,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "preference_c_fixed_sizes_n50_9types_pathlike",
+        "origin": "tests/unit/igraph_preference_game.c:139-160 — "
+        "n=50 split evenly into 9 types, off-tridiagonal pref 0.1, "
+        "undirected, no loops",
+        "algo": "preference_game",
+        "params": {
+            "nodes": 50,
+            "types": 9,
+            "type_dist": None,
+            "fixed_sizes": True,
+            "pref_matrix": [
+                [0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.1, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.1, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.1],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0],
+            ],
+            "directed": False,
+            "loops": False,
+            "seed": 7_770_003,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": False,
+            "is_simple": True,
+            # 8 connecting type-pairs, each ~ 5*6=30 or 6*6=36 slots,
+            # at p=0.1 ≈ 24-30 edges total; allow wide band for RNG.
+            "ecount_min": 8,
+            "ecount_max": 80,
+            "diagonal_only_pref": False,
+            "max_type": 8,
+        },
+    },
+]
+
+ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
+        "origin": "tests/unit/igraph_preference_game.c:170-191 — "
+        "n=100, 2x3 pref all 1, no loops; ecount = 9900 exactly",
+        "algo": "asymmetric_preference_game",
+        "params": {
+            "nodes": 100,
+            "no_out_types": 2,
+            "no_in_types": 3,
+            "type_dist_matrix": None,
+            "pref_matrix": [
+                [1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0],
+            ],
+            "loops": False,
+            "seed": 8_880_001,
+        },
+        "expected": {
+            "vcount": 100,
+            "directed": True,
+            "is_simple": True,
+            # Loops removed: 100*100 - 100 = 9900.
+            "ecount_min": 9_900,
+            "ecount_max": 9_900,
+            "max_out_type": 1,
+            "max_in_type": 2,
+        },
+    },
+    {
+        "case": "asym_preference_c_full_p1_loops_n100_2x2",
+        "origin": "tests/unit/igraph_preference_game.c:193-212 — "
+        "n=100, 2x2 pref all 1, loops on; ecount = 10000 exactly, "
+        "100 self-loops",
+        "algo": "asymmetric_preference_game",
+        "params": {
+            "nodes": 100,
+            "no_out_types": 2,
+            "no_in_types": 2,
+            "type_dist_matrix": None,
+            "pref_matrix": [
+                [1.0, 1.0],
+                [1.0, 1.0],
+            ],
+            "loops": True,
+            "seed": 8_880_002,
+        },
+        "expected": {
+            "vcount": 100,
+            "directed": True,
+            "is_simple": False,
+            "ecount_min": 10_000,
+            "ecount_max": 10_000,
+            "max_out_type": 1,
+            "max_in_type": 1,
+        },
+    },
+    {
+        "case": "asym_preference_c_pinned_types_3x2",
+        "origin": "tests/unit/igraph_preference_game.c:216-238 — "
+        "n=10, type_dist_matrix pins (out=2, in=0) for every vertex",
+        "algo": "asymmetric_preference_game",
+        "params": {
+            "nodes": 10,
+            "no_out_types": 3,
+            "no_in_types": 2,
+            "type_dist_matrix": [
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [1.0, 0.0],
+            ],
+            "pref_matrix": [
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+            ],
+            "loops": True,
+            "seed": 8_880_003,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "max_out_type": 2,
+            "max_in_type": 0,
+        },
+    },
+]
+
 ISLANDS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "islands_c_4islands_size20_pin03_inter2",
@@ -4997,6 +5198,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "tree_game_lerw": TREE_LERW_MANIFEST,
     "grg_game": GRG_MANIFEST,
     "forest_fire_game": FOREST_FIRE_MANIFEST,
+    "preference_game": PREFERENCE_MANIFEST,
+    "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5105,6 +5308,8 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "tree_game_lerw",
             "grg_game",
             "forest_fire_game",
+            "preference_game",
+            "asymmetric_preference_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

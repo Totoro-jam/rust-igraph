@@ -3683,6 +3683,202 @@ FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-014: preference_game. Mirrors rigraph's `sample_pref(nodes,
+# types, type.dist, fixed.sizes, pref.matrix, ...)` — the auto-bound
+# `preference_game_impl`. RNG state is not portable, so we encode
+# structural invariants only.
+PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "preference_r_n5_2types_uniform",
+        "origin": "tests/testthat/test-aaa-auto.R::preference_game_impl basic — "
+        "nodes=5, types=2, type_dist=c(0.5,0.5), pref_matrix all 0.5",
+        "algo": "preference_game",
+        "params": {
+            "nodes": 5,
+            "types": 2,
+            "type_dist": [0.5, 0.5],
+            "fixed_sizes": False,
+            "pref_matrix": [
+                [0.5, 0.5],
+                [0.5, 0.5],
+            ],
+            "directed": False,
+            "loops": False,
+            "seed": 1_110_001,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "is_simple": True,
+            # 5 vertices, undirected, max 10 edges; expect roughly half.
+            "ecount_min": 0,
+            "ecount_max": 10,
+            "diagonal_only_pref": False,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "preference_r_fixed_sizes_balanced_diag",
+        "origin": "constructed (mirrors sample_pref): fixed_sizes=TRUE "
+        "evenly splits nodes; diagonal pref keeps edges in-block",
+        "algo": "preference_game",
+        "params": {
+            "nodes": 24,
+            "types": 4,
+            "type_dist": None,
+            "fixed_sizes": True,
+            "pref_matrix": [
+                [0.5, 0.0, 0.0, 0.0],
+                [0.0, 0.5, 0.0, 0.0],
+                [0.0, 0.0, 0.5, 0.0],
+                [0.0, 0.0, 0.0, 0.5],
+            ],
+            "directed": False,
+            "loops": False,
+            "seed": 1_110_002,
+        },
+        "expected": {
+            "vcount": 24,
+            "directed": False,
+            "is_simple": True,
+            # 4 blocks of 6, each C(6,2)*0.5 = 7.5; total ≈ 30.
+            "ecount_min": 12,
+            "ecount_max": 60,
+            "diagonal_only_pref": True,
+            "max_type": 3,
+        },
+    },
+    {
+        "case": "preference_r_directed_full_pref",
+        "origin": "constructed (mirrors sample_pref): directed graph, "
+        "uniform pref 0.3 across all type pairs",
+        "algo": "preference_game",
+        "params": {
+            "nodes": 30,
+            "types": 3,
+            "type_dist": [1.0, 1.0, 1.0],
+            "fixed_sizes": False,
+            "pref_matrix": [
+                [0.3, 0.3, 0.3],
+                [0.3, 0.3, 0.3],
+                [0.3, 0.3, 0.3],
+            ],
+            "directed": True,
+            "loops": False,
+            "seed": 1_110_003,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": True,
+            "is_simple": True,
+            # Directed, no loops, max 30*29 = 870 edges; E ≈ 0.3 * 870 = 261.
+            "ecount_min": 180,
+            "ecount_max": 360,
+            "diagonal_only_pref": False,
+            "max_type": 2,
+        },
+    },
+]
+
+# ALGO-GN-014: asymmetric_preference_game. Mirrors rigraph's
+# `sample_asym_pref(nodes, types, type.dist.matrix, pref.matrix, ...)`
+# (auto-bound `asymmetric_preference_game_impl`).
+ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "asym_preference_r_n5_2x2_uniform",
+        "origin": "tests/testthat/test-aaa-auto.R::asymmetric_preference_game_impl "
+        "basic — nodes=5, 2x2 type_dist_matrix and pref_matrix all 0.5",
+        "algo": "asymmetric_preference_game",
+        "params": {
+            "nodes": 5,
+            "no_out_types": 2,
+            "no_in_types": 2,
+            "type_dist_matrix": [
+                [0.5, 0.5],
+                [0.5, 0.5],
+            ],
+            "pref_matrix": [
+                [0.5, 0.5],
+                [0.5, 0.5],
+            ],
+            "loops": False,
+            "seed": 1_111_001,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": True,
+            "is_simple": True,
+            # 5 vertices, no loops ⇒ 5*4 = 20 directed slot ceiling.
+            "ecount_min": 0,
+            "ecount_max": 20,
+            "max_out_type": 1,
+            "max_in_type": 1,
+        },
+    },
+    {
+        "case": "asym_preference_r_block_balanced_p06",
+        "origin": "constructed (mirrors sample_asym_pref): joint dist "
+        "diagonal pins out_type==in_type for every vertex; pref diagonal "
+        "p=0.6",
+        "algo": "asymmetric_preference_game",
+        "params": {
+            "nodes": 30,
+            "no_out_types": 3,
+            "no_in_types": 3,
+            "type_dist_matrix": [
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0],
+            ],
+            "pref_matrix": [
+                [0.6, 0.0, 0.0],
+                [0.0, 0.6, 0.0],
+                [0.0, 0.0, 0.6],
+            ],
+            "loops": True,
+            "seed": 1_111_002,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": True,
+            "is_simple": False,
+            # 3 blocks of 10 each; each block: 10*10=100 slots at p=0.6
+            # => 60 edges (incl. self-loops). Total ≈ 180; allow band.
+            "ecount_min": 100,
+            "ecount_max": 240,
+            "max_out_type": 2,
+            "max_in_type": 2,
+        },
+    },
+    {
+        "case": "asym_preference_r_zero_pref_edgeless",
+        "origin": "constructed (mirrors sample_asym_pref with "
+        "pref_matrix all zero): vcount preserved, edgeless",
+        "algo": "asymmetric_preference_game",
+        "params": {
+            "nodes": 20,
+            "no_out_types": 2,
+            "no_in_types": 2,
+            "type_dist_matrix": None,
+            "pref_matrix": [
+                [0.0, 0.0],
+                [0.0, 0.0],
+            ],
+            "loops": False,
+            "seed": 1_111_003,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "max_out_type": 1,
+            "max_in_type": 1,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -4755,6 +4951,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "tree_game_lerw": TREE_LERW_MANIFEST,
     "grg_game": GRG_MANIFEST,
     "forest_fire_game": FOREST_FIRE_MANIFEST,
+    "preference_game": PREFERENCE_MANIFEST,
+    "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -4858,6 +5056,8 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "tree_game_lerw",
             "grg_game",
             "forest_fire_game",
+            "preference_game",
+            "asymmetric_preference_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

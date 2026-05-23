@@ -1,0 +1,61 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_asym_pref): joint dist diagonal pins out_type==in_type for every vertex; pref diagonal p=0.6",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "asymmetric_preference_game",
+  "params": {
+    "nodes": 30,
+    "no_out_types": 3,
+    "no_in_types": 3,
+    "type_dist_matrix": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "pref_matrix": [
+      [
+        0.6,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.6,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.6
+      ]
+    ],
+    "loops": true,
+    "seed": 1111002
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": true,
+    "is_simple": false,
+    "ecount_min": 100,
+    "ecount_max": 240,
+    "max_out_type": 2,
+    "max_in_type": 2
+  }
+}

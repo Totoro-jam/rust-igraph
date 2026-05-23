@@ -1,0 +1,47 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Asymmetric_Preference): joint type_dist diagonal so out_type==in_type for every vertex; pref_matrix diagonal at p=0.6",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "asymmetric_preference_game",
+  "params": {
+    "nodes": 40,
+    "no_out_types": 2,
+    "no_in_types": 2,
+    "type_dist_matrix": [
+      [
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0
+      ]
+    ],
+    "pref_matrix": [
+      [
+        0.6,
+        0.0
+      ],
+      [
+        0.0,
+        0.6
+      ]
+    ],
+    "loops": false,
+    "seed": 9991002
+  },
+  "expected": {
+    "vcount": 40,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 250,
+    "ecount_max": 600,
+    "max_out_type": 1,
+    "max_in_type": 1
+  }
+}

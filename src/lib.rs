@@ -110,6 +110,7 @@ pub use crate::algorithms::games::growing_random::growing_random_game;
 pub use crate::algorithms::games::hsbm::{hsbm_game, hsbm_list_game};
 pub use crate::algorithms::games::islands::simple_interconnected_islands_game;
 pub use crate::algorithms::games::k_regular::k_regular_game;
+pub use crate::algorithms::games::preference::{asymmetric_preference_game, preference_game};
 pub use crate::algorithms::games::sbm::sbm_game;
 pub use crate::algorithms::games::static_fitness::{static_fitness_game, static_power_law_game};
 pub use crate::algorithms::games::tree::tree_game_lerw;

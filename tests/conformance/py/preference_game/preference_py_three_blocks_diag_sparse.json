@@ -1,0 +1,46 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Preference): three balanced blocks at p=0.4 within, 0 across",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "preference_game",
+  "params": {
+    "nodes": 60,
+    "types": 3,
+    "type_dist": null,
+    "fixed_sizes": true,
+    "pref_matrix": [
+      [
+        0.4,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.4,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.4
+      ]
+    ],
+    "directed": false,
+    "loops": false,
+    "seed": 9990002
+  },
+  "expected": {
+    "vcount": 60,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 130,
+    "ecount_max": 340,
+    "diagonal_only_pref": true,
+    "max_type": 2
+  }
+}

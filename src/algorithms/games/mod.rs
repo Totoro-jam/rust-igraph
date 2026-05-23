@@ -13,6 +13,7 @@ pub mod growing_random;
 pub mod hsbm;
 pub mod islands;
 pub mod k_regular;
+pub mod preference;
 pub mod sbm;
 pub mod static_fitness;
 pub mod tree;

@@ -7677,3 +7677,394 @@ fn static_power_law_game_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + invariant checks
+fn preference_game_three_source_conformance() {
+    // Symmetric preference-game sampler. RNG state is not portable across
+    // implementations, so each fixture pins parameters and bands the
+    // structural invariants:
+    //   * vcount = nodes (exact);
+    //   * directed flag exact;
+    //   * ecount lies in a generous band [ecount_min, ecount_max];
+    //   * when expected.is_simple = true, no parallel edges and no
+    //     self-loops (unless `loops=true`, in which case self-loops
+    //     are tolerated but still tracked uniquely);
+    //   * every assigned type stays in [0, max_type];
+    //   * when expected.diagonal_only_pref = true, every edge connects
+    //     two vertices of the same type (the manifest's pref matrix
+    //     is block-diagonal).
+    use rust_igraph::preference_game;
+    use std::collections::HashSet;
+
+    fn parse_type_dist(case: &Conformance) -> Option<Vec<f64>> {
+        let raw = case.params.get("type_dist")?;
+        if raw.is_null() {
+            return None;
+        }
+        raw.as_array().map(|arr| {
+            arr.iter()
+                .map(|cell| {
+                    cell.as_f64()
+                        .expect("preference fixture: type_dist cell not f64")
+                })
+                .collect()
+        })
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("preference_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "preference_game");
+
+            let nodes = er_param_u32(&case, "nodes", &path);
+            let types = er_param_u32(&case, "types", &path);
+            let type_dist_owned = parse_type_dist(&case);
+            let fixed_sizes = er_param_bool(&case, "fixed_sizes", &path);
+            let pref_matrix = er_param_f64_matrix(&case, "pref_matrix", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let loops = er_param_bool(&case, "loops", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let (graph, node_types) = preference_game(
+                nodes,
+                types,
+                type_dist_owned.as_deref(),
+                fixed_sizes,
+                &pref_matrix,
+                directed,
+                loops,
+                seed,
+            )
+            .expect("preference_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_is_simple = er_expected_bool(&case, "is_simple", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+            let want_max_type = er_expected_u32(&case, "max_type", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            assert_eq!(
+                node_types.len(),
+                nodes as usize,
+                "node_types length mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            for (v, &t) in node_types.iter().enumerate() {
+                assert!(
+                    t <= want_max_type,
+                    "vertex {v} has type {t} > max_type {want_max_type} in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+            }
+
+            let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+
+            if want_is_simple {
+                let mut canonical: HashSet<(u32, u32)> = HashSet::with_capacity(n_edges as usize);
+                for eid in 0..n_edges {
+                    let (a, b) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for preference fixture");
+                    if !loops {
+                        assert_ne!(
+                            a,
+                            b,
+                            "self-loop in {} (edge {eid})\n  source: {}\n  origin: {}",
+                            path.display(),
+                            case.source,
+                            case.origin,
+                        );
+                    }
+                    let pair = if directed || a <= b { (a, b) } else { (b, a) };
+                    assert!(
+                        canonical.insert(pair),
+                        "multi-edge {pair:?} in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            if let Some(true) = case
+                .expected
+                .get("diagonal_only_pref")
+                .and_then(serde_json::Value::as_bool)
+            {
+                for eid in 0..n_edges {
+                    let (u, v) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for preference fixture");
+                    let tu = node_types[u as usize];
+                    let tv = node_types[v as usize];
+                    assert_eq!(
+                        tu,
+                        tv,
+                        "edge {u}-{v} crosses types ({tu} vs {tv}) in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no preference_game fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + invariant checks
+fn asymmetric_preference_game_three_source_conformance() {
+    // Asymmetric preference-game sampler. Always directed. RNG state is
+    // not portable across implementations, so each fixture pins
+    // parameters and bands the structural invariants:
+    //   * vcount = nodes (exact);
+    //   * directed = true (model is always directed);
+    //   * ecount lies in a generous band [ecount_min, ecount_max];
+    //   * when expected.is_simple = true, no parallel edges and no
+    //     self-loops (unless `loops=true`);
+    //   * every out-type stays in [0, max_out_type];
+    //   * every in-type stays in [0, max_in_type].
+    use rust_igraph::asymmetric_preference_game;
+    use std::collections::HashSet;
+
+    fn parse_type_dist_matrix(case: &Conformance) -> Option<Vec<Vec<f64>>> {
+        let raw = case.params.get("type_dist_matrix")?;
+        if raw.is_null() {
+            return None;
+        }
+        raw.as_array().map(|outer| {
+            outer
+                .iter()
+                .map(|row| {
+                    row.as_array()
+                        .expect("asymmetric_preference fixture: type_dist_matrix row not array")
+                        .iter()
+                        .map(|cell| {
+                            cell.as_f64().expect(
+                                "asymmetric_preference fixture: type_dist_matrix cell not f64",
+                            )
+                        })
+                        .collect()
+                })
+                .collect()
+        })
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("asymmetric_preference_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "asymmetric_preference_game");
+
+            let nodes = er_param_u32(&case, "nodes", &path);
+            let no_out_types = er_param_u32(&case, "no_out_types", &path);
+            let no_in_types = er_param_u32(&case, "no_in_types", &path);
+            let type_dist_matrix_owned = parse_type_dist_matrix(&case);
+            let pref_matrix = er_param_f64_matrix(&case, "pref_matrix", &path);
+            let loops = er_param_bool(&case, "loops", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let (graph, node_out, node_in) = asymmetric_preference_game(
+                nodes,
+                no_out_types,
+                no_in_types,
+                type_dist_matrix_owned.as_deref(),
+                &pref_matrix,
+                loops,
+                seed,
+            )
+            .expect("asymmetric_preference_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_is_simple = er_expected_bool(&case, "is_simple", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+            let want_max_out_type = er_expected_u32(&case, "max_out_type", &path);
+            let want_max_in_type = er_expected_u32(&case, "max_in_type", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            assert_eq!(
+                node_out.len(),
+                nodes as usize,
+                "node_out length mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                node_in.len(),
+                nodes as usize,
+                "node_in length mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            for (v, &t) in node_out.iter().enumerate() {
+                assert!(
+                    t <= want_max_out_type,
+                    "vertex {v} has out_type {t} > max_out_type {want_max_out_type} in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+            }
+            for (v, &t) in node_in.iter().enumerate() {
+                assert!(
+                    t <= want_max_in_type,
+                    "vertex {v} has in_type {t} > max_in_type {want_max_in_type} in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+            }
+
+            if want_is_simple {
+                let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+                let mut canonical: HashSet<(u32, u32)> = HashSet::with_capacity(n_edges as usize);
+                for eid in 0..n_edges {
+                    let (a, b) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for asymmetric preference fixture");
+                    if !loops {
+                        assert_ne!(
+                            a,
+                            b,
+                            "self-loop in {} (edge {eid})\n  source: {}\n  origin: {}",
+                            path.display(),
+                            case.source,
+                            case.origin,
+                        );
+                    }
+                    assert!(
+                        canonical.insert((a, b)),
+                        "multi-edge ({a},{b}) in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no asymmetric_preference_game fixtures from source {src}"
+        );
+    }
+}

@@ -1,0 +1,55 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_preference_game.c:216-238 \u2014 n=10, type_dist_matrix pins (out=2, in=0) for every vertex",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "asymmetric_preference_game",
+  "params": {
+    "nodes": 10,
+    "no_out_types": 3,
+    "no_in_types": 2,
+    "type_dist_matrix": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        0.0
+      ]
+    ],
+    "pref_matrix": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    "loops": true,
+    "seed": 8880003
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 0,
+    "max_out_type": 2,
+    "max_in_type": 0
+  }
+}

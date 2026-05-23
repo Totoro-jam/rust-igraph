@@ -1,0 +1,42 @@
+{
+  "source": "r",
+  "origin": "tests/testthat/test-aaa-auto.R::preference_game_impl basic \u2014 nodes=5, types=2, type_dist=c(0.5,0.5), pref_matrix all 0.5",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "preference_game",
+  "params": {
+    "nodes": 5,
+    "types": 2,
+    "type_dist": [
+      0.5,
+      0.5
+    ],
+    "fixed_sizes": false,
+    "pref_matrix": [
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "directed": false,
+    "loops": false,
+    "seed": 1110001
+  },
+  "expected": {
+    "vcount": 5,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 10,
+    "diagonal_only_pref": false,
+    "max_type": 1
+  }
+}

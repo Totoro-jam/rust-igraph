@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-GN-014",
+  "captured_at": "2026-05-23",
+  "git_commit": "cdc1bf2",
+  "rust_size_scaling_k4_diag_n500_ns": 138430,
+  "rust_size_scaling_k4_diag_n5000_ns": 19555000,
+  "rust_type_count_n1000_diag_k2_ns": 1549300,
+  "rust_type_count_n1000_diag_k4_ns": 572860,
+  "rust_type_count_n1000_diag_k8_ns": 368380,
+  "rust_fixed_sizes_vs_random_random_dist_ns": 886280,
+  "rust_fixed_sizes_vs_random_fixed_sizes_equal_ns": 760910,
+  "rust_asymmetric_n1000_2x3_no_loops_ns": 2072300,
+  "rust_asymmetric_n1000_2x3_with_loops_ns": 2476800,
+  "py_baseline_ns": null,
+  "notes": "Symmetric `preference_game` and `asymmetric_preference_game`. Each (i, j) block is sampled with the per-pair Batagelj-Brandes geometric-skip routine over a `vids_by_type` indirection table. As k grows at fixed n, per-block size shrinks quadratically while pair count grows triangularly, so total work decreases — visible in the type_count sweep (k=2: 1.5 ms vs k=8: 0.37 ms). The `fixed_sizes` variant skips the categorical-draw loop and is ~14% faster than the stochastic-assignment path at n=1000, k=4. The asymmetric variant uses a (no_out × no_in) joint cumulative distribution per vertex and visits every (out, in) pair via SBM's `PairShape` helper; loops=true adds 20% overhead because the (out, in) pair `(t, t)` for shared types samples a self-loop column that has to be remapped for the no-loops case. RNG state is not portable across implementations, so conformance asserts structural invariants only (vcount, directed flag, ecount band, is_simple, per-vertex types within range, diagonal-only-pref edge containment). Numbers from cargo bench --bench bench_preference -- --quick on Darwin/M-series release build."
+}
