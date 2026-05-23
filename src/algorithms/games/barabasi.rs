@@ -289,7 +289,7 @@ mod tests {
             deg[dst as usize] += 1;
         }
         let mut indexed: Vec<(usize, u32)> = deg.iter().copied().enumerate().collect();
-        indexed.sort_by(|a, b| b.1.cmp(&a.1));
+        indexed.sort_by_key(|b| std::cmp::Reverse(b.1));
         let top5: Vec<usize> = indexed.iter().take(5).map(|(v, _)| *v).collect();
         assert!(
             top5.contains(&0),

@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ind = in_degrees(&g);
     let outd = out_degrees(&g);
 
-    println!("forest fire: n = {n}, fw_prob = {fw_prob}, bw_factor = {bw_factor}, ambs = {ambs}",);
+    println!("forest fire: n = {n}, fw_prob = {fw_prob}, bw_factor = {bw_factor}, ambs = {ambs}");
     println!("  edges        = {}", g.ecount());
     println!("  mean in-deg  = {:.2}", mean(&ind));
     println!("  mean out-deg = {:.2}", mean(&outd));

@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         deg[dst as usize] += 1;
     }
     let mut indexed: Vec<(usize, u32)> = deg.iter().copied().enumerate().collect();
-    indexed.sort_by(|a, b| b.1.cmp(&a.1));
+    indexed.sort_by_key(|b| std::cmp::Reverse(b.1));
     println!("Top-10 hubs (vertex_id: total_degree):");
     for (v, d) in indexed.iter().take(10) {
         println!("  {v:>3}: {d}");
