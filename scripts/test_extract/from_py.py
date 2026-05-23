@@ -3239,6 +3239,51 @@ GROWING_RANDOM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-004: tree_game (LERW method). Generator — RNG state is not
+# portable, so structural invariants only:
+#   - vcount = n
+#   - ecount = max(0, n - 1)  (exact spanning-tree edge count)
+#   - directed matches the requested flag
+#   - the edge set is a tree (acyclic + connected on the undirected
+#     projection) — checked by union-find in the Rust harness
+#
+# python-igraph reference API: `ig.Graph.Tree_Game(n=n, directed=directed,
+# method="lerw")`. Not invoked here — seed is RNG-dependent.
+TREE_LERW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "tree_lerw_py_undirected_n10",
+        "origin": "constructed (mirrors ig.Graph.Tree_Game(n=10, "
+        "directed=False, method='lerw')): small undirected spanning tree",
+        "algo": "tree_game_lerw",
+        "params": {"n": 10, "directed": False, "seed": 101_010},
+        "expected": {"vcount": 10, "ecount": 9, "directed": False, "is_tree": True},
+    },
+    {
+        "case": "tree_lerw_py_undirected_n50",
+        "origin": "constructed (mirrors ig.Graph.Tree_Game(n=50, "
+        "directed=False, method='lerw')): medium undirected spanning tree",
+        "algo": "tree_game_lerw",
+        "params": {"n": 50, "directed": False, "seed": 202_020},
+        "expected": {"vcount": 50, "ecount": 49, "directed": False, "is_tree": True},
+    },
+    {
+        "case": "tree_lerw_py_directed_n30",
+        "origin": "constructed (mirrors ig.Graph.Tree_Game(n=30, "
+        "directed=True, method='lerw')): directed spanning tree, edges "
+        "point parent→child in walk order",
+        "algo": "tree_game_lerw",
+        "params": {"n": 30, "directed": True, "seed": 303_030},
+        "expected": {"vcount": 30, "ecount": 29, "directed": True, "is_tree": True},
+    },
+    {
+        "case": "tree_lerw_py_n0_empty",
+        "origin": "constructed: n=0 returns empty graph",
+        "algo": "tree_game_lerw",
+        "params": {"n": 0, "directed": False, "seed": 404_040},
+        "expected": {"vcount": 0, "ecount": 0, "directed": False, "is_tree": False},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3365,6 +3410,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,
     "growing_random_game": GROWING_RANDOM_MANIFEST,
+    "tree_game_lerw": TREE_LERW_MANIFEST,
 }
 
 
@@ -3456,6 +3502,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "erdos_renyi_gnm",
             "barabasi_game_bag",
             "growing_random_game",
+            "tree_game_lerw",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

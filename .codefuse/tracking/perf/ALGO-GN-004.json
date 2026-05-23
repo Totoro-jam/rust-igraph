@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-GN-004",
+  "captured_at": "2026-05-23",
+  "git_commit": "18a3dc5",
+  "rust_undirected_n100_ns": 4510,
+  "rust_undirected_n1000_ns": 39884,
+  "rust_undirected_n10000_ns": 562680,
+  "rust_directed_n100_ns": 4637,
+  "rust_directed_n1000_ns": 40514,
+  "rust_directed_n10000_ns": 566930,
+  "py_baseline_ns": null,
+  "notes": "Uniform spanning tree via Wilson loop-erased random walk (igraph_tree_game LERW path). Linear O(n) work amortised — the visited/unvisited partition trick (vertices[0..k) visited, vertices[k..n) unvisited) lets every iteration emit exactly one edge with at most two RNG draws and no rejection loop. Hot loop is ~22-25 Melem/s vertices for n ≤ 1 000 (the bool[] cache fits in L1) and stays ~17.6 Melem/s at n = 10 000 once the bool[] (≈10 KB) plus the edge buffer (≈80 KB) cross the L1/L2 boundary; the algorithm never touches the graph itself during sampling, so the only memory pressure is the 3 × n auxiliary buffers. Directed and undirected paths are within 1 % — the algorithm is direction-agnostic and only `Graph::new`'s tag bit and the final ingest order differ. No oracle baseline: python-igraph exposes Graph.Tree_Game but their RNG state is not portable, so conformance asserts structural invariants only (vcount, ecount = n - 1, acyclic + connected, directed in-degree = 1 for non-roots). Numbers from cargo bench --bench bench_tree_game -- --quick on Darwin/M-series release build."
+}

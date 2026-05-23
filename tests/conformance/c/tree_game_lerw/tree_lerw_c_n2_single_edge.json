@@ -1,0 +1,22 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_tree_game boundary n=2): a single edge between vertices 0 and 1",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_game_lerw",
+  "params": {
+    "n": 2,
+    "directed": false,
+    "seed": 3333333
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 1,
+    "directed": false,
+    "is_tree": true
+  }
+}

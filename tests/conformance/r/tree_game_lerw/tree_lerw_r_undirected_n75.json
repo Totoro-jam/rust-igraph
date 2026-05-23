@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_tree(n=75, directed=FALSE, method='lerw')): larger undirected spanning tree",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_game_lerw",
+  "params": {
+    "n": 75,
+    "directed": false,
+    "seed": 808080
+  },
+  "expected": {
+    "vcount": 75,
+    "ecount": 74,
+    "directed": false,
+    "is_tree": true
+  }
+}

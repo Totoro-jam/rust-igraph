@@ -207,6 +207,11 @@ name = "bench_growing_random"
 path = "benches/bench_growing_random.rs"
 harness = false
 
+[[bench]]
+name = "bench_tree_game"
+path = "benches/bench_tree_game.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

@@ -1,0 +1,22 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_tree_game(n=40, directed=true, method=IGRAPH_RANDOM_TREE_LERW)): directed Wilson tree",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_game_lerw",
+  "params": {
+    "n": 40,
+    "directed": true,
+    "seed": 2222222
+  },
+  "expected": {
+    "vcount": 40,
+    "ecount": 39,
+    "directed": true,
+    "is_tree": true
+  }
+}

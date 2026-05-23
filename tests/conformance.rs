@@ -5638,3 +5638,158 @@ fn growing_random_game_three_source_conformance() {
         );
     }
 }
+
+struct TreeUnionFind {
+    parent: Vec<u32>,
+}
+
+impl TreeUnionFind {
+    fn new(n: u32) -> Self {
+        Self {
+            parent: (0..n).collect(),
+        }
+    }
+    fn find(&mut self, mut x: u32) -> u32 {
+        while self.parent[x as usize] != x {
+            let p = self.parent[x as usize];
+            self.parent[x as usize] = self.parent[p as usize];
+            x = self.parent[x as usize];
+        }
+        x
+    }
+    fn union(&mut self, a: u32, b: u32) -> bool {
+        let ra = self.find(a);
+        let rb = self.find(b);
+        if ra == rb {
+            false
+        } else {
+            self.parent[ra as usize] = rb;
+            true
+        }
+    }
+}
+
+fn assert_spanning_tree(
+    graph: &rust_igraph::Graph,
+    path: &std::path::Path,
+    source: &str,
+    origin: &str,
+) {
+    let n_vertices = graph.vcount();
+    let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32 in conformance");
+    let mut uf = TreeUnionFind::new(n_vertices);
+    for eid in 0..n_edges {
+        let (a, b) = graph.edge(eid).expect("conformance edge id in bounds");
+        assert_ne!(
+            a,
+            b,
+            "tree must not contain self-loop in {}\n  source: {source}\n  origin: {origin}",
+            path.display(),
+        );
+        assert!(
+            uf.union(a, b),
+            "tree must not contain a cycle in {}: edge ({a}, {b}) closed one\n  source: {source}\n  origin: {origin}",
+            path.display(),
+        );
+    }
+    if n_vertices > 0 {
+        let root = uf.find(0);
+        for v in 1..n_vertices {
+            assert_eq!(
+                uf.find(v),
+                root,
+                "tree must be connected in {}: vertex {v} is in a different component\n  source: {source}\n  origin: {origin}",
+                path.display(),
+            );
+        }
+    }
+}
+
+#[test]
+fn tree_game_lerw_three_source_conformance() {
+    // Wilson LERW spanning-tree generator. Structural invariants only —
+    // RNG state is not portable across implementations:
+    //   * vcount = params.n (exact)
+    //   * ecount = max(0, n - 1) (exact spanning-tree edge count)
+    //   * directed flag exact
+    //   * is_tree: the edge set is acyclic AND connected when projected
+    //     onto the undirected graph (union-find check).
+    use rust_igraph::tree_game_lerw;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("tree_game_lerw");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "tree_game_lerw");
+
+            let n = er_param_u32(&case, "n", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = tree_game_lerw(n, directed, seed)
+                .expect("tree_game_lerw should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_edges = er_expected_u64(&case, "ecount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_is_tree = er_expected_bool(&case, "is_tree", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.ecount() as u64,
+                want_edges,
+                "ecount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            if want_is_tree {
+                assert_spanning_tree(&graph, &path, &case.source, &case.origin);
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no tree_game_lerw fixtures from source {src}"
+        );
+    }
+}

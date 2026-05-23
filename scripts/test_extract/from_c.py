@@ -3662,6 +3662,38 @@ GROWING_RANDOM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-004: tree_game (LERW). Mirrors `igraph_tree_game` with
+# `IGRAPH_RANDOM_TREE_LERW`. RNG state is not portable, so we encode
+# structural invariants only — vcount, ecount=max(0, n-1), directed flag,
+# and the spanning-tree property (acyclic + connected on the undirected
+# projection, checked by union-find in the Rust harness).
+TREE_LERW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "tree_lerw_c_undirected_n20",
+        "origin": "constructed (mirrors igraph_tree_game(n=20, directed=false, "
+        "method=IGRAPH_RANDOM_TREE_LERW)): small spanning tree",
+        "algo": "tree_game_lerw",
+        "params": {"n": 20, "directed": False, "seed": 1_111_111},
+        "expected": {"vcount": 20, "ecount": 19, "directed": False, "is_tree": True},
+    },
+    {
+        "case": "tree_lerw_c_directed_n40",
+        "origin": "constructed (mirrors igraph_tree_game(n=40, directed=true, "
+        "method=IGRAPH_RANDOM_TREE_LERW)): directed Wilson tree",
+        "algo": "tree_game_lerw",
+        "params": {"n": 40, "directed": True, "seed": 2_222_222},
+        "expected": {"vcount": 40, "ecount": 39, "directed": True, "is_tree": True},
+    },
+    {
+        "case": "tree_lerw_c_n2_single_edge",
+        "origin": "constructed (mirrors igraph_tree_game boundary n=2): a "
+        "single edge between vertices 0 and 1",
+        "algo": "tree_game_lerw",
+        "params": {"n": 2, "directed": False, "seed": 3_333_333},
+        "expected": {"vcount": 2, "ecount": 1, "directed": False, "is_tree": True},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3792,6 +3824,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,
     "growing_random_game": GROWING_RANDOM_MANIFEST,
+    "tree_game_lerw": TREE_LERW_MANIFEST,
 }
 
 
@@ -3888,6 +3921,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "erdos_renyi_gnm",
             "barabasi_game_bag",
             "growing_random_game",
+            "tree_game_lerw",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

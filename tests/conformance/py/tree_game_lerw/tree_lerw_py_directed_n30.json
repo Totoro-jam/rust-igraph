@@ -1,0 +1,22 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Tree_Game(n=30, directed=True, method='lerw')): directed spanning tree, edges point parent\u2192child in walk order",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_game_lerw",
+  "params": {
+    "n": 30,
+    "directed": true,
+    "seed": 303030
+  },
+  "expected": {
+    "vcount": 30,
+    "ecount": 29,
+    "directed": true,
+    "is_tree": true
+  }
+}

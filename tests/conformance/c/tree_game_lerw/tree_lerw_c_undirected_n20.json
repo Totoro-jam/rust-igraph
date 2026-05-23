@@ -1,0 +1,22 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_tree_game(n=20, directed=false, method=IGRAPH_RANDOM_TREE_LERW)): small spanning tree",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_game_lerw",
+  "params": {
+    "n": 20,
+    "directed": false,
+    "seed": 1111111
+  },
+  "expected": {
+    "vcount": 20,
+    "ecount": 19,
+    "directed": false,
+    "is_tree": true
+  }
+}

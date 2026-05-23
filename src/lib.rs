@@ -104,6 +104,7 @@ pub use crate::algorithms::connectivity::transitive_closure::transitive_closure;
 pub use crate::algorithms::games::barabasi::barabasi_game_bag;
 pub use crate::algorithms::games::erdos_renyi::{erdos_renyi_gnm, erdos_renyi_gnp};
 pub use crate::algorithms::games::growing_random::growing_random_game;
+pub use crate::algorithms::games::tree::tree_game_lerw;
 pub use crate::algorithms::io::edgelist::read_edgelist;
 pub use crate::algorithms::operators::complementer::complementer;
 pub use crate::algorithms::operators::difference::difference;

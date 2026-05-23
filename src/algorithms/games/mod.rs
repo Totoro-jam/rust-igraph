@@ -7,3 +7,4 @@
 pub mod barabasi;
 pub mod erdos_renyi;
 pub mod growing_random;
+pub mod tree;

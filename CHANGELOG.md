@@ -15,6 +15,48 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-004** — `tree_game_lerw` uniform random labelled-tree generator
+  via Wilson's loop-erased random walk. Counterpart of
+  `igraph_tree_game(..., IGRAPH_RANDOM_TREE_LERW)` in
+  `references/igraph/src/games/tree.c:72-139`. The Prüfer-sequence
+  alternative (`IGRAPH_RANDOM_TREE_PRUFER`) is deferred — it depends on
+  `igraph_from_prufer`, which is not yet ported.
+  - `tree_game_lerw(n: u32, directed: bool, seed: u64) -> IgraphResult<Graph>`.
+    Samples a labelled tree on `n` vertices uniformly at random
+    (every one of Cayley's `n^{n-2}` trees has equal probability) by
+    performing a loop-erased random walk on the complete graph `K_n`.
+    The classical visited/unvisited partition trick (`vertices[0..k)`
+    visited, `[k, n)` unvisited; resample from the unvisited tail when
+    the first draw hits a visited slot) collapses the walk into a
+    single linear pass — every iteration emits exactly one edge with
+    at most two RNG draws and no rejection loop.
+  - Cost: `O(n)` time, `O(n)` auxiliary memory (one `Vec<u32>`, one
+    `Vec<bool>`, one `Vec<(u32, u32)>`); the graph itself is never
+    touched during sampling.
+  - Edge count is deterministic: exactly `max(0, n − 1)` edges. Output
+    is always a spanning tree (acyclic + connected). In `directed`
+    mode the tree is out-rooted at the random initial vertex; every
+    non-root vertex has in-degree exactly 1.
+  - Deterministic given `(n, directed, seed)` via the `SplitMix64`
+    PRNG shared with the other generators.
+  - Allocation-safe: caps `n` at `u32::MAX` and reserves all buffers
+    exactly so absurd inputs error cleanly rather than panic.
+  - Conformance: 10 fixtures (3 C + 4 py + 3 R) under
+    `tests/conformance/{c,py,r}/tree_game_lerw/`. RNG state is not
+    portable across implementations, so fixtures are hand-derived and
+    assert structural invariants only — `vcount == n`,
+    `ecount == max(0, n − 1)`, and (for `is_tree == true` cases) a
+    union-find pass verifies acyclic + connected.
+  - Bench at `benches/bench_tree_game.rs` (undirected + directed
+    groups, `n ∈ {100, 1 000, 10 000}`). Baseline at
+    `.codefuse/tracking/perf/ALGO-GN-004.json`: ≈ 22-25 Melem/s
+    vertices for `n ≤ 1 000` (the bool-visited array fits in L1),
+    dropping to ≈ 17.6 Melem/s at `n = 10 000` once buffers cross
+    L1/L2. Directed and undirected paths are within 1 %.
+  - Example: `examples/tree_game_demo.rs` showing the spanning-tree
+    invariants and a BFS-depth histogram from the random root.
+  - Re-exported as `rust_igraph::tree_game_lerw`.
+
 - **ALGO-GN-003** — `growing_random_game` uniform-kernel growing random
   graph generator. Counterpart of `igraph_growing_random_game()` in
   `references/igraph/src/games/growing_random.c:55-105`.

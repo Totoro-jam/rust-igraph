@@ -3521,6 +3521,37 @@ GROWING_RANDOM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-004: tree_game (LERW). Mirrors rigraph's
+# `sample_tree(n, directed, method = "lerw")` (`sample_tree_game` in
+# C-level wrapper). Generator — seed not portable, structural invariants
+# only.
+TREE_LERW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "tree_lerw_r_undirected_n15",
+        "origin": "constructed (mirrors sample_tree(n=15, directed=FALSE, "
+        "method='lerw')): small undirected spanning tree",
+        "algo": "tree_game_lerw",
+        "params": {"n": 15, "directed": False, "seed": 707_070},
+        "expected": {"vcount": 15, "ecount": 14, "directed": False, "is_tree": True},
+    },
+    {
+        "case": "tree_lerw_r_undirected_n75",
+        "origin": "constructed (mirrors sample_tree(n=75, directed=FALSE, "
+        "method='lerw')): larger undirected spanning tree",
+        "algo": "tree_game_lerw",
+        "params": {"n": 75, "directed": False, "seed": 808_080},
+        "expected": {"vcount": 75, "ecount": 74, "directed": False, "is_tree": True},
+    },
+    {
+        "case": "tree_lerw_r_directed_n25",
+        "origin": "constructed (mirrors sample_tree(n=25, directed=TRUE, "
+        "method='lerw')): directed spanning tree, walk-rooted",
+        "algo": "tree_game_lerw",
+        "params": {"n": 25, "directed": True, "seed": 909_090},
+        "expected": {"vcount": 25, "ecount": 24, "directed": True, "is_tree": True},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3651,6 +3682,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,
     "growing_random_game": GROWING_RANDOM_MANIFEST,
+    "tree_game_lerw": TREE_LERW_MANIFEST,
 }
 
 
@@ -3742,6 +3774,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "erdos_renyi_gnm",
             "barabasi_game_bag",
             "growing_random_game",
+            "tree_game_lerw",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural
