@@ -3332,6 +3332,62 @@ REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-MST-001: minimum_spanning_tree. Upstream C
+# tests/unit/minimum_spanning_tree.c builds an Erdős–Rényi graph with a
+# fixed RNG seed (77685), which is not portable to Rust without porting
+# the upstream RNG. We instead encode the three branches the C source
+# exercises (BFS-unweighted spanning forest at spanning_trees.c:70;
+# Prim at spanning_trees.c:176; Kruskal at spanning_trees.c:337) on
+# tiny hand-derived graphs where the MST is uniquely determined by edge
+# weights, then assert the matroid invariant (total weight + edge count)
+# rather than exact edge IDs.
+SPANNING_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "spanning_tree_c_k4_distinct_weights_automatic",
+        # K4 with strictly increasing weights → MST = 3 lightest edges
+        # 0,1,2 incident to vertex 0 (total = 6.0). Automatic dispatch
+        # (weights provided ⇒ Kruskal per spanning_trees.c:461 dispatch).
+        "origin": "constructed (mirrors spanning_trees.c igraph_minimum_spanning_tree "
+        "AUTOMATIC dispatch with weights): K4 with edge weights [1..6]",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "graph_weights": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+        "algo": "minimum_spanning_tree",
+        "params": {"method": "automatic"},
+        "expected": {"total_weight": 6.0, "edge_count": 3},
+    },
+    {
+        "case": "spanning_tree_c_p4_unweighted_bfs",
+        # Already-a-tree path — UNWEIGHTED dispatch returns the same
+        # tree (spanning_trees.c:70 BFS branch).
+        "origin": "constructed (mirrors spanning_trees.c "
+        "igraph_i_minimum_spanning_tree_unweighted): P4 chain",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "minimum_spanning_tree",
+        "params": {"method": "unweighted"},
+        "expected": {"total_weight": 3.0, "edge_count": 3},
+    },
+    {
+        "case": "spanning_tree_c_triangle_with_heavy_diagonal_prim",
+        # Triangle with one heavy edge (5) and two light edges (1, 2) —
+        # Prim must drop the 5-weight edge (spanning_trees.c:176 branch).
+        "origin": "constructed (mirrors spanning_trees.c "
+        "igraph_i_minimum_spanning_tree_prim): triangle (1, 2, 5)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (0, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 2.0, 5.0],
+        "algo": "minimum_spanning_tree",
+        "params": {"method": "prim"},
+        "expected": {"total_weight": 3.0, "edge_count": 2},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3457,6 +3513,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "voronoi": VORONOI_MANIFEST,
     "ecc": ECC_PR031_MANIFEST,
     "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
+    "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
 }
 
 

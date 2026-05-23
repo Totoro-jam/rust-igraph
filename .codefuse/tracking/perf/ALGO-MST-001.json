@@ -1,0 +1,21 @@
+{
+  "awu": "ALGO-MST-001",
+  "captured_at": "2026-05-23",
+  "git_commit": "15143ed",
+  "rust_karate_unweighted_ns": 388,
+  "rust_karate_kruskal_ns": 988,
+  "rust_karate_prim_ns": 2531,
+  "rust_karate_automatic_weighted_ns": 388,
+  "rust_synthetic_sparse_n1000_kruskal_ns": 5049,
+  "rust_synthetic_sparse_n1000_prim_ns": 99608,
+  "rust_synthetic_sparse_n1000_unweighted_bfs_ns": 34327,
+  "rust_synthetic_sparse_n10000_kruskal_ns": 50256,
+  "rust_synthetic_sparse_n10000_prim_ns": 1373100,
+  "rust_synthetic_sparse_n10000_unweighted_bfs_ns": 336290,
+  "rust_complete_K32_kruskal_ns": 828,
+  "rust_complete_K32_prim_ns": 14707,
+  "rust_complete_K64_kruskal_ns": 2988,
+  "rust_complete_K64_prim_ns": 73066,
+  "py_karate_ns": null,
+  "notes": "MST baseline. Unweighted (BFS spanning forest) is the fastest path; Kruskal beats Prim on every input shape (10-25x), which is the expected pattern for our `std::cmp::Reverse<BinaryHeap>` Prim against a sort-once Kruskal — `slice::sort_unstable_by` is cache-friendly and amortizes one O(m log m) pass, while Prim pays log-m per push and a heap-stale-skip per pop. Automatic dispatch on weighted input matches Kruskal up to a constant. Sparse n=10000 surfaces the m log m vs m * log m crossover (BFS still dominates when weights are absent). A future perf pass could swap Prim's heap for a d-ary or indexed heap (mirrors upstream `igraph_d_indheap` in spanning_trees.c:176) to close the Prim gap; not on the critical path for v0.0.1."
+}

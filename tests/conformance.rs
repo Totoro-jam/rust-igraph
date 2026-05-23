@@ -5035,3 +5035,86 @@ fn community_voronoi_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn minimum_spanning_tree_three_source_conformance() {
+    // MST needs the per-fixture weights vector (lives on graph payload,
+    // not in params) and the `method` selector. We compare on the
+    // matroid invariant — total weight + edge count — instead of exact
+    // edge IDs, so multiple equally-light spanning trees don't trip
+    // the harness.
+    use rust_igraph::{MstAlgorithm, minimum_spanning_tree};
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("minimum_spanning_tree");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "minimum_spanning_tree");
+            let g = build_graph(&case.graph);
+            let weights_owned = case.graph.weights.clone();
+            let weights_opt: Option<&[f64]> = weights_owned.as_deref();
+            let method_str = case
+                .params
+                .get("method")
+                .and_then(|v| v.as_str())
+                .expect("method param missing");
+            let method = match method_str {
+                "automatic" => MstAlgorithm::Automatic,
+                "unweighted" => MstAlgorithm::Unweighted,
+                "prim" => MstAlgorithm::Prim,
+                "kruskal" => MstAlgorithm::Kruskal,
+                other => panic!("unknown MST method '{other}' in {}", path.display()),
+            };
+            let edges = minimum_spanning_tree(&g, weights_opt, method)
+                .expect("minimum_spanning_tree should succeed on conformance graphs");
+            // Total weight: sum of weights[e] if weights provided, else
+            // unit-weight (matches our fixtures' total_weight = edge_count
+            // for unweighted cases).
+            let total_weight: f64 = match weights_opt {
+                Some(w) => edges.iter().map(|&e| w[e as usize]).sum(),
+                #[allow(clippy::cast_precision_loss)]
+                None => edges.len() as f64,
+            };
+            let actual = serde_json::json!({
+                "total_weight": total_weight,
+                "edge_count": edges.len(),
+            });
+            assert!(
+                json_approx_eq(&actual, &case.expected),
+                "minimum_spanning_tree conformance failure\n  fixture: {}\n  source:  {}\n  origin:  {}\n  actual:   {}\n  expected: {}",
+                path.display(),
+                case.source,
+                case.origin,
+                actual,
+                case.expected,
+            );
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no minimum_spanning_tree fixtures from source {src}"
+        );
+    }
+}

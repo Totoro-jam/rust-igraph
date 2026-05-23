@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed: 4-vertex two disjoint edges, automatic dispatch picks Kruskal",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      2.0,
+      3.0
+    ]
+  },
+  "algo": "minimum_spanning_tree",
+  "params": {
+    "method": "automatic"
+  },
+  "expected": {
+    "total_weight": 5.0,
+    "edge_count": 2
+  }
+}

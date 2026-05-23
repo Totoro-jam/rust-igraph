@@ -15,6 +15,39 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-MST-001** — `minimum_spanning_tree` (Prim / Kruskal /
+  Unweighted / Automatic). Counterpart of
+  `igraph_minimum_spanning_tree` in
+  `references/igraph/src/misc/spanning_trees.c`. Returns the IDs of the
+  edges that constitute the minimum spanning tree (or forest when the
+  input is disconnected); directed graphs are treated as undirected.
+  - `minimum_spanning_tree(graph: &Graph, weights: Option<&[f64]>,
+    method: MstAlgorithm) -> IgraphResult<Vec<EdgeId>>`. `weights`
+    must match `ecount()` and contain no NaN when supplied. Required
+    for `Prim` / `Kruskal`; `Unweighted` ignores it; `Automatic`
+    dispatches to `Unweighted` when `weights` is `None`, otherwise
+    `Kruskal`.
+  - `MstAlgorithm` selector enum mirroring upstream
+    `igraph_mst_algorithm_t`: `Automatic`, `Unweighted` (BFS spanning
+    forest), `Prim` (eager binary-heap, `f64::total_cmp` ordering with
+    edge-ID tiebreak for determinism), `Kruskal` (sort once + path-
+    compressed union-find).
+  - Conformance: 9 fixtures (3 each from C / py / R) under
+    `tests/conformance/minimum_spanning_tree/`. Each asserts the
+    matroid invariant (total weight + edge count) rather than exact
+    edge IDs to absorb tiebreak differences across variants. The
+    upstream C test uses an RNG-seeded Erdős–Rényi graph that does not
+    port to Rust; we instead exercise the three dispatch branches on
+    small hand-derived graphs.
+  - Benches at `benches/bench_mst.rs` (karate / sparse synthetic /
+    `K_n`); baseline at `.codefuse/tracking/perf/ALGO-MST-001.json`.
+    Kruskal beats Prim 10–25× on every input shape — the heap-based
+    Prim pays log-m per push and incurs cache misses, while Kruskal's
+    sort-once is cache-friendly. A future perf pass could swap the
+    binary heap for a d-ary or indexed heap (mirroring upstream
+    `igraph_d_indheap` at `spanning_trees.c:176`); not on the v0.0.1
+    critical path.
+  - Example: `examples/mst_karate.rs`.
 - **ALGO-CO-009** — Voronoi-based community detection (Deritei et al.
   2014, Molnár et al. 2024). Counterpart of
   `igraph_community_voronoi` in

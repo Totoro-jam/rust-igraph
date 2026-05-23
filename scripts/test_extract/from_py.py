@@ -2836,6 +2836,56 @@ REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-MST-001: minimum_spanning_tree. python-igraph exposes
+# `Graph.spanning_tree(weights=None, return_tree=False)` returning a list
+# of edge IDs. We compare on the matroid invariant — total weight + edge
+# count — rather than exact edge IDs to absorb tie-break differences
+# between Kruskal/Prim/Unweighted/Automatic. The `method` param picks
+# the Rust dispatch path.
+SPANNING_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "spanning_tree_py_k4_distinct_weights_kruskal",
+        # K4 with all six distinct edge weights → unique MST (edges
+        # 0,1,2 of weight 1+2+3=6).
+        "origin": "constructed: K4 with edge weights [1..6], "
+        "kruskal picks the three lightest",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "graph_weights": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+        "algo": "minimum_spanning_tree",
+        "params": {"method": "kruskal"},
+        "expected": {"total_weight": 6.0, "edge_count": 3},
+    },
+    {
+        "case": "spanning_tree_py_triangle_shortcut_prim",
+        # Standard triangle (1, 2, 5): drop the heaviest edge.
+        "origin": "constructed: triangle (1, 2, 5), Prim drops heaviest",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (0, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 2.0, 5.0],
+        "algo": "minimum_spanning_tree",
+        "params": {"method": "prim"},
+        "expected": {"total_weight": 3.0, "edge_count": 2},
+    },
+    {
+        "case": "spanning_tree_py_disconnected_forest_automatic",
+        # Two disconnected weighted edges; spanning forest = both edges.
+        "origin": "constructed: 4-vertex two disjoint edges, "
+        "automatic dispatch picks Kruskal",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "graph_weights": [2.0, 3.0],
+        "algo": "minimum_spanning_tree",
+        "params": {"method": "automatic"},
+        "expected": {"total_weight": 5.0, "edge_count": 2},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -2957,6 +3007,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "voronoi": VORONOI_MANIFEST,
     "ecc": ECC_PR031_MANIFEST,
     "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
+    "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
 }
 
 

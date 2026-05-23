@@ -1,0 +1,31 @@
+{
+  "source": "r",
+  "origin": "constructed (rigraph mst(g, algorithm='unweighted') style): 5-vertex graph with two components \u2192 3-edge spanning forest",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "minimum_spanning_tree",
+  "params": {
+    "method": "unweighted"
+  },
+  "expected": {
+    "total_weight": 3.0,
+    "edge_count": 3
+  }
+}

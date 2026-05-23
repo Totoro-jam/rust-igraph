@@ -3220,6 +3220,58 @@ COMMUNITY_VORONOI_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-MST-001: minimum_spanning_tree. rigraph exposes
+# `mst(graph, weights=NULL, algorithm="unweighted"|"prim"|"kruskal")`.
+# rigraph's documentation example uses a sample_gnm graph plus runif()
+# weights — not portable here. We mirror the API surface (unweighted +
+# Kruskal + Prim + Automatic) on small hand-derived graphs that test
+# the rigraph-style "disconnected ⇒ spanning forest" expectation.
+SPANNING_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "spanning_tree_r_disconnected_forest_unweighted",
+        # rigraph's `mst()` on a disconnected graph returns a spanning
+        # forest (one tree per component) — the same invariant the
+        # Unweighted dispatch must honour.
+        "origin": "constructed (rigraph mst(g, algorithm='unweighted') style): "
+        "5-vertex graph with two components → 3-edge spanning forest",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (3, 4)], directed=False
+        ),
+        "algo": "minimum_spanning_tree",
+        "params": {"method": "unweighted"},
+        "expected": {"total_weight": 3.0, "edge_count": 3},
+    },
+    {
+        "case": "spanning_tree_r_triangle_kruskal",
+        # Standard rigraph-style weighted triangle.
+        "origin": "constructed (rigraph mst(g, weights, algorithm='kruskal') "
+        "style): triangle (1, 2, 5)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (0, 2)], directed=False
+        ),
+        "graph_weights": [1.0, 2.0, 5.0],
+        "algo": "minimum_spanning_tree",
+        "params": {"method": "kruskal"},
+        "expected": {"total_weight": 3.0, "edge_count": 2},
+    },
+    {
+        "case": "spanning_tree_r_k4_prim",
+        # K4 distinct weights — uniqueness guarantees Prim and Kruskal
+        # agree on edge set.
+        "origin": "constructed (rigraph mst(g, weights, algorithm='prim') style): "
+        "K4 distinct weights",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "graph_weights": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+        "algo": "minimum_spanning_tree",
+        "params": {"method": "prim"},
+        "expected": {"total_weight": 6.0, "edge_count": 3},
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -3345,6 +3397,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "assortativity_degree": ASSORT_MANIFEST,
     "transitivity_barrat": TRANS_BARRAT_MANIFEST,
     "decompose": DECOMPOSE_MANIFEST,
+    "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
 }
 
 

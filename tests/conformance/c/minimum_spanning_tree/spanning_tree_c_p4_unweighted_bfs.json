@@ -1,0 +1,31 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors spanning_trees.c igraph_i_minimum_spanning_tree_unweighted): P4 chain",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "minimum_spanning_tree",
+  "params": {
+    "method": "unweighted"
+  },
+  "expected": {
+    "total_weight": 3.0,
+    "edge_count": 3
+  }
+}

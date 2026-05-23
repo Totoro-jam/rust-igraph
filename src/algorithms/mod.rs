@@ -10,4 +10,5 @@ pub mod io;
 pub mod operators;
 pub mod paths;
 pub mod properties;
+pub mod spanning;
 pub mod traversal;

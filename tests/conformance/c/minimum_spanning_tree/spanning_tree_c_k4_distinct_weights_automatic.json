@@ -1,0 +1,50 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors spanning_trees.c igraph_minimum_spanning_tree AUTOMATIC dispatch with weights): K4 with edge weights [1..6]",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0
+    ]
+  },
+  "algo": "minimum_spanning_tree",
+  "params": {
+    "method": "automatic"
+  },
+  "expected": {
+    "total_weight": 6.0,
+    "edge_count": 3
+  }
+}
