@@ -14,7 +14,7 @@
 //!
 //! * [`ChungLuVariant::Original`] — `p_ij = min(q_ij, 1)`. The
 //!   original Chung–Lu (2002) construction. When `q_ij > 1` a single
-//!   warning is emitted (via [`tracing`]-style `eprintln!` if the
+//!   warning is emitted (via `tracing`-style `eprintln!` if the
 //!   `verbose-warnings` feature ever lands; today the variant is
 //!   silently clamped) and the pair is still sampled — but in that
 //!   regime expected degrees no longer match the input weights.
@@ -97,9 +97,14 @@ pub enum ChungLuVariant {
 
 /// Largest weight-vector length we support. Upstream igraph rejects
 /// at `IGRAPH_MAX_EXACT_REAL` (= `2^53`), which is the largest integer
-/// exactly representable as `f64`. We pick the same bound, expressed
-/// in `usize` terms so the check is portable.
-const MAX_NODES: usize = 1usize << 53;
+/// exactly representable as `f64`. On 64-bit targets we pick the same
+/// bound; on 32-bit targets `usize::MAX < 2^53`, so the cap is
+/// effectively the address-space limit and the const stays valid.
+const MAX_NODES: usize = if usize::BITS >= 64 {
+    1usize.wrapping_shl(53)
+} else {
+    usize::MAX
+};
 
 fn check_weights(label: &str, weights: &[f64]) -> IgraphResult<()> {
     let mut max_w = f64::NEG_INFINITY;
