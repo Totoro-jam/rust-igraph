@@ -1,0 +1,125 @@
+{
+  "awu": "ALGO-GN-018",
+  "algo": "lastcit_game",
+  "git_commit": "3d883039f45e11c50a56626c586fe62fd06afd0b",
+  "date": "2026-05-24",
+  "harness": "criterion --quick (release build, single seed per case)",
+  "host": "darwin aarch64",
+  "notes": [
+    "psumtree = inline Fenwick BIT with binary-lifting prefix-search; both `set` and `search` are O(log n).",
+    "Each step does (i+1) point updates in psumtree (1 for the new vertex + on the order of (agebins) demotions during the age sweep + edges_per_node updates to refresh cited vertices to bucket 0), plus edges_per_node O(log n) searches.",
+    "Total cost is O(n * (eps + agebins) * log n) for the random walk + O(n*eps) for the batched edge insert. Edge insert uses `Graph::add_edges` (one rebuild_indexes call) — never per-call `add_edge` (O(m^2) trap).",
+    "Compared to ALGO-GN-017 cited_type (linear cumsum per draw), psumtree is significantly faster at large n. cited_type/size_scaling/n_uniform/5000 was ~5.8ms vs lastcit/size_scaling/eps3_decay/5000 at 1.6ms (3.6x faster) despite lastcit's extra age-sweep work — the O(log n) prefix-search dominates as n grows.",
+    "agebins_count benchmark shows mild slowdown (152µs → 188µs, ~25%) going from 1 to 16 bins at n=1000, confirming age sweep is a secondary cost compared to the per-edge draw."
+  ],
+  "groups": {
+    "size_scaling/eps3_decay": {
+      "params": {
+        "edges_per_node": 3,
+        "agebins": 4,
+        "preference": [8.0, 4.0, 2.0, 1.0, 0.5],
+        "directed": true
+      },
+      "throughput_unit": "elements (vertices)",
+      "cases": [
+        {
+          "n": 500,
+          "time_median_us": 94.991,
+          "time_low_us": 94.274,
+          "time_high_us": 97.858,
+          "thrpt_median_Melem_per_s": 5.2637
+        },
+        {
+          "n": 5000,
+          "time_median_us": 1648.5,
+          "time_low_us": 1648.5,
+          "time_high_us": 1648.5,
+          "thrpt_median_Melem_per_s": 3.0330
+        }
+      ]
+    },
+    "eps_count/n1000_decay": {
+      "params": {
+        "n": 1000,
+        "agebins": 3,
+        "preference": [16.0, 4.0, 1.0, 0.25],
+        "directed": true
+      },
+      "throughput_unit": "elements (vertices)",
+      "cases": [
+        {
+          "edges_per_node": 1,
+          "time_median_us": 57.395,
+          "time_low_us": 56.265,
+          "time_high_us": 57.678,
+          "thrpt_median_Melem_per_s": 17.423
+        },
+        {
+          "edges_per_node": 4,
+          "time_median_us": 307.09,
+          "time_low_us": 305.73,
+          "time_high_us": 312.55,
+          "thrpt_median_Melem_per_s": 3.2564
+        },
+        {
+          "edges_per_node": 16,
+          "time_median_us": 1410.8,
+          "time_low_us": 1408.4,
+          "time_high_us": 1420.5,
+          "thrpt_median_Melem_per_s": 0.7088
+        }
+      ]
+    },
+    "agebins_count/n1000_eps2": {
+      "params": {
+        "n": 1000,
+        "edges_per_node": 2,
+        "preference_rule": "1 / (i+1) for i in 0..=agebins",
+        "directed": true
+      },
+      "throughput_unit": "elements (vertices)",
+      "cases": [
+        {
+          "agebins": 1,
+          "time_median_us": 155.57,
+          "time_low_us": 152.57,
+          "time_high_us": 156.32,
+          "thrpt_median_Melem_per_s": 6.4281
+        },
+        {
+          "agebins": 4,
+          "time_median_us": 157.31,
+          "time_low_us": 153.51,
+          "time_high_us": 158.26,
+          "thrpt_median_Melem_per_s": 6.3569
+        },
+        {
+          "agebins": 16,
+          "time_median_us": 187.60,
+          "time_low_us": 186.81,
+          "time_high_us": 190.77,
+          "thrpt_median_Melem_per_s": 5.3304
+        }
+      ]
+    },
+    "undirected/n1000_uniform": {
+      "params": {
+        "n": 1000,
+        "edges_per_node": 4,
+        "agebins": 2,
+        "preference": [1.0, 1.0, 1.0],
+        "directed": false
+      },
+      "throughput_unit": "elements (vertices)",
+      "cases": [
+        {
+          "case": "undirected_uniform",
+          "time_median_us": 353.34,
+          "time_low_us": 351.93,
+          "time_high_us": 358.98,
+          "thrpt_median_Melem_per_s": 2.8302
+        }
+      ]
+    }
+  }
+}

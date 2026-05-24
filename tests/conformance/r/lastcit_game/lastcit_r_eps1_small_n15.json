@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors igraph::sample_last_cit(n=15, edges=1, agebins=2, pref=[3,1,1], directed=TRUE)) — minimal eps=1 case; ecount = (n-1) = 14, every step emits exactly one citation",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lastcit_game",
+  "params": {
+    "nodes": 15,
+    "edges_per_node": 1,
+    "agebins": 2,
+    "preference": [3.0, 1.0, 1.0],
+    "directed": true,
+    "seed": 9995003
+  },
+  "expected": {
+    "vcount": 15,
+    "directed": true,
+    "ecount_min": 14,
+    "ecount_max": 14,
+    "no_self_loops": true
+  }
+}

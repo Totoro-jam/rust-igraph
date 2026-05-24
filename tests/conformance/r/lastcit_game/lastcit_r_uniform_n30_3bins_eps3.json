@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors igraph::sample_last_cit(n=30, edges=3, agebins=3, pref=[1,1,1,1], directed=TRUE)) — uniform-pref baseline; ecount = (n-1)*eps = 87",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lastcit_game",
+  "params": {
+    "nodes": 30,
+    "edges_per_node": 3,
+    "agebins": 3,
+    "preference": [1.0, 1.0, 1.0, 1.0],
+    "directed": true,
+    "seed": 9995001
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": true,
+    "ecount_min": 87,
+    "ecount_max": 87,
+    "no_self_loops": true
+  }
+}

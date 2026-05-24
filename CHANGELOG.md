@@ -15,6 +15,69 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-018** — `lastcit_game` recency-decay citation network.
+  Counterpart of `igraph_lastcit_game()` in
+  `references/igraph/src/games/citations.c:28-92`. Models a growing
+  directed citation graph where each new vertex `i ≥ 1` emits
+  `edges_per_node` outgoing citations weighted by how recently the
+  target was last cited: `bucket = min(⌊(i − lastcit[v]) / binwidth⌋,
+  agebins − 1)` for already-cited vertices (with
+  `binwidth = nodes / agebins + 1`), and `bucket = agebins` for the
+  "never-cited" pool. Citation events refresh the target back to
+  `preference[0]`; a per-step age-sweep demotes vertices that just
+  crossed a bin boundary.
+  - `pub fn lastcit_game(nodes: u32, edges_per_node: u32, agebins: u32, preference: &[f64], directed: bool, seed: u64) -> IgraphResult<Graph>`.
+  - Sampling uses an inline Fenwick BIT (`PsumTree`) with
+    binary-lifting prefix-search — `O(log n)` for both `set` and
+    `search`. Overall step cost is
+    `O((edges_per_node + agebins) · log n)`, giving a total
+    `O(n · (eps + agebins) · log n)` runtime; batched `add_edges`
+    keeps the edge-insert phase out of the `add_edge` / rebuild_indexes
+    `O(m²)` trap.
+  - Construction guarantees: NEVER produces self-loops (the psumtree
+    only ranges over previously-added vertices, the new vertex is
+    seeded as never-cited *after* its citations are drawn);
+    multi-edges are allowed when `edges_per_node ≥ 2` (independent
+    draws can collide); the cumulative preference can only fall to
+    zero on the trivial degenerate input `preference = [0; agebins+1]`
+    where the model produces zero edges.
+  - Validation: `preference.len() == agebins + 1`; `agebins ≥ 1`;
+    every `preference[i]` finite, non-NaN, and non-negative.
+  - Edge cases: `nodes = 0` returns an empty graph; `nodes < 2` or
+    `edges_per_node = 0` returns the vertex-only graph;
+    all-zero `preference` returns the vertex-only graph (no edges).
+  - Coverage: 19 unit tests (vcount/ecount exactness, determinism,
+    seed divergence, all-zero-pref empty result, NEVER-self-loops on
+    non-trivial preferences, directed/undirected flag propagation,
+    every validation error path, uniform vs steep-decay sanity
+    checks, age-sweep correctness, single-agebin degenerate case) +
+    5 proptests (`ecount_exact_when_pref_positive`,
+    `no_self_loops_always`, `source_is_always_step_index`,
+    `target_in_zero_to_step_minus_one`, `determinism_under_proptest`)
+    under `--features proptest-harness` + 9 three-source conformance
+    fixtures (3 each from C / py / R) under
+    `tests/conformance/{c,py,r}/lastcit_game/` asserting structural
+    invariants only (vcount exact, directed flag exact, ecount exact
+    = `(n−1)·eps`, optional `no_self_loops`). RNG state is not
+    portable across SplitMix64 vs igraph's GLIBC RNG, so we do not
+    assert per-edge endpoint equality and do not assert `is_simple`
+    (lastcit allows multi-edges when `eps ≥ 2` by construction).
+  - Bench: criterion baseline at
+    `.codefuse/tracking/perf/ALGO-GN-018.json` covering four groups —
+    size_scaling (95µs @ n=500, 1.65ms @ n=5000 at eps=3, agebins=4),
+    eps_count (1/4/16 at n=1000), agebins_count (1/4/16 at n=1000,
+    eps=2 — the new dimension vs cited_type), and an undirected
+    uniform-preference case. The psumtree O(log n) drives the
+    expected ~3.6× speedup over GN-017 at n=5000 despite the extra
+    per-step age-sweep work.
+  - Example: `cargo run --example lastcit_demo` builds a 2000-vertex
+    directed citation graph with `edges_per_node = 3`, `agebins = 4`,
+    `preference = [8, 4, 2, 1, 0.5]` and prints in-degree quartiles
+    (mean ≈ 3.0, max ≈ 80), uncited count (~66% of vertices), and
+    the top-10 vertices by in-degree with cohort labels demonstrating
+    that the highest in-degrees skew toward the oldest cohorts —
+    because each citation refreshes a vertex to bucket 0 and old
+    vertices have had the most opportunities to accumulate refreshes.
 - **ALGO-GN-017** — `cited_type_game` cited-type / type-weighted
   growing citation network. Counterpart of `igraph_cited_type_game()`
   in `references/igraph/src/games/citations.c:246-335`. Models a

@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors igraph.Graph.Lastcit(n=35, edges_per_node=4, agebins=1, preference=[2,1], undirected)) — degenerate one-bin case: every cited vertex keeps weight 2 forever (no age sweep ever fires)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lastcit_game",
+  "params": {
+    "nodes": 35,
+    "edges_per_node": 4,
+    "agebins": 1,
+    "preference": [2.0, 1.0],
+    "directed": false,
+    "seed": 9994003
+  },
+  "expected": {
+    "vcount": 35,
+    "directed": false,
+    "ecount_min": 136,
+    "ecount_max": 136,
+    "no_self_loops": true
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors igraph.Graph.Lastcit(n=50, edges_per_node=2, agebins=3, preference=[100,5,1,0.1], directed)) — strong recency preference; psumtree concentrates citations on the most recently cited cohort",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lastcit_game",
+  "params": {
+    "nodes": 50,
+    "edges_per_node": 2,
+    "agebins": 3,
+    "preference": [100.0, 5.0, 1.0, 0.1],
+    "directed": true,
+    "seed": 9994002
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": true,
+    "ecount_min": 98,
+    "ecount_max": 98,
+    "no_self_loops": true
+  }
+}

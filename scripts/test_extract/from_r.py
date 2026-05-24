@@ -4140,6 +4140,84 @@ CITED_TYPE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-018: lastcit_game. Mirrors rigraph's `sample_last_cit`
+# (R wrapper on `igraph_lastcit_game`). Each new vertex emits
+# `edges_per_node` outgoing citations; cited vertices' weights decay
+# with the time since their last citation, binned into `agebins`
+# buckets. The psumtree implementation gives O(log n) update + search.
+# Never self-loops by construction; may produce multi-edges when
+# edges_per_node ≥ 2.
+LASTCIT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "lastcit_r_uniform_n30_3bins_eps3",
+        "origin": "constructed (mirrors igraph::sample_last_cit(n=30, "
+        "edges=3, agebins=3, pref=[1,1,1,1], directed=TRUE)) — "
+        "uniform-pref baseline; ecount = (n-1)*eps = 87",
+        "algo": "lastcit_game",
+        "params": {
+            "nodes": 30,
+            "edges_per_node": 3,
+            "agebins": 3,
+            "preference": [1.0, 1.0, 1.0, 1.0],
+            "directed": True,
+            "seed": 9_995_001,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": True,
+            "ecount_min": 87,
+            "ecount_max": 87,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "lastcit_r_steep_decay_n45_5bins_eps2_undirected",
+        "origin": "constructed (mirrors igraph::sample_last_cit(n=45, "
+        "edges=2, agebins=5, pref=[16,8,4,2,1,0.5], directed=FALSE)) — "
+        "geometric-decay preference across 5 age bins; tests the age "
+        "sweep at multiple bin boundaries",
+        "algo": "lastcit_game",
+        "params": {
+            "nodes": 45,
+            "edges_per_node": 2,
+            "agebins": 5,
+            "preference": [16.0, 8.0, 4.0, 2.0, 1.0, 0.5],
+            "directed": False,
+            "seed": 9_995_002,
+        },
+        "expected": {
+            "vcount": 45,
+            "directed": False,
+            "ecount_min": 88,
+            "ecount_max": 88,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "lastcit_r_eps1_small_n15",
+        "origin": "constructed (mirrors igraph::sample_last_cit(n=15, "
+        "edges=1, agebins=2, pref=[3,1,1], directed=TRUE)) — "
+        "minimal eps=1 case; ecount = (n-1) = 14, every step emits "
+        "exactly one citation",
+        "algo": "lastcit_game",
+        "params": {
+            "nodes": 15,
+            "edges_per_node": 1,
+            "agebins": 2,
+            "preference": [3.0, 1.0, 1.0],
+            "directed": True,
+            "seed": 9_995_003,
+        },
+        "expected": {
+            "vcount": 15,
+            "directed": True,
+            "ecount_min": 14,
+            "ecount_max": 14,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -5217,6 +5295,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "establishment_game": ESTABLISHMENT_MANIFEST,
     "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
     "cited_type_game": CITED_TYPE_MANIFEST,
+    "lastcit_game": LASTCIT_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5325,6 +5404,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "establishment_game",
             "callaway_traits_game",
             "cited_type_game",
+            "lastcit_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

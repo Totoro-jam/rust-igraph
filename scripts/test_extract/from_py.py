@@ -3880,6 +3880,84 @@ CITED_TYPE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-018: lastcit_game. Mirrors ig.Graph.Lastcit / sample_last_cit
+# (Cython wrapper on `igraph_lastcit_game`). Each new vertex emits
+# `edges_per_node` outgoing citations; cited vertices' weights decay
+# with the time since their last citation, binned into `agebins`
+# buckets. The psumtree implementation gives O(log n) update + search.
+# Never self-loops by construction; may produce multi-edges when
+# edges_per_node ≥ 2.
+LASTCIT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "lastcit_py_uniform_n20_2bins_eps2",
+        "origin": "constructed (mirrors igraph.Graph.Lastcit(n=20, "
+        "edges_per_node=2, agebins=2, preference=[1,1,1], directed)) — "
+        "uniform preference baseline; ecount = (n-1)*eps = 38",
+        "algo": "lastcit_game",
+        "params": {
+            "nodes": 20,
+            "edges_per_node": 2,
+            "agebins": 2,
+            "preference": [1.0, 1.0, 1.0],
+            "directed": True,
+            "seed": 9_994_001,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": True,
+            "ecount_min": 38,
+            "ecount_max": 38,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "lastcit_py_high_recent_n50_3bins_eps2",
+        "origin": "constructed (mirrors igraph.Graph.Lastcit(n=50, "
+        "edges_per_node=2, agebins=3, preference=[100,5,1,0.1], directed)) — "
+        "strong recency preference; psumtree concentrates citations on the "
+        "most recently cited cohort",
+        "algo": "lastcit_game",
+        "params": {
+            "nodes": 50,
+            "edges_per_node": 2,
+            "agebins": 3,
+            "preference": [100.0, 5.0, 1.0, 0.1],
+            "directed": True,
+            "seed": 9_994_002,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": True,
+            "ecount_min": 98,
+            "ecount_max": 98,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "lastcit_py_single_agebin_n35_eps4_undirected",
+        "origin": "constructed (mirrors igraph.Graph.Lastcit(n=35, "
+        "edges_per_node=4, agebins=1, preference=[2,1], undirected)) — "
+        "degenerate one-bin case: every cited vertex keeps weight 2 "
+        "forever (no age sweep ever fires)",
+        "algo": "lastcit_game",
+        "params": {
+            "nodes": 35,
+            "edges_per_node": 4,
+            "agebins": 1,
+            "preference": [2.0, 1.0],
+            "directed": False,
+            "seed": 9_994_003,
+        },
+        "expected": {
+            "vcount": 35,
+            "directed": False,
+            "ecount_min": 136,
+            "ecount_max": 136,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors
 # `ig.Graph.SBM`-like factory `ig.Graph.SimpleInterconnectedIslands(
 # islands_n, islands_size, islands_pin, n_inter)` (Cython wrapper on
@@ -4913,6 +4991,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "establishment_game": ESTABLISHMENT_MANIFEST,
     "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
     "cited_type_game": CITED_TYPE_MANIFEST,
+    "lastcit_game": LASTCIT_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5021,6 +5100,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "establishment_game",
             "callaway_traits_game",
             "cited_type_game",
+            "lastcit_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

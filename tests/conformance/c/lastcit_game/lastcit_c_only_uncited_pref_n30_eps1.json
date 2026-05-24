@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_lastcit_game(n=30, edges_per_node=1, agebins=2, preference=[0,0,1], directed)) — only never-cited bucket carries weight, so once a vertex is cited its weight drops to 0; with eps=1 the dst sequence is therefore a permutation prefix of the never-cited pool",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lastcit_game",
+  "params": {
+    "nodes": 30,
+    "edges_per_node": 1,
+    "agebins": 2,
+    "preference": [0.0, 0.0, 1.0],
+    "directed": true,
+    "seed": 9993003
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": true,
+    "ecount_min": 29,
+    "ecount_max": 29,
+    "no_self_loops": true
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors igraph::sample_last_cit(n=45, edges=2, agebins=5, pref=[16,8,4,2,1,0.5], directed=FALSE)) — geometric-decay preference across 5 age bins; tests the age sweep at multiple bin boundaries",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lastcit_game",
+  "params": {
+    "nodes": 45,
+    "edges_per_node": 2,
+    "agebins": 5,
+    "preference": [16.0, 8.0, 4.0, 2.0, 1.0, 0.5],
+    "directed": false,
+    "seed": 9995002
+  },
+  "expected": {
+    "vcount": 45,
+    "directed": false,
+    "ecount_min": 88,
+    "ecount_max": 88,
+    "no_self_loops": true
+  }
+}

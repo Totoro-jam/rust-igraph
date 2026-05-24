@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_lastcit_game(n=25, edges_per_node=2, agebins=3, preference=[1,1,1,1], directed)) — uniform preference (all bins equally attractive) so every step emits exactly eps edges and the psumtree.search picks a vertex uniformly weighted by current weights",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lastcit_game",
+  "params": {
+    "nodes": 25,
+    "edges_per_node": 2,
+    "agebins": 3,
+    "preference": [1.0, 1.0, 1.0, 1.0],
+    "directed": true,
+    "seed": 9993001
+  },
+  "expected": {
+    "vcount": 25,
+    "directed": true,
+    "ecount_min": 48,
+    "ecount_max": 48,
+    "no_self_loops": true
+  }
+}

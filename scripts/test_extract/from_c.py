@@ -4175,6 +4175,80 @@ CITED_TYPE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+LASTCIT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "lastcit_c_uniform_pref_n25_3bins_eps2_directed",
+        "origin": "constructed (mirrors igraph_lastcit_game(n=25, "
+        "edges_per_node=2, agebins=3, preference=[1,1,1,1], directed)) — "
+        "uniform preference (all bins equally attractive) so every step emits "
+        "exactly eps edges and the psumtree.search picks a vertex uniformly "
+        "weighted by current weights",
+        "algo": "lastcit_game",
+        "params": {
+            "nodes": 25,
+            "edges_per_node": 2,
+            "agebins": 3,
+            "preference": [1.0, 1.0, 1.0, 1.0],
+            "directed": True,
+            "seed": 9_993_001,
+        },
+        "expected": {
+            "vcount": 25,
+            "directed": True,
+            "ecount_min": 48,  # (25-1)*2 = 48
+            "ecount_max": 48,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "lastcit_c_recency_decay_n40_4bins_eps3_undirected",
+        "origin": "constructed (mirrors igraph_lastcit_game(n=40, "
+        "edges_per_node=3, agebins=4, preference=[8,4,2,1,0.5], undirected)) — "
+        "sharply decaying preference favours recently-cited vertices; "
+        "never-cited bucket positive (0.5) keeps the psumtree non-zero throughout",
+        "algo": "lastcit_game",
+        "params": {
+            "nodes": 40,
+            "edges_per_node": 3,
+            "agebins": 4,
+            "preference": [8.0, 4.0, 2.0, 1.0, 0.5],
+            "directed": False,
+            "seed": 9_993_002,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": False,
+            "ecount_min": 117,  # (40-1)*3 = 117
+            "ecount_max": 117,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "lastcit_c_only_uncited_pref_n30_eps1",
+        "origin": "constructed (mirrors igraph_lastcit_game(n=30, "
+        "edges_per_node=1, agebins=2, preference=[0,0,1], directed)) — "
+        "only never-cited bucket carries weight, so once a vertex is cited "
+        "its weight drops to 0; with eps=1 the dst sequence is therefore a "
+        "permutation prefix of the never-cited pool",
+        "algo": "lastcit_game",
+        "params": {
+            "nodes": 30,
+            "edges_per_node": 1,
+            "agebins": 2,
+            "preference": [0.0, 0.0, 1.0],
+            "directed": True,
+            "seed": 9_993_003,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": True,
+            "ecount_min": 29,  # (30-1)*1 = 29
+            "ecount_max": 29,
+            "no_self_loops": True,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -5446,6 +5520,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "establishment_game": ESTABLISHMENT_MANIFEST,
     "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
     "cited_type_game": CITED_TYPE_MANIFEST,
+    "lastcit_game": LASTCIT_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5559,6 +5634,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "establishment_game",
             "callaway_traits_game",
             "cited_type_game",
+            "lastcit_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

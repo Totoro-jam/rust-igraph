@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_lastcit_game(n=40, edges_per_node=3, agebins=4, preference=[8,4,2,1,0.5], undirected)) — sharply decaying preference favours recently-cited vertices; never-cited bucket positive (0.5) keeps the psumtree non-zero throughout",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lastcit_game",
+  "params": {
+    "nodes": 40,
+    "edges_per_node": 3,
+    "agebins": 4,
+    "preference": [8.0, 4.0, 2.0, 1.0, 0.5],
+    "directed": false,
+    "seed": 9993002
+  },
+  "expected": {
+    "vcount": 40,
+    "directed": false,
+    "ecount_min": 117,
+    "ecount_max": 117,
+    "no_self_loops": true
+  }
+}
