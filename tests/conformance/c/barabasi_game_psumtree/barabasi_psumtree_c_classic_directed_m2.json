@@ -1,0 +1,28 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_barabasi_game(n=40, power=1.0, m=2, outpref=false, A=1.0, directed, algo=PSUMTREE)) \u2014 classical BA kernel (linear-in-degree weights) with simple variant; ecount = (40-1)*2 = 78 by construction",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "barabasi_game_psumtree",
+  "params": {
+    "nodes": 40,
+    "power": 1.0,
+    "m": 2,
+    "outpref": false,
+    "a": 1.0,
+    "directed": true,
+    "variant": "psumtree",
+    "seed": 9998001
+  },
+  "expected": {
+    "vcount": 40,
+    "directed": true,
+    "ecount_min": 78,
+    "ecount_max": 78,
+    "no_self_loops": true
+  }
+}

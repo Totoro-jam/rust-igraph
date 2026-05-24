@@ -4303,6 +4303,90 @@ RECENT_DEGREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-020: barabasi_game_psumtree / barabasi_game_psumtree_multiple.
+# Mirrors rigraph's `sample_pa(n, power, m, out.pref, zero.appeal,
+# directed, algorithm="psumtree")` and `algorithm="psumtree.multiple"`
+# (R wrapper on `igraph_barabasi_game`). The SIMPLE variant prevents
+# within-step multi-edges via per-draw weight zeroing; the MULTIPLE
+# variant snapshots the BIT sum once per step and uses the `m >= i`
+# early-cite branch. Never self-loops by construction.
+BARABASI_PSUMTREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "barabasi_psumtree_r_classic_directed_m2",
+        "origin": "constructed (mirrors igraph::sample_pa(n=40, power=1.0, "
+        "m=2, out.pref=FALSE, zero.appeal=1.0, directed=TRUE, "
+        "algorithm='psumtree')) — classical BA kernel; ecount = "
+        "(40-1)*2 = 78",
+        "algo": "barabasi_game_psumtree",
+        "params": {
+            "nodes": 40,
+            "power": 1.0,
+            "m": 2,
+            "outpref": False,
+            "a": 1.0,
+            "directed": True,
+            "variant": "psumtree",
+            "seed": 10_000_001,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "barabasi_psumtree_r_multiple_pow15_directed_m3",
+        "origin": "constructed (mirrors igraph::sample_pa(n=30, power=1.5, "
+        "m=3, out.pref=FALSE, zero.appeal=1.0, directed=TRUE, "
+        "algorithm='psumtree.multiple')) — saturation triangle deducts "
+        "3 edges from 87",
+        "algo": "barabasi_game_psumtree",
+        "params": {
+            "nodes": 30,
+            "power": 1.5,
+            "m": 3,
+            "outpref": False,
+            "a": 1.0,
+            "directed": True,
+            "variant": "psumtree_multiple",
+            "seed": 10_000_002,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": True,
+            "ecount_min": 84,
+            "ecount_max": 84,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "barabasi_psumtree_r_undirected_outpref_m2",
+        "origin": "constructed (mirrors igraph::sample_pa(n=35, power=1.0, "
+        "m=2, out.pref=TRUE, zero.appeal=0.5, directed=FALSE, "
+        "algorithm='psumtree')) — undirected forces out.pref=TRUE",
+        "algo": "barabasi_game_psumtree",
+        "params": {
+            "nodes": 35,
+            "power": 1.0,
+            "m": 2,
+            "outpref": True,
+            "a": 0.5,
+            "directed": False,
+            "variant": "psumtree",
+            "seed": 10_000_003,
+        },
+        "expected": {
+            "vcount": 35,
+            "directed": False,
+            "ecount_min": 68,
+            "ecount_max": 68,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -5382,6 +5466,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "cited_type_game": CITED_TYPE_MANIFEST,
     "lastcit_game": LASTCIT_MANIFEST,
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
+    "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5492,6 +5577,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "cited_type_game",
             "lastcit_game",
             "recent_degree_game",
+            "barabasi_game_psumtree",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

@@ -102,6 +102,9 @@ pub use crate::algorithms::connectivity::reachability_matrix::reachability_matri
 pub use crate::algorithms::connectivity::strong::strongly_connected_components;
 pub use crate::algorithms::connectivity::transitive_closure::transitive_closure;
 pub use crate::algorithms::games::barabasi::barabasi_game_bag;
+pub use crate::algorithms::games::barabasi_psumtree::{
+    barabasi_game_psumtree, barabasi_game_psumtree_multiple,
+};
 pub use crate::algorithms::games::callaway_traits::callaway_traits_game;
 pub use crate::algorithms::games::chung_lu::{ChungLuVariant, chung_lu_game};
 pub use crate::algorithms::games::cited_type::cited_type_game;

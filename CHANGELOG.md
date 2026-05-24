@@ -15,6 +15,69 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-020** — `barabasi_game_psumtree` +
+  `barabasi_game_psumtree_multiple` Barabási–Albert preferential-attachment
+  variants. Counterparts of `igraph_i_barabasi_game_psumtree` and
+  `igraph_i_barabasi_game_psumtree_multiple` in
+  `references/igraph/src/games/barabasi.c` (lines ~166-414). Both variants
+  attach `m` (or `outseq[i]`) outgoing edges from every new vertex `i`,
+  with destinations weighted by `attraction(deg) = pow(deg, power) + A`
+  (preserving C's `pow(0, 0) == 1` semantics). Sampling shares the inline
+  Fenwick BIT (`PsumTree`) used by `lastcit_game` /
+  `recent_degree_game` and uses a new `search_bounded(target, bound)`
+  routine that clamps the binary-lifting result to `[0, bound)`.
+  - `pub fn barabasi_game_psumtree(nodes: u32, power: f64, m: u32, outseq: Option<&[u32]>, outpref: bool, a: f64, directed: bool, seed: u64) -> IgraphResult<Graph>`
+    — **simple** variant: each of the `m` draws temporarily zeros the
+    chosen target's weight in the BIT so the same target cannot be drawn
+    twice within one step; weights are refreshed at end-of-step.
+    Cannot produce within-step multi-edges; source `i` is fresh each step
+    so cross-step duplicates are impossible too — output is simple.
+  - `pub fn barabasi_game_psumtree_multiple(nodes, power, m, outseq, outpref, a, directed, seed) -> IgraphResult<Graph>`
+    — **multiple** variant: the BIT sum is snapshotted once per step and
+    all `m` draws sample against the unchanged tree, so the same target
+    may be picked twice within one step (multi-edges allowed); explicit
+    `m >= i` always-cite saturation branch emits `i` edges (one per
+    previously-added vertex) when there are fewer prior vertices than
+    requested edges.
+  - Construction guarantees: NEVER produces self-loops (the new vertex
+    `i` is added to the BIT *after* its `m` outgoing draws complete, and
+    `search_bounded(target, i)` rules out the FP-drift over-advancement
+    that could otherwise return `i` itself); zero-sum fallback uniform
+    over `[0, i)` (only fires in the very first step when
+    `outpref = true, A > 0` because the seed vertex's weight is set to
+    `1.0`); `outpref` (forced `true` when `directed = false`) feeds the
+    new vertex's own out-degree back into its attraction at end-of-step.
+  - Validation: `nodes` finite; `power` finite and non-NaN; `m > 0` when
+    `outseq = None`; `outseq.len() == nodes` when provided; `a > 0`
+    (strict) when `outpref = false` so zero-degree vertices have non-zero
+    probability; `a >= 0` (non-strict) when `outpref = true`.
+  - Edge cases: `nodes = 0` empty graph; `nodes < 2` vertex-only graph;
+    edge count formulas — simple: `(n-1) · m`; multiple:
+    `(n-1) · m - m · (m-1) / 2` when `n > m` (early-cite saturation).
+  - Coverage: unit tests for vcount/ecount exactness (both variants,
+    constant-`m` and `outseq`), determinism, seed divergence,
+    no-self-loops invariant, source-is-always-step-index invariant,
+    directed/undirected flag propagation, `outpref` behaviour, `pow(0,0)`
+    branch, validation error paths; 5 proptests covering ecount,
+    self-loop-freedom, source invariant, and parameter robustness with
+    seed = (n, m, power, seed, outpref).
+  - Three-source conformance: 9 JSON fixtures under
+    `tests/conformance/{c,py,r}/barabasi_game_psumtree/` — three classic /
+    multiple-pow15 / undirected-outpref cases per source. RNG state
+    (Mersenne-Twister in C, `R_unif_index` in R, NumPy in py) is not
+    portable to our SplitMix64, so conformance asserts structural
+    invariants only (vcount, directed flag, ecount band,
+    no-self-loops).
+  - Criterion bench `benches/bench_barabasi_psumtree.rs` covering simple
+    directed classical, simple undirected `pow=1.5`, and multiple
+    directed `m=3` at `n ∈ {100, 1k, 10k}`. Runnable example
+    `examples/barabasi_psumtree_demo.rs` contrasts linear vs sub-linear
+    BA degree-distribution tails. Perf snapshot at
+    `.codefuse/tracking/perf/ALGO-GN-020.json` shows ~3.6 Melem/s
+    (simple, n=10k), ~4.7 Melem/s (undirected pow=1.5, n=10k),
+    ~2.4 Melem/s (multiple m=3, n=10k) — consistent with the predicted
+    `O(n · m · log n)` slope.
+
 - **ALGO-GN-019** — `recent_degree_game` sliding-window preferential
   attachment. Counterpart of `igraph_recent_degree_game()` in
   `references/igraph/src/games/recent_degree.c:24-200`. Models a growing

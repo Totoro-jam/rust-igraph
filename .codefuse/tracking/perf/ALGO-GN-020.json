@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-GN-020",
+  "captured_at": "2026-05-24",
+  "git_commit": "1bc070b",
+  "rust_simple_directed_classic_n100_ns": 11249,
+  "rust_simple_directed_classic_n1000_ns": 192550,
+  "rust_simple_directed_classic_n10000_ns": 2776800,
+  "rust_simple_undirected_pow15_n100_ns": 12169,
+  "rust_simple_undirected_pow15_n1000_ns": 159470,
+  "rust_simple_undirected_pow15_n10000_ns": 2141000,
+  "rust_multiple_directed_m3_n100_ns": 17459,
+  "rust_multiple_directed_m3_n1000_ns": 289100,
+  "rust_multiple_directed_m3_n10000_ns": 4177300,
+  "py_baseline_ns": null,
+  "notes": "Barabási–Albert PSUMTREE variants (igraph_i_barabasi_game_psumtree / igraph_i_barabasi_game_psumtree_multiple, references/igraph/src/games/barabasi.c lines ~166-414). Both variants use a shared Fenwick BIT (PsumTree) for O(log n) point-update and binary-lifted prefix-search. The simple variant zeros each chosen target inside the step's m draws and refreshes the affected weights at end-of-step (no within-step duplicates by construction); the multiple variant snapshots the BIT sum once per step and allows duplicates. Search uses `search_bounded(target, bound)` clamped to [0, i) — without the bound, FP drift in the BIT total could let binary-lifting clamp to position i (the new vertex) and create a self-loop. End-to-end throughput at n = 10 000 is ~3.6 Melem/s for the classical simple variant, ~4.7 Melem/s for the undirected pow=1.5 case (cheaper because power=1.5 does not change the asymptotic curve enough to dominate the BIT cost), and ~2.4 Melem/s for the multiple variant with m = 3. The slope is consistent with the predicted O(n · m · log n) bound. No oracle baseline: python-igraph and rigraph both expose the PSUMTREE algorithm names but the underlying RNG state (Mersenne Twister in C, R's R_unif_index in R) is not portable to our SplitMix64; conformance asserts structural invariants only (vcount, directed flag, ecount band, no self-loops). Numbers from cargo bench --bench bench_barabasi_psumtree -- --quick on Darwin/M-series release build."
+}

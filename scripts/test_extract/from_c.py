@@ -4337,6 +4337,97 @@ RECENT_DEGREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-020: barabasi_game_psumtree / barabasi_game_psumtree_multiple.
+# Mirrors igraph_i_barabasi_game_psumtree and ..._psumtree_multiple
+# (references/igraph/src/games/barabasi.c ~195-414): Fenwick-BIT-based
+# preferential attachment. The SIMPLE variant zeros each chosen vertex's
+# weight per draw to prevent within-step duplicates; the MULTIPLE variant
+# snapshots the BIT sum once per step and may produce within-step
+# multi-edges (the saturation branch fires when m >= i, emitting only `i`
+# edges instead of `m`). RNG state is not portable; fixtures pin our
+# SplitMix64 output and assert structural invariants. Never self-loops by
+# construction (the binary-lifted prefix search is bounded to [0, i)
+# before vertex i is added).
+BARABASI_PSUMTREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "barabasi_psumtree_c_classic_directed_m2",
+        "origin": "constructed (mirrors igraph_barabasi_game(n=40, "
+        "power=1.0, m=2, outpref=false, A=1.0, directed, algo=PSUMTREE)) — "
+        "classical BA kernel (linear-in-degree weights) with simple "
+        "variant; ecount = (40-1)*2 = 78 by construction",
+        "algo": "barabasi_game_psumtree",
+        "params": {
+            "nodes": 40,
+            "power": 1.0,
+            "m": 2,
+            "outpref": False,
+            "a": 1.0,
+            "directed": True,
+            "variant": "psumtree",
+            "seed": 9_998_001,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,  # (40-1)*2 = 78
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "barabasi_psumtree_c_multiple_pow15_directed_m3",
+        "origin": "constructed (mirrors igraph_barabasi_game(n=30, "
+        "power=1.5, m=3, outpref=false, A=1.0, directed, "
+        "algo=PSUMTREE_MULTIPLE)) — non-linear (super-linear, alpha=1.5) "
+        "attachment with multi-edge variant; the saturation branch fires "
+        "for steps i in {1, 2, 3} (emitting 1+2+3=6 edges instead of 9), "
+        "so ecount = 29*3 - 3*2/2 = 84",
+        "algo": "barabasi_game_psumtree",
+        "params": {
+            "nodes": 30,
+            "power": 1.5,
+            "m": 3,
+            "outpref": False,
+            "a": 1.0,
+            "directed": True,
+            "variant": "psumtree_multiple",
+            "seed": 9_998_002,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": True,
+            "ecount_min": 84,  # (30-1)*3 - 3*(3-1)/2 = 84
+            "ecount_max": 84,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "barabasi_psumtree_c_undirected_outpref_m2",
+        "origin": "constructed (mirrors igraph_barabasi_game(n=35, "
+        "power=1.0, m=2, outpref=true, A=0.5, undirected, algo=PSUMTREE)) "
+        "— undirected forces outpref=true (so A=0.5 is fine); simple "
+        "variant; ecount = (35-1)*2 = 68",
+        "algo": "barabasi_game_psumtree",
+        "params": {
+            "nodes": 35,
+            "power": 1.0,
+            "m": 2,
+            "outpref": True,
+            "a": 0.5,
+            "directed": False,
+            "variant": "psumtree",
+            "seed": 9_998_003,
+        },
+        "expected": {
+            "vcount": 35,
+            "directed": False,
+            "ecount_min": 68,  # (35-1)*2 = 68
+            "ecount_max": 68,
+            "no_self_loops": True,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -5610,6 +5701,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "cited_type_game": CITED_TYPE_MANIFEST,
     "lastcit_game": LASTCIT_MANIFEST,
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
+    "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5725,6 +5817,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "cited_type_game",
             "lastcit_game",
             "recent_degree_game",
+            "barabasi_game_psumtree",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

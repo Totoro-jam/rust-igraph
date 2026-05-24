@@ -1,0 +1,28 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Barabasi(n=30, m=3, power=1.5, outpref=False, A=1.0, directed=True, implementation='psumtree_multiple')) \u2014 saturation triangle deducts 3 edges from the naive 87 total",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "barabasi_game_psumtree",
+  "params": {
+    "nodes": 30,
+    "power": 1.5,
+    "m": 3,
+    "outpref": false,
+    "a": 1.0,
+    "directed": true,
+    "variant": "psumtree_multiple",
+    "seed": 9999002
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": true,
+    "ecount_min": 84,
+    "ecount_max": 84,
+    "no_self_loops": true
+  }
+}

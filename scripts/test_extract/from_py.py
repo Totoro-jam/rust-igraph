@@ -4042,6 +4042,89 @@ RECENT_DEGREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-020: barabasi_game_psumtree / barabasi_game_psumtree_multiple.
+# Mirrors ig.Graph.Barabasi(..., implementation="psumtree") and
+# implementation="psumtree_multiple" (Cython wrapper on
+# `igraph_barabasi_game`). The SIMPLE variant prevents within-step
+# multi-edges via per-draw weight zeroing; the MULTIPLE variant snapshots
+# the BIT sum once per step and uses the `m >= i` early-cite branch.
+# Never self-loops by construction.
+BARABASI_PSUMTREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "barabasi_psumtree_py_classic_directed_m2",
+        "origin": "constructed (mirrors ig.Graph.Barabasi(n=40, m=2, "
+        "power=1.0, outpref=False, A=1.0, directed=True, "
+        "implementation='psumtree')) — classical linear BA kernel",
+        "algo": "barabasi_game_psumtree",
+        "params": {
+            "nodes": 40,
+            "power": 1.0,
+            "m": 2,
+            "outpref": False,
+            "a": 1.0,
+            "directed": True,
+            "variant": "psumtree",
+            "seed": 9_999_001,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "barabasi_psumtree_py_multiple_pow15_directed_m3",
+        "origin": "constructed (mirrors ig.Graph.Barabasi(n=30, m=3, "
+        "power=1.5, outpref=False, A=1.0, directed=True, "
+        "implementation='psumtree_multiple')) — saturation triangle "
+        "deducts 3 edges from the naive 87 total",
+        "algo": "barabasi_game_psumtree",
+        "params": {
+            "nodes": 30,
+            "power": 1.5,
+            "m": 3,
+            "outpref": False,
+            "a": 1.0,
+            "directed": True,
+            "variant": "psumtree_multiple",
+            "seed": 9_999_002,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": True,
+            "ecount_min": 84,
+            "ecount_max": 84,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "barabasi_psumtree_py_undirected_outpref_m2",
+        "origin": "constructed (mirrors ig.Graph.Barabasi(n=35, m=2, "
+        "power=1.0, outpref=True, A=0.5, directed=False, "
+        "implementation='psumtree')) — undirected forces outpref=True",
+        "algo": "barabasi_game_psumtree",
+        "params": {
+            "nodes": 35,
+            "power": 1.0,
+            "m": 2,
+            "outpref": True,
+            "a": 0.5,
+            "directed": False,
+            "variant": "psumtree",
+            "seed": 9_999_003,
+        },
+        "expected": {
+            "vcount": 35,
+            "directed": False,
+            "ecount_min": 68,
+            "ecount_max": 68,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors
 # `ig.Graph.SBM`-like factory `ig.Graph.SimpleInterconnectedIslands(
 # islands_n, islands_size, islands_pin, n_inter)` (Cython wrapper on
@@ -5077,6 +5160,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "cited_type_game": CITED_TYPE_MANIFEST,
     "lastcit_game": LASTCIT_MANIFEST,
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
+    "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5187,6 +5271,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "cited_type_game",
             "lastcit_game",
             "recent_degree_game",
+            "barabasi_game_psumtree",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

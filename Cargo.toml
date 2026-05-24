@@ -251,6 +251,11 @@ path = "benches/bench_forestfire.rs"
 harness = false
 
 [[bench]]
+name = "bench_barabasi_psumtree"
+path = "benches/bench_barabasi_psumtree.rs"
+harness = false
+
+[[bench]]
 name = "bench_islands"
 path = "benches/bench_islands.rs"
 harness = false
