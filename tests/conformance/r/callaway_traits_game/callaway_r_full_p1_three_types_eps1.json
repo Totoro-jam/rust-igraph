@@ -1,0 +1,43 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_traits_callaway with edges.per.step=1 and pref.matrix=ones): exactly (n-1) edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "callaway_traits_game",
+  "params": {
+    "nodes": 25,
+    "types": 3,
+    "edges_per_step": 1,
+    "type_dist": null,
+    "pref_matrix": [
+      [
+        1.0,
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0,
+        1.0
+      ]
+    ],
+    "directed": false,
+    "seed": 2223003
+  },
+  "expected": {
+    "vcount": 25,
+    "directed": false,
+    "ecount_min": 24,
+    "ecount_max": 24,
+    "max_type": 2
+  }
+}

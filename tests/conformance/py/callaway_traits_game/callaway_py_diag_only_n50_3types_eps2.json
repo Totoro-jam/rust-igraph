@@ -1,0 +1,48 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Callaway_Traits): three types at uniform mass, diagonal pref at 0.5; accepted edges share endpoint type",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "callaway_traits_game",
+  "params": {
+    "nodes": 50,
+    "types": 3,
+    "edges_per_step": 2,
+    "type_dist": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "pref_matrix": [
+      [
+        0.5,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.5,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.5
+      ]
+    ],
+    "directed": false,
+    "seed": 9992012
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": false,
+    "ecount_min": 4,
+    "ecount_max": 50,
+    "diagonal_only_pref": true,
+    "max_type": 2
+  }
+}

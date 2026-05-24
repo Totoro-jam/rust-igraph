@@ -1,0 +1,47 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_callaway_traits_game(n=40, types=3, edges_per_step=3, type_dist=(1,1,1), pref=ones, undirected)) \u2014 every candidate accepted \u21d2 exactly (n-1)*eps edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "callaway_traits_game",
+  "params": {
+    "nodes": 40,
+    "types": 3,
+    "edges_per_step": 3,
+    "type_dist": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "pref_matrix": [
+      [
+        1.0,
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0,
+        1.0
+      ]
+    ],
+    "directed": false,
+    "seed": 9991002
+  },
+  "expected": {
+    "vcount": 40,
+    "directed": false,
+    "ecount_min": 117,
+    "ecount_max": 117,
+    "max_type": 2
+  }
+}

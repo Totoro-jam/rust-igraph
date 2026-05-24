@@ -3712,6 +3712,96 @@ ESTABLISHMENT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-016: callaway_traits_game. Mirrors ig.Graph.Callaway_Traits(
+# nodes, types, edges_per_step, type_dist, pref_matrix, directed,
+# attribute) — Cython wrapper on `igraph_callaway_traits_game`. RNG
+# state is not portable; structural invariants only. Note: candidate
+# edges may include self-loops and parallel edges — output is NOT
+# simple-by-construction (unlike establishment).
+CALLAWAY_TRAITS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "callaway_py_uniform_full_p1_n35_2types_eps3",
+        "origin": "tests/test_games.py::testCallawayTraits — "
+        "Graph.Callaway_Traits(n=35, types=2, edges_per_step=3, "
+        "type_dist=None, pref=ones, undirected): every candidate "
+        "accepts ⇒ exactly (n-1)*eps = 102 edges",
+        "algo": "callaway_traits_game",
+        "params": {
+            "nodes": 35,
+            "types": 2,
+            "edges_per_step": 3,
+            "type_dist": None,
+            "pref_matrix": [
+                [1.0, 1.0],
+                [1.0, 1.0],
+            ],
+            "directed": False,
+            "seed": 9_992_011,
+        },
+        "expected": {
+            "vcount": 35,
+            "directed": False,
+            "ecount_min": 102,  # (35-1)*3 = 102
+            "ecount_max": 102,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "callaway_py_diag_only_n50_3types_eps2",
+        "origin": "constructed (mirrors Graph.Callaway_Traits): three "
+        "types at uniform mass, diagonal pref at 0.5; accepted edges "
+        "share endpoint type",
+        "algo": "callaway_traits_game",
+        "params": {
+            "nodes": 50,
+            "types": 3,
+            "edges_per_step": 2,
+            "type_dist": [1.0, 1.0, 1.0],
+            "pref_matrix": [
+                [0.5, 0.0, 0.0],
+                [0.0, 0.5, 0.0],
+                [0.0, 0.0, 0.5],
+            ],
+            "directed": False,
+            "seed": 9_992_012,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": False,
+            # Pr[same type] = 1/3; accept = 0.5 ⇒ E[ecount] ≈ 98 * 1/3 * 0.5 ≈ 16.
+            "ecount_min": 4,
+            "ecount_max": 50,
+            "diagonal_only_pref": True,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "callaway_py_zero_pref_edgeless_n40",
+        "origin": "constructed (mirrors Graph.Callaway_Traits with pref=0): "
+        "isolated vertices, types still assigned",
+        "algo": "callaway_traits_game",
+        "params": {
+            "nodes": 40,
+            "types": 2,
+            "edges_per_step": 5,
+            "type_dist": None,
+            "pref_matrix": [
+                [0.0, 0.0],
+                [0.0, 0.0],
+            ],
+            "directed": False,
+            "seed": 9_992_013,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": False,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "max_type": 1,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors
 # `ig.Graph.SBM`-like factory `ig.Graph.SimpleInterconnectedIslands(
 # islands_n, islands_size, islands_pin, n_inter)` (Cython wrapper on
@@ -4743,6 +4833,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "preference_game": PREFERENCE_MANIFEST,
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "establishment_game": ESTABLISHMENT_MANIFEST,
+    "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -4849,6 +4940,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "preference_game",
             "asymmetric_preference_game",
             "establishment_game",
+            "callaway_traits_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

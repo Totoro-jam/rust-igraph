@@ -15,6 +15,69 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-016** — `callaway_traits_game` Callaway et al. (2001)
+  growing-traits random graph generator. Counterpart of
+  `igraph_callaway_traits_game()` in
+  `references/igraph/src/games/citations.c:95-156`. Differs from
+  `establishment_game` in two structural ways: (1) all `n` vertex
+  types are categorical-sampled up front (uniform when
+  `type_dist = None`), not just for `i ≥ k`; (2) on each step
+  `i ∈ [1, n)` BOTH endpoints of each candidate edge are drawn
+  uniformly from the existing population `[0, i]` *inclusive* — and
+  the candidate is accepted with `pref_matrix[t_a][t_b]` —
+  `edges_per_step` independent attempts per step. As a consequence
+  self-loops and multi-edges ARE allowed by construction (the C model
+  draws both endpoints with `RNG_INTEGER(0, i)` independently).
+  - `pub fn callaway_traits_game(nodes: u32, types: u32, edges_per_step: u32, type_dist: Option<&[f64]>, pref_matrix: &[Vec<f64>], directed: bool, seed: u64) -> IgraphResult<(Graph, Vec<u32>)>`.
+  - Validation: `types ≥ 1`; `pref_matrix` is `types × types`,
+    finite, non-NaN, entries in `[0, 1]`; when `directed = false`,
+    `pref_matrix` must be symmetric; `type_dist` (when set) length
+    matches `types`, entries finite and non-negative.
+  - Edge cases: `nodes = 0` returns an empty `(Graph, vec![])`;
+    `nodes = 1` returns a single-vertex edgeless graph (the loop body
+    runs only for `i ≥ 1`); `edges_per_step = 0` returns an edgeless
+    graph regardless of `pref_matrix`. Per-vertex types are still
+    assigned in every case so the returned `Vec<u32>` always has
+    length `nodes`.
+  - Coverage: 25 unit tests + 5 proptests
+    (`ecount_bounded_by_full_accept`, `types_in_range`,
+    `determinism`, `p1_full_pref_yields_exact_max_ecount`,
+    `p0_yields_no_edges`) under `--features proptest-harness` + 9
+    three-source conformance fixtures (3 each from C / py / R) under
+    `tests/conformance/{c,py,r}/callaway_traits_game/` asserting
+    structural invariants only — RNG state is not portable across
+    SplitMix64 vs igraph's GLIBC RNG, so we assert `vcount = nodes`
+    (exact), `directed` flag (exact), `ecount` band (hand-derived
+    from `(n-1)·eps · p_avg` plus tolerance), `max_type < types`, and
+    (where applicable) the `diagonal_only_pref` / `cross_only_pref`
+    flags. Notably we do NOT assert `is_simple` — that contrasts with
+    `establishment_game` and is the model's defining property.
+  - Bench at `benches/bench_callaway_traits.rs`: a
+    `size_scaling/eps3_diag` sweep at fixed `types = 4,
+    edges_per_step = 3` with a diagonal `p = 0.20` pref matrix
+    (`n ∈ {500, 5_000}`), an `eps_count/n1000_full` sweep at
+    `n = 1_000, types = 2, p = 1.0` over
+    `edges_per_step ∈ {1, 4, 16}`, and a `directed/n1000_3types`
+    point with an asymmetric `3 × 3` pref matrix at `n = 1_000,
+    edges_per_step = 3`. Baseline at
+    `.codefuse/tracking/perf/ALGO-GN-016.json`: the size-scaling axis
+    sits near 24-40 Melem/s (linear in `n · eps`); the eps-sweep
+    scales roughly linearly in `eps` (44.5 / 177.5 / 833.3 µs for
+    `eps ∈ {1, 4, 16}` at `n = 1_000`), confirming the bound
+    `(n - 1) · eps` total candidate edges; the directed asymmetric
+    variant holds 28.3 Melem/s.
+  - Example: `examples/callaway_traits_demo.rs` builds a 2 000-vertex
+    undirected graph with `types = 3, edges_per_step = 4`, an
+    assortative pref matrix (0.30 within / 0.02 across), and a skewed
+    `type_dist = [0.50, 0.25, 0.25]`; prints per-type vertex counts,
+    the within-vs-cross-type edge split, the per-type mean degree,
+    AND the count of self-loops + edges in multi-bundles — the
+    planted assortative structure shows up as > 90% within-type
+    edges, while the loop / multi counters make the
+    not-simple-by-construction property concrete versus
+    `establishment_game`.
+  - Re-exported as `rust_igraph::callaway_traits_game`.
+
 - **ALGO-GN-015** — `establishment_game` Caldarelli et al. (2002)
   sample-traits growing random graph generator. Counterpart of
   `igraph_establishment_game()` in

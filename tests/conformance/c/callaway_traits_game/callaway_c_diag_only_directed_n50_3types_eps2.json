@@ -1,0 +1,48 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_callaway_traits_game(n=50, types=3, edges_per_step=2, type_dist=(1,1,1), pref diag-only at 1, directed)) \u2014 accepted edges connect same-type vertices only",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "callaway_traits_game",
+  "params": {
+    "nodes": 50,
+    "types": 3,
+    "edges_per_step": 2,
+    "type_dist": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "pref_matrix": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "directed": true,
+    "seed": 9991003
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": true,
+    "ecount_min": 0,
+    "ecount_max": 98,
+    "diagonal_only_pref": true,
+    "max_type": 2
+  }
+}

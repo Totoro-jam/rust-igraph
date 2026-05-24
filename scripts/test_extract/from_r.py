@@ -3969,6 +3969,98 @@ ESTABLISHMENT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-016: callaway_traits_game. Mirrors rigraph's
+# `sample_traits_callaway(nodes, types, edges.per.step, type.dist,
+# pref.matrix, directed)` — a thin R wrapper on
+# `igraph_callaway_traits_game`. Differs from sample_traits in that BOTH
+# vertices of each candidate edge are drawn uniformly from the existing
+# population [0, i] (inclusive), so self-loops and multi-edges are
+# allowed by construction. RNG state is not portable, so we encode
+# structural invariants only.
+CALLAWAY_TRAITS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "callaway_r_uniform_p05_n50_2types_eps3",
+        "origin": "tests/testthat/test-aaa-auto.R::sample_traits_callaway "
+        "basic — sample_traits_callaway(nodes=50, types=2, "
+        "edges.per.step=3, pref.matrix=full(0.5))",
+        "algo": "callaway_traits_game",
+        "params": {
+            "nodes": 50,
+            "types": 2,
+            "edges_per_step": 3,
+            "type_dist": [1.0, 1.0],
+            "pref_matrix": [
+                [0.5, 0.5],
+                [0.5, 0.5],
+            ],
+            "directed": False,
+            "seed": 2_223_001,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": False,
+            # E[edges] ≈ (n-1)*eps*0.5 = 49*3*0.5 = 73.5; max = 147
+            "ecount_min": 35,
+            "ecount_max": 147,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "callaway_r_directed_full_pref_n40_3types_eps2",
+        "origin": "constructed (mirrors sample_traits_callaway with "
+        "directed=TRUE and an asymmetric pref.matrix)",
+        "algo": "callaway_traits_game",
+        "params": {
+            "nodes": 40,
+            "types": 3,
+            "edges_per_step": 2,
+            "type_dist": None,
+            "pref_matrix": [
+                [1.0, 0.5, 0.2],
+                [0.5, 1.0, 0.5],
+                [0.2, 0.5, 1.0],
+            ],
+            "directed": True,
+            "seed": 2_223_002,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            # E[edges] ≈ (n-1)*eps * mean(pref) = 78 * (5.4/9) = 46.8;
+            # max = 78
+            "ecount_min": 20,
+            "ecount_max": 78,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "callaway_r_full_p1_three_types_eps1",
+        "origin": "constructed (mirrors sample_traits_callaway with "
+        "edges.per.step=1 and pref.matrix=ones): exactly (n-1) edges",
+        "algo": "callaway_traits_game",
+        "params": {
+            "nodes": 25,
+            "types": 3,
+            "edges_per_step": 1,
+            "type_dist": None,
+            "pref_matrix": [
+                [1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0],
+            ],
+            "directed": False,
+            "seed": 2_223_003,
+        },
+        "expected": {
+            "vcount": 25,
+            "directed": False,
+            "ecount_min": 24,  # (n-1)*eps = 24
+            "ecount_max": 24,
+            "max_type": 2,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -5044,6 +5136,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "preference_game": PREFERENCE_MANIFEST,
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "establishment_game": ESTABLISHMENT_MANIFEST,
+    "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5150,6 +5243,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "preference_game",
             "asymmetric_preference_game",
             "establishment_game",
+            "callaway_traits_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

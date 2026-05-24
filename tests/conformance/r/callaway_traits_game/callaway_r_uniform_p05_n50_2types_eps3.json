@@ -1,0 +1,39 @@
+{
+  "source": "r",
+  "origin": "tests/testthat/test-aaa-auto.R::sample_traits_callaway basic \u2014 sample_traits_callaway(nodes=50, types=2, edges.per.step=3, pref.matrix=full(0.5))",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "callaway_traits_game",
+  "params": {
+    "nodes": 50,
+    "types": 2,
+    "edges_per_step": 3,
+    "type_dist": [
+      1.0,
+      1.0
+    ],
+    "pref_matrix": [
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "directed": false,
+    "seed": 2223001
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": false,
+    "ecount_min": 35,
+    "ecount_max": 147,
+    "max_type": 1
+  }
+}

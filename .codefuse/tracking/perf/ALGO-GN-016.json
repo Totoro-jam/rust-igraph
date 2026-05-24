@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-GN-016",
+  "captured_at": "2026-05-24",
+  "git_commit": "1176bbe",
+  "rust_size_eps3_diag_n500_ns": 12614,
+  "rust_size_eps3_diag_n5000_ns": 208430,
+  "rust_eps1_n1000_full_ns": 44473,
+  "rust_eps4_n1000_full_ns": 177500,
+  "rust_eps16_n1000_full_ns": 833310,
+  "rust_directed_3types_n1000_ns": 35395,
+  "py_baseline_ns": null,
+  "notes": "Callaway-traits growing model (Callaway et al. 2001). All n vertex types are categorical-sampled up front; then for each step i in 1..n, draw two endpoints uniformly from [0, i] inclusive (RNG_INTEGER(0,i) parity), look up types, and accept the candidate edge with probability pref_matrix[t1][t2]. Self-loops and multi-edges are allowed by construction (key contrast to establishment_game which Floyd-samples k distinct previous vertices and is simple). Throughput on the size_scaling/eps3_diag axis is near 24-40 Melem/s (linear in n*eps: two gen_index draws + a pref lookup + one gen_unit Bernoulli per candidate); the eps_count axis at n=1000, p=1 scales roughly linearly in eps (44.5/177.5/833.3 us for eps in {1,4,16}), confirming the bound (n-1)*eps total candidate edges. Directed/n1000_3types at 35.4 us holds in-line. No oracle baseline: igraph C exposes igraph_callaway_traits_game and python-igraph exposes Graph.Callaway_Traits but the RNG state isn't portable, so conformance asserts structural invariants only (vcount, max_type < types, ecount band, optional diagonal_only / cross_only edge-coloring flags) — and notably does NOT assert simplicity. Numbers from cargo bench --bench bench_callaway_traits -- --quick on Darwin/M-series release build."
+}

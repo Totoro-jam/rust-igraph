@@ -1,0 +1,39 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_callaway_traits_game(n=30, types=2, edges_per_step=4, type_dist=(1,1), pref=zeros, undirected)) \u2014 every candidate edge rejected",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "callaway_traits_game",
+  "params": {
+    "nodes": 30,
+    "types": 2,
+    "edges_per_step": 4,
+    "type_dist": [
+      1.0,
+      1.0
+    ],
+    "pref_matrix": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    "directed": false,
+    "seed": 9991001
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": false,
+    "ecount_min": 0,
+    "ecount_max": 0,
+    "max_type": 1
+  }
+}

@@ -4019,6 +4019,90 @@ ESTABLISHMENT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CALLAWAY_TRAITS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "callaway_c_zero_pref_no_edges_n30_2types",
+        "origin": "constructed (mirrors igraph_callaway_traits_game(n=30, "
+        "types=2, edges_per_step=4, type_dist=(1,1), pref=zeros, "
+        "undirected)) — every candidate edge rejected",
+        "algo": "callaway_traits_game",
+        "params": {
+            "nodes": 30,
+            "types": 2,
+            "edges_per_step": 4,
+            "type_dist": [1.0, 1.0],
+            "pref_matrix": [
+                [0.0, 0.0],
+                [0.0, 0.0],
+            ],
+            "directed": False,
+            "seed": 9_991_001,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "callaway_c_full_p1_n40_3types_eps3",
+        "origin": "constructed (mirrors igraph_callaway_traits_game(n=40, "
+        "types=3, edges_per_step=3, type_dist=(1,1,1), pref=ones, "
+        "undirected)) — every candidate accepted ⇒ exactly (n-1)*eps edges",
+        "algo": "callaway_traits_game",
+        "params": {
+            "nodes": 40,
+            "types": 3,
+            "edges_per_step": 3,
+            "type_dist": [1.0, 1.0, 1.0],
+            "pref_matrix": [
+                [1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0],
+            ],
+            "directed": False,
+            "seed": 9_991_002,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": False,
+            "ecount_min": 117,  # (40-1)*3 = 117
+            "ecount_max": 117,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "callaway_c_diag_only_directed_n50_3types_eps2",
+        "origin": "constructed (mirrors igraph_callaway_traits_game(n=50, "
+        "types=3, edges_per_step=2, type_dist=(1,1,1), pref diag-only at 1, "
+        "directed)) — accepted edges connect same-type vertices only",
+        "algo": "callaway_traits_game",
+        "params": {
+            "nodes": 50,
+            "types": 3,
+            "edges_per_step": 2,
+            "type_dist": [1.0, 1.0, 1.0],
+            "pref_matrix": [
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0],
+            ],
+            "directed": True,
+            "seed": 9_991_003,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": True,
+            "ecount_min": 0,
+            "ecount_max": 98,  # (50-1)*2 = 98 upper bound
+            "diagonal_only_pref": True,
+            "max_type": 2,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -5288,6 +5372,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "preference_game": PREFERENCE_MANIFEST,
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "establishment_game": ESTABLISHMENT_MANIFEST,
+    "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5399,6 +5484,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "preference_game",
             "asymmetric_preference_game",
             "establishment_game",
+            "callaway_traits_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",
