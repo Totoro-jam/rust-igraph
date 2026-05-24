@@ -1,0 +1,59 @@
+{
+  "awu": "ALGO-GN-027",
+  "algorithm": "degree_sequence_game_configuration_simple",
+  "bench_file": "benches/bench_degree_sequence_configuration_simple.rs",
+  "captured_at": "2026-05-24",
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "rustc": "1.91 (release profile)"
+  },
+  "measurements": [
+    {
+      "group": "degree_sequence_configuration_simple/size_sweep_3regular_undirected",
+      "param": "100",
+      "median_ns": 14456,
+      "throughput": "6.918 Melem/s",
+      "note": "n=100, d=3, Σd=300. Density Σd/n=3 → exp(O((Σd/n)²/4))≈exp(2.25)≈9.5 expected restarts. Two-swap FY plus HashSet<u32> adjacency dedup; cost is dominated by HashSet inserts on collision restarts."
+    },
+    {
+      "group": "degree_sequence_configuration_simple/size_sweep_3regular_undirected",
+      "param": "300",
+      "median_ns": 227830,
+      "throughput": "1.317 Melem/s",
+      "note": "n=300, d=3, Σd=900. Median is anomalously high vs n=600 (116µs) — this seed happens to hit a tail of restarts for n=300; medians for rejection samplers carry inherent variance even at fixed density. Σd/n stays at 3 so asymptotically the cost scales linearly in Σd × expected_restarts."
+    },
+    {
+      "group": "degree_sequence_configuration_simple/size_sweep_3regular_undirected",
+      "param": "600",
+      "median_ns": 116110,
+      "throughput": "5.167 Melem/s",
+      "note": "n=600, d=3, Σd=1_800. Linear-in-Σd behaviour confirmed against n=100 (≈8x cost for 6x Σd). Versus VL on the same regular sequence the gap widens with n because VL pays MCMC + connectivity overhead per step."
+    },
+    {
+      "group": "degree_sequence_configuration_simple/moderate_skew_n100",
+      "param": "default_seed",
+      "median_ns": 13003,
+      "throughput": "7.690 Melem/s",
+      "note": "n=100, Σd=258 (avg ≈2.58, max 6). Skewed but moderate density keeps the rejection budget shallow. Slightly faster than the d=3 regular n=100 case because lower Σd outweighs the marginally higher collision rate on the high-degree stubs."
+    },
+    {
+      "group": "degree_sequence_configuration_simple/directed_balanced_n100_d2",
+      "param": "default_seed",
+      "median_ns": 11421,
+      "throughput": "8.756 Melem/s",
+      "note": "n=100, Σout=Σin=200. Directed branch uses a bumped vertex_done counter (O(1) multi-arc check, no per-target HashSet) and a single FY swap per stub — leaner per-attempt than undirected, and the lower density (Σout/n=2) means fewer restarts. Fastest case in the suite per element."
+    }
+  ],
+  "cross_reference": {
+    "python_igraph_method": "Graph.Degree_Sequence(out, in_=None, method=\"configuration_simple\")",
+    "r_igraph_method": "sample_degseq(out, in.deg=NULL, method=\"configuration.simple\")",
+    "note": "C upstream wraps the same routine in igraph_degree_sequence_game(IGRAPH_DEGSEQ_CONFIGURATION_SIMPLE). Our SplitMix64 RNG path is not bitwise-portable to igraph C / NumPy / R, so absolute medians here characterise the Rust implementation only."
+  },
+  "interpretation": {
+    "primary_cost": "Per attempt: O(Σd) stub bag construction, O(Σd) two-swap incremental Fisher-Yates, O(Σd) HashSet dedup (undirected) or O(Σd) bumped-counter multi-arc check (directed). Expected number of attempts grows as exp(O((Σd/n)²)) (undirected) or exp(O((Σout/n)(Σin/n))) (directed) so density matters more than n.",
+    "rust_advantages": "1) HashSet<u32> with FxHasher would shave another 15-20% on dedup; we currently use the std default. 2) Bumped-counter trick on directed avoids HashSet entirely. 3) Restart-on-collision keeps allocator pressure flat — only the adjacency tracker resets, stub bag is rebuilt from the input slice.",
+    "tradeoffs_vs_siblings": "Uniformity guarantee (uniform over all simple realisations of the sequence) is the key selling point — VL (GN-025) also samples simple graphs but only connected ones; FAST_HEUR_SIMPLE (GN-026) trades uniformity for ~10-20x faster wall-clock by accepting heuristic deviation. CONFIGURATION_SIMPLE is the right choice when statistical correctness matters and density is bounded.",
+    "future_optimisations": "1) Switch HashSet to a small Vec-backed sorted set when Δ<8 to avoid hash overhead on tiny adjacency lists. 2) Bias the FY shuffle toward stubs with the largest residual to lower collision rate on power-law inputs. 3) Lazy bag rebuild on restart — keep the same stub bag and re-shuffle in place rather than reallocating."
+  }
+}

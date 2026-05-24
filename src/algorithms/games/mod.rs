@@ -12,6 +12,7 @@ pub mod chung_lu;
 pub mod cited_type;
 pub mod correlated;
 pub mod degree_sequence;
+pub mod degree_sequence_configuration_simple;
 pub mod degree_sequence_fast_heur;
 pub mod degree_sequence_vl;
 pub mod dotproduct;

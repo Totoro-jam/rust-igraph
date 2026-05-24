@@ -1,0 +1,42 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors `ig.Graph.Degree_Sequence([3]*8, method='configuration_simple')`): 8 vertices all degree 3, \u03a3d=24. CONFIGURATION_SIMPLE guarantees a uniformly-sampled simple graph realising the sequence.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_configuration_simple",
+  "params": {
+    "out_degrees": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "in_degrees": null,
+    "seed": 9270001
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": false,
+    "ecount": 12,
+    "out_degrees": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "in_degrees": null,
+    "is_simple": true
+  }
+}

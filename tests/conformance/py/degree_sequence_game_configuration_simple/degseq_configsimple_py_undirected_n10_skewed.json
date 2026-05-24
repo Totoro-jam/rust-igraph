@@ -1,0 +1,46 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors `ig.Graph.Degree_Sequence([4,3,3,3,2,2,2,2,2,1], method='configuration_simple')`): 10 vertices, moderately skewed sequence, \u03a3d=24 (moderate density to keep rejection-sampling tractable).",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_configuration_simple",
+  "params": {
+    "out_degrees": [
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1
+    ],
+    "in_degrees": null,
+    "seed": 9270002
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "ecount": 12,
+    "out_degrees": [
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1
+    ],
+    "in_degrees": null,
+    "is_simple": true
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors `sample_degseq(out.deg=rep(3, 8), method='configuration.simple')`): 8 vertices all degree 3, \u03a3d=24. Density \u03a3d/n=3 keeps the rejection sampler tractable.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_configuration_simple",
+  "params": {
+    "out_degrees": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "in_degrees": null,
+    "seed": 8670002
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": false,
+    "ecount": 12,
+    "out_degrees": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "in_degrees": null,
+    "is_simple": true
+  }
+}

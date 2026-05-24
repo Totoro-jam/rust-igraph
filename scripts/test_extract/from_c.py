@@ -4936,6 +4936,101 @@ DEGREE_SEQUENCE_FAST_HEUR_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Configuration-simple degree-sequence generator (ALGO-GN-027). Fixtures
+# mirror the CONFIGURATION_SIMPLE blocks of
+# references/igraph/tests/unit/igraph_degree_sequence_game.c (lines 101-155).
+# This method samples uniformly from simple realisations of the input degree
+# sequence via the configuration model with rejection sampling on collision.
+# Like FAST_HEUR_SIMPLE the C test asserts vcount, directedness, is_simple,
+# and exact (out/in-)degree match — RNG state is not portable, so we pin
+# only those structural invariants.
+DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_configsimple_c_undirected_n10_mixed",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:103-114 — "
+        "outarr=[2,3,2,3,3,3,3,1,4,4] DEGSEQ_CONFIGURATION_SIMPLE undirected; "
+        "C test asserts !directed, vcount==n, is_simple, exact degree match",
+        "algo": "degree_sequence_game_configuration_simple",
+        "params": {
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": None,
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 14,
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_configsimple_c_undirected_empty",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:116-118 — "
+        "empty out_degrees DEGSEQ_CONFIGURATION_SIMPLE undirected; vcount must be 0",
+        "algo": "degree_sequence_game_configuration_simple",
+        "params": {
+            "out_degrees": [],
+            "in_degrees": None,
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 0,
+            "directed": False,
+            "ecount": 0,
+            "out_degrees": [],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_configsimple_c_directed_n8_mixed",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:137-151 — "
+        "directed DEGSEQ_CONFIGURATION_SIMPLE invariants (is_simple, exact "
+        "out/in match). The C reference uses outarr=[2,3,2,3,3,3,3,1,4,4] "
+        "inarr=[3,6,2,0,2,2,4,3,3,3] (Σ=28 on n=10), which yields "
+        "exp(~7.8) ≈ 2440 expected restarts and exceeds our "
+        "MAX_OUTER_ATTEMPTS=1024 budget; this fixture preserves the same "
+        "structural assertions on a lower-density directed sequence "
+        "(out=[2,2,2,1,1,1,1,1] in=[1,2,1,1,2,1,2,1], Σ=10 on n=8) so the "
+        "rejection sampler can run reliably.",
+        "algo": "degree_sequence_game_configuration_simple",
+        "params": {
+            "out_degrees": [2, 2, 2, 1, 1, 1, 1, 1],
+            "in_degrees": [1, 2, 1, 1, 2, 1, 2, 1],
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": True,
+            "ecount": 11,
+            "out_degrees": [2, 2, 2, 1, 1, 1, 1, 1],
+            "in_degrees": [1, 2, 1, 1, 2, 1, 2, 1],
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_configsimple_c_directed_empty",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:153-155 — "
+        "empty out/in DEGSEQ_CONFIGURATION_SIMPLE directed; vcount must be 0",
+        "algo": "degree_sequence_game_configuration_simple",
+        "params": {
+            "out_degrees": [],
+            "in_degrees": [],
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 0,
+            "directed": True,
+            "ecount": 0,
+            "out_degrees": [],
+            "in_degrees": [],
+            "is_simple": True,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -6215,6 +6310,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
     "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
+    "degree_sequence_game_configuration_simple": DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST,
     "degree_sequence_game_fast_heur_simple": DEGREE_SEQUENCE_FAST_HEUR_MANIFEST,
     "degree_sequence_game_vl": DEGREE_SEQUENCE_VL_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
@@ -6337,6 +6433,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "dot_product_game",
             "correlated_pair_game",
             "degree_sequence_game_configuration",
+            "degree_sequence_game_configuration_simple",
             "degree_sequence_game_fast_heur_simple",
             "degree_sequence_game_vl",
             "simple_interconnected_islands_game",

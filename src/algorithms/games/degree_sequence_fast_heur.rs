@@ -74,7 +74,7 @@ use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 const MAX_OUTER_ATTEMPTS: u32 = 1024;
 
 /// Sum a `u32` slice into a `u64` with overflow checking.
-fn checked_sum(degrees: &[u32]) -> IgraphResult<u64> {
+pub(crate) fn checked_sum(degrees: &[u32]) -> IgraphResult<u64> {
     let mut acc: u64 = 0;
     for &d in degrees {
         acc = acc
@@ -85,7 +85,7 @@ fn checked_sum(degrees: &[u32]) -> IgraphResult<u64> {
 }
 
 /// Erdős–Gallai test (undirected simple graph).
-fn is_graphical_simple_undirected(degrees: &[u32]) -> bool {
+pub(crate) fn is_graphical_simple_undirected(degrees: &[u32]) -> bool {
     let n = degrees.len();
     if n == 0 {
         return true;
@@ -121,7 +121,7 @@ fn is_graphical_simple_undirected(degrees: &[u32]) -> bool {
 /// simple directed graph iff, after re-ordering indices `π` so that
 /// `a_{π(1)} ≥ … ≥ a_{π(n)}`, for every `k = 1..n`,
 /// `Σ_{i≤k} a_{π(i)} ≤ Σ_{i≤k} min(b_{π(i)}, k − 1) + Σ_{i>k} min(b_{π(i)}, k)`.
-fn is_graphical_simple_directed(out_degrees: &[u32], in_degrees: &[u32]) -> bool {
+pub(crate) fn is_graphical_simple_directed(out_degrees: &[u32], in_degrees: &[u32]) -> bool {
     let n = out_degrees.len();
     if n != in_degrees.len() {
         return false;

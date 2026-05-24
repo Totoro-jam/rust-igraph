@@ -4549,6 +4549,82 @@ DEGREE_SEQUENCE_FAST_HEUR_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-027: degree_sequence_game (CONFIGURATION_SIMPLE method).
+# python-igraph exposes this as `ig.Graph.Degree_Sequence(out, in_,
+# method="configuration_simple")`. The CONFIGURATION_SIMPLE method uses
+# stub-matching with two-swap-per-edge incremental Fisher-Yates and
+# restarts on every self-loop or multi-edge encountered, returning a
+# uniformly-distributed simple graph with the exact degree sequence.
+# RNG state is not portable, so fixtures pin only structural invariants:
+# vcount, ecount=Σd/2 (undirected) or Σd (directed), exact degrees,
+# simplicity. Density is kept moderate because expected restart count
+# grows as exp(O((Σd/n)²)) for this sampler.
+DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_configsimple_py_undirected_n8_uniform_d3",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence("
+        "[3]*8, method='configuration_simple')`): 8 vertices all degree "
+        "3, Σd=24. CONFIGURATION_SIMPLE guarantees a uniformly-sampled "
+        "simple graph realising the sequence.",
+        "algo": "degree_sequence_game_configuration_simple",
+        "params": {
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+            "seed": 9_270_001,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "ecount": 12,
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_configsimple_py_undirected_n10_skewed",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence("
+        "[4,3,3,3,2,2,2,2,2,1], method='configuration_simple')`): 10 "
+        "vertices, moderately skewed sequence, Σd=24 (moderate density "
+        "to keep rejection-sampling tractable).",
+        "algo": "degree_sequence_game_configuration_simple",
+        "params": {
+            "out_degrees": [4, 3, 3, 3, 2, 2, 2, 2, 2, 1],
+            "in_degrees": None,
+            "seed": 9_270_002,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 12,
+            "out_degrees": [4, 3, 3, 3, 2, 2, 2, 2, 2, 1],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_configsimple_py_directed_n6_skewed",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence("
+        "out=[2,2,2,1,1,1], in_=[2,1,2,1,2,1], "
+        "method='configuration_simple')`): directed simple graph, "
+        "Σout=Σin=9.",
+        "algo": "degree_sequence_game_configuration_simple",
+        "params": {
+            "out_degrees": [2, 2, 2, 1, 1, 1],
+            "in_degrees": [2, 1, 2, 1, 2, 1],
+            "seed": 9_270_003,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": True,
+            "ecount": 9,
+            "out_degrees": [2, 2, 2, 1, 1, 1],
+            "in_degrees": [2, 1, 2, 1, 2, 1],
+            "is_simple": True,
+        },
+    },
+]
+
 # ALGO-GN-025: degree_sequence_game (VL method). python-igraph exposes
 # this as `ig.Graph.Degree_Sequence(out, method="vl")` (undirected only).
 # The VL method samples a connected, simple undirected graph that exactly
@@ -5657,6 +5733,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
     "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
     "degree_sequence_game_fast_heur_simple": DEGREE_SEQUENCE_FAST_HEUR_MANIFEST,
+    "degree_sequence_game_configuration_simple": DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST,
     "degree_sequence_game_vl": DEGREE_SEQUENCE_VL_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
@@ -5774,6 +5851,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "correlated_pair_game",
             "degree_sequence_game_configuration",
             "degree_sequence_game_fast_heur_simple",
+            "degree_sequence_game_configuration_simple",
             "degree_sequence_game_vl",
             "simple_interconnected_islands_game",
             "k_regular_game",

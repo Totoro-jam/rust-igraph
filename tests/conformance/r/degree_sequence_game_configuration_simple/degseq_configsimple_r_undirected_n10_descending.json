@@ -1,0 +1,46 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors `sample_degseq(out.deg=c(4,3,3,3,2,2,2,2,2,1), method='configuration.simple')`): moderately skewed descending sequence on 10 vertices, \u03a3d=24.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_configuration_simple",
+  "params": {
+    "out_degrees": [
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1
+    ],
+    "in_degrees": null,
+    "seed": 8670001
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "ecount": 12,
+    "out_degrees": [
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1
+    ],
+    "in_degrees": null,
+    "is_simple": true
+  }
+}

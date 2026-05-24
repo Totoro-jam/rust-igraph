@@ -111,6 +111,7 @@ pub use crate::algorithms::games::chung_lu::{ChungLuVariant, chung_lu_game};
 pub use crate::algorithms::games::cited_type::cited_type_game;
 pub use crate::algorithms::games::correlated::{correlated_game, correlated_pair_game};
 pub use crate::algorithms::games::degree_sequence::degree_sequence_game_configuration;
+pub use crate::algorithms::games::degree_sequence_configuration_simple::degree_sequence_game_configuration_simple;
 pub use crate::algorithms::games::degree_sequence_fast_heur::degree_sequence_game_fast_heur_simple;
 pub use crate::algorithms::games::degree_sequence_vl::degree_sequence_game_vl;
 pub use crate::algorithms::games::dotproduct::{

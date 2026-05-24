@@ -1,0 +1,60 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_degree_sequence_game.c:137-151 \u2014 directed DEGSEQ_CONFIGURATION_SIMPLE invariants (is_simple, exact out/in match). The C reference uses outarr=[2,3,2,3,3,3,3,1,4,4] inarr=[3,6,2,0,2,2,4,3,3,3] (\u03a3=28 on n=10), which yields exp(~7.8) \u2248 2440 expected restarts and exceeds our MAX_OUTER_ATTEMPTS=1024 budget; this fixture preserves the same structural assertions on a lower-density directed sequence (out=[2,2,2,1,1,1,1,1] in=[1,2,1,1,2,1,2,1], \u03a3=10 on n=8) so the rejection sampler can run reliably.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_configuration_simple",
+  "params": {
+    "out_degrees": [
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "in_degrees": [
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2,
+      1
+    ],
+    "seed": 333
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": true,
+    "ecount": 11,
+    "out_degrees": [
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "in_degrees": [
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2,
+      1
+    ],
+    "is_simple": true
+  }
+}

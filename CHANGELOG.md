@@ -15,6 +15,54 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-027** — `degree_sequence_game_configuration_simple` uniformly
+  sampled *simple* graph for a prescribed degree sequence via
+  stub-matching with two-swap-per-edge incremental Fisher–Yates and
+  restart-on-collision. Counterpart of the
+  `IGRAPH_DEGSEQ_CONFIGURATION_SIMPLE` branch of
+  `igraph_degree_sequence_game()` in
+  `references/igraph/src/games/degree_sequence.c`.
+  - `pub fn degree_sequence_game_configuration_simple(out_degrees: &[u32], in_degrees: Option<&[u32]>, seed: u64) -> IgraphResult<Graph>`
+    — `in_degrees = None` produces an undirected simple graph; `Some(in_seq)`
+    produces a directed simple graph. Rejects non-graphical inputs up front
+    (Erdős–Gallai for the undirected branch, Fulkerson–Chen–Anstee for the
+    directed branch; helpers shared with [ALGO-GN-026] via crate-local
+    visibility).
+  - **Algorithm**: build a flat stub bag of size `Σd`. Undirected: at edge
+    index `i` pick two indices `k1 = RNG(2i, sc-1)` and
+    `k2 = RNG(2i+1, sc-1)`, swap into positions `2i` and `2i+1`, take the
+    pair as a candidate edge; reject and restart the whole attempt on a
+    self-loop or multi-edge (tracked via `Vec<HashSet<u32>>` adjacency).
+    Directed: shuffle the out-stub bag with one FY swap per edge, pair
+    against in-stubs in construction order; multi-arc detection uses a
+    bumped-counter trick (per-attempt mark in a `Vec<u64>` indexed by
+    target vertex) for `O(1)` checks without per-target clear. Restart
+    budget capped at `MAX_OUTER_ATTEMPTS = 1024`.
+  - **Guarantees**: exact degree preservation, no self-loops, no multi-edges
+    / multi-arcs, *uniform* distribution over the space of simple
+    realisations. **NOT** guaranteed connected (use `_vl` for connectivity);
+    expected number of attempts grows as `exp(O((Σd/n)²))` so the sampler
+    is best suited to bounded-density sequences.
+  - **Performance**: undirected 3-regular size sweep (medians, release
+    profile) — `n = 100`: 14.5 µs, `n = 300`: 228 µs, `n = 600`: 116 µs
+    (rejection-sampler variance: the n=300 seed lands on a long restart
+    tail); moderate-skew `n = 100`: 13.0 µs; directed balanced `n = 100`,
+    d=2: 11.4 µs. Snapshot: `.codefuse/tracking/perf/ALGO-GN-027.json`.
+  - **Determinism**: single [`SplitMix64`] seed drives every FY swap and
+    every restart. Not bitwise-portable to igraph C / NumPy / R, so the
+    three-source conformance harness asserts structural invariants only
+    (vcount, ecount = Σd/2 or Σout, exact out/in degree match, simplicity).
+  - **Tests**: 16 unit tests + 3 proptest invariants
+    (`degrees_preserved_undirected`, `simple_no_loops_no_multi_undirected`,
+    `same_seed_same_graph`) + 1 doctest;
+    `degree_sequence_game_configuration_simple_three_source_conformance`
+    runs against 10 fixtures (4 C + 3 py + 3 R) under
+    `tests/conformance/{c,py,r}/degree_sequence_game_configuration_simple/`.
+  - **Bench**: `benches/bench_degree_sequence_configuration_simple.rs`
+    covers (a) 3-regular size sweep at `n ∈ {100, 300, 600}`,
+    (b) moderate-skew `n = 100`, Σd = 258, and
+    (c) directed balanced `n = 100`, d = 2. Example demo:
+    `cargo run --example degree_sequence_configuration_simple_demo --release`.
 - **ALGO-GN-026** — `degree_sequence_game_fast_heur_simple` fast-heuristic
   *simple* graph sampler for a prescribed degree sequence. Counterpart of
   the `IGRAPH_DEGSEQ_FAST_HEUR_SIMPLE` branch of

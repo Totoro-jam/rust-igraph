@@ -1,0 +1,52 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors `ig.Graph.Degree_Sequence(out=[2,2,2,1,1,1], in_=[2,1,2,1,2,1], method='configuration_simple')`): directed simple graph, \u03a3out=\u03a3in=9.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_configuration_simple",
+  "params": {
+    "out_degrees": [
+      2,
+      2,
+      2,
+      1,
+      1,
+      1
+    ],
+    "in_degrees": [
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+    ],
+    "seed": 9270003
+  },
+  "expected": {
+    "vcount": 6,
+    "directed": true,
+    "ecount": 9,
+    "out_degrees": [
+      2,
+      2,
+      2,
+      1,
+      1,
+      1
+    ],
+    "in_degrees": [
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+    ],
+    "is_simple": true
+  }
+}

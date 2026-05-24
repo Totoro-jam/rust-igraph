@@ -4809,6 +4809,78 @@ DEGREE_SEQUENCE_FAST_HEUR_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-027: degree_sequence_game (CONFIGURATION_SIMPLE method).
+# rigraph exposes this as `sample_degseq(out.deg, in.deg=NULL,
+# method="configuration.simple")` (also accepting a directed signature).
+# CONFIGURATION_SIMPLE rejection-samples a uniform simple graph with
+# the exact degree sequence via stub-matching with two-swap FY and
+# restart-on-collision; expected restart count grows as exp(O((Σd/n)²))
+# so fixtures stay at moderate density. RNG state is not portable.
+DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_configsimple_r_undirected_n10_descending",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=c(4,3,3,3,2,2,2,2,2,1), "
+        "method='configuration.simple')`): moderately skewed descending "
+        "sequence on 10 vertices, Σd=24.",
+        "algo": "degree_sequence_game_configuration_simple",
+        "params": {
+            "out_degrees": [4, 3, 3, 3, 2, 2, 2, 2, 2, 1],
+            "in_degrees": None,
+            "seed": 8_670_001,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 12,
+            "out_degrees": [4, 3, 3, 3, 2, 2, 2, 2, 2, 1],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_configsimple_r_3regular_n8",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=rep(3, 8), method='configuration.simple')`): 8 "
+        "vertices all degree 3, Σd=24. Density Σd/n=3 keeps the "
+        "rejection sampler tractable.",
+        "algo": "degree_sequence_game_configuration_simple",
+        "params": {
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+            "seed": 8_670_002,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "ecount": 12,
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_configsimple_r_undirected_all_isolated",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=rep(0, 5), method='configuration.simple')`): five "
+        "isolated vertices; ecount must be 0 (early-exit branch).",
+        "algo": "degree_sequence_game_configuration_simple",
+        "params": {
+            "out_degrees": [0, 0, 0, 0, 0],
+            "in_degrees": None,
+            "seed": 8_670_003,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "ecount": 0,
+            "out_degrees": [0, 0, 0, 0, 0],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+]
+
 # ALGO-GN-025: degree_sequence_game (VL method). rigraph exposes this
 # as `sample_degseq(out.deg, method = "vl")` (undirected only). VL
 # samples a connected, simple undirected graph realising the given
@@ -5961,6 +6033,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
     "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
     "degree_sequence_game_fast_heur_simple": DEGREE_SEQUENCE_FAST_HEUR_MANIFEST,
+    "degree_sequence_game_configuration_simple": DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST,
     "degree_sequence_game_vl": DEGREE_SEQUENCE_VL_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
@@ -6078,6 +6151,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "correlated_pair_game",
             "degree_sequence_game_configuration",
             "degree_sequence_game_fast_heur_simple",
+            "degree_sequence_game_configuration_simple",
             "degree_sequence_game_vl",
             "simple_interconnected_islands_game",
             "k_regular_game",
