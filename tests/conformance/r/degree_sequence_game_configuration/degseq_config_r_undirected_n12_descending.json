@@ -1,0 +1,49 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors `sample_degseq(out.deg=c(4,4,3,3,3,2,2,2,1,1,1,0), method='configuration')`): decreasing degree sequence, \u03a3d=26 (even).",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_configuration",
+  "params": {
+    "out_degrees": [
+      4,
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      0
+    ],
+    "in_degrees": null,
+    "seed": 8640001
+  },
+  "expected": {
+    "vcount": 12,
+    "directed": false,
+    "ecount": 13,
+    "out_degrees": [
+      4,
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      0
+    ],
+    "in_degrees": null
+  }
+}

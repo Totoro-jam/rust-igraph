@@ -1,0 +1,54 @@
+{
+  "awu": "ALGO-GN-024",
+  "algorithm": "degree_sequence_game_configuration",
+  "bench_file": "benches/bench_degree_sequence.rs",
+  "captured_at": "2026-05-24",
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "rustc": "1.91 (release profile)"
+  },
+  "measurements": [
+    {
+      "group": "degree_sequence/size_sweep_uniform_d4_undirected",
+      "param": "1000",
+      "median_ns": 82235,
+      "throughput": "12.16 Melem/s",
+      "note": "n=1_000, d=4, undirected. |E|=2_000."
+    },
+    {
+      "group": "degree_sequence/size_sweep_uniform_d4_undirected",
+      "param": "10000",
+      "median_ns": 1086700,
+      "throughput": "9.20 Melem/s",
+      "note": "n=10_000, d=4, undirected. |E|=20_000."
+    },
+    {
+      "group": "degree_sequence/size_sweep_uniform_d4_undirected",
+      "param": "100000",
+      "median_ns": 12407000,
+      "throughput": "8.06 Melem/s",
+      "note": "n=100_000, d=4, undirected. |E|=200_000. Linear scaling holds (10x n => ~11.4x time, near-1x throughput drop reflects allocator + cache pressure)."
+    },
+    {
+      "group": "degree_sequence/directed_vs_undirected_n10000_d4",
+      "param": "undirected",
+      "median_ns": 1087400,
+      "throughput": "9.20 Melem/s",
+      "note": "Single stub-bag of size 40_000 (Σd); two PRNG draws per edge."
+    },
+    {
+      "group": "degree_sequence/directed_vs_undirected_n10000_d4",
+      "param": "directed",
+      "median_ns": 2251200,
+      "throughput": "4.44 Melem/s",
+      "note": "Two stub-bags of 40_000 each; two PRNG draws per edge but extra bag-management cost. Directed/undirected ratio = 2.07x — within the linear-overhead band predicted from doubled bag footprint."
+    }
+  ],
+  "notes": [
+    "Stub-bag construction is Θ(n + Σd_i); pairing is Θ(|E|). Both phases are tight scalar loops with no allocation inside the hot loop after the initial Vec::with_capacity.",
+    "Bag pop uses Vec::swap_remove for O(1) random-access removal, avoiding the O(n) shift cost of remove().",
+    "No fundamental dependency on Σd beyond linear: 100_000 vertices @ d=4 fits in ~12.4 ms single-threaded on M-series Apple silicon.",
+    "Throughput drops modestly (12.16 → 8.06 Melem/s) from n=1k to n=100k due to L2 cache pressure on the stub bag (400 KB at n=100k vs. 8 KB at n=1k)."
+  ]
+}

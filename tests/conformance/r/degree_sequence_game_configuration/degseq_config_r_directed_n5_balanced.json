@@ -1,0 +1,47 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors `sample_degseq(out.deg=c(2,1,1,2,2), in.deg=c(1,2,2,1,2), method='configuration')`): directed multigraph; \u03a3out=\u03a3in=8.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_configuration",
+  "params": {
+    "out_degrees": [
+      2,
+      1,
+      1,
+      2,
+      2
+    ],
+    "in_degrees": [
+      1,
+      2,
+      2,
+      1,
+      2
+    ],
+    "seed": 8640002
+  },
+  "expected": {
+    "vcount": 5,
+    "directed": true,
+    "ecount": 8,
+    "out_degrees": [
+      2,
+      1,
+      1,
+      2,
+      2
+    ],
+    "in_degrees": [
+      1,
+      2,
+      2,
+      1,
+      2
+    ]
+  }
+}

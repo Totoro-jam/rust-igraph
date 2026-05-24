@@ -15,6 +15,50 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-024** — `degree_sequence_game_configuration` configuration-model
+  random multigraph generator. Counterpart of the
+  `IGRAPH_DEGSEQ_CONFIGURATION` branch of `igraph_degree_sequence_game()` in
+  `references/igraph/src/games/degree_sequence.c` (function `configuration`,
+  lines 37-123). Realises a prescribed degree sequence by classical
+  stub matching (Bender–Canfield 1978 / Bollobás 1980):
+  expand each vertex `i` into `d_i` half-edge stubs, then repeatedly draw
+  two stubs uniformly at random and pair them into an edge. The result
+  is a **multigraph** — self-loops and multi-edges are admitted by
+  construction whenever the degree sequence permits them.
+  - `pub fn degree_sequence_game_configuration(out_degrees: &[u32], in_degrees: Option<&[u32]>, seed: u64) -> IgraphResult<Graph>`
+    — `in_degrees = None` produces an undirected graph (requires
+    `Σ out_degrees` even); `in_degrees = Some(in_seq)` produces a
+    directed graph (requires `Σ out = Σ in` and the two slices to be
+    the same length).
+  - **Stub-bag layout**: a single `Vec<VertexId>` of size `Σ d_i` for
+    the undirected case, two bags (out + in) for the directed case.
+    `Vec::swap_remove` gives `O(1)` random-access pop, so the pairing
+    loop is `Θ(|E|)` with no inner allocation after the initial
+    `Vec::with_capacity`.
+  - **Complexity**: `Θ(n + Σ d_i)` total time and `Θ(Σ d_i)` peak
+    memory; for `n = 100_000` at `d = 4` this is ~12.4 ms on Apple
+    silicon (see `.codefuse/tracking/perf/ALGO-GN-024.json`).
+  - **Determinism**: a single [`SplitMix64`] seed drives every draw, so
+    `(out_degrees, in_degrees, seed)` always produces the same graph.
+    The PRNG is *not* bitwise portable to igraph C / NumPy / R, so the
+    three-source conformance harness asserts structural invariants only
+    (vcount, ecount, exact degree match, directed flag).
+  - **Tests**: 21 unit tests + 4 proptest invariants
+    (`undirected_degree_match`, `directed_degree_match`,
+    `deterministic_same_seed`, `odd_sum_rejected`) + 1 doctest;
+    `degree_sequence_game_configuration_three_source_conformance` runs
+    against 9 fixtures (3 C + 3 py + 3 R) under
+    `tests/conformance/{c,py,r}/degree_sequence_game_configuration/`.
+  - **Scope note**: this AWU lands the CONFIGURATION method only.
+    Follow-up AWUs split out the remaining four methods of
+    `igraph_degree_sequence_game()` as separate generators:
+    `VL` (uniform sample of simple graphs, GN-025),
+    `FAST_HEUR_SIMPLE` (GN-026),
+    `CONFIGURATION_SIMPLE` (GN-027),
+    `EDGE_SWITCHING_SIMPLE` (GN-028). Each variant has its own
+    correctness model and benchmarking profile, so keeping them as
+    independent AWUs preserves the 1-AWU-1-PR discipline.
+
 - **ALGO-GN-023** — `correlated_game` + `correlated_pair_game` correlated
   Erdős–Rényi graph generators. Counterparts of `igraph_correlated_game()`
   and `igraph_correlated_pair_game()` in

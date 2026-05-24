@@ -4674,6 +4674,70 @@ CORRELATED_PAIR_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-024: degree_sequence_game (CONFIGURATION). rigraph exposes this
+# as `sample_degseq(out.deg, in.deg = NULL, method = "configuration")`,
+# wrapping the same C entry point. The configuration variant is
+# degree-preserving by construction, so the manifest pins vcount, ecount
+# and the exact degree sequence — no bands needed.
+DEGREE_SEQUENCE_CONFIG_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_config_r_undirected_n12_descending",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=c(4,4,3,3,3,2,2,2,1,1,1,0), method='configuration')`): "
+        "decreasing degree sequence, Σd=26 (even).",
+        "algo": "degree_sequence_game_configuration",
+        "params": {
+            "out_degrees": [4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 0],
+            "in_degrees": None,
+            "seed": 8_640_001,
+        },
+        "expected": {
+            "vcount": 12,
+            "directed": False,
+            "ecount": 13,
+            "out_degrees": [4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 0],
+            "in_degrees": None,
+        },
+    },
+    {
+        "case": "degseq_config_r_directed_n5_balanced",
+        "origin": "constructed (mirrors `sample_degseq(out.deg=c(2,1,1,2,2), "
+        "in.deg=c(1,2,2,1,2), method='configuration')`): directed multigraph; "
+        "Σout=Σin=8.",
+        "algo": "degree_sequence_game_configuration",
+        "params": {
+            "out_degrees": [2, 1, 1, 2, 2],
+            "in_degrees": [1, 2, 2, 1, 2],
+            "seed": 8_640_002,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": True,
+            "ecount": 8,
+            "out_degrees": [2, 1, 1, 2, 2],
+            "in_degrees": [1, 2, 2, 1, 2],
+        },
+    },
+    {
+        "case": "degseq_config_r_undirected_all_isolated",
+        "origin": "constructed (mirrors `sample_degseq(out.deg=rep(0, 5), "
+        "method='configuration')`): five isolated vertices; ecount must be 0.",
+        "algo": "degree_sequence_game_configuration",
+        "params": {
+            "out_degrees": [0, 0, 0, 0, 0],
+            "in_degrees": None,
+            "seed": 8_640_003,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "ecount": 0,
+            "out_degrees": [0, 0, 0, 0, 0],
+            "in_degrees": None,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -5758,6 +5822,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dot_product_game": DOT_PRODUCT_MANIFEST,
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
+    "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5872,6 +5937,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "barabasi_aging_game",
             "dot_product_game",
             "correlated_pair_game",
+            "degree_sequence_game_configuration",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

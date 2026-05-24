@@ -9529,3 +9529,211 @@ fn correlated_pair_game_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn degree_sequence_game_configuration_three_source_conformance() {
+    // Configuration-model degree-sequence generator (ALGO-GN-024). The
+    // configuration variant is degree-preserving by construction, so
+    // every fixture pins the exact (out_degrees, in_degrees) vector that
+    // the resulting graph must realise — no RNG-state portability is
+    // needed and no bands are used.
+    use rust_igraph::degree_sequence_game_configuration;
+
+    fn json_u32_vec(value: &serde_json::Value, path: &std::path::Path, field: &str) -> Vec<u32> {
+        let array = value.as_array().unwrap_or_else(|| {
+            panic!(
+                "degree-sequence fixture {}: `{}` must be a JSON array",
+                path.display(),
+                field
+            )
+        });
+        array
+            .iter()
+            .map(|item| {
+                let raw = item.as_u64().unwrap_or_else(|| {
+                    panic!(
+                        "degree-sequence fixture {}: `{}` entry must be u64",
+                        path.display(),
+                        field
+                    )
+                });
+                u32::try_from(raw).unwrap_or_else(|_| {
+                    panic!(
+                        "degree-sequence fixture {}: `{}` entry {} doesn't fit in u32",
+                        path.display(),
+                        field,
+                        raw
+                    )
+                })
+            })
+            .collect()
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("degree_sequence_game_configuration");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "degree_sequence_game_configuration");
+
+            let out_value = case.params.get("out_degrees").unwrap_or_else(|| {
+                panic!(
+                    "degree-sequence fixture {}: param `out_degrees` missing",
+                    path.display()
+                )
+            });
+            let out_degrees = json_u32_vec(out_value, &path, "params.out_degrees");
+            let in_value = case
+                .params
+                .get("in_degrees")
+                .unwrap_or(&serde_json::Value::Null);
+            let in_degrees: Option<Vec<u32>> = match in_value {
+                serde_json::Value::Null => None,
+                serde_json::Value::Array(_) => {
+                    Some(json_u32_vec(in_value, &path, "params.in_degrees"))
+                }
+                other => panic!(
+                    "degree-sequence fixture {}: `in_degrees` must be null or array (got {other:?})",
+                    path.display()
+                ),
+            };
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph =
+                degree_sequence_game_configuration(&out_degrees, in_degrees.as_deref(), seed)
+                    .expect(
+                        "degree_sequence_game_configuration should succeed on conformance fixtures",
+                    );
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_ecount = er_expected_u64(&case, "ecount", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.ecount() as u64,
+                want_ecount,
+                "ecount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            // Re-derive the observed degree sequence(s) and compare to
+            // the pinned expected vectors. Configuration is
+            // degree-preserving, so equality must be exact.
+            let vcount = graph.vcount() as usize;
+            let mut observed_out = vec![0u32; vcount];
+            let mut observed_in = vec![0u32; vcount];
+            let ecount = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+            for eid in 0..ecount {
+                let (src_vid, dst_vid) = graph.edge(eid).expect("edge id in bounds");
+                if graph.is_directed() {
+                    observed_out[src_vid as usize] =
+                        observed_out[src_vid as usize].saturating_add(1);
+                    observed_in[dst_vid as usize] = observed_in[dst_vid as usize].saturating_add(1);
+                } else {
+                    observed_out[src_vid as usize] =
+                        observed_out[src_vid as usize].saturating_add(1);
+                    observed_out[dst_vid as usize] =
+                        observed_out[dst_vid as usize].saturating_add(1);
+                }
+            }
+            let want_out = json_u32_vec(
+                case.expected.get("out_degrees").unwrap_or_else(|| {
+                    panic!(
+                        "degree-sequence fixture {}: expected.out_degrees missing",
+                        path.display()
+                    )
+                }),
+                &path,
+                "expected.out_degrees",
+            );
+            assert_eq!(
+                observed_out,
+                want_out,
+                "out-degree sequence mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let want_in_value = case
+                .expected
+                .get("in_degrees")
+                .unwrap_or(&serde_json::Value::Null);
+            match want_in_value {
+                serde_json::Value::Null => {
+                    assert!(
+                        !graph.is_directed(),
+                        "fixture {} expects in_degrees=None but graph is directed",
+                        path.display()
+                    );
+                }
+                serde_json::Value::Array(_) => {
+                    assert!(
+                        graph.is_directed(),
+                        "fixture {} expects in_degrees vector but graph is undirected",
+                        path.display()
+                    );
+                    let want_in = json_u32_vec(want_in_value, &path, "expected.in_degrees");
+                    assert_eq!(
+                        observed_in,
+                        want_in,
+                        "in-degree sequence mismatch in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+                other => panic!(
+                    "degree-sequence fixture {}: expected.in_degrees must be null or array (got {other:?})",
+                    path.display()
+                ),
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no degree_sequence_game_configuration fixtures from source {src}"
+        );
+    }
+}

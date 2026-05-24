@@ -4736,6 +4736,71 @@ CORRELATED_PAIR_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Configuration-model degree-sequence generator (ALGO-GN-024).
+# Fixtures mirror references/igraph/tests/unit/igraph_degree_sequence_game.c
+# (CONFIGURATION branch only). The C test asserts that the observed degree
+# sequence matches the input *exactly* (the algorithm is degree-preserving
+# by construction). Fixtures therefore pin the expected vcount, ecount and
+# the full degree vector — bands not needed.
+DEGREE_SEQUENCE_CONFIG_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_config_c_undirected_n10_mixed",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:43-74 — "
+        "outarr=[2,3,2,3,3,3,3,1,4,4] CONFIGURATION undirected; "
+        "the C test asserts observed degrees match input exactly",
+        "algo": "degree_sequence_game_configuration",
+        "params": {
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": None,
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 14,
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": None,
+        },
+    },
+    {
+        "case": "degseq_config_c_directed_n10_mixed",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:43-49 — "
+        "outarr=[2,3,2,3,3,3,3,1,4,4] inarr=[3,6,2,0,2,2,4,3,3,3] "
+        "CONFIGURATION directed; observed degrees must match input exactly",
+        "algo": "degree_sequence_game_configuration",
+        "params": {
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": [3, 6, 2, 0, 2, 2, 4, 3, 3, 3],
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": True,
+            "ecount": 28,
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": [3, 6, 2, 0, 2, 2, 4, 3, 3, 3],
+        },
+    },
+    {
+        "case": "degseq_config_c_empty_sequence",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:76-78 — "
+        "empty out_degrees CONFIGURATION undirected; vcount must be 0",
+        "algo": "degree_sequence_game_configuration",
+        "params": {
+            "out_degrees": [],
+            "in_degrees": None,
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 0,
+            "directed": False,
+            "ecount": 0,
+            "out_degrees": [],
+            "in_degrees": None,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -6014,6 +6079,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dot_product_game": DOT_PRODUCT_MANIFEST,
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
+    "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -6133,6 +6199,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "barabasi_aging_game",
             "dot_product_game",
             "correlated_pair_game",
+            "degree_sequence_game_configuration",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

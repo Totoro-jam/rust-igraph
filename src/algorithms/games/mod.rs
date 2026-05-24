@@ -11,6 +11,7 @@ pub mod callaway_traits;
 pub mod chung_lu;
 pub mod cited_type;
 pub mod correlated;
+pub mod degree_sequence;
 pub mod dotproduct;
 pub mod erdos_renyi;
 pub mod establishment;

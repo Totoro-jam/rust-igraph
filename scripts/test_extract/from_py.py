@@ -4415,6 +4415,70 @@ CORRELATED_PAIR_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-024: degree_sequence_game (CONFIGURATION). python-igraph exposes
+# this as `ig.Graph.Degree_Sequence(out, in_=None, method="configuration")`.
+# Like the C-level fixtures, configuration is degree-preserving by
+# construction, so the expected outcome pins vcount, ecount and the full
+# degree sequence — no bands needed.
+DEGREE_SEQUENCE_CONFIG_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_config_py_undirected_n8_uniform_d3",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence("
+        "[3]*8, method='configuration')`): 8 vertices, all degree 3, "
+        "Σd=24 (even). Multigraph (may have loops/multi-edges).",
+        "algo": "degree_sequence_game_configuration",
+        "params": {
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+            "seed": 9_240_001,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "ecount": 12,
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+        },
+    },
+    {
+        "case": "degseq_config_py_directed_n6_mixed",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence("
+        "out=[2,1,3,0,1,2], in_=[1,2,1,2,1,2], method='configuration')`): "
+        "directed multigraph; Σout=Σin=9.",
+        "algo": "degree_sequence_game_configuration",
+        "params": {
+            "out_degrees": [2, 1, 3, 0, 1, 2],
+            "in_degrees": [1, 2, 1, 2, 1, 2],
+            "seed": 9_240_002,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": True,
+            "ecount": 9,
+            "out_degrees": [2, 1, 3, 0, 1, 2],
+            "in_degrees": [1, 2, 1, 2, 1, 2],
+        },
+    },
+    {
+        "case": "degseq_config_py_singleton",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence([0])` "
+        "with method='configuration'): one isolated vertex, no edges.",
+        "algo": "degree_sequence_game_configuration",
+        "params": {
+            "out_degrees": [0],
+            "in_degrees": None,
+            "seed": 9_240_003,
+        },
+        "expected": {
+            "vcount": 1,
+            "directed": False,
+            "ecount": 0,
+            "out_degrees": [0],
+            "in_degrees": None,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors
 # `ig.Graph.SBM`-like factory `ig.Graph.SimpleInterconnectedIslands(
 # islands_n, islands_size, islands_pin, n_inter)` (Cython wrapper on
@@ -5455,6 +5519,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "dot_product_game": DOT_PRODUCT_MANIFEST,
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
+    "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5569,6 +5634,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "barabasi_aging_game",
             "dot_product_game",
             "correlated_pair_game",
+            "degree_sequence_game_configuration",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

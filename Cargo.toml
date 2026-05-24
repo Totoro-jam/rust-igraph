@@ -82,6 +82,10 @@ path = "examples/dot_product_demo.rs"
 name = "correlated_pair_demo"
 path = "examples/correlated_pair_demo.rs"
 
+[[example]]
+name = "degree_sequence_demo"
+path = "examples/degree_sequence_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -280,6 +284,11 @@ harness = false
 [[bench]]
 name = "bench_correlated"
 path = "benches/bench_correlated.rs"
+harness = false
+
+[[bench]]
+name = "bench_degree_sequence"
+path = "benches/bench_degree_sequence.rs"
 harness = false
 
 [[bench]]
