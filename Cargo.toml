@@ -118,6 +118,10 @@ path = "examples/symmetric_tree_demo.rs"
 name = "regular_tree_demo"
 path = "examples/regular_tree_demo.rs"
 
+[[example]]
+name = "hypercube_demo"
+path = "examples/hypercube_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -436,6 +440,11 @@ harness = false
 [[bench]]
 name = "bench_regular_tree"
 path = "benches/bench_regular_tree.rs"
+harness = false
+
+[[bench]]
+name = "bench_hypercube"
+path = "benches/bench_hypercube.rs"
 harness = false
 
 [lints.rust]

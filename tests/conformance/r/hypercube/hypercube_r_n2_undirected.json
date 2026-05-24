@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "rigraph make_hypercube(2, directed=FALSE) \u2014 Q_2 is the 4-cycle",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "hypercube",
+  "params": {
+    "n": 2,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 4,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  }
+}

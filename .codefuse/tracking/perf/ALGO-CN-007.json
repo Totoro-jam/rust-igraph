@@ -1,0 +1,55 @@
+{
+  "awu_id": "ALGO-CN-007",
+  "algorithm": "hypercube",
+  "captured_at": "2026-05-25",
+  "git_commit": "b2821ba",
+  "bench_file": "benches/bench_hypercube.rs",
+  "criterion_group": "hypercube/{undirected,directed}",
+  "host": {
+    "platform": "macOS (Darwin 25.5.0)",
+    "rustc_profile": "release (lto=thin, codegen-units=1)"
+  },
+  "measurements": {
+    "undirected/n6": {
+      "n_vertices": 64,
+      "n_edges": 192,
+      "median_ns": 5636,
+      "throughput_Mips": 34.062
+    },
+    "undirected/n10": {
+      "n_vertices": 1024,
+      "n_edges": 5120,
+      "median_ns": 159540,
+      "throughput_Mips": 32.093
+    },
+    "undirected/n14": {
+      "n_vertices": 16384,
+      "n_edges": 114688,
+      "median_ns": 4245000,
+      "throughput_Mips": 27.017
+    },
+    "directed/n6": {
+      "n_vertices": 64,
+      "n_edges": 192,
+      "median_ns": 5642,
+      "throughput_Mips": 34.026
+    },
+    "directed/n10": {
+      "n_vertices": 1024,
+      "n_edges": 5120,
+      "median_ns": 161960,
+      "throughput_Mips": 31.613
+    },
+    "directed/n14": {
+      "n_vertices": 16384,
+      "n_edges": 114688,
+      "median_ns": 4245100,
+      "throughput_Mips": 27.017
+    }
+  },
+  "notes": [
+    "Cost model is O(|V| * n) = O(|E|): for each vertex v in [0, 2^n) we toggle every bit i in [0, n), emit the canonical edge (v, v ^ (1<<i)) when v < (v ^ (1<<i)).",
+    "Throughput around 27-34 Medge/s and a small drop as n grows is consistent with cache-pressure on the growing edge Vec — allocation cost scales with 2^(n-1)*n.",
+    "Undirected and directed variants do identical enumeration work; the directed flag only changes how the underlying Graph stores arc orientation, so timings overlap within noise."
+  ]
+}

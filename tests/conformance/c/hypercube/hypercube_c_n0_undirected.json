@@ -1,0 +1,21 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_hypercube(n=0, directed=false) \u2014 degenerate singleton",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "hypercube",
+  "params": {
+    "n": 0,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 0,
+    "directed": false,
+    "edges": []
+  }
+}

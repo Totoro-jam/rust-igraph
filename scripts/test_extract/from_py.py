@@ -6055,6 +6055,74 @@ REGULAR_TREE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+HYPERCUBE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "hypercube_py_n1_undirected",
+        "origin": "python-igraph Graph.Hypercube(1, directed=False) — Q_1 = K_2",
+        "algo": "hypercube",
+        "params": {"n": 1, "directed": False},
+        "expected": {
+            "vcount": 2,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+    {
+        "case": "hypercube_py_n2_undirected",
+        "origin": "python-igraph Graph.Hypercube(2, directed=False) — 4-cycle Q_2",
+        "algo": "hypercube",
+        "params": {"n": 2, "directed": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 3], [2, 3]],
+        },
+    },
+    {
+        "case": "hypercube_py_n3_undirected",
+        "origin": "python-igraph Graph.Hypercube(3, directed=False) — 8-vertex cube Q_3",
+        "algo": "hypercube",
+        "params": {"n": 3, "directed": False},
+        "expected": {
+            "vcount": 8,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 4],
+                [1, 3], [1, 5],
+                [2, 3], [2, 6],
+                [3, 7],
+                [4, 5], [4, 6],
+                [5, 7],
+                [6, 7],
+            ],
+        },
+    },
+    {
+        "case": "hypercube_py_n3_directed",
+        "origin": "python-igraph Graph.Hypercube(3, directed=True) — Q_3 oriented low->high",
+        "algo": "hypercube",
+        "params": {"n": 3, "directed": True},
+        "expected": {
+            "vcount": 8,
+            "ecount": 12,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2], [0, 4],
+                [1, 3], [1, 5],
+                [2, 3], [2, 6],
+                [3, 7],
+                [4, 5], [4, 6],
+                [5, 7],
+                [6, 7],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6216,6 +6284,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "kary_tree": KARY_TREE_MANIFEST,
     "symmetric_tree": SYMMETRIC_TREE_MANIFEST,
     "regular_tree": REGULAR_TREE_MANIFEST,
+    "hypercube": HYPERCUBE_MANIFEST,
 }
 
 
@@ -6341,6 +6410,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "kary_tree",
             "symmetric_tree",
             "regular_tree",
+            "hypercube",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

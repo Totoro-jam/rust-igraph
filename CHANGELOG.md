@@ -15,6 +15,54 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-007** — `hypercube` deterministic constructor.
+  **Seventh member of the `constructors/` family.** Counterpart of
+  `igraph_hypercube` in
+  `references/igraph/src/constructors/regular.c:983-1003`. The
+  `n`-dimensional hypercube graph `Q_n` has `2^n` vertices and
+  `2^(n-1) · n` edges; two vertices are connected iff their zero-based
+  IDs differ in **exactly one bit**.
+  - `pub fn hypercube(n: u32, directed: bool) -> IgraphResult<Graph>`
+    and `pub const MAX_HYPERCUBE_DIMENSION: u32 = 30`. The cap keeps
+    `1u32 << n` always well-defined, `2^n` comfortably within `u32`,
+    and the edge `Vec` allocation within 64-bit `usize` even at the
+    upper bound.
+  - **Algorithm**: enumerate every vertex `v ∈ [0, 2^n)`; for each bit
+    `i ∈ [0, n)` toggle to get `u = v ^ (1 << i)` and emit the
+    canonical edge `(v, u)` only when `v < u` so each edge is produced
+    exactly once. Mirrors the upstream C loop. Total work
+    `O(2^n · n) = O(|E|)`.
+  - **Truth table** for `hypercube(n, directed)`:
+
+    | n | directed | vcount | ecount | shape                       |
+    |---|----------|--------|--------|-----------------------------|
+    | 0 | false    | 1      | 0      | singleton                   |
+    | 1 | false    | 2      | 1      | K_2                         |
+    | 2 | false    | 4      | 4      | 4-cycle                     |
+    | 3 | false    | 8      | 12     | cube (3-regular, bipartite) |
+    | 3 | true     | 8      | 12     | cube, low → high arcs       |
+    | 4 | false    | 16     | 32     | tesseract                   |
+
+  - **Structural properties** (covered by both unit and proptest):
+    `n`-regular (every vertex has degree `n`), bipartite split by
+    parity of `popcount(id)`, every edge has Hamming distance 1, and
+    every emitted pair is canonically ordered `u < v`.
+  - **Bounds & overflow**: `n > MAX_HYPERCUBE_DIMENSION (30)` rejected
+    with `InvalidArgument`; edge-count computation uses
+    `checked_shl` / `checked_mul` so any future bound change cannot
+    silently wrap around.
+  - Conformance: 14 fixtures (C × 6 covering `n ∈ {0, 1, 2, 3, 4}` and
+    the directed variant at `n = 3`, py × 4, R × 4) under
+    `tests/conformance/{c,py,r}/hypercube/`, comparing exact edge
+    sequences (directed mode) or canonicalised edge multisets
+    (undirected mode).
+  - Benchmarks: `benches/bench_hypercube.rs` with two groups
+    (undirected / directed) across `n ∈ {6, 10, 14}` (64 / 1024 / 16384
+    vertices respectively). Baseline snapshot:
+    `.codefuse/tracking/perf/ALGO-CN-007.json` — ~27–34 Medge/s,
+    indistinguishable across the two variants (orientation flag does
+    not alter enumeration work).
+
 - **ALGO-CN-006** — `regular_tree` deterministic constructor.
   **Sixth member of the `constructors/` family.** Counterpart of
   `igraph_regular_tree` in
