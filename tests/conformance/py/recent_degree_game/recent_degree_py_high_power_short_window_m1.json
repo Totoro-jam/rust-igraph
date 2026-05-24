@@ -1,0 +1,28 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Recent_Degree(n=50, power=3.0, window=3, m=1, outpref=False, zero_appeal=0.1, directed)) \u2014 super-linear power with very short window; richest-recent-vertex wins almost every draw",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "recent_degree_game",
+  "params": {
+    "nodes": 50,
+    "power": 3.0,
+    "time_window": 3,
+    "m": 1,
+    "outpref": false,
+    "zero_appeal": 0.1,
+    "directed": true,
+    "seed": 9996002
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": true,
+    "ecount_min": 49,
+    "ecount_max": 49,
+    "no_self_loops": true
+  }
+}

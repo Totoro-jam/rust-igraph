@@ -66,6 +66,10 @@ path = "examples/cited_type_demo.rs"
 name = "lastcit_demo"
 path = "examples/lastcit_demo.rs"
 
+[[example]]
+name = "recent_degree_demo"
+path = "examples/recent_degree_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -304,6 +308,11 @@ harness = false
 [[bench]]
 name = "bench_lastcit"
 path = "benches/bench_lastcit.rs"
+harness = false
+
+[[bench]]
+name = "bench_recent_degree"
+path = "benches/bench_recent_degree.rs"
 harness = false
 
 [lints.rust]

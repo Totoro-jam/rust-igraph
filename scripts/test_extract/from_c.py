@@ -4249,6 +4249,94 @@ LASTCIT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-019: recent_degree_game. Mirrors
+# igraph_recent_degree_game (references/igraph/src/games/recent_degree.c):
+# sliding-window preferential attachment where each vertex's draw weight
+# is `pow(recent_in_degree, power) + zero_appeal`. Edges added at step
+# `i - time_window` are expired from the psum tree at step `i`. RNG state
+# is not portable; fixtures pin our SplitMix64 output and assert
+# structural invariants. Never self-loops by construction (psumtree
+# ranges over [0, i) before vertex i is inserted).
+RECENT_DEGREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "recent_degree_c_pow15_window5_m3_directed",
+        "origin": "constructed (mirrors igraph_recent_degree_game(n=30, "
+        "power=1.5, time_window=5, m=3, zero_appeal=1.0, directed)) — "
+        "strong recency preference inside a short 5-step window; ecount = "
+        "(30-1)*3 = 87",
+        "algo": "recent_degree_game",
+        "params": {
+            "nodes": 30,
+            "power": 1.5,
+            "time_window": 5,
+            "m": 3,
+            "outpref": False,
+            "zero_appeal": 1.0,
+            "directed": True,
+            "seed": 9_995_001,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": True,
+            "ecount_min": 87,  # (30-1)*3 = 87
+            "ecount_max": 87,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_c_uniform_pow0_no_expiry_m2_undirected",
+        "origin": "constructed (mirrors igraph_recent_degree_game(n=40, "
+        "power=0.0, time_window=40, m=2, zero_appeal=1.0, undirected)) — "
+        "power=0 means all weights collapse to zero_appeal, so the draw "
+        "is uniform over existing vertices; window=n keeps the BIT-tree "
+        "from ever expiring",
+        "algo": "recent_degree_game",
+        "params": {
+            "nodes": 40,
+            "power": 0.0,
+            "time_window": 40,
+            "m": 2,
+            "outpref": False,
+            "zero_appeal": 1.0,
+            "directed": False,
+            "seed": 9_995_002,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": False,
+            "ecount_min": 78,  # (40-1)*2 = 78
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_c_outpref_pow2_window10_m4_directed",
+        "origin": "constructed (mirrors igraph_recent_degree_game(n=25, "
+        "power=2.0, time_window=10, m=4, outpref=true, zero_appeal=0.5, "
+        "directed)) — outpref=true makes the source's outgoing citations "
+        "also count toward its recent in-degree; exercises the source-weight "
+        "refresh branch",
+        "algo": "recent_degree_game",
+        "params": {
+            "nodes": 25,
+            "power": 2.0,
+            "time_window": 10,
+            "m": 4,
+            "outpref": True,
+            "zero_appeal": 0.5,
+            "directed": True,
+            "seed": 9_995_003,
+        },
+        "expected": {
+            "vcount": 25,
+            "directed": True,
+            "ecount_min": 96,  # (25-1)*4 = 96
+            "ecount_max": 96,
+            "no_self_loops": True,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -5521,6 +5609,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
     "cited_type_game": CITED_TYPE_MANIFEST,
     "lastcit_game": LASTCIT_MANIFEST,
+    "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5635,6 +5724,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "callaway_traits_game",
             "cited_type_game",
             "lastcit_game",
+            "recent_degree_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

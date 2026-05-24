@@ -1,0 +1,28 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Recent_Degree(n=40, power=1.0, window=7, m=2, outpref=False, zero_appeal=1.0, directed)) \u2014 linear preferential attachment with a 7-step memory window; ecount = (40-1)*2 = 78",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "recent_degree_game",
+  "params": {
+    "nodes": 40,
+    "power": 1.0,
+    "time_window": 7,
+    "m": 2,
+    "outpref": false,
+    "zero_appeal": 1.0,
+    "directed": true,
+    "seed": 9996001
+  },
+  "expected": {
+    "vcount": 40,
+    "directed": true,
+    "ecount_min": 78,
+    "ecount_max": 78,
+    "no_self_loops": true
+  }
+}

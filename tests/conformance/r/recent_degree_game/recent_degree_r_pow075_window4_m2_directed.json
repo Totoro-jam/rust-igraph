@@ -1,0 +1,28 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors igraph::sample_recent_degree(n=35, power=0.75, window=4, m=2, outpref=FALSE, zero.appeal=1.0, directed=TRUE)) \u2014 sub-linear preferential attachment with a short 4-step memory window; ecount = (35-1)*2 = 68",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "recent_degree_game",
+  "params": {
+    "nodes": 35,
+    "power": 0.75,
+    "time_window": 4,
+    "m": 2,
+    "outpref": false,
+    "zero_appeal": 1.0,
+    "directed": true,
+    "seed": 9997001
+  },
+  "expected": {
+    "vcount": 35,
+    "directed": true,
+    "ecount_min": 68,
+    "ecount_max": 68,
+    "no_self_loops": true
+  }
+}

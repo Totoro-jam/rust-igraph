@@ -1,0 +1,28 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_recent_degree_game(n=30, power=1.5, time_window=5, m=3, zero_appeal=1.0, directed)) \u2014 strong recency preference inside a short 5-step window; ecount = (30-1)*3 = 87",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "recent_degree_game",
+  "params": {
+    "nodes": 30,
+    "power": 1.5,
+    "time_window": 5,
+    "m": 3,
+    "outpref": false,
+    "zero_appeal": 1.0,
+    "directed": true,
+    "seed": 9995001
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": true,
+    "ecount_min": 87,
+    "ecount_max": 87,
+    "no_self_loops": true
+  }
+}

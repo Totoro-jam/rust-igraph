@@ -1,0 +1,28 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors igraph::sample_recent_degree(n=20, power=2.0, window=20, m=1, outpref=FALSE, zero.appeal=1.0, directed=TRUE)) \u2014 minimal m=1 case (= recursive tree) with window=n so no edge ever expires; ecount = n-1 = 19",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "recent_degree_game",
+  "params": {
+    "nodes": 20,
+    "power": 2.0,
+    "time_window": 20,
+    "m": 1,
+    "outpref": false,
+    "zero_appeal": 1.0,
+    "directed": true,
+    "seed": 9997003
+  },
+  "expected": {
+    "vcount": 20,
+    "directed": true,
+    "ecount_min": 19,
+    "ecount_max": 19,
+    "no_self_loops": true
+  }
+}

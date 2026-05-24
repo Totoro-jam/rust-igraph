@@ -1,0 +1,28 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors igraph::sample_recent_degree(n=20, power=1.0, window=6, m=3, outpref=TRUE, zero.appeal=0.5, directed=FALSE)) \u2014 outpref=TRUE makes the source vertex's outgoing degree also feed the BIT-tree (in undirected mode this is the natural choice); exercises both update branches",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "recent_degree_game",
+  "params": {
+    "nodes": 20,
+    "power": 1.0,
+    "time_window": 6,
+    "m": 3,
+    "outpref": true,
+    "zero_appeal": 0.5,
+    "directed": false,
+    "seed": 9997002
+  },
+  "expected": {
+    "vcount": 20,
+    "directed": false,
+    "ecount_min": 57,
+    "ecount_max": 57,
+    "no_self_loops": true
+  }
+}

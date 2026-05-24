@@ -1,0 +1,28 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_recent_degree_game(n=25, power=2.0, time_window=10, m=4, outpref=true, zero_appeal=0.5, directed)) \u2014 outpref=true makes the source's outgoing citations also count toward its recent in-degree; exercises the source-weight refresh branch",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "recent_degree_game",
+  "params": {
+    "nodes": 25,
+    "power": 2.0,
+    "time_window": 10,
+    "m": 4,
+    "outpref": true,
+    "zero_appeal": 0.5,
+    "directed": true,
+    "seed": 9995003
+  },
+  "expected": {
+    "vcount": 25,
+    "directed": true,
+    "ecount_min": 96,
+    "ecount_max": 96,
+    "no_self_loops": true
+  }
+}

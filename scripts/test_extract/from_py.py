@@ -3958,6 +3958,90 @@ LASTCIT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-019: recent_degree_game. Mirrors ig.Graph.Recent_Degree
+# (Cython wrapper on `igraph_recent_degree_game`). Each step draws m
+# citations weighted by `pow(recent_in_degree, power) + zero_appeal`;
+# edges added at step `i - time_window` are expired from the BIT-tree.
+# Never self-loops by construction.
+RECENT_DEGREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "recent_degree_py_pow1_window7_m2_directed",
+        "origin": "constructed (mirrors ig.Graph.Recent_Degree(n=40, "
+        "power=1.0, window=7, m=2, outpref=False, zero_appeal=1.0, "
+        "directed)) — linear preferential attachment with a 7-step "
+        "memory window; ecount = (40-1)*2 = 78",
+        "algo": "recent_degree_game",
+        "params": {
+            "nodes": 40,
+            "power": 1.0,
+            "time_window": 7,
+            "m": 2,
+            "outpref": False,
+            "zero_appeal": 1.0,
+            "directed": True,
+            "seed": 9_996_001,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_py_high_power_short_window_m1",
+        "origin": "constructed (mirrors ig.Graph.Recent_Degree(n=50, "
+        "power=3.0, window=3, m=1, outpref=False, zero_appeal=0.1, "
+        "directed)) — super-linear power with very short window; "
+        "richest-recent-vertex wins almost every draw",
+        "algo": "recent_degree_game",
+        "params": {
+            "nodes": 50,
+            "power": 3.0,
+            "time_window": 3,
+            "m": 1,
+            "outpref": False,
+            "zero_appeal": 0.1,
+            "directed": True,
+            "seed": 9_996_002,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": True,
+            "ecount_min": 49,
+            "ecount_max": 49,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_py_time_window_zero_uniform_m3_undirected",
+        "origin": "constructed (mirrors ig.Graph.Recent_Degree(n=30, "
+        "power=1.5, window=0, m=3, outpref=False, zero_appeal=1.0, "
+        "undirected)) — time_window=0 means everything expires "
+        "immediately, so the BIT-tree only ever holds zero_appeal "
+        "weights ⇒ uniform draws over existing vertices",
+        "algo": "recent_degree_game",
+        "params": {
+            "nodes": 30,
+            "power": 1.5,
+            "time_window": 0,
+            "m": 3,
+            "outpref": False,
+            "zero_appeal": 1.0,
+            "directed": False,
+            "seed": 9_996_003,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "ecount_min": 87,  # (30-1)*3 = 87
+            "ecount_max": 87,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors
 # `ig.Graph.SBM`-like factory `ig.Graph.SimpleInterconnectedIslands(
 # islands_n, islands_size, islands_pin, n_inter)` (Cython wrapper on
@@ -4992,6 +5076,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
     "cited_type_game": CITED_TYPE_MANIFEST,
     "lastcit_game": LASTCIT_MANIFEST,
+    "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5101,6 +5186,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "callaway_traits_game",
             "cited_type_game",
             "lastcit_game",
+            "recent_degree_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

@@ -1,0 +1,28 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_recent_degree_game(n=40, power=0.0, time_window=40, m=2, zero_appeal=1.0, undirected)) \u2014 power=0 means all weights collapse to zero_appeal, so the draw is uniform over existing vertices; window=n keeps the BIT-tree from ever expiring",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "recent_degree_game",
+  "params": {
+    "nodes": 40,
+    "power": 0.0,
+    "time_window": 40,
+    "m": 2,
+    "outpref": false,
+    "zero_appeal": 1.0,
+    "directed": false,
+    "seed": 9995002
+  },
+  "expected": {
+    "vcount": 40,
+    "directed": false,
+    "ecount_min": 78,
+    "ecount_max": 78,
+    "no_self_loops": true
+  }
+}

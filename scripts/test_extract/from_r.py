@@ -4218,6 +4218,91 @@ LASTCIT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-019: recent_degree_game. Mirrors rigraph's
+# `sample_recent_degree(n, power, window, m, outpref, zero.appeal,
+# directed)` (R wrapper on `igraph_recent_degree_game`). Each step
+# draws m citations weighted by `pow(recent_in_degree, power) +
+# zero_appeal`; edges added at step `i - window` are expired from the
+# BIT-tree. Never self-loops by construction.
+RECENT_DEGREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "recent_degree_r_pow075_window4_m2_directed",
+        "origin": "constructed (mirrors igraph::sample_recent_degree(n=35, "
+        "power=0.75, window=4, m=2, outpref=FALSE, zero.appeal=1.0, "
+        "directed=TRUE)) — sub-linear preferential attachment with a "
+        "short 4-step memory window; ecount = (35-1)*2 = 68",
+        "algo": "recent_degree_game",
+        "params": {
+            "nodes": 35,
+            "power": 0.75,
+            "time_window": 4,
+            "m": 2,
+            "outpref": False,
+            "zero_appeal": 1.0,
+            "directed": True,
+            "seed": 9_997_001,
+        },
+        "expected": {
+            "vcount": 35,
+            "directed": True,
+            "ecount_min": 68,
+            "ecount_max": 68,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_r_outpref_pow1_window6_m3_undirected",
+        "origin": "constructed (mirrors igraph::sample_recent_degree(n=20, "
+        "power=1.0, window=6, m=3, outpref=TRUE, zero.appeal=0.5, "
+        "directed=FALSE)) — outpref=TRUE makes the source vertex's "
+        "outgoing degree also feed the BIT-tree (in undirected mode this "
+        "is the natural choice); exercises both update branches",
+        "algo": "recent_degree_game",
+        "params": {
+            "nodes": 20,
+            "power": 1.0,
+            "time_window": 6,
+            "m": 3,
+            "outpref": True,
+            "zero_appeal": 0.5,
+            "directed": False,
+            "seed": 9_997_002,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": False,
+            "ecount_min": 57,  # (20-1)*3 = 57
+            "ecount_max": 57,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_r_minimal_m1_long_window",
+        "origin": "constructed (mirrors igraph::sample_recent_degree(n=20, "
+        "power=2.0, window=20, m=1, outpref=FALSE, zero.appeal=1.0, "
+        "directed=TRUE)) — minimal m=1 case (= recursive tree) with "
+        "window=n so no edge ever expires; ecount = n-1 = 19",
+        "algo": "recent_degree_game",
+        "params": {
+            "nodes": 20,
+            "power": 2.0,
+            "time_window": 20,
+            "m": 1,
+            "outpref": False,
+            "zero_appeal": 1.0,
+            "directed": True,
+            "seed": 9_997_003,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": True,
+            "ecount_min": 19,
+            "ecount_max": 19,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -5296,6 +5381,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
     "cited_type_game": CITED_TYPE_MANIFEST,
     "lastcit_game": LASTCIT_MANIFEST,
+    "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5405,6 +5491,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "callaway_traits_game",
             "cited_type_game",
             "lastcit_game",
+            "recent_degree_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

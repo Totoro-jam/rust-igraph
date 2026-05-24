@@ -1,0 +1,28 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Recent_Degree(n=30, power=1.5, window=0, m=3, outpref=False, zero_appeal=1.0, undirected)) \u2014 time_window=0 means everything expires immediately, so the BIT-tree only ever holds zero_appeal weights \u21d2 uniform draws over existing vertices",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "recent_degree_game",
+  "params": {
+    "nodes": 30,
+    "power": 1.5,
+    "time_window": 0,
+    "m": 3,
+    "outpref": false,
+    "zero_appeal": 1.0,
+    "directed": false,
+    "seed": 9996003
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": false,
+    "ecount_min": 87,
+    "ecount_max": 87,
+    "no_self_loops": true
+  }
+}

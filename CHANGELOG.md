@@ -15,6 +15,77 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-019** — `recent_degree_game` sliding-window preferential
+  attachment. Counterpart of `igraph_recent_degree_game()` in
+  `references/igraph/src/games/recent_degree.c:24-200`. Models a growing
+  graph where each new vertex `i ≥ 1` emits `m` (or `outseq[i]`)
+  outgoing edges, with each target drawn proportionally to
+  `pow(recent_in_degree, power) + zero_appeal`. The "recent" in-degree
+  only counts edges added within the last `time_window` steps; older
+  edges are expired from a BIT-tree (Fenwick) weight store via a
+  `VecDeque<Option<u32>>` history queue (per-step `None` sentinels).
+  - `pub fn recent_degree_game(nodes: u32, power: f64, time_window: u32, m: u32, outseq: Option<&[u32]>, outpref: bool, zero_appeal: f64, directed: bool, seed: u64) -> IgraphResult<Graph>`.
+  - Sampling uses an inline Fenwick BIT (`PsumTree`) with
+    binary-lifting prefix-search — `O(log n)` for both `set` and
+    `search`. Per-step cost is `O(m · log n)` for draws + amortized
+    `O(m)` for window expiry, giving a total `O(n · m · log n)` runtime;
+    batched `add_edges` keeps the edge-insert phase out of the
+    `add_edge` / rebuild_indexes `O(m²)` trap.
+  - Construction guarantees: NEVER produces self-loops (the psumtree
+    only ranges over previously-added vertices, the new vertex is
+    seeded *after* its outgoing edges are drawn); multi-edges are
+    allowed when `m ≥ 2` (independent draws can collide); the
+    cumulative weight only falls to zero during the warm-up phase
+    (or when `time_window = 0` and `zero_appeal = 0`), in which case
+    the algorithm falls back to a uniform draw over `[0, i)`.
+  - `outpref` toggles whether the source vertex's own emitted citations
+    also feed back into its recent in-degree (matching igraph's natural
+    choice for the undirected variant).
+  - Validation: `power` finite and non-NaN; `zero_appeal` finite,
+    non-NaN, and non-negative; `outseq.len() == nodes` when provided.
+  - Edge cases: `nodes = 0` returns an empty graph; `nodes < 2` or
+    `m = 0` returns the vertex-only graph; `time_window = 0` collapses
+    the BIT-tree to zero_appeal-only weights ⇒ uniform draws (or full
+    fallback when `zero_appeal = 0` too).
+  - Coverage: 22 unit tests (vcount/ecount exactness for both
+    constant-`m` and `outseq` variants, determinism, seed divergence,
+    NEVER-self-loops with positive `zero_appeal`,
+    `source_is_always_step_index` and `target_in_zero_to_step_minus_one`
+    invariants, directed/undirected flag propagation,
+    `outpref_changes_graph`, `time_window_zero_uses_zero_appeal_only`
+    degeneration, `large_time_window_concentrates_on_early_vertices`
+    sanity check, 5 validation error paths, 3 `weight_from_degree`
+    edge-case unit tests covering the `pow(0,0)=1` branch and the
+    positive-power-on-zero-degree branch) + 5 proptests
+    (`ecount_exact_constant_m`, `no_self_loops_when_zero_appeal_positive`,
+    `source_is_always_step_index`, `target_in_zero_to_step_minus_one`,
+    `determinism_under_proptest`) under `--features proptest-harness` +
+    9 three-source conformance fixtures (3 each from C / py / R) under
+    `tests/conformance/{c,py,r}/recent_degree_game/` asserting
+    structural invariants only (vcount exact, directed flag exact,
+    ecount exact = `(n−1)·m`, optional `no_self_loops`). RNG state is
+    not portable across SplitMix64 vs igraph's GLIBC RNG, so we do not
+    assert per-edge endpoint equality and do not assert `is_simple`
+    (recent_degree allows multi-edges when `m ≥ 2` by construction).
+  - Bench: criterion baseline at
+    `.codefuse/tracking/perf/ALGO-GN-019.json` covering four groups —
+    size_scaling (139µs @ n=500, 2.02ms @ n=5000 at m=3, window=10),
+    m_count (1/4/16 at n=1000, power=1.5, window=20 — confirms linear
+    scaling in `m`), window_count (2/20/200 at n=1000 — shows mild
+    ~10% slowdown across two orders of magnitude of window size,
+    confirming O(log n) per-op cost amortizes), and an undirected
+    outpref-enabled case. Slightly slower than GN-018 lastcit
+    (~2.02ms vs ~1.65ms at n=5000) because the per-step VecDeque-pop
+    + psumtree refresh runs unconditionally whereas lastcit's age
+    sweep only fires at bin boundaries.
+  - Example: `cargo run --example recent_degree_demo` builds a
+    2000-vertex directed graph with `m = 3`, `power = 1`,
+    `time_window = 25`, `zero_appeal = 1` and prints in-degree
+    quartiles, uncited count, and top-10 vertices by in-degree with
+    cohort labels demonstrating that the highest in-degrees skew
+    toward the *earliest* cohorts (rich-get-richer amplifies through
+    each window refresh — once a vertex is hot it keeps being cited,
+    refreshing its window timer).
 - **ALGO-GN-018** — `lastcit_game` recency-decay citation network.
   Counterpart of `igraph_lastcit_game()` in
   `references/igraph/src/games/citations.c:28-92`. Models a growing

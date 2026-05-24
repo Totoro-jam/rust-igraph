@@ -8733,3 +8733,130 @@ fn lastcit_game_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + 8 param helpers + 4 expected assertions
+fn recent_degree_game_three_source_conformance() {
+    // Recent-degree-window preferential attachment (ALGO-GN-019). RNG
+    // state is not portable; each fixture pins SplitMix64 output and
+    // asserts structural invariants:
+    //   * vcount = nodes (exact);
+    //   * directed flag exact;
+    //   * ecount lies in a band [ecount_min, ecount_max] — for constant-m
+    //     runs both bounds equal (nodes-1)*m;
+    //   * recent_degree NEVER self-loops (psumtree ranges over [0, i)
+    //     before vertex i is inserted), so no_self_loops is always true
+    //     and we assert it whenever the fixture flags it;
+    //   * recent_degree MAY produce multi-edges when m ≥ 2; simplicity
+    //     is therefore NOT asserted here.
+    use rust_igraph::recent_degree_game;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("recent_degree_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "recent_degree_game");
+
+            let nodes = er_param_u32(&case, "nodes", &path);
+            let power = er_param_f64(&case, "power", &path);
+            let time_window = er_param_u32(&case, "time_window", &path);
+            let m = er_param_u32(&case, "m", &path);
+            let outpref = er_param_bool(&case, "outpref", &path);
+            let zero_appeal = er_param_f64(&case, "zero_appeal", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = recent_degree_game(
+                nodes,
+                power,
+                time_window,
+                m,
+                None,
+                outpref,
+                zero_appeal,
+                directed,
+                seed,
+            )
+            .expect("recent_degree_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+            if let Some(true) = case
+                .expected
+                .get("no_self_loops")
+                .and_then(serde_json::Value::as_bool)
+            {
+                for eid in 0..n_edges {
+                    let (u, v) = graph.edge(eid).expect("edge id in bounds");
+                    assert_ne!(
+                        u,
+                        v,
+                        "edge {eid}: self-loop ({u}-{v}) but no_self_loops=true in {}",
+                        path.display()
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no recent_degree_game fixtures from source {src}"
+        );
+    }
+}

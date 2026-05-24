@@ -1,0 +1,134 @@
+{
+  "awu": "ALGO-GN-019",
+  "algo": "recent_degree_game",
+  "git_commit": "6a454f709e6480165e9322935c3912e6bdf724c9",
+  "date": "2026-05-24",
+  "harness": "criterion (release build, single seed per case)",
+  "host": "darwin aarch64",
+  "notes": [
+    "psumtree = inline Fenwick BIT with binary-lifting prefix-search; both `set` and `search` are O(log n).",
+    "Each step does at most (m + window_expiry) point updates in psumtree plus m O(log n) searches. Edges added at step (i - time_window) are popped from a VecDeque<Option<u32>> history queue and refreshed (their recent in-degree decremented and weight recomputed via pow(new_degree, power) + zero_appeal).",
+    "Total cost is O(n * m * log n) for the random walk + O(n * m) amortized for window expiry + O(n*m) for the batched edge insert. Edge insert uses `Graph::add_edges` (one rebuild_indexes call) — never per-call `add_edge` (O(m^2) trap).",
+    "Compared to ALGO-GN-018 lastcit at n=5000 (1.65 ms for eps=3), recent_degree at n=5000 (m=3) runs at 2.02 ms — slightly slower because the window-expiry path runs a VecDeque pop + psumtree refresh on every step, whereas lastcit's age sweep only fires at bin boundaries. Both are still O(n log n) and dominate over the legacy O(n^2) cumsum approach.",
+    "window_count/n1000_m2 shows mild slowdown (196µs → 216µs, ~10%) going from window=2 to window=200. With window=2 the BIT-tree stays at ~2 hot entries on average; with window=200 it can reach ~200, but log2(200) is still only ~8 — the psumtree's O(log n) per-op cost amortizes the window growth.",
+    "m_count/n1000 confirms linear scaling in m: 1→4→16 yields ~79µs / ~432µs / ~1271µs — a factor of ~5x and ~3x per 4x step, dominated by the per-citation psumtree.search cost."
+  ],
+  "groups": {
+    "size_scaling/pow1_window10_m3": {
+      "params": {
+        "power": 1.0,
+        "time_window": 10,
+        "m": 3,
+        "zero_appeal": 1.0,
+        "outpref": false,
+        "directed": true
+      },
+      "throughput_unit": "elements (vertices)",
+      "cases": [
+        {
+          "n": 500,
+          "time_median_us": 139.32,
+          "time_low_us": 136.59,
+          "time_high_us": 142.52,
+          "thrpt_median_Melem_per_s": 3.5888
+        },
+        {
+          "n": 5000,
+          "time_median_us": 2024.8,
+          "time_low_us": 2022.3,
+          "time_high_us": 2027.4,
+          "thrpt_median_Melem_per_s": 2.4694
+        }
+      ]
+    },
+    "m_count/n1000_pow15": {
+      "params": {
+        "n": 1000,
+        "power": 1.5,
+        "time_window": 20,
+        "zero_appeal": 1.0,
+        "outpref": false,
+        "directed": true
+      },
+      "throughput_unit": "elements (vertices)",
+      "cases": [
+        {
+          "m": 1,
+          "time_median_us": 79.337,
+          "time_low_us": 77.935,
+          "time_high_us": 80.856,
+          "thrpt_median_Melem_per_s": 12.604
+        },
+        {
+          "m": 4,
+          "time_median_us": 432.45,
+          "time_low_us": 431.06,
+          "time_high_us": 433.76,
+          "thrpt_median_Melem_per_s": 2.3124
+        },
+        {
+          "m": 16,
+          "time_median_us": 1271.2,
+          "time_low_us": 1267.8,
+          "time_high_us": 1275.5,
+          "thrpt_median_Melem_per_s": 0.7867
+        }
+      ]
+    },
+    "window_count/n1000_m2": {
+      "params": {
+        "n": 1000,
+        "power": 1.0,
+        "m": 2,
+        "zero_appeal": 1.0,
+        "outpref": false,
+        "directed": true
+      },
+      "throughput_unit": "elements (vertices)",
+      "cases": [
+        {
+          "time_window": 2,
+          "time_median_us": 197.52,
+          "time_low_us": 195.66,
+          "time_high_us": 199.46,
+          "thrpt_median_Melem_per_s": 5.0628
+        },
+        {
+          "time_window": 20,
+          "time_median_us": 209.24,
+          "time_low_us": 205.88,
+          "time_high_us": 213.36,
+          "thrpt_median_Melem_per_s": 4.7791
+        },
+        {
+          "time_window": 200,
+          "time_median_us": 216.33,
+          "time_low_us": 214.84,
+          "time_high_us": 217.76,
+          "thrpt_median_Melem_per_s": 4.6226
+        }
+      ]
+    },
+    "undirected/n1000_outpref": {
+      "params": {
+        "n": 1000,
+        "power": 1.0,
+        "time_window": 15,
+        "m": 2,
+        "zero_appeal": 0.5,
+        "outpref": true,
+        "directed": false
+      },
+      "throughput_unit": "elements (vertices)",
+      "cases": [
+        {
+          "case": "undirected_outpref",
+          "time_median_us": 227.93,
+          "time_low_us": 226.37,
+          "time_high_us": 229.45,
+          "thrpt_median_Melem_per_s": 4.3874
+        }
+      ]
+    }
+  }
+}
