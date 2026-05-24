@@ -377,9 +377,10 @@ mod tests {
         let mut to_type1 = 0u32;
         for eid in 0..n_e {
             let (_, b) = g.edge(eid).unwrap();
-            match types[b as usize] {
-                0 => to_type0 += 1,
-                _ => to_type1 += 1,
+            if types[b as usize] == 0 {
+                to_type0 += 1;
+            } else {
+                to_type1 += 1;
             }
         }
         // With a ~10_000:1 pref ratio at parity, > 95% citations to type 0.
