@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-CN-001",
+  "captured_at": "2026-05-25",
+  "git_commit": "83bfeee",
+  "rust_path_undirected_n100_ns": 1880,
+  "rust_path_undirected_n10000_ns": 163530,
+  "rust_path_undirected_n1000000_ns": 18351000,
+  "rust_cycle_undirected_n100_ns": 4204,
+  "rust_cycle_undirected_n10000_ns": 414820,
+  "rust_cycle_undirected_n1000000_ns": 57133000,
+  "rust_cycle_directed_mutual_n100_ns": 6991,
+  "rust_cycle_directed_mutual_n10000_ns": 816260,
+  "rust_cycle_directed_mutual_n1000000_ns": 122070000,
+  "py_baseline_ns": null,
+  "notes": "Deterministic ring / path / cycle constructor (igraph_ring + path_graph + cycle_graph wrappers). Edge generation is a single forward sweep `(i, i+1)` (O(n)) plus optional wrap-around `(n-1, 0)` and optional `(i+1, i)` back-arcs when `directed && mutual`. Throughput is dominated by `Graph::add_edges` cost: undirected paths land at ~55 Melem/s (single edge per step), undirected cycles drop to ~17 Melem/s because the closing wrap-around triggers extra adjacency probes per the canonicalisation `(min, max)` insertion path, and directed-mutual cycles drop further to ~8 Melem/s because each link emits two arcs into separate out/in neighbour lists. No oracle baseline: python-igraph and rigraph both expose the same factory (`Graph.Ring`, `make_ring`) but produce identical structural output for deterministic inputs, so conformance compares exact edge multisets / sequences rather than timing. Numbers from `cargo bench --bench bench_ring -- --quick` on Darwin/M-series release build."
+}

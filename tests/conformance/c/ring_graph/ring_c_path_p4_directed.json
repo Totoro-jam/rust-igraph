@@ -1,0 +1,36 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_ring(n=4, directed=1, mutual=0, circular=0) \u2014 directed forward path",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "ring_graph",
+  "params": {
+    "n": 4,
+    "directed": true,
+    "mutual": false,
+    "circular": false
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 3,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  }
+}

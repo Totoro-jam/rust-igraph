@@ -15,6 +15,36 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-001** — `ring_graph` deterministic constructor with the
+  `path_graph` / `cycle_graph` convenience wrappers. **First member of
+  the `constructors/` family.** Counterpart of `igraph_ring`,
+  `igraph_path_graph` and `igraph_cycle_graph` in
+  `references/igraph/src/constructors/regular.c`.
+  - `pub fn ring_graph(n: u32, directed: bool, mutual: bool, circular: bool) -> IgraphResult<Graph>`
+    plus the `path_graph(n, directed, mutual)` (alias for
+    `circular = false`) and `cycle_graph(n, directed, mutual)` (alias
+    for `circular = true`) one-line wrappers.
+  - **Algorithm**: lay `n` vertices in a sequence `0, 1, …, n-1`,
+    emit forward arcs `(i, i+1)`. When `directed && mutual` also emit
+    the back-arc `(i+1, i)`. When `circular` close with `(n-1, 0)` and
+    (if also mutual) `(0, n-1)`. The undirected case ignores the
+    `mutual` flag entirely (matches upstream). Degenerate cases mirror
+    upstream verbatim: `n=0` → empty graph; `n=1, circular` → self-loop
+    `(0, 0)`; `n=2, circular, undirected` → two parallel edges.
+  - **When to choose it**: deterministic, `O(|V|)`, no RNG involved —
+    use as a building block for benchmarks, conformance fixtures, or
+    anywhere a `P_n` / `C_n` is needed by name.
+  - Conformance: 14 fixtures (C × 6, py × 4, R × 4) under
+    `tests/conformance/{c,py,r}/ring_graph/`, comparing exact edge
+    sequences (directed) or canonicalised edge multisets (undirected).
+  - Benchmarks: `benches/bench_ring.rs` with three groups
+    (undirected path, undirected cycle, directed-mutual cycle) across
+    `n ∈ {100, 10_000, 1_000_000}`. Baseline snapshot:
+    `.codefuse/tracking/perf/ALGO-CN-001.json`.
+  - Example: `examples/ring_demo.rs` walks through the common shapes
+    and prints vcount / ecount / degree sequence / edge list.
+  - 18 unit + proptest checks in `src/algorithms/constructors/ring.rs`
+    covering the 4-flag truth table plus path/cycle wrapper agreement.
 - **ALGO-GN-028** — `degree_sequence_game_edge_switching_simple` sampled
   *simple* graph for a prescribed degree sequence via a deterministic
   Havel–Hakimi (undirected) / Kleitman–Wang (directed) INDEX seed

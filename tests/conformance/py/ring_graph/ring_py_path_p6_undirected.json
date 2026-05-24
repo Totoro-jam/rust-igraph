@@ -1,0 +1,44 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Ring(n=6, directed=False, mutual=False, circular=False)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "ring_graph",
+  "params": {
+    "n": 6,
+    "directed": false,
+    "mutual": false,
+    "circular": false
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 5,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ]
+  }
+}

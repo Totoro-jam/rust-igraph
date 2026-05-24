@@ -1,0 +1,40 @@
+{
+  "source": "r",
+  "origin": "rigraph make_ring(n=4, directed=FALSE, mutual=FALSE, circular=TRUE)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "ring_graph",
+  "params": {
+    "n": 4,
+    "directed": false,
+    "mutual": false,
+    "circular": true
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 4,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        0
+      ]
+    ]
+  }
+}

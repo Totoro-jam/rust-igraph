@@ -6262,6 +6262,99 @@ STATIC_POWER_LAW_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-001: ring (igraph_ring + path_graph + cycle_graph wrappers).
+# Mirrors `igraph_ring` in `constructors/regular.c:495-604`. Fully
+# deterministic — no RNG — so `expected.edges` is exact (raw upstream
+# enumeration order: forward arcs (i, i+1), back-arcs (i+1, i) when
+# `directed && mutual`, then `(n-1, 0)` wrap when `circular`, plus
+# `(0, n-1)` mutual wrap). Rust storage canonicalises undirected edges
+# (min endpoint first), so the harness must compare via multisets of
+# canonicalised tuples for undirected fixtures and exact-ordered vectors
+# for directed fixtures.
+RING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ring_c_path_p5_undirected",
+        "origin": "mirrors igraph_ring(n=5, directed=0, mutual=0, "
+        "circular=0) — open path P5",
+        "algo": "ring_graph",
+        "params": {"n": 5, "directed": False, "mutual": False, "circular": False},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [3, 4]],
+        },
+    },
+    {
+        "case": "ring_c_cycle_c5_undirected",
+        "origin": "mirrors igraph_ring(n=5, directed=0, mutual=0, "
+        "circular=1) — cycle C5 (raw order includes (4,0) wrap)",
+        "algo": "ring_graph",
+        "params": {"n": 5, "directed": False, "mutual": False, "circular": True},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]],
+        },
+    },
+    {
+        "case": "ring_c_path_p4_directed",
+        "origin": "mirrors igraph_ring(n=4, directed=1, mutual=0, "
+        "circular=0) — directed forward path",
+        "algo": "ring_graph",
+        "params": {"n": 4, "directed": True, "mutual": False, "circular": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "directed": True,
+            "edges": [[0, 1], [1, 2], [2, 3]],
+        },
+    },
+    {
+        "case": "ring_c_cycle_c4_directed_mutual",
+        "origin": "mirrors igraph_ring(n=4, directed=1, mutual=1, "
+        "circular=1) — every link emits both arcs + wrap back-arc last",
+        "algo": "ring_graph",
+        "params": {"n": 4, "directed": True, "mutual": True, "circular": True},
+        "expected": {
+            "vcount": 4,
+            "ecount": 8,
+            "directed": True,
+            "edges": [
+                [0, 1], [1, 0], [1, 2], [2, 1],
+                [2, 3], [3, 2], [3, 0], [0, 3],
+            ],
+        },
+    },
+    {
+        "case": "ring_c_singleton_self_loop",
+        "origin": "mirrors igraph_ring(n=1, directed=0, mutual=0, "
+        "circular=1) — degenerate cycle becomes self-loop (0,0)",
+        "algo": "ring_graph",
+        "params": {"n": 1, "directed": False, "mutual": False, "circular": True},
+        "expected": {
+            "vcount": 1,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 0]],
+        },
+    },
+    {
+        "case": "ring_c_empty",
+        "origin": "mirrors igraph_ring(n=0, ...) — empty graph regardless of flags",
+        "algo": "ring_graph",
+        "params": {"n": 0, "directed": False, "mutual": False, "circular": False},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6421,6 +6514,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "chung_lu_game": CHUNG_LU_MANIFEST,
     "static_fitness_game": STATIC_FITNESS_MANIFEST,
     "static_power_law_game": STATIC_POWER_LAW_MANIFEST,
+    "ring_graph": RING_MANIFEST,
 }
 
 
@@ -6545,6 +6639,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "chung_lu_game",
             "static_fitness_game",
             "static_power_law_game",
+            "ring_graph",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

@@ -6,6 +6,7 @@
 
 pub mod community;
 pub mod connectivity;
+pub mod constructors;
 pub mod games;
 pub mod io;
 pub mod operators;

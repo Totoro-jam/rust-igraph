@@ -392,6 +392,11 @@ name = "bench_recent_degree"
 path = "benches/bench_recent_degree.rs"
 harness = false
 
+[[bench]]
+name = "bench_ring"
+path = "benches/bench_ring.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

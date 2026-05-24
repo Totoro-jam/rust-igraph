@@ -5665,6 +5665,66 @@ STATIC_POWER_LAW_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-001: ring (python-igraph factory `Graph.Ring(n, directed,
+# mutual, circular)`). Construction is fully deterministic; expected
+# edges are written in upstream raw order and the Rust harness compares
+# undirected fixtures via canonicalised multisets.
+RING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "ring_py_path_p6_undirected",
+        "origin": "python-igraph Graph.Ring(n=6, directed=False, "
+        "mutual=False, circular=False)",
+        "algo": "ring_graph",
+        "params": {"n": 6, "directed": False, "mutual": False, "circular": False},
+        "expected": {
+            "vcount": 6,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]],
+        },
+    },
+    {
+        "case": "ring_py_cycle_c6_undirected",
+        "origin": "python-igraph Graph.Ring(n=6, directed=False, "
+        "mutual=False, circular=True)",
+        "algo": "ring_graph",
+        "params": {"n": 6, "directed": False, "mutual": False, "circular": True},
+        "expected": {
+            "vcount": 6,
+            "ecount": 6,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0]],
+        },
+    },
+    {
+        "case": "ring_py_directed_path_p3",
+        "origin": "python-igraph Graph.Ring(n=3, directed=True, "
+        "mutual=False, circular=False)",
+        "algo": "ring_graph",
+        "params": {"n": 3, "directed": True, "mutual": False, "circular": False},
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": True,
+            "edges": [[0, 1], [1, 2]],
+        },
+    },
+    {
+        "case": "ring_py_directed_mutual_path_p3",
+        "origin": "python-igraph Graph.Ring(n=3, directed=True, "
+        "mutual=True, circular=False) — mutual emits back-arcs in order",
+        "algo": "ring_graph",
+        "params": {"n": 3, "directed": True, "mutual": True, "circular": False},
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[0, 1], [1, 0], [1, 2], [2, 1]],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -5820,6 +5880,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "chung_lu_game": CHUNG_LU_MANIFEST,
     "static_fitness_game": STATIC_FITNESS_MANIFEST,
     "static_power_law_game": STATIC_POWER_LAW_MANIFEST,
+    "ring_graph": RING_MANIFEST,
 }
 
 
@@ -5939,6 +6000,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "chung_lu_game",
             "static_fitness_game",
             "static_power_law_game",
+            "ring_graph",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries
