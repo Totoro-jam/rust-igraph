@@ -1,0 +1,39 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Regular_Tree(2, 2, 'undirected') \u2014 degenerate k=2 case (branches=[2,1]); 1+2+2=5 vertices, P5 shape",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "regular_tree",
+  "params": {
+    "h": 2,
+    "k": 2,
+    "mode": "Undirected"
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 4,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ]
+    ]
+  }
+}

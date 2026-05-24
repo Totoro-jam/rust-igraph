@@ -6265,6 +6265,71 @@ SYMMETRIC_TREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+REGULAR_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "regular_tree_r_h1_k3_out",
+        "origin": "rigraph make_tree(...) Bethe variant make_regular_tree(h=1, k=3, mode='out') — "
+        "root with 3 leaves",
+        "algo": "regular_tree",
+        "params": {"h": 1, "k": 3, "mode": "Out"},
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2], [0, 3],
+            ],
+        },
+    },
+    {
+        "case": "regular_tree_r_h2_k3_in",
+        "origin": "rigraph make_regular_tree(h=2, k=3, mode='in') — "
+        "Bethe lattice, child→parent arcs",
+        "algo": "regular_tree",
+        "params": {"h": 2, "k": 3, "mode": "In"},
+        "expected": {
+            "vcount": 10,
+            "ecount": 9,
+            "directed": True,
+            "edges": [
+                [1, 0], [2, 0], [3, 0],
+                [4, 1], [5, 1], [6, 2], [7, 2], [8, 3], [9, 3],
+            ],
+        },
+    },
+    {
+        "case": "regular_tree_r_h2_k3_undirected",
+        "origin": "rigraph make_regular_tree(h=2, k=3, mode='undirected') — "
+        "undirected Bethe lattice",
+        "algo": "regular_tree",
+        "params": {"h": 2, "k": 3, "mode": "Undirected"},
+        "expected": {
+            "vcount": 10,
+            "ecount": 9,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3],
+                [1, 4], [1, 5], [2, 6], [2, 7], [3, 8], [3, 9],
+            ],
+        },
+    },
+    {
+        "case": "regular_tree_r_h3_k2_undirected",
+        "origin": "rigraph make_regular_tree(h=3, k=2, mode='undirected') — "
+        "degenerate k=2 case (branches=[2,1,1]); 1+2+2+2=7 vertices",
+        "algo": "regular_tree",
+        "params": {"h": 3, "k": 2, "mode": "Undirected"},
+        "expected": {
+            "vcount": 7,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [1, 3], [2, 4], [3, 5], [4, 6],
+            ],
+        },
+    },
+]
+
 
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
@@ -6430,6 +6495,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "wheel_graph": WHEEL_MANIFEST,
     "kary_tree": KARY_TREE_MANIFEST,
     "symmetric_tree": SYMMETRIC_TREE_MANIFEST,
+    "regular_tree": REGULAR_TREE_MANIFEST,
 }
 
 
@@ -6554,6 +6620,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "wheel_graph",
             "kary_tree",
             "symmetric_tree",
+            "regular_tree",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

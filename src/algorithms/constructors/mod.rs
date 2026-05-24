@@ -6,6 +6,7 @@
 //! RNG involvement.
 
 pub mod kary_tree;
+pub mod regular_tree;
 pub mod ring;
 pub mod star;
 pub mod symmetric_tree;

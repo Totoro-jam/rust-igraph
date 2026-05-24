@@ -5986,6 +5986,75 @@ SYMMETRIC_TREE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+REGULAR_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "regular_tree_py_h2_k3_out",
+        "origin": "python-igraph Graph.Regular_Tree(2, 3, 'out') — "
+        "Bethe lattice h=2 k=3 (branches=[3,2]); 1+3+6=10 vertices",
+        "algo": "regular_tree",
+        "params": {"h": 2, "k": 3, "mode": "Out"},
+        "expected": {
+            "vcount": 10,
+            "ecount": 9,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2], [0, 3],
+                [1, 4], [1, 5], [2, 6], [2, 7], [3, 8], [3, 9],
+            ],
+        },
+    },
+    {
+        "case": "regular_tree_py_h1_k4_undirected",
+        "origin": "python-igraph Graph.Regular_Tree(1, 4, 'undirected') — "
+        "h=1 k=4 (branches=[4]); equivalent to star K1,4",
+        "algo": "regular_tree",
+        "params": {"h": 1, "k": 4, "mode": "Undirected"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4],
+            ],
+        },
+    },
+    {
+        "case": "regular_tree_py_h3_k3_out",
+        "origin": "python-igraph Graph.Regular_Tree(3, 3, 'out') — "
+        "Bethe lattice h=3 k=3 (branches=[3,2,2]); 1+3+6+12=22 vertices",
+        "algo": "regular_tree",
+        "params": {"h": 3, "k": 3, "mode": "Out"},
+        "expected": {
+            "vcount": 22,
+            "ecount": 21,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2], [0, 3],
+                [1, 4], [1, 5], [2, 6], [2, 7], [3, 8], [3, 9],
+                [4, 10], [4, 11], [5, 12], [5, 13],
+                [6, 14], [6, 15], [7, 16], [7, 17],
+                [8, 18], [8, 19], [9, 20], [9, 21],
+            ],
+        },
+    },
+    {
+        "case": "regular_tree_py_h2_k2_undirected",
+        "origin": "python-igraph Graph.Regular_Tree(2, 2, 'undirected') — "
+        "degenerate k=2 case (branches=[2,1]); 1+2+2=5 vertices, P5 shape",
+        "algo": "regular_tree",
+        "params": {"h": 2, "k": 2, "mode": "Undirected"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [1, 3], [2, 4],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6146,6 +6215,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "wheel_graph": WHEEL_MANIFEST,
     "kary_tree": KARY_TREE_MANIFEST,
     "symmetric_tree": SYMMETRIC_TREE_MANIFEST,
+    "regular_tree": REGULAR_TREE_MANIFEST,
 }
 
 
@@ -6270,6 +6340,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "wheel_graph",
             "kary_tree",
             "symmetric_tree",
+            "regular_tree",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

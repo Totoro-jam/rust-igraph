@@ -15,6 +15,59 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-006** — `regular_tree` deterministic constructor.
+  **Sixth member of the `constructors/` family.** Counterpart of
+  `igraph_regular_tree` in
+  `references/igraph/src/constructors/regular.c:843-865`. A regular
+  tree (Bethe lattice) of height `h` and degree `k` is a rooted tree
+  where every non-leaf vertex has total degree exactly `k`:
+  - the root has `k` children (its total degree is `k`),
+  - internal non-root vertices have `k − 1` children plus their parent,
+    so their total degree is also `k`,
+  - leaves sit at depth `h` and have degree 1.
+  - `pub fn regular_tree(h: u32, k: u32, mode: TreeMode) -> IgraphResult<Graph>`
+    reusing the shared `TreeMode ∈ {Out, In, Undirected}` enum.
+  - **Algorithm**: thin wrapper that builds
+    `branches = [k, k-1, k-1, ..., k-1]` of length `h` and delegates to
+    `symmetric_tree` (CN-005). Total work is O(|V|) edge enumeration +
+    `Graph::add_edges`. Overflow propagates via `symmetric_tree`'s
+    `checked_mul` / `checked_add` so pathological inputs surface as
+    `InvalidArgument` rather than panicking. Rejects `h < 1` or `k < 2`
+    with `InvalidArgument`.
+  - **Three-mode truth table** for `regular_tree(h, k, mode)`:
+
+    | h | k | mode        | directed | vcount | ecount | shape                |
+    |---|---|-------------|----------|--------|--------|----------------------|
+    | 1 | 3 | Out         | true     | 4      | 3      | star K1,3            |
+    | 2 | 3 | Out         | true     | 10     | 9      | Bethe `[3, 2]`       |
+    | 2 | 3 | In          | true     | 10     | 9      | Bethe (reversed)     |
+    | 2 | 3 | Undirected  | false    | 10     | 9      | undirected Bethe     |
+    | 2 | 4 | Out         | true     | 17     | 16     | Bethe `[4, 3]`       |
+    | 3 | 2 | Out         | true     | 7      | 6      | degenerate `[2,1,1]` |
+
+  - **Degenerate cases**: `h = 1` → star K1,k anchored at vertex 0 with
+    `k` leaves; `k = 2` → linear chain because `branches = [2, 1, 1, …]`
+    collapses to a path after the root.
+  - Conformance: 14 fixtures (C × 6, py × 4, R × 4) under
+    `tests/conformance/{c,py,r}/regular_tree/`, comparing exact edge
+    sequences (directed modes) or canonicalised edge multisets
+    (undirected mode).
+  - Benchmarks: `benches/bench_regular_tree.rs` with three groups
+    (Out / In / Undirected) across `(h, k) ∈ {(3, 3), (4, 4), (5, 5)}`
+    (22 / 365 / 6831 vertices respectively). Baseline snapshot:
+    `.codefuse/tracking/perf/ALGO-CN-006.json` — ~16-240 Melem/s,
+    indistinguishable across the three modes; tracks the
+    `symmetric_tree` baseline because this is a thin wrapper.
+  - Example: `examples/regular_tree_demo.rs` walks star K1,3 (h=1,
+    k=3), all three modes of the canonical Bethe lattice (h=2, k=3),
+    the denser variant (h=2, k=4), and the degenerate chain (h=3,
+    k=2).
+  - 12 unit + 3 proptest checks in
+    `src/algorithms/constructors/regular_tree.rs` covering the star
+    K1,k case, the canonical Bethe lattice, the In/Undirected
+    orientations, the degenerate k=2 chain, the h=0 / k<2 rejections,
+    overflow propagation, and the structural invariants
+    `deg(root) = k` and `deg(internal non-root) = k`.
 - **ALGO-CN-005** — `symmetric_tree` deterministic constructor.
   **Fifth member of the `constructors/` family.** Counterpart of
   `igraph_symmetric_tree` in

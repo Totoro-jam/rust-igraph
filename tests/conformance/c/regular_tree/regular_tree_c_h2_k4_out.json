@@ -1,0 +1,87 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_regular_tree(h=2, k=4, IGRAPH_TREE_OUT) \u2014 root deg 4, each internal deg 4 (branches=[4,3])",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "regular_tree",
+  "params": {
+    "h": 2,
+    "k": 4,
+    "mode": "Out"
+  },
+  "expected": {
+    "vcount": 17,
+    "ecount": 16,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        2,
+        9
+      ],
+      [
+        2,
+        10
+      ],
+      [
+        3,
+        11
+      ],
+      [
+        3,
+        12
+      ],
+      [
+        3,
+        13
+      ],
+      [
+        4,
+        14
+      ],
+      [
+        4,
+        15
+      ],
+      [
+        4,
+        16
+      ]
+    ]
+  }
+}

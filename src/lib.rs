@@ -102,6 +102,7 @@ pub use crate::algorithms::connectivity::reachability_matrix::reachability_matri
 pub use crate::algorithms::connectivity::strong::strongly_connected_components;
 pub use crate::algorithms::connectivity::transitive_closure::transitive_closure;
 pub use crate::algorithms::constructors::kary_tree::{TreeMode, kary_tree};
+pub use crate::algorithms::constructors::regular_tree::regular_tree;
 pub use crate::algorithms::constructors::ring::{cycle_graph, path_graph, ring_graph};
 pub use crate::algorithms::constructors::star::{StarMode, star_graph};
 pub use crate::algorithms::constructors::symmetric_tree::symmetric_tree;

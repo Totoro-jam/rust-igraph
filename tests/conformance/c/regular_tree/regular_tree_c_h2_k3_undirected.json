@@ -1,0 +1,59 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_regular_tree(h=2, k=3, IGRAPH_TREE_UNDIRECTED) \u2014 undirected Bethe lattice",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "regular_tree",
+  "params": {
+    "h": 2,
+    "k": 3,
+    "mode": "Undirected"
+  },
+  "expected": {
+    "vcount": 10,
+    "ecount": 9,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        3,
+        9
+      ]
+    ]
+  }
+}

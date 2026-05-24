@@ -1,0 +1,39 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Regular_Tree(1, 4, 'undirected') \u2014 h=1 k=4 (branches=[4]); equivalent to star K1,4",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "regular_tree",
+  "params": {
+    "h": 1,
+    "k": 4,
+    "mode": "Undirected"
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 4,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ]
+    ]
+  }
+}

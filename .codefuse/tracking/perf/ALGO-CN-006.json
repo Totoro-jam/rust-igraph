@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-CN-006",
+  "captured_at": "2026-05-25",
+  "git_commit": "c7626e7",
+  "rust_out_h3_k3_ns": 1336,
+  "rust_out_h4_k4_ns": 4186,
+  "rust_out_h5_k5_ns": 28312,
+  "rust_in_h3_k3_ns": 1329,
+  "rust_in_h4_k4_ns": 4205,
+  "rust_in_h5_k5_ns": 28777,
+  "rust_undirected_h3_k3_ns": 1313,
+  "rust_undirected_h4_k4_ns": 4175,
+  "rust_undirected_h5_k5_ns": 28424,
+  "py_baseline_ns": null,
+  "notes": "Regular tree / Bethe lattice deterministic constructor across three (h, k) configurations: (h=3, k=3) → 22 vertices, (h=4, k=4) → 365 vertices, (h=5, k=5) → 6831 vertices. `regular_tree` is a thin wrapper that builds `branches = [k, k-1, k-1, ..., k-1]` of length `h` and delegates to `symmetric_tree` (CN-005); the root gets `k` children (its total degree equals `k`), every internal non-root vertex gets `k-1` children plus its parent edge for a total degree of `k`. Throughput tracks the symmetric_tree numbers: ~16-240 Melem/s across these scales — all three modes (Out / In / Undirected) are within ~2% of each other because the orientation flip is a single match in the inner edge-emit loop. Vertex count grows ~7× from h3_k3 → h4_k4 and ~19× from h4_k4 → h5_k5, while per-call wall-clock grows ~3× and ~7× respectively because the BFS-level driver amortises the allocation cost over progressively larger `Graph::add_edges` batches. No python-igraph oracle: `igraph_regular_tree` is deterministic so the conformance suite asserts exact edge-list equality (3-mode dispatch + canonical-pair compare for Undirected) against 14 fixtures extracted from igraph C / python-igraph / rigraph. Numbers from `cargo bench --bench bench_regular_tree -- --quick` on Darwin/M-series release build."
+}

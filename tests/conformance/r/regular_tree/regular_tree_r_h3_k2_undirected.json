@@ -1,0 +1,47 @@
+{
+  "source": "r",
+  "origin": "rigraph make_regular_tree(h=3, k=2, mode='undirected') \u2014 degenerate k=2 case (branches=[2,1,1]); 1+2+2+2=7 vertices",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "regular_tree",
+  "params": {
+    "h": 3,
+    "k": 2,
+    "mode": "Undirected"
+  },
+  "expected": {
+    "vcount": 7,
+    "ecount": 6,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        6
+      ]
+    ]
+  }
+}

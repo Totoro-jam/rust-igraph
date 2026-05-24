@@ -1,0 +1,59 @@
+{
+  "source": "r",
+  "origin": "rigraph make_regular_tree(h=2, k=3, mode='in') \u2014 Bethe lattice, child\u2192parent arcs",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "regular_tree",
+  "params": {
+    "h": 2,
+    "k": 3,
+    "mode": "In"
+  },
+  "expected": {
+    "vcount": 10,
+    "ecount": 9,
+    "directed": true,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        5,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        8,
+        3
+      ],
+      [
+        9,
+        3
+      ]
+    ]
+  }
+}
