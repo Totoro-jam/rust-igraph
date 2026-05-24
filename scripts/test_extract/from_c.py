@@ -4801,6 +4801,53 @@ DEGREE_SEQUENCE_CONFIG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Viger-Latapy degree-sequence generator (ALGO-GN-025). Fixtures mirror
+# the VL block of references/igraph/tests/unit/igraph_degree_sequence_game.c
+# (lines 230-256). The VL method samples a *connected, simple* undirected
+# graph realising the input degree sequence; the C test asserts vcount,
+# is_simple, is_connected (weak), and exact degree match. Fixtures pin
+# those invariants exactly (no bands needed — they're guaranteed by the
+# algorithm definition).
+DEGREE_SEQUENCE_VL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_vl_c_undirected_n10_mixed",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:230-246 — "
+        "outarr=[2,3,2,3,3,3,3,1,4,4] DEGSEQ_VL undirected; the C test "
+        "asserts simple, connected, and exact degree match",
+        "algo": "degree_sequence_game_vl",
+        "params": {
+            "degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 14,
+            "degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "is_simple": True,
+            "is_connected": True,
+        },
+    },
+    {
+        "case": "degseq_vl_c_empty_sequence",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:248-251 — "
+        "empty degrees DEGSEQ_VL undirected; vcount must be 0",
+        "algo": "degree_sequence_game_vl",
+        "params": {
+            "degrees": [],
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 0,
+            "directed": False,
+            "ecount": 0,
+            "degrees": [],
+            "is_simple": True,
+            "is_connected": True,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -6080,6 +6127,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
     "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
+    "degree_sequence_game_vl": DEGREE_SEQUENCE_VL_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -6200,6 +6248,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "dot_product_game",
             "correlated_pair_game",
             "degree_sequence_game_configuration",
+            "degree_sequence_game_vl",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

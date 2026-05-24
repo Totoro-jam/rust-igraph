@@ -1,0 +1,41 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors `ig.Graph.Degree_Sequence([3]*8, method='vl')`): 8 vertices all degree 3, \u03a3d=24. VL guarantees simple and connected.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_vl",
+  "params": {
+    "degrees": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "seed": 9250001
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": false,
+    "ecount": 12,
+    "degrees": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "is_simple": true,
+    "is_connected": true
+  }
+}

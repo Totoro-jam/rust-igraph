@@ -1,0 +1,35 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors `sample_degseq(out.deg=rep(0, 5), method='vl')`): five isolated vertices; ecount must be 0.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_vl",
+  "params": {
+    "degrees": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "seed": 8650003
+  },
+  "expected": {
+    "vcount": 5,
+    "directed": false,
+    "ecount": 0,
+    "degrees": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "is_simple": true,
+    "is_connected": true
+  }
+}

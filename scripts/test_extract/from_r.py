@@ -4738,6 +4738,72 @@ DEGREE_SEQUENCE_CONFIG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-025: degree_sequence_game (VL method). rigraph exposes this
+# as `sample_degseq(out.deg, method = "vl")` (undirected only). VL
+# samples a connected, simple undirected graph realising the given
+# degree sequence — manifest pins vcount, ecount=Σd/2, exact degree
+# match, simplicity, weak connectivity. RNG state is not portable to
+# Rust's SplitMix64 — invariants only.
+DEGREE_SEQUENCE_VL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_vl_r_undirected_n10_descending",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=c(4,3,3,3,3,2,2,2,1,1), method='vl')`): "
+        "all-positive descending degree sequence, Σd=24.",
+        "algo": "degree_sequence_game_vl",
+        "params": {
+            "degrees": [4, 3, 3, 3, 3, 2, 2, 2, 1, 1],
+            "seed": 8_650_001,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 12,
+            "degrees": [4, 3, 3, 3, 3, 2, 2, 2, 1, 1],
+            "is_simple": True,
+            "is_connected": True,
+        },
+    },
+    {
+        "case": "degseq_vl_r_3regular_n10",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=rep(3, 10), method='vl')`): 10 vertices all degree 3, "
+        "Σd=30. Connected simple 3-regular graph.",
+        "algo": "degree_sequence_game_vl",
+        "params": {
+            "degrees": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            "seed": 8_650_002,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 15,
+            "degrees": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            "is_simple": True,
+            "is_connected": True,
+        },
+    },
+    {
+        "case": "degseq_vl_r_undirected_all_isolated",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=rep(0, 5), method='vl')`): five isolated vertices; "
+        "ecount must be 0.",
+        "algo": "degree_sequence_game_vl",
+        "params": {
+            "degrees": [0, 0, 0, 0, 0],
+            "seed": 8_650_003,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "ecount": 0,
+            "degrees": [0, 0, 0, 0, 0],
+            "is_simple": True,
+            "is_connected": True,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -5823,6 +5889,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
     "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
+    "degree_sequence_game_vl": DEGREE_SEQUENCE_VL_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5938,6 +6005,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "dot_product_game",
             "correlated_pair_game",
             "degree_sequence_game_configuration",
+            "degree_sequence_game_vl",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

@@ -15,6 +15,37 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-025** — `degree_sequence_game_vl` Viger–Latapy uniform sampler
+  for **simple connected** graphs with a prescribed degree sequence.
+  Counterpart of the `IGRAPH_DEGSEQ_VL` branch of
+  `igraph_degree_sequence_game()` in
+  `references/igraph/src/games/degree_sequence_vl.c`.
+  - `pub fn degree_sequence_game_vl(degrees: &[u32], seed: u64) -> IgraphResult<Graph>`
+    — undirected only; rejects sequences that fail Erdős–Gallai or violate
+    Hakimi's connected-graphical bound (Σd ≥ 2(n−1) when all degrees > 0).
+  - **Algorithm**: (1) Hakimi-style greedy realisation seeded by the
+    largest-degree-first heuristic, (2) `make_connected` 2-swap merging
+    over the components produced by Step 1, (3) edge-switch MCMC with
+    `total = 5 · 2 · |E|` proposals, with a windowed snapshot/restore
+    rollback if the chain disconnects the graph mid-flight
+    (window = `max(16, 2|E|)`).
+  - **Guarantees**: exact degree preservation, no self-loops,
+    no multi-edges, weak connectivity for every positive-degree component.
+  - **Determinism**: a single [`SplitMix64`] seed drives every draw and
+    every accept/reject decision; the PRNG is *not* portable to igraph C /
+    NumPy / R, so the three-source conformance harness asserts structural
+    invariants only (vcount, ecount = Σd/2, exact degree match, simplicity,
+    weak connectivity).
+  - **Tests**: 18 unit tests + 4 proptest invariants
+    (`degree_sequence_preserved_when_graphical`, `simple_no_loops_or_multi`,
+    `weakly_connected_when_positive_degrees`, `same_seed_same_graph`) + 1
+    doctest; `degree_sequence_game_vl_three_source_conformance` runs
+    against 8 fixtures (2 C + 3 py + 3 R) under
+    `tests/conformance/{c,py,r}/degree_sequence_game_vl/`.
+  - **Bench**: `benches/bench_degree_sequence_vl.rs` measures (a) 3-regular
+    size sweep at `n ∈ {200, 600, 1_200}` and (b) a skewed
+    `[5,4,4,3,3,3,2,2,2,2]` tail. Baseline snapshot:
+    `.codefuse/tracking/perf/ALGO-GN-025.json`.
 - **ALGO-GN-024** — `degree_sequence_game_configuration` configuration-model
   random multigraph generator. Counterpart of the
   `IGRAPH_DEGSEQ_CONFIGURATION` branch of `igraph_degree_sequence_game()` in

@@ -1,0 +1,45 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors `ig.Graph.Degree_Sequence([5,4,4,3,3,3,2,2,2,2], method='vl')`): 10 vertices, mixed skewed degrees, \u03a3d=30.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_vl",
+  "params": {
+    "degrees": [
+      5,
+      4,
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2
+    ],
+    "seed": 9250002
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "ecount": 15,
+    "degrees": [
+      5,
+      4,
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2
+    ],
+    "is_simple": true,
+    "is_connected": true
+  }
+}

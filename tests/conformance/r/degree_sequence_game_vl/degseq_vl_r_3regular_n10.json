@@ -1,0 +1,45 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors `sample_degseq(out.deg=rep(3, 10), method='vl')`): 10 vertices all degree 3, \u03a3d=30. Connected simple 3-regular graph.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_vl",
+  "params": {
+    "degrees": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "seed": 8650002
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "ecount": 15,
+    "degrees": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "is_simple": true,
+    "is_connected": true
+  }
+}

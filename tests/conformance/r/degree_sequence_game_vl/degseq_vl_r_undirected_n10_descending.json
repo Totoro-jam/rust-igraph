@@ -1,0 +1,45 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors `sample_degseq(out.deg=c(4,3,3,3,3,2,2,2,1,1), method='vl')`): all-positive descending degree sequence, \u03a3d=24.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_vl",
+  "params": {
+    "degrees": [
+      4,
+      3,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      1,
+      1
+    ],
+    "seed": 8650001
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "ecount": 12,
+    "degrees": [
+      4,
+      3,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      1,
+      1
+    ],
+    "is_simple": true,
+    "is_connected": true
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_degree_sequence_game.c:248-251 \u2014 empty degrees DEGSEQ_VL undirected; vcount must be 0",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_vl",
+  "params": {
+    "degrees": [],
+    "seed": 333
+  },
+  "expected": {
+    "vcount": 0,
+    "directed": false,
+    "ecount": 0,
+    "degrees": [],
+    "is_simple": true,
+    "is_connected": true
+  }
+}

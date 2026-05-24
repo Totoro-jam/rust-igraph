@@ -36,6 +36,7 @@
 //!   graph matching problem on correlated random graphs*. `NeurIPS`.
 
 #![allow(
+    unknown_lints,
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
     clippy::cast_precision_loss,

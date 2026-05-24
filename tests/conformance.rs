@@ -9737,3 +9737,198 @@ fn degree_sequence_game_configuration_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn degree_sequence_game_vl_three_source_conformance() {
+    // Viger-Latapy degree-sequence generator (ALGO-GN-025). VL samples a
+    // *connected, simple* undirected graph realising the given degree
+    // sequence exactly. Fixtures pin: vcount, ecount=Σd/2, exact degree
+    // match, simplicity, and weak connectivity (across non-isolated
+    // vertices). RNG state is not shared with the upstream
+    // implementations, so we assert structural invariants only.
+    use rust_igraph::{
+        SimpleMode, connected_components, degree_sequence_game_vl, is_simple_with_mode,
+    };
+
+    fn json_u32_vec(value: &serde_json::Value, path: &std::path::Path, field: &str) -> Vec<u32> {
+        let array = value.as_array().unwrap_or_else(|| {
+            panic!(
+                "VL fixture {}: `{}` must be a JSON array",
+                path.display(),
+                field
+            )
+        });
+        array
+            .iter()
+            .map(|item| {
+                let raw = item.as_u64().unwrap_or_else(|| {
+                    panic!(
+                        "VL fixture {}: `{}` entry must be u64",
+                        path.display(),
+                        field
+                    )
+                });
+                u32::try_from(raw).unwrap_or_else(|_| {
+                    panic!(
+                        "VL fixture {}: `{}` entry {} doesn't fit in u32",
+                        path.display(),
+                        field,
+                        raw
+                    )
+                })
+            })
+            .collect()
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("degree_sequence_game_vl");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read VL fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read VL fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse VL conformance fixture JSON");
+            assert_eq!(case.algo, "degree_sequence_game_vl");
+
+            let degrees_value = case.params.get("degrees").unwrap_or_else(|| {
+                panic!("VL fixture {}: param `degrees` missing", path.display())
+            });
+            let degrees = json_u32_vec(degrees_value, &path, "params.degrees");
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = degree_sequence_game_vl(&degrees, seed)
+                .expect("degree_sequence_game_vl should succeed on conformance fixtures");
+
+            let want_vcount = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_edges = er_expected_u64(&case, "ecount", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vcount,
+                "VL vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert!(
+                !graph.is_directed(),
+                "VL fixture {}: graph must be undirected",
+                path.display()
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "VL directed mismatch in {}",
+                path.display()
+            );
+            assert_eq!(
+                u64::try_from(graph.ecount()).expect("ecount fits in u64"),
+                want_edges,
+                "VL ecount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            // Observed degree sequence must match the input *exactly*.
+            let vcount = graph.vcount() as usize;
+            let mut observed = vec![0u32; vcount];
+            let ecount = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+            for eid in 0..ecount {
+                let (src_vid, dst_vid) = graph.edge(eid).expect("edge id in bounds");
+                observed[src_vid as usize] = observed[src_vid as usize].saturating_add(1);
+                observed[dst_vid as usize] = observed[dst_vid as usize].saturating_add(1);
+            }
+            let want_deg = json_u32_vec(
+                case.expected.get("degrees").unwrap_or_else(|| {
+                    panic!("VL fixture {}: expected.degrees missing", path.display())
+                }),
+                &path,
+                "expected.degrees",
+            );
+            assert_eq!(
+                observed,
+                want_deg,
+                "VL degree sequence mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            // Simplicity invariant (no self-loops, no multi-edges).
+            let want_simple = case
+                .expected
+                .get("is_simple")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(true);
+            let observed_simple = is_simple_with_mode(&graph, SimpleMode::DirectedAsDirected)
+                .expect("is_simple should succeed on VL output");
+            assert_eq!(
+                observed_simple,
+                want_simple,
+                "VL simplicity mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            // Weak connectivity over the active subgraph: VL guarantees
+            // every vertex with positive degree is in a single component.
+            // For inputs where all degrees are zero, the graph is
+            // vacuously connected.
+            let want_connected = case
+                .expected
+                .get("is_connected")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(true);
+            let active_present = degrees.iter().any(|&d| d > 0);
+            let observed_connected = if active_present {
+                let cc = connected_components(&graph).expect("connected_components should succeed");
+                // count distinct component ids ignoring trivially-isolated singletons.
+                let mut seen_cid = std::collections::BTreeSet::<u32>::new();
+                for (v, &deg) in observed.iter().enumerate().take(vcount) {
+                    if deg > 0 {
+                        seen_cid.insert(cc.membership[v]);
+                    }
+                }
+                seen_cid.len() <= 1
+            } else {
+                true
+            };
+            assert_eq!(
+                observed_connected,
+                want_connected,
+                "VL connectivity mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no degree_sequence_game_vl fixtures from source {src}"
+        );
+    }
+}
