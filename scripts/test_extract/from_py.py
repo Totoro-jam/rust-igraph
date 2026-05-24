@@ -5725,6 +5725,64 @@ RING_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+STAR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "star_py_undirected_k1_5",
+        "origin": "python-igraph Graph.Star(n=6, mode='undirected') — "
+        "K1,5 with vertex 0 as the centre",
+        "algo": "star_graph",
+        "params": {"n": 6, "mode": "Undirected", "center": 0},
+        "expected": {
+            "vcount": 6,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0]],
+        },
+    },
+    {
+        "case": "star_py_out_center_zero",
+        "origin": "python-igraph Graph.Star(n=4, mode='out') — "
+        "directed out-star, centre emits to every leaf",
+        "algo": "star_graph",
+        "params": {"n": 4, "mode": "Out", "center": 0},
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "directed": True,
+            "edges": [[0, 1], [0, 2], [0, 3]],
+        },
+    },
+    {
+        "case": "star_py_in_center_zero",
+        "origin": "python-igraph Graph.Star(n=4, mode='in') — "
+        "directed in-star, every leaf emits to centre",
+        "algo": "star_graph",
+        "params": {"n": 4, "mode": "In", "center": 0},
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "directed": True,
+            "edges": [[1, 0], [2, 0], [3, 0]],
+        },
+    },
+    {
+        "case": "star_py_mutual_center_one",
+        "origin": "python-igraph Graph.Star(n=4, mode='mutual', center=1) — "
+        "both arcs per leaf, forward arc (centre→leaf) first",
+        "algo": "star_graph",
+        "params": {"n": 4, "mode": "Mutual", "center": 1},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": True,
+            "edges": [
+                [1, 0], [0, 1], [1, 2], [2, 1], [1, 3], [3, 1],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -5881,6 +5939,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "static_fitness_game": STATIC_FITNESS_MANIFEST,
     "static_power_law_game": STATIC_POWER_LAW_MANIFEST,
     "ring_graph": RING_MANIFEST,
+    "star_graph": STAR_MANIFEST,
 }
 
 
@@ -6001,6 +6060,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "static_fitness_game",
             "static_power_law_game",
             "ring_graph",
+            "star_graph",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

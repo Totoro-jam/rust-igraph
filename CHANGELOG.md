@@ -15,6 +15,41 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-002** — `star_graph` deterministic constructor.
+  **Second member of the `constructors/` family.** Counterpart of
+  `igraph_star` in `references/igraph/src/constructors/regular.c`.
+  - `pub fn star_graph(n: u32, mode: StarMode, center: u32) -> IgraphResult<Graph>`
+    with `StarMode ∈ {Out, In, Mutual, Undirected}`.
+  - **Algorithm**: O(|V|) single sweep over leaves visited in raw
+    vertex-id order `[0, center) ∪ (center, n)`. Per leaf,
+    `Out` emits `(center, leaf)`; `In` and `Undirected` emit
+    `(leaf, center)`; `Mutual` emits both `(center, leaf)` then
+    `(leaf, center)` (forward arc always first, matching the upstream
+    C loop). Degenerate cases mirror upstream: `n=0` → empty graph;
+    `n=1` → no edges; `center == n - 1` → leaves
+    `0..center` only.
+  - **Four-mode truth table** for `n = 5, center = 0`:
+
+    | mode        | directed | ecount |
+    |-------------|----------|--------|
+    | Out         | true     | 4      |
+    | In          | true     | 4      |
+    | Mutual      | true     | 8      |
+    | Undirected  | false    | 4      |
+
+  - Conformance: 14 fixtures (C × 6, py × 4, R × 4) under
+    `tests/conformance/{c,py,r}/star_graph/`, comparing exact edge
+    sequences (directed modes) or canonicalised edge multisets
+    (undirected mode).
+  - Benchmarks: `benches/bench_star.rs` with four groups (Out / In /
+    Mutual / Undirected) across `n ∈ {100, 10_000, 1_000_000}`.
+    Baseline snapshot: `.codefuse/tracking/perf/ALGO-CN-002.json`.
+  - Example: `examples/star_demo.rs` walks through all four modes plus
+    a non-zero centre and prints the per-mode edge list.
+  - 13 unit + 3 proptest checks in
+    `src/algorithms/constructors/star.rs` covering the 4-mode truth
+    table, centre placement (zero / interior / last), bounds checking,
+    and edge-count formula.
 - **ALGO-CN-001** — `ring_graph` deterministic constructor with the
   `path_graph` / `cycle_graph` convenience wrappers. **First member of
   the `constructors/` family.** Counterpart of `igraph_ring`,

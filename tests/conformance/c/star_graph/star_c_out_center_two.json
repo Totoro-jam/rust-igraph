@@ -1,0 +1,39 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_star(n=5, mode=OUT, center=2) \u2014 leaves visited in raw vertex-id order [0,1] then [3,4]",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "star_graph",
+  "params": {
+    "n": 5,
+    "mode": "Out",
+    "center": 2
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 4,
+    "directed": true,
+    "edges": [
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ]
+    ]
+  }
+}

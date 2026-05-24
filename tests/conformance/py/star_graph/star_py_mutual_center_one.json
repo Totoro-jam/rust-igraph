@@ -1,0 +1,47 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Star(n=4, mode='mutual', center=1) \u2014 both arcs per leaf, forward arc (centre\u2192leaf) first",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "star_graph",
+  "params": {
+    "n": 4,
+    "mode": "Mutual",
+    "center": 1
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 6,
+    "directed": true,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        1
+      ]
+    ]
+  }
+}

@@ -397,6 +397,11 @@ name = "bench_ring"
 path = "benches/bench_ring.rs"
 harness = false
 
+[[bench]]
+name = "bench_star"
+path = "benches/bench_star.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

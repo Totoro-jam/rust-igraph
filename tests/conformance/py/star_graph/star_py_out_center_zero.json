@@ -1,0 +1,35 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Star(n=4, mode='out') \u2014 directed out-star, centre emits to every leaf",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "star_graph",
+  "params": {
+    "n": 4,
+    "mode": "Out",
+    "center": 0
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 3,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ]
+  }
+}

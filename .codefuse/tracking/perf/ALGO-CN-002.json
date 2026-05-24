@@ -1,0 +1,19 @@
+{
+  "awu": "ALGO-CN-002",
+  "captured_at": "2026-05-25",
+  "git_commit": "74b04d3",
+  "rust_out_n100_ns": 2920,
+  "rust_out_n10000_ns": 172500,
+  "rust_out_n1000000_ns": 20890000,
+  "rust_in_n100_ns": 2935,
+  "rust_in_n10000_ns": 172900,
+  "rust_in_n1000000_ns": 20306000,
+  "rust_mutual_n100_ns": 7168,
+  "rust_mutual_n10000_ns": 860150,
+  "rust_mutual_n1000000_ns": 126570000,
+  "rust_undirected_n100_ns": 2900,
+  "rust_undirected_n10000_ns": 172010,
+  "rust_undirected_n1000000_ns": 21937000,
+  "py_baseline_ns": null,
+  "notes": "Deterministic star constructor (igraph_star). Edge generation is a single forward sweep over leaves [0, center) then (center, n) (O(|V|)) emitting `n-1` arcs (Out/In/Undirected) or `2(n-1)` arcs (Mutual). Throughput is dominated by `Graph::add_edges` cost: Out/In/Undirected modes land at ~46-58 Melem/s on the linear-emit path, while Mutual mode drops to ~8-14 Melem/s because each leaf emits two arcs into separate out/in neighbour lists at the centre. No oracle baseline: python-igraph and rigraph both expose the same factory (`Graph.Star`, `make_star`) but produce identical structural output for deterministic inputs, so conformance compares exact edge sequences (directed modes) or canonicalised multisets (undirected). Numbers from `cargo bench --bench bench_star -- --warm-up-time 1 --measurement-time 2 --sample-size 10` on Darwin/M-series release build."
+}

@@ -1,0 +1,39 @@
+{
+  "source": "r",
+  "origin": "rigraph make_star(n=5, mode='in', center=3) \u2014 directed in-star with non-zero centre, R 1-based index 3 \u2192 C/Rust 2",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "star_graph",
+  "params": {
+    "n": 5,
+    "mode": "In",
+    "center": 2
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 4,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        2
+      ]
+    ]
+  }
+}

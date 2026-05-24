@@ -6355,6 +6355,98 @@ RING_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# Hand-derived from `igraph_star()` in src/constructors/regular.c:75-141.
+# The C entry point allocates `2(n-1)` edge slots (`4(n-1)` for MUTUAL),
+# walks leaves in raw vertex-id order `[0, center) ∪ (center, n)`, and
+# emits a `center → leaf` arc for OUT, `leaf → center` for IN/UNDIRECTED,
+# and both arcs (forward first) for MUTUAL. Empty graph when n == 0;
+# single-vertex graph has no edges. Rust storage canonicalises undirected
+# edges (min endpoint first), so the harness compares via multisets of
+# canonicalised tuples for undirected fixtures and exact-ordered vectors
+# for directed fixtures.
+STAR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "star_c_undirected_k1_4",
+        "origin": "mirrors igraph_star(n=5, mode=UNDIRECTED, center=0) — "
+        "K1,4 with vertex 0 as the centre",
+        "algo": "star_graph",
+        "params": {"n": 5, "mode": "Undirected", "center": 0},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[1, 0], [2, 0], [3, 0], [4, 0]],
+        },
+    },
+    {
+        "case": "star_c_out_center_zero",
+        "origin": "mirrors igraph_star(n=5, mode=OUT, center=0) — "
+        "directed out-star, centre emits to every leaf",
+        "algo": "star_graph",
+        "params": {"n": 5, "mode": "Out", "center": 0},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[0, 1], [0, 2], [0, 3], [0, 4]],
+        },
+    },
+    {
+        "case": "star_c_in_center_zero",
+        "origin": "mirrors igraph_star(n=5, mode=IN, center=0) — "
+        "directed in-star, every leaf emits to centre",
+        "algo": "star_graph",
+        "params": {"n": 5, "mode": "In", "center": 0},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[1, 0], [2, 0], [3, 0], [4, 0]],
+        },
+    },
+    {
+        "case": "star_c_mutual_center_zero",
+        "origin": "mirrors igraph_star(n=4, mode=MUTUAL, center=0) — "
+        "both arcs per leaf, forward arc first per upstream loop",
+        "algo": "star_graph",
+        "params": {"n": 4, "mode": "Mutual", "center": 0},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": True,
+            "edges": [
+                [0, 1], [1, 0], [0, 2], [2, 0], [0, 3], [3, 0],
+            ],
+        },
+    },
+    {
+        "case": "star_c_out_center_two",
+        "origin": "mirrors igraph_star(n=5, mode=OUT, center=2) — "
+        "leaves visited in raw vertex-id order [0,1] then [3,4]",
+        "algo": "star_graph",
+        "params": {"n": 5, "mode": "Out", "center": 2},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[2, 0], [2, 1], [2, 3], [2, 4]],
+        },
+    },
+    {
+        "case": "star_c_empty",
+        "origin": "mirrors igraph_star(n=0, ...) — empty graph regardless of mode",
+        "algo": "star_graph",
+        "params": {"n": 0, "mode": "Out", "center": 0},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6515,6 +6607,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "static_fitness_game": STATIC_FITNESS_MANIFEST,
     "static_power_law_game": STATIC_POWER_LAW_MANIFEST,
     "ring_graph": RING_MANIFEST,
+    "star_graph": STAR_MANIFEST,
 }
 
 
@@ -6640,6 +6733,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "static_fitness_game",
             "static_power_law_game",
             "ring_graph",
+            "star_graph",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

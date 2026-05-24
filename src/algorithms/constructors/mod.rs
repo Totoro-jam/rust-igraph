@@ -6,3 +6,4 @@
 //! RNG involvement.
 
 pub mod ring;
+pub mod star;

@@ -1,0 +1,39 @@
+{
+  "source": "r",
+  "origin": "rigraph make_star(n=3, mode='mutual') \u2014 minimal mutual star; forward arc (centre\u2192leaf) emitted first per leaf",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "star_graph",
+  "params": {
+    "n": 3,
+    "mode": "Mutual",
+    "center": 0
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 4,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ]
+  }
+}
