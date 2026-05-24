@@ -1,0 +1,60 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors `ig.Graph.Degree_Sequence([2]*8, in_=[2]*8, method='edge_switching_simple')`): directed balanced (out=in=2 everywhere) on n=8, \u03a3=16.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_edge_switching_simple",
+  "params": {
+    "out_degrees": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "in_degrees": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "seed": 9280003
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": true,
+    "ecount": 16,
+    "out_degrees": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "in_degrees": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "is_simple": true
+  }
+}

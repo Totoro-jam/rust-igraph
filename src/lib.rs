@@ -117,6 +117,7 @@ pub use crate::algorithms::games::degree_sequence_vl::degree_sequence_game_vl;
 pub use crate::algorithms::games::dotproduct::{
     DotProductWarnings, dot_product_game, dot_product_game_with_warnings,
 };
+pub use crate::algorithms::games::edge_switching_simple::degree_sequence_game_edge_switching_simple;
 pub use crate::algorithms::games::erdos_renyi::{erdos_renyi_gnm, erdos_renyi_gnp};
 pub use crate::algorithms::games::establishment::establishment_game;
 pub use crate::algorithms::games::forestfire::forest_fire_game;

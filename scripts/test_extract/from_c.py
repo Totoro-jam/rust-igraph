@@ -5031,6 +5031,104 @@ DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Edge-switching MCMC simple-graph degree-sequence generator (ALGO-GN-028).
+# Fixtures mirror the EDGE_SWITCHING_SIMPLE blocks of
+# references/igraph/tests/unit/igraph_degree_sequence_game.c (lines 200-227).
+# Two-phase algorithm: deterministic Havel-Hakimi INDEX (undirected) or
+# Kleitman-Wang INDEX (directed) seed, followed by 10·|E| degree-preserving
+# edge-switching MCMC trials. Unlike CONFIGURATION_SIMPLE (ALGO-GN-027) the
+# cost is linear in |E| regardless of density, so dense / skewed sequences
+# that exceed CONFIGURATION_SIMPLE's restart budget run reliably here. RNG
+# state is not portable, so we pin only structural invariants: vcount,
+# directedness, ecount, exact (out/in-)degree match, is_simple.
+DEGREE_SEQUENCE_EDGE_SWITCHING_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_edge_switching_c_undirected_n10_mixed",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:201-211 — "
+        "outarr=[2,3,2,3,3,3,3,1,4,4] DEGSEQ_EDGE_SWITCHING_SIMPLE "
+        "undirected; C test asserts is_simple, exact degree match. "
+        "Edge-switching handles this density (Σd/n=2.8) without "
+        "restart trouble (unlike CONFIGURATION_SIMPLE).",
+        "algo": "degree_sequence_game_edge_switching_simple",
+        "params": {
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": None,
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 14,
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_edge_switching_c_undirected_empty",
+        "origin": "constructed — empty out_degrees "
+        "DEGSEQ_EDGE_SWITCHING_SIMPLE undirected; vcount must be 0 "
+        "(early-exit branch in both upstream and Rust).",
+        "algo": "degree_sequence_game_edge_switching_simple",
+        "params": {
+            "out_degrees": [],
+            "in_degrees": None,
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 0,
+            "directed": False,
+            "ecount": 0,
+            "out_degrees": [],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_edge_switching_c_directed_n10_mixed",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:213-227 — "
+        "directed DEGSEQ_EDGE_SWITCHING_SIMPLE invariants (is_simple, "
+        "exact out/in match). Uses the upstream outarr=[2,3,2,3,3,3,3,1,"
+        "4,4] / inarr=[3,6,2,0,2,2,4,3,3,3] verbatim (Σ=28, n=10) — "
+        "EDGE_SWITCHING_SIMPLE handles this density linearly in |E|, "
+        "no restart-cliff like CONFIGURATION_SIMPLE.",
+        "algo": "degree_sequence_game_edge_switching_simple",
+        "params": {
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": [3, 6, 2, 0, 2, 2, 4, 3, 3, 3],
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": True,
+            "ecount": 28,
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": [3, 6, 2, 0, 2, 2, 4, 3, 3, 3],
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_edge_switching_c_directed_empty",
+        "origin": "constructed — empty out/in "
+        "DEGSEQ_EDGE_SWITCHING_SIMPLE directed; vcount must be 0 "
+        "(early-exit branch).",
+        "algo": "degree_sequence_game_edge_switching_simple",
+        "params": {
+            "out_degrees": [],
+            "in_degrees": [],
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 0,
+            "directed": True,
+            "ecount": 0,
+            "out_degrees": [],
+            "in_degrees": [],
+            "is_simple": True,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -6311,6 +6409,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
     "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
     "degree_sequence_game_configuration_simple": DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST,
+    "degree_sequence_game_edge_switching_simple": DEGREE_SEQUENCE_EDGE_SWITCHING_SIMPLE_MANIFEST,
     "degree_sequence_game_fast_heur_simple": DEGREE_SEQUENCE_FAST_HEUR_MANIFEST,
     "degree_sequence_game_vl": DEGREE_SEQUENCE_VL_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
@@ -6434,6 +6533,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "correlated_pair_game",
             "degree_sequence_game_configuration",
             "degree_sequence_game_configuration_simple",
+            "degree_sequence_game_edge_switching_simple",
             "degree_sequence_game_fast_heur_simple",
             "degree_sequence_game_vl",
             "simple_interconnected_islands_game",

@@ -1,0 +1,50 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors `ig.Graph.Degree_Sequence([4]*12, method='edge_switching_simple')`): 4-regular on 12 vertices, \u03a3d=48, density \u03a3d/n=4 \u2014 dense regime tractable for EDGE_SWITCHING_SIMPLE.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_edge_switching_simple",
+  "params": {
+    "out_degrees": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4
+    ],
+    "in_degrees": null,
+    "seed": 9280002
+  },
+  "expected": {
+    "vcount": 12,
+    "directed": false,
+    "ecount": 24,
+    "out_degrees": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4
+    ],
+    "in_degrees": null,
+    "is_simple": true
+  }
+}

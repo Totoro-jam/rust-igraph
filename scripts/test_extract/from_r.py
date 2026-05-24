@@ -4881,6 +4881,80 @@ DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-028: degree_sequence_game (EDGE_SWITCHING_SIMPLE method).
+# rigraph exposes this as `sample_degseq(out.deg, in.deg=NULL,
+# method="edge.switching.simple")` (and directed). Two-phase:
+# deterministic Havel-Hakimi / Kleitman-Wang INDEX seed, then 10·|E|
+# edge-switching MCMC trials. Linear-in-|E| cost makes it the
+# preferred sampler for dense degree sequences. RNG not portable —
+# pins vcount, ecount=Σd/2 or Σout, exact degree match, is_simple.
+DEGREE_SEQUENCE_EDGE_SWITCHING_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_edge_switching_r_undirected_n10_skewed_dense",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=c(5,4,4,3,3,3,2,2,2,2), "
+        "method='edge.switching.simple')`): n=10, Σd=30, density "
+        "Σd/n=3 — dense regime where EDGE_SWITCHING_SIMPLE "
+        "outperforms CONFIGURATION_SIMPLE.",
+        "algo": "degree_sequence_game_edge_switching_simple",
+        "params": {
+            "out_degrees": [5, 4, 4, 3, 3, 3, 2, 2, 2, 2],
+            "in_degrees": None,
+            "seed": 8_680_001,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 15,
+            "out_degrees": [5, 4, 4, 3, 3, 3, 2, 2, 2, 2],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_edge_switching_r_3regular_n10",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=rep(3, 10), method='edge.switching.simple')`): "
+        "3-regular on 10 vertices, density Σd/n=3 — exercise the "
+        "MCMC rewire kernel.",
+        "algo": "degree_sequence_game_edge_switching_simple",
+        "params": {
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+            "seed": 8_680_002,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 15,
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_edge_switching_r_directed_n6_skewed",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=c(3,2,2,1,1,1), in.deg=c(2,2,2,1,2,1), "
+        "method='edge.switching.simple')`): directed skewed n=6, "
+        "Σ=10.",
+        "algo": "degree_sequence_game_edge_switching_simple",
+        "params": {
+            "out_degrees": [3, 2, 2, 1, 1, 1],
+            "in_degrees": [2, 2, 2, 1, 2, 1],
+            "seed": 8_680_003,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": True,
+            "ecount": 10,
+            "out_degrees": [3, 2, 2, 1, 1, 1],
+            "in_degrees": [2, 2, 2, 1, 2, 1],
+            "is_simple": True,
+        },
+    },
+]
+
 # ALGO-GN-025: degree_sequence_game (VL method). rigraph exposes this
 # as `sample_degseq(out.deg, method = "vl")` (undirected only). VL
 # samples a connected, simple undirected graph realising the given
@@ -6034,6 +6108,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
     "degree_sequence_game_fast_heur_simple": DEGREE_SEQUENCE_FAST_HEUR_MANIFEST,
     "degree_sequence_game_configuration_simple": DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST,
+    "degree_sequence_game_edge_switching_simple": DEGREE_SEQUENCE_EDGE_SWITCHING_SIMPLE_MANIFEST,
     "degree_sequence_game_vl": DEGREE_SEQUENCE_VL_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
@@ -6152,6 +6227,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "degree_sequence_game_configuration",
             "degree_sequence_game_fast_heur_simple",
             "degree_sequence_game_configuration_simple",
+            "degree_sequence_game_edge_switching_simple",
             "degree_sequence_game_vl",
             "simple_interconnected_islands_game",
             "k_regular_game",

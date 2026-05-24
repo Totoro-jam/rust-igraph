@@ -4625,6 +4625,81 @@ DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-028: degree_sequence_game (EDGE_SWITCHING_SIMPLE method).
+# python-igraph exposes this as `ig.Graph.Degree_Sequence(out, in_,
+# method="edge_switching_simple")`. Two-phase: deterministic
+# Havel-Hakimi / Kleitman-Wang INDEX seed, then 10·|E| edge-switching
+# MCMC trials. Cost is linear in |E| regardless of density, so this
+# sampler handles dense / skewed sequences that exceed
+# CONFIGURATION_SIMPLE's restart budget. Pins structural invariants
+# only: vcount, ecount = Σd/2 (undirected) or Σout (directed), exact
+# (out/in-)degree match, is_simple.
+DEGREE_SEQUENCE_EDGE_SWITCHING_SIMPLE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_edge_switching_py_undirected_n10_skewed_dense",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence("
+        "[5,4,4,3,3,3,2,2,2,2], method='edge_switching_simple')`): "
+        "n=10, Σd=30, density Σd/n=3 — a regime where "
+        "CONFIGURATION_SIMPLE rejects often but EDGE_SWITCHING_SIMPLE "
+        "remains linear in |E|.",
+        "algo": "degree_sequence_game_edge_switching_simple",
+        "params": {
+            "out_degrees": [5, 4, 4, 3, 3, 3, 2, 2, 2, 2],
+            "in_degrees": None,
+            "seed": 9_280_001,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 15,
+            "out_degrees": [5, 4, 4, 3, 3, 3, 2, 2, 2, 2],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_edge_switching_py_undirected_n12_4regular",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence("
+        "[4]*12, method='edge_switching_simple')`): 4-regular on 12 "
+        "vertices, Σd=48, density Σd/n=4 — dense regime tractable "
+        "for EDGE_SWITCHING_SIMPLE.",
+        "algo": "degree_sequence_game_edge_switching_simple",
+        "params": {
+            "out_degrees": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+            "in_degrees": None,
+            "seed": 9_280_002,
+        },
+        "expected": {
+            "vcount": 12,
+            "directed": False,
+            "ecount": 24,
+            "out_degrees": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_edge_switching_py_directed_n8_balanced_d2",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence("
+        "[2]*8, in_=[2]*8, method='edge_switching_simple')`): "
+        "directed balanced (out=in=2 everywhere) on n=8, Σ=16.",
+        "algo": "degree_sequence_game_edge_switching_simple",
+        "params": {
+            "out_degrees": [2, 2, 2, 2, 2, 2, 2, 2],
+            "in_degrees": [2, 2, 2, 2, 2, 2, 2, 2],
+            "seed": 9_280_003,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": True,
+            "ecount": 16,
+            "out_degrees": [2, 2, 2, 2, 2, 2, 2, 2],
+            "in_degrees": [2, 2, 2, 2, 2, 2, 2, 2],
+            "is_simple": True,
+        },
+    },
+]
+
 # ALGO-GN-025: degree_sequence_game (VL method). python-igraph exposes
 # this as `ig.Graph.Degree_Sequence(out, method="vl")` (undirected only).
 # The VL method samples a connected, simple undirected graph that exactly
@@ -5734,6 +5809,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
     "degree_sequence_game_fast_heur_simple": DEGREE_SEQUENCE_FAST_HEUR_MANIFEST,
     "degree_sequence_game_configuration_simple": DEGREE_SEQUENCE_CONFIG_SIMPLE_MANIFEST,
+    "degree_sequence_game_edge_switching_simple": DEGREE_SEQUENCE_EDGE_SWITCHING_SIMPLE_MANIFEST,
     "degree_sequence_game_vl": DEGREE_SEQUENCE_VL_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
@@ -5852,6 +5928,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "degree_sequence_game_configuration",
             "degree_sequence_game_fast_heur_simple",
             "degree_sequence_game_configuration_simple",
+            "degree_sequence_game_edge_switching_simple",
             "degree_sequence_game_vl",
             "simple_interconnected_islands_game",
             "k_regular_game",

@@ -1,0 +1,68 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_degree_sequence_game.c:213-227 \u2014 directed DEGSEQ_EDGE_SWITCHING_SIMPLE invariants (is_simple, exact out/in match). Uses the upstream outarr=[2,3,2,3,3,3,3,1,4,4] / inarr=[3,6,2,0,2,2,4,3,3,3] verbatim (\u03a3=28, n=10) \u2014 EDGE_SWITCHING_SIMPLE handles this density linearly in |E|, no restart-cliff like CONFIGURATION_SIMPLE.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_edge_switching_simple",
+  "params": {
+    "out_degrees": [
+      2,
+      3,
+      2,
+      3,
+      3,
+      3,
+      3,
+      1,
+      4,
+      4
+    ],
+    "in_degrees": [
+      3,
+      6,
+      2,
+      0,
+      2,
+      2,
+      4,
+      3,
+      3,
+      3
+    ],
+    "seed": 333
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": true,
+    "ecount": 28,
+    "out_degrees": [
+      2,
+      3,
+      2,
+      3,
+      3,
+      3,
+      3,
+      1,
+      4,
+      4
+    ],
+    "in_degrees": [
+      3,
+      6,
+      2,
+      0,
+      2,
+      2,
+      4,
+      3,
+      3,
+      3
+    ],
+    "is_simple": true
+  }
+}

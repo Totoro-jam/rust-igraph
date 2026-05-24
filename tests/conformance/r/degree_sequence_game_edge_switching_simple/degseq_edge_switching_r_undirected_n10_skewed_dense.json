@@ -1,0 +1,46 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors `sample_degseq(out.deg=c(5,4,4,3,3,3,2,2,2,2), method='edge.switching.simple')`): n=10, \u03a3d=30, density \u03a3d/n=3 \u2014 dense regime where EDGE_SWITCHING_SIMPLE outperforms CONFIGURATION_SIMPLE.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_edge_switching_simple",
+  "params": {
+    "out_degrees": [
+      5,
+      4,
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2
+    ],
+    "in_degrees": null,
+    "seed": 8680001
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "ecount": 15,
+    "out_degrees": [
+      5,
+      4,
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2
+    ],
+    "in_degrees": null,
+    "is_simple": true
+  }
+}

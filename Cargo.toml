@@ -98,6 +98,10 @@ path = "examples/degree_sequence_fast_heur_demo.rs"
 name = "degree_sequence_configuration_simple_demo"
 path = "examples/degree_sequence_configuration_simple_demo.rs"
 
+[[example]]
+name = "degree_sequence_edge_switching_simple_demo"
+path = "examples/degree_sequence_edge_switching_simple_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -316,6 +320,11 @@ harness = false
 [[bench]]
 name = "bench_degree_sequence_configuration_simple"
 path = "benches/bench_degree_sequence_configuration_simple.rs"
+harness = false
+
+[[bench]]
+name = "bench_degree_sequence_edge_switching_simple"
+path = "benches/bench_degree_sequence_edge_switching_simple.rs"
 harness = false
 
 [[bench]]

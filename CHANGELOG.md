@@ -15,6 +15,50 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-028** — `degree_sequence_game_edge_switching_simple` sampled
+  *simple* graph for a prescribed degree sequence via a deterministic
+  Havel–Hakimi (undirected) / Kleitman–Wang (directed) INDEX seed
+  followed by `10 · |E|` degree-preserving edge-switching MCMC trials.
+  Counterpart of the `IGRAPH_DEGSEQ_EDGE_SWITCHING_SIMPLE` branch of
+  `igraph_degree_sequence_game()` in
+  `references/igraph/src/games/degree_sequence.c`. **Fifth and final**
+  of the 5-AWU split of `igraph_degree_sequence_game`
+  (GN-024..028).
+  - `pub fn degree_sequence_game_edge_switching_simple(out_degrees: &[u32], in_degrees: Option<&[u32]>, seed: u64) -> IgraphResult<Graph>`
+    — `in_degrees = None` produces an undirected simple graph; `Some(in_seq)`
+    produces a directed simple graph. Rejects non-graphical inputs up front
+    via the same EG/FCA pre-check helpers shared from
+    [ALGO-GN-026] / [ALGO-GN-027].
+  - **Algorithm**: two-phase pipeline. (1) Build a deterministic seed
+    graph that exactly realises the sequence using the INDEX variant of
+    Havel–Hakimi (undirected) or Kleitman–Wang (directed) — hubs are
+    processed by INDEX order with residual sort and stable tie-breaking
+    by vertex index. (2) Run `10 · |E|` edge-switching MCMC trials:
+    pick two distinct edges uniformly, undirected branch additionally
+    flips the second edge's orientation with probability ½, then test
+    the rewired pair `(a,b),(c,d) → (a,d),(c,b)` for no-op,
+    self-loop, and multi-edge — apply iff all pass. Both successful
+    *and* failed trials count toward the budget (detailed-balance
+    requirement). Multi-edge detection uses `Vec<HashSet<u32>>`
+    adjacency tables (undirected stores both directions; directed
+    stores out-adjacency only).
+  - **When to choose it**: best default for *dense* or *skewed* degree
+    sequences. Cost is `O(n² + |E|)` independent of density, so it
+    avoids the exponential restart cliff that hits
+    [ALGO-GN-027]'s rejection sampler at `Σd/n ≳ 4`. Drops the
+    connectivity guarantee of [ALGO-GN-025] (use that one if
+    connectivity is required) and offers stronger MCMC mixing
+    guarantees than the heuristic [ALGO-GN-026]. Completes the
+    5-AWU split — `igraph_degree_sequence_game` is now fully ported.
+  - Constants: `REWIRE_TRIALS_PER_EDGE: u64 = 10` (mirrors upstream
+    `10 * igraph_ecount(graph)` chain length).
+  - Conformance: 10 fixtures (C × 4, py × 3, R × 3) under
+    `tests/conformance/{c,py,r}/degree_sequence_game_edge_switching_simple/`.
+  - Benchmarks: `benches/bench_degree_sequence_edge_switching_simple.rs`
+    with three regimes (size sweep on 3-regular, dense 5-regular n=100,
+    directed balanced n=100 d=2). Baseline snapshot:
+    `.codefuse/tracking/perf/ALGO-GN-028.json`.
+  - Example: `cargo run --example degree_sequence_edge_switching_simple_demo --release`.
 - **ALGO-GN-027** — `degree_sequence_game_configuration_simple` uniformly
   sampled *simple* graph for a prescribed degree sequence via
   stub-matching with two-swap-per-edge incremental Fisher–Yates and

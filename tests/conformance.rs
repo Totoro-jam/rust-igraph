@@ -10344,3 +10344,213 @@ fn degree_sequence_game_configuration_simple_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn degree_sequence_game_edge_switching_simple_three_source_conformance() {
+    // Edge-switching MCMC simple-graph degree-sequence generator
+    // (ALGO-GN-028). Two-phase: deterministic Havel-Hakimi / Kleitman-Wang
+    // INDEX seed, then 10·|E| degree-preserving edge-switching MCMC trials.
+    // Cost is linear in |E| regardless of density, so dense / skewed
+    // sequences that exceed CONFIGURATION_SIMPLE's restart budget run
+    // reliably here. RNG state is not portable to upstream igraph C /
+    // NumPy / R, so fixtures pin structural invariants only: vcount,
+    // ecount, exact (out/in-)degree match, simplicity. Connectivity is
+    // NOT guaranteed (use ALGO-GN-025 VL for that).
+    use rust_igraph::{
+        SimpleMode, degree_sequence_game_edge_switching_simple, is_simple_with_mode,
+    };
+
+    fn json_u32_vec(value: &serde_json::Value, path: &std::path::Path, field: &str) -> Vec<u32> {
+        let array = value.as_array().unwrap_or_else(|| {
+            panic!(
+                "EDGE_SWITCHING_SIMPLE fixture {}: `{}` must be a JSON array",
+                path.display(),
+                field
+            )
+        });
+        array
+            .iter()
+            .map(|item| {
+                let raw = item.as_u64().unwrap_or_else(|| {
+                    panic!(
+                        "EDGE_SWITCHING_SIMPLE fixture {}: `{}` entry must be u64",
+                        path.display(),
+                        field
+                    )
+                });
+                u32::try_from(raw).unwrap_or_else(|_| {
+                    panic!(
+                        "EDGE_SWITCHING_SIMPLE fixture {}: `{}` entry {} doesn't fit in u32",
+                        path.display(),
+                        field,
+                        raw
+                    )
+                })
+            })
+            .collect()
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("degree_sequence_game_edge_switching_simple");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read EDGE_SWITCHING_SIMPLE fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read EDGE_SWITCHING_SIMPLE fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes)
+                .expect("parse EDGE_SWITCHING_SIMPLE conformance fixture JSON");
+            assert_eq!(case.algo, "degree_sequence_game_edge_switching_simple");
+
+            let out_value = case.params.get("out_degrees").unwrap_or_else(|| {
+                panic!(
+                    "EDGE_SWITCHING_SIMPLE fixture {}: param `out_degrees` missing",
+                    path.display()
+                )
+            });
+            let out_degrees = json_u32_vec(out_value, &path, "params.out_degrees");
+            let in_degrees: Option<Vec<u32>> = case.params.get("in_degrees").and_then(|v| {
+                if v.is_null() {
+                    None
+                } else {
+                    Some(json_u32_vec(v, &path, "params.in_degrees"))
+                }
+            });
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = degree_sequence_game_edge_switching_simple(
+                &out_degrees,
+                in_degrees.as_deref(),
+                seed,
+            )
+            .expect(
+                "degree_sequence_game_edge_switching_simple should succeed on conformance fixtures",
+            );
+
+            let want_vcount = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_edges = er_expected_u64(&case, "ecount", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vcount,
+                "EDGE_SWITCHING_SIMPLE vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "EDGE_SWITCHING_SIMPLE directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                u64::try_from(graph.ecount()).expect("ecount fits in u64"),
+                want_edges,
+                "EDGE_SWITCHING_SIMPLE ecount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            // Observed (out- or all-)degree sequence must match input exactly.
+            let vcount = graph.vcount() as usize;
+            let mut observed_out = vec![0u32; vcount];
+            let mut observed_in = vec![0u32; vcount];
+            let ecount = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+            for eid in 0..ecount {
+                let (src_vid, dst_vid) = graph.edge(eid).expect("edge id in bounds");
+                if graph.is_directed() {
+                    observed_out[src_vid as usize] =
+                        observed_out[src_vid as usize].saturating_add(1);
+                    observed_in[dst_vid as usize] = observed_in[dst_vid as usize].saturating_add(1);
+                } else {
+                    observed_out[src_vid as usize] =
+                        observed_out[src_vid as usize].saturating_add(1);
+                    observed_out[dst_vid as usize] =
+                        observed_out[dst_vid as usize].saturating_add(1);
+                }
+            }
+            let want_out = json_u32_vec(
+                case.expected.get("out_degrees").unwrap_or_else(|| {
+                    panic!(
+                        "EDGE_SWITCHING_SIMPLE fixture {}: expected.out_degrees missing",
+                        path.display()
+                    )
+                }),
+                &path,
+                "expected.out_degrees",
+            );
+            assert_eq!(
+                observed_out,
+                want_out,
+                "EDGE_SWITCHING_SIMPLE out/all-degree mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            if graph.is_directed() {
+                let want_in_val = case.expected.get("in_degrees").unwrap_or_else(|| {
+                    panic!(
+                        "EDGE_SWITCHING_SIMPLE fixture {}: expected.in_degrees missing (directed)",
+                        path.display()
+                    )
+                });
+                if !want_in_val.is_null() {
+                    let want_in = json_u32_vec(want_in_val, &path, "expected.in_degrees");
+                    assert_eq!(
+                        observed_in,
+                        want_in,
+                        "EDGE_SWITCHING_SIMPLE in-degree mismatch in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            let want_simple = case
+                .expected
+                .get("is_simple")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(true);
+            let observed_simple = is_simple_with_mode(&graph, SimpleMode::DirectedAsDirected)
+                .expect("is_simple should succeed on EDGE_SWITCHING_SIMPLE output");
+            assert_eq!(
+                observed_simple,
+                want_simple,
+                "EDGE_SWITCHING_SIMPLE simplicity mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no degree_sequence_game_edge_switching_simple fixtures from source {src}"
+        );
+    }
+}

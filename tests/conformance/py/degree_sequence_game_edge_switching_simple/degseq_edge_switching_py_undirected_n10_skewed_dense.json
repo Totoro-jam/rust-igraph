@@ -1,0 +1,46 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors `ig.Graph.Degree_Sequence([5,4,4,3,3,3,2,2,2,2], method='edge_switching_simple')`): n=10, \u03a3d=30, density \u03a3d/n=3 \u2014 a regime where CONFIGURATION_SIMPLE rejects often but EDGE_SWITCHING_SIMPLE remains linear in |E|.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_edge_switching_simple",
+  "params": {
+    "out_degrees": [
+      5,
+      4,
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2
+    ],
+    "in_degrees": null,
+    "seed": 9280001
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "ecount": 15,
+    "out_degrees": [
+      5,
+      4,
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2
+    ],
+    "in_degrees": null,
+    "is_simple": true
+  }
+}

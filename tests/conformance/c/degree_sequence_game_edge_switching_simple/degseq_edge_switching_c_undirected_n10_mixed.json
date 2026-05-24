@@ -1,0 +1,46 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_degree_sequence_game.c:201-211 \u2014 outarr=[2,3,2,3,3,3,3,1,4,4] DEGSEQ_EDGE_SWITCHING_SIMPLE undirected; C test asserts is_simple, exact degree match. Edge-switching handles this density (\u03a3d/n=2.8) without restart trouble (unlike CONFIGURATION_SIMPLE).",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_edge_switching_simple",
+  "params": {
+    "out_degrees": [
+      2,
+      3,
+      2,
+      3,
+      3,
+      3,
+      3,
+      1,
+      4,
+      4
+    ],
+    "in_degrees": null,
+    "seed": 333
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "ecount": 14,
+    "out_degrees": [
+      2,
+      3,
+      2,
+      3,
+      3,
+      3,
+      3,
+      1,
+      4,
+      4
+    ],
+    "in_degrees": null,
+    "is_simple": true
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "constructed \u2014 empty out/in DEGSEQ_EDGE_SWITCHING_SIMPLE directed; vcount must be 0 (early-exit branch).",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_edge_switching_simple",
+  "params": {
+    "out_degrees": [],
+    "in_degrees": [],
+    "seed": 333
+  },
+  "expected": {
+    "vcount": 0,
+    "directed": true,
+    "ecount": 0,
+    "out_degrees": [],
+    "in_degrees": [],
+    "is_simple": true
+  }
+}
