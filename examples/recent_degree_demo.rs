@@ -131,7 +131,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .enumerate()
         .map(|(v, &d)| (u32::try_from(v).expect("vertex index fits u32"), d))
         .collect();
-    indexed.sort_by(|a, b| b.1.cmp(&a.1));
+    indexed.sort_by_key(|entry| std::cmp::Reverse(entry.1));
     println!();
     println!("  top-10 vertices by in-degree (vertex_index, in_degree):");
     for (v, d) in indexed.iter().take(10) {

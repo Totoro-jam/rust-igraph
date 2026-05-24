@@ -71,7 +71,7 @@ fn report(label: &str, g: &Graph) {
         .enumerate()
         .map(|(v, &d)| (u32::try_from(v).expect("vertex index fits u32"), d))
         .collect();
-    indexed.sort_by(|a, b| b.1.cmp(&a.1));
+    indexed.sort_by_key(|entry| std::cmp::Reverse(entry.1));
 
     println!("{label}");
     println!("  edges                    = {}", g.ecount());
