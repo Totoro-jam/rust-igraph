@@ -4479,6 +4479,76 @@ DEGREE_SEQUENCE_CONFIG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-026: degree_sequence_game (FAST_HEUR_SIMPLE method).
+# python-igraph exposes this as
+# `ig.Graph.Degree_Sequence(out, in_=None, method="fast_heur_simple")`,
+# returning a simple (no self-loops, no multi-edges) graph that exactly
+# realises the supplied degree sequence. RNG state is not portable, so the
+# fixtures pin only structural invariants — vcount, ecount, exact degrees,
+# simplicity.
+DEGREE_SEQUENCE_FAST_HEUR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_fastheur_py_undirected_n8_uniform_d3",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence("
+        "[3]*8, method='fast_heur_simple')`): 8 vertices all degree 3, "
+        "Σd=24. FAST_HEUR_SIMPLE guarantees simple (loop/multi-edge free).",
+        "algo": "degree_sequence_game_fast_heur_simple",
+        "params": {
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+            "seed": 9_260_001,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "ecount": 12,
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_fastheur_py_undirected_n10_skewed",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence("
+        "[5,4,4,3,3,3,2,2,2,2], method='fast_heur_simple')`): 10 "
+        "vertices, mixed skewed degrees, Σd=30.",
+        "algo": "degree_sequence_game_fast_heur_simple",
+        "params": {
+            "out_degrees": [5, 4, 4, 3, 3, 3, 2, 2, 2, 2],
+            "in_degrees": None,
+            "seed": 9_260_002,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 15,
+            "out_degrees": [5, 4, 4, 3, 3, 3, 2, 2, 2, 2],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_fastheur_py_directed_n6_skewed",
+        "origin": "constructed (mirrors `ig.Graph.Degree_Sequence("
+        "out=[3,2,2,1,1,1], in_=[2,2,2,1,2,1], method='fast_heur_simple')`)"
+        ": directed simple graph, Σout=Σin=10.",
+        "algo": "degree_sequence_game_fast_heur_simple",
+        "params": {
+            "out_degrees": [3, 2, 2, 1, 1, 1],
+            "in_degrees": [2, 2, 2, 1, 2, 1],
+            "seed": 9_260_003,
+        },
+        "expected": {
+            "vcount": 6,
+            "directed": True,
+            "ecount": 10,
+            "out_degrees": [3, 2, 2, 1, 1, 1],
+            "in_degrees": [2, 2, 2, 1, 2, 1],
+            "is_simple": True,
+        },
+    },
+]
+
 # ALGO-GN-025: degree_sequence_game (VL method). python-igraph exposes
 # this as `ig.Graph.Degree_Sequence(out, method="vl")` (undirected only).
 # The VL method samples a connected, simple undirected graph that exactly
@@ -5586,6 +5656,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
     "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
+    "degree_sequence_game_fast_heur_simple": DEGREE_SEQUENCE_FAST_HEUR_MANIFEST,
     "degree_sequence_game_vl": DEGREE_SEQUENCE_VL_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
@@ -5702,6 +5773,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "dot_product_game",
             "correlated_pair_game",
             "degree_sequence_game_configuration",
+            "degree_sequence_game_fast_heur_simple",
             "degree_sequence_game_vl",
             "simple_interconnected_islands_game",
             "k_regular_game",

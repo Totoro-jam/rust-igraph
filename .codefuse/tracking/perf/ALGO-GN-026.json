@@ -1,0 +1,58 @@
+{
+  "awu": "ALGO-GN-026",
+  "algorithm": "degree_sequence_game_fast_heur_simple",
+  "bench_file": "benches/bench_degree_sequence_fast_heur.rs",
+  "captured_at": "2026-05-24",
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "rustc": "1.91 (release profile)"
+  },
+  "measurements": [
+    {
+      "group": "degree_sequence_fast_heur/size_sweep_3regular_undirected",
+      "param": "200",
+      "median_ns": 19103,
+      "throughput": "10.470 Melem/s",
+      "note": "n=200, d=3, Σd=600. Single shuffle + paired walk; ~33x faster than VL on the same fixture (VL=634540 ns) because no MCMC, no per-window connectivity recheck."
+    },
+    {
+      "group": "degree_sequence_fast_heur/size_sweep_3regular_undirected",
+      "param": "600",
+      "median_ns": 73687,
+      "throughput": "8.143 Melem/s",
+      "note": "n=600, d=3, Σd=1_800. ~3.86x time for 3x n — close to linear scaling in Σd. Sorted-Vec adjacency dedup adds the log factor."
+    },
+    {
+      "group": "degree_sequence_fast_heur/size_sweep_3regular_undirected",
+      "param": "1200",
+      "median_ns": 213060,
+      "throughput": "5.632 Melem/s",
+      "note": "n=1200, d=3, Σd=3_600. ~2.89x time for 2x n. Versus VL=11522000 ns at the same size, fast-heur is ~54x faster."
+    },
+    {
+      "group": "degree_sequence_fast_heur/powerlaw_n200_skewed",
+      "param": "default_seed",
+      "median_ns": 22867,
+      "throughput": "8.746 Melem/s",
+      "note": "n=200, Σd=600, top-heavy (4 vertices d=10, 168 d=3, 28 d=2). Collision rate is higher than the regular case but still single-attempt; cost per collision is sorted-Vec O(log d) plus a residual-bump. ~21x faster than VL on the same fixture (VL=478760 ns)."
+    },
+    {
+      "group": "degree_sequence_fast_heur/directed_balanced_n200_d4",
+      "param": "default_seed",
+      "median_ns": 53234,
+      "throughput": "3.757 Melem/s",
+      "note": "n=200, Σout=Σin=800. Directed branch maintains two stub bags + per-source sorted-Vec out-arc adjacency. Roughly ~3.7x slower per attempt than the equivalent undirected case (3-regular n=200) due to the doubled stub count and the separate in/out residual tracking."
+    }
+  ],
+  "cross_reference": {
+    "python_igraph_method": "Graph.Degree_Sequence(out, in_=None, method=\"fast_heur_simple\")",
+    "r_igraph_method": "sample_degseq(out, in.deg=NULL, method=\"fast.heur.simple\")",
+    "note": "C upstream wraps the same routine in igraph_degree_sequence_game(IGRAPH_DEGSEQ_FAST_HEUR_SIMPLE). Our SplitMix64 RNG path is not bitwise-portable to igraph C / NumPy / R, so absolute medians here characterise the Rust implementation only."
+  },
+  "interpretation": {
+    "primary_cost": "Fisher-Yates shuffle over the Σd-sized stub bag + pair walk with O(log Δ) edge-existence test per pair. Restart-from-scratch on infeasibility is rare for graphical inputs and capped at MAX_OUTER_ATTEMPTS=1024.",
+    "rust_advantages": "No MCMC, no allocation inside the pair-walk loop, sorted-Vec adjacency keeps the dedup constant tight. Versus the VL sibling generator (ALGO-GN-025) the fast-heuristic gives 21-54x speedup at the cost of dropping the connectivity guarantee.",
+    "future_optimisations": "1) Trade the sorted-Vec adjacency for a small open-addressing HashSet at large Δ to drop the log factor. 2) Bias the shuffle toward stubs with the largest residual to lower collision rate on power-law-tailed inputs. 3) On restart, keep the bottom k% of accepted pairs to amortise progress instead of full reset."
+  }
+}

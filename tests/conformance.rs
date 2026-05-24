@@ -9932,3 +9932,208 @@ fn degree_sequence_game_vl_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn degree_sequence_game_fast_heur_simple_three_source_conformance() {
+    // Fast-heuristic-simple degree-sequence generator (ALGO-GN-026). The
+    // method samples a *simple* (no self-loops, no multi-edges) undirected
+    // or directed graph realising the input degree sequence exactly. RNG
+    // state is not portable to upstream igraph C / NumPy / R, so the
+    // fixtures pin structural invariants only: vcount, ecount, exact
+    // (out/in-)degree match, simplicity. Connectivity is NOT guaranteed
+    // by this method.
+    use rust_igraph::{SimpleMode, degree_sequence_game_fast_heur_simple, is_simple_with_mode};
+
+    fn json_u32_vec(value: &serde_json::Value, path: &std::path::Path, field: &str) -> Vec<u32> {
+        let array = value.as_array().unwrap_or_else(|| {
+            panic!(
+                "FAST_HEUR fixture {}: `{}` must be a JSON array",
+                path.display(),
+                field
+            )
+        });
+        array
+            .iter()
+            .map(|item| {
+                let raw = item.as_u64().unwrap_or_else(|| {
+                    panic!(
+                        "FAST_HEUR fixture {}: `{}` entry must be u64",
+                        path.display(),
+                        field
+                    )
+                });
+                u32::try_from(raw).unwrap_or_else(|_| {
+                    panic!(
+                        "FAST_HEUR fixture {}: `{}` entry {} doesn't fit in u32",
+                        path.display(),
+                        field,
+                        raw
+                    )
+                })
+            })
+            .collect()
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("degree_sequence_game_fast_heur_simple");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read FAST_HEUR fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read FAST_HEUR fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse FAST_HEUR conformance fixture JSON");
+            assert_eq!(case.algo, "degree_sequence_game_fast_heur_simple");
+
+            let out_value = case.params.get("out_degrees").unwrap_or_else(|| {
+                panic!(
+                    "FAST_HEUR fixture {}: param `out_degrees` missing",
+                    path.display()
+                )
+            });
+            let out_degrees = json_u32_vec(out_value, &path, "params.out_degrees");
+            let in_degrees: Option<Vec<u32>> = case.params.get("in_degrees").and_then(|v| {
+                if v.is_null() {
+                    None
+                } else {
+                    Some(json_u32_vec(v, &path, "params.in_degrees"))
+                }
+            });
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = degree_sequence_game_fast_heur_simple(
+                &out_degrees,
+                in_degrees.as_deref(),
+                seed,
+            )
+            .expect("degree_sequence_game_fast_heur_simple should succeed on conformance fixtures");
+
+            let want_vcount = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_edges = er_expected_u64(&case, "ecount", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vcount,
+                "FAST_HEUR vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "FAST_HEUR directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                u64::try_from(graph.ecount()).expect("ecount fits in u64"),
+                want_edges,
+                "FAST_HEUR ecount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            // Observed (out- or all-)degree sequence must match input exactly.
+            let vcount = graph.vcount() as usize;
+            let mut observed_out = vec![0u32; vcount];
+            let mut observed_in = vec![0u32; vcount];
+            let ecount = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+            for eid in 0..ecount {
+                let (src_vid, dst_vid) = graph.edge(eid).expect("edge id in bounds");
+                if graph.is_directed() {
+                    observed_out[src_vid as usize] =
+                        observed_out[src_vid as usize].saturating_add(1);
+                    observed_in[dst_vid as usize] = observed_in[dst_vid as usize].saturating_add(1);
+                } else {
+                    observed_out[src_vid as usize] =
+                        observed_out[src_vid as usize].saturating_add(1);
+                    observed_out[dst_vid as usize] =
+                        observed_out[dst_vid as usize].saturating_add(1);
+                }
+            }
+            let want_out = json_u32_vec(
+                case.expected.get("out_degrees").unwrap_or_else(|| {
+                    panic!(
+                        "FAST_HEUR fixture {}: expected.out_degrees missing",
+                        path.display()
+                    )
+                }),
+                &path,
+                "expected.out_degrees",
+            );
+            assert_eq!(
+                observed_out,
+                want_out,
+                "FAST_HEUR out/all-degree mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            if graph.is_directed() {
+                let want_in_val = case.expected.get("in_degrees").unwrap_or_else(|| {
+                    panic!(
+                        "FAST_HEUR fixture {}: expected.in_degrees missing (directed)",
+                        path.display()
+                    )
+                });
+                if !want_in_val.is_null() {
+                    let want_in = json_u32_vec(want_in_val, &path, "expected.in_degrees");
+                    assert_eq!(
+                        observed_in,
+                        want_in,
+                        "FAST_HEUR in-degree mismatch in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            // Simplicity invariant (no self-loops, no multi-edges).
+            let want_simple = case
+                .expected
+                .get("is_simple")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(true);
+            let observed_simple = is_simple_with_mode(&graph, SimpleMode::DirectedAsDirected)
+                .expect("is_simple should succeed on FAST_HEUR output");
+            assert_eq!(
+                observed_simple,
+                want_simple,
+                "FAST_HEUR simplicity mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no degree_sequence_game_fast_heur_simple fixtures from source {src}"
+        );
+    }
+}

@@ -15,6 +15,43 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-026** — `degree_sequence_game_fast_heur_simple` fast-heuristic
+  *simple* graph sampler for a prescribed degree sequence. Counterpart of
+  the `IGRAPH_DEGSEQ_FAST_HEUR_SIMPLE` branch of
+  `igraph_degree_sequence_game()` in
+  `references/igraph/src/games/degree_sequence.c`.
+  - `pub fn degree_sequence_game_fast_heur_simple(out_degrees: &[u32], in_degrees: Option<&[u32]>, seed: u64) -> IgraphResult<Graph>`
+    — `in_degrees = None` produces an undirected simple graph; `Some(in_seq)`
+    produces a directed simple graph. Rejects non-graphical inputs up front
+    (Erdős–Gallai for the undirected branch, Fulkerson–Chen–Anstee for the
+    directed branch).
+  - **Algorithm**: build a stub bag of size `Σd`, Fisher–Yates shuffle once,
+    then walk pairs left-to-right. For each candidate pair, reject if it
+    is a self-loop or duplicates an existing edge (sorted-Vec adjacency
+    `O(log Δ)` lookup); on rejection bump residual back and continue.
+    On stuck (no further legal pair) restart from scratch, capped at
+    `MAX_OUTER_ATTEMPTS = 1024`. No MCMC, no per-window connectivity
+    recheck — this is the deliberate trade vs. `degree_sequence_game_vl`.
+  - **Guarantees**: exact degree preservation, no self-loops, no multi-edges
+    / multi-arcs. **NOT** guaranteed connected (use `_vl` for connectivity).
+  - **Performance**: 21–54× faster than the VL sampler on the same fixtures.
+    Baseline at `n = 1_200`, 3-regular undirected: 213 µs (fast-heur)
+    vs. 11.5 ms (VL). Snapshot: `.codefuse/tracking/perf/ALGO-GN-026.json`.
+  - **Determinism**: single [`SplitMix64`] seed drives every shuffle and
+    every retry. Not bitwise-portable to igraph C / NumPy / R, so the
+    three-source conformance harness asserts structural invariants only
+    (vcount, ecount = Σd/2 or Σout, exact out/in degree match, simplicity).
+  - **Tests**: 17 unit tests + 4 proptest invariants
+    (`degrees_preserved_undirected`, `simple_no_loops_no_multi_undirected`,
+    `degrees_preserved_directed`, `same_seed_same_graph`) + 1 doctest;
+    `degree_sequence_game_fast_heur_simple_three_source_conformance` runs
+    against 10 fixtures (4 C + 3 py + 3 R) under
+    `tests/conformance/{c,py,r}/degree_sequence_game_fast_heur_simple/`.
+  - **Bench**: `benches/bench_degree_sequence_fast_heur.rs` covers
+    (a) 3-regular size sweep at `n ∈ {200, 600, 1_200}`,
+    (b) skewed power-law-tailed `n = 200`, Σd = 600, and
+    (c) directed balanced `n = 200`, d = 4. Example demo:
+    `cargo run --example degree_sequence_fast_heur_demo --release`.
 - **ALGO-GN-025** — `degree_sequence_game_vl` Viger–Latapy uniform sampler
   for **simple connected** graphs with a prescribed degree sequence.
   Counterpart of the `IGRAPH_DEGSEQ_VL` branch of

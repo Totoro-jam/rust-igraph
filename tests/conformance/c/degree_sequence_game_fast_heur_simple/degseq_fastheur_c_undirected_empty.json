@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_degree_sequence_game.c:173-175 \u2014 empty out_degrees DEGSEQ_FAST_HEUR_SIMPLE undirected; vcount must be 0",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_fast_heur_simple",
+  "params": {
+    "out_degrees": [],
+    "in_degrees": null,
+    "seed": 333
+  },
+  "expected": {
+    "vcount": 0,
+    "directed": false,
+    "ecount": 0,
+    "out_degrees": [],
+    "in_degrees": null,
+    "is_simple": true
+  }
+}

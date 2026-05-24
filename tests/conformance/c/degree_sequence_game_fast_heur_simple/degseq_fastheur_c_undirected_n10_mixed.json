@@ -1,0 +1,46 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_degree_sequence_game.c:160-171 \u2014 outarr=[2,3,2,3,3,3,3,1,4,4] DEGSEQ_FAST_HEUR_SIMPLE undirected; the C test asserts is_simple and exact degree match",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_fast_heur_simple",
+  "params": {
+    "out_degrees": [
+      2,
+      3,
+      2,
+      3,
+      3,
+      3,
+      3,
+      1,
+      4,
+      4
+    ],
+    "in_degrees": null,
+    "seed": 333
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "ecount": 14,
+    "out_degrees": [
+      2,
+      3,
+      2,
+      3,
+      3,
+      3,
+      3,
+      1,
+      4,
+      4
+    ],
+    "in_degrees": null,
+    "is_simple": true
+  }
+}

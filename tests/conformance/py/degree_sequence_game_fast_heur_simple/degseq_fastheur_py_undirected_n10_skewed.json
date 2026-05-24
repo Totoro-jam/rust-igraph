@@ -1,0 +1,46 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors `ig.Graph.Degree_Sequence([5,4,4,3,3,3,2,2,2,2], method='fast_heur_simple')`): 10 vertices, mixed skewed degrees, \u03a3d=30.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "degree_sequence_game_fast_heur_simple",
+  "params": {
+    "out_degrees": [
+      5,
+      4,
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2
+    ],
+    "in_degrees": null,
+    "seed": 9260002
+  },
+  "expected": {
+    "vcount": 10,
+    "directed": false,
+    "ecount": 15,
+    "out_degrees": [
+      5,
+      4,
+      4,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2
+    ],
+    "in_degrees": null,
+    "is_simple": true
+  }
+}

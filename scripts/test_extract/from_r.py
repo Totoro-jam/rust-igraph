@@ -4738,6 +4738,77 @@ DEGREE_SEQUENCE_CONFIG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-026: degree_sequence_game (FAST_HEUR_SIMPLE method). rigraph
+# exposes this as `sample_degseq(out.deg, in.deg=NULL,
+# method="fast.heur.simple")`, returning a *simple* (no self-loops,
+# no multi-edges) graph that exactly realises the given degree sequence.
+# RNG state is not portable across implementations, so the manifest pins
+# structural invariants only — vcount, ecount, exact (out/in-)degrees,
+# simplicity.
+DEGREE_SEQUENCE_FAST_HEUR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_fastheur_r_undirected_n10_descending",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=c(4,3,3,3,3,2,2,2,1,1), method='fast.heur.simple')`): "
+        "all-positive descending degree sequence, Σd=24.",
+        "algo": "degree_sequence_game_fast_heur_simple",
+        "params": {
+            "out_degrees": [4, 3, 3, 3, 3, 2, 2, 2, 1, 1],
+            "in_degrees": None,
+            "seed": 8_660_001,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 12,
+            "out_degrees": [4, 3, 3, 3, 3, 2, 2, 2, 1, 1],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_fastheur_r_3regular_n10",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=rep(3, 10), method='fast.heur.simple')`): 10 vertices "
+        "all degree 3, Σd=30. Simple 3-regular graph (connectivity NOT "
+        "enforced by FAST_HEUR_SIMPLE).",
+        "algo": "degree_sequence_game_fast_heur_simple",
+        "params": {
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+            "seed": 8_660_002,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 15,
+            "out_degrees": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_fastheur_r_undirected_all_isolated",
+        "origin": "constructed (mirrors `sample_degseq("
+        "out.deg=rep(0, 5), method='fast.heur.simple')`): five isolated "
+        "vertices; ecount must be 0.",
+        "algo": "degree_sequence_game_fast_heur_simple",
+        "params": {
+            "out_degrees": [0, 0, 0, 0, 0],
+            "in_degrees": None,
+            "seed": 8_660_003,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "ecount": 0,
+            "out_degrees": [0, 0, 0, 0, 0],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+]
+
 # ALGO-GN-025: degree_sequence_game (VL method). rigraph exposes this
 # as `sample_degseq(out.deg, method = "vl")` (undirected only). VL
 # samples a connected, simple undirected graph realising the given
@@ -5889,6 +5960,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
     "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
+    "degree_sequence_game_fast_heur_simple": DEGREE_SEQUENCE_FAST_HEUR_MANIFEST,
     "degree_sequence_game_vl": DEGREE_SEQUENCE_VL_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
@@ -6005,6 +6077,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "dot_product_game",
             "correlated_pair_game",
             "degree_sequence_game_configuration",
+            "degree_sequence_game_fast_heur_simple",
             "degree_sequence_game_vl",
             "simple_interconnected_islands_game",
             "k_regular_game",

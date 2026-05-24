@@ -4848,6 +4848,94 @@ DEGREE_SEQUENCE_VL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Fast-heuristic-simple degree-sequence generator (ALGO-GN-026). Fixtures
+# mirror the FAST_HEUR block of
+# references/igraph/tests/unit/igraph_degree_sequence_game.c (lines 160-198).
+# This method samples a *simple* (no self-loops, no multi-edges) graph that
+# realises the input degree sequence exactly. The C test asserts vcount,
+# directedness, is_simple, and exact (out/in-)degree match. RNG state is
+# not portable; fixtures pin those structural invariants only.
+DEGREE_SEQUENCE_FAST_HEUR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "degseq_fastheur_c_undirected_n10_mixed",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:160-171 — "
+        "outarr=[2,3,2,3,3,3,3,1,4,4] DEGSEQ_FAST_HEUR_SIMPLE undirected; "
+        "the C test asserts is_simple and exact degree match",
+        "algo": "degree_sequence_game_fast_heur_simple",
+        "params": {
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": None,
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount": 14,
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_fastheur_c_undirected_empty",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:173-175 — "
+        "empty out_degrees DEGSEQ_FAST_HEUR_SIMPLE undirected; vcount must be 0",
+        "algo": "degree_sequence_game_fast_heur_simple",
+        "params": {
+            "out_degrees": [],
+            "in_degrees": None,
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 0,
+            "directed": False,
+            "ecount": 0,
+            "out_degrees": [],
+            "in_degrees": None,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_fastheur_c_directed_n10_mixed",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:180-194 — "
+        "outarr=[2,3,2,3,3,3,3,1,4,4] inarr=[3,6,2,0,2,2,4,3,3,3] "
+        "DEGSEQ_FAST_HEUR_SIMPLE directed; is_simple and exact out/in match",
+        "algo": "degree_sequence_game_fast_heur_simple",
+        "params": {
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": [3, 6, 2, 0, 2, 2, 4, 3, 3, 3],
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": True,
+            "ecount": 28,
+            "out_degrees": [2, 3, 2, 3, 3, 3, 3, 1, 4, 4],
+            "in_degrees": [3, 6, 2, 0, 2, 2, 4, 3, 3, 3],
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "degseq_fastheur_c_directed_empty",
+        "origin": "tests/unit/igraph_degree_sequence_game.c:196-198 — "
+        "empty out/in DEGSEQ_FAST_HEUR_SIMPLE directed; vcount must be 0",
+        "algo": "degree_sequence_game_fast_heur_simple",
+        "params": {
+            "out_degrees": [],
+            "in_degrees": [],
+            "seed": 333,
+        },
+        "expected": {
+            "vcount": 0,
+            "directed": True,
+            "ecount": 0,
+            "out_degrees": [],
+            "in_degrees": [],
+            "is_simple": True,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -6127,6 +6215,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
     "degree_sequence_game_configuration": DEGREE_SEQUENCE_CONFIG_MANIFEST,
+    "degree_sequence_game_fast_heur_simple": DEGREE_SEQUENCE_FAST_HEUR_MANIFEST,
     "degree_sequence_game_vl": DEGREE_SEQUENCE_VL_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
@@ -6248,6 +6337,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "dot_product_game",
             "correlated_pair_game",
             "degree_sequence_game_configuration",
+            "degree_sequence_game_fast_heur_simple",
             "degree_sequence_game_vl",
             "simple_interconnected_islands_game",
             "k_regular_game",
