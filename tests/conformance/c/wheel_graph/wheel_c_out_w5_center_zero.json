@@ -1,0 +1,55 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_wheel(n=5, mode=OUT, center=0) \u2014 directed wheel, all spokes and rim arcs flow forward",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "wheel_graph",
+  "params": {
+    "n": 5,
+    "mode": "Out",
+    "center": 0
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 8,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        1
+      ]
+    ]
+  }
+}

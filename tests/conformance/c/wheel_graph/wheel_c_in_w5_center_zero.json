@@ -1,0 +1,55 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_wheel(n=5, mode=IN, center=0) \u2014 directed wheel, spokes leaf\u2192centre, rim still prev\u2192next",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "wheel_graph",
+  "params": {
+    "n": 5,
+    "mode": "In",
+    "center": 0
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 8,
+    "directed": true,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        1
+      ]
+    ]
+  }
+}

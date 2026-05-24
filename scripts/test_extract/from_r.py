@@ -6077,6 +6077,73 @@ STAR_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+WHEEL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "wheel_r_undirected_w4",
+        "origin": "rigraph make_wheel(n=4, mode='undirected') — "
+        "minimal non-degenerate wheel: 3 spokes + 3 rim edges",
+        "algo": "wheel_graph",
+        "params": {"n": 4, "mode": "Undirected", "center": 0},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [1, 0], [2, 0], [3, 0],
+                [1, 2], [2, 3], [3, 1],
+            ],
+        },
+    },
+    {
+        "case": "wheel_r_out_w5_center_two",
+        "origin": "rigraph make_wheel(n=5, mode='out', center=3) — "
+        "directed out-wheel with non-zero centre (R 1-based 3 → C/Rust 2); "
+        "rim skips the centre",
+        "algo": "wheel_graph",
+        "params": {"n": 5, "mode": "Out", "center": 2},
+        "expected": {
+            "vcount": 5,
+            "ecount": 8,
+            "directed": True,
+            "edges": [
+                [2, 0], [2, 1], [2, 3], [2, 4],
+                [0, 1], [1, 3], [3, 4], [4, 0],
+            ],
+        },
+    },
+    {
+        "case": "wheel_r_mutual_w4_center_zero",
+        "origin": "rigraph make_wheel(n=4, mode='mutual') — "
+        "spokes mutual then rim forward + reverse-discovery",
+        "algo": "wheel_graph",
+        "params": {"n": 4, "mode": "Mutual", "center": 0},
+        "expected": {
+            "vcount": 4,
+            "ecount": 12,
+            "directed": True,
+            "edges": [
+                [0, 1], [1, 0], [0, 2], [2, 0], [0, 3], [3, 0],
+                [1, 2], [2, 3], [3, 1],
+                [1, 3], [3, 2], [2, 1],
+            ],
+        },
+    },
+    {
+        "case": "wheel_r_two_vertex_self_loop",
+        "origin": "rigraph make_wheel(n=2, mode='undirected') — "
+        "degenerate: rim collapses to 1-cycle (self-loop on vertex 1)",
+        "algo": "wheel_graph",
+        "params": {"n": 2, "mode": "Undirected", "center": 0},
+        "expected": {
+            "vcount": 2,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[1, 0], [1, 1]],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6238,6 +6305,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "static_power_law_game": STATIC_POWER_LAW_MANIFEST,
     "ring_graph": RING_MANIFEST,
     "star_graph": STAR_MANIFEST,
+    "wheel_graph": WHEEL_MANIFEST,
 }
 
 
@@ -6359,6 +6427,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "static_power_law_game",
             "ring_graph",
             "star_graph",
+            "wheel_graph",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

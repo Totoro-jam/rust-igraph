@@ -5783,6 +5783,71 @@ STAR_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+WHEEL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "wheel_py_undirected_w5",
+        "origin": "python-igraph Graph.Wheel(n=5, mode='undirected') — "
+        "4 spokes + 4 rim edges; centre degree 4, rim degree 3",
+        "algo": "wheel_graph",
+        "params": {"n": 5, "mode": "Undirected", "center": 0},
+        "expected": {
+            "vcount": 5,
+            "ecount": 8,
+            "directed": False,
+            "edges": [
+                [1, 0], [2, 0], [3, 0], [4, 0],
+                [1, 2], [2, 3], [3, 4], [4, 1],
+            ],
+        },
+    },
+    {
+        "case": "wheel_py_out_w6_center_zero",
+        "origin": "python-igraph Graph.Wheel(n=6, mode='out') — "
+        "directed out-wheel, all arcs flow forward",
+        "algo": "wheel_graph",
+        "params": {"n": 6, "mode": "Out", "center": 0},
+        "expected": {
+            "vcount": 6,
+            "ecount": 10,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4], [0, 5],
+                [1, 2], [2, 3], [3, 4], [4, 5], [5, 1],
+            ],
+        },
+    },
+    {
+        "case": "wheel_py_in_w6_center_zero",
+        "origin": "python-igraph Graph.Wheel(n=6, mode='in') — "
+        "directed in-wheel, spokes leaf→centre",
+        "algo": "wheel_graph",
+        "params": {"n": 6, "mode": "In", "center": 0},
+        "expected": {
+            "vcount": 6,
+            "ecount": 10,
+            "directed": True,
+            "edges": [
+                [1, 0], [2, 0], [3, 0], [4, 0], [5, 0],
+                [1, 2], [2, 3], [3, 4], [4, 5], [5, 1],
+            ],
+        },
+    },
+    {
+        "case": "wheel_py_three_vertex_parallel_rim",
+        "origin": "python-igraph Graph.Wheel(n=3, mode='out') — "
+        "degenerate: rim collapses to 2-cycle, parallel edges (1,2) and (2,1)",
+        "algo": "wheel_graph",
+        "params": {"n": 3, "mode": "Out", "center": 0},
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[0, 1], [0, 2], [1, 2], [2, 1]],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -5940,6 +6005,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "static_power_law_game": STATIC_POWER_LAW_MANIFEST,
     "ring_graph": RING_MANIFEST,
     "star_graph": STAR_MANIFEST,
+    "wheel_graph": WHEEL_MANIFEST,
 }
 
 
@@ -6061,6 +6127,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "static_power_law_game",
             "ring_graph",
             "star_graph",
+            "wheel_graph",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

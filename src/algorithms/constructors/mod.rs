@@ -7,3 +7,4 @@
 
 pub mod ring;
 pub mod star;
+pub mod wheel;

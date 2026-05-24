@@ -6447,6 +6447,103 @@ STAR_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+WHEEL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "wheel_c_undirected_w6",
+        "origin": "mirrors igraph_wheel(n=6, mode=UNDIRECTED, center=0) — "
+        "5 spokes + 5 rim edges; centre degree 5, rim degree 3",
+        "algo": "wheel_graph",
+        "params": {"n": 6, "mode": "Undirected", "center": 0},
+        "expected": {
+            "vcount": 6,
+            "ecount": 10,
+            "directed": False,
+            "edges": [
+                [1, 0], [2, 0], [3, 0], [4, 0], [5, 0],
+                [1, 2], [2, 3], [3, 4], [4, 5], [5, 1],
+            ],
+        },
+    },
+    {
+        "case": "wheel_c_out_w5_center_zero",
+        "origin": "mirrors igraph_wheel(n=5, mode=OUT, center=0) — "
+        "directed wheel, all spokes and rim arcs flow forward",
+        "algo": "wheel_graph",
+        "params": {"n": 5, "mode": "Out", "center": 0},
+        "expected": {
+            "vcount": 5,
+            "ecount": 8,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4],
+                [1, 2], [2, 3], [3, 4], [4, 1],
+            ],
+        },
+    },
+    {
+        "case": "wheel_c_in_w5_center_zero",
+        "origin": "mirrors igraph_wheel(n=5, mode=IN, center=0) — "
+        "directed wheel, spokes leaf→centre, rim still prev→next",
+        "algo": "wheel_graph",
+        "params": {"n": 5, "mode": "In", "center": 0},
+        "expected": {
+            "vcount": 5,
+            "ecount": 8,
+            "directed": True,
+            "edges": [
+                [1, 0], [2, 0], [3, 0], [4, 0],
+                [1, 2], [2, 3], [3, 4], [4, 1],
+            ],
+        },
+    },
+    {
+        "case": "wheel_c_mutual_w4_center_zero",
+        "origin": "mirrors igraph_wheel(n=4, mode=MUTUAL, center=0) — "
+        "spokes mutual then rim forward followed by reverse-discovery",
+        "algo": "wheel_graph",
+        "params": {"n": 4, "mode": "Mutual", "center": 0},
+        "expected": {
+            "vcount": 4,
+            "ecount": 12,
+            "directed": True,
+            "edges": [
+                [0, 1], [1, 0], [0, 2], [2, 0], [0, 3], [3, 0],
+                [1, 2], [2, 3], [3, 1],
+                [1, 3], [3, 2], [2, 1],
+            ],
+        },
+    },
+    {
+        "case": "wheel_c_out_w5_center_two",
+        "origin": "mirrors igraph_wheel(n=5, mode=OUT, center=2) — "
+        "rim skips the centre, visits leaves in raw vertex-id order",
+        "algo": "wheel_graph",
+        "params": {"n": 5, "mode": "Out", "center": 2},
+        "expected": {
+            "vcount": 5,
+            "ecount": 8,
+            "directed": True,
+            "edges": [
+                [2, 0], [2, 1], [2, 3], [2, 4],
+                [0, 1], [1, 3], [3, 4], [4, 0],
+            ],
+        },
+    },
+    {
+        "case": "wheel_c_empty",
+        "origin": "mirrors igraph_wheel(n=0, ...) — empty graph regardless of mode",
+        "algo": "wheel_graph",
+        "params": {"n": 0, "mode": "Out", "center": 0},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6608,6 +6705,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "static_power_law_game": STATIC_POWER_LAW_MANIFEST,
     "ring_graph": RING_MANIFEST,
     "star_graph": STAR_MANIFEST,
+    "wheel_graph": WHEEL_MANIFEST,
 }
 
 
@@ -6734,6 +6832,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "static_power_law_game",
             "ring_graph",
             "star_graph",
+            "wheel_graph",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

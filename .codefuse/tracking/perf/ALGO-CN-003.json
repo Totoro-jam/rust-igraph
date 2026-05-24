@@ -1,0 +1,19 @@
+{
+  "awu": "ALGO-CN-003",
+  "captured_at": "2026-05-25",
+  "git_commit": "ea266a8",
+  "rust_out_n100_ns": 7464,
+  "rust_out_n10000_ns": 740060,
+  "rust_out_n1000000_ns": 108750000,
+  "rust_in_n100_ns": 8961,
+  "rust_in_n10000_ns": 1013100,
+  "rust_in_n1000000_ns": 149370000,
+  "rust_mutual_n100_ns": 19135,
+  "rust_mutual_n10000_ns": 2721300,
+  "rust_mutual_n1000000_ns": 391160000,
+  "rust_undirected_n100_ns": 8795,
+  "rust_undirected_n10000_ns": 1008400,
+  "rust_undirected_n1000000_ns": 150600000,
+  "py_baseline_ns": null,
+  "notes": "Deterministic wheel constructor (igraph_wheel). Built as star_graph + rim cycle in a single forward sweep over leaves, emitting (n-1) spoke arcs plus (n-1) rim arcs (Out/In/Undirected), or doubled in Mutual mode (4(n-1) total). Throughput is dominated by `Graph::add_edges` cost; rim and star add_edges run back-to-back rather than batching, so per-edge cost is ~2x the star equivalent. Out mode lands at ~9-13 Melem/s, In/Undirected ~6-10 Melem/s (extra in-list pushes for In), Mutual ~2.5-5.5 Melem/s. No oracle baseline: python-igraph (`Graph.Wheel`) and rigraph (`make_wheel`) produce identical structural output for deterministic inputs; conformance compares exact edge sequences (directed modes) or canonicalised multisets (undirected). Numbers from `cargo bench --bench bench_wheel -- --warm-up-time 1 --measurement-time 3` on Darwin/M-series release build."
+}

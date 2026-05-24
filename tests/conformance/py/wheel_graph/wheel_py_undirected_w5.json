@@ -1,0 +1,55 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Wheel(n=5, mode='undirected') \u2014 4 spokes + 4 rim edges; centre degree 4, rim degree 3",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "wheel_graph",
+  "params": {
+    "n": 5,
+    "mode": "Undirected",
+    "center": 0
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 8,
+    "directed": false,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        1
+      ]
+    ]
+  }
+}

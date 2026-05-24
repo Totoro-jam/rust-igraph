@@ -15,6 +15,48 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-003** — `wheel_graph` deterministic constructor.
+  **Third member of the `constructors/` family.** Counterpart of
+  `igraph_wheel` in `references/igraph/src/constructors/regular.c`.
+  Built as a star plus a rim cycle: the centre is connected to every
+  rim vertex via spokes, and the rim vertices are linked in a cycle.
+  - `pub fn wheel_graph(n: u32, mode: WheelMode, center: u32) -> IgraphResult<Graph>`
+    with `WheelMode ∈ {Out, In, Mutual, Undirected}` (one-to-one with
+    [`StarMode`]).
+  - **Algorithm**: O(|V|) — delegates the star layer to `star_graph`,
+    then sweeps the rim in raw vertex-id order, skipping `center`.
+    `Out`/`In`/`Undirected` emit each rim edge once (`prev → next`);
+    `Mutual` appends the reverse of every forward rim arc in
+    **reverse-discovery order**, matching the upstream C loop. The
+    wrap-around rim edge connects the largest rim vertex back to the
+    smallest.
+  - **Four-mode truth table** for `n = 5, center = 0`:
+
+    | mode        | directed | ecount        |
+    |-------------|----------|---------------|
+    | Out         | true     | 2(n-1) = 8    |
+    | In          | true     | 2(n-1) = 8    |
+    | Mutual      | true     | 4(n-1) = 16   |
+    | Undirected  | false    | 2(n-1) = 8    |
+
+  - **Degenerate cases** (documented and intentional, matching
+    upstream): `n=2` produces a self-loop on the only rim vertex
+    (rim collapses to a 1-cycle); `n=3` produces parallel rim edges
+    `(1,2)` and `(2,1)` (rim collapses to a 2-cycle). `n=0` and
+    `n=1` reduce to the empty/singleton star.
+  - Conformance: 14 fixtures (C × 6, py × 4, R × 4) under
+    `tests/conformance/{c,py,r}/wheel_graph/`, comparing exact edge
+    sequences (directed modes) or canonicalised edge multisets
+    (undirected mode).
+  - Benchmarks: `benches/bench_wheel.rs` with four groups (Out / In /
+    Mutual / Undirected) across `n ∈ {100, 10_000, 1_000_000}`.
+    Baseline snapshot: `.codefuse/tracking/perf/ALGO-CN-003.json`.
+  - Example: `examples/wheel_demo.rs` walks through all four modes
+    plus a non-zero centre and the two degenerate small-`n` shapes.
+  - 10 unit + 3 proptest checks in
+    `src/algorithms/constructors/wheel.rs` covering the 4-mode truth
+    table, centre placement (zero / interior), bounds checking, rim
+    cycle topology and the degenerate small-`n` shapes.
 - **ALGO-CN-002** — `star_graph` deterministic constructor.
   **Second member of the `constructors/` family.** Counterpart of
   `igraph_star` in `references/igraph/src/constructors/regular.c`.

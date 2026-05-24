@@ -1,0 +1,71 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_wheel(n=4, mode=MUTUAL, center=0) \u2014 spokes mutual then rim forward followed by reverse-discovery",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "wheel_graph",
+  "params": {
+    "n": 4,
+    "mode": "Mutual",
+    "center": 0
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 12,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        2,
+        1
+      ]
+    ]
+  }
+}

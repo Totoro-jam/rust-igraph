@@ -1,0 +1,55 @@
+{
+  "source": "r",
+  "origin": "rigraph make_wheel(n=5, mode='out', center=3) \u2014 directed out-wheel with non-zero centre (R 1-based 3 \u2192 C/Rust 2); rim skips the centre",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "wheel_graph",
+  "params": {
+    "n": 5,
+    "mode": "Out",
+    "center": 2
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 8,
+    "directed": true,
+    "edges": [
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        0
+      ]
+    ]
+  }
+}
