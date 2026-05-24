@@ -70,6 +70,10 @@ path = "examples/lastcit_demo.rs"
 name = "recent_degree_demo"
 path = "examples/recent_degree_demo.rs"
 
+[[example]]
+name = "barabasi_aging_demo"
+path = "examples/barabasi_aging_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -253,6 +257,11 @@ harness = false
 [[bench]]
 name = "bench_barabasi_psumtree"
 path = "benches/bench_barabasi_psumtree.rs"
+harness = false
+
+[[bench]]
+name = "bench_barabasi_aging"
+path = "benches/bench_barabasi_aging.rs"
 harness = false
 
 [[bench]]

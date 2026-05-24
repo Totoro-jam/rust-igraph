@@ -4428,6 +4428,112 @@ BARABASI_PSUMTREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-021: barabasi_aging_game. Mirrors igraph_barabasi_aging_game
+# (references/igraph/src/games/barabasi.c ~606-841): PsumTree-based BA
+# with vertex aging. Weight = (deg_coef · pow(deg, pa_exp) + zero_deg_appeal)
+# · (age_coef · pow(age, aging_exp) + zero_age_appeal). Age is binned with
+# binwidth = nodes/aging_bins + 1, and the age sweep at every k*binwidth
+# boundary refreshes vertex `i - k*binwidth`. Without outseq, ecount =
+# (nodes - 1) * m exactly. Never self-loops by construction (search_bounded
+# clamps to [0, i) before vertex i joins the BIT). Within-step multi-edges
+# can occur when m >= 2 because the C source does NOT zero picks per draw.
+BARABASI_AGING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "barabasi_aging_c_classic_no_aging_directed_m2",
+        "origin": "constructed (mirrors igraph_barabasi_aging_game(n=40, "
+        "m=2, outpref=false, pa_exp=1.0, aging_exp=0.0, aging_bins=10, "
+        "zero_deg_appeal=1.0, zero_age_appeal=1.0, deg_coef=1.0, "
+        "age_coef=1.0, directed=true)) — degenerate case: aging_exp=0 "
+        "collapses age term to (1·1 + 1) = 2 constant, so weights "
+        "reduce to 2·(deg + 1), classical BA up to a constant factor; "
+        "ecount = (40-1)*2 = 78",
+        "algo": "barabasi_aging_game",
+        "params": {
+            "nodes": 40,
+            "m": 2,
+            "outpref": False,
+            "pa_exp": 1.0,
+            "aging_exp": 0.0,
+            "aging_bins": 10,
+            "zero_deg_appeal": 1.0,
+            "zero_age_appeal": 1.0,
+            "deg_coef": 1.0,
+            "age_coef": 1.0,
+            "directed": True,
+            "seed": 9_998_101,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,  # (40-1)*2 = 78
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "barabasi_aging_c_strong_aging_directed_m2",
+        "origin": "constructed (mirrors igraph_barabasi_aging_game(n=40, "
+        "m=2, outpref=false, pa_exp=1.0, aging_exp=-1.0, aging_bins=10, "
+        "zero_deg_appeal=1.0, zero_age_appeal=1.0, deg_coef=1.0, "
+        "age_coef=1.0, directed=true)) — aging_exp=-1 suppresses old "
+        "vertices linearly with age bin; ecount = (40-1)*2 = 78 still "
+        "exact by construction (one edge per attempted draw)",
+        "algo": "barabasi_aging_game",
+        "params": {
+            "nodes": 40,
+            "m": 2,
+            "outpref": False,
+            "pa_exp": 1.0,
+            "aging_exp": -1.0,
+            "aging_bins": 10,
+            "zero_deg_appeal": 1.0,
+            "zero_age_appeal": 1.0,
+            "deg_coef": 1.0,
+            "age_coef": 1.0,
+            "directed": True,
+            "seed": 9_998_102,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "barabasi_aging_c_outpref_undirected_m2",
+        "origin": "constructed (mirrors igraph_barabasi_aging_game(n=35, "
+        "m=2, outpref=true, pa_exp=1.0, aging_exp=-0.5, aging_bins=8, "
+        "zero_deg_appeal=0.5, zero_age_appeal=1.0, deg_coef=1.0, "
+        "age_coef=1.0, directed=false)) — undirected + outpref so the "
+        "new vertex's own out-degree feeds back into its weight; ecount "
+        "= (35-1)*2 = 68",
+        "algo": "barabasi_aging_game",
+        "params": {
+            "nodes": 35,
+            "m": 2,
+            "outpref": True,
+            "pa_exp": 1.0,
+            "aging_exp": -0.5,
+            "aging_bins": 8,
+            "zero_deg_appeal": 0.5,
+            "zero_age_appeal": 1.0,
+            "deg_coef": 1.0,
+            "age_coef": 1.0,
+            "directed": False,
+            "seed": 9_998_103,
+        },
+        "expected": {
+            "vcount": 35,
+            "directed": False,
+            "ecount_min": 68,  # (35-1)*2 = 68
+            "ecount_max": 68,
+            "no_self_loops": True,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -5702,6 +5808,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "lastcit_game": LASTCIT_MANIFEST,
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
+    "barabasi_aging_game": BARABASI_AGING_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5818,6 +5925,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "lastcit_game",
             "recent_degree_game",
             "barabasi_game_psumtree",
+            "barabasi_aging_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

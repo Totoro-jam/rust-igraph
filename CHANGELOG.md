@@ -15,6 +15,66 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-021** — `barabasi_aging_game` Barabási–Albert
+  preferential-attachment with vertex aging. Counterpart of
+  `igraph_barabasi_aging_game()` in
+  `references/igraph/src/games/barabasi.c` (lines ~606-841). Each step
+  `i ≥ 1` adds a fresh vertex and attaches `m` (or `outseq[i]`)
+  outgoing edges, with targets drawn from a Fenwick BIT (`PsumTree`)
+  weighted by a product of a degree term and an age term:
+  `weight(v) = (deg_coef · pow(deg(v), pa_exp) + zero_deg_appeal)
+  · (age_coef · pow(age(v), aging_exp) + zero_age_appeal)`.
+  `age(v) = (i − v)/binwidth + 1` with `binwidth = nodes/aging_bins + 1`;
+  the C kernel's `pow(0, 0) == 1` special case is preserved on the
+  degree term only.
+  - `pub fn barabasi_aging_game(nodes: u32, m: u32, outseq: Option<&[u32]>, outpref: bool, pa_exp: f64, aging_exp: f64, aging_bins: u32, zero_deg_appeal: f64, zero_age_appeal: f64, deg_coef: f64, age_coef: f64, directed: bool, seed: u64) -> IgraphResult<Graph>`.
+  - **Mechanics**: each step does `m` draws against the live BIT
+    *without* zeroing picks between draws (matching upstream — within-step
+    multi-edges are possible when `m ≥ 2`); chosen vertices have their
+    weights refreshed at end-of-step with the new degree; the new vertex
+    `i` is inserted into the BIT at age `1`; and an age sweep at every
+    `k · binwidth ≤ i` boundary refreshes the vertex at position
+    `i − k · binwidth` with the new age `k + 2`.
+  - **Construction guarantees**: NEVER produces self-loops (the new
+    vertex `i` is added to the BIT *after* its `m` outgoing draws and
+    `search_bounded(target, i)` rules out FP-drift over-advancement);
+    zero-sum uniform fallback over `[0, i)` (only fires when the seed
+    vertex's weight has decayed to zero); `outpref` feeds the new
+    vertex's own out-degree back into its weight at end-of-step.
+  - **Validation**: `pa_exp` / `aging_exp` finite; `aging_bins ≥ 1`;
+    `deg_coef` / `age_coef` / `zero_deg_appeal` / `zero_age_appeal`
+    finite and non-negative; `outseq.len() == nodes` when provided.
+  - **Edge cases**: `nodes = 0` empty graph; `nodes = 1` singleton;
+    `m = 0` (no `outseq`) returns a vertex-only graph; without `outseq`,
+    ecount = `(nodes − 1) · m` exactly (no saturation branch — the C
+    kernel writes one edge per attempted draw regardless of within-step
+    collisions).
+  - **Coverage**: 23 unit tests + 5 proptests covering exact-vcount /
+    exact-ecount / determinism / seed-divergence / no-self-loops /
+    source-is-step-index / directed-and-undirected propagation / outpref
+    behaviour / age-sweep correctness / `pow(0, 0)` branch / validation
+    error paths / aging directional comparison (sharp aging shifts
+    in-degree mass to the young half vs. classical baseline).
+  - **Three-source conformance**: 9 JSON fixtures under
+    `tests/conformance/{c,py,r}/barabasi_aging_game/` — classical
+    (`aging_exp=0` degenerate), aging-heavy (`aging_exp=-1`), and
+    outpref-undirected cases per source. RNG state is not portable
+    across implementations (Mersenne Twister in C, `R_unif_index` in R,
+    NumPy in py), so conformance asserts structural invariants only
+    (vcount, directed flag, exact ecount, no self-loops).
+  - **Bench + example**: Criterion bench
+    `benches/bench_barabasi_aging.rs` covering classical (no aging),
+    aging-heavy, and outpref-undirected cases at `n ∈ {100, 1k, 10k}`.
+    Runnable example `examples/barabasi_aging_demo.rs` contrasts a
+    classical baseline (`aging_exp = 0`) with a sharp-aging run
+    (`aging_exp = -1, zero_age_appeal = 0`) and reports the young-half
+    in-degree share — sharp aging lifts it from ~5% to ~21% at
+    `n = 2 000`. Perf snapshot at
+    `.codefuse/tracking/perf/ALGO-GN-021.json` shows ~2.8 Melem/s
+    (classical, n=10k), ~2.5 Melem/s (aging-heavy, n=10k),
+    ~2.5 Melem/s (outpref-undirected, n=10k) — consistent with the
+    predicted `O((n + n/aging_bins) · log n + |E|)` bound.
+
 - **ALGO-GN-020** — `barabasi_game_psumtree` +
   `barabasi_game_psumtree_multiple` Barabási–Albert preferential-attachment
   variants. Counterparts of `igraph_i_barabasi_game_psumtree` and

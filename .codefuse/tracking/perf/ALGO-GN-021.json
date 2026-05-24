@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-GN-021",
+  "captured_at": "2026-05-24",
+  "git_commit": "cd2ce14",
+  "rust_classical_no_aging_n100_ns": 14405,
+  "rust_classical_no_aging_n1000_ns": 255600,
+  "rust_classical_no_aging_n10000_ns": 3588000,
+  "rust_aging_heavy_n100_ns": 17246,
+  "rust_aging_heavy_n1000_ns": 307400,
+  "rust_aging_heavy_n10000_ns": 4077600,
+  "rust_outpref_undirected_n100_ns": 18039,
+  "rust_outpref_undirected_n1000_ns": 310310,
+  "rust_outpref_undirected_n10000_ns": 3994800,
+  "py_baseline_ns": null,
+  "notes": "Barabási–Albert with vertex aging (igraph_barabasi_aging_game, references/igraph/src/games/barabasi.c lines ~606-841). Each step uses the same Fenwick BIT (PsumTree) as ALGO-GN-020 for O(log n) point-update and binary-lifted prefix-search. Weight = (deg_coef · pow(deg, pa_exp) + zero_deg_appeal) · (age_coef · pow(age, aging_exp) + zero_age_appeal). Age is binned at binwidth = nodes/aging_bins + 1, and at every k · binwidth boundary the vertex at position `i - k*binwidth` is refreshed with age `k + 2` — amortizing O((n / aging_bins) · log n) extra work across the run. The C source does NOT zero picks per draw (the simple zero-and-restore dance of the PSUMTREE variant is absent), so within-step multi-edges are possible when m >= 2; the conformance fixtures pin `ecount = (n-1)*m` exactly. End-to-end throughput at n = 10 000 is ~2.78 Melem/s for the degenerate classical case (aging_exp = 0 collapses the age term to a constant), ~2.45 Melem/s when aging_exp = -1 forces a real `pow(age, -1)` in every refresh, and ~2.50 Melem/s for the outpref + undirected case (each fresh vertex's own out-degree feeds back into the BIT, doubling refresh work). The slope is consistent with the predicted O((n + n/aging_bins) · log n + |E|) bound. No oracle baseline: SplitMix64 is not bitwise-portable to C's MT or R's R_unif_index; conformance asserts structural invariants only (vcount, directed flag, ecount exactness for non-outseq calls, no self-loops). Numbers from cargo bench --bench bench_barabasi_aging -- --quick on Darwin/M-series release build."
+}

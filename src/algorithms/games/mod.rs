@@ -5,6 +5,7 @@
 //! reproducible graphs without pulling in a `rand` dependency.
 
 pub mod barabasi;
+pub mod barabasi_aging;
 pub mod barabasi_psumtree;
 pub mod callaway_traits;
 pub mod chung_lu;

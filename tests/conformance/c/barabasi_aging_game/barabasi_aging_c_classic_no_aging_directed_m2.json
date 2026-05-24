@@ -1,0 +1,32 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_barabasi_aging_game(n=40, m=2, outpref=false, pa_exp=1.0, aging_exp=0.0, aging_bins=10, zero_deg_appeal=1.0, zero_age_appeal=1.0, deg_coef=1.0, age_coef=1.0, directed=true)) \u2014 degenerate case: aging_exp=0 collapses age term to (1\u00b71 + 1) = 2 constant, so weights reduce to 2\u00b7(deg + 1), classical BA up to a constant factor; ecount = (40-1)*2 = 78",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "barabasi_aging_game",
+  "params": {
+    "nodes": 40,
+    "m": 2,
+    "outpref": false,
+    "pa_exp": 1.0,
+    "aging_exp": 0.0,
+    "aging_bins": 10,
+    "zero_deg_appeal": 1.0,
+    "zero_age_appeal": 1.0,
+    "deg_coef": 1.0,
+    "age_coef": 1.0,
+    "directed": true,
+    "seed": 9998101
+  },
+  "expected": {
+    "vcount": 40,
+    "directed": true,
+    "ecount_min": 78,
+    "ecount_max": 78,
+    "no_self_loops": true
+  }
+}

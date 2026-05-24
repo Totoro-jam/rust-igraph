@@ -4387,6 +4387,104 @@ BARABASI_PSUMTREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-021: barabasi_aging_game. rigraph exposes
+# `sample_pa_age()` / `sample_last_cit()` family but no direct R wrapper
+# (the C kernel is reached through `igraph_barabasi_aging_game`); the
+# fixtures here pin the C-kernel invariants. Without `outseq` (or
+# `out.seq`), ecount = (nodes - 1) * m exactly. RNG state is not
+# portable across implementations.
+BARABASI_AGING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "barabasi_aging_r_classic_no_aging_directed_m2",
+        "origin": "constructed (mirrors igraph_barabasi_aging_game(n=40, "
+        "m=2, out.pref=FALSE, pa.exp=1.0, aging.exp=0.0, aging.bins=10, "
+        "zero.deg.appeal=1.0, zero.age.appeal=1.0, deg.coef=1.0, "
+        "age.coef=1.0, directed=TRUE)) — aging.exp=0 collapses age "
+        "term to a constant",
+        "algo": "barabasi_aging_game",
+        "params": {
+            "nodes": 40,
+            "m": 2,
+            "outpref": False,
+            "pa_exp": 1.0,
+            "aging_exp": 0.0,
+            "aging_bins": 10,
+            "zero_deg_appeal": 1.0,
+            "zero_age_appeal": 1.0,
+            "deg_coef": 1.0,
+            "age_coef": 1.0,
+            "directed": True,
+            "seed": 10_000_101,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "barabasi_aging_r_strong_aging_directed_m2",
+        "origin": "constructed (mirrors igraph_barabasi_aging_game(n=40, "
+        "m=2, out.pref=FALSE, pa.exp=1.0, aging.exp=-1.0, aging.bins=10, "
+        "zero.deg.appeal=1.0, zero.age.appeal=1.0, deg.coef=1.0, "
+        "age.coef=1.0, directed=TRUE)) — aging.exp=-1 favours fresh "
+        "vertices",
+        "algo": "barabasi_aging_game",
+        "params": {
+            "nodes": 40,
+            "m": 2,
+            "outpref": False,
+            "pa_exp": 1.0,
+            "aging_exp": -1.0,
+            "aging_bins": 10,
+            "zero_deg_appeal": 1.0,
+            "zero_age_appeal": 1.0,
+            "deg_coef": 1.0,
+            "age_coef": 1.0,
+            "directed": True,
+            "seed": 10_000_102,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "barabasi_aging_r_outpref_undirected_m2",
+        "origin": "constructed (mirrors igraph_barabasi_aging_game(n=35, "
+        "m=2, out.pref=TRUE, pa.exp=1.0, aging.exp=-0.5, aging.bins=8, "
+        "zero.deg.appeal=0.5, zero.age.appeal=1.0, deg.coef=1.0, "
+        "age.coef=1.0, directed=FALSE)) — undirected + outpref",
+        "algo": "barabasi_aging_game",
+        "params": {
+            "nodes": 35,
+            "m": 2,
+            "outpref": True,
+            "pa_exp": 1.0,
+            "aging_exp": -0.5,
+            "aging_bins": 8,
+            "zero_deg_appeal": 0.5,
+            "zero_age_appeal": 1.0,
+            "deg_coef": 1.0,
+            "age_coef": 1.0,
+            "directed": False,
+            "seed": 10_000_103,
+        },
+        "expected": {
+            "vcount": 35,
+            "directed": False,
+            "ecount_min": 68,
+            "ecount_max": 68,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -5467,6 +5565,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "lastcit_game": LASTCIT_MANIFEST,
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
+    "barabasi_aging_game": BARABASI_AGING_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5578,6 +5677,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "lastcit_game",
             "recent_degree_game",
             "barabasi_game_psumtree",
+            "barabasi_aging_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",
