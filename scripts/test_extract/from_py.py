@@ -5912,6 +5912,79 @@ KARY_TREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+SYMMETRIC_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "symmetric_tree_py_binary_two_two_undirected",
+        "origin": "python-igraph Graph.SymmetricTree([2, 2], 'undirected') — "
+        "1 + 2 + 4 = 7 vertices, equivalent to Graph.Tree(7, 2)",
+        "algo": "symmetric_tree",
+        "params": {"branches": [2, 2], "mode": "Undirected"},
+        "expected": {
+            "vcount": 7,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6],
+            ],
+        },
+    },
+    {
+        "case": "symmetric_tree_py_three_two_out",
+        "origin": "python-igraph Graph.SymmetricTree([3, 2], 'out') — "
+        "1 + 3 + 6 = 10 vertices, parent→child arcs",
+        "algo": "symmetric_tree",
+        "params": {"branches": [3, 2], "mode": "Out"},
+        "expected": {
+            "vcount": 10,
+            "ecount": 9,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2], [0, 3],
+                [1, 4], [1, 5], [2, 6], [2, 7], [3, 8], [3, 9],
+            ],
+        },
+    },
+    {
+        "case": "symmetric_tree_py_chain_three_ones_undirected",
+        "origin": "python-igraph Graph.SymmetricTree([1, 1, 1], 'undirected') — "
+        "linear chain of 4 vertices (BFS path)",
+        "algo": "symmetric_tree",
+        "params": {"branches": [1, 1, 1], "mode": "Undirected"},
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3]],
+        },
+    },
+    {
+        "case": "symmetric_tree_py_four_three_two_out",
+        "origin": "python-igraph Graph.SymmetricTree([4, 3, 2], 'out') — "
+        "1 + 4 + 12 + 24 = 41 vertices, depth-3 mixed branching",
+        "algo": "symmetric_tree",
+        "params": {"branches": [4, 3, 2], "mode": "Out"},
+        "expected": {
+            "vcount": 41,
+            "ecount": 40,
+            "directed": True,
+            "edges": [
+                # level 0 → 1: root expands [4] kids
+                [0, 1], [0, 2], [0, 3], [0, 4],
+                # level 1 → 2: each of vertices 1..=4 expands [3] kids
+                [1, 5], [1, 6], [1, 7],
+                [2, 8], [2, 9], [2, 10],
+                [3, 11], [3, 12], [3, 13],
+                [4, 14], [4, 15], [4, 16],
+                # level 2 → 3: each of vertices 5..=16 expands [2] kids
+                [5, 17], [5, 18], [6, 19], [6, 20], [7, 21], [7, 22],
+                [8, 23], [8, 24], [9, 25], [9, 26], [10, 27], [10, 28],
+                [11, 29], [11, 30], [12, 31], [12, 32], [13, 33], [13, 34],
+                [14, 35], [14, 36], [15, 37], [15, 38], [16, 39], [16, 40],
+            ],
+        },
+    },
+]
+
 
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
@@ -6072,6 +6145,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "star_graph": STAR_MANIFEST,
     "wheel_graph": WHEEL_MANIFEST,
     "kary_tree": KARY_TREE_MANIFEST,
+    "symmetric_tree": SYMMETRIC_TREE_MANIFEST,
 }
 
 
@@ -6195,6 +6269,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "star_graph",
             "wheel_graph",
             "kary_tree",
+            "symmetric_tree",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

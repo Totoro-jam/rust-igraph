@@ -1,0 +1,49 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_symmetric_tree(branches=[2,2], IGRAPH_TREE_OUT) \u2014 1 + 2 + 4 = 7 vertices, identical to kary_tree(7, 2)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "symmetric_tree",
+  "params": {
+    "branches": [
+      2,
+      2
+    ],
+    "mode": "Out"
+  },
+  "expected": {
+    "vcount": 7,
+    "ecount": 6,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        2,
+        6
+      ]
+    ]
+  }
+}

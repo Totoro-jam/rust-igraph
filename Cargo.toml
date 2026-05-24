@@ -110,6 +110,10 @@ path = "examples/wheel_demo.rs"
 name = "kary_tree_demo"
 path = "examples/kary_tree_demo.rs"
 
+[[example]]
+name = "symmetric_tree_demo"
+path = "examples/symmetric_tree_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -418,6 +422,11 @@ harness = false
 [[bench]]
 name = "bench_kary_tree"
 path = "benches/bench_kary_tree.rs"
+harness = false
+
+[[bench]]
+name = "bench_symmetric_tree"
+path = "benches/bench_symmetric_tree.rs"
 harness = false
 
 [lints.rust]

@@ -1,0 +1,21 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_symmetric_tree(branches=[], IGRAPH_TREE_OUT) \u2014 empty branches collapses to singleton root",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "symmetric_tree",
+  "params": {
+    "branches": [],
+    "mode": "Out"
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

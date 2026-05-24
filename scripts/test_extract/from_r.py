@@ -6203,6 +6203,68 @@ KARY_TREE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+SYMMETRIC_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "symmetric_tree_r_binary_two_two_undirected",
+        "origin": "rigraph make_symmetric_tree(branches=c(2,2), mode='undirected') — "
+        "perfect binary depth 2, mirrors make_tree(7,2)",
+        "algo": "symmetric_tree",
+        "params": {"branches": [2, 2], "mode": "Undirected"},
+        "expected": {
+            "vcount": 7,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6],
+            ],
+        },
+    },
+    {
+        "case": "symmetric_tree_r_three_two_in",
+        "origin": "rigraph make_symmetric_tree(branches=c(3,2), mode='in') — "
+        "root with 3 kids, each with 2 grandkids, child→parent arcs",
+        "algo": "symmetric_tree",
+        "params": {"branches": [3, 2], "mode": "In"},
+        "expected": {
+            "vcount": 10,
+            "ecount": 9,
+            "directed": True,
+            "edges": [
+                [1, 0], [2, 0], [3, 0],
+                [4, 1], [5, 1], [6, 2], [7, 2], [8, 3], [9, 3],
+            ],
+        },
+    },
+    {
+        "case": "symmetric_tree_r_chain_three_ones_undirected",
+        "origin": "rigraph make_symmetric_tree(branches=c(1,1,1), mode='undirected') — "
+        "linear chain of 4 vertices",
+        "algo": "symmetric_tree",
+        "params": {"branches": [1, 1, 1], "mode": "Undirected"},
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3],
+            ],
+        },
+    },
+    {
+        "case": "symmetric_tree_r_empty_branches_singleton",
+        "origin": "rigraph make_symmetric_tree(branches=integer(0)) — "
+        "empty branches collapses to singleton root",
+        "algo": "symmetric_tree",
+        "params": {"branches": [], "mode": "Out"},
+        "expected": {
+            "vcount": 1,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+]
+
 
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
@@ -6367,6 +6429,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "star_graph": STAR_MANIFEST,
     "wheel_graph": WHEEL_MANIFEST,
     "kary_tree": KARY_TREE_MANIFEST,
+    "symmetric_tree": SYMMETRIC_TREE_MANIFEST,
 }
 
 
@@ -6490,6 +6553,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "star_graph",
             "wheel_graph",
             "kary_tree",
+            "symmetric_tree",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

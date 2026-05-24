@@ -1,0 +1,86 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_symmetric_tree(branches=[3,2,1], IGRAPH_TREE_OUT) \u2014 1 + 3 + 6 + 6 = 16 vertices, depth 3",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "symmetric_tree",
+  "params": {
+    "branches": [
+      3,
+      2,
+      1
+    ],
+    "mode": "Out"
+  },
+  "expected": {
+    "vcount": 16,
+    "ecount": 15,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        3,
+        9
+      ],
+      [
+        4,
+        10
+      ],
+      [
+        5,
+        11
+      ],
+      [
+        6,
+        12
+      ],
+      [
+        7,
+        13
+      ],
+      [
+        8,
+        14
+      ],
+      [
+        9,
+        15
+      ]
+    ]
+  }
+}

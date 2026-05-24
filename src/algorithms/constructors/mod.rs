@@ -8,4 +8,5 @@
 pub mod kary_tree;
 pub mod ring;
 pub mod star;
+pub mod symmetric_tree;
 pub mod wheel;

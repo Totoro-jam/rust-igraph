@@ -1,0 +1,61 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_symmetric_tree(branches=[3,2], IGRAPH_TREE_UNDIRECTED) \u2014 1 + 3 + 6 = 10 vertices, undirected",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "symmetric_tree",
+  "params": {
+    "branches": [
+      3,
+      2
+    ],
+    "mode": "Undirected"
+  },
+  "expected": {
+    "vcount": 10,
+    "ecount": 9,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        3,
+        9
+      ]
+    ]
+  }
+}

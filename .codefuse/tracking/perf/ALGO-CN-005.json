@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-CN-005",
+  "captured_at": "2026-05-25",
+  "git_commit": "bdd50da",
+  "rust_out_depth3_3x3x3_ns": 1868,
+  "rust_out_depth4_4x4x4x4_ns": 7228,
+  "rust_out_depth5_5x5x5x5x5_ns": 66267,
+  "rust_in_depth3_3x3x3_ns": 1851,
+  "rust_in_depth4_4x4x4x4_ns": 7094,
+  "rust_in_depth5_5x5x5x5x5_ns": 67343,
+  "rust_undirected_depth3_3x3x3_ns": 1863,
+  "rust_undirected_depth4_4x4x4x4_ns": 7217,
+  "rust_undirected_depth5_5x5x5x5x5_ns": 68216,
+  "py_baseline_ns": null,
+  "notes": "Symmetric tree deterministic constructor over three branching configurations: [3,3,3] (40 vertices), [4,4,4,4] (341 vertices), [5,5,5,5,5] (3906 vertices). The generator walks BFS one level at a time, expanding each parent in [parent..level_end) and pushing exactly branches[k] arcs apiece — `level_end = child` is snapshotted before the inner loop so we only expand current-level parents. Edge orientation flips on TreeMode::In ((child, parent)) and stays parent-child on Out and Undirected. All three modes run at ~21-58 Melem/s across these scales (per-call cost is one `Vec::with_capacity(n-1)` allocation plus a single `Graph::add_edges` call, plus the tiny per-level checked_mul/checked_add bookkeeping that guards against u32 overflow). Throughput is comparable to kary_tree because the inner edge-emit loop is essentially the same. No python-igraph oracle: `igraph_symmetric_tree` is deterministic so the conformance suite asserts exact edge-list equality (3-mode dispatch + canonical-pair compare for Undirected) against 14 fixtures extracted from igraph C / python-igraph / rigraph. Numbers from `cargo bench --bench bench_symmetric_tree -- --quick` on Darwin/M-series release build."
+}

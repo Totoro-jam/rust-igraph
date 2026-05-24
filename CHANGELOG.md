@@ -15,6 +15,54 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-005** — `symmetric_tree` deterministic constructor.
+  **Fifth member of the `constructors/` family.** Counterpart of
+  `igraph_symmetric_tree` in
+  `references/igraph/src/constructors/regular.c:706-808`. Whereas
+  `kary_tree` uses a single uniform branching factor, this constructor
+  takes a slice of branching factors and applies one per BFS depth:
+  `branches[d]` children at depth `d`.
+  - `pub fn symmetric_tree(branches: &[u32], mode: TreeMode) -> IgraphResult<Graph>`
+    reusing the shared `TreeMode ∈ {Out, In, Undirected}` enum.
+  - **Algorithm**: O(|V|) — BFS level walk that mirrors the upstream C
+    loop. At each level `k`, every parent in `[parent..level_end)` is
+    expanded by pushing exactly `branches[k]` arcs apiece;
+    `level_end = child` is snapshotted before the inner loop so only
+    current-level parents are expanded. Vertex count is computed via
+    `checked_mul`/`checked_add` so pathological inputs (e.g. `[2; 32]`)
+    surface as `InvalidArgument` rather than panicking. Rejects any
+    `branches[d] == 0` with `InvalidArgument`.
+  - **Three-mode truth table** for `branches = [2, 2]` (mirrors
+    `kary_tree(7, 2, ...)`):
+
+    | mode        | directed | vcount | ecount | first edge | last edge   |
+    |-------------|----------|--------|--------|------------|-------------|
+    | Out         | true     | 7      | n-1=6  | (0, 1)     | (2, 6)      |
+    | In          | true     | 7      | n-1=6  | (1, 0)     | (6, 2)      |
+    | Undirected  | false    | 7      | n-1=6  | (0, 1)*    | (2, 6)*     |
+
+    `*` Undirected storage canonicalises endpoints as `(min, max)`.
+  - **Degenerate cases**: `branches = []` → singleton root (1 vertex, 0
+    edges); `branches = [1, 1, ...]` → linear chain (path);
+    `branches = [k]` → star K1,k anchored at vertex 0;
+    `branches[d] == 0` → `InvalidArgument`.
+  - Conformance: 14 fixtures (C × 6, py × 4, R × 4) under
+    `tests/conformance/{c,py,r}/symmetric_tree/`, comparing exact edge
+    sequences (directed modes) or canonicalised edge multisets
+    (undirected mode).
+  - Benchmarks: `benches/bench_symmetric_tree.rs` with three groups
+    (Out / In / Undirected) across `branches ∈ {[3,3,3], [4,4,4,4],
+    [5,5,5,5,5]}` (40 / 341 / 3906 vertices respectively). Baseline
+    snapshot: `.codefuse/tracking/perf/ALGO-CN-005.json` —
+    ~21-58 Melem/s, indistinguishable across the three modes.
+  - Example: `examples/symmetric_tree_demo.rs` walks through all three
+    modes plus mixed `[3,2]`, deep `[3,2,1]`, linear chain `[1,1,1]`,
+    star-collapse `[3]`, and the singleton corner case.
+  - 12 unit + 3 proptest checks in
+    `src/algorithms/constructors/symmetric_tree.rs` covering the
+    3-mode truth table, mixed branching, linear chain, single-level
+    star, overflow rejection, and the bounds / degenerate / error
+    cases.
 - **ALGO-CN-004** — `kary_tree` deterministic constructor.
   **Fourth member of the `constructors/` family.** Counterpart of
   `igraph_kary_tree` in `references/igraph/src/constructors/regular.c`.
