@@ -9241,3 +9241,291 @@ fn dot_product_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn correlated_game_three_source_conformance() {
+    // Correlated Erdős–Rényi (ALGO-GN-023). RNG state is not portable to
+    // upstream's MT/glibc RNGs, so fixtures pin corr = 1.0 cases (which
+    // produce an exact copy of `old_graph` with p_del = p_add = 0, no
+    // RNG draws needed) and read the old graph from `case.graph`.
+    // Per-fixture invariants asserted:
+    //   * vcount = old.vcount;
+    //   * directed flag = old.is_directed (correlated_game preserves it);
+    //   * ecount inside [ecount_min, ecount_max] band;
+    //   * no self-loops by construction;
+    //   * is_simple = true (no parallels either).
+    use rust_igraph::{correlated_game, is_simple};
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("correlated_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "correlated_game");
+
+            // The old graph is encoded in the top-level `graph` field.
+            let old = build_graph(&case.graph);
+            let corr = er_param_f64(&case, "corr", &path);
+            let p = er_param_f64(&case, "p", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+            let permutation_value = case
+                .params
+                .get("permutation")
+                .unwrap_or(&serde_json::Value::Null);
+            let permutation: Option<Vec<u32>> = match permutation_value {
+                serde_json::Value::Null => None,
+                serde_json::Value::Array(items) => Some(
+                    items
+                        .iter()
+                        .map(|v| {
+                            u32::try_from(v.as_u64().expect("permutation entry must be u64"))
+                                .expect("permutation entry fits u32")
+                        })
+                        .collect(),
+                ),
+                other => panic!(
+                    "correlated_game fixture {}: `permutation` must be null or array of u32 (got {other:?})",
+                    path.display()
+                ),
+            };
+
+            let graph = correlated_game(&old, corr, p, permutation.as_deref(), seed)
+                .expect("correlated_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+            if let Some(true) = case
+                .expected
+                .get("no_self_loops")
+                .and_then(serde_json::Value::as_bool)
+            {
+                for eid in 0..n_edges {
+                    let (u, v) = graph.edge(eid).expect("edge id in bounds");
+                    assert_ne!(
+                        u,
+                        v,
+                        "edge {eid}: self-loop ({u}-{v}) but no_self_loops=true in {}",
+                        path.display()
+                    );
+                }
+            }
+
+            if let Some(true) = case
+                .expected
+                .get("is_simple")
+                .and_then(serde_json::Value::as_bool)
+            {
+                assert!(
+                    is_simple(&graph).expect("is_simple ok"),
+                    "graph not simple but is_simple=true in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no correlated_game fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn correlated_pair_game_three_source_conformance() {
+    // Correlated pair (ALGO-GN-023). Each fixture's `params` carries
+    // (n, corr, p, directed, permutation, seed); `expected` carries
+    // vcount + directed + 6σ Binomial bands on ecount (applied to
+    // BOTH returned graphs, since marginals match ER(n, p)).
+    use rust_igraph::{correlated_pair_game, is_simple};
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("correlated_pair_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "correlated_pair_game");
+
+            let n = er_param_u32(&case, "n", &path);
+            let corr = er_param_f64(&case, "corr", &path);
+            let p = er_param_f64(&case, "p", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+            let permutation_value = case
+                .params
+                .get("permutation")
+                .unwrap_or(&serde_json::Value::Null);
+            let permutation: Option<Vec<u32>> = match permutation_value {
+                serde_json::Value::Null => None,
+                serde_json::Value::Array(items) => Some(
+                    items
+                        .iter()
+                        .map(|v| {
+                            u32::try_from(v.as_u64().expect("permutation entry must be u64"))
+                                .expect("permutation entry fits u32")
+                        })
+                        .collect(),
+                ),
+                other => panic!(
+                    "correlated_pair_game fixture {}: `permutation` must be null or array of u32 (got {other:?})",
+                    path.display()
+                ),
+            };
+
+            let (g1, g2) = correlated_pair_game(n, corr, p, directed, permutation.as_deref(), seed)
+                .expect("correlated_pair_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+            for (label, graph) in [("g1", &g1), ("g2", &g2)] {
+                assert_eq!(
+                    graph.vcount(),
+                    want_vertices,
+                    "{label} vcount mismatch in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+                assert_eq!(
+                    graph.is_directed(),
+                    want_directed,
+                    "{label} directed mismatch in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+
+                let ecount = graph.ecount() as u64;
+                assert!(
+                    ecount >= want_ecount_min && ecount <= want_ecount_max,
+                    "{label} ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                    ecount,
+                    want_ecount_min,
+                    want_ecount_max,
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+
+                let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+                if let Some(true) = case
+                    .expected
+                    .get("no_self_loops")
+                    .and_then(serde_json::Value::as_bool)
+                {
+                    for eid in 0..n_edges {
+                        let (u, v) = graph.edge(eid).expect("edge id in bounds");
+                        assert_ne!(
+                            u,
+                            v,
+                            "{label} edge {eid}: self-loop ({u}-{v}) but no_self_loops=true in {}",
+                            path.display()
+                        );
+                    }
+                }
+
+                if let Some(true) = case
+                    .expected
+                    .get("is_simple")
+                    .and_then(serde_json::Value::as_bool)
+                {
+                    assert!(
+                        is_simple(graph).expect("is_simple ok"),
+                        "{label} not simple but is_simple=true in {}\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no correlated_pair_game fixtures from source {src}"
+        );
+    }
+}

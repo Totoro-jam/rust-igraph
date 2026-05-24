@@ -1,0 +1,20 @@
+{
+  "awu": "ALGO-GN-023",
+  "captured_at": "2026-05-24",
+  "git_commit": "c91f834",
+  "rust_corr_sweep_n800_p2_corr00_ns": 2671900,
+  "rust_corr_sweep_n800_p2_corr025_ns": 3644800,
+  "rust_corr_sweep_n800_p2_corr05_ns": 3306500,
+  "rust_corr_sweep_n800_p2_corr075_ns": 2826000,
+  "rust_corr_sweep_n800_p2_corr10_ns": 2202600,
+  "rust_size_sweep_corr5_p2_n200_ns": 184550,
+  "rust_size_sweep_corr5_p2_n800_ns": 3499200,
+  "rust_size_sweep_corr5_p2_n3200_ns": 64218000,
+  "rust_directed_vs_undirected_n800_undirected_ns": 3503200,
+  "rust_directed_vs_undirected_n800_directed_ns": 8816400,
+  "rust_pair_game_size_sweep_n200_ns": 322520,
+  "rust_pair_game_size_sweep_n800_ns": 6186800,
+  "rust_pair_game_size_sweep_n3200_ns": 114970000,
+  "py_baseline_ns": null,
+  "notes": "Correlated Erdős–Rényi (igraph_correlated_game + igraph_correlated_pair_game, references/igraph/src/games/correlated.c lines 90-338). For corr ∈ [0, 1], let q = p + corr·(1−p), p_del = 1−q, p_add = (1−q)·p/(1−p); then delete each old edge i.i.d. with prob p_del and add each non-edge i.i.d. with prob p_add. The hot loop uses the same Batagelj–Brandes RNG_GEOM geometric-skip trick as ALGO-GN-001: two independent geometric streams advance over the m existing edges (delete stream) and the C(n,2) candidate non-edges (add stream), without visiting every Bernoulli slot. A 3-way merge of (keep, delete, add) in canonical-code order builds the output edge list. Encoding: undirected pairs use U_CODE (to·(to−1)/2 + from); directed pairs use D_CODE (to·n + from, with the diagonal-hole trick that files edges with to=n−1 into the would-be diagonal hole of column from). Cost model: Θ(m) to gather old edges + Θ(m·p_del + (C(n,2)−m)·p_add) RNG draws total (sub-Θ(n²) when corr is high) + Θ(m + adds + deletes) merge. The corr sweep shows the expected U-shape: corr=0.0 ⇒ p_del=1−p, p_add=p (independent of old) ⇒ 2.67 ms; corr=0.25 ⇒ p_del=0.6, p_add=0.15 (lots of mixed activity) ⇒ peak at 3.64 ms; corr=0.5 ⇒ 3.31 ms; corr=0.75 ⇒ 2.83 ms; corr=1.0 ⇒ p_del=p_add=0 (zero draws, pure copy of m=87 edges) ⇒ minimum at 2.20 ms. Size sweep at corr=0.5 p=0.2 climbs from 185 µs (n=200, C(n,2)=19 900 slots) through 3.50 ms (n=800, 319 600 slots) to 64.2 ms (n=3200, 5 116 800 slots) — n=200→800 ratio ≈ 19× (theory ≈ 16×) and n=800→3200 ≈ 18.4× (theory ≈ 16×), consistent with the C(n,2) slot model. Directed vs undirected at n=800 corr=0.5 p=0.2: 8.82 ms vs 3.50 ms = 2.52× (theory 2× from n(n−1) vs n(n−1)/2; the extra 0.5× is the D_CODE diagonal-hole branch). correlated_pair_game wraps two calls (one ER + one correlated_game) so it pays ≈ 1.8× the underlying correlated_game time (n=800: 6.19 ms ≈ 1.77× the 3.50 ms standalone). No oracle baseline: SplitMix64 is not bitwise-portable to C MT or R RNGkind, so conformance asserts structural invariants only across 12 fixtures (2 fixtures × {correlated_game, correlated_pair_game} × {c, py, r}). Numbers from `cargo bench --bench bench_correlated -- --quick` on Darwin/M-series release build."
+}

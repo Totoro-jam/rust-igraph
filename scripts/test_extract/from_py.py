@@ -4299,6 +4299,122 @@ DOT_PRODUCT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-023: correlated_game + correlated_pair_game. The python-igraph
+# binding does not expose direct factories for these games (no
+# `ig.Graph.Correlated(...)` or similar); the C kernels are reached via
+# the low-level `_igraph._correlated_game` / `_igraph._correlated_pair_game`
+# entry points. We mirror the *kernel* semantics here so our SplitMix64
+# backend produces structurally identical graphs. RNG state is not
+# portable to python-igraph's Mersenne Twister; structural-only fixtures
+# pin corr=1.0 cases (exact copy of old graph ⇒ exact ecount) and use 6σ
+# Binomial bands on the pair-game ecounts.
+CORRELATED_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "correlated_py_corr1_path_n4_exact_copy",
+        "origin": "constructed (mirrors `_igraph._correlated_game` with "
+        "old = ig.Graph(n=4, edges=[(0,1),(1,2),(2,3)], directed=False), "
+        "corr=1.0, p=0.5, no permutation) — corr=1 yields p_del=0 and "
+        "p_add=0, so the new graph is exactly the old; ecount = 3 exact",
+        "algo": "correlated_game",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3)],
+            directed=False,
+        ),
+        "params": {
+            "corr": 1.0,
+            "p": 0.5,
+            "permutation": None,
+            "seed": 11_022_301,
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": False,
+            "ecount_min": 3,
+            "ecount_max": 3,
+            "no_self_loops": True,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "correlated_py_corr1_cycle_n5_permutation_reverse",
+        "origin": "constructed (mirrors `_igraph._correlated_game` with "
+        "old = C5 cycle, corr=1.0, p=0.5, permutation=(4,3,2,1,0)) — "
+        "permutation only relabels vertices, ecount = 5 exact",
+        "algo": "correlated_game",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)],
+            directed=False,
+        ),
+        "params": {
+            "corr": 1.0,
+            "p": 0.5,
+            "permutation": [4, 3, 2, 1, 0],
+            "seed": 11_022_302,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "ecount_min": 5,
+            "ecount_max": 5,
+            "no_self_loops": True,
+            "is_simple": True,
+        },
+    },
+]
+
+CORRELATED_PAIR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "correlated_pair_py_n30_corr5_p2_undirected",
+        "origin": "constructed (mirrors `_igraph._correlated_pair_game` "
+        "with n=30, corr=0.5, p=0.2, directed=false) — both graphs are "
+        "ER-marginal: mean ecount = C(30,2)·0.2 = 87, σ ≈ 8.34, "
+        "conservative band [40, 140]",
+        "algo": "correlated_pair_game",
+        "params": {
+            "n": 30,
+            "corr": 0.5,
+            "p": 0.2,
+            "directed": False,
+            "permutation": None,
+            "seed": 11_022_311,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "ecount_min": 40,
+            "ecount_max": 140,
+            "no_self_loops": True,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "correlated_pair_py_n20_corr8_p25_directed",
+        "origin": "constructed (mirrors `_igraph._correlated_pair_game` "
+        "with n=20, corr=0.8, p=0.25, directed=true) — both graphs are "
+        "ER-marginal: mean ecount = 20·19·0.25 = 95, σ ≈ 8.44, "
+        "conservative band [45, 150]",
+        "algo": "correlated_pair_game",
+        "params": {
+            "n": 20,
+            "corr": 0.8,
+            "p": 0.25,
+            "directed": True,
+            "permutation": None,
+            "seed": 11_022_312,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": True,
+            "ecount_min": 45,
+            "ecount_max": 150,
+            "no_self_loops": True,
+            "is_simple": True,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors
 # `ig.Graph.SBM`-like factory `ig.Graph.SimpleInterconnectedIslands(
 # islands_n, islands_size, islands_pin, n_inter)` (Cython wrapper on
@@ -5337,6 +5453,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
     "barabasi_aging_game": BARABASI_AGING_MANIFEST,
     "dot_product_game": DOT_PRODUCT_MANIFEST,
+    "correlated_game": CORRELATED_MANIFEST,
+    "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5450,6 +5568,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "barabasi_game_psumtree",
             "barabasi_aging_game",
             "dot_product_game",
+            "correlated_pair_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

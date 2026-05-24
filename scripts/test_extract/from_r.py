@@ -4558,6 +4558,122 @@ DOT_PRODUCT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-023: correlated_game + correlated_pair_game. rigraph exposes
+# `sample_correlated_gnp(old.graph, corr, p, permutation = NULL)` and
+# `sample_correlated_gnp_pair(n, corr, p, directed = FALSE,
+# permutation = NULL)` as the canonical wrappers around
+# `igraph_correlated_game` / `igraph_correlated_pair_game`. RNG state
+# is not portable to R's RNGkind; structural-only fixtures pin
+# corr = 1 cases (exact copy of old graph) and use 6σ Binomial bands
+# for the pair-game ecounts.
+CORRELATED_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "correlated_r_corr1_path_n4_exact_copy",
+        "origin": "constructed (mirrors sample_correlated_gnp(old.graph = "
+        "make_graph(c(1,2, 2,3, 3,4), n=4, directed=FALSE), corr=1.0, "
+        "p=0.5, permutation=NULL)) — corr=1 yields exact copy of old; "
+        "ecount = 3 exact",
+        "algo": "correlated_game",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3)],
+            directed=False,
+        ),
+        "params": {
+            "corr": 1.0,
+            "p": 0.5,
+            "permutation": None,
+            "seed": 11_042_301,
+        },
+        "expected": {
+            "vcount": 4,
+            "directed": False,
+            "ecount_min": 3,
+            "ecount_max": 3,
+            "no_self_loops": True,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "correlated_r_corr1_cycle_n5_permutation_reverse",
+        "origin": "constructed (mirrors sample_correlated_gnp(old.graph = "
+        "make_ring(5, directed=FALSE), corr=1.0, p=0.5, "
+        "permutation=c(5,4,3,2,1) - 1 in 0-based)) — permutation only "
+        "relabels vertices, ecount = 5 exact",
+        "algo": "correlated_game",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)],
+            directed=False,
+        ),
+        "params": {
+            "corr": 1.0,
+            "p": 0.5,
+            "permutation": [4, 3, 2, 1, 0],
+            "seed": 11_042_302,
+        },
+        "expected": {
+            "vcount": 5,
+            "directed": False,
+            "ecount_min": 5,
+            "ecount_max": 5,
+            "no_self_loops": True,
+            "is_simple": True,
+        },
+    },
+]
+
+CORRELATED_PAIR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "correlated_pair_r_n30_corr5_p2_undirected",
+        "origin": "constructed (mirrors sample_correlated_gnp_pair(n=30, "
+        "corr=0.5, p=0.2, directed=FALSE, permutation=NULL)) — both "
+        "graphs ER-marginal: mean ecount = C(30,2)·0.2 = 87, σ ≈ 8.34, "
+        "conservative band [40, 140]",
+        "algo": "correlated_pair_game",
+        "params": {
+            "n": 30,
+            "corr": 0.5,
+            "p": 0.2,
+            "directed": False,
+            "permutation": None,
+            "seed": 11_042_311,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "ecount_min": 40,
+            "ecount_max": 140,
+            "no_self_loops": True,
+            "is_simple": True,
+        },
+    },
+    {
+        "case": "correlated_pair_r_n20_corr8_p25_directed",
+        "origin": "constructed (mirrors sample_correlated_gnp_pair(n=20, "
+        "corr=0.8, p=0.25, directed=TRUE, permutation=NULL)) — both "
+        "graphs ER-marginal: mean ecount = 20·19·0.25 = 95, σ ≈ 8.44, "
+        "conservative band [45, 150]",
+        "algo": "correlated_pair_game",
+        "params": {
+            "n": 20,
+            "corr": 0.8,
+            "p": 0.25,
+            "directed": True,
+            "permutation": None,
+            "seed": 11_042_312,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": True,
+            "ecount_min": 45,
+            "ecount_max": 150,
+            "no_self_loops": True,
+            "is_simple": True,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -5640,6 +5756,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
     "barabasi_aging_game": BARABASI_AGING_MANIFEST,
     "dot_product_game": DOT_PRODUCT_MANIFEST,
+    "correlated_game": CORRELATED_MANIFEST,
+    "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5753,6 +5871,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "barabasi_game_psumtree",
             "barabasi_aging_game",
             "dot_product_game",
+            "correlated_pair_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

@@ -404,7 +404,7 @@ mod tests {
         let edges_of = |g: &Graph| {
             let mut v: Vec<(VertexId, VertexId)> =
                 (0..g.ecount()).map(|e| g.edge(e as u32).unwrap()).collect();
-            v.sort();
+            v.sort_unstable();
             v
         };
         assert_ne!(edges_of(&g1), edges_of(&g2));

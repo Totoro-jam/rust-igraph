@@ -15,6 +15,72 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-023** — `correlated_game` + `correlated_pair_game` correlated
+  Erdős–Rényi graph generators. Counterparts of `igraph_correlated_game()`
+  and `igraph_correlated_pair_game()` in
+  `references/igraph/src/games/correlated.c` (lines 90-338). Given a
+  simple input graph on `n` vertices with target marginal density `p`,
+  `correlated_game` returns a new simple graph whose adjacency vector has
+  Pearson correlation `corr ∈ [0, 1]` with the input's. The construction
+  solves the elementary 2×2 contingency table —
+  `q = p + corr·(1−p)`, `p_del = 1−q` (drop an existing edge),
+  `p_add = (1−q)·p/(1−p)` (create a non-edge) — so the marginal density
+  is preserved exactly in expectation.
+  - `pub fn correlated_game(old_graph: &Graph, corr: f64, p: f64, permutation: Option<&[VertexId]>, seed: u64) -> IgraphResult<Graph>`
+    — relabels endpoints through `permutation` (interpreted as in the
+    upstream C: `perm[i]` names the old vertex that becomes new vertex
+    `i`, so we apply its inverse).
+  - `pub fn correlated_pair_game(n: u32, corr: f64, p: f64, directed: bool, permutation: Option<&[VertexId]>, seed: u64) -> IgraphResult<(Graph, Graph)>`
+    — convenience wrapper that samples a fresh `ER(n, p)` graph and a
+    correlated counterpart from a single user seed.
+  - **Sampling strategy**: the per-position Bernoullis are sampled via
+    the same Batagelj–Brandes RNG_GEOM geometric-skip trick used in
+    [`erdos_renyi_gnp`] — two independent geometric streams skip directly
+    over kept-or-skipped edge slots without visiting every `O(n²)`
+    position. A 3-way merge interleaves the kept edges, the deletes, and
+    the additions in canonical-code order. Undirected codes use the
+    upper-triangular `to·(to−1)/2 + from` encoding; directed codes use
+    the diagonal-hole `D_CODE` encoding from upstream
+    (`to·n + from`, with the `to == n−1` edges filed into the
+    would-be diagonal hole of column `from`).
+  - **Construction guarantees**: simple-by-construction (no self-loops,
+    no parallel edges); `directed` flag of the output matches the input;
+    deterministic in `seed`; `corr = 0` ⇒ independent ER(n, p) sample
+    (delegated to `erdos_renyi_gnp` for the zero-corr fast path);
+    `corr = 1` ⇒ exact copy of the old graph (`p_del = p_add = 0`, no
+    RNG draws consumed).
+  - **Validation**: `corr ∈ [0, 1]`; `p ∈ (0, 1)`; `permutation` must be
+    a permutation of `[0, n)` (each vertex appears exactly once);
+    `old_graph` must be simple. All four error paths covered.
+  - **Edge cases**: `n = 0` empty input; `n = 1` singleton (no candidate
+    pairs); `directed` input preserved through the output.
+  - **Coverage**: 20 unit tests + 5 proptests + 2 doctests covering
+    code/decode round-trip / bijection / determinism / seed-divergence /
+    `corr = 0` and `corr = 1` special cases / directed handling /
+    permutation correctness / simple-by-construction / `correlated_pair_game`
+    correlation baseline / all four validation error paths.
+  - **Three-source conformance**: 12 JSON fixtures under
+    `tests/conformance/{c,py,r}/{correlated_game,correlated_pair_game}/`
+    — `corr = 1` exact-copy on a `P4` path and a `C5` cycle (the latter
+    with reverse permutation) for `correlated_game`; `n = 30` undirected
+    and `n = 20` directed `correlated_pair_game` with 6σ Binomial bands
+    on both returned graphs. RNG state is not portable across
+    implementations (MT in C, R RNGkind, NumPy in py), so conformance
+    asserts structural invariants only (vcount, directed flag, ecount
+    band, no self-loops, `is_simple`).
+  - **Bench + example**: Criterion bench `benches/bench_correlated.rs`
+    sweeps `corr ∈ {0, 0.25, 0.5, 0.75, 1.0}` at `n = 800`, vertex count
+    `n ∈ {200, 800, 3 200}` at `corr = 0.5`, and directed vs undirected
+    at `n = 800`. The corr sweep traces the expected U-shape: `corr = 0`
+    (2.67 ms) ⇒ peaks at `corr = 0.25` (3.64 ms, mixed delete + add
+    activity) ⇒ `corr = 1` minimum (2.20 ms, zero RNG draws). Runnable
+    example `examples/correlated_pair_demo.rs` samples a `(g1, g2)` pair
+    at six `corr` values on `n = 200, p = 0.1`, reporting ecounts,
+    intersection size, Jaccard overlap, and the empirical Pearson
+    correlation — the empirical ρ̂ tracks the requested `corr` to within
+    a few percent, and at `corr = 1.0` both graphs have exactly the same
+    edge set (Jaccard = 1.0).
+
 - **ALGO-GN-022** — `dot_product_game` random dot-product graph
   generator. Counterpart of `igraph_dot_product_game()` in
   `references/igraph/src/games/dotproduct.c` (lines 59-102). For each

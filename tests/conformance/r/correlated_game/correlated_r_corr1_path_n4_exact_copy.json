@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_correlated_gnp(old.graph = make_graph(c(1,2, 2,3, 3,4), n=4, directed=FALSE), corr=1.0, p=0.5, permutation=NULL)) \u2014 corr=1 yields exact copy of old; ecount = 3 exact",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "correlated_game",
+  "params": {
+    "corr": 1.0,
+    "p": 0.5,
+    "permutation": null,
+    "seed": 11042301
+  },
+  "expected": {
+    "vcount": 4,
+    "directed": false,
+    "ecount_min": 3,
+    "ecount_max": 3,
+    "no_self_loops": true,
+    "is_simple": true
+  }
+}

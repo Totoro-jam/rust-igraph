@@ -1,0 +1,52 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors `_igraph._correlated_game` with old = C5 cycle, corr=1.0, p=0.5, permutation=(4,3,2,1,0)) \u2014 permutation only relabels vertices, ecount = 5 exact",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "correlated_game",
+  "params": {
+    "corr": 1.0,
+    "p": 0.5,
+    "permutation": [
+      4,
+      3,
+      2,
+      1,
+      0
+    ],
+    "seed": 11022302
+  },
+  "expected": {
+    "vcount": 5,
+    "directed": false,
+    "ecount_min": 5,
+    "ecount_max": 5,
+    "no_self_loops": true,
+    "is_simple": true
+  }
+}

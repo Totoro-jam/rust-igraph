@@ -1,0 +1,38 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors `_igraph._correlated_game` with old = ig.Graph(n=4, edges=[(0,1),(1,2),(2,3)], directed=False), corr=1.0, p=0.5, no permutation) \u2014 corr=1 yields p_del=0 and p_add=0, so the new graph is exactly the old; ecount = 3 exact",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "correlated_game",
+  "params": {
+    "corr": 1.0,
+    "p": 0.5,
+    "permutation": null,
+    "seed": 11022301
+  },
+  "expected": {
+    "vcount": 4,
+    "directed": false,
+    "ecount_min": 3,
+    "ecount_max": 3,
+    "no_self_loops": true,
+    "is_simple": true
+  }
+}

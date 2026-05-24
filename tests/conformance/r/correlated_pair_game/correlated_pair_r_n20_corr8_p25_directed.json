@@ -1,0 +1,27 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_correlated_gnp_pair(n=20, corr=0.8, p=0.25, directed=TRUE, permutation=NULL)) \u2014 both graphs ER-marginal: mean ecount = 20\u00b719\u00b70.25 = 95, \u03c3 \u2248 8.44, conservative band [45, 150]",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "correlated_pair_game",
+  "params": {
+    "n": 20,
+    "corr": 0.8,
+    "p": 0.25,
+    "directed": true,
+    "permutation": null,
+    "seed": 11042312
+  },
+  "expected": {
+    "vcount": 20,
+    "directed": true,
+    "ecount_min": 45,
+    "ecount_max": 150,
+    "no_self_loops": true,
+    "is_simple": true
+  }
+}

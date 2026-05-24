@@ -1,0 +1,38 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_correlated_game with old = path P4 on n=4 vertices, corr=1.0, p=0.5, no permutation) \u2014 corr=1 yields p_del=0, p_add=0, so the new graph is an *exact copy* of the old graph; ecount = 3 exact",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "correlated_game",
+  "params": {
+    "corr": 1.0,
+    "p": 0.5,
+    "permutation": null,
+    "seed": 11002301
+  },
+  "expected": {
+    "vcount": 4,
+    "directed": false,
+    "ecount_min": 3,
+    "ecount_max": 3,
+    "no_self_loops": true,
+    "is_simple": true
+  }
+}
