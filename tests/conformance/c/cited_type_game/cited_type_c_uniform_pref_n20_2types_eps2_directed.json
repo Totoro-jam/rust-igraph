@@ -1,0 +1,51 @@
+{
+  "source": "c",
+  "origin": "constructed (mirrors igraph_cited_type_game(n=20, types=[0,1,0,1,...], pref=[1,1], edges_per_step=2, directed)) \u2014 uniform pref \u21d2 exactly (n-1)*eps edges, no self-loops",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "cited_type_game",
+  "params": {
+    "nodes": 20,
+    "types": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+    ],
+    "pref": [
+      1.0,
+      1.0
+    ],
+    "edges_per_step": 2,
+    "directed": true,
+    "seed": 9992001
+  },
+  "expected": {
+    "vcount": 20,
+    "directed": true,
+    "ecount_min": 38,
+    "ecount_max": 38,
+    "no_self_loops": true,
+    "max_type": 1
+  }
+}

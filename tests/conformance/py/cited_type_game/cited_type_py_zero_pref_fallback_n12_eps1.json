@@ -1,0 +1,42 @@
+{
+  "source": "py",
+  "origin": "constructed (Graph.Cited_Type with pref=[0.0]): sum=0 fallback path \u21d2 every citation is a self-loop on the step vertex",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "cited_type_game",
+  "params": {
+    "nodes": 12,
+    "types": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "pref": [
+      0.0
+    ],
+    "edges_per_step": 1,
+    "directed": true,
+    "seed": 9993013
+  },
+  "expected": {
+    "vcount": 12,
+    "directed": true,
+    "ecount_min": 11,
+    "ecount_max": 11,
+    "all_self_loops": true,
+    "max_type": 0
+  }
+}

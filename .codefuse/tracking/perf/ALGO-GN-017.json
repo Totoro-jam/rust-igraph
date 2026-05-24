@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-GN-017",
+  "captured_at": "2026-05-24",
+  "git_commit": "c55de0b",
+  "rust_size_eps3_uniform_n500_ns": 60001,
+  "rust_size_eps3_uniform_n5000_ns": 806320,
+  "rust_eps1_n1000_skewed_ns": 35868,
+  "rust_eps4_n1000_skewed_ns": 175180,
+  "rust_eps16_n1000_skewed_ns": 826350,
+  "rust_undirected_n1000_uniform_ns": 174230,
+  "py_baseline_ns": null,
+  "notes": "Cited-type growing citation model (Redner 1998-style). Types are pre-assigned INPUT (not sampled — key contrast with establishment_game / callaway_traits_game). For each new vertex i in 1..n, draw `edges_per_step` outgoing citations independently with probability proportional to pref[type[v]] over previously-added v; implemented as a single incrementally-grown cumulative-sum vector + RNG_UNIF binsearch (partition_point) per citation. Multi-edges allowed when eps>=2 (independent draws can collide); self-loops only via the sum=0 fallback (when every previously-assigned type has pref=0). Hot loop is O((n-1)*eps*log n): one rng.gen_unit + one cumsum.partition_point (log n) + one push back per citation, with the final batched add_edges rebuilding the index once. Throughput on size_scaling/eps3_uniform: 500 -> 60.0 us, 5000 -> 806.3 us — ~6 Melem/s, near-linear in n*log n. eps_count/n1000_skewed: 36/175/826 us for eps in {1,4,16}, confirming linear-in-eps total candidate count. Undirected/n1000_uniform at 174 us matches the directed eps=4 path (the directed flag only affects Graph storage canonicalization, not the citation logic). Crucial optimization vs the first draft: switched from per-edge add_edge (which rebuilds the index O(m) times -> O(m^2) overall, ~4.6 s for n=5000 eps=3) to a single batched add_edges, yielding the 5700x speed-up captured here. No oracle baseline: igraph C exposes igraph_cited_type_game and python-igraph/rigraph wrap it via Graph.Cited_Type / sample_cit_types, but the RNG state isn't portable to upstream GLIBC, so conformance asserts structural invariants only (vcount exact, ecount exact = (nodes-1)*eps, directed flag, max_type bound, optional no_self_loops / all_self_loops checks). Numbers from cargo bench --bench bench_cited_type on Darwin/M-series release build."
+}

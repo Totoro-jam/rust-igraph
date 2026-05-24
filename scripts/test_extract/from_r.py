@@ -4061,6 +4061,85 @@ CALLAWAY_TRAITS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-017: cited_type_game. Mirrors rigraph's
+# `sample_cit_types(types, pref, edges, directed=TRUE)` — an R wrapper
+# on `igraph_cited_type_game`. Vertex types are PRE-ASSIGNED by the
+# caller (not sampled), and each new vertex i ∈ [1, nodes) adds
+# `edges` outgoing citations to previously-added vertices with
+# probability ∝ pref[type[v]]. Multi-edges allowed; self-loops only
+# via sum=0 fallback. RNG state is not portable — structural invariants
+# only.
+CITED_TYPE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "cited_type_r_uniform_pref_n30_2types_eps3",
+        "origin": "tests/testthat/test-aaa-auto.R::sample_cit_types — "
+        "sample_cit_types(types=[0,1,0,1,...], pref=[1,1], edges=3, "
+        "directed=TRUE)",
+        "algo": "cited_type_game",
+        "params": {
+            "nodes": 30,
+            "types": [v % 2 for v in range(30)],
+            "pref": [1.0, 1.0],
+            "edges_per_step": 3,
+            "directed": True,
+            "seed": 2_224_001,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": True,
+            "ecount_min": 87,  # (30-1)*3 = 87
+            "ecount_max": 87,
+            "no_self_loops": True,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "cited_type_r_concentrated_pref_n50_3types_eps2_undirected",
+        "origin": "constructed (sample_cit_types with concentrated "
+        "pref=[10, 1, 0.05]): heavy citation skew, no self-loops, "
+        "exact (n-1)*eps = 98 edges",
+        "algo": "cited_type_game",
+        "params": {
+            "nodes": 50,
+            "types": [v % 3 for v in range(50)],
+            "pref": [10.0, 1.0, 0.05],
+            "edges_per_step": 2,
+            "directed": False,
+            "seed": 2_224_002,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": False,
+            "ecount_min": 98,
+            "ecount_max": 98,
+            "no_self_loops": True,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "cited_type_r_eps1_single_type_n15",
+        "origin": "constructed (sample_cit_types with edges=1, pref=[1]): "
+        "exactly (n-1) edges = 14, no self-loops",
+        "algo": "cited_type_game",
+        "params": {
+            "nodes": 15,
+            "types": [0 for _ in range(15)],
+            "pref": [1.0],
+            "edges_per_step": 1,
+            "directed": True,
+            "seed": 2_224_003,
+        },
+        "expected": {
+            "vcount": 15,
+            "directed": True,
+            "ecount_min": 14,
+            "ecount_max": 14,
+            "no_self_loops": True,
+            "max_type": 0,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -5137,6 +5216,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "establishment_game": ESTABLISHMENT_MANIFEST,
     "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
+    "cited_type_game": CITED_TYPE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5244,6 +5324,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "asymmetric_preference_game",
             "establishment_game",
             "callaway_traits_game",
+            "cited_type_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

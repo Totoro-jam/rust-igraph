@@ -1,0 +1,72 @@
+{
+  "source": "py",
+  "origin": "constructed (Graph.Cited_Type): three types with highly skewed pref=[5.0, 0.5, 0.01]; positive pref \u21d2 no self-loops, exactly (n-1)*eps = 117 edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "cited_type_game",
+  "params": {
+    "nodes": 40,
+    "types": [
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0
+    ],
+    "pref": [
+      5.0,
+      0.5,
+      0.01
+    ],
+    "edges_per_step": 3,
+    "directed": false,
+    "seed": 9993012
+  },
+  "expected": {
+    "vcount": 40,
+    "directed": false,
+    "ecount_min": 117,
+    "ecount_max": 117,
+    "no_self_loops": true,
+    "max_type": 2
+  }
+}

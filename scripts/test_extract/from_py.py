@@ -3802,6 +3802,84 @@ CALLAWAY_TRAITS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-017: cited_type_game. Mirrors ig.Graph.Cited_Type(
+# types, pref, edges_per_step, directed, ...) — Cython wrapper on
+# `igraph_cited_type_game`. Vertex types are PRE-ASSIGNED by the caller
+# (not sampled); each new vertex i ∈ [1, nodes) adds eps citations to
+# previously-added vertices weighted by pref[type[v]]. RNG state is not
+# portable; structural invariants only. Multi-edges allowed when eps≥2;
+# self-loops only via sum=0 fallback.
+CITED_TYPE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "cited_type_py_uniform_pref_n25_2types_eps2",
+        "origin": "tests/test_games.py-style — Graph.Cited_Type(types=[0,1,...], "
+        "pref=[1.0,1.0], edges_per_step=2, directed): uniform pref ⇒ "
+        "exactly (n-1)*eps = 48 edges, no self-loops",
+        "algo": "cited_type_game",
+        "params": {
+            "nodes": 25,
+            "types": [v % 2 for v in range(25)],
+            "pref": [1.0, 1.0],
+            "edges_per_step": 2,
+            "directed": True,
+            "seed": 9_993_011,
+        },
+        "expected": {
+            "vcount": 25,
+            "directed": True,
+            "ecount_min": 48,
+            "ecount_max": 48,
+            "no_self_loops": True,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "cited_type_py_skewed_pref_n40_3types_eps3_undirected",
+        "origin": "constructed (Graph.Cited_Type): three types with "
+        "highly skewed pref=[5.0, 0.5, 0.01]; positive pref ⇒ no "
+        "self-loops, exactly (n-1)*eps = 117 edges",
+        "algo": "cited_type_game",
+        "params": {
+            "nodes": 40,
+            "types": [v % 3 for v in range(40)],
+            "pref": [5.0, 0.5, 0.01],
+            "edges_per_step": 3,
+            "directed": False,
+            "seed": 9_993_012,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": False,
+            "ecount_min": 117,
+            "ecount_max": 117,
+            "no_self_loops": True,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "cited_type_py_zero_pref_fallback_n12_eps1",
+        "origin": "constructed (Graph.Cited_Type with pref=[0.0]): sum=0 "
+        "fallback path ⇒ every citation is a self-loop on the step vertex",
+        "algo": "cited_type_game",
+        "params": {
+            "nodes": 12,
+            "types": [0 for _ in range(12)],
+            "pref": [0.0],
+            "edges_per_step": 1,
+            "directed": True,
+            "seed": 9_993_013,
+        },
+        "expected": {
+            "vcount": 12,
+            "directed": True,
+            "ecount_min": 11,  # (12-1)*1 = 11
+            "ecount_max": 11,
+            "all_self_loops": True,
+            "max_type": 0,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors
 # `ig.Graph.SBM`-like factory `ig.Graph.SimpleInterconnectedIslands(
 # islands_n, islands_size, islands_pin, n_inter)` (Cython wrapper on
@@ -4834,6 +4912,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "establishment_game": ESTABLISHMENT_MANIFEST,
     "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
+    "cited_type_game": CITED_TYPE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -4941,6 +5020,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "asymmetric_preference_game",
             "establishment_game",
             "callaway_traits_game",
+            "cited_type_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

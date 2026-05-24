@@ -4103,6 +4103,78 @@ CALLAWAY_TRAITS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CITED_TYPE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "cited_type_c_uniform_pref_n20_2types_eps2_directed",
+        "origin": "constructed (mirrors igraph_cited_type_game(n=20, "
+        "types=[0,1,0,1,...], pref=[1,1], edges_per_step=2, directed)) — "
+        "uniform pref ⇒ exactly (n-1)*eps edges, no self-loops",
+        "algo": "cited_type_game",
+        "params": {
+            "nodes": 20,
+            "types": [v % 2 for v in range(20)],
+            "pref": [1.0, 1.0],
+            "edges_per_step": 2,
+            "directed": True,
+            "seed": 9_992_001,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": True,
+            "ecount_min": 38,  # (20-1)*2 = 38
+            "ecount_max": 38,
+            "no_self_loops": True,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "cited_type_c_skewed_pref_n30_3types_eps3_undirected",
+        "origin": "constructed (mirrors igraph_cited_type_game(n=30, "
+        "types=[0,1,2,...], pref=[3.0,1.0,0.1], edges_per_step=3, undirected)) — "
+        "positive pref everywhere ⇒ (n-1)*eps edges, no self-loops",
+        "algo": "cited_type_game",
+        "params": {
+            "nodes": 30,
+            "types": [v % 3 for v in range(30)],
+            "pref": [3.0, 1.0, 0.1],
+            "edges_per_step": 3,
+            "directed": False,
+            "seed": 9_992_002,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "ecount_min": 87,  # (30-1)*3 = 87
+            "ecount_max": 87,
+            "no_self_loops": True,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "cited_type_c_zero_pref_self_loop_fallback_n10",
+        "origin": "constructed (mirrors igraph_cited_type_game(n=10, "
+        "types=[0]*10, pref=[0.0], edges_per_step=2, undirected)) — "
+        "sum=0 fallback ⇒ every citation is a self-loop on the step vertex",
+        "algo": "cited_type_game",
+        "params": {
+            "nodes": 10,
+            "types": [0 for _ in range(10)],
+            "pref": [0.0],
+            "edges_per_step": 2,
+            "directed": False,
+            "seed": 9_992_003,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": False,
+            "ecount_min": 18,  # (10-1)*2 = 18
+            "ecount_max": 18,
+            "all_self_loops": True,
+            "max_type": 0,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -5373,6 +5445,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "establishment_game": ESTABLISHMENT_MANIFEST,
     "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
+    "cited_type_game": CITED_TYPE_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5485,6 +5558,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "asymmetric_preference_game",
             "establishment_game",
             "callaway_traits_game",
+            "cited_type_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

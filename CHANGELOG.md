@@ -15,6 +15,80 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-017** — `cited_type_game` cited-type / type-weighted
+  growing citation network. Counterpart of `igraph_cited_type_game()`
+  in `references/igraph/src/games/citations.c:246-335`. Models a
+  growing citation network where vertex types are **pre-assigned by
+  the caller** (not sampled internally — the key contrast vs
+  `establishment_game` and `callaway_traits_game`): for each new
+  vertex `i ∈ [1, nodes)`, draw `edges_per_step` outgoing citations
+  independently, each targeting a previously-added vertex `v` with
+  probability proportional to `pref[type[v]]`. Sampling uses an
+  incrementally-grown cumulative-sum vector and `partition_point`
+  inverse-transform — `O((n−1)·eps·log n)` overall, with a single
+  batched `add_edges` to avoid the `add_edge`/`rebuild_indexes`
+  `O(m²)` trap. Multi-edges are allowed when `edges_per_step ≥ 2`
+  (independent draws can collide); self-loops only appear via the
+  `sum = 0` fallback path (when every assigned type has zero
+  attractivity).
+  - `pub fn cited_type_game(nodes: u32, types: &[u32], pref: &[f64], edges_per_step: u32, directed: bool, seed: u64) -> IgraphResult<Graph>`.
+  - Validation: `types.len() == nodes`; `pref.len() ≥ max(types) + 1`
+    (with overflow check); every `pref[i]` finite, non-NaN, and
+    non-negative.
+  - Edge cases: `nodes = 0` returns an empty graph; `nodes < 2` or
+    `edges_per_step = 0` returns the vertex-only graph; when
+    `pref` is identically zero (or every assigned type has
+    `pref = 0` so far), each step falls back to emitting a self-loop
+    on the step vertex — matching the C reference behaviour.
+  - Coverage: 18 unit tests (vcount/ecount exactness when pref > 0,
+    determinism, seed divergence, all-zero-pref self-loop fallback,
+    positive-pref no-self-loops, directed/undirected flag
+    propagation, all 6 validation error paths, concentration on
+    non-zero-pref types, heavy-skew concentration) + 5 proptests
+    (`ecount_exact_when_pref_positive`,
+    `no_self_loops_when_pref_positive`,
+    `source_is_always_step_index`,
+    `target_in_zero_to_step_minus_one`,
+    `determinism_under_proptest`) under `--features proptest-harness`
+    + 9 three-source conformance fixtures (3 each from C / py / R)
+    under `tests/conformance/{c,py,r}/cited_type_game/` asserting
+    structural invariants only — RNG state is not portable across
+    SplitMix64 vs igraph's GLIBC RNG, so we assert `vcount = nodes`
+    (exact), `directed` flag (exact), `ecount` exact = `(n−1)·eps`
+    when `nodes ≥ 2` and `eps > 0`, `max(types)` bound, and the
+    optional `no_self_loops` (when all pref > 0) / `all_self_loops`
+    (under the sum=0 fallback) flags. Notably we do NOT assert
+    `is_simple` — multi-edges are part of the model.
+  - Bench at `benches/bench_cited_type.rs`: a
+    `size_scaling/eps3_uniform` sweep at fixed `types = 4,
+    edges_per_step = 3` with uniform pref (`n ∈ {500, 5_000}`), an
+    `eps_count/n1000_skewed` sweep at `n = 1_000, types = 3,
+    pref = [10.0, 1.0, 0.05]` over `edges_per_step ∈ {1, 4, 16}`,
+    and an `undirected/n1000_uniform` point at `n = 1_000, types = 2,
+    edges_per_step = 4`. Baseline at
+    `.codefuse/tracking/perf/ALGO-GN-017.json`: the size-scaling axis
+    holds near 6-8 Melem/s (60 µs / 806 µs for n ∈ {500, 5_000}),
+    the eps-sweep scales linearly in `eps` (36 / 175 / 826 µs for
+    `eps ∈ {1, 4, 16}` at `n = 1_000`) confirming the
+    `(n − 1) · eps` candidate-edge bound, the undirected variant
+    matches the directed `eps = 4` baseline at 174 µs (the
+    `directed` flag only affects canonicalisation in `Graph`
+    storage, not the citation logic). Crucial perf win during
+    implementation: switching from per-edge `add_edge` (which rebuilds
+    the edge index `O(m)` times → `O(m²)` overall, ~4.6 s for
+    `n = 5_000` `eps = 3`) to a single batched `add_edges` yields a
+    5_700× speed-up.
+  - Example: `examples/cited_type_demo.rs` builds a 2 000-vertex
+    directed graph with round-robin `types = 3,
+    edges_per_step = 3`, sharply skewed `pref = [10.0, 1.0, 0.05]`;
+    prints exact ecount, per-type vertex counts, self-loop and
+    multi-bundle counts, and per-type in-degree share. The observed
+    in-degree share (90.1% / 9.6% / 0.4%) tracks the pref-implied
+    target (90.5% / 9.0% / 0.5%) closely — empirical confirmation
+    that the cumulative-sum binsearch implements the type-weighted
+    distribution correctly.
+  - Re-exported as `rust_igraph::cited_type_game`.
+
 - **ALGO-GN-016** — `callaway_traits_game` Callaway et al. (2001)
   growing-traits random graph generator. Counterpart of
   `igraph_callaway_traits_game()` in

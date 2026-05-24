@@ -1,0 +1,56 @@
+{
+  "source": "py",
+  "origin": "tests/test_games.py-style \u2014 Graph.Cited_Type(types=[0,1,...], pref=[1.0,1.0], edges_per_step=2, directed): uniform pref \u21d2 exactly (n-1)*eps = 48 edges, no self-loops",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "cited_type_game",
+  "params": {
+    "nodes": 25,
+    "types": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    "pref": [
+      1.0,
+      1.0
+    ],
+    "edges_per_step": 2,
+    "directed": true,
+    "seed": 9993011
+  },
+  "expected": {
+    "vcount": 25,
+    "directed": true,
+    "ecount_min": 48,
+    "ecount_max": 48,
+    "no_self_loops": true,
+    "max_type": 1
+  }
+}

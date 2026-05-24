@@ -1,0 +1,45 @@
+{
+  "source": "r",
+  "origin": "constructed (sample_cit_types with edges=1, pref=[1]): exactly (n-1) edges = 14, no self-loops",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "cited_type_game",
+  "params": {
+    "nodes": 15,
+    "types": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "pref": [
+      1.0
+    ],
+    "edges_per_step": 1,
+    "directed": true,
+    "seed": 2224003
+  },
+  "expected": {
+    "vcount": 15,
+    "directed": true,
+    "ecount_min": 14,
+    "ecount_max": 14,
+    "no_self_loops": true,
+    "max_type": 0
+  }
+}
