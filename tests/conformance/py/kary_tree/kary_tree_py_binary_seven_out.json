@@ -1,0 +1,47 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Tree(n=7, children=2, mode='out') \u2014 perfect binary tree, parent\u2192child arcs",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "kary_tree",
+  "params": {
+    "n": 7,
+    "children": 2,
+    "mode": "Out"
+  },
+  "expected": {
+    "vcount": 7,
+    "ecount": 6,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        2,
+        6
+      ]
+    ]
+  }
+}

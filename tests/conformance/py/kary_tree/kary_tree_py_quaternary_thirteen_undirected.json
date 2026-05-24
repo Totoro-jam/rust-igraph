@@ -1,0 +1,71 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Tree(n=13, children=4, mode='undirected') \u2014 depth-2 quaternary tree (1 + 4 + 8 = 13 vertices)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "kary_tree",
+  "params": {
+    "n": 13,
+    "children": 4,
+    "mode": "Undirected"
+  },
+  "expected": {
+    "vcount": 13,
+    "ecount": 12,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        1,
+        8
+      ],
+      [
+        2,
+        9
+      ],
+      [
+        2,
+        10
+      ],
+      [
+        2,
+        11
+      ],
+      [
+        2,
+        12
+      ]
+    ]
+  }
+}

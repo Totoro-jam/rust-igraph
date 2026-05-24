@@ -11034,3 +11034,175 @@ fn wheel_graph_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + 3-mode parse + directed/canon compare
+fn kary_tree_three_source_conformance() {
+    // k-ary tree builds a BFS-ordered rooted tree: parent 0 → children
+    // 1..=children, then parent 1 → next children, etc. Edge sequence is
+    // deterministic and documented in `regular.c:igraph_kary_tree`. For
+    // OUT/UNDIRECTED the raw arc is `(parent, child)`; for IN it is
+    // `(child, parent)`. Rust storage canonicalises undirected edges,
+    // so we compare canonical multisets for Undirected and exact
+    // ordered vectors for the directed modes.
+    use rust_igraph::{TreeMode, kary_tree};
+
+    fn canon(u: u32, v: u32) -> (u32, u32) {
+        if u <= v { (u, v) } else { (v, u) }
+    }
+
+    fn parse_mode(case: &Conformance, path: &std::path::Path) -> TreeMode {
+        let raw = case
+            .params
+            .get("mode")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_else(|| {
+                panic!(
+                    "kary_tree fixture {}: params.mode missing or not string",
+                    path.display()
+                )
+            });
+        match raw {
+            "Out" => TreeMode::Out,
+            "In" => TreeMode::In,
+            "Undirected" => TreeMode::Undirected,
+            other => panic!(
+                "kary_tree fixture {}: unknown mode {other:?}",
+                path.display()
+            ),
+        }
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("kary_tree");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read kary_tree fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse kary_tree conformance fixture JSON");
+            assert_eq!(case.algo, "kary_tree");
+
+            let n = er_param_u32(&case, "n", &path);
+            let children = er_param_u32(&case, "children", &path);
+            let mode = parse_mode(&case, &path);
+
+            let graph = kary_tree(n, children, mode)
+                .expect("kary_tree should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_edges = er_expected_u64(&case, "ecount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.ecount() as u64,
+                want_edges,
+                "ecount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let want_edges_raw = case
+                .expected
+                .get("edges")
+                .and_then(serde_json::Value::as_array)
+                .unwrap_or_else(|| {
+                    panic!(
+                        "kary_tree fixture {}: expected.edges missing or not array",
+                        path.display()
+                    )
+                });
+            let mut want_pairs: Vec<(u32, u32)> = Vec::with_capacity(want_edges_raw.len());
+            for v in want_edges_raw {
+                let pair = v.as_array().unwrap_or_else(|| {
+                    panic!(
+                        "kary_tree fixture {}: expected.edges entry not array",
+                        path.display()
+                    )
+                });
+                let u = u32::try_from(pair[0].as_u64().expect("edge endpoint u64"))
+                    .expect("edge endpoint fits in u32");
+                let w = u32::try_from(pair[1].as_u64().expect("edge endpoint u64"))
+                    .expect("edge endpoint fits in u32");
+                want_pairs.push((u, w));
+            }
+
+            let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32 in conformance");
+            let got_pairs: Vec<(u32, u32)> = (0..n_edges)
+                .map(|eid| {
+                    graph
+                        .edge(eid)
+                        .expect("conformance kary_tree edge id in bounds")
+                })
+                .collect();
+
+            let directed = matches!(mode, TreeMode::Out | TreeMode::In);
+            if directed {
+                assert_eq!(
+                    got_pairs,
+                    want_pairs,
+                    "directed kary_tree edge sequence mismatch in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+            } else {
+                let mut got_canon: Vec<(u32, u32)> =
+                    got_pairs.iter().map(|&(u, v)| canon(u, v)).collect();
+                let mut want_canon: Vec<(u32, u32)> =
+                    want_pairs.iter().map(|&(u, v)| canon(u, v)).collect();
+                got_canon.sort_unstable();
+                want_canon.sort_unstable();
+                assert_eq!(
+                    got_canon,
+                    want_canon,
+                    "undirected kary_tree edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no kary_tree fixtures from source {src}"
+        );
+    }
+}

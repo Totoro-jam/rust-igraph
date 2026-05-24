@@ -106,6 +106,10 @@ path = "examples/degree_sequence_edge_switching_simple_demo.rs"
 name = "wheel_demo"
 path = "examples/wheel_demo.rs"
 
+[[example]]
+name = "kary_tree_demo"
+path = "examples/kary_tree_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -409,6 +413,11 @@ harness = false
 [[bench]]
 name = "bench_wheel"
 path = "benches/bench_wheel.rs"
+harness = false
+
+[[bench]]
+name = "bench_kary_tree"
+path = "benches/bench_kary_tree.rs"
 harness = false
 
 [lints.rust]

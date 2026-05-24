@@ -1,0 +1,51 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Tree(n=8, children=3, mode='out') \u2014 ternary tree where last parent has only one child",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "kary_tree",
+  "params": {
+    "n": 8,
+    "children": 3,
+    "mode": "Out"
+  },
+  "expected": {
+    "vcount": 8,
+    "ecount": 7,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        7
+      ]
+    ]
+  }
+}

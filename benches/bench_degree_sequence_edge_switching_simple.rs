@@ -16,15 +16,15 @@
 //!     expected wall-clock — linear in the number of edges,
 //!     independent of density.
 //!
-//! Key contrast with siblings: GN-026 FAST_HEUR_SIMPLE is faster but
-//! gives no MCMC mixing guarantee; GN-027 CONFIGURATION_SIMPLE is
+//! Key contrast with siblings: GN-026 `FAST_HEUR_SIMPLE` is faster but
+//! gives no MCMC mixing guarantee; GN-027 `CONFIGURATION_SIMPLE` is
 //! uniform but degrades exponentially with density; GN-028
-//! EDGE_SWITCHING_SIMPLE stays linear in `|E|` for any graphical input.
+//! `EDGE_SWITCHING_SIMPLE` stays linear in `|E|` for any graphical input.
 //! These benches exercise three regimes that exhibit that scaling:
 //!   * `size_sweep_3regular_undirected` — 3-regular sequence at
 //!     `n ∈ {100, 300, 600}` to chart the linear |E| trend.
 //!   * `dense_5regular_n100` — fixed n=100 dense regime (`Σd/n = 5`)
-//!     that CONFIGURATION_SIMPLE rejects often but EDGE_SWITCHING_SIMPLE
+//!     that `CONFIGURATION_SIMPLE` rejects often but `EDGE_SWITCHING_SIMPLE`
 //!     handles in stride.
 //!   * `directed_balanced_n100_d2` — n=100 directed (out=in=2 each)
 //!     to cover the directed rewire branch end-to-end.

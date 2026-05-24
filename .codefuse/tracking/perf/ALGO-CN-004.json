@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-CN-004",
+  "captured_at": "2026-05-25",
+  "git_commit": "a119762",
+  "rust_out_n100_ns": 3065,
+  "rust_out_n10000_ns": 179080,
+  "rust_out_n1000000_ns": 20022000,
+  "rust_in_n100_ns": 2956,
+  "rust_in_n10000_ns": 173870,
+  "rust_in_n1000000_ns": 21782000,
+  "rust_undirected_n100_ns": 2955,
+  "rust_undirected_n10000_ns": 172650,
+  "rust_undirected_n1000000_ns": 20132000,
+  "py_baseline_ns": null,
+  "notes": "k-ary tree deterministic constructor with `children=2` (binary). The generator emits exactly `n - 1` edges in BFS order: at each `parent` index, we push up to `children` (parent, to) pairs, increment `to` each push, and advance `parent` only after a full batch (last parent may emit fewer). Edge orientation flips on TreeMode::In ((to, parent)) and stays parent-child on TreeMode::Out and Undirected. All three modes run at ~33-57 Melem/s across n=100..1e6 (per-call cost is one `Vec::with_capacity(n-1)` allocation plus a single `Graph::add_edges` call), and throughput tracks closely with the wheel/star/ring family because the bookkeeping is identical (no RNG, no probability draws). No python-igraph oracle: `igraph_kary_tree` is deterministic so the conformance suite asserts exact edge-list equality per mode against 14 fixtures extracted from igraph C / python-igraph / rigraph. Numbers from `cargo bench --bench bench_kary_tree -- --warm-up-time 1 --measurement-time 3` on Darwin/M-series release build."
+}

@@ -5847,6 +5847,71 @@ WHEEL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+KARY_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "kary_tree_py_binary_seven_undirected",
+        "origin": "python-igraph Graph.Tree(n=7, children=2, mode='undirected') — "
+        "perfect binary tree depth 2, undirected",
+        "algo": "kary_tree",
+        "params": {"n": 7, "children": 2, "mode": "Undirected"},
+        "expected": {
+            "vcount": 7,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6],
+            ],
+        },
+    },
+    {
+        "case": "kary_tree_py_binary_seven_out",
+        "origin": "python-igraph Graph.Tree(n=7, children=2, mode='out') — "
+        "perfect binary tree, parent→child arcs",
+        "algo": "kary_tree",
+        "params": {"n": 7, "children": 2, "mode": "Out"},
+        "expected": {
+            "vcount": 7,
+            "ecount": 6,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6],
+            ],
+        },
+    },
+    {
+        "case": "kary_tree_py_ternary_eight_partial",
+        "origin": "python-igraph Graph.Tree(n=8, children=3, mode='out') — "
+        "ternary tree where last parent has only one child",
+        "algo": "kary_tree",
+        "params": {"n": 8, "children": 3, "mode": "Out"},
+        "expected": {
+            "vcount": 8,
+            "ecount": 7,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [1, 4], [1, 5], [1, 6], [2, 7],
+            ],
+        },
+    },
+    {
+        "case": "kary_tree_py_quaternary_thirteen_undirected",
+        "origin": "python-igraph Graph.Tree(n=13, children=4, mode='undirected') — "
+        "depth-2 quaternary tree (1 + 4 + 8 = 13 vertices)",
+        "algo": "kary_tree",
+        "params": {"n": 13, "children": 4, "mode": "Undirected"},
+        "expected": {
+            "vcount": 13,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4],
+                [1, 5], [1, 6], [1, 7], [1, 8],
+                [2, 9], [2, 10], [2, 11], [2, 12],
+            ],
+        },
+    },
+]
+
 
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
@@ -6006,6 +6071,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "ring_graph": RING_MANIFEST,
     "star_graph": STAR_MANIFEST,
     "wheel_graph": WHEEL_MANIFEST,
+    "kary_tree": KARY_TREE_MANIFEST,
 }
 
 
@@ -6128,6 +6194,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "ring_graph",
             "star_graph",
             "wheel_graph",
+            "kary_tree",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

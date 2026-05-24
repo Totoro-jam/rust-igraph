@@ -14,13 +14,13 @@
 //!     drops the connectivity guarantee and gains linear-in-|E|
 //!     scaling at any density.
 //!   * vs `degree_sequence_game_fast_heur_simple` (ALGO-GN-026):
-//!     FAST_HEUR_SIMPLE is faster but gives no MCMC mixing guarantee.
-//!     EDGE_SWITCHING_SIMPLE costs more per call but the output
+//!     `FAST_HEUR_SIMPLE` is faster but gives no MCMC mixing guarantee.
+//!     `EDGE_SWITCHING_SIMPLE` costs more per call but the output
 //!     distribution becomes uniform as the chain mixes.
 //!   * vs `degree_sequence_game_configuration_simple` (ALGO-GN-027):
-//!     CONFIGURATION_SIMPLE is uniform but uses rejection sampling
+//!     `CONFIGURATION_SIMPLE` is uniform but uses rejection sampling
 //!     that degrades exponentially with density
-//!     (`exp(O((Σd/n)²))` expected restarts). EDGE_SWITCHING_SIMPLE
+//!     (`exp(O((Σd/n)²))` expected restarts). `EDGE_SWITCHING_SIMPLE`
 //!     stays linear in `|E|` for *any* graphical input, so pick it
 //!     for dense / skewed sequences.
 //!
@@ -29,8 +29,8 @@
 //! 1. **3-regular undirected** at `n = 10`. Tractable for every
 //!    sibling; baseline for comparison.
 //! 2. **Dense regime** at `n = 10`, degrees `[5,4,4,3,3,3,2,2,2,2]`
-//!    (Σ=30, |E|=15, density 3) — a regime where CONFIGURATION_SIMPLE
-//!    rejection-samples heavily but EDGE_SWITCHING_SIMPLE handles in
+//!    (Σ=30, |E|=15, density 3) — a regime where `CONFIGURATION_SIMPLE`
+//!    rejection-samples heavily but `EDGE_SWITCHING_SIMPLE` handles in
 //!    stride.
 //! 3. **Directed mixed in/out** at `n = 10`, the exact upstream
 //!    `outarr` / `inarr` from the C test suite (Σ=28). Demonstrates

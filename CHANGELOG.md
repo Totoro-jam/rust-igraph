@@ -15,6 +15,46 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-004** — `kary_tree` deterministic constructor.
+  **Fourth member of the `constructors/` family.** Counterpart of
+  `igraph_kary_tree` in `references/igraph/src/constructors/regular.c`.
+  Emits a rooted tree on `n` vertices in BFS order: vertex `0` is the
+  root, and at each parent index `p`, up to `children` consecutive
+  `(parent, to)` pairs are pushed while `to` advances by one each push;
+  the last parent may emit a short batch.
+  - `pub fn kary_tree(n: u32, children: u32, mode: TreeMode) -> IgraphResult<Graph>`
+    with `TreeMode ∈ {Out, In, Undirected}`.
+  - **Algorithm**: O(|V|) single sweep — one
+    `Vec::with_capacity(n - 1)` allocation plus a single
+    `Graph::add_edges` call. Edge orientation flips on `TreeMode::In`
+    ((to, parent)) and stays parent-child on `Out` and `Undirected`.
+    Rejects `children == 0` with `InvalidArgument`.
+  - **Three-mode truth table** for `n = 7, children = 2`:
+
+    | mode        | directed | ecount  | first edge | last edge   |
+    |-------------|----------|---------|------------|-------------|
+    | Out         | true     | n-1 = 6 | (0, 1)     | (2, 6)      |
+    | In          | true     | n-1 = 6 | (1, 0)     | (6, 2)      |
+    | Undirected  | false    | n-1 = 6 | (0, 1)*    | (2, 6)*     |
+
+    `*` Undirected storage canonicalises endpoints as `(min, max)`.
+  - **Degenerate cases**: `n = 0` → empty graph; `n = 1` → singleton;
+    `children >= n - 1` → collapses to a star anchored at vertex 0;
+    `children = 1` → linear chain (path).
+  - Conformance: 14 fixtures (C × 6, py × 4, R × 4) under
+    `tests/conformance/{c,py,r}/kary_tree/`, comparing exact edge
+    sequences (directed modes) or canonicalised edge multisets
+    (undirected mode).
+  - Benchmarks: `benches/bench_kary_tree.rs` with three groups
+    (Out / In / Undirected) across `n ∈ {100, 10_000, 1_000_000}`.
+    Baseline snapshot: `.codefuse/tracking/perf/ALGO-CN-004.json`.
+  - Example: `examples/kary_tree_demo.rs` walks through all three
+    modes plus partial-batch ternary, linear chain, and star-collapse
+    shapes.
+  - 11 unit + 3 proptest checks in
+    `src/algorithms/constructors/kary_tree.rs` covering the 3-mode
+    truth table, partial last batch, linear chain, star collapse and
+    the bounds / degenerate / error cases.
 - **ALGO-CN-003** — `wheel_graph` deterministic constructor.
   **Third member of the `constructors/` family.** Counterpart of
   `igraph_wheel` in `references/igraph/src/constructors/regular.c`.

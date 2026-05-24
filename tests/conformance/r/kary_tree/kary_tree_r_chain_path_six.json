@@ -1,0 +1,43 @@
+{
+  "source": "r",
+  "origin": "rigraph make_tree(n=6, children=1, mode='out') \u2014 linear chain (path) of 6 vertices",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "kary_tree",
+  "params": {
+    "n": 6,
+    "children": 1,
+    "mode": "Out"
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 5,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ]
+  }
+}

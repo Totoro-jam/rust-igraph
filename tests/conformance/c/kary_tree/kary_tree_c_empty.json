@@ -1,0 +1,22 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_kary_tree(n=0, ...) \u2014 empty graph regardless of children/mode",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "kary_tree",
+  "params": {
+    "n": 0,
+    "children": 2,
+    "mode": "Out"
+  },
+  "expected": {
+    "vcount": 0,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

@@ -6143,6 +6143,66 @@ WHEEL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+KARY_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "kary_tree_r_binary_seven_undirected",
+        "origin": "rigraph make_tree(n=7, children=2, mode='undirected') — "
+        "perfect binary tree depth 2, undirected",
+        "algo": "kary_tree",
+        "params": {"n": 7, "children": 2, "mode": "Undirected"},
+        "expected": {
+            "vcount": 7,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6],
+            ],
+        },
+    },
+    {
+        "case": "kary_tree_r_binary_seven_in",
+        "origin": "rigraph make_tree(n=7, children=2, mode='in') — "
+        "perfect binary tree depth 2, child→parent arcs",
+        "algo": "kary_tree",
+        "params": {"n": 7, "children": 2, "mode": "In"},
+        "expected": {
+            "vcount": 7,
+            "ecount": 6,
+            "directed": True,
+            "edges": [
+                [1, 0], [2, 0], [3, 1], [4, 1], [5, 2], [6, 2],
+            ],
+        },
+    },
+    {
+        "case": "kary_tree_r_chain_path_six",
+        "origin": "rigraph make_tree(n=6, children=1, mode='out') — "
+        "linear chain (path) of 6 vertices",
+        "algo": "kary_tree",
+        "params": {"n": 6, "children": 1, "mode": "Out"},
+        "expected": {
+            "vcount": 6,
+            "ecount": 5,
+            "directed": True,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5],
+            ],
+        },
+    },
+    {
+        "case": "kary_tree_r_singleton",
+        "origin": "rigraph make_tree(n=1, ...) — singleton root, no edges",
+        "algo": "kary_tree",
+        "params": {"n": 1, "children": 3, "mode": "Out"},
+        "expected": {
+            "vcount": 1,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+]
+
 
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
@@ -6306,6 +6366,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "ring_graph": RING_MANIFEST,
     "star_graph": STAR_MANIFEST,
     "wheel_graph": WHEEL_MANIFEST,
+    "kary_tree": KARY_TREE_MANIFEST,
 }
 
 
@@ -6428,6 +6489,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "ring_graph",
             "star_graph",
             "wheel_graph",
+            "kary_tree",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

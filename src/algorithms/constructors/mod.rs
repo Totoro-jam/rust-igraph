@@ -5,6 +5,7 @@
 //! whose shape is fully determined by their integer parameters, with no
 //! RNG involvement.
 
+pub mod kary_tree;
 pub mod ring;
 pub mod star;
 pub mod wheel;
