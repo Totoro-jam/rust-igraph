@@ -1,0 +1,56 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_dot_product(vecs = cbind(matrix(c(1,0), nrow=2, ncol=4), matrix(c(0,1), nrow=2, ncol=4)), directed = FALSE)) \u2014 same-group dot = 1 always edge, cross-group dot = 0 never edge; ecount = 2\u00b7C(4,2) = 12 exact",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "dot_product_game",
+  "params": {
+    "vecs": [
+      [
+        1.0,
+        0.0
+      ],
+      [
+        1.0,
+        0.0
+      ],
+      [
+        1.0,
+        0.0
+      ],
+      [
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        1.0
+      ]
+    ],
+    "directed": false,
+    "seed": 10003102
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": false,
+    "ecount_min": 12,
+    "ecount_max": 12,
+    "no_self_loops": true
+  }
+}

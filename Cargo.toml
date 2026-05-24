@@ -74,6 +74,10 @@ path = "examples/recent_degree_demo.rs"
 name = "barabasi_aging_demo"
 path = "examples/barabasi_aging_demo.rs"
 
+[[example]]
+name = "dot_product_demo"
+path = "examples/dot_product_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -262,6 +266,11 @@ harness = false
 [[bench]]
 name = "bench_barabasi_aging"
 path = "benches/bench_barabasi_aging.rs"
+harness = false
+
+[[bench]]
+name = "bench_dot_product"
+path = "benches/bench_dot_product.rs"
 harness = false
 
 [[bench]]

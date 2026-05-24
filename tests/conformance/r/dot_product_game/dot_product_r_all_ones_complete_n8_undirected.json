@@ -1,0 +1,48 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_dot_product(vecs = matrix(1.0, nrow=1, ncol=8), directed = FALSE)) \u2014 every dot product is 1.0; with strict gen_unit() < prob (gen_unit \u2208 [0, 1)) every pair fires; ecount = 8\u00b77/2 = 28 exact",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "dot_product_game",
+  "params": {
+    "vecs": [
+      [
+        1.0
+      ],
+      [
+        1.0
+      ],
+      [
+        1.0
+      ],
+      [
+        1.0
+      ],
+      [
+        1.0
+      ],
+      [
+        1.0
+      ],
+      [
+        1.0
+      ],
+      [
+        1.0
+      ]
+    ],
+    "directed": false,
+    "seed": 10003101
+  },
+  "expected": {
+    "vcount": 8,
+    "directed": false,
+    "ecount_min": 28,
+    "ecount_max": 28,
+    "no_self_loops": true
+  }
+}

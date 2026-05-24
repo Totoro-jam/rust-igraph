@@ -15,6 +15,55 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-022** — `dot_product_game` random dot-product graph
+  generator. Counterpart of `igraph_dot_product_game()` in
+  `references/igraph/src/games/dotproduct.c` (lines 59-102). For each
+  unordered (or ordered, when `directed=true`) pair of distinct vertices
+  `(i, j)`, computes `prob = <v_i, v_j>` and adds the edge with that
+  probability under three regimes matching the C kernel exactly:
+  `prob > 1` → unconditional edge + `had_over_one` warning flag (no RNG
+  draw consumed); `prob < 0` → skip + `had_negative` warning flag (also
+  no draw); otherwise Bernoulli via `rng.gen_unit() < prob` (strict `<`,
+  so `prob = 0` never fires).
+  - `pub fn dot_product_game(vecs: &[Vec<f64>], directed: bool, seed: u64) -> IgraphResult<Graph>`
+    — convenience wrapper that discards the warnings struct.
+  - `pub fn dot_product_game_with_warnings(vecs: &[Vec<f64>], directed: bool, seed: u64) -> IgraphResult<(Graph, DotProductWarnings)>`
+    — returns `DotProductWarnings { had_negative, had_over_one }` so
+    callers can detect when the latent vectors push the inner product
+    outside `[0, 1]`.
+  - **Construction guarantees**: NEVER produces self-loops (undirected
+    loop starts at `j = i + 1`; directed loop short-circuits on `i == j`),
+    ALWAYS simple (each pair inspected exactly once), deterministic in
+    `seed`.
+  - **Validation**: all latent vectors must share the same dimension `d`;
+    `d` may be `0` (every dot product is `0.0`, every pair is skipped);
+    every component must be finite.
+  - **Edge cases**: `n = 0` empty graph; `n = 1` singleton; `d = 0` →
+    edge-free graph with `had_negative = had_over_one = false`; all-ones
+    vectors at `d = 1` → complete graph with `had_over_one = true`.
+  - **Coverage**: 14 unit tests + 5 proptests + 2 doctests covering
+    exact-vcount / no-self-loops / determinism / seed-divergence /
+    directed-vs-undirected counts / `d = 0` and `n = 0` boundaries /
+    warning-flag triggers / validation error paths / structural
+    completeness on all-ones inputs.
+  - **Three-source conformance**: 9 JSON fixtures under
+    `tests/conformance/{c,py,r}/dot_product_game/` — all-ones complete
+    `n = 8` undirected, orthogonal blocks `n = 8` undirected, mixed-clamp
+    `n = 10` directed. RNG state is not portable across implementations
+    (Mersenne Twister in C, `R_unif_index` in R, NumPy in py), so
+    conformance asserts structural invariants only (vcount, directed
+    flag, ecount band, no self-loops).
+  - **Bench + example**: Criterion bench `benches/bench_dot_product.rs`
+    sweeps latent dimension `d ∈ {1, 4, 16, 64}` at `n = 400`, vertex
+    count `n ∈ {100, 400, 1 600}` at `d = 8`, and directed vs undirected
+    at `n = 400, d = 8`. Runnable example `examples/dot_product_demo.rs`
+    plants three communities by concentrating each cohort's latent
+    vector near a different basis vector — intra-community connection
+    probability lands at ~0.747 (theory 0.743), inter-community at
+    ~0.178 (theory 0.180), a ~4.2× contrast. Perf snapshot at
+    `.codefuse/tracking/perf/ALGO-GN-022.json` shows ~2.06× directed /
+    undirected ratio matching the `n(n-1)` vs `n(n-1)/2` pair count.
+
 - **ALGO-GN-021** — `barabasi_aging_game` Barabási–Albert
   preferential-attachment with vertex aging. Counterpart of
   `igraph_barabasi_aging_game()` in

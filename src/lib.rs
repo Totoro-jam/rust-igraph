@@ -109,6 +109,9 @@ pub use crate::algorithms::games::barabasi_psumtree::{
 pub use crate::algorithms::games::callaway_traits::callaway_traits_game;
 pub use crate::algorithms::games::chung_lu::{ChungLuVariant, chung_lu_game};
 pub use crate::algorithms::games::cited_type::cited_type_game;
+pub use crate::algorithms::games::dotproduct::{
+    DotProductWarnings, dot_product_game, dot_product_game_with_warnings,
+};
 pub use crate::algorithms::games::erdos_renyi::{erdos_renyi_gnm, erdos_renyi_gnp};
 pub use crate::algorithms::games::establishment::establishment_game;
 pub use crate::algorithms::games::forestfire::forest_fire_game;

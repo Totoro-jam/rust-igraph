@@ -4485,6 +4485,79 @@ BARABASI_AGING_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-022: dot_product_game. rigraph exposes
+# `sample_dot_product(vecs, directed = FALSE)` as the canonical R-side
+# wrapper (the C kernel is `igraph_dot_product_game`); the autobinding
+# matches the C signature exactly so the underlying generator is
+# verbatim. RNG state is not portable across implementations, so the
+# manifest pins latent-position layouts that clamp every pair to {0, 1}
+# (always-/never-edge regimes), giving exact ecount under any RNG. The
+# third case exercises both warning regimes for diagnostic coverage.
+DOT_PRODUCT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dot_product_r_all_ones_complete_n8_undirected",
+        "origin": "constructed (mirrors sample_dot_product(vecs = "
+        "matrix(1.0, nrow=1, ncol=8), directed = FALSE)) — every dot "
+        "product is 1.0; with strict gen_unit() < prob (gen_unit ∈ "
+        "[0, 1)) every pair fires; ecount = 8·7/2 = 28 exact",
+        "algo": "dot_product_game",
+        "params": {
+            "vecs": [[1.0]] * 8,
+            "directed": False,
+            "seed": 10_003_101,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "ecount_min": 28,
+            "ecount_max": 28,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "dot_product_r_orthogonal_groups_n8_undirected",
+        "origin": "constructed (mirrors sample_dot_product(vecs = cbind("
+        "matrix(c(1,0), nrow=2, ncol=4), matrix(c(0,1), nrow=2, "
+        "ncol=4)), directed = FALSE)) — same-group dot = 1 always edge, "
+        "cross-group dot = 0 never edge; ecount = 2·C(4,2) = 12 exact",
+        "algo": "dot_product_game",
+        "params": {
+            "vecs": [[1.0, 0.0]] * 4 + [[0.0, 1.0]] * 4,
+            "directed": False,
+            "seed": 10_003_102,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "ecount_min": 12,
+            "ecount_max": 12,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "dot_product_r_mixed_clamp_n10_directed",
+        "origin": "constructed (mirrors sample_dot_product(vecs = "
+        "matrix(c(rep(1.5, 5), rep(-0.5, 5)), nrow=1), directed = "
+        "TRUE)) — same-(+) dot = 2.25 always edge (no RNG draw, 5·4 = "
+        "20); same-(−) dot = 0.25 Bernoulli (5·4 attempts → 0..20); "
+        "cross dot = -0.75 always skip; ecount ∈ [20, 40]; exercises "
+        "both clamp warnings",
+        "algo": "dot_product_game",
+        "params": {
+            "vecs": [[1.5]] * 5 + [[-0.5]] * 5,
+            "directed": True,
+            "seed": 10_003_103,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": True,
+            "ecount_min": 20,
+            "ecount_max": 40,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-007: simple_interconnected_islands_game. Mirrors rigraph's
 # `sample_islands(islands.n, islands.size, islands.pin, n.inter)`
 # (the canonical R wrapper for
@@ -5566,6 +5639,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
     "barabasi_aging_game": BARABASI_AGING_MANIFEST,
+    "dot_product_game": DOT_PRODUCT_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5678,6 +5752,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "recent_degree_game",
             "barabasi_game_psumtree",
             "barabasi_aging_game",
+            "dot_product_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",

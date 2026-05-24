@@ -9131,3 +9131,113 @@ fn barabasi_aging_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn dot_product_three_source_conformance() {
+    // Random dot-product graph (ALGO-GN-022). RNG state is not portable
+    // to upstream's glibc-style RNG, so each fixture pins latent
+    // position vectors `vecs[i]` that collapse every pair to a
+    // deterministic regime (`prob == 1` always-edge, `prob == 0`
+    // never-edge, `prob > 1` always-edge short-circuit, `prob < 0`
+    // always-skip), giving an *exact* or tightly-banded `ecount` under
+    // any RNG. Per-fixture invariants asserted:
+    //   * vcount = len(vecs);
+    //   * directed flag exact;
+    //   * ecount falls in [ecount_min, ecount_max];
+    //   * NEVER self-loops by construction.
+    use rust_igraph::dot_product_game;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("dot_product_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "dot_product_game");
+
+            let vecs = er_param_f64_matrix(&case, "vecs", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = dot_product_game(&vecs, directed, seed)
+                .expect("dot_product_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+            if let Some(true) = case
+                .expected
+                .get("no_self_loops")
+                .and_then(serde_json::Value::as_bool)
+            {
+                for eid in 0..n_edges {
+                    let (u, v) = graph.edge(eid).expect("edge id in bounds");
+                    assert_ne!(
+                        u,
+                        v,
+                        "edge {eid}: self-loop ({u}-{v}) but no_self_loops=true in {}",
+                        path.display()
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no dot_product_game fixtures from source {src}"
+        );
+    }
+}

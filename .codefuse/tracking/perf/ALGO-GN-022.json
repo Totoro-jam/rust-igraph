@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-GN-022",
+  "captured_at": "2026-05-24",
+  "git_commit": "a8f35d4",
+  "rust_dim_sweep_d1_n400_ns": 998720,
+  "rust_dim_sweep_d4_n400_ns": 1083100,
+  "rust_dim_sweep_d16_n400_ns": 1430500,
+  "rust_dim_sweep_d64_n400_ns": 3316100,
+  "rust_size_sweep_n100_d8_ns": 53140,
+  "rust_size_sweep_n400_d8_ns": 1197800,
+  "rust_size_sweep_n1600_d8_ns": 21494000,
+  "rust_directed_n400_d8_ns": 2499900,
+  "rust_undirected_n400_d8_ns": 1212900,
+  "py_baseline_ns": null,
+  "notes": "Random Dot-Product Graph (igraph_dot_product_game, references/igraph/src/games/dotproduct.c lines 59-102). The implementation walks every ordered (directed) or unordered (undirected) pair (i, j) with i != j, computes prob = <v_i, v_j> in O(d), and dispatches into three regimes: prob > 1 → unconditional edge + had_over_one flag (no RNG consumption, matching the C `>` comparison), prob < 0 → skip + had_negative flag (also no draw), otherwise Bernoulli via `rng.gen_unit() < prob` (SplitMix64-backed `[0, 1)` step, matching C's `RNG_UNIF01() <` strict inequality so prob = 0 never fires). Construction is simple-graph by construction: the inner loop in the undirected branch starts at `j = i + 1` and the directed branch short-circuits on `i == j`, so self-loops cannot escape. Total work is Θ(n² · d) for the dot products plus one RNG draw per in-range pair — the dim_sweep group shows the expected sub-linear ramp from 998 µs (d=1) to 3.32 ms (d=64) at n=400 (≈ 3.3× for a 64× d bump, because the n² pair-walk overhead dominates at small d). The size_sweep group at d=8 climbs from 53 µs (n=100) through 1.20 ms (n=400) to 21.5 ms (n=1600); the n=100→400 ratio is ≈ 22.5× (theory ≈ 16×) and n=400→1600 is ≈ 17.9× (theory ≈ 16×), both consistent with the n² model once cache effects flatten out. The directed-vs-undirected pair at n=400 d=8 lands at 2.50 ms vs 1.21 ms — exactly the 2.06× factor predicted by `n(n-1)` vs `n(n-1)/2`. No oracle baseline: SplitMix64 is not bitwise-portable to C MT or R `R_unif_index`, so conformance asserts structural invariants only (vcount, directed flag, ecount band, no self-loops) across 9 fixtures (3 each from C / py / R). Numbers from `cargo bench --bench bench_dot_product -- --quick --warm-up-time 1 --measurement-time 2` on Darwin/M-series release build."
+}

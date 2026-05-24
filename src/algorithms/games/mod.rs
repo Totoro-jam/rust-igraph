@@ -10,6 +10,7 @@ pub mod barabasi_psumtree;
 pub mod callaway_traits;
 pub mod chung_lu;
 pub mod cited_type;
+pub mod dotproduct;
 pub mod erdos_renyi;
 pub mod establishment;
 pub mod forestfire;

@@ -4534,6 +4534,87 @@ BARABASI_AGING_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-022: dot_product_game. Mirrors igraph_dot_product_game
+# (references/igraph/src/games/dotproduct.c:59-102). Per-pair Bernoulli
+# with edge probability = dot(v_i, v_j). Three fixtures cover the three
+# clamp regimes deterministically so the ecount band is *exact* under
+# any RNG state — conformance is structural only because SplitMix64 is
+# not portable to glibc-style RNG.
+#   * all_ones_complete_n8_undirected — v_i = [1.0] → dot = 1.0 → every
+#     pair Bernoulli draw fires (gen_unit < 1.0 always since gen_unit ∈
+#     [0,1)) so ecount = n(n-1)/2 = 28 exactly.
+#   * orthogonal_groups_n8_undirected — half [1,0] + half [0,1] → same-
+#     group dot = 1 (always edge), cross-group dot = 0 (never edge),
+#     ecount = 2 · C(4, 2) = 12 exactly.
+#   * mixed_signs_n10_undirected — half [1.5] + half [-0.5] → same-
+#     group dots = 2.25 or 0.25 (always edge for +, Bernoulli 0.25 for
+#     −); cross-group dots = -0.75 (skip + warn). Worst case still
+#     bounds ecount ∈ [C(5,2), C(5,2) + C(5,2)] = [10, 20].
+DOT_PRODUCT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dot_product_c_all_ones_complete_n8_undirected",
+        "origin": "constructed (mirrors igraph_dot_product_game with "
+        "vecs[i] = [1.0] for i ∈ [0, 8), directed=false) — every dot "
+        "product is 1.0; under strict `gen_unit() < prob` Bernoulli "
+        "(gen_unit ∈ [0, 1)) every pair fires; ecount = 8·7/2 = 28 "
+        "exact",
+        "algo": "dot_product_game",
+        "params": {
+            "vecs": [[1.0]] * 8,
+            "directed": False,
+            "seed": 10_001_101,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "ecount_min": 28,
+            "ecount_max": 28,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "dot_product_c_orthogonal_groups_n8_undirected",
+        "origin": "constructed (mirrors igraph_dot_product_game with "
+        "vecs = [[1,0]]*4 ++ [[0,1]]*4, directed=false) — same-group "
+        "dot = 1 (always edge), cross-group dot = 0 (never edge); "
+        "ecount = 2·C(4,2) = 12 exact",
+        "algo": "dot_product_game",
+        "params": {
+            "vecs": [[1.0, 0.0]] * 4 + [[0.0, 1.0]] * 4,
+            "directed": False,
+            "seed": 10_001_102,
+        },
+        "expected": {
+            "vcount": 8,
+            "directed": False,
+            "ecount_min": 12,
+            "ecount_max": 12,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "dot_product_c_mixed_clamp_n10_directed",
+        "origin": "constructed (mirrors igraph_dot_product_game with "
+        "vecs = [[1.5]]*5 ++ [[-0.5]]*5, directed=true) — same-(+) dot "
+        "= 2.25 always edge (no RNG draw) → 5·4 = 20; same-(−) dot = "
+        "0.25 Bernoulli → 0..20; cross dot = -0.75 skip → 0; ecount ∈ "
+        "[20, 40]. Exercises both warning regimes",
+        "algo": "dot_product_game",
+        "params": {
+            "vecs": [[1.5]] * 5 + [[-0.5]] * 5,
+            "directed": True,
+            "seed": 10_001_103,
+        },
+        "expected": {
+            "vcount": 10,
+            "directed": True,
+            "ecount_min": 20,
+            "ecount_max": 40,
+            "no_self_loops": True,
+        },
+    },
+]
+
 ASYMMETRIC_PREFERENCE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "asym_preference_c_full_p1_no_loops_n100_2x3",
@@ -5809,6 +5890,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
     "barabasi_aging_game": BARABASI_AGING_MANIFEST,
+    "dot_product_game": DOT_PRODUCT_MANIFEST,
     "simple_interconnected_islands_game": ISLANDS_MANIFEST,
     "k_regular_game": K_REGULAR_MANIFEST,
     "watts_strogatz_game": WATTS_STROGATZ_MANIFEST,
@@ -5926,6 +6008,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "recent_degree_game",
             "barabasi_game_psumtree",
             "barabasi_aging_game",
+            "dot_product_game",
             "simple_interconnected_islands_game",
             "k_regular_game",
             "watts_strogatz_game",
