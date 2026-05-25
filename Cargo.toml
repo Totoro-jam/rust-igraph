@@ -510,6 +510,11 @@ path = "benches/bench_square_lattice.rs"
 harness = false
 
 [[bench]]
+name = "bench_triangular_lattice"
+path = "benches/bench_triangular_lattice.rs"
+harness = false
+
+[[bench]]
 name = "bench_generalized_petersen"
 path = "benches/bench_generalized_petersen.rs"
 harness = false

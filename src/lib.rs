@@ -122,6 +122,7 @@ pub use crate::algorithms::constructors::square_lattice::square_lattice;
 pub use crate::algorithms::constructors::star::{StarMode, star_graph};
 pub use crate::algorithms::constructors::symmetric_tree::symmetric_tree;
 pub use crate::algorithms::constructors::tree_from_parent_vector::tree_from_parent_vector;
+pub use crate::algorithms::constructors::triangular_lattice::triangular_lattice;
 pub use crate::algorithms::constructors::wheel::{WheelMode, wheel_graph};
 pub use crate::algorithms::games::barabasi::barabasi_game_bag;
 pub use crate::algorithms::games::barabasi_aging::barabasi_aging_game;

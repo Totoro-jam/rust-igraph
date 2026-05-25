@@ -27,4 +27,5 @@ pub mod square_lattice;
 pub mod star;
 pub mod symmetric_tree;
 pub mod tree_from_parent_vector;
+pub mod triangular_lattice;
 pub mod wheel;

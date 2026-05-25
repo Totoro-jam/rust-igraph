@@ -7165,6 +7165,64 @@ CREATE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# rigraph's `triangular_lattice_impl` (R/aaa-auto.R:724) is an auto-bound
+# 1:1 wrapper for the C `igraph_triangular_lattice` entry point. The
+# rigraph snapshots in tests/testthat/_snaps/aaa-auto.md cover two
+# canonical cases on the 2x2 rectangle shape (1-based R labels translated
+# to 0-based here). These mirror the python-igraph testTriangularLattice
+# witnesses and ground the R lane against the same upstream invariants.
+TRIANGULAR_LATTICE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "triangular_lattice_r_2x2_undirected",
+        "origin": "rigraph triangular_lattice_impl(dimvector=c(2,2)) — _snaps/aaa-auto.md:220",
+        "algo": "triangular_lattice",
+        "params": {"dims": [2, 2], "directed": False, "mutual": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [0, 3], [0, 2], [1, 3], [2, 3]],
+        },
+    },
+    {
+        "case": "triangular_lattice_r_2x2_directed_mutual",
+        "origin": "rigraph triangular_lattice_impl(dimvector=c(2,2), directed=TRUE, mutual=TRUE) — _snaps/aaa-auto.md:229",
+        "algo": "triangular_lattice",
+        "params": {"dims": [2, 2], "directed": True, "mutual": True},
+        "expected": {
+            "vcount": 4,
+            "ecount": 10,
+            "directed": True,
+            "edges": [
+                [0, 1], [1, 0],
+                [0, 3], [3, 0],
+                [0, 2], [2, 0],
+                [1, 3], [3, 1],
+                [2, 3], [3, 2],
+            ],
+        },
+    },
+    {
+        "case": "triangular_lattice_r_triangle_side_3_undirected",
+        "origin": "synthetic — triangular_lattice_impl(dimvector=c(3)) triangle side 3 (cross-checked against C upstream)",
+        "algo": "triangular_lattice",
+        "params": {"dims": [3], "directed": False, "mutual": False},
+        "expected": {
+            "vcount": 6,
+            "ecount": 9,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 3],
+                [1, 2], [1, 3], [1, 4],
+                [2, 4],
+                [3, 4], [3, 5],
+                [4, 5],
+            ],
+        },
+    },
+]
+
+
 # rigraph exposes `graph_from_atlas(n)` (also aliased `atlas(n)`) in
 # `R/make_graph.R` — the binding ultimately calls the same C
 # `igraph_atlas` entry point through `graph_from_atlas_impl`. The R man
@@ -7495,6 +7553,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "famous": FAMOUS_MANIFEST,
     "atlas": ATLAS_MANIFEST,
     "create": CREATE_MANIFEST,
+    "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
 }
 
 
@@ -7635,6 +7694,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "famous",
             "atlas",
             "create",
+            "triangular_lattice",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

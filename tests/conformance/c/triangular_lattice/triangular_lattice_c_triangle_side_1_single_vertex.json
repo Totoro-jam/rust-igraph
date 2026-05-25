@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_triangular_lattice.c \u2014 dims=[1] directed=true \u2192 singleton",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "triangular_lattice",
+  "params": {
+    "dims": [
+      1
+    ],
+    "directed": true,
+    "mutual": false
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

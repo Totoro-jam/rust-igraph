@@ -1,0 +1,66 @@
+{
+  "source": "r",
+  "origin": "rigraph triangular_lattice_impl(dimvector=c(2,2), directed=TRUE, mutual=TRUE) \u2014 _snaps/aaa-auto.md:229",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "triangular_lattice",
+  "params": {
+    "dims": [
+      2,
+      2
+    ],
+    "directed": true,
+    "mutual": true
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 10,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        2
+      ]
+    ]
+  }
+}

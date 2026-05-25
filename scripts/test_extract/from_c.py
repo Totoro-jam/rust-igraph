@@ -8428,6 +8428,124 @@ CREATE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# Fixtures for `igraph_triangular_lattice` (ALGO-CN-023). The C unit test
+# (`tests/unit/igraph_triangular_lattice.c`) walks the four shape branches
+# (`dims=[1]`, `dims=[5]`, `dims=[4,5]`, `dims=[3,4,5]`) and the negative-dim
+# error path; the negative path is statically unreachable in the Rust port
+# because `dims: &[u32]` cannot carry a negative element, so we only mirror
+# the structural cases.
+TRIANGULAR_LATTICE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "triangular_lattice_c_triangle_side_1_single_vertex",
+        "origin": "tests/unit/igraph_triangular_lattice.c — dims=[1] directed=true → singleton",
+        "algo": "triangular_lattice",
+        "params": {"dims": [1], "directed": True, "mutual": False},
+        "expected": {"vcount": 1, "ecount": 0, "directed": True, "edges": []},
+    },
+    {
+        "case": "triangular_lattice_c_triangle_side_3_undirected",
+        "origin": "lattices.c:290 — triangle_shape(3), 6 vertices, 9 undirected edges",
+        "algo": "triangular_lattice",
+        "params": {"dims": [3], "directed": False, "mutual": False},
+        "expected": {
+            "vcount": 6,
+            "ecount": 9,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 3],
+                [1, 2], [1, 3], [1, 4],
+                [2, 4],
+                [3, 4], [3, 5],
+                [4, 5],
+            ],
+        },
+    },
+    {
+        "case": "triangular_lattice_c_triangle_side_5_directed",
+        "origin": "tests/unit/igraph_triangular_lattice.out — Triangular block, 15 v, 30 arcs",
+        "algo": "triangular_lattice",
+        "params": {"dims": [5], "directed": True, "mutual": False},
+        "expected": {
+            "vcount": 15,
+            "ecount": 30,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 5],
+                [1, 2], [1, 5], [1, 6],
+                [2, 3], [2, 6], [2, 7],
+                [3, 4], [3, 7], [3, 8],
+                [4, 8],
+                [5, 6], [5, 9],
+                [6, 7], [6, 9], [6, 10],
+                [7, 8], [7, 10], [7, 11],
+                [8, 11],
+                [9, 10], [9, 12],
+                [10, 11], [10, 12], [10, 13],
+                [11, 13],
+                [12, 13], [12, 14],
+                [13, 14],
+            ],
+        },
+    },
+    {
+        "case": "triangular_lattice_c_rectangle_2x2_undirected",
+        "origin": "lattices.c:290 — rectangle_shape(2,2), matches python-igraph expectation",
+        "algo": "triangular_lattice",
+        "params": {"dims": [2, 2], "directed": False, "mutual": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3]],
+        },
+    },
+    {
+        "case": "triangular_lattice_c_rectangle_2x2_directed_mutual",
+        "origin": "lattices.c:290 — rectangle 2x2 directed+mutual doubles every undirected edge",
+        "algo": "triangular_lattice",
+        "params": {"dims": [2, 2], "directed": True, "mutual": True},
+        "expected": {
+            "vcount": 4,
+            "ecount": 10,
+            "directed": True,
+            "edges": [
+                [0, 1], [1, 0],
+                [0, 3], [3, 0],
+                [0, 2], [2, 0],
+                [1, 3], [3, 1],
+                [2, 3], [3, 2],
+            ],
+        },
+    },
+    {
+        "case": "triangular_lattice_c_hexagon_2_2_2_undirected",
+        "origin": "lattices.c:290 — hex_shape(2,2,2), 7 vertices, 12 undirected edges",
+        "algo": "triangular_lattice",
+        "params": {"dims": [2, 2, 2], "directed": False, "mutual": False},
+        "expected": {
+            "vcount": 7,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3],
+                [1, 3], [1, 4],
+                [2, 3], [2, 5],
+                [3, 4], [3, 5], [3, 6],
+                [4, 6],
+                [5, 6],
+            ],
+        },
+    },
+    {
+        "case": "triangular_lattice_c_empty_dim_zero",
+        "origin": "lattices.c:298 — any dim == 0 collapses to igraph_empty(0, directed)",
+        "algo": "triangular_lattice",
+        "params": {"dims": [3, 0], "directed": False, "mutual": False},
+        "expected": {"vcount": 0, "ecount": 0, "directed": False, "edges": []},
+    },
+]
+
+
 ATLAS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "atlas_c_null0",
@@ -8836,6 +8954,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "famous": FAMOUS_MANIFEST,
     "atlas": ATLAS_MANIFEST,
     "create": CREATE_MANIFEST,
+    "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
 }
 
 
@@ -8981,6 +9100,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "famous",
             "atlas",
             "create",
+            "triangular_lattice",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

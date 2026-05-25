@@ -1,0 +1,61 @@
+{
+  "source": "r",
+  "origin": "synthetic \u2014 triangular_lattice_impl(dimvector=c(3)) triangle side 3 (cross-checked against C upstream)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "triangular_lattice",
+  "params": {
+    "dims": [
+      3
+    ],
+    "directed": false,
+    "mutual": false
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 9,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ]
+    ]
+  }
+}

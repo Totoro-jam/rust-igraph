@@ -15,6 +15,58 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-023** — `triangular_lattice` planar triangular lattice
+  constructor. **Twenty-third member of the `constructors/` family**
+  and the planar dual of the hexagonal lattice. Counterpart of
+  `igraph_triangular_lattice` in
+  `references/igraph/src/constructors/lattices.c:431-569`.
+  - `pub fn triangular_lattice(dims: &[u32], directed: bool, mutual: bool) -> IgraphResult<Graph>`
+    — single `dims`-length dispatch (1=triangle, 2=quasi-rectangle,
+    3=hexagonal) with a shared `add_if_in_bounds` closure that emits
+    up-to-three local neighbour candidates (right, up-right, up-left)
+    per lattice site. Vertex indexing follows upstream's
+    `lex_ordering = false` convention via per-row prefix sums.
+  - **Three shape branches** with a single emitter:
+    - `dims=[k]` → triangle side `k`: `k*(k+1)/2` vertices,
+      `3*k*(k-1)/2` undirected edges. Each row `j` has `k - j`
+      vertices and starts at id `prefix_sum[j]`.
+    - `dims=[m, n]` → `m × n` quasi-rectangle: `m*n` vertices and a
+      triangular tessellation of the rectangle.
+    - `dims=[a, b, c]` → hexagonal lattice with sides `a, b, c`:
+      a `2·max(a,b,c) − 1`-row jagged tile. Zero in any dim collapses
+      to the empty graph (upstream `IGRAPH_ERROR` guard mapped to a
+      successful empty return).
+  - **Directed-mutual matrix**: `directed=false` ignores `mutual`;
+    `directed=true, mutual=false` emits one arc per edge; `directed=true,
+    mutual=true` doubles emission so each undirected edge becomes a
+    forward+reverse pair. Comparison in the conformance lane uses
+    directed-aware multiset equality so the mutual flag legitimately
+    distinguishes `(a, b)` from `(b, a)`.
+  - **Tests**: 12 unit + 6 proptest covering (a) every dim arity branch,
+    (b) the directed/mutual cross-product, (c) `dims=[1]` single-vertex
+    edge case, (d) zero-dim guard, (e) max-degree-≤-6 structural
+    invariant for interior vertices, (f) the upstream `.out`-derived
+    triangle side 5 fixture (15 vertices, 30 arcs).
+  - **Three-source conformance**: 13 fixtures (`tests/conformance/{c,py,r}/triangular_lattice/`).
+    C lane (7): triangle side 1/3/5, 2×2 rectangle undirected/directed/mutual,
+    hex (3,4,5). py lane (3): `testTriangularLattice` directly from
+    `python-igraph/tests/test_constructors.py`. R lane (3): two from
+    `rigraph/tests/testthat/_snaps/aaa-auto.md` (rectangle undirected +
+    directed-mutual) plus one synthetic triangle-side-3 fixture cross
+    -checked against C upstream.
+  - **Bench** (`benches/bench_triangular_lattice.rs`, baseline at
+    `.codefuse/tracking/perf/ALGO-CN-023.json`): five shapes across
+    both flag groups. `triangle_100` ≈ 693 µs (~21 Medge/s),
+    `triangle_200` ≈ 2.85 ms, `rect_100x100` ≈ 1.43 ms,
+    `rect_200x100` ≈ 3.03 ms, `hex_30_30_30` ≈ 330 µs (~23 Medge/s).
+    Directed-mutual variants double both edge count and wall time at
+    ~19 Medge/s. All shapes land in the 18-23 Medge/s band; the ~30%
+    gap vs `square_lattice` is the extra up-left candidate plus the
+    per-edge i64→u32 conversion that keeps mode dispatch overflow-safe.
+  - Example: `cargo run --example triangular_lattice_demo` walks the
+    7-case truth table (triangle 1/3/5, rect 2×2 plain/mutual, hex
+    (3,4,5), zero-dim guard) with assertions on vcount, ecount, and
+    max degree ≤ 6.
 - **ALGO-CN-022** — `create` foundational edge-list constructor.
   **Twenty-second member of the `constructors/` family** and the
   universal hand-rolled entry point: every other generator-like API in

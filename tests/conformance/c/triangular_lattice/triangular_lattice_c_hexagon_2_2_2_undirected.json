@@ -1,0 +1,75 @@
+{
+  "source": "c",
+  "origin": "lattices.c:290 \u2014 hex_shape(2,2,2), 7 vertices, 12 undirected edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "triangular_lattice",
+  "params": {
+    "dims": [
+      2,
+      2,
+      2
+    ],
+    "directed": false,
+    "mutual": false
+  },
+  "expected": {
+    "vcount": 7,
+    "ecount": 12,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        5,
+        6
+      ]
+    ]
+  }
+}

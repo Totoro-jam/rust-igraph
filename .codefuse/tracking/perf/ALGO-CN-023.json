@@ -1,0 +1,107 @@
+{
+  "algo_id": "ALGO-CN-023",
+  "algo": "triangular_lattice",
+  "captured_at": "2026-05-26",
+  "git_commit": "bbdfc2f",
+  "machine": "darwin-arm64",
+  "criterion_version": "0.5",
+  "configs": [
+    {
+      "label": "triangle_100",
+      "dims": [100],
+      "vcount": 5050,
+      "ecount": 14850
+    },
+    {
+      "label": "triangle_200",
+      "dims": [200],
+      "vcount": 20100,
+      "ecount": 59700
+    },
+    {
+      "label": "rect_100x100",
+      "dims": [100, 100],
+      "vcount": 10000,
+      "ecount": 29601
+    },
+    {
+      "label": "rect_200x100",
+      "dims": [200, 100],
+      "vcount": 20000,
+      "ecount": 59401
+    },
+    {
+      "label": "hex_30_30_30",
+      "dims": [30, 30, 30],
+      "vcount": 2611,
+      "ecount": 7656
+    }
+  ],
+  "results": {
+    "triangular_lattice/undirected/triangle_100": {
+      "time_low": "688 us",
+      "time_mid": "693 us",
+      "time_high": "699 us",
+      "throughput": "~21.4 Medge/s"
+    },
+    "triangular_lattice/undirected/triangle_200": {
+      "time_low": "2.83 ms",
+      "time_mid": "2.85 ms",
+      "time_high": "2.87 ms",
+      "throughput": "~20.9 Medge/s"
+    },
+    "triangular_lattice/undirected/rect_100x100": {
+      "time_low": "1.42 ms",
+      "time_mid": "1.43 ms",
+      "time_high": "1.48 ms",
+      "throughput": "~20.7 Medge/s"
+    },
+    "triangular_lattice/undirected/rect_200x100": {
+      "time_low": "3.01 ms",
+      "time_mid": "3.03 ms",
+      "time_high": "3.11 ms",
+      "throughput": "~19.6 Medge/s"
+    },
+    "triangular_lattice/undirected/hex_30_30_30": {
+      "time_low": "326 us",
+      "time_mid": "330 us",
+      "time_high": "331 us",
+      "throughput": "~23.2 Medge/s"
+    },
+    "triangular_lattice/directed_mutual/triangle_100": {
+      "time_low": "1.39 ms",
+      "time_mid": "1.39 ms",
+      "time_high": "1.39 ms",
+      "throughput": "~21.4 Medge/s"
+    },
+    "triangular_lattice/directed_mutual/triangle_200": {
+      "time_low": "6.29 ms",
+      "time_mid": "6.35 ms",
+      "time_high": "6.56 ms",
+      "throughput": "~18.8 Medge/s"
+    },
+    "triangular_lattice/directed_mutual/rect_100x100": {
+      "time_low": "3.16 ms",
+      "time_mid": "3.16 ms",
+      "time_high": "3.18 ms",
+      "throughput": "~18.7 Medge/s"
+    },
+    "triangular_lattice/directed_mutual/rect_200x100": {
+      "time_low": "6.48 ms",
+      "time_mid": "6.49 ms",
+      "time_high": "6.49 ms",
+      "throughput": "~18.3 Medge/s"
+    },
+    "triangular_lattice/directed_mutual/hex_30_30_30": {
+      "time_low": "743 us",
+      "time_mid": "744 us",
+      "time_high": "744 us",
+      "throughput": "~20.6 Medge/s"
+    }
+  },
+  "notes": [
+    "Throughput reported in *edges generated*. The directed_mutual variant doubles edge count because each undirected edge becomes a forward+reverse arc pair.",
+    "Performance is dominated by the inner add_if_in_bounds closure (per-vertex up-to-three boundary checks + vector_int push). All shapes hover in the 18-23 Medge/s band, consistent with cache-friendly O(|V|+|E|) lattice walks on a 2.5 GHz Apple M-series core.",
+    "Comparable square_lattice throughput is ~30 Medge/s; the gap is the extra `up-left` candidate and the per-edge i64->u32 conversion that triangular_lattice does to keep i64 internals overflow-safe across mode dispatch."
+  ]
+}

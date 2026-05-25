@@ -7035,6 +7035,56 @@ CREATE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# Fixtures for `Graph.Triangular_Lattice` (ALGO-CN-023). The three cases
+# replicate the python-igraph test_generators.testTriangularLattice
+# (`tests/test_generators.py:459-485`) which is the canonical lane
+# checker for the constructor's edge-set contract: dims=[2,2] in three
+# (directed, mutual) combinations.
+TRIANGULAR_LATTICE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "triangular_lattice_py_2x2_undirected",
+        "origin": "python-igraph Graph.Triangular_Lattice([2, 2]) — undirected default",
+        "algo": "triangular_lattice",
+        "params": {"dims": [2, 2], "directed": False, "mutual": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3]],
+        },
+    },
+    {
+        "case": "triangular_lattice_py_2x2_directed_unilateral",
+        "origin": "python-igraph Graph.Triangular_Lattice([2, 2], directed=True, mutual=False)",
+        "algo": "triangular_lattice",
+        "params": {"dims": [2, 2], "directed": True, "mutual": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 5,
+            "directed": True,
+            "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3]],
+        },
+    },
+    {
+        "case": "triangular_lattice_py_2x2_directed_mutual",
+        "origin": "python-igraph Graph.Triangular_Lattice([2, 2], directed=True, mutual=True)",
+        "algo": "triangular_lattice",
+        "params": {"dims": [2, 2], "directed": True, "mutual": True},
+        "expected": {
+            "vcount": 4,
+            "ecount": 10,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2], [0, 3],
+                [1, 0], [1, 3],
+                [2, 0], [2, 3],
+                [3, 0], [3, 1], [3, 2],
+            ],
+        },
+    },
+]
+
+
 # python-igraph `Graph.Atlas(number)` calls `igraph_atlas` in the C core.
 # Captured live from python-igraph 0.11.9 with the script:
 #   for i in [0, 3, 18, 70, 180, 208, 1252]:
@@ -7423,6 +7473,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "famous": FAMOUS_MANIFEST,
     "atlas": ATLAS_MANIFEST,
     "create": CREATE_MANIFEST,
+    "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
 }
 
 
@@ -7563,6 +7614,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "famous",
             "atlas",
             "create",
+            "triangular_lattice",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries
