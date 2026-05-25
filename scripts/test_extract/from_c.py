@@ -7934,6 +7934,90 @@ LINEGRAPH_MANIFEST: List[Dict[str, Any]] = [
 # are taken directly from the `.out` golden, canonicalised to (min, max)
 # pairs — the conformance check compares multisets so cross-source edge
 # orderings stay compatible.
+# ALGO-CN-017 — `igraph_tree_from_parent_vector` from
+# `src/constructors/trees.c`. Upstream unit test
+# `tests/unit/igraph_tree_from_parent_vector.c` + `.out` covers the same
+# five-vertex parent vector `[4, 4, 1, -2, 3]` in OUT / IN / Undirected
+# modes plus a two-root forest variant and an all-roots edgeless case.
+# Edges below are taken verbatim from the `.out` golden, canonicalised to
+# (min, max) pairs in the undirected case so conformance multiset checks
+# stay source-agnostic. Mode strings match Rust's TreeMode variants.
+TREE_FROM_PARENT_VECTOR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "tree_from_parent_vector_c_out_5v",
+        "origin": "mirrors igraph_tree_from_parent_vector.c fixture: parents=[4,4,1,-2,3], OUT mode → directed 5-vertex tree (edges 4→0, 3→4, 4→1, 1→2)",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [4, 4, 1, -2, 3], "mode": "out"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[4, 0], [3, 4], [4, 1], [1, 2]],
+        },
+    },
+    {
+        "case": "tree_from_parent_vector_c_in_5v",
+        "origin": "mirrors igraph_tree_from_parent_vector.c fixture: parents=[4,4,1,-2,3], IN mode → directed 5-vertex tree (edges 0→4, 4→3, 1→4, 2→1)",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [4, 4, 1, -2, 3], "mode": "in"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[0, 4], [4, 3], [1, 4], [2, 1]],
+        },
+    },
+    {
+        "case": "tree_from_parent_vector_c_undirected_5v",
+        "origin": "mirrors igraph_tree_from_parent_vector.c fixture: parents=[4,4,1,-2,3], UNDIRECTED mode → 5-vertex tree, canonical (min,max) edges {(0,4),(3,4),(1,4),(1,2)}",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [4, 4, 1, -2, 3], "mode": "undirected"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 4], [3, 4], [1, 4], [1, 2]],
+        },
+    },
+    {
+        "case": "tree_from_parent_vector_c_forest_two_roots",
+        "origin": "mirrors igraph_tree_from_parent_vector.c forest fixture: parents=[-1,4,1,-2,3], OUT mode → directed 2-tree forest (edges 4→1, 3→4, 1→2)",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [-1, 4, 1, -2, 3], "mode": "out"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 3,
+            "directed": True,
+            "edges": [[4, 1], [3, 4], [1, 2]],
+        },
+    },
+    {
+        "case": "tree_from_parent_vector_c_edgeless_all_roots",
+        "origin": "mirrors igraph_tree_from_parent_vector.c edgeless fixture: all-negative parents=[-1,-1,-1,-1,-1] → 5-vertex edgeless graph",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [-1, -1, -1, -1, -1], "mode": "out"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+    {
+        "case": "tree_from_parent_vector_c_null_graph",
+        "origin": "mirrors igraph_tree_from_parent_vector.c null-graph fixture: empty parents → 0-vertex graph",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [], "mode": "out"},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+]
+
+
 PRUFER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "from_prufer_c_seq_2323",
@@ -8149,6 +8233,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "full_graph": FULL_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
+    "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
 }
 
 
@@ -8288,6 +8373,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "kautz",
             "full_graph",
             "from_prufer",
+            "tree_from_parent_vector",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

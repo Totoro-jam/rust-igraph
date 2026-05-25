@@ -15,6 +15,64 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-017** — `tree_from_parent_vector` parent-vector tree/forest
+  decoder. **Seventeenth member of the `constructors/` family.**
+  Counterpart of `igraph_tree_from_parent_vector` in
+  `references/igraph/src/constructors/tree.c`. Decodes a length-`n`
+  parent vector — where `parents[v]` names `v`'s parent vertex id and
+  any negative entry marks `v` as a root — into the unique rooted tree
+  or forest on `n` vertices, with three possible arc orientations
+  selected by `TreeMode` (reused from `kary_tree`): `Out` (directed
+  parent→child), `In` (directed child→parent), `Undirected` (single
+  canonical `(min, max)` edge per parent link).
+  - `pub fn tree_from_parent_vector(parents: &[i64], mode: TreeMode) ->
+    IgraphResult<Graph>`. Linear-time `O(n)`: each vertex is visited at
+    most twice across all rounds — once as the outer index `i`, once on
+    the way up its parent chain — with a `seen[]` array short-circuiting
+    revisits. Emission order matches upstream byte-for-byte. Validation
+    rejects any parent id `>= n` with `InvalidArgument`; any negative
+    value is a valid root sentinel (matches C semantics where igraph's
+    internal `-2` and the user's `-1` are both negative). Uses
+    `u32::try_from(...).map_err(...)` rather than `as u32` to stay free
+    of unwrap/expect per project conventions.
+  - 13 unit tests covering: empty parent vector → empty graph,
+    all-roots → isolated-vertex edgeless graph in all three modes,
+    single-root chain in all three modes, two-root forest, the upstream
+    `[4, 4, 1, -2, 3]` fixture in OUT/IN/Undirected with exact
+    edge-order assertions, star centred on vertex 0, the rigraph
+    snapshot chain (C-level `[-2, 0, 1, 2]` after the R wrapper's `-1`
+    shift), out-of-range parent error path.
+  - 7 proptest invariants over `n ∈ [1, 30)`: result is acyclic
+    (union-find probe), edge count equals number of non-root entries,
+    zero self-loops, undirected mode keeps the multiset deduplicated,
+    OUT/IN modes produce mirror-image arc sets (transposing flips them),
+    Undirected mode equals the canonical multiset of either directed
+    mode, and an out-of-range `parents[v] >= n` strategy always errors.
+  - Three-source conformance: 6 igraph C fixtures (upstream `[4,4,1,-2,3]`
+    in OUT/IN/Undirected, two-root forest, edgeless all-roots, null
+    graph), 5 synthetic python-igraph fixtures (python-igraph does NOT
+    bind `igraph_tree_from_parent_vector`; fixtures use identical C
+    semantics — chain undirected, star OUT/IN, two-root forest,
+    singleton root), 3 rigraph snapshot fixtures (chain in all three
+    modes using the C-level shifted parents `[-2, 0, 1, 2]`). Directed
+    fixtures compare the ordered edge multiset (upstream emission order
+    is the contract); undirected fixtures compare the canonical
+    `(min, max)` multiset (rigraph re-canonicalises edges).
+  - `examples/tree_from_parent_vector_demo.rs` walks every interesting
+    shape — chain in all three modes, two-root forest, upstream-C
+    fixture in OUT/IN/Undirected, star centred on vertex 0, edgeless
+    graph (all roots), rigraph snapshot — with forest-invariant
+    assertions on each (no self-loops, no cycles, no duplicate edges).
+  - `benches/bench_tree_from_parent_vector.rs` sweeps four topologies
+    (chain / star / forest / random) over `n ∈ {64, 1 024, 16 384,
+    131 072}`. Best throughput ~53 Melem/s on `forest` (short
+    alternating chains stay L1-resident); worst ~18 Melem/s on `random`
+    (uniformly random parent ids defeat both prefetcher and per-vertex
+    `seen[]` locality). `time(n=131072)/time(n=16384)` ratios of
+    4.94/5.56/5.80/7.20 across chain/star/forest/random vs ideal 8.0
+    confirm `O(n)` scaling with sub-linear cache effects beyond L2.
+    Baseline snapshot at `.codefuse/tracking/perf/ALGO-CN-017.json`.
+
 - **ALGO-CN-016** — `from_prufer` linear-time Prüfer-sequence decoder.
   **Sixteenth member of the `constructors/` family.** Counterpart of
   `igraph_from_prufer` in `references/igraph/src/constructors/prufer.c`.

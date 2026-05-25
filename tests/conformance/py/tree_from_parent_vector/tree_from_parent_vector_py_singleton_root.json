@@ -1,0 +1,23 @@
+{
+  "source": "py",
+  "origin": "python-side equivalent \u2014 parents=[-1] (lone root vertex) decoded OUT yields directed K_1 (1 vertex, 0 edges)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_from_parent_vector",
+  "params": {
+    "parents": [
+      -1
+    ],
+    "mode": "out"
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

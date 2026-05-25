@@ -12949,3 +12949,186 @@ fn from_prufer_three_source_conformance() {
         );
     }
 }
+
+#[allow(clippy::too_many_lines)]
+fn check_tree_from_parent_vector_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::{TreeMode, tree_from_parent_vector};
+    use std::collections::BTreeMap;
+
+    let parents_vals: Vec<i64> = case
+        .params
+        .get("parents")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "tree_from_parent_vector fixture {}: params.parents missing or not array",
+                path.display()
+            )
+        })
+        .iter()
+        .map(|v| {
+            v.as_i64().unwrap_or_else(|| {
+                panic!(
+                    "tree_from_parent_vector fixture {}: parents entry not i64",
+                    path.display()
+                )
+            })
+        })
+        .collect();
+
+    let mode_str = case
+        .params
+        .get("mode")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_else(|| {
+            panic!(
+                "tree_from_parent_vector fixture {}: params.mode missing",
+                path.display()
+            )
+        });
+    let mode = match mode_str {
+        "out" => TreeMode::Out,
+        "in" => TreeMode::In,
+        "undirected" => TreeMode::Undirected,
+        other => panic!(
+            "tree_from_parent_vector fixture {}: unknown mode {other:?}",
+            path.display()
+        ),
+    };
+
+    let tree = tree_from_parent_vector(&parents_vals, mode)
+        .expect("tree_from_parent_vector should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        tree.vcount(),
+        want_vertices,
+        "tree_from_parent_vector vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        tree.is_directed(),
+        want_directed,
+        "tree_from_parent_vector directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        tree.ecount() as u64,
+        want_edges,
+        "tree_from_parent_vector ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "tree_from_parent_vector fixture {}: expected.edges missing",
+                path.display()
+            )
+        });
+
+    // Directed fixtures (OUT/IN) must match ordered edges; undirected
+    // fixtures compare canonical (min,max) multisets.
+    let n_edges = u32::try_from(tree.ecount()).expect("ecount fits u32 in conformance");
+    if want_directed {
+        let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+        for v in want_edges_raw {
+            let pair = v.as_array().unwrap_or_else(|| {
+                panic!(
+                    "tree_from_parent_vector fixture {}: edge not array",
+                    path.display()
+                )
+            });
+            let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+            let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+            *want_ms.entry((u, w)).or_insert(0) += 1;
+        }
+        let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+        for eid in 0..n_edges {
+            let pair = tree.edge(eid).expect("edge id in range");
+            *got_ms.entry(pair).or_insert(0) += 1;
+        }
+        assert_eq!(
+            got_ms,
+            want_ms,
+            "tree_from_parent_vector edge multiset (directed) mismatch in {}\n  source: {}\n  origin: {}",
+            path.display(),
+            case.source,
+            case.origin,
+        );
+    } else {
+        let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+        for v in want_edges_raw {
+            let pair = v.as_array().unwrap_or_else(|| {
+                panic!(
+                    "tree_from_parent_vector fixture {}: edge not array",
+                    path.display()
+                )
+            });
+            let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+            let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+            let key = if u <= w { (u, w) } else { (w, u) };
+            *want_ms.entry(key).or_insert(0) += 1;
+        }
+        let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+        for eid in 0..n_edges {
+            let (u, w) = tree.edge(eid).expect("edge id in range");
+            let key = if u <= w { (u, w) } else { (w, u) };
+            *got_ms.entry(key).or_insert(0) += 1;
+        }
+        assert_eq!(
+            got_ms,
+            want_ms,
+            "tree_from_parent_vector edge multiset (undirected) mismatch in {}\n  source: {}\n  origin: {}",
+            path.display(),
+            case.source,
+            case.origin,
+        );
+    }
+}
+
+#[test]
+fn tree_from_parent_vector_three_source_conformance() {
+    // `igraph_tree_from_parent_vector` is reached natively by rigraph
+    // (`tree_from_parent_vector_impl`) which shifts inputs by -1 before
+    // dispatch; python-igraph does not yet expose a binding, so the py
+    // fixtures use synthetic C-equivalent inputs. The C upstream unit
+    // test asserts ordered edges in directed modes — we mirror that and
+    // fall back to a canonical-multiset compare for the undirected mode.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("tree_from_parent_vector");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read tree_from_parent_vector fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes)
+                .expect("parse tree_from_parent_vector conformance fixture JSON");
+            assert_eq!(case.algo, "tree_from_parent_vector");
+            assert_eq!(case.source, src);
+            check_tree_from_parent_vector_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no tree_from_parent_vector fixtures from source {src}"
+        );
+    }
+}

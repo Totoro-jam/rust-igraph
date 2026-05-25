@@ -1,0 +1,21 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_tree_from_parent_vector.c null-graph fixture: empty parents \u2192 0-vertex graph",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_from_parent_vector",
+  "params": {
+    "parents": [],
+    "mode": "out"
+  },
+  "expected": {
+    "vcount": 0,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

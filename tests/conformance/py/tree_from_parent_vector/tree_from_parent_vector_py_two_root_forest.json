@@ -1,0 +1,40 @@
+{
+  "source": "py",
+  "origin": "python-side equivalent \u2014 parents=[-1,0,-1,2,3] (two roots: 0 and 2) decoded OUT yields two paths 0\u21921 and 2\u21923\u21924",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_from_parent_vector",
+  "params": {
+    "parents": [
+      -1,
+      0,
+      -1,
+      2,
+      3
+    ],
+    "mode": "out"
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 3,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ]
+  }
+}

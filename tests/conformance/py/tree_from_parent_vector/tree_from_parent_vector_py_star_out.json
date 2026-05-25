@@ -1,0 +1,44 @@
+{
+  "source": "py",
+  "origin": "python-side equivalent \u2014 parents=[-1,0,0,0,0] (star centred at 0) decoded OUT yields directed star with edges 0\u2192{1,2,3,4}",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_from_parent_vector",
+  "params": {
+    "parents": [
+      -1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "mode": "out"
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 4,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ]
+    ]
+  }
+}

@@ -528,6 +528,11 @@ name = "bench_prufer"
 path = "benches/bench_prufer.rs"
 harness = false
 
+[[bench]]
+name = "bench_tree_from_parent_vector"
+path = "benches/bench_tree_from_parent_vector.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

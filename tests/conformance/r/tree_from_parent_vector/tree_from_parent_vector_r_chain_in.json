@@ -1,0 +1,39 @@
+{
+  "source": "r",
+  "origin": "rigraph test-aaa-auto.R snapshot: tree_from_parent_vector_impl(parents=c(-1,1,2,3), type='in') \u2014 IN mode prints 2->1 3->2 4->3 (0-based: 1\u21920 2\u21921 3\u21922)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_from_parent_vector",
+  "params": {
+    "parents": [
+      -2,
+      0,
+      1,
+      2
+    ],
+    "mode": "in"
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 3,
+    "directed": true,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        3,
+        2
+      ]
+    ]
+  }
+}

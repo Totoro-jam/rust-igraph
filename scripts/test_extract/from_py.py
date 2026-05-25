@@ -6657,6 +6657,79 @@ LINEGRAPH_MANIFEST: List[Dict[str, Any]] = [
 # repeated-vertex (star), ascending (path), and an arbitrary mixed
 # sequence — five distinct topologies so cross-source ordering doesn't
 # rely on any one canonicalisation.
+# ALGO-CN-017 — python-igraph does NOT expose a direct binding for
+# `igraph_tree_from_parent_vector` (no `Graph.TreeFromParentVector`
+# class method), so these fixtures are synthesised from the same C-level
+# semantics — chosen sequences that python users would naturally build
+# by walking a `predecessors`/`predecessor_id` vector from
+# `Graph.bfs(...)` or `Graph.shortest_paths(...)` output. Each fixture
+# would round-trip through any future python binding as
+# `Graph(n, [(parent, child) for child, parent in enumerate(parents) if parent >= 0],
+#         directed=True)` in OUT mode.
+TREE_FROM_PARENT_VECTOR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "tree_from_parent_vector_py_chain_undirected",
+        "origin": "python-side equivalent — parents=[-1,0,1,2,3] (chain 0-1-2-3-4) decoded undirected yields path P_5",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [-1, 0, 1, 2, 3], "mode": "undirected"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [3, 4]],
+        },
+    },
+    {
+        "case": "tree_from_parent_vector_py_star_out",
+        "origin": "python-side equivalent — parents=[-1,0,0,0,0] (star centred at 0) decoded OUT yields directed star with edges 0→{1,2,3,4}",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [-1, 0, 0, 0, 0], "mode": "out"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[0, 1], [0, 2], [0, 3], [0, 4]],
+        },
+    },
+    {
+        "case": "tree_from_parent_vector_py_star_in",
+        "origin": "python-side equivalent — parents=[-1,0,0,0,0] decoded IN yields edges {1,2,3,4}→0 (inverted star)",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [-1, 0, 0, 0, 0], "mode": "in"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[1, 0], [2, 0], [3, 0], [4, 0]],
+        },
+    },
+    {
+        "case": "tree_from_parent_vector_py_two_root_forest",
+        "origin": "python-side equivalent — parents=[-1,0,-1,2,3] (two roots: 0 and 2) decoded OUT yields two paths 0→1 and 2→3→4",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [-1, 0, -1, 2, 3], "mode": "out"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 3,
+            "directed": True,
+            "edges": [[0, 1], [2, 3], [3, 4]],
+        },
+    },
+    {
+        "case": "tree_from_parent_vector_py_singleton_root",
+        "origin": "python-side equivalent — parents=[-1] (lone root vertex) decoded OUT yields directed K_1 (1 vertex, 0 edges)",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [-1], "mode": "out"},
+        "expected": {
+            "vcount": 1,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+]
+
+
 PRUFER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "from_prufer_py_empty_yields_p2",
@@ -6892,6 +6965,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "full_graph": FULL_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
+    "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
 }
 
 
@@ -7026,6 +7100,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "kautz",
             "full_graph",
             "from_prufer",
+            "tree_from_parent_vector",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

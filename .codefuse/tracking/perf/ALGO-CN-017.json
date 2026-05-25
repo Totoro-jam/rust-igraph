@@ -1,0 +1,142 @@
+{
+  "algo_id": "ALGO-CN-017",
+  "name": "tree_from_parent_vector",
+  "kind": "constructor",
+  "bench_file": "benches/bench_tree_from_parent_vector.rs",
+  "captured_at": "2026-05-25",
+  "host": "darwin / arm64 (Apple Silicon laptop)",
+  "criterion_config": {
+    "warm_up_time_s": 3,
+    "measurement_time_s": 5,
+    "sample_size": 100
+  },
+  "notes": [
+    "Four topology sweeps (chain / star / forest / random) over n in {64, 1024, 16384, 131072}.",
+    "chain: parents[v] = v-1; first round walks the deepest leaf in one sweep, rest short-circuit.",
+    "star: parents[v] = 0 for v>0; inner walk fires once per i and never cascades.",
+    "forest: alternating roots and parent links; many short chains (BFS-predecessor style).",
+    "random: deterministic SplitMix64-seeded parent ids in [0, v); cache-unfriendly access.",
+    "Throughput reported in elements/sec, i.e. trees-decoded-per-second in vertex-count terms (n)."
+  ],
+  "shapes": [
+    {
+      "label": "chain_n64",
+      "topology": "chain",
+      "n_vertices": 64,
+      "time_us": {"lo": 5.410, "mid": 5.656, "hi": 5.904},
+      "thrpt_Melem_per_s": {"lo": 10.8, "mid": 11.3, "hi": 11.8}
+    },
+    {
+      "label": "chain_n1024",
+      "topology": "chain",
+      "n_vertices": 1024,
+      "time_us": {"lo": 33.997, "mid": 34.645, "hi": 35.277},
+      "thrpt_Melem_per_s": {"lo": 29.0, "mid": 29.6, "hi": 30.1}
+    },
+    {
+      "label": "chain_n16384",
+      "topology": "chain",
+      "n_vertices": 16384,
+      "time_us": {"lo": 743.505, "mid": 761.000, "hi": 780.769},
+      "thrpt_Melem_per_s": {"lo": 21.0, "mid": 21.5, "hi": 22.0}
+    },
+    {
+      "label": "chain_n131072",
+      "topology": "chain",
+      "n_vertices": 131072,
+      "time_us": {"lo": 3726.130, "mid": 3761.305, "hi": 3796.532},
+      "thrpt_Melem_per_s": {"lo": 34.5, "mid": 34.8, "hi": 35.2}
+    },
+    {
+      "label": "star_n64",
+      "topology": "star",
+      "n_vertices": 64,
+      "time_us": {"lo": 6.030, "mid": 6.225, "hi": 6.426},
+      "thrpt_Melem_per_s": {"lo": 10.0, "mid": 10.3, "hi": 10.6}
+    },
+    {
+      "label": "star_n1024",
+      "topology": "star",
+      "n_vertices": 1024,
+      "time_us": {"lo": 29.189, "mid": 29.377, "hi": 29.618},
+      "thrpt_Melem_per_s": {"lo": 34.6, "mid": 34.9, "hi": 35.1}
+    },
+    {
+      "label": "star_n16384",
+      "topology": "star",
+      "n_vertices": 16384,
+      "time_us": {"lo": 707.495, "mid": 729.906, "hi": 752.568},
+      "thrpt_Melem_per_s": {"lo": 21.8, "mid": 22.4, "hi": 23.2}
+    },
+    {
+      "label": "star_n131072",
+      "topology": "star",
+      "n_vertices": 131072,
+      "time_us": {"lo": 3960.064, "mid": 4056.175, "hi": 4152.741},
+      "thrpt_Melem_per_s": {"lo": 31.6, "mid": 32.3, "hi": 33.1}
+    },
+    {
+      "label": "forest_n64",
+      "topology": "forest",
+      "n_vertices": 64,
+      "time_us": {"lo": 3.997, "mid": 4.049, "hi": 4.101},
+      "thrpt_Melem_per_s": {"lo": 15.6, "mid": 15.8, "hi": 16.0}
+    },
+    {
+      "label": "forest_n1024",
+      "topology": "forest",
+      "n_vertices": 1024,
+      "time_us": {"lo": 20.567, "mid": 20.778, "hi": 21.043},
+      "thrpt_Melem_per_s": {"lo": 48.7, "mid": 49.3, "hi": 49.8}
+    },
+    {
+      "label": "forest_n16384",
+      "topology": "forest",
+      "n_vertices": 16384,
+      "time_us": {"lo": 418.277, "mid": 429.055, "hi": 441.796},
+      "thrpt_Melem_per_s": {"lo": 37.1, "mid": 38.2, "hi": 39.2}
+    },
+    {
+      "label": "forest_n131072",
+      "topology": "forest",
+      "n_vertices": 131072,
+      "time_us": {"lo": 2447.603, "mid": 2487.731, "hi": 2547.837},
+      "thrpt_Melem_per_s": {"lo": 51.4, "mid": 52.7, "hi": 53.6}
+    },
+    {
+      "label": "random_n64",
+      "topology": "random",
+      "n_vertices": 64,
+      "time_us": {"lo": 5.591, "mid": 5.665, "hi": 5.739},
+      "thrpt_Melem_per_s": {"lo": 11.2, "mid": 11.3, "hi": 11.5}
+    },
+    {
+      "label": "random_n1024",
+      "topology": "random",
+      "n_vertices": 1024,
+      "time_us": {"lo": 42.065, "mid": 42.390, "hi": 42.723},
+      "thrpt_Melem_per_s": {"lo": 24.0, "mid": 24.2, "hi": 24.4}
+    },
+    {
+      "label": "random_n16384",
+      "topology": "random",
+      "n_vertices": 16384,
+      "time_us": {"lo": 972.596, "mid": 992.744, "hi": 1013.941},
+      "thrpt_Melem_per_s": {"lo": 16.2, "mid": 16.5, "hi": 16.8}
+    },
+    {
+      "label": "random_n131072",
+      "topology": "random",
+      "n_vertices": 131072,
+      "time_us": {"lo": 7048.902, "mid": 7153.354, "hi": 7314.894},
+      "thrpt_Melem_per_s": {"lo": 17.9, "mid": 18.3, "hi": 18.6}
+    }
+  ],
+  "summary": {
+    "complexity": "O(n) — each vertex is visited at most twice (once as outer i, once on the way up its parent chain); constants verify near-linear scaling.",
+    "best_throughput_topology": "forest (~53 Melem/s @ n=131072) — short alternating chains keep working sets cache-resident.",
+    "worst_throughput_topology": "random (~18 Melem/s @ n=131072) — uniformly random parent ids defeat both prefetcher and per-vertex seen[] locality.",
+    "linearity_check": "ratio time(n=131072)/time(n=16384) ≈ 4.94 (chain), 5.56 (star), 5.80 (forest), 7.20 (random) vs ideal 8.0; well within O(n) bounds and chain/star benefit from sub-linear cache effects beyond L2.",
+    "vs_python_igraph": "python-igraph does not bind igraph_tree_from_parent_vector directly; rigraph wraps the same C decoder. Per-call FFI overhead means R/Python wrappers would never beat native Rust on small n. Conformance test already proves output identity across three sources."
+  }
+}

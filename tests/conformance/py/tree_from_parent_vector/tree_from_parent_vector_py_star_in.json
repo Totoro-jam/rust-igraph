@@ -1,0 +1,44 @@
+{
+  "source": "py",
+  "origin": "python-side equivalent \u2014 parents=[-1,0,0,0,0] decoded IN yields edges {1,2,3,4}\u21920 (inverted star)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_from_parent_vector",
+  "params": {
+    "parents": [
+      -1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "mode": "in"
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 4,
+    "directed": true,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        0
+      ]
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "source": "py",
+  "origin": "python-side equivalent \u2014 parents=[-1,0,1,2,3] (chain 0-1-2-3-4) decoded undirected yields path P_5",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_from_parent_vector",
+  "params": {
+    "parents": [
+      -1,
+      0,
+      1,
+      2,
+      3
+    ],
+    "mode": "undirected"
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 4,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ]
+  }
+}

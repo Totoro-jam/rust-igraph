@@ -1,0 +1,39 @@
+{
+  "source": "r",
+  "origin": "rigraph extension of the snapshot: same chain decoded undirected \u2192 path P_4 with canonical edges {(0,1),(1,2),(2,3)}",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_from_parent_vector",
+  "params": {
+    "parents": [
+      -2,
+      0,
+      1,
+      2
+    ],
+    "mode": "undirected"
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 3,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  }
+}

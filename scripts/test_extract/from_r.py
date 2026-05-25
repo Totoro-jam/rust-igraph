@@ -6877,6 +6877,53 @@ LINEGRAPH_MANIFEST: List[Dict[str, Any]] = [
 # `to_prufer(make_tree(13, 3))` through `make_from_prufer`; we mirror
 # that here directly, plus two upstream-C fixtures so the R extractor
 # yields three independent shapes.
+# ALGO-CN-017 — `tree_from_parent_vector_impl(parents, type)` (rigraph
+# auto-bound) shifts the input by -1 inside R then dispatches to C
+# `igraph_tree_from_parent_vector`. rigraph's `test-aaa-auto.R` snapshot
+# uses `parents = c(-1, 1, 2, 3)` which after the shift becomes the
+# C-level vector `[-2, 0, 1, 2]` — a chain 0→1→2→3. We mirror both the
+# OUT and IN snapshots here (in 0-based form), plus an undirected
+# variant that also matches rigraph's natural conversion.
+TREE_FROM_PARENT_VECTOR_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "tree_from_parent_vector_r_chain_out",
+        "origin": "rigraph test-aaa-auto.R snapshot: tree_from_parent_vector_impl(parents=c(-1,1,2,3)) — internal -1 shift gives C parents=[-2,0,1,2]; OUT mode prints 1->2 2->3 3->4 (0-based: 0→1 1→2 2→3)",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [-2, 0, 1, 2], "mode": "out"},
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "directed": True,
+            "edges": [[0, 1], [1, 2], [2, 3]],
+        },
+    },
+    {
+        "case": "tree_from_parent_vector_r_chain_in",
+        "origin": "rigraph test-aaa-auto.R snapshot: tree_from_parent_vector_impl(parents=c(-1,1,2,3), type='in') — IN mode prints 2->1 3->2 4->3 (0-based: 1→0 2→1 3→2)",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [-2, 0, 1, 2], "mode": "in"},
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "directed": True,
+            "edges": [[1, 0], [2, 1], [3, 2]],
+        },
+    },
+    {
+        "case": "tree_from_parent_vector_r_chain_undirected",
+        "origin": "rigraph extension of the snapshot: same chain decoded undirected → path P_4 with canonical edges {(0,1),(1,2),(2,3)}",
+        "algo": "tree_from_parent_vector",
+        "params": {"parents": [-2, 0, 1, 2], "mode": "undirected"},
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3]],
+        },
+    },
+]
+
+
 PRUFER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "from_prufer_r_make_tree_13_3_roundtrip",
@@ -7097,6 +7144,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "full_graph": FULL_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
+    "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
 }
 
 
@@ -7231,6 +7279,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "kautz",
             "full_graph",
             "from_prufer",
+            "tree_from_parent_vector",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

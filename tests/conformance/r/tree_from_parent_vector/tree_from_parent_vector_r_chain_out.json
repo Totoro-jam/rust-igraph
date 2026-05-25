@@ -1,0 +1,39 @@
+{
+  "source": "r",
+  "origin": "rigraph test-aaa-auto.R snapshot: tree_from_parent_vector_impl(parents=c(-1,1,2,3)) \u2014 internal -1 shift gives C parents=[-2,0,1,2]; OUT mode prints 1->2 2->3 3->4 (0-based: 0\u21921 1\u21922 2\u21923)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "tree_from_parent_vector",
+  "params": {
+    "parents": [
+      -2,
+      0,
+      1,
+      2
+    ],
+    "mode": "out"
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 3,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  }
+}
