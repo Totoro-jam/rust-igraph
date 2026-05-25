@@ -113,9 +113,7 @@ pub fn lcf(n: u32, shifts: &[i64], repeats: u32) -> IgraphResult<Graph> {
             // so a negative offset wraps positively.
             let to_i64 = (i64::from(sptr) + shift).rem_euclid(n_i64);
             let to = u32::try_from(to_i64).map_err(|_| {
-                IgraphError::InvalidArgument(
-                    format!("lcf: chord target {to_i64} out of u32 range",),
-                )
+                IgraphError::InvalidArgument(format!("lcf: chord target {to_i64} out of u32 range"))
             })?;
             if from != to {
                 let (lo, hi) = if from < to { (from, to) } else { (to, from) };
