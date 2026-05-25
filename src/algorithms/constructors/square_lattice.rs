@@ -105,14 +105,14 @@ pub fn square_lattice(
              higher radii require igraph_connect_neighborhood (future AWU)"
         )));
     }
-    if let Some(p) = periodic
-        && p.len() != dim.len()
-    {
-        return Err(IgraphError::InvalidArgument(format!(
-            "square_lattice: periodic vector length {} must match dim length {}",
-            p.len(),
-            dim.len()
-        )));
+    if let Some(p) = periodic {
+        if p.len() != dim.len() {
+            return Err(IgraphError::InvalidArgument(format!(
+                "square_lattice: periodic vector length {} must match dim length {}",
+                p.len(),
+                dim.len()
+            )));
+        }
     }
 
     let dims = dim.len();
