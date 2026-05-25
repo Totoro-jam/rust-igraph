@@ -15,6 +15,108 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-026** — `full_multipartite` complete multipartite (and
+  bipartite) constructor returning `FullMultipartite { graph, types }`
+  with the `types: Vec<u32>` partition labels. **Twenty-sixth member of
+  the `constructors/` family** and the cross-partition sibling of
+  [`full_graph`] / [`full_citation`]. Counterpart of
+  `igraph_full_multipartite` in
+  `references/igraph/src/constructors/full.c:154-247`.
+  - `pub fn full_multipartite(partitions: &[u32], directed: bool, mode:
+    MultipartiteMode) -> IgraphResult<FullMultipartite>` — byte-for-byte
+    port of the upstream 4-deep emission walk
+    `for from_type in 0..k { for i in n_acc[from_type]..n_acc[from_type
+    + 1] { for to_type in from_type + 1..k { for j in
+    n_acc[to_type]..n_acc[to_type + 1] { emit … } } } }`. The edge
+    buffer is pre-sized via `Vec::with_capacity(E)` where `E` is derived
+    from the upstream `IGRAPH_SAFE_MULT` formula `(1/2) · Σ_i n_i · (N
+    − n_i)` (mode-aware: `All` doubles, `In`/`Out` matches undirected),
+    so the bulk `Graph::add_edges` call sees no reallocation.
+  - `pub enum MultipartiteMode { All, Out, In }` — local mode enum
+    (matching the per-constructor `StarMode`/`WheelMode`/`TreeMode`
+    pattern) mapping directly to `IGRAPH_OUT`/`IGRAPH_IN`/`IGRAPH_ALL`.
+  - **Empty-middle-partition rule**: the types vector is built with a
+    `while v < no_of_types && (i as u64) == n_acc[v] { v += 1; }` loop
+    (the `while` — not `if` — is critical: consecutive empty partitions
+    like `partitions = [2, 0, 3]` produce two adjacent equal `n_acc`
+    entries, and the empty middle partition still occupies a label
+    slot, yielding `types = [0, 0, 2, 2, 2]` not `[0, 0, 1, 1, 1]`).
+    The 12-arc count for `K_{2,3}` directed-All comes out correctly
+    because the empty partition is skipped at the edge level while its
+    label slot is preserved.
+  - **Overflow protection**: `u64.checked_add` on the cumulative
+    `n_acc` (so adversarial `partitions = [u32::MAX, u32::MAX]` reports
+    `Overflow` rather than silently wrapping), `u32::try_from` on the
+    final `N = n_acc[k]`, `usize::checked_mul` on the edge buffer
+    capacity.
+  - **Degenerate inputs handled inline**: `partitions = []` returns the
+    empty graph with empty types regardless of `directed`/`mode`,
+    `partitions = [n]` returns `n` isolated vertices in partition 0 (no
+    edges, types `[0; n]`), `partitions` containing zeros simply skips
+    those partitions at the edge level while still occupying label
+    slots.
+  - **Mode dispatch**: undirected collapses to `Out` semantics (the
+    directedness flag is encoded only at `Graph::new` time);
+    `directed && mode == All` doubles the edge count vs `Out`/`In`;
+    `Out` and `In` are reverse-of-each-other when intersected as
+    ordered arc sets.
+  - **Tests**: 14 unit + 6 proptest covering (a) all 7 upstream
+    `.out` cases byte-for-byte (`[2,0,3]` undirected, `[2,0,3]`
+    directed-All, `[2,3,4,2]` undirected/All/In/Out, `[]` directed),
+    (b) the empty-middle-partition `[2,0,3]` skip yielding
+    `types = [0, 0, 2, 2, 2]` and `ecount = 12`, (c) the every-emitted-
+    edge-crosses-a-partition-boundary invariant, (d) the
+    types-vector-is-monotone partition-major invariant, (e) the
+    `directed && mode == All` doubles `Out` ecount invariant, (f) the
+    undirected canonical multiset equals directed-Out canonical
+    multiset invariant, (g) the `Out` and `In` are reverse-of-each-other
+    invariant, plus a proptest sweep validating the invariants across
+    random `partitions` shapes (`k ∈ [0, 5]`, per-partition size
+    `∈ [0, 6]`, both directednesses, all three modes).
+  - **Three-source conformance**: 13 fixtures
+    - C lane (7) — the seven `igraph_full_multipartite.out` cases from
+      `references/igraph/tests/unit/igraph_full_multipartite.c` (full
+      coverage of every mode × shape the upstream test exercises,
+      including the empty-graph guard and the empty-middle-partition
+      skip; **test 4 has 44 arcs**, not 45 as an early summary claimed
+      — verified by direct `.out` read).
+    - py lane (3) — `Full_Multipartite([2, 3, 4], False, 'all')` from
+      `references/python-igraph/tests/test_constructors.py::testFullMultipartite`,
+      `Full_Bipartite(3, 4, False)` from `testBipartite` exercising
+      the bipartite shortcut, `Full_Multipartite([2, 3, 4, 2], True,
+      'out')` for the directed-out cross-mode check.
+    - R lane (3) — `make_full_multipartite(c(2, 3, 4), False, 'all')`,
+      `make_full_bipartite_graph(3, 4, False, 'all')`,
+      `make_full_multipartite(c(2, 3, 4, 2), True, 'all')` from the
+      rigraph `make_full_multipartite` snapshots.
+    - Conformance test (`tests/conformance.rs::check_full_multipartite_fixture`)
+      uses directed-aware multiset (`(u, v)` distinct from `(v, u)`
+      when directed, canonical `(min, max)` when undirected) plus the
+      exact types vector since R re-canonicalises endpoints and
+      cross-source emission order is not byte-stable.
+  - **Bench** (`benches/bench_full_multipartite.rs`): 7 shapes covering
+    K_{2,3} bipartite × {undirected ALL, directed OUT}, K_{8,8,8}
+    tripartite × {undirected ALL, directed ALL}, K_{32}^4 × {undirected
+    ALL, directed OUT}, K_{16}^6 undirected ALL. Throughput grows from
+    ~8.5–8.8 Melem/s at K_{2,3} (Graph::new + add_edges overhead
+    dominates the 6-edge buffer), climbs to ~33–38 Melem/s at
+    K_{8,8,8}, peaks at ~38–42 Melem/s on K_{32}^4 (sweet spot —
+    6144-edge buffer comfortably L1-resident), and stays at ~42 Melem/s
+    on K_{16}^6 (most balanced six-partite shape spread across
+    C(6,2)=15 partition pairs). Directed-All is slightly slower than
+    Out/In on the same shape because it emits 2× edges per pair.
+  - **Example** (`examples/full_multipartite_demo.rs`): walks the
+    degenerate cases (empty partitions, singleton partition `[4]`),
+    the empty-middle-partition skip `[2, 0, 3]` showing
+    `types = [0, 0, 2, 2, 2]` and 12 mutual arcs, and the richer
+    `K_{2,3,4,2}` four-partite shape cross-mode-checked across
+    undirected ALL / directed OUT / directed IN / directed ALL with
+    five structural invariants asserted (every edge crosses a
+    partition boundary, undirected canonical multiset equals
+    directed-OUT canonical multiset, ALL ecount = 2 · OUT ecount,
+    types is partition-major monotone, types length equals vcount).
+  - **Re-exports**: `rust_igraph::{FullMultipartite, MultipartiteMode,
+    full_multipartite}` lifted to the crate root.
 - **ALGO-CN-025** — `full_citation` complete-graph constructor with the
   citation-order emission. **Twenty-fifth member of the `constructors/`
   family** and the descending-source-major sibling of

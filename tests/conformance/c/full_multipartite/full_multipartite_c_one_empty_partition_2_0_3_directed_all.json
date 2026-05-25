@@ -1,0 +1,82 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_full_multipartite(n=[2,0,3], directed=true, mode=ALL) \u2014 5 vertices, 12 arcs across K_{2,3} bipartite-with-skipped-partition (case 7 from tests/unit/igraph_full_multipartite.out)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_multipartite",
+  "params": {
+    "partitions": [
+      2,
+      0,
+      3
+    ],
+    "directed": true,
+    "mode": "all"
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 12,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        4,
+        1
+      ]
+    ],
+    "types": [
+      0,
+      0,
+      2,
+      2,
+      2
+    ]
+  }
+}

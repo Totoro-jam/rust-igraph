@@ -1,0 +1,14 @@
+{
+  "awu": "ALGO-CN-026",
+  "captured_at": "2026-05-26",
+  "git_commit": "74bb634",
+  "rust_k23_undirected_all_thrpt_melem_s": 8.773,
+  "rust_k23_directed_out_thrpt_melem_s": 8.480,
+  "rust_tripartite_8_8_8_undirected_all_thrpt_melem_s": 37.937,
+  "rust_tripartite_8_8_8_directed_all_thrpt_melem_s": 32.707,
+  "rust_four_partitions_32_undirected_all_thrpt_melem_s": 41.645,
+  "rust_four_partitions_32_directed_out_thrpt_melem_s": 38.653,
+  "rust_six_partitions_16_undirected_all_thrpt_melem_s": 42.519,
+  "py_baseline_ns": null,
+  "notes": "Complete (full) multipartite constructor (igraph_full_multipartite port). Builds n_acc[] = prefix sum of partition sizes, pre-sizes the edge buffer via Vec::with_capacity(E) where E is derived from the upstream IGRAPH_SAFE_MULT formula (1/2 · sum_i n_i · (N - n_i)), then runs the 4-deep emission walk (from_type, i, to_type, j) byte-for-byte matching full.c:201-225. The same loop dispatches between directed-OUT / IN / ALL via three branches; undirected collapses to OUT semantics. Throughput climbs from ~8-9 Melem/s on tiny K_{2,3} bipartite (Graph::new + add_edges overhead dominates) to ~38-43 Melem/s on the medium and large balanced multipartite shapes (sweet spot: 4-6 partitions, 16-32 vertices per partition, edge buffer comfortably L1-resident). Directed-ALL is slightly slower than the others because it emits 2x edges per pair (extra Vec pushes + larger add_edges sort). No external oracle baseline: python-igraph (Graph.Full_Multipartite / Graph.Full_Bipartite) and rigraph (make_full_multipartite / make_full_bipartite_graph) both dispatch to igraph_full_multipartite, and the conformance test asserts edge-multiset + types-vector equality on the very fixtures the upstream C unit test (igraph_full_multipartite.c with 7 .out cases) and the python/R help-page examples drive. Numbers from `cargo bench --bench bench_full_multipartite -- --warm-up-time 1 --measurement-time 3` on Darwin/M-series release build."
+}

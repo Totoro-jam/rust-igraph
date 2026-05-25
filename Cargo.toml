@@ -159,6 +159,10 @@ name = "full_citation_demo"
 path = "examples/full_citation_demo.rs"
 
 [[example]]
+name = "full_multipartite_demo"
+path = "examples/full_multipartite_demo.rs"
+
+[[example]]
 name = "linegraph_demo"
 path = "examples/linegraph_demo.rs"
 
@@ -555,6 +559,11 @@ harness = false
 [[bench]]
 name = "bench_full_citation"
 path = "benches/bench_full_citation.rs"
+harness = false
+
+[[bench]]
+name = "bench_full_multipartite"
+path = "benches/bench_full_multipartite.rs"
 harness = false
 
 [[bench]]

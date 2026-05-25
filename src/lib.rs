@@ -108,6 +108,9 @@ pub use crate::algorithms::constructors::de_bruijn::de_bruijn;
 pub use crate::algorithms::constructors::famous::{famous, famous_names};
 pub use crate::algorithms::constructors::full::full_graph;
 pub use crate::algorithms::constructors::full_citation::full_citation;
+pub use crate::algorithms::constructors::full_multipartite::{
+    FullMultipartite, MultipartiteMode, full_multipartite,
+};
 pub use crate::algorithms::constructors::generalized_petersen::generalized_petersen;
 pub use crate::algorithms::constructors::hamming::hamming;
 pub use crate::algorithms::constructors::hexagonal_lattice::hexagonal_lattice;

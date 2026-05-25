@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_full_multipartite(n=[4], directed=true, mode=ALL) \u2014 4 isolated vertices, no edges, types=[0,0,0,0] (case 2 from tests/unit/igraph_full_multipartite.out)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_multipartite",
+  "params": {
+    "partitions": [
+      4
+    ],
+    "directed": true,
+    "mode": "all"
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 0,
+    "directed": true,
+    "edges": [],
+    "types": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

@@ -6624,6 +6624,70 @@ FULL_CITATION_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-026 — `Graph.Full_Bipartite` / `Graph.Full_Multipartite` (Python
+# bindings, dispatches to `igraph_full_multipartite`). python-igraph's
+# `Graph.Full_Bipartite(n1, n2)` is the canonical bipartite shorthand
+# (partitions=[n1, n2]); `Graph.Full_Multipartite(n_list, directed, mode)`
+# is the general entry point introduced upstream. The Python tests in
+# `tests/test_generators.py` assert the constructor returns the expected
+# vertex / edge count and partition `types` vector. Our manifest carries
+# three fixtures: a canonical undirected K_{3,4} bipartite, the
+# directed-OUT version of the same partitions, and a small tripartite
+# K_{1,2,2} mutual case. Comparison is multiset-based.
+FULL_MULTIPARTITE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "full_multipartite_py_k34_undirected",
+        "origin": "mirrors python-igraph Graph.Full_Bipartite(3, 4) — undirected K_{3,4} with 12 edges and types=[0,0,0,1,1,1,1]",
+        "algo": "full_multipartite",
+        "params": {"partitions": [3, 4], "directed": False, "mode": "all"},
+        "expected": {
+            "vcount": 7,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 3], [0, 4], [0, 5], [0, 6],
+                [1, 3], [1, 4], [1, 5], [1, 6],
+                [2, 3], [2, 4], [2, 5], [2, 6],
+            ],
+            "types": [0, 0, 0, 1, 1, 1, 1],
+        },
+    },
+    {
+        "case": "full_multipartite_py_k34_directed_out",
+        "origin": "mirrors python-igraph Graph.Full_Bipartite(3, 4, directed=True, mode='OUT') — 12 arcs flowing from partition 0 → partition 1",
+        "algo": "full_multipartite",
+        "params": {"partitions": [3, 4], "directed": True, "mode": "out"},
+        "expected": {
+            "vcount": 7,
+            "ecount": 12,
+            "directed": True,
+            "edges": [
+                [0, 3], [0, 4], [0, 5], [0, 6],
+                [1, 3], [1, 4], [1, 5], [1, 6],
+                [2, 3], [2, 4], [2, 5], [2, 6],
+            ],
+            "types": [0, 0, 0, 1, 1, 1, 1],
+        },
+    },
+    {
+        "case": "full_multipartite_py_tripartite_1_2_2_directed_all",
+        "origin": "mirrors python-igraph Graph.Full_Multipartite([1,2,2], directed=True, mode='ALL') — K_{1,2,2} with 16 mutual arcs (= 2 · 8 undirected edges)",
+        "algo": "full_multipartite",
+        "params": {"partitions": [1, 2, 2], "directed": True, "mode": "all"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 16,
+            "directed": True,
+            "edges": [
+                [0, 1], [1, 0], [0, 2], [2, 0], [0, 3], [3, 0], [0, 4], [4, 0],
+                [1, 3], [3, 1], [1, 4], [4, 1], [2, 3], [3, 2], [2, 4], [4, 2],
+            ],
+            "types": [0, 1, 1, 2, 2],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `Graph.linegraph()` (Python bindings, dispatches to the
 # same C `igraph_linegraph`). Fixtures focus on small textbook shapes
 # (P_4, K_4, C_5) plus a directed cycle that exercises chain semantics.
@@ -7569,6 +7633,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
     "full_citation": FULL_CITATION_MANIFEST,
+    "full_multipartite": FULL_MULTIPARTITE_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -7714,6 +7779,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "kautz",
             "full_graph",
             "full_citation",
+            "full_multipartite",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

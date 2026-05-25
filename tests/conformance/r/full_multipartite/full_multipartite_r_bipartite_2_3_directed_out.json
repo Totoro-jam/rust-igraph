@@ -1,0 +1,57 @@
+{
+  "source": "r",
+  "origin": "mirrors R-igraph make_full_bipartite_graph(2, 3, directed=TRUE, mode='out') \u2014 6 arcs partition 0 \u2192 partition 1",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_multipartite",
+  "params": {
+    "partitions": [
+      2,
+      3
+    ],
+    "directed": true,
+    "mode": "out"
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 6,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ]
+    ],
+    "types": [
+      0,
+      0,
+      1,
+      1,
+      1
+    ]
+  }
+}

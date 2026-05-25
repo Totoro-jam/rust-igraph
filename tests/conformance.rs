@@ -13140,6 +13140,206 @@ fn full_citation_three_source_conformance() {
     }
 }
 
+#[allow(clippy::too_many_lines)]
+fn check_full_multipartite_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::{MultipartiteMode, full_multipartite};
+    use std::collections::BTreeMap;
+
+    // params.partitions: array of u32 partition sizes.
+    let parts_raw = case
+        .params
+        .get("partitions")
+        .and_then(|v| v.as_array())
+        .unwrap_or_else(|| {
+            panic!(
+                "full_multipartite fixture {}: params.partitions missing or not array",
+                path.display()
+            )
+        });
+    let partitions: Vec<u32> = parts_raw
+        .iter()
+        .map(|v| {
+            u32::try_from(v.as_u64().unwrap_or_else(|| {
+                panic!(
+                    "full_multipartite fixture {}: partition size not u64",
+                    path.display()
+                )
+            }))
+            .unwrap_or_else(|_| {
+                panic!(
+                    "full_multipartite fixture {}: partition size overflows u32",
+                    path.display()
+                )
+            })
+        })
+        .collect();
+
+    let directed = er_param_bool(case, "directed", path);
+    let mode_raw = case
+        .params
+        .get("mode")
+        .and_then(|v| v.as_str())
+        .unwrap_or_else(|| {
+            panic!(
+                "full_multipartite fixture {}: params.mode missing or not string",
+                path.display()
+            )
+        });
+    let mode = match mode_raw {
+        "all" => MultipartiteMode::All,
+        "out" => MultipartiteMode::Out,
+        "in" => MultipartiteMode::In,
+        other => panic!(
+            "full_multipartite fixture {}: unknown mode '{}'",
+            path.display(),
+            other
+        ),
+    };
+
+    let result = full_multipartite(&partitions, directed, mode)
+        .expect("full_multipartite should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        result.graph.vcount(),
+        want_vertices,
+        "full_multipartite vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        result.graph.is_directed(),
+        want_directed,
+        "full_multipartite directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        result.graph.ecount() as u64,
+        want_edges,
+        "full_multipartite ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_types_raw = case
+        .expected
+        .get("types")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "full_multipartite fixture {}: expected.types missing or not array",
+                path.display()
+            )
+        });
+    let want_types: Vec<u32> = want_types_raw
+        .iter()
+        .map(|v| u32::try_from(v.as_u64().expect("u64")).expect("u32 type fits"))
+        .collect();
+    assert_eq!(
+        result.types,
+        want_types,
+        "full_multipartite types mismatch in {}",
+        path.display(),
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "full_multipartite fixture {}: expected.edges missing",
+                path.display()
+            )
+        });
+
+    let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for v in want_edges_raw {
+        let pair = v.as_array().unwrap_or_else(|| {
+            panic!(
+                "full_multipartite fixture {}: edge not array",
+                path.display()
+            )
+        });
+        let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+        let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+        let key = if want_directed || u <= w {
+            (u, w)
+        } else {
+            (w, u)
+        };
+        *want_ms.entry(key).or_insert(0) += 1;
+    }
+
+    let n_edges = u32::try_from(result.graph.ecount()).expect("ecount fits u32 in conformance");
+    let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for eid in 0..n_edges {
+        let (u, w) = result
+            .graph
+            .edge(eid)
+            .expect("full_multipartite edge id in range");
+        let key = if want_directed || u <= w {
+            (u, w)
+        } else {
+            (w, u)
+        };
+        *got_ms.entry(key).or_insert(0) += 1;
+    }
+
+    assert_eq!(
+        got_ms,
+        want_ms,
+        "full_multipartite edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn full_multipartite_three_source_conformance() {
+    // `igraph_full_multipartite(partitions, directed, mode)` is reached
+    // identically by python-igraph (`Graph.Full_Multipartite` /
+    // `Graph.Full_Bipartite`) and rigraph (`make_full_multipartite` /
+    // `make_full_bipartite_graph`). Upstream C unit test
+    // (`igraph_full_multipartite.c`) compares against a hand-emitted
+    // edge list and a hand-emitted types vector. Comparison here uses
+    // multiset equality on (canonical) edges plus exact types-vector
+    // match, so the test stays agnostic to emission order yet still
+    // pins down the partition labelling.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("full_multipartite");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read full_multipartite fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes)
+                .expect("parse full_multipartite conformance fixture JSON");
+            assert_eq!(case.algo, "full_multipartite");
+            assert_eq!(case.source, src);
+            check_full_multipartite_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no full_multipartite fixtures from source {src}"
+        );
+    }
+}
+
 fn check_linegraph_fixture(case: &Conformance, path: &std::path::Path) {
     use rust_igraph::linegraph;
     use std::collections::BTreeMap;

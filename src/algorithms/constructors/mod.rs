@@ -13,6 +13,7 @@ pub mod de_bruijn;
 pub mod famous;
 pub mod full;
 pub mod full_citation;
+pub mod full_multipartite;
 pub mod generalized_petersen;
 pub mod hamming;
 pub mod hexagonal_lattice;

@@ -7889,6 +7889,139 @@ FULL_CITATION_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-026 — `igraph_full_multipartite` from `src/constructors/full.c`.
+# Upstream unit test (`tests/unit/igraph_full_multipartite.c`) covers
+# seven cases: (1) empty directed, (2) single partition n=[4] directed,
+# (3) three partitions n=[2,3,3] directed ALL (8 vertices, 42 arcs),
+# (4) four partitions n=[2,3,4,2] directed IN (11 vertices, 44 arcs),
+# (5) four partitions n=[2,3,4,2] undirected (11 vertices, 44 edges),
+# (6) all-zero partitions n=[0,0,0] directed, (7) partition with one
+# size-zero block n=[2,0,3] directed ALL (5 vertices, 12 arcs).
+# Modes use the conventional igraph_neimode_t spelling: "all" / "out" /
+# "in". The expected edge multisets are byte-for-byte copies of the
+# upstream `igraph_full_multipartite.out`. Comparison is multiset-based
+# (no emission-order assumption) so the test passes under any of igraph
+# C / python-igraph / R-igraph backends.
+FULL_MULTIPARTITE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "full_multipartite_c_empty_directed_all",
+        "origin": "mirrors igraph_full_multipartite(n=[], directed=true, mode=ALL) — empty graph, empty types (case 1 from tests/unit/igraph_full_multipartite.out)",
+        "algo": "full_multipartite",
+        "params": {"partitions": [], "directed": True, "mode": "all"},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+            "types": [],
+        },
+    },
+    {
+        "case": "full_multipartite_c_single_partition_n4_directed_all",
+        "origin": "mirrors igraph_full_multipartite(n=[4], directed=true, mode=ALL) — 4 isolated vertices, no edges, types=[0,0,0,0] (case 2 from tests/unit/igraph_full_multipartite.out)",
+        "algo": "full_multipartite",
+        "params": {"partitions": [4], "directed": True, "mode": "all"},
+        "expected": {
+            "vcount": 4,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+            "types": [0, 0, 0, 0],
+        },
+    },
+    {
+        "case": "full_multipartite_c_three_partitions_2_3_3_directed_all",
+        "origin": "mirrors igraph_full_multipartite(n=[2,3,3], directed=true, mode=ALL) — 8 vertices, 42 mutual arcs across 21 inter-partition pairs (case 3 from tests/unit/igraph_full_multipartite.out)",
+        "algo": "full_multipartite",
+        "params": {"partitions": [2, 3, 3], "directed": True, "mode": "all"},
+        "expected": {
+            "vcount": 8,
+            "ecount": 42,
+            "directed": True,
+            "edges": [
+                [0, 2], [2, 0], [0, 3], [3, 0], [0, 4], [4, 0],
+                [0, 5], [5, 0], [0, 6], [6, 0], [0, 7], [7, 0],
+                [1, 2], [2, 1], [1, 3], [3, 1], [1, 4], [4, 1],
+                [1, 5], [5, 1], [1, 6], [6, 1], [1, 7], [7, 1],
+                [2, 5], [5, 2], [2, 6], [6, 2], [2, 7], [7, 2],
+                [3, 5], [5, 3], [3, 6], [6, 3], [3, 7], [7, 3],
+                [4, 5], [5, 4], [4, 6], [6, 4], [4, 7], [7, 4],
+            ],
+            "types": [0, 0, 1, 1, 1, 2, 2, 2],
+        },
+    },
+    {
+        "case": "full_multipartite_c_four_partitions_2_3_4_2_directed_in",
+        "origin": "mirrors igraph_full_multipartite(n=[2,3,4,2], directed=true, mode=IN) — 11 vertices, 44 reversed arcs (case 4 from tests/unit/igraph_full_multipartite.out)",
+        "algo": "full_multipartite",
+        "params": {"partitions": [2, 3, 4, 2], "directed": True, "mode": "in"},
+        "expected": {
+            "vcount": 11,
+            "ecount": 44,
+            "directed": True,
+            "edges": [
+                [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [10, 0],
+                [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [8, 1], [9, 1], [10, 1],
+                [5, 2], [6, 2], [7, 2], [8, 2], [9, 2], [10, 2],
+                [5, 3], [6, 3], [7, 3], [8, 3], [9, 3], [10, 3],
+                [5, 4], [6, 4], [7, 4], [8, 4], [9, 4], [10, 4],
+                [9, 5], [10, 5], [9, 6], [10, 6], [9, 7], [10, 7], [9, 8], [10, 8],
+            ],
+            "types": [0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3],
+        },
+    },
+    {
+        "case": "full_multipartite_c_four_partitions_2_3_4_2_undirected_all",
+        "origin": "mirrors igraph_full_multipartite(n=[2,3,4,2], directed=false, mode=ALL) — 11 vertices, 44 undirected edges (case 5 from tests/unit/igraph_full_multipartite.out)",
+        "algo": "full_multipartite",
+        "params": {"partitions": [2, 3, 4, 2], "directed": False, "mode": "all"},
+        "expected": {
+            "vcount": 11,
+            "ecount": 44,
+            "directed": False,
+            "edges": [
+                [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8], [0, 9], [0, 10],
+                [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9], [1, 10],
+                [2, 5], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10],
+                [3, 5], [3, 6], [3, 7], [3, 8], [3, 9], [3, 10],
+                [4, 5], [4, 6], [4, 7], [4, 8], [4, 9], [4, 10],
+                [5, 9], [5, 10], [6, 9], [6, 10], [7, 9], [7, 10], [8, 9], [8, 10],
+            ],
+            "types": [0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3],
+        },
+    },
+    {
+        "case": "full_multipartite_c_all_zero_partitions_directed_all",
+        "origin": "mirrors igraph_full_multipartite(n=[0,0,0], directed=true, mode=ALL) — empty graph despite three nominal partitions, types=[] (case 6 from tests/unit/igraph_full_multipartite.out)",
+        "algo": "full_multipartite",
+        "params": {"partitions": [0, 0, 0], "directed": True, "mode": "all"},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+            "types": [],
+        },
+    },
+    {
+        "case": "full_multipartite_c_one_empty_partition_2_0_3_directed_all",
+        "origin": "mirrors igraph_full_multipartite(n=[2,0,3], directed=true, mode=ALL) — 5 vertices, 12 arcs across K_{2,3} bipartite-with-skipped-partition (case 7 from tests/unit/igraph_full_multipartite.out)",
+        "algo": "full_multipartite",
+        "params": {"partitions": [2, 0, 3], "directed": True, "mode": "all"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 12,
+            "directed": True,
+            "edges": [
+                [0, 2], [2, 0], [0, 3], [3, 0], [0, 4], [4, 0],
+                [1, 2], [2, 1], [1, 3], [3, 1], [1, 4], [4, 1],
+            ],
+            "types": [0, 0, 2, 2, 2],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `igraph_linegraph` from `src/constructors/linegraph.c`.
 # The upstream unit test (`tests/unit/igraph_linegraph.c`) covers three
 # canonical shapes: (a) a multigraph + self-loop undirected case, (b) a
@@ -9090,6 +9223,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
     "full_citation": FULL_CITATION_MANIFEST,
+    "full_multipartite": FULL_MULTIPARTITE_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -9240,6 +9374,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "kautz",
             "full_graph",
             "full_citation",
+            "full_multipartite",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

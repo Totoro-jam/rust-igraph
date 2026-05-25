@@ -6857,6 +6857,68 @@ FULL_CITATION_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-026 — `make_full_multipartite` (R-igraph, references/rigraph/R/make.R:2740)
+# dispatches via `full_multipartite_impl` to `igraph_full_multipartite`.
+# `make_full_bipartite_graph(n1, n2)` is the bipartite shorthand. Both
+# wrappers expose the same mode argument as the C entry point
+# ("all" / "out" / "in"). Fixtures cover (a) the canonical undirected
+# K_{2,3} bipartite from the R help example, (b) the same partitions
+# under directed mode "out", and (c) the directed K_{2,2,2} from the R
+# help page, with all-mutual arcs.
+FULL_MULTIPARTITE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "full_multipartite_r_bipartite_2_3_undirected",
+        "origin": "mirrors R-igraph make_full_bipartite_graph(2, 3) — undirected K_{2,3} with 6 edges (rigraph help example for bipartite)",
+        "algo": "full_multipartite",
+        "params": {"partitions": [2, 3], "directed": False, "mode": "all"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 2], [0, 3], [0, 4],
+                [1, 2], [1, 3], [1, 4],
+            ],
+            "types": [0, 0, 1, 1, 1],
+        },
+    },
+    {
+        "case": "full_multipartite_r_bipartite_2_3_directed_out",
+        "origin": "mirrors R-igraph make_full_bipartite_graph(2, 3, directed=TRUE, mode='out') — 6 arcs partition 0 → partition 1",
+        "algo": "full_multipartite",
+        "params": {"partitions": [2, 3], "directed": True, "mode": "out"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 6,
+            "directed": True,
+            "edges": [
+                [0, 2], [0, 3], [0, 4],
+                [1, 2], [1, 3], [1, 4],
+            ],
+            "types": [0, 0, 1, 1, 1],
+        },
+    },
+    {
+        "case": "full_multipartite_r_tripartite_2_2_2_directed_out",
+        "origin": "mirrors R-igraph make_full_multipartite(c(2,2,2), directed=TRUE, mode='out') — K_{2,2,2} directed forward, 12 arcs (rigraph help example for multipartite)",
+        "algo": "full_multipartite",
+        "params": {"partitions": [2, 2, 2], "directed": True, "mode": "out"},
+        "expected": {
+            "vcount": 6,
+            "ecount": 12,
+            "directed": True,
+            "edges": [
+                [0, 2], [0, 3], [0, 4], [0, 5],
+                [1, 2], [1, 3], [1, 4], [1, 5],
+                [2, 4], [2, 5],
+                [3, 4], [3, 5],
+            ],
+            "types": [0, 0, 1, 1, 2, 2],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `make_line_graph` (R-igraph) dispatches to
 # `igraph_linegraph`. Fixtures cover the textbook small shapes —
 # triangle, K_4, star — that an R-bindings user would build with
@@ -7590,6 +7652,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
     "full_citation": FULL_CITATION_MANIFEST,
+    "full_multipartite": FULL_MULTIPARTITE_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -7734,6 +7797,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "kautz",
             "full_graph",
             "full_citation",
+            "full_multipartite",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

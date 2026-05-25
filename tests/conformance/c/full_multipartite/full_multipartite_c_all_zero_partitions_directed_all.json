@@ -1,0 +1,27 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_full_multipartite(n=[0,0,0], directed=true, mode=ALL) \u2014 empty graph despite three nominal partitions, types=[] (case 6 from tests/unit/igraph_full_multipartite.out)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_multipartite",
+  "params": {
+    "partitions": [
+      0,
+      0,
+      0
+    ],
+    "directed": true,
+    "mode": "all"
+  },
+  "expected": {
+    "vcount": 0,
+    "ecount": 0,
+    "directed": true,
+    "edges": [],
+    "types": []
+  }
+}

@@ -1,4 +1,4 @@
-//! Full citation graph (complete DAG / K_n) constructor benchmarks
+//! Full citation graph (complete DAG / `K_n`) constructor benchmarks
 //! (ALGO-CN-025).
 //!
 //! Run: `cargo bench --bench bench_full_citation`.
