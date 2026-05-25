@@ -1,0 +1,56 @@
+{
+  "source": "c",
+  "origin": "basic_constructors.c:53 directed arc-order preserved",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ]
+    ],
+    "n": 3,
+    "directed": true
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 4,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ]
+    ]
+  }
+}

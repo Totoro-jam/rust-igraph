@@ -1,0 +1,48 @@
+{
+  "source": "r",
+  "origin": "rigraph make_graph(c(1,2, 1,2, 1,2), directed=FALSE) \u2014 0-based 3 parallel edges between 0 and 1",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "n": 0,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 3,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}

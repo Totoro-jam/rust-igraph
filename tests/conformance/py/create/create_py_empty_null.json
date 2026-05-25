@@ -1,0 +1,22 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph([], n=0, directed=False) \u2014 null graph",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [],
+    "n": 0,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 0,
+    "ecount": 0,
+    "directed": false,
+    "edges": []
+  }
+}

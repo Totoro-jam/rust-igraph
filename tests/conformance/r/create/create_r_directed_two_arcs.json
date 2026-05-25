@@ -1,0 +1,40 @@
+{
+  "source": "r",
+  "origin": "rigraph make_graph(c(1,2, 2,1), directed=TRUE) \u2014 0-based: [(0,1),(1,0)] both arcs",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "n": 2,
+    "directed": true
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 2,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ]
+  }
+}

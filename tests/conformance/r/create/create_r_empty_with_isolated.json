@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "rigraph make_graph(numeric(0), n=4, directed=FALSE) \u2014 4 isolated vertices, no edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [],
+    "n": 4,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 0,
+    "directed": false,
+    "edges": []
+  }
+}

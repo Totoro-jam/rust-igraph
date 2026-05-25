@@ -1,0 +1,56 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph([(0,1),(1,2),(2,3),(2,2)], directed=False) \u2014 vcount inferred",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "n": 0,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 4,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        2
+      ]
+    ]
+  }
+}

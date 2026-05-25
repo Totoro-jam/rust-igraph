@@ -1,0 +1,48 @@
+{
+  "source": "r",
+  "origin": "rigraph make_graph(c(1,2, 2,3, 3,4), directed=FALSE) \u2014 0-based path P_4",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "n": 0,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 3,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  }
+}

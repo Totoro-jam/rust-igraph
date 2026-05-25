@@ -1,0 +1,40 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph([(0,0),(0,1)], directed=False) \u2014 self-loop kept as edge",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "n": 0,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 2,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}

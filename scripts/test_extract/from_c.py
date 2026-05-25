@@ -8306,6 +8306,128 @@ FAMOUS_MANIFEST: List[Dict[str, Any]] = [
 #    (test_atlas.py:174) — included here because the constructor itself
 #    handles them fine and we want to catch any regression that changes
 #    that.
+# Fixtures for `igraph_create` (ALGO-CN-022). The foundational
+# edge-list constructor; cases below cover the upstream example file
+# (`examples/simple/igraph_create.c`) plus the two error/edge paths the
+# C unit test (`tests/unit/igraph_create.c`) probes — both eliminated at
+# the Rust type level (no odd-length / no negative IDs) but the shape
+# tests still apply.
+CREATE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "create_c_upstream_n_zero_infers_four",
+        "origin": "examples/simple/igraph_create.c — [0,1, 1,2, 2,3, 2,2] n=0 directed=0",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1], [1, 2], [2, 3], [2, 2]],
+            "n": 0,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 4,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [2, 2]],
+        },
+    },
+    {
+        "case": "create_c_upstream_n_ten_keeps_ten",
+        "origin": "examples/simple/igraph_create.c — same edges with n=10 keeps 10 vertices",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1], [1, 2], [2, 3], [2, 2]],
+            "n": 10,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 10,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [2, 2]],
+        },
+    },
+    {
+        "case": "create_c_n_smaller_than_max_extends",
+        "origin": "basic_constructors.c:53 — n=3 < max+1=7 triggers silent igraph_add_vertices",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1], [5, 6]],
+            "n": 3,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 7,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 1], [5, 6]],
+        },
+    },
+    {
+        "case": "create_c_directed_arc_order",
+        "origin": "basic_constructors.c:53 directed arc-order preserved",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1], [1, 0], [1, 2], [2, 1]],
+            "n": 3,
+            "directed": True,
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[0, 1], [1, 0], [1, 2], [2, 1]],
+        },
+    },
+    {
+        "case": "create_c_empty_null_graph",
+        "origin": "basic_constructors.c:53 — empty edges + n=0 → null graph",
+        "algo": "create",
+        "params": {
+            "edges": [],
+            "n": 0,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "create_c_empty_n_positive_isolated",
+        "origin": "basic_constructors.c:53 — empty edges + n>0 → isolated vertices",
+        "algo": "create",
+        "params": {
+            "edges": [],
+            "n": 5,
+            "directed": True,
+        },
+        "expected": {
+            "vcount": 5,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+    {
+        "case": "create_c_self_loops_and_parallel",
+        "origin": "basic_constructors.c:53 — self-loops + parallels survive (no canonicalisation)",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 0], [1, 1], [0, 1], [0, 1]],
+            "n": 0,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 2,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 0], [1, 1], [0, 1], [0, 1]],
+        },
+    },
+]
+
+
 ATLAS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "atlas_c_null0",
@@ -8713,6 +8835,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mycielskian": MYCIELSKIAN_MANIFEST,
     "famous": FAMOUS_MANIFEST,
     "atlas": ATLAS_MANIFEST,
+    "create": CREATE_MANIFEST,
 }
 
 
@@ -8857,6 +8980,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "mycielski_graph",
             "famous",
             "atlas",
+            "create",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

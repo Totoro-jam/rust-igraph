@@ -1,0 +1,56 @@
+{
+  "source": "c",
+  "origin": "examples/simple/igraph_create.c \u2014 [0,1, 1,2, 2,3, 2,2] n=0 directed=0",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "n": 0,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 4,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        2
+      ]
+    ]
+  }
+}

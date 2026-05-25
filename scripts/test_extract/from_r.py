@@ -7060,6 +7060,111 @@ FAMOUS_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# rigraph exposes `make_graph(edges, n=NA, directed=TRUE)` and
+# `graph(edges, n=NA, directed=TRUE)` as wrappers over `igraph_create`.
+# rigraph converts to 1-based vertex IDs internally; the fixtures here
+# carry the 0-based form to match the JSON wire shape used by the other
+# two extractors.
+CREATE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "create_r_make_graph_n_zero_infers",
+        "origin": "rigraph make_graph(c(1,2, 2,3, 3,4, 3,3), directed=FALSE) — 0-based: [(0,1),(1,2),(2,3),(2,2)] n=0",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1], [1, 2], [2, 3], [2, 2]],
+            "n": 0,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 4,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [2, 2]],
+        },
+    },
+    {
+        "case": "create_r_explicit_n_kept",
+        "origin": "rigraph make_graph(c(1,2), n=5, directed=FALSE) — n=5 kept, 4 isolated vertices",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1]],
+            "n": 5,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 5,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+    {
+        "case": "create_r_directed_two_arcs",
+        "origin": "rigraph make_graph(c(1,2, 2,1), directed=TRUE) — 0-based: [(0,1),(1,0)] both arcs",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1], [1, 0]],
+            "n": 2,
+            "directed": True,
+        },
+        "expected": {
+            "vcount": 2,
+            "ecount": 2,
+            "directed": True,
+            "edges": [[0, 1], [1, 0]],
+        },
+    },
+    {
+        "case": "create_r_empty_with_isolated",
+        "origin": "rigraph make_graph(numeric(0), n=4, directed=FALSE) — 4 isolated vertices, no edges",
+        "algo": "create",
+        "params": {
+            "edges": [],
+            "n": 4,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 4,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "create_r_parallel_edges_kept",
+        "origin": "rigraph make_graph(c(1,2, 1,2, 1,2), directed=FALSE) — 0-based 3 parallel edges between 0 and 1",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1], [0, 1], [0, 1]],
+            "n": 0,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 2,
+            "ecount": 3,
+            "directed": False,
+            "edges": [[0, 1], [0, 1], [0, 1]],
+        },
+    },
+    {
+        "case": "create_r_path4_via_create",
+        "origin": "rigraph make_graph(c(1,2, 2,3, 3,4), directed=FALSE) — 0-based path P_4",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1], [1, 2], [2, 3]],
+            "n": 0,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3]],
+        },
+    },
+]
+
+
 # rigraph exposes `graph_from_atlas(n)` (also aliased `atlas(n)`) in
 # `R/make_graph.R` — the binding ultimately calls the same C
 # `igraph_atlas` entry point through `graph_from_atlas_impl`. The R man
@@ -7389,6 +7494,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mycielskian": MYCIELSKIAN_MANIFEST,
     "famous": FAMOUS_MANIFEST,
     "atlas": ATLAS_MANIFEST,
+    "create": CREATE_MANIFEST,
 }
 
 
@@ -7528,6 +7634,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "mycielski_graph",
             "famous",
             "atlas",
+            "create",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

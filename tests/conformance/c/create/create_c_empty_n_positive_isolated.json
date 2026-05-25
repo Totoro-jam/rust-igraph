@@ -1,0 +1,22 @@
+{
+  "source": "c",
+  "origin": "basic_constructors.c:53 \u2014 empty edges + n>0 \u2192 isolated vertices",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [],
+    "n": 5,
+    "directed": true
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

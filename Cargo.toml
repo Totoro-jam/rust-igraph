@@ -170,6 +170,10 @@ path = "examples/famous_demo.rs"
 name = "atlas_demo"
 path = "examples/atlas_demo.rs"
 
+[[example]]
+name = "create_demo"
+path = "examples/create_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -565,6 +569,11 @@ name = "bench_atlas"
 path = "benches/bench_atlas.rs"
 harness = false
 
+[[bench]]
+name = "bench_create"
+path = "benches/bench_create.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 
@@ -575,6 +584,11 @@ module_name_repetitions = "allow"
 must_use_candidate = "allow"
 missing_errors_doc = "allow"
 missing_panics_doc = "allow"
+# Triggered by the rustc test harness once the per-crate test
+# count grows large: it emits a stack-allocated array of TestDescAndFn
+# entries that crosses the 16 KB heuristic. Nothing in our own code
+# allocates an array that large.
+large_stack_arrays = "allow"
 
 [profile.release]
 lto = "thin"

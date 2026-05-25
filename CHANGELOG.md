@@ -15,6 +15,73 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-022** — `create` foundational edge-list constructor.
+  **Twenty-second member of the `constructors/` family** and the
+  universal hand-rolled entry point: every other generator-like API in
+  the project ultimately reduces to it. Counterpart of `igraph_create`
+  in `references/igraph/src/constructors/create.c:47-95`.
+  - `pub fn create(edges: &[(u32, u32)], n: u32, directed: bool) -> IgraphResult<Graph>`
+    — single max-scan over the input slice + `Graph::new(vcount, directed)`
+    + bulk `Graph::add_edges`. No intermediate buffers, no dedup, no
+    canonicalisation: self-loops `(u, u)` and parallel edges survive
+    verbatim, and emission order is preserved byte-for-byte.
+  - **Type-level error elimination.** The upstream C entry takes
+    `igraph_vector_int_t` of length `2·|E|` and can return
+    `IGRAPH_EINVAL` (odd-length edge buffer) and `IGRAPH_EINVVID`
+    (negative vertex ids). Both become statically unreachable once
+    the input is `&[(u32, u32)]`: odd-length cannot exist (pairs are
+    tuples) and negative ids cannot exist (`u32`).
+  - **Semantics** (matches upstream exactly):
+    - `n == 0` infers vcount from `max(u, v) + 1` over the edge list,
+      returning the empty graph when `edges` is empty.
+    - `n < max_endpoint + 1` silently extends to `max_endpoint + 1`
+      via the upstream `igraph_add_vertices(graph, delta)` path.
+    - `n ≥ max_endpoint + 1` keeps the requested vertex count verbatim;
+      any unreferenced vertex stays isolated.
+  - **Runtime overflow protection**: `max_endpoint.checked_add(1)`
+    returns `IgraphError::Overflow` rather than wrapping when an
+    endpoint is `u32::MAX` (the demo shows
+    `create(&[(0, u32::MAX)], 0, false)` triggering this path). A
+    saturating `n.max(max_endpoint + 1)` widens to `u32` before
+    `Graph::new` so the "silent extend" rule cannot truncate.
+  - **Tests**: 12 unit + 4 proptest covering (a) the upstream-C example
+    from `references/igraph/examples/simple/igraph_create.c`
+    (`[(0,1), (1,2), (2,3), (2,2)]`, `n=0` → vcount 4 / ecount 4 /
+    1 self-loop on vertex 2), (b) `n == 0` empty-edges null graph,
+    (c) `n == 0` self-loop inference, (d) `n > max+1` keeps padding,
+    (e) `n < max+1` silent extend, (f) directed arc-order preserved,
+    (g) self-loops and parallels survive, (h) `u32::MAX` endpoint
+    triggers `Overflow`. Proptest sweep checks edge multiset equality,
+    vcount projection, ecount equals input length, and edge-id order
+    preservation across random `n ∈ [0, 50]`, edge counts `∈ [0, 100]`,
+    and both directed flags.
+  - **Three-source conformance fixtures: 19 total** under
+    `tests/conformance/{c,py,r}/create/`. C:7 (upstream example,
+    n=10 padded, n=3 silent extend, directed arc-order, empty null,
+    empty 5-isolated, self-loops+parallels), py:6 (simple n=0,
+    explicit n keeps, directed arcs, empty null, star via edges,
+    self-loop), R:6 (make_graph 0-based variants: n=0 infers,
+    explicit n kept, two arcs directed, empty isolated, parallel
+    edges, P_4 path). Conformance test decodes
+    `params.edges/n/directed` and compares vcount + ecount + directed
+    flag + canonical edge multiset (directed-aware key:
+    `if directed || u <= w { (u,w) } else { (w,u) }`).
+  - **Demo**: `examples/create_demo.rs` walks seven invariants —
+    upstream n=0 infer, n=10 padded, n=3 extends to max+1=7, directed
+    cycle pair, multigraph self-loops/parallels, K_{1,7} star via
+    `create`, u32::MAX `Overflow` error path.
+  - **Bench**: `benches/bench_create.rs` covers three workloads
+    scanning the per-edge cost surface: path (single-degree vertices),
+    star (one hub holds all incidences), dense K_n (quadratic |E|).
+    Rust per-edge cost is ~15 ns at the path/star scale (n=100k:
+    1.53 ms ≈ 15.3 ns/edge); 31.0× faster than python-igraph
+    `Graph(edges, n, directed)` at path n=100 (90 µs Cython entry
+    overhead amortises away at scale: 8.4× / 3.2× / 2.6× across n ∈
+    {1k, 10k, 100k}). Dense narrows to 4.8×→1.4× as the Cython
+    per-call cost becomes negligible vs the already-optimal upstream
+    C edge-array packing. Snapshot in
+    `.codefuse/tracking/perf/ALGO-CN-022.json`.
+
 - **ALGO-CN-021** — `atlas` + `ATLAS_SIZE` Read-Wilson graph atlas
   constructor. **Twenty-first member of the `constructors/` family.**
   Counterpart of `igraph_atlas` in

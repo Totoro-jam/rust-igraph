@@ -1,0 +1,40 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph([(0,1),(1,0)], n=2, directed=True) \u2014 both arcs distinct",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "n": 2,
+    "directed": true
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 2,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ]
+  }
+}

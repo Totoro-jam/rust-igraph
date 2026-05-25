@@ -1,0 +1,40 @@
+{
+  "source": "c",
+  "origin": "basic_constructors.c:53 \u2014 n=3 < max+1=7 triggers silent igraph_add_vertices",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "create",
+  "params": {
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        5,
+        6
+      ]
+    ],
+    "n": 3,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 7,
+    "ecount": 2,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        5,
+        6
+      ]
+    ]
+  }
+}

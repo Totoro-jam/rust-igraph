@@ -6930,6 +6930,111 @@ FAMOUS_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# python-igraph `Graph(edges, n=None, directed=False)` is the canonical
+# `igraph_create` wrapper. Cases below exercise the same axes as the C
+# fixtures (n-inference, n>max keeps, n<max extends, directed arc-order,
+# empty, isolated, self/parallel) but produced via the Python binding so
+# the JSON travels through `python-igraph`'s edge encoding.
+CREATE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "create_py_simple_n_zero_infers_four",
+        "origin": "python-igraph Graph([(0,1),(1,2),(2,3),(2,2)], directed=False) — vcount inferred",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1], [1, 2], [2, 3], [2, 2]],
+            "n": 0,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 4,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [2, 2]],
+        },
+    },
+    {
+        "case": "create_py_explicit_n_keeps_isolated",
+        "origin": "python-igraph Graph([(0,1)], n=5, directed=False) — 5 vertices, 1 edge, isolated 2-4",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1]],
+            "n": 5,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 5,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+    {
+        "case": "create_py_directed_arc_order",
+        "origin": "python-igraph Graph([(0,1),(1,0)], n=2, directed=True) — both arcs distinct",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1], [1, 0]],
+            "n": 2,
+            "directed": True,
+        },
+        "expected": {
+            "vcount": 2,
+            "ecount": 2,
+            "directed": True,
+            "edges": [[0, 1], [1, 0]],
+        },
+    },
+    {
+        "case": "create_py_empty_null",
+        "origin": "python-igraph Graph([], n=0, directed=False) — null graph",
+        "algo": "create",
+        "params": {
+            "edges": [],
+            "n": 0,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "create_py_star_via_edges",
+        "origin": "python-igraph Graph([(0,1),(0,2),(0,3),(0,4)], directed=False) — K_{1,4} star via create",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 1], [0, 2], [0, 3], [0, 4]],
+            "n": 0,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [0, 3], [0, 4]],
+        },
+    },
+    {
+        "case": "create_py_self_loop_present",
+        "origin": "python-igraph Graph([(0,0),(0,1)], directed=False) — self-loop kept as edge",
+        "algo": "create",
+        "params": {
+            "edges": [[0, 0], [0, 1]],
+            "n": 0,
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 2,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 0], [0, 1]],
+        },
+    },
+]
+
+
 # python-igraph `Graph.Atlas(number)` calls `igraph_atlas` in the C core.
 # Captured live from python-igraph 0.11.9 with the script:
 #   for i in [0, 3, 18, 70, 180, 208, 1252]:
@@ -7317,6 +7422,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mycielskian": MYCIELSKIAN_MANIFEST,
     "famous": FAMOUS_MANIFEST,
     "atlas": ATLAS_MANIFEST,
+    "create": CREATE_MANIFEST,
 }
 
 
@@ -7456,6 +7562,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "mycielski_graph",
             "famous",
             "atlas",
+            "create",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries
