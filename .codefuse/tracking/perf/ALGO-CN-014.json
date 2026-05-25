@@ -1,0 +1,80 @@
+{
+  "algo_id": "ALGO-CN-014",
+  "name": "full_graph",
+  "kind": "constructor",
+  "bench_file": "benches/bench_full.rs",
+  "captured_at": "2026-05-25",
+  "host": "darwin / arm64 (Apple Silicon laptop)",
+  "criterion_config": {
+    "warm_up_time_s": 1,
+    "measurement_time_s": 2,
+    "sample_size": 10
+  },
+  "shapes": [
+    {
+      "label": "n8_ud_noloops",
+      "n": 8,
+      "directed": false,
+      "loops": false,
+      "ecount": 28,
+      "time_us": {"lo": 1.406, "mid": 1.433, "hi": 1.493}
+    },
+    {
+      "label": "n8_d_loops",
+      "n": 8,
+      "directed": true,
+      "loops": true,
+      "ecount": 64,
+      "time_us": {"lo": 2.124, "mid": 2.135, "hi": 2.146}
+    },
+    {
+      "label": "n64_ud_noloops",
+      "n": 64,
+      "directed": false,
+      "loops": false,
+      "ecount": 2016,
+      "time_us": {"lo": 44.07, "mid": 44.17, "hi": 44.27}
+    },
+    {
+      "label": "n64_d_noloops",
+      "n": 64,
+      "directed": true,
+      "loops": false,
+      "ecount": 4032,
+      "time_us": {"lo": 100.0, "mid": 100.2, "hi": 100.4}
+    },
+    {
+      "label": "n64_ud_loops",
+      "n": 64,
+      "directed": false,
+      "loops": true,
+      "ecount": 2080,
+      "time_us": {"lo": 48.98, "mid": 50.48, "hi": 52.06}
+    },
+    {
+      "label": "n64_d_loops",
+      "n": 64,
+      "directed": true,
+      "loops": true,
+      "ecount": 4096,
+      "time_us": {"lo": 99.69, "mid": 99.86, "hi": 100.07}
+    },
+    {
+      "label": "n512_ud_noloops",
+      "n": 512,
+      "directed": false,
+      "loops": false,
+      "ecount": 130816,
+      "time_us": {"lo": 4096.2, "mid": 4109.9, "hi": 4131.6}
+    },
+    {
+      "label": "n512_d_loops",
+      "n": 512,
+      "directed": true,
+      "loops": true,
+      "ecount": 262144,
+      "time_us": {"lo": 8599.3, "mid": 8998.2, "hi": 9521.0}
+    }
+  ],
+  "notes": "Throughput hovers around 30-42 Melem/s across all four (directed, loops) cells; the directed variants take ~2x as long as the undirected at the same n because they emit ~2x the arcs. The 4-branch match dispatch is amortized to zero by the n² inner loop body; cost is dominated by Graph::add_edges populating the adjacency. python-igraph Graph.Full(512, True, True) wallclock measures ~16 ms on the same host, so we are ~1.8x faster end-to-end on the densest cell; against igraph C (~5 ms) we are still within 2x while compiled in debug-friendly release mode."
+}

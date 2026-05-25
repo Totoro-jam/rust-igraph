@@ -146,6 +146,10 @@ path = "examples/de_bruijn_demo.rs"
 name = "kautz_demo"
 path = "examples/kautz_demo.rs"
 
+[[example]]
+name = "full_demo"
+path = "examples/full_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -499,6 +503,11 @@ harness = false
 [[bench]]
 name = "bench_kautz"
 path = "benches/bench_kautz.rs"
+harness = false
+
+[[bench]]
+name = "bench_full"
+path = "benches/bench_full.rs"
 harness = false
 
 [lints.rust]

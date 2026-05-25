@@ -1,0 +1,59 @@
+{
+  "source": "py",
+  "origin": "mirrors python-igraph Graph.Full(3, directed=True, loops=True) \u2014 directed K_3 + self-loops, 9 arcs (n^2)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_graph",
+  "params": {
+    "n": 3,
+    "directed": true,
+    "loops": true
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 9,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        2
+      ]
+    ]
+  }
+}

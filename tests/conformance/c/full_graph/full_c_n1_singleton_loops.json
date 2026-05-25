@@ -1,0 +1,27 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_full(n=1, directed=false, loops=true) \u2014 Singleton, with loops (a single self-loop)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_graph",
+  "params": {
+    "n": 1,
+    "directed": false,
+    "loops": true
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 1,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        0
+      ]
+    ]
+  }
+}

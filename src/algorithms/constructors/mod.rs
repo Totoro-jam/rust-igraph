@@ -7,6 +7,7 @@
 
 pub mod circulant;
 pub mod de_bruijn;
+pub mod full;
 pub mod generalized_petersen;
 pub mod hamming;
 pub mod hypercube;

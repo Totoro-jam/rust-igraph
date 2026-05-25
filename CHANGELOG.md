@@ -15,6 +15,57 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-014** — `full_graph` deterministic constructor.
+  **Fourteenth member of the `constructors/` family.** Counterpart of
+  `igraph_full` in `references/igraph/src/constructors/full.c:54-124`.
+  Builds the complete graph `K_n` on `n` vertices in any of the four
+  `(directed, loops)` cells of the truth table, with ecounts
+  `n·(n−1)/2`, `n·(n+1)/2`, `n·(n−1)`, `n²` respectively. Emission
+  order matches upstream byte-for-byte (source-major, target-ascending;
+  for the `directed && !loops` cell the inner loop walks `j ∈ [0, i)`
+  then `j ∈ (i, n)` so the diagonal is skipped without a per-edge
+  branch).
+  - `pub fn full_graph(n: u32, directed: bool, loops: bool) -> IgraphResult<Graph>`.
+    A four-arm `match (directed, loops)` dispatches to the correct
+    emission loop; the loop bodies are kept as a tight pair of nested
+    `for` ranges over `u32` so the compiler vectorises the inner
+    iteration. `usize::checked_mul` / `usize::checked_add` guards the
+    edge-count product before any `Vec::with_capacity`, returning
+    `IgraphError::InvalidArgument` on overflow rather than aborting.
+    Time complexity `O(|V| + |E|) = O(n²)`.
+  - Degenerate inputs handled inline ahead of any buffer allocation:
+    `n == 0` → empty graph (vcount = 0, ecount = 0); `n == 1 ∧ !loops`
+    → singleton with no edges; `n == 1 ∧ loops` → singleton with a
+    single self-loop `(0, 0)`.
+  - **Tests**: 9 unit cases (null, singleton ± loops, `K_10` in each
+    of the 4 cells with edge-emission spot-checks, ecount-overflow
+    rejection, cross-check that `full_graph(4, true, false)`
+    reproduces the directed-`K_4` arc set inlined by `kautz(3, 0)`)
+    + 3 proptest invariants (ecount matches the closed form for every
+    `(n ≤ 12, directed, loops)`; the `loops` flag exactly toggles
+    self-loop count; the `(false, false)` cell yields the unordered
+    pair set `{ (i, j) : i < j }`).
+  - **Three-source conformance**: `tests/conformance/c/full_graph/`
+    (7 fixtures: null, singleton ± loops, `K_10` in all 4 cells, with
+    full ordered edge lists from `tests/unit/full.out`),
+    `tests/conformance/py/full_graph/` (4 fixtures from
+    `Graph.Full(n, directed, loops)` covering `K_4` ud-noloops,
+    `K_4` ud-loops, `K_3` d-noloops, `K_3` d-loops),
+    `tests/conformance/r/full_graph/` (3 fixtures from
+    `make_full_graph` covering `K_4` ud-noloops, `K_3` d-loops,
+    `K_5` ud-loops); `full_graph_three_source_conformance` walks
+    each source directory and rebuilds the graph, asserting the
+    ordered edge list matches byte-for-byte.
+  - **Bench** (`benches/bench_full.rs`): eight shapes spanning
+    `n ∈ {8, 64, 512}` across all four cells. On Apple Silicon the
+    throughput hovers at 30-42 Melem/s — at `n = 512` the directed +
+    loops cell takes ~9 ms for 262 144 arcs while the undirected +
+    no-loops cell takes ~4.1 ms for 130 816 edges, ~1.8× faster than
+    python-igraph `Graph.Full(512, True, True)` on the same host.
+  - **Example** (`examples/full_demo.rs`): walks every cell of the
+    truth table (`K_0`, `K_1` ± loops, `K_4` in all four cells) and
+    asserts vcount, ecount, self-loop count, and the unordered-pair
+    set for the undirected variant.
 - **ALGO-CN-013** — `kautz` deterministic constructor.
   **Thirteenth member of the `constructors/` family.** Counterpart of
   `igraph_kautz` in `references/igraph/src/constructors/kautz.c:61-210`.

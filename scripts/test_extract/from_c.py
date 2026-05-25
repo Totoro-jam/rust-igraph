@@ -7699,6 +7699,137 @@ KAUTZ_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+FULL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "full_c_n0_null",
+        "origin": "mirrors igraph_full(n=0, directed=false, loops=false) — empty graph (Null variant from tests/unit/full.c)",
+        "algo": "full_graph",
+        "params": {"n": 0, "directed": False, "loops": False},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "full_c_n1_singleton_noloops",
+        "origin": "mirrors igraph_full(n=1, directed=false, loops=false) — Singleton, no loops",
+        "algo": "full_graph",
+        "params": {"n": 1, "directed": False, "loops": False},
+        "expected": {
+            "vcount": 1,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "full_c_n1_singleton_loops",
+        "origin": "mirrors igraph_full(n=1, directed=false, loops=true) — Singleton, with loops (a single self-loop)",
+        "algo": "full_graph",
+        "params": {"n": 1, "directed": False, "loops": True},
+        "expected": {
+            "vcount": 1,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 0]],
+        },
+    },
+    {
+        "case": "full_c_n10_ud_noloops",
+        "origin": "mirrors igraph_full(n=10, directed=false, loops=false) — undirected K_10, 45 edges (Undirected, no loops case from tests/unit/full.out)",
+        "algo": "full_graph",
+        "params": {"n": 10, "directed": False, "loops": False},
+        "expected": {
+            "vcount": 10,
+            "ecount": 45,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8], [0, 9],
+                [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9],
+                [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9],
+                [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [3, 9],
+                [4, 5], [4, 6], [4, 7], [4, 8], [4, 9],
+                [5, 6], [5, 7], [5, 8], [5, 9],
+                [6, 7], [6, 8], [6, 9],
+                [7, 8], [7, 9],
+                [8, 9],
+            ],
+        },
+    },
+    {
+        "case": "full_c_n10_d_noloops",
+        "origin": "mirrors igraph_full(n=10, directed=true, loops=false) — directed K_10, 90 arcs (Directed, no loops)",
+        "algo": "full_graph",
+        "params": {"n": 10, "directed": True, "loops": False},
+        "expected": {
+            "vcount": 10,
+            "ecount": 90,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8], [0, 9],
+                [1, 0], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9],
+                [2, 0], [2, 1], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9],
+                [3, 0], [3, 1], [3, 2], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [3, 9],
+                [4, 0], [4, 1], [4, 2], [4, 3], [4, 5], [4, 6], [4, 7], [4, 8], [4, 9],
+                [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 6], [5, 7], [5, 8], [5, 9],
+                [6, 0], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 7], [6, 8], [6, 9],
+                [7, 0], [7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 8], [7, 9],
+                [8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 7], [8, 9],
+                [9, 0], [9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8],
+            ],
+        },
+    },
+    {
+        "case": "full_c_n10_ud_loops",
+        "origin": "mirrors igraph_full(n=10, directed=false, loops=true) — undirected K_10 + self-loops, 55 edges (Undirected, with loops)",
+        "algo": "full_graph",
+        "params": {"n": 10, "directed": False, "loops": True},
+        "expected": {
+            "vcount": 10,
+            "ecount": 55,
+            "directed": False,
+            "edges": [
+                [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8], [0, 9],
+                [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9],
+                [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9],
+                [3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [3, 9],
+                [4, 4], [4, 5], [4, 6], [4, 7], [4, 8], [4, 9],
+                [5, 5], [5, 6], [5, 7], [5, 8], [5, 9],
+                [6, 6], [6, 7], [6, 8], [6, 9],
+                [7, 7], [7, 8], [7, 9],
+                [8, 8], [8, 9],
+                [9, 9],
+            ],
+        },
+    },
+    {
+        "case": "full_c_n10_d_loops",
+        "origin": "mirrors igraph_full(n=10, directed=true, loops=true) — directed K_10 + self-loops, 100 arcs (Directed, with loops)",
+        "algo": "full_graph",
+        "params": {"n": 10, "directed": True, "loops": True},
+        "expected": {
+            "vcount": 10,
+            "ecount": 100,
+            "directed": True,
+            "edges": [
+                [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8], [0, 9],
+                [1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9],
+                [2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9],
+                [3, 0], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [3, 9],
+                [4, 0], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [4, 8], [4, 9],
+                [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7], [5, 8], [5, 9],
+                [6, 0], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6], [6, 7], [6, 8], [6, 9],
+                [7, 0], [7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7], [7, 8], [7, 9],
+                [8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 7], [8, 8], [8, 9],
+                [9, 0], [9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -7871,6 +8002,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "circulant": CIRCULANT_MANIFEST,
     "de_bruijn": DE_BRUIJN_MANIFEST,
     "kautz": KAUTZ_MANIFEST,
+    "full_graph": FULL_MANIFEST,
 }
 
 
@@ -8008,6 +8140,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "circulant",
             "de_bruijn",
             "kautz",
+            "full_graph",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

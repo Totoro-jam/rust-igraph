@@ -12578,3 +12578,116 @@ fn kautz_three_source_conformance() {
         );
     }
 }
+
+fn check_full_graph_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::full_graph;
+
+    let n = er_param_u32(case, "n", path);
+    let directed = er_param_bool(case, "directed", path);
+    let loops = er_param_bool(case, "loops", path);
+
+    let graph =
+        full_graph(n, directed, loops).expect("full_graph should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        graph.vcount(),
+        want_vertices,
+        "vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        graph.is_directed(),
+        want_directed,
+        "directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        graph.ecount() as u64,
+        want_edges,
+        "ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "full_graph fixture {}: expected.edges missing",
+                path.display()
+            )
+        });
+    let want_pairs: Vec<(u32, u32)> = want_edges_raw
+        .iter()
+        .map(|v| {
+            let pair = v
+                .as_array()
+                .unwrap_or_else(|| panic!("full_graph fixture {}: edge not array", path.display()));
+            let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+            let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+            (u, w)
+        })
+        .collect();
+
+    let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32 in conformance");
+    let got_pairs: Vec<(u32, u32)> = (0..n_edges)
+        .map(|eid| {
+            graph
+                .edge(eid)
+                .expect("conformance full_graph edge id in bounds")
+        })
+        .collect();
+
+    assert_eq!(
+        got_pairs,
+        want_pairs,
+        "full_graph edge list mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn full_graph_three_source_conformance() {
+    // `igraph_full(n, directed, loops)` emits edges in a fixed,
+    // source-major, target-ascending order across all four (directed,
+    // loops) combinations. python-igraph (`Graph.Full`) and rigraph
+    // (`make_full_graph`) both dispatch to `igraph_full`, so the ordered
+    // edge list is identical across the three oracles.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("full_graph");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read full_graph fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse full_graph conformance fixture JSON");
+            assert_eq!(case.algo, "full_graph");
+            assert_eq!(case.source, src);
+            check_full_graph_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no full_graph fixtures from source {src}"
+        );
+    }
+}

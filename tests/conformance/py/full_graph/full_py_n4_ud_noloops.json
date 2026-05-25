@@ -1,0 +1,47 @@
+{
+  "source": "py",
+  "origin": "mirrors python-igraph Graph.Full(4, directed=False, loops=False) \u2014 undirected K_4, 6 edges (dispatches to igraph_full)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_graph",
+  "params": {
+    "n": 4,
+    "directed": false,
+    "loops": false
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 6,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  }
+}

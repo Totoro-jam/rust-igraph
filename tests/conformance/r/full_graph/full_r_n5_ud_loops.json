@@ -1,0 +1,83 @@
+{
+  "source": "r",
+  "origin": "mirrors R-igraph make_full_graph(5, directed=FALSE, loops=TRUE) \u2014 undirected K_5 + self-loops, 15 edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_graph",
+  "params": {
+    "n": 5,
+    "directed": false,
+    "loops": true
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 15,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        4
+      ]
+    ]
+  }
+}

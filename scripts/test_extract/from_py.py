@@ -6494,6 +6494,75 @@ HAMMING_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+FULL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "full_py_n4_ud_noloops",
+        "origin": "mirrors python-igraph Graph.Full(4, directed=False, loops=False) — undirected K_4, 6 edges (dispatches to igraph_full)",
+        "algo": "full_graph",
+        "params": {"n": 4, "directed": False, "loops": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3],
+                [1, 2], [1, 3],
+                [2, 3],
+            ],
+        },
+    },
+    {
+        "case": "full_py_n4_ud_loops",
+        "origin": "mirrors python-igraph Graph.Full(4, directed=False, loops=True) — undirected K_4 + self-loops, 10 edges",
+        "algo": "full_graph",
+        "params": {"n": 4, "directed": False, "loops": True},
+        "expected": {
+            "vcount": 4,
+            "ecount": 10,
+            "directed": False,
+            "edges": [
+                [0, 0], [0, 1], [0, 2], [0, 3],
+                [1, 1], [1, 2], [1, 3],
+                [2, 2], [2, 3],
+                [3, 3],
+            ],
+        },
+    },
+    {
+        "case": "full_py_n3_d_noloops",
+        "origin": "mirrors python-igraph Graph.Full(3, directed=True, loops=False) — directed K_3, 6 arcs",
+        "algo": "full_graph",
+        "params": {"n": 3, "directed": True, "loops": False},
+        "expected": {
+            "vcount": 3,
+            "ecount": 6,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 2],
+                [1, 0], [1, 2],
+                [2, 0], [2, 1],
+            ],
+        },
+    },
+    {
+        "case": "full_py_n3_d_loops",
+        "origin": "mirrors python-igraph Graph.Full(3, directed=True, loops=True) — directed K_3 + self-loops, 9 arcs (n^2)",
+        "algo": "full_graph",
+        "params": {"n": 3, "directed": True, "loops": True},
+        "expected": {
+            "vcount": 3,
+            "ecount": 9,
+            "directed": True,
+            "edges": [
+                [0, 0], [0, 1], [0, 2],
+                [1, 0], [1, 1], [1, 2],
+                [2, 0], [2, 1], [2, 2],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6662,6 +6731,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "circulant": CIRCULANT_MANIFEST,
     "de_bruijn": DE_BRUIJN_MANIFEST,
     "kautz": KAUTZ_MANIFEST,
+    "full_graph": FULL_MANIFEST,
 }
 
 
@@ -6794,6 +6864,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "circulant",
             "de_bruijn",
             "kautz",
+            "full_graph",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

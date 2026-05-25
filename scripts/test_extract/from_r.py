@@ -6758,6 +6758,60 @@ HAMMING_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+FULL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "full_r_n4_ud_noloops",
+        "origin": "mirrors R-igraph make_full_graph(4, directed=FALSE, loops=FALSE) — undirected K_4, 6 edges (dispatches to igraph_full)",
+        "algo": "full_graph",
+        "params": {"n": 4, "directed": False, "loops": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3],
+                [1, 2], [1, 3],
+                [2, 3],
+            ],
+        },
+    },
+    {
+        "case": "full_r_n3_d_loops",
+        "origin": "mirrors R-igraph make_full_graph(3, directed=TRUE, loops=TRUE) — directed K_3 + self-loops, 9 arcs",
+        "algo": "full_graph",
+        "params": {"n": 3, "directed": True, "loops": True},
+        "expected": {
+            "vcount": 3,
+            "ecount": 9,
+            "directed": True,
+            "edges": [
+                [0, 0], [0, 1], [0, 2],
+                [1, 0], [1, 1], [1, 2],
+                [2, 0], [2, 1], [2, 2],
+            ],
+        },
+    },
+    {
+        "case": "full_r_n5_ud_loops",
+        "origin": "mirrors R-igraph make_full_graph(5, directed=FALSE, loops=TRUE) — undirected K_5 + self-loops, 15 edges",
+        "algo": "full_graph",
+        "params": {"n": 5, "directed": False, "loops": True},
+        "expected": {
+            "vcount": 5,
+            "ecount": 15,
+            "directed": False,
+            "edges": [
+                [0, 0], [0, 1], [0, 2], [0, 3], [0, 4],
+                [1, 1], [1, 2], [1, 3], [1, 4],
+                [2, 2], [2, 3], [2, 4],
+                [3, 3], [3, 4],
+                [4, 4],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6930,6 +6984,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "circulant": CIRCULANT_MANIFEST,
     "de_bruijn": DE_BRUIJN_MANIFEST,
     "kautz": KAUTZ_MANIFEST,
+    "full_graph": FULL_MANIFEST,
 }
 
 
@@ -7062,6 +7117,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "circulant",
             "de_bruijn",
             "kautz",
+            "full_graph",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural
