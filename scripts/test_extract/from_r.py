@@ -6812,6 +6812,66 @@ FULL_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-015 — `make_line_graph` (R-igraph) dispatches to
+# `igraph_linegraph`. Fixtures cover the textbook small shapes —
+# triangle, K_4, star — that an R-bindings user would build with
+# `make_full_graph` / `make_star`.
+LINEGRAPH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "linegraph_r_k3_undirected",
+        "origin": "rigraph make_line_graph(make_full_graph(3)) — L(K_3) = K_3 on three L-vertices",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 3,
+            "ecount": 3,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [0, 2]],
+        },
+    },
+    {
+        "case": "linegraph_r_k4_undirected",
+        "origin": "rigraph make_line_graph(make_full_graph(4)) — L(K_4) on 6 L-vertices, 12 L-edges (3-regular)",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            4,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 6,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [1, 2], [1, 3], [0, 3], [2, 4],
+                [0, 4], [3, 4], [2, 5], [4, 5], [1, 5], [3, 5],
+            ],
+        },
+    },
+    {
+        "case": "linegraph_r_star_s5",
+        "origin": "rigraph make_line_graph(make_star(5, mode='undirected')) — L of an n-leaf star is K_{n} (here 4 leaves → K_4)",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            5,
+            edges=[(0, 1), (0, 2), (0, 3), (0, 4)],
+            directed=False,
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 2], [0, 3], [1, 3], [2, 3]],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6985,6 +7045,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "de_bruijn": DE_BRUIJN_MANIFEST,
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
+    "linegraph": LINEGRAPH_MANIFEST,
 }
 
 

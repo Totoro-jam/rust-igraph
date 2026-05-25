@@ -6563,6 +6563,95 @@ FULL_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-015 — `Graph.linegraph()` (Python bindings, dispatches to the
+# same C `igraph_linegraph`). Fixtures focus on small textbook shapes
+# (P_4, K_4, C_5) plus a directed cycle that exercises chain semantics.
+LINEGRAPH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "linegraph_py_path_p4_undirected",
+        "origin": "python-igraph Graph.linegraph() on the path P_4 (0-1, 1-2, 2-3) → P_3 on three L-vertices",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 1], [1, 2]],
+        },
+    },
+    {
+        "case": "linegraph_py_complete_k4_undirected",
+        "origin": "python-igraph Graph.linegraph() on K_4 — six L-vertices, 12 L-edges (every edge shares an endpoint with four others)",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            4,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 6,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [1, 2], [1, 3], [0, 3], [2, 4],
+                [0, 4], [3, 4], [2, 5], [4, 5], [1, 5], [3, 5],
+            ],
+        },
+    },
+    {
+        "case": "linegraph_py_cycle_c5_undirected",
+        "origin": "python-igraph Graph.linegraph() on the 5-cycle C_5 → C_5 (cycle of length n preserves length under L)",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            5,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (0, 4)],
+            directed=False,
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [3, 4], [0, 4]],
+        },
+    },
+    {
+        "case": "linegraph_py_path_p4_directed",
+        "origin": "python-igraph Graph.linegraph() on directed P_4 (arcs 0→1→2→3) → directed P_3",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            4, edges=[(0, 1), (1, 2), (2, 3)], directed=True
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": True,
+            "edges": [[0, 1], [1, 2]],
+        },
+    },
+    {
+        "case": "linegraph_py_directed_3cycle",
+        "origin": "python-igraph Graph.linegraph() on a directed 3-cycle (0→1→2→0) → directed 3-cycle on its three L-vertices",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 3,
+            "ecount": 3,
+            "directed": True,
+            "edges": [[2, 0], [0, 1], [1, 2]],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6732,6 +6821,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "de_bruijn": DE_BRUIJN_MANIFEST,
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
+    "linegraph": LINEGRAPH_MANIFEST,
 }
 
 

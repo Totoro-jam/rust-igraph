@@ -1,0 +1,40 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.linegraph() on directed P_4 (arcs 0\u21921\u21922\u21923) \u2192 directed P_3",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "linegraph",
+  "params": {},
+  "expected": {
+    "vcount": 3,
+    "ecount": 2,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  }
+}

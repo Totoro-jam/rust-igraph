@@ -1,0 +1,124 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_linegraph.c: undirected 7-vertex multigraph with a self-loop at 2 (edges 0-1,1-2,1-3,1-3,2-2,2-4,3-4,4-5) \u2014 18 L-edges on 8 L-vertices",
+  "graph": {
+    "n": 7,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "linegraph",
+  "params": {},
+  "expected": {
+    "vcount": 8,
+    "ecount": 18,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        4,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ]
+    ]
+  }
+}

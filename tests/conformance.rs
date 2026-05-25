@@ -12691,3 +12691,129 @@ fn full_graph_three_source_conformance() {
         );
     }
 }
+
+fn check_linegraph_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::linegraph;
+    use std::collections::BTreeMap;
+
+    let g = build_graph(&case.graph);
+    let l = linegraph(&g).expect("linegraph should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        l.vcount(),
+        want_vertices,
+        "linegraph vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        l.is_directed(),
+        want_directed,
+        "linegraph directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        l.ecount() as u64,
+        want_edges,
+        "linegraph ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "linegraph fixture {}: expected.edges missing",
+                path.display()
+            )
+        });
+
+    // Canonicalise both sides as a multiset of unordered pairs (for
+    // undirected) or ordered pairs (for directed). `igraph_linegraph` and
+    // our Rust port emit edges in the same raw order, but `Graph::edge`
+    // returns undirected endpoints as (min, max) by construction, while
+    // upstream python-igraph keeps the (smaller, larger) canonical form
+    // too — yet differing internal sort orders across rigraph versions
+    // make raw-ordered comparison brittle. Comparing as multisets is the
+    // semantically correct check that matches what `igraph_is_same_graph`
+    // (the upstream C unit-test assertion) does.
+    let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for v in want_edges_raw {
+        let pair = v
+            .as_array()
+            .unwrap_or_else(|| panic!("linegraph fixture {}: edge not array", path.display()));
+        let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+        let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+        let key = if want_directed || u <= w {
+            (u, w)
+        } else {
+            (w, u)
+        };
+        *want_ms.entry(key).or_insert(0) += 1;
+    }
+
+    let n_edges = u32::try_from(l.ecount()).expect("ecount fits u32 in conformance");
+    let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for eid in 0..n_edges {
+        let (u, w) = l.edge(eid).expect("linegraph edge id in range");
+        let key = if want_directed || u <= w {
+            (u, w)
+        } else {
+            (w, u)
+        };
+        *got_ms.entry(key).or_insert(0) += 1;
+    }
+
+    assert_eq!(
+        got_ms,
+        want_ms,
+        "linegraph edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn linegraph_three_source_conformance() {
+    // `igraph_linegraph` is reached identically by python-igraph
+    // (`Graph.linegraph`) and rigraph (`make_line_graph`). The upstream
+    // C unit test asserts `igraph_is_same_graph` — i.e. multiset
+    // equality of edges — so this test compares multisets of (canonical)
+    // endpoint pairs rather than raw ordered lists.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("linegraph");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read linegraph fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse linegraph conformance fixture JSON");
+            assert_eq!(case.algo, "linegraph");
+            assert_eq!(case.source, src);
+            check_linegraph_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no linegraph fixtures from source {src}"
+        );
+    }
+}

@@ -7830,6 +7830,103 @@ FULL_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-015 — `igraph_linegraph` from `src/constructors/linegraph.c`.
+# The upstream unit test (`tests/unit/igraph_linegraph.c`) covers three
+# canonical shapes: (a) a multigraph + self-loop undirected case, (b) a
+# multigraph + self-loop directed case, and (c) an empty directed graph.
+# We add a couple of small textbook fixtures (P_4 → P_3, K_3 → K_3,
+# star S_4) for quick smoke coverage. Expected edge lists were computed
+# via `python-igraph`'s `Graph.linegraph()` (which dispatches to the
+# same C entry point), then canonicalised to (min, max) for undirected
+# variants to match the way our `Graph` stores them.
+LINEGRAPH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "linegraph_c_undirected_canonical",
+        "origin": "mirrors igraph_linegraph.c: undirected 7-vertex multigraph with a self-loop at 2 (edges 0-1,1-2,1-3,1-3,2-2,2-4,3-4,4-5) — 18 L-edges on 8 L-vertices",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            7,
+            edges=[(0, 1), (1, 2), (1, 3), (1, 3), (2, 2), (2, 4), (3, 4), (4, 5)],
+            directed=False,
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 8,
+            "ecount": 18,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [1, 2], [2, 3], [0, 3], [1, 3], [2, 3],
+                [1, 4], [1, 4], [4, 4], [1, 5], [4, 5], [4, 5],
+                [5, 6], [3, 6], [2, 6], [5, 7], [6, 7],
+            ],
+        },
+    },
+    {
+        "case": "linegraph_c_directed_canonical",
+        "origin": "mirrors igraph_linegraph.c: directed 7-vertex 8-arc graph with a self-loop at 2 (arcs 0-1,1-2,1-3,3-1,2-2,2-4,3-4,4-5) — 12 L-arcs on 8 L-vertices",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            7,
+            edges=[(0, 1), (1, 2), (1, 3), (3, 1), (2, 2), (2, 4), (3, 4), (4, 5)],
+            directed=True,
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 8,
+            "ecount": 12,
+            "directed": True,
+            "edges": [
+                [0, 1], [3, 1], [0, 2], [3, 2], [2, 3], [1, 4],
+                [4, 4], [1, 5], [4, 5], [2, 6], [5, 7], [6, 7],
+            ],
+        },
+    },
+    {
+        "case": "linegraph_c_no_edges_directed",
+        "origin": "mirrors igraph_linegraph.c: empty directed graph on 7 vertices, 0 arcs — L(G) is the empty 0-vertex directed graph",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(7, edges=[], directed=True),
+        "params": {},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+    {
+        "case": "linegraph_c_path_p4",
+        "origin": "textbook smoke: L(P_4) = P_3 on the three L-vertices (one edge per shared interior vertex)",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 1], [1, 2]],
+        },
+    },
+    {
+        "case": "linegraph_c_triangle_k3",
+        "origin": "textbook smoke: L(K_3) = K_3 (every pair of edges shares an endpoint)",
+        "algo": "linegraph",
+        "graph_factory": lambda: ig.Graph(
+            3, edges=[(0, 1), (0, 2), (1, 2)], directed=False
+        ),
+        "params": {},
+        "expected": {
+            "vcount": 3,
+            "ecount": 3,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [0, 2]],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -8003,6 +8100,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "de_bruijn": DE_BRUIJN_MANIFEST,
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
+    "linegraph": LINEGRAPH_MANIFEST,
 }
 
 

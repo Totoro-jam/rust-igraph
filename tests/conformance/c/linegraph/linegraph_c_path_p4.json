@@ -1,0 +1,40 @@
+{
+  "source": "c",
+  "origin": "textbook smoke: L(P_4) = P_3 on the three L-vertices (one edge per shared interior vertex)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "linegraph",
+  "params": {},
+  "expected": {
+    "vcount": 3,
+    "ecount": 2,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  }
+}

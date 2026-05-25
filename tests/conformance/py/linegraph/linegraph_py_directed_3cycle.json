@@ -1,0 +1,44 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.linegraph() on a directed 3-cycle (0\u21921\u21922\u21920) \u2192 directed 3-cycle on its three L-vertices",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "linegraph",
+  "params": {},
+  "expected": {
+    "vcount": 3,
+    "ecount": 3,
+    "directed": true,
+    "edges": [
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.linegraph() on the 5-cycle C_5 \u2192 C_5 (cycle of length n preserves length under L)",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "linegraph",
+  "params": {},
+  "expected": {
+    "vcount": 5,
+    "ecount": 5,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ]
+  }
+}

@@ -15,6 +15,49 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-015** — `linegraph` constructor over an existing graph.
+  **Fifteenth member of the `constructors/` family.** Counterpart of
+  `igraph_linegraph` in `references/igraph/src/constructors/linegraph.c`.
+  Produces the line graph `L(G)` of an input `Graph`, where each input
+  edge becomes an L-vertex and two L-vertices are joined iff the
+  corresponding input edges share an endpoint (undirected) or chain head
+  → tail (directed). Self-loops follow upstream `IGRAPH_LOOPS ==
+  IGRAPH_LOOPS_TWICE` semantics — a self-loop `(u, u)` appears **twice**
+  in the incidence list of `u`, so a self-loop together with `k`
+  non-loop edges at `u` emits `2k + 1` L-edges from that vertex.
+  - `pub fn linegraph(graph: &Graph) -> IgraphResult<Graph>`. Dispatches
+    on `graph.is_directed()`. Undirected branch builds per-vertex
+    incidence lists (loops pushed twice) and emits one L-edge per
+    `j < k` index pair in each vertex's incidence vector. Directed
+    branch builds per-vertex IN-incidence lists once and for each source
+    vertex `u` walks `u`'s OUT-incidence × `IN[u]`, emitting
+    `(out_eid, in_eid)` for every (out, in) pair whose chaining
+    condition `head(out) == tail(in)` is satisfied. `u32::try_from`
+    guards the edge → L-vertex id reuse, `usize::checked_mul` /
+    `usize::checked_add` size the L-edge buffer before allocation.
+    Time complexity `O(|V(G)| + Σ_v deg(v)²)` undirected,
+    `O(|V(G)| + Σ_v deg_in(v)·deg_out(v))` directed.
+  - 13 unit tests covering: empty graph, isolated vertex, path P_4,
+    triangle K_3, K_4, star, ring C_5, multi-edge, undirected self-loop
+    (loop-only, loop-then-edge, edge-then-loop), directed chain,
+    directed cycle.
+  - 4 proptest invariants: vcount(L) = ecount(G); every L-edge
+    references a valid L-vertex; undirected loopless input produces
+    loopless L; multi-edge multiplicity preserved through L.
+  - 13 cross-source conformance fixtures (5 C, 5 py, 3 R) covering
+    undirected canonical input from the upstream C unit test, directed
+    canonical input, the no-edges edge case, P_4, K_3, K_4, C_5,
+    directed P_4, directed 3-cycle, and star S_5. Test compares L-edge
+    **multiset** canonicalised to `(min, max)` for undirected and
+    as-ordered for directed, matching upstream `igraph_is_same_graph`
+    semantics (L-edge emission ordering is not portable across
+    py-igraph and R-igraph minor versions).
+  - Throughput baseline (`benches/bench_linegraph.rs`, perf snapshot
+    `.codefuse/tracking/perf/ALGO-CN-015.json`): path inputs
+    ~16 Melem/s of input (also ~16 Melem/s of output), dense K_n inputs
+    ~20 M L-edges/s of output, star inputs ~24 M L-edges/s of output,
+    directed chains ~26 M arcs/s of input.
+
 - **ALGO-CN-014** — `full_graph` deterministic constructor.
   **Fourteenth member of the `constructors/` family.** Counterpart of
   `igraph_full` in `references/igraph/src/constructors/full.c:54-124`.

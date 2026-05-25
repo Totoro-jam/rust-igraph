@@ -1,0 +1,40 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.linegraph() on the path P_4 (0-1, 1-2, 2-3) \u2192 P_3 on three L-vertices",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "linegraph",
+  "params": {},
+  "expected": {
+    "vcount": 3,
+    "ecount": 2,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  }
+}

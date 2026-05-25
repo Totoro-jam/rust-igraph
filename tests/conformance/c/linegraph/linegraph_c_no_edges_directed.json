@@ -1,0 +1,18 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_linegraph.c: empty directed graph on 7 vertices, 0 arcs \u2014 L(G) is the empty 0-vertex directed graph",
+  "graph": {
+    "n": 7,
+    "edges": [],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "linegraph",
+  "params": {},
+  "expected": {
+    "vcount": 0,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

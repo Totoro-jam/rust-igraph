@@ -1,0 +1,122 @@
+{
+  "algo_id": "ALGO-CN-015",
+  "name": "linegraph",
+  "kind": "constructor",
+  "bench_file": "benches/bench_linegraph.rs",
+  "captured_at": "2026-05-25",
+  "host": "darwin / arm64 (Apple Silicon laptop)",
+  "criterion_config": {
+    "warm_up_time_s": 3,
+    "measurement_time_s": 5,
+    "sample_size": 100
+  },
+  "shapes": [
+    {
+      "label": "path_n64",
+      "input": "path_graph(64, false, false)",
+      "input_ecount": 63,
+      "L_ecount": 62,
+      "time_us": {"lo": 3.92, "mid": 4.05, "hi": 4.20}
+    },
+    {
+      "label": "path_n1024",
+      "input": "path_graph(1024, false, false)",
+      "input_ecount": 1023,
+      "L_ecount": 1022,
+      "time_us": {"lo": 44.0, "mid": 45.3, "hi": 46.6}
+    },
+    {
+      "label": "path_n16384",
+      "input": "path_graph(16384, false, false)",
+      "input_ecount": 16383,
+      "L_ecount": 16382,
+      "time_us": {"lo": 660.0, "mid": 672.9, "hi": 686.0}
+    },
+    {
+      "label": "full_kn_n8",
+      "input": "full_graph(8, false, false) = K_8",
+      "input_ecount": 28,
+      "L_ecount": 168,
+      "time_us": {"lo": 6.77, "mid": 6.78, "hi": 6.79}
+    },
+    {
+      "label": "full_kn_n16",
+      "input": "full_graph(16, false, false) = K_16",
+      "input_ecount": 120,
+      "L_ecount": 1680,
+      "time_us": {"lo": 57.03, "mid": 57.10, "hi": 57.17}
+    },
+    {
+      "label": "full_kn_n32",
+      "input": "full_graph(32, false, false) = K_32",
+      "input_ecount": 496,
+      "L_ecount": 14880,
+      "time_us": {"lo": 640.93, "mid": 641.90, "hi": 642.97}
+    },
+    {
+      "label": "full_kn_n64",
+      "input": "full_graph(64, false, false) = K_64",
+      "input_ecount": 2016,
+      "L_ecount": 125_000,
+      "time_us": {"lo": 6182.1, "mid": 6203.8, "hi": 6234.8}
+    },
+    {
+      "label": "star_n64",
+      "input": "star_graph(64, Undirected, 0)",
+      "input_ecount": 63,
+      "L_ecount": 1953,
+      "time_us": {"lo": 46.50, "mid": 46.75, "hi": 47.01}
+    },
+    {
+      "label": "star_n512",
+      "input": "star_graph(512, Undirected, 0)",
+      "input_ecount": 511,
+      "L_ecount": 130305,
+      "time_us": {"lo": 4115.9, "mid": 4119.4, "hi": 4123.2}
+    },
+    {
+      "label": "star_n2048",
+      "input": "star_graph(2048, Undirected, 0)",
+      "input_ecount": 2047,
+      "L_ecount": 2096128,
+      "time_ms": {"lo": 88.48, "mid": 88.67, "hi": 88.87}
+    },
+    {
+      "label": "er_gnm_n512_m1024",
+      "input": "erdos_renyi_gnm(512, 1024, false, false)",
+      "input_ecount": 1024,
+      "time_us": {"lo": 149.62, "mid": 150.65, "hi": 151.66}
+    },
+    {
+      "label": "er_gnm_n1024_m4096",
+      "input": "erdos_renyi_gnm(1024, 4096, false, false)",
+      "input_ecount": 4096,
+      "time_us": {"lo": 1163.8, "mid": 1166.2, "hi": 1168.9}
+    },
+    {
+      "label": "er_gnm_n2048_m8192",
+      "input": "erdos_renyi_gnm(2048, 8192, false, false)",
+      "input_ecount": 8192,
+      "time_us": {"lo": 2542.4, "mid": 2585.3, "hi": 2643.5}
+    },
+    {
+      "label": "directed_chain_n1024",
+      "input": "Graph::new(1024, true) + chain 0->1->...->1023",
+      "input_ecount": 1023,
+      "time_us": {"lo": 40.65, "mid": 40.69, "hi": 40.74}
+    },
+    {
+      "label": "directed_chain_n16384",
+      "input": "Graph::new(16384, true) + chain",
+      "input_ecount": 16383,
+      "time_us": {"lo": 633.37, "mid": 634.02, "hi": 634.86}
+    },
+    {
+      "label": "directed_chain_n131072",
+      "input": "Graph::new(131072, true) + chain",
+      "input_ecount": 131071,
+      "time_ms": {"lo": 5.041, "mid": 5.045, "hi": 5.050}
+    }
+  ],
+  "notes": "Throughput tracks the actual L(G) edge yield, not just |E(G)|. Sparse path inputs run at ~16 Melem/s of input (≈|E(L)| ≈ |E(G)| so this is also ~16 Melem/s of output). Dense K_n inputs are dominated by the n^4 output: K_64 inputs ~2016 edges but emits ~125k L-edges in ~6.2 ms (~20 M L-edges/s). Star inputs are the worst case per input edge — n^2/2 L-edges per (n−1) inputs — yet star/2048 still finishes in ~88 ms (~24 M L-edges/s of output). Directed chains hit ~26 M input arcs/s consistently across 3 orders of magnitude, confirming the per-source incoming-walk in the directed branch is Θ(in-degree) per emitted L-arc — chain inputs have in/out degree 1, so only 1 L-arc per input. ER G(n,m) at n=2048, m=8192 finishes in ~2.6 ms which is ~3.2 M input edges/s; here the realistic mixed-degree case averages ~5 L-edges per input edge so it sits between the path and K_n extremes."
+}

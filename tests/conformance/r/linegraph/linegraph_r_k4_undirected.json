@@ -1,0 +1,92 @@
+{
+  "source": "r",
+  "origin": "rigraph make_line_graph(make_full_graph(4)) \u2014 L(K_4) on 6 L-vertices, 12 L-edges (3-regular)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "linegraph",
+  "params": {},
+  "expected": {
+    "vcount": 6,
+    "ecount": 12,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        3,
+        5
+      ]
+    ]
+  }
+}
