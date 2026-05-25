@@ -6407,6 +6407,91 @@ HYPERCUBE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+HAMMING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "hamming_r_n1_q3_is_k3",
+        "origin": "rigraph make_hamming_graph(1, 3, directed=FALSE) — H(1,3) = K_3",
+        "algo": "hamming",
+        "params": {"n": 1, "q": 3, "directed": False},
+        "expected": {
+            "vcount": 3,
+            "ecount": 3,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 2]],
+        },
+    },
+    {
+        "case": "hamming_r_n2_q3_undirected",
+        "origin": "rigraph make_hamming_graph(2, 3, directed=FALSE) — H(2,3), 9v/18e",
+        "algo": "hamming",
+        "params": {"n": 2, "q": 3, "directed": False},
+        "expected": {
+            "vcount": 9,
+            "ecount": 18,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 6],
+                [1, 2], [1, 4], [1, 7],
+                [2, 5], [2, 8],
+                [3, 4], [3, 5], [3, 6],
+                [4, 5], [4, 7],
+                [5, 8],
+                [6, 7], [6, 8],
+                [7, 8],
+            ],
+        },
+    },
+    {
+        "case": "hamming_r_n3_q2_equals_hypercube",
+        "origin": "rigraph make_hamming_graph(3, 2, directed=FALSE) — H(3,2) ≡ Q_3",
+        "algo": "hamming",
+        "params": {"n": 3, "q": 2, "directed": False},
+        "expected": {
+            "vcount": 8,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 4],
+                [1, 3], [1, 5],
+                [2, 3], [2, 6],
+                [3, 7],
+                [4, 5], [4, 6],
+                [5, 7],
+                [6, 7],
+            ],
+        },
+    },
+    {
+        "case": "hamming_r_n2_q4_undirected",
+        "origin": "rigraph make_hamming_graph(2, 4, directed=FALSE) — H(2,4), 16v/48e",
+        "algo": "hamming",
+        "params": {"n": 2, "q": 4, "directed": False},
+        "expected": {
+            "vcount": 16,
+            "ecount": 48,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4], [0, 8], [0, 12],
+                [1, 2], [1, 3], [1, 5], [1, 9], [1, 13],
+                [2, 3], [2, 6], [2, 10], [2, 14],
+                [3, 7], [3, 11], [3, 15],
+                [4, 5], [4, 6], [4, 7], [4, 8], [4, 12],
+                [5, 6], [5, 7], [5, 9], [5, 13],
+                [6, 7], [6, 10], [6, 14],
+                [7, 11], [7, 15],
+                [8, 9], [8, 10], [8, 11], [8, 12],
+                [9, 10], [9, 11], [9, 13],
+                [10, 11], [10, 14],
+                [11, 15],
+                [12, 13], [12, 14], [12, 15],
+                [13, 14], [13, 15],
+                [14, 15],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6573,6 +6658,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "symmetric_tree": SYMMETRIC_TREE_MANIFEST,
     "regular_tree": REGULAR_TREE_MANIFEST,
     "hypercube": HYPERCUBE_MANIFEST,
+    "hamming": HAMMING_MANIFEST,
 }
 
 
@@ -6699,6 +6785,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "symmetric_tree",
             "regular_tree",
             "hypercube",
+            "hamming",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

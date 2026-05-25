@@ -15,6 +15,65 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-008** — `hamming` deterministic constructor.
+  **Eighth member of the `constructors/` family.** Counterpart of
+  `igraph_hamming` in
+  `references/igraph/src/constructors/regular.c:1070-1153`. The
+  d-dimensional **Hamming graph** `H(n, q)` over an alphabet of size
+  `q` has `q^n` vertices indexed by length-`n` strings in
+  `{0, 1, …, q-1}^n`. Two vertices are connected iff their strings
+  differ in **exactly one position**. The string `(x_0, x_1, …, x_{n-1})`
+  maps to vertex id `Σ_i x_i · q^i` (little-endian base-`q`), matching
+  the upstream convention.
+  - `pub fn hamming(n: u32, q: u32, directed: bool) -> IgraphResult<Graph>`.
+    No artificial cap on `(n, q)`: the vertex count `q^n` is guarded at
+    runtime via `u32::checked_pow`, and the edge count
+    `q^n · (q − 1) · n / 2` is guarded via chained `checked_mul`. The
+    degenerate cases `n = 0` (singleton, even when `q = 0`), `n > 0` ∧
+    `q = 0` (null graph), and `q = 1` (singleton) match upstream.
+  - **Algorithm**: for each `v ∈ [0, q^n)` walk the digits in base `q`
+    by stepping `pos = 1, q, q^2, …`. At each digit position extract
+    `dig = (v / pos) mod q`, then for every higher value
+    `dig + j` with `j ∈ [1, q − dig)` emit the canonical edge
+    `(v, v + j · pos)`. Walking upward in every digit means each edge
+    is produced exactly once (lower endpoint first). Mirrors the
+    upstream C loop. Total work: `O(n · q^(n+1))`.
+  - **Truth table** for `hamming(n, q, directed)`:
+
+    | n | q | directed | vcount | ecount | shape                            |
+    |---|---|----------|--------|--------|----------------------------------|
+    | 0 | * | false    | 1      | 0      | singleton (any `q`, even `q=0`)  |
+    | 2 | 0 | false    | 0      | 0      | null graph                       |
+    | 1 | 3 | false    | 3      | 3      | complete `K_3`                   |
+    | 2 | 3 | false    | 9      | 18     | 4-regular                        |
+    | 2 | 4 | false    | 16     | 48     | 6-regular                        |
+    | 3 | 2 | false    | 8      | 12     | equivalent to hypercube `Q_3`    |
+    | 3 | 2 | true     | 8      | 12     | low → high orientation           |
+
+  - **Structural properties** (covered by both unit and proptest):
+    `n·(q−1)`-regular (every vertex has degree `n · (q − 1)`); edge
+    count exactly `q^n · (q − 1) · n / 2`; every edge differs in
+    exactly one base-`q` digit; every emitted pair is canonically
+    ordered `u < v`; `q = 2` coincides with the hypercube `Q_n`
+    (asserted edge-by-edge against [`hypercube`]).
+  - **Bounds & overflow**: vertex-count overflow (e.g. `n = 32, q = 2`
+    or `n = 5, q = 100`) rejected with `InvalidArgument`; edge-count
+    computation uses chained `checked_mul` so future formula changes
+    cannot silently wrap around.
+  - Conformance: 14 fixtures (C × 6 covering `n = 0` singleton, `q = 0`
+    null graph, `H(1, 3) = K_3`, `H(2, 3)` with 18 edges, `H(3, 2) ≡ Q_3`,
+    and `H(2, 4)` with 48 edges; py × 4 including a directed variant;
+    R × 4) under `tests/conformance/{c,py,r}/hamming/`, comparing exact
+    edge sequences (directed mode) or canonicalised edge multisets
+    (undirected mode).
+  - Benchmarks: `benches/bench_hamming.rs` with two groups
+    (undirected / directed) across `(n, q) ∈ {(3, 3), (4, 4), (5, 4)}`
+    (27 / 256 / 1024 vertices respectively). Baseline snapshot:
+    `.codefuse/tracking/perf/ALGO-CN-008.json` — ~25–39 Medge/s, with
+    throughput consistent across shapes (the base-`q` digit walk does
+    exactly the formula's emission count, with a small per-edge cost
+    that does not depend on `q`).
+
 - **ALGO-CN-007** — `hypercube` deterministic constructor.
   **Seventh member of the `constructors/` family.** Counterpart of
   `igraph_hypercube` in

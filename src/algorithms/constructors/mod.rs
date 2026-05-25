@@ -5,6 +5,7 @@
 //! whose shape is fully determined by their integer parameters, with no
 //! RNG involvement.
 
+pub mod hamming;
 pub mod hypercube;
 pub mod kary_tree;
 pub mod regular_tree;

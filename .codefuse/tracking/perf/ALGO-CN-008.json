@@ -1,0 +1,70 @@
+{
+  "algo_id": "ALGO-CN-008",
+  "algo": "hamming",
+  "captured_at": "2026-05-25",
+  "git_commit": "fbd77e9",
+  "machine": "darwin-arm64",
+  "criterion_version": "0.5",
+  "configs": [
+    {
+      "label": "n3_q3",
+      "n": 3,
+      "q": 3,
+      "vcount": 27,
+      "ecount": 81
+    },
+    {
+      "label": "n4_q4",
+      "n": 4,
+      "q": 4,
+      "vcount": 256,
+      "ecount": 1536
+    },
+    {
+      "label": "n5_q4",
+      "n": 5,
+      "q": 4,
+      "vcount": 1024,
+      "ecount": 7680
+    }
+  ],
+  "results": {
+    "hamming/undirected/n3_q3": {
+      "time_low": "3.1376 us",
+      "time_mid": "3.1601 us",
+      "time_high": "3.1806 us",
+      "throughput": "~25.6 Medge/s"
+    },
+    "hamming/undirected/n4_q4": {
+      "time_low": "38.728 us",
+      "time_mid": "39.075 us",
+      "time_high": "39.451 us",
+      "throughput": "~39.3 Medge/s"
+    },
+    "hamming/undirected/n5_q4": {
+      "time_low": "232.66 us",
+      "time_mid": "236.49 us",
+      "time_high": "241.74 us",
+      "throughput": "~32.5 Medge/s"
+    },
+    "hamming/directed/n3_q3": {
+      "time_low": "3.1407 us",
+      "time_mid": "3.1837 us",
+      "time_high": "3.2335 us",
+      "throughput": "~25.4 Medge/s"
+    },
+    "hamming/directed/n4_q4": {
+      "time_low": "40.364 us",
+      "time_mid": "40.816 us",
+      "time_high": "41.549 us",
+      "throughput": "~37.6 Medge/s"
+    },
+    "hamming/directed/n5_q4": {
+      "time_low": "251.05 us",
+      "time_mid": "254.32 us",
+      "time_high": "257.92 us",
+      "throughput": "~30.2 Medge/s"
+    }
+  },
+  "notes": "Throughput is consistent across (n, q) shapes — the base-q digit walk does exactly q^n * (q-1) * n / 2 emissions, with a small per-edge cost that does not depend on q. Directed and undirected paths share the same enumeration; the slight directed overhead comes from the storage representation in core::Graph."
+}
