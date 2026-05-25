@@ -6563,6 +6563,67 @@ FULL_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-025 — `Graph.Full_Citation(n, directed=False)` (Python bindings,
+# dispatches to `igraph_full_citation`). The python-igraph testFullCitation
+# (`tests/test_generators.py:120`) asserts the *sorted* edge lists match
+# the closed-form `[(x, y) for x in range(n) for y in range(x+1, n)]` (or
+# its descending counterpart for the directed case). Our manifest carries
+# the *emission* order produced by `igraph_full_citation` itself —
+# descending-source-major `(i, j)` with `j < i` — so the conformance
+# comparator runs over the canonical-undirected multiset (consistent with
+# how the upstream test sorts before comparing).
+FULL_CITATION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "full_citation_py_n6_undirected",
+        "origin": "mirrors python-igraph Graph.Full_Citation(6) — undirected K_6 (testFullCitation case 1, scaled down for fixture readability)",
+        "algo": "full_citation",
+        "params": {"n": 6, "directed": False},
+        "expected": {
+            "vcount": 6,
+            "ecount": 15,
+            "directed": False,
+            "edges": [
+                [1, 0],
+                [2, 0], [2, 1],
+                [3, 0], [3, 1], [3, 2],
+                [4, 0], [4, 1], [4, 2], [4, 3],
+                [5, 0], [5, 1], [5, 2], [5, 3], [5, 4],
+            ],
+        },
+    },
+    {
+        "case": "full_citation_py_n6_directed",
+        "origin": "mirrors python-igraph Graph.Full_Citation(6, True) — complete DAG with arcs i->j for every j<i (testFullCitation case 2, scaled to n=6)",
+        "algo": "full_citation",
+        "params": {"n": 6, "directed": True},
+        "expected": {
+            "vcount": 6,
+            "ecount": 15,
+            "directed": True,
+            "edges": [
+                [1, 0],
+                [2, 0], [2, 1],
+                [3, 0], [3, 1], [3, 2],
+                [4, 0], [4, 1], [4, 2], [4, 3],
+                [5, 0], [5, 1], [5, 2], [5, 3], [5, 4],
+            ],
+        },
+    },
+    {
+        "case": "full_citation_py_n2_directed_single_arc",
+        "origin": "mirrors python-igraph Graph.Full_Citation(2, True) — degenerate smallest non-trivial DAG with a single arc 1->0",
+        "algo": "full_citation",
+        "params": {"n": 2, "directed": True},
+        "expected": {
+            "vcount": 2,
+            "ecount": 1,
+            "directed": True,
+            "edges": [[1, 0]],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `Graph.linegraph()` (Python bindings, dispatches to the
 # same C `igraph_linegraph`). Fixtures focus on small textbook shapes
 # (P_4, K_4, C_5) plus a directed cycle that exercises chain semantics.
@@ -7507,6 +7568,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "de_bruijn": DE_BRUIJN_MANIFEST,
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
+    "full_citation": FULL_CITATION_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -7651,6 +7713,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "de_bruijn",
             "kautz",
             "full_graph",
+            "full_citation",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

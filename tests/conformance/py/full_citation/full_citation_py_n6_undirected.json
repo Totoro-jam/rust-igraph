@@ -1,0 +1,82 @@
+{
+  "source": "py",
+  "origin": "mirrors python-igraph Graph.Full_Citation(6) \u2014 undirected K_6 (testFullCitation case 1, scaled down for fixture readability)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_citation",
+  "params": {
+    "n": 6,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 15,
+    "directed": false,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        5,
+        1
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        5,
+        4
+      ]
+    ]
+  }
+}

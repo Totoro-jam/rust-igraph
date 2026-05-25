@@ -1,0 +1,82 @@
+{
+  "source": "py",
+  "origin": "mirrors python-igraph Graph.Full_Citation(6, True) \u2014 complete DAG with arcs i->j for every j<i (testFullCitation case 2, scaled to n=6)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_citation",
+  "params": {
+    "n": 6,
+    "directed": true
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 15,
+    "directed": true,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        5,
+        1
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        5,
+        4
+      ]
+    ]
+  }
+}

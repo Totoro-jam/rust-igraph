@@ -1,0 +1,21 @@
+{
+  "source": "r",
+  "origin": "mirrors R-igraph make_full_graph_citation_graph(n=1, directed=TRUE) \u2014 edgeless singleton",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_citation",
+  "params": {
+    "n": 1,
+    "directed": true
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

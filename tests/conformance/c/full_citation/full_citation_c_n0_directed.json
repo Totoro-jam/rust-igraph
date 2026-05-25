@@ -1,0 +1,21 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_full_citation(n=0, directed=true) \u2014 empty graph (Directed, 0 vertices from tests/unit/igraph_full_citation.c)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_citation",
+  "params": {
+    "n": 0,
+    "directed": true
+  },
+  "expected": {
+    "vcount": 0,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

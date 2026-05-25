@@ -1,0 +1,46 @@
+{
+  "source": "r",
+  "origin": "mirrors R-igraph make_full_graph_citation_graph(n=4, directed=FALSE) \u2014 K_4 (matches igraph_full_citation.c case 1)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_citation",
+  "params": {
+    "n": 4,
+    "directed": false
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 6,
+    "directed": false,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        2
+      ]
+    ]
+  }
+}

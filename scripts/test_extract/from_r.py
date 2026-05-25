@@ -6812,6 +6812,51 @@ FULL_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-025 — `make_full_citation_graph` (R-igraph) dispatches directly
+# to `igraph_full_citation`. Fixtures mirror the four cases the upstream C
+# unit test asserts (n=4 ud + d, n=1 d, n=0 d) so the R lane stays in
+# lock-step with `igraph_full_citation.c`. Emission order matches the
+# upstream C function: `(i, j)` for every `j < i`.
+FULL_CITATION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "full_citation_r_n4_undirected",
+        "origin": "mirrors R-igraph make_full_graph_citation_graph(n=4, directed=FALSE) — K_4 (matches igraph_full_citation.c case 1)",
+        "algo": "full_citation",
+        "params": {"n": 4, "directed": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [[1, 0], [2, 0], [2, 1], [3, 0], [3, 1], [3, 2]],
+        },
+    },
+    {
+        "case": "full_citation_r_n4_directed",
+        "origin": "mirrors R-igraph make_full_graph_citation_graph(n=4, directed=TRUE) — complete DAG with arcs i->j for every j<i",
+        "algo": "full_citation",
+        "params": {"n": 4, "directed": True},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": True,
+            "edges": [[1, 0], [2, 0], [2, 1], [3, 0], [3, 1], [3, 2]],
+        },
+    },
+    {
+        "case": "full_citation_r_n1_directed",
+        "origin": "mirrors R-igraph make_full_graph_citation_graph(n=1, directed=TRUE) — edgeless singleton",
+        "algo": "full_citation",
+        "params": {"n": 1, "directed": True},
+        "expected": {
+            "vcount": 1,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `make_line_graph` (R-igraph) dispatches to
 # `igraph_linegraph`. Fixtures cover the textbook small shapes —
 # triangle, K_4, star — that an R-bindings user would build with
@@ -7544,6 +7589,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "de_bruijn": DE_BRUIJN_MANIFEST,
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
+    "full_citation": FULL_CITATION_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -7687,6 +7733,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "de_bruijn",
             "kautz",
             "full_graph",
+            "full_citation",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

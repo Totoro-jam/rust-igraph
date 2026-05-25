@@ -1,0 +1,21 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_full_citation(n=1, directed=true) \u2014 edgeless singleton (Directed, 1 vertex from tests/unit/igraph_full_citation.c)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_citation",
+  "params": {
+    "n": 1,
+    "directed": true
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

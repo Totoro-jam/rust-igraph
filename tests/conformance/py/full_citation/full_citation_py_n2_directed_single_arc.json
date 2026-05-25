@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "mirrors python-igraph Graph.Full_Citation(2, True) \u2014 degenerate smallest non-trivial DAG with a single arc 1->0",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "full_citation",
+  "params": {
+    "n": 2,
+    "directed": true
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 1,
+    "directed": true,
+    "edges": [
+      [
+        1,
+        0
+      ]
+    ]
+  }
+}

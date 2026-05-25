@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-CN-025",
+  "captured_at": "2026-05-26",
+  "git_commit": "5e51c8f",
+  "rust_n8_undirected_thrpt_melem_s": 20.484,
+  "rust_n8_directed_thrpt_melem_s": 20.957,
+  "rust_n64_undirected_thrpt_melem_s": 43.835,
+  "rust_n64_directed_thrpt_melem_s": 44.495,
+  "rust_n512_undirected_thrpt_melem_s": 31.482,
+  "rust_n512_directed_thrpt_melem_s": 31.867,
+  "py_baseline_ns": null,
+  "notes": "Complete-DAG / K_n constructor (igraph_full_citation port). Emits n*(n-1)/2 edges via `for i in 1..n { for j in 0..i { push (i, j) } }`, byte-for-byte mirroring upstream's emission walk. Edge buffer is pre-sized via `Vec::with_capacity(ecount)` and the `usize::checked_mul` overflow path mirrors `IGRAPH_SAFE_MULT(n, n-1, ...)`. Throughput grows from ~20 Melem/s at n=8 (Graph::new + add_edges overhead dominates) to ~44 Melem/s at n=64 (sweet spot where the inner emit loop is L1-resident yet the per-call setup amortizes) and tapers to ~31-32 Melem/s at n=512 (130 816 edges; cost dominated by Graph::add_edges populating from/to/oi/ii arrays and sort-by-key into the CSR-like adjacency). Directed vs undirected are essentially indistinguishable because the emission body is identical and the only branch is in Graph::new's directed flag. No external oracle baseline: python-igraph (`Graph.Full_Citation`) and rigraph (`make_full_citation_graph`) both dispatch to igraph_full_citation, and our conformance test asserts edge-multiset equality on the very fixtures the upstream C unit test (`igraph_full_citation.c`) and python tests (`testFullCitation`) drive. Numbers from `cargo bench --bench bench_full_citation -- --warm-up-time 1 --measurement-time 3` on Darwin/M-series release build."
+}

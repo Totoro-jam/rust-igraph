@@ -7830,6 +7830,65 @@ FULL_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-025 — `igraph_full_citation` from `src/constructors/full.c`.
+# Upstream unit test (`tests/unit/igraph_full_citation.c`) covers four
+# cases: n=4 undirected (K_4), n=4 directed (complete DAG with descending
+# arcs), n=1 directed (edgeless singleton), n=0 directed (empty graph).
+# The directed branch emits arcs in citation order `(i, j)` for every
+# `j < i`; the undirected branch yields the same multiset as a complete
+# graph but the emission order is descending-source-major.
+FULL_CITATION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "full_citation_c_n4_undirected",
+        "origin": "mirrors igraph_full_citation(n=4, directed=false) — K_4 (Undirected case from tests/unit/igraph_full_citation.c)",
+        "algo": "full_citation",
+        "params": {"n": 4, "directed": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [[1, 0], [2, 0], [2, 1], [3, 0], [3, 1], [3, 2]],
+        },
+    },
+    {
+        "case": "full_citation_c_n4_directed",
+        "origin": "mirrors igraph_full_citation(n=4, directed=true) — complete DAG with arcs i->j for every j<i (Directed case from tests/unit/igraph_full_citation.c)",
+        "algo": "full_citation",
+        "params": {"n": 4, "directed": True},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": True,
+            "edges": [[1, 0], [2, 0], [2, 1], [3, 0], [3, 1], [3, 2]],
+        },
+    },
+    {
+        "case": "full_citation_c_n1_directed",
+        "origin": "mirrors igraph_full_citation(n=1, directed=true) — edgeless singleton (Directed, 1 vertex from tests/unit/igraph_full_citation.c)",
+        "algo": "full_citation",
+        "params": {"n": 1, "directed": True},
+        "expected": {
+            "vcount": 1,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+    {
+        "case": "full_citation_c_n0_directed",
+        "origin": "mirrors igraph_full_citation(n=0, directed=true) — empty graph (Directed, 0 vertices from tests/unit/igraph_full_citation.c)",
+        "algo": "full_citation",
+        "params": {"n": 0, "directed": True},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `igraph_linegraph` from `src/constructors/linegraph.c`.
 # The upstream unit test (`tests/unit/igraph_linegraph.c`) covers three
 # canonical shapes: (a) a multigraph + self-loop undirected case, (b) a
@@ -9030,6 +9089,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "de_bruijn": DE_BRUIJN_MANIFEST,
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
+    "full_citation": FULL_CITATION_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -9179,6 +9239,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "de_bruijn",
             "kautz",
             "full_graph",
+            "full_citation",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

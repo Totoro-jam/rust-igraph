@@ -155,6 +155,10 @@ name = "full_demo"
 path = "examples/full_demo.rs"
 
 [[example]]
+name = "full_citation_demo"
+path = "examples/full_citation_demo.rs"
+
+[[example]]
 name = "linegraph_demo"
 path = "examples/linegraph_demo.rs"
 
@@ -546,6 +550,11 @@ harness = false
 [[bench]]
 name = "bench_full"
 path = "benches/bench_full.rs"
+harness = false
+
+[[bench]]
+name = "bench_full_citation"
+path = "benches/bench_full_citation.rs"
 harness = false
 
 [[bench]]

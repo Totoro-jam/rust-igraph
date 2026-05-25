@@ -15,6 +15,72 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-025** — `full_citation` complete-graph constructor with the
+  citation-order emission. **Twenty-fifth member of the `constructors/`
+  family** and the descending-source-major sibling of
+  [`full_graph`]. Counterpart of `igraph_full_citation` in
+  `references/igraph/src/constructors/full.c:348-376`.
+  - `pub fn full_citation(n: u32, directed: bool) -> IgraphResult<Graph>`
+    — single byte-for-byte port of the upstream emission walk
+    `for i in 1..n { for j in 0..i { push (i, j) } }`, pre-sized via
+    `Vec::with_capacity(n·(n-1)/2)` so the bulk `Graph::add_edges` call
+    sees no reallocation. `usize::checked_mul` for the `n·(n-1)` product
+    mirrors upstream's `IGRAPH_SAFE_MULT(n, n-1, ...)` guard so an
+    adversarial `n = u32::MAX` reports `IgraphError::Overflow` rather
+    than silently truncating the buffer length.
+  - **Citation invariant**: every arc `(u, v)` in the directed variant
+    satisfies `u > v` — newer paper cites older — yielding a complete
+    DAG with `n·(n-1)/2` arcs and zero self-loops. `in_degree(k) ==
+    n - 1 - k`, `out_degree(k) == k` for every `k ∈ [0, n)`.
+  - **K_n sibling cross-check**: `directed = false` yields the
+    undirected K_n whose edge multiset is identical to
+    `full_graph(n, false, false)` but in descending-source-major
+    emission order (vs `full_graph`'s ascending-source-major) — the
+    n=5 example demonstrates the multiset equality + emission-order
+    inequality directly.
+  - **Degenerate inputs handled inline**: `n == 0` returns the empty
+    graph regardless of flag, `n == 1` returns a singleton with no
+    edges.
+  - **Tests**: 12 unit + 6 proptest covering (a) `n=0/1` degenerate
+    cells for both directedness settings, (b) `n=4` directed canonical
+    DAG byte-match against the upstream `.out` fixture, (c) `n=6`
+    in/out-degree profile via local `in_out_counts` helper, (d) the
+    K_5 multiset cross-check against `full_graph(5, false, false)`,
+    (e) emission-order inequality, (f) closed-form ecount sweep across
+    `n ∈ {0, 1, 2, 7, 25}`, (g) directed-undirected ecount equality
+    invariant.
+  - **Three-source conformance**: 10 fixtures
+    - C lane (4) — `n=4` directed canonical DAG matching
+      `references/igraph/tests/unit/igraph_full_citation.c`, `n=4`
+      undirected K_4, `n=1` directed singleton, `n=0` directed empty.
+    - py lane (3) — `n=6` directed/undirected from
+      `references/python-igraph/tests/test_constructors.py::testFullCitation`,
+      `n=2` directed degenerate single arc `1 → 0`.
+    - R lane (3) — `n=4` directed/undirected from
+      `references/rigraph/R/make_full_citation_graph`, `n=1` directed
+      singleton.
+    - Conformance test uses canonical `(min, max)` multiset for
+      undirected and the raw `(u, v)` multiset for directed
+      (mirroring `check_linegraph_fixture`'s precedent) since R
+      re-canonicalises endpoints and emission order is not byte-stable
+      across the three sources.
+  - **Bench** (`benches/bench_full_citation.rs`): 6 shapes covering
+    n=8 / 64 / 512 × directed / undirected. Throughput grows from
+    ~20 Melem/s at n=8 (Graph::new + add_edges overhead dominates) to
+    ~44 Melem/s at n=64 (sweet spot where the inner emit loop is
+    L1-resident yet the per-call setup amortizes) and tapers to
+    ~31–32 Melem/s at n=512 (130 816 edges; cost dominated by
+    `Graph::add_edges` populating from/to/oi/ii arrays and sort-by-key
+    into the CSR-like adjacency). Directed vs undirected are
+    indistinguishable since the emission body is identical.
+  - **Example** (`examples/full_citation_demo.rs`): walks the
+    degenerate cases (n=0, n=1), the canonical n=4 directed DAG
+    byte-match, the n=6 in/out-degree profile, the K_5 multiset
+    cross-check vs `full_graph(5, false, false)`, and the closed-form
+    ecount sweep — demonstrating that `full_citation` and `full_graph`
+    produce the same undirected K_5 multiset but in different emission
+    orders.
+
 - **ALGO-CN-024** — `hexagonal_lattice` planar hexagonal (honeycomb)
   lattice constructor. **Twenty-fourth member of the `constructors/`
   family** and the planar dual of [`triangular_lattice`]. Counterpart of
