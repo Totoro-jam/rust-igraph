@@ -7927,6 +7927,53 @@ LINEGRAPH_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-016 — `igraph_from_prufer` from `src/constructors/prufer.c`.
+# The upstream unit test (`tests/unit/igraph_from_prufer.c` + .out) covers
+# three canonical sequences: a 4-element sequence on n=6, a 6-element
+# sequence on n=8, and the empty sequence on n=2. Expected edges below
+# are taken directly from the `.out` golden, canonicalised to (min, max)
+# pairs — the conformance check compares multisets so cross-source edge
+# orderings stay compatible.
+PRUFER_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "from_prufer_c_seq_2323",
+        "origin": "mirrors igraph_from_prufer.c fixture 1: prufer = [2,3,2,3] → 6-vertex tree (edges 2-0, 3-1, 4-2, 3-2, 5-3)",
+        "algo": "from_prufer",
+        "params": {"prufer": [2, 3, 2, 3]},
+        "expected": {
+            "vcount": 6,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 2], [1, 3], [2, 4], [2, 3], [3, 5]],
+        },
+    },
+    {
+        "case": "from_prufer_c_seq_024110",
+        "origin": "mirrors igraph_from_prufer.c fixture 2: prufer = [0,2,4,1,1,0] → 8-vertex tree (edges 3-0, 5-2, 4-2, 4-1, 6-1, 1-0, 7-0)",
+        "algo": "from_prufer",
+        "params": {"prufer": [0, 2, 4, 1, 1, 0]},
+        "expected": {
+            "vcount": 8,
+            "ecount": 7,
+            "directed": False,
+            "edges": [[0, 3], [2, 5], [2, 4], [1, 4], [1, 6], [0, 1], [0, 7]],
+        },
+    },
+    {
+        "case": "from_prufer_c_empty",
+        "origin": "mirrors igraph_from_prufer.c fixture 3: empty prufer → P_2 (single edge 1-0)",
+        "algo": "from_prufer",
+        "params": {"prufer": []},
+        "expected": {
+            "vcount": 2,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -8101,6 +8148,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
+    "from_prufer": PRUFER_MANIFEST,
 }
 
 
@@ -8239,6 +8287,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "de_bruijn",
             "kautz",
             "full_graph",
+            "from_prufer",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

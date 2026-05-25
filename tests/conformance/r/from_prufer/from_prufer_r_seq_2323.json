@@ -1,0 +1,46 @@
+{
+  "source": "r",
+  "origin": "rigraph make_from_prufer([2,3,2,3]) \u2014 matches upstream igraph_from_prufer.c fixture 1",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "from_prufer",
+  "params": {
+    "prufer": [
+      2,
+      3,
+      2,
+      3
+    ]
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 5,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        5
+      ]
+    ]
+  }
+}

@@ -154,6 +154,10 @@ path = "examples/full_demo.rs"
 name = "linegraph_demo"
 path = "examples/linegraph_demo.rs"
 
+[[example]]
+name = "prufer_demo"
+path = "examples/prufer_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -517,6 +521,11 @@ harness = false
 [[bench]]
 name = "bench_linegraph"
 path = "benches/bench_linegraph.rs"
+harness = false
+
+[[bench]]
+name = "bench_prufer"
+path = "benches/bench_prufer.rs"
 harness = false
 
 [lints.rust]

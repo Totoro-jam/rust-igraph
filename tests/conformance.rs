@@ -12817,3 +12817,135 @@ fn linegraph_three_source_conformance() {
         );
     }
 }
+
+fn check_from_prufer_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::from_prufer;
+    use std::collections::BTreeMap;
+
+    let prufer_vals: Vec<u32> = case
+        .params
+        .get("prufer")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "from_prufer fixture {}: params.prufer missing or not array",
+                path.display()
+            )
+        })
+        .iter()
+        .map(|v| {
+            u32::try_from(v.as_u64().unwrap_or_else(|| {
+                panic!(
+                    "from_prufer fixture {}: prufer entry not u64",
+                    path.display()
+                )
+            }))
+            .expect("prufer entry fits in u32")
+        })
+        .collect();
+
+    let tree =
+        from_prufer(&prufer_vals).expect("from_prufer should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        tree.vcount(),
+        want_vertices,
+        "from_prufer vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        tree.is_directed(),
+        want_directed,
+        "from_prufer directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        tree.ecount() as u64,
+        want_edges,
+        "from_prufer ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "from_prufer fixture {}: expected.edges missing",
+                path.display()
+            )
+        });
+
+    // Always undirected — compare canonical (min, max) multisets so the
+    // three sources can keep distinct internal edge orderings.
+    let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for v in want_edges_raw {
+        let pair = v
+            .as_array()
+            .unwrap_or_else(|| panic!("from_prufer fixture {}: edge not array", path.display()));
+        let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+        let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+        let key = if u <= w { (u, w) } else { (w, u) };
+        *want_ms.entry(key).or_insert(0) += 1;
+    }
+
+    let n_edges = u32::try_from(tree.ecount()).expect("ecount fits u32 in conformance");
+    let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for eid in 0..n_edges {
+        let (u, w) = tree.edge(eid).expect("from_prufer edge id in range");
+        let key = if u <= w { (u, w) } else { (w, u) };
+        *got_ms.entry(key).or_insert(0) += 1;
+    }
+
+    assert_eq!(
+        got_ms,
+        want_ms,
+        "from_prufer edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn from_prufer_three_source_conformance() {
+    // `igraph_from_prufer` is reached identically by python-igraph
+    // (`Graph.Prufer`) and rigraph (`make_from_prufer`). The C unit test
+    // asserts an exact edge sequence; we compare canonical edge
+    // multisets so cross-source orderings stay compatible.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("from_prufer");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read from_prufer fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse from_prufer conformance fixture JSON");
+            assert_eq!(case.algo, "from_prufer");
+            assert_eq!(case.source, src);
+            check_from_prufer_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no from_prufer fixtures from source {src}"
+        );
+    }
+}

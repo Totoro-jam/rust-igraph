@@ -1,0 +1,25 @@
+{
+  "source": "r",
+  "origin": "rigraph make_from_prufer(integer(0)) \u2192 P_2 (matches upstream igraph_from_prufer.c fixture 3)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "from_prufer",
+  "params": {
+    "prufer": []
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 1,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}

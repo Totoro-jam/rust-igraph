@@ -1,0 +1,25 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Prufer([]) \u2192 P_2 (2 vertices, 1 edge)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "from_prufer",
+  "params": {
+    "prufer": []
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 1,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}

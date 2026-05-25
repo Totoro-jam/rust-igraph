@@ -6872,6 +6872,56 @@ LINEGRAPH_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-016 — `make_from_prufer(prufer)` (rigraph) dispatches to the
+# same C `igraph_from_prufer`. rigraph's `test-trees.R` round-trips
+# `to_prufer(make_tree(13, 3))` through `make_from_prufer`; we mirror
+# that here directly, plus two upstream-C fixtures so the R extractor
+# yields three independent shapes.
+PRUFER_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "from_prufer_r_make_tree_13_3_roundtrip",
+        "origin": "rigraph test-trees.R: make_tree(13, 3, undirected) → to_prufer → make_from_prufer round-trip; prufer = [1,1,1,0,2,2,2,0,3,3,3]",
+        "algo": "from_prufer",
+        "params": {"prufer": [1, 1, 1, 0, 2, 2, 2, 0, 3, 3, 3]},
+        "expected": {
+            "vcount": 13,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3],
+                [1, 4], [1, 5], [1, 6],
+                [2, 7], [2, 8], [2, 9],
+                [3, 10], [3, 11], [3, 12],
+            ],
+        },
+    },
+    {
+        "case": "from_prufer_r_seq_2323",
+        "origin": "rigraph make_from_prufer([2,3,2,3]) — matches upstream igraph_from_prufer.c fixture 1",
+        "algo": "from_prufer",
+        "params": {"prufer": [2, 3, 2, 3]},
+        "expected": {
+            "vcount": 6,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 2], [1, 3], [2, 3], [2, 4], [3, 5]],
+        },
+    },
+    {
+        "case": "from_prufer_r_empty",
+        "origin": "rigraph make_from_prufer(integer(0)) → P_2 (matches upstream igraph_from_prufer.c fixture 3)",
+        "algo": "from_prufer",
+        "params": {"prufer": []},
+        "expected": {
+            "vcount": 2,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -7046,6 +7096,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
+    "from_prufer": PRUFER_MANIFEST,
 }
 
 
@@ -7179,6 +7230,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "de_bruijn",
             "kautz",
             "full_graph",
+            "from_prufer",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

@@ -1,0 +1,46 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Prufer([1,2,3,4]) \u2192 path P_6 on vertices 0-1-2-3-4-5",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "from_prufer",
+  "params": {
+    "prufer": [
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 5,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ]
+  }
+}

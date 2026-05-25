@@ -15,6 +15,55 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-016** — `from_prufer` linear-time Prüfer-sequence decoder.
+  **Sixteenth member of the `constructors/` family.** Counterpart of
+  `igraph_from_prufer` in `references/igraph/src/constructors/prufer.c`.
+  Decodes a length-`L` Prüfer sequence over `{0, 1, …, n-1}` (with
+  `n = L + 2`) into the unique labelled undirected tree on `n` vertices
+  it encodes, completing one half of the Prüfer bijection between
+  sequences and trees. Empty input yields the 2-vertex path graph `P_2`
+  (single edge `0—1`).
+  - `pub fn from_prufer(prufer: &[u32]) -> IgraphResult<Graph>`.
+    Linear-time `O(n)` Micikevičius–Caminiti–Deo algorithm: pre-fill
+    `degree[w]` = residual occurrences of vertex `w` in the unread tail,
+    then for each `i ∈ [0, n)` cascade through leaves discovered as a
+    side-effect of edge emission (walk `u`, while `degree[u] == 0 ∧
+    u ≤ i ∧ k < L`, emit `(prufer[k], u)`, decrement `degree[prufer[k]]`,
+    advance `u ← prufer[k]`), then scan for the lone surviving leaf to
+    emit the final closing edge. `u32::try_from(L) + checked_add(2)`
+    rejects sequences whose `L + 2` would overflow `u32`, and a single
+    pre-decode pass validates every entry is `< n`.
+  - 9 unit tests covering: empty Prüfer → `P_2`, both upstream-C
+    `igraph_from_prufer.out` fixtures byte-for-byte (`[2,3,2,3]` and
+    `[0,2,4,1,1,0]`), out-of-range entry error, constant sequence →
+    star, ascending sequence → path, singleton entry, always-undirected
+    invariant, no-self-loops + no-duplicates invariant.
+  - 5 proptest invariants over `n ∈ [2, 30)`: result has exactly `n`
+    vertices + `n − 1` edges + is undirected; no self-loops; no
+    duplicate edges; single connected component (union-find with path
+    compression — equivalent to "is a tree" since edge count is already
+    pinned); out-of-range entry always returns `InvalidArgument`.
+  - 11 cross-source conformance fixtures (3 C, 5 py, 3 R) covering the
+    two upstream-C `igraph_from_prufer.out` cases plus the empty
+    sequence across all three sources, with additional py coverage of
+    singleton/constant/ascending/mixed shapes and an R-side round-trip
+    from `make_tree(13, 3, undirected) → to_prufer → from_prufer`
+    confirming the bijection. Cross-source edge emission order is **not**
+    byte-stable (R-igraph re-canonicalises edges), so the conformance
+    test compares canonical `(min, max)` edge multisets.
+  - Throughput baseline (`benches/bench_prufer.rs`, perf snapshot
+    `.codefuse/tracking/perf/ALGO-CN-016.json`): three topology sweeps
+    over `n ∈ {64, 1024, 16384, 131072}` — `path` (worst-case cascade)
+    ~60 Melem/s, `star` (no cascade) ~51 Melem/s, `random` (cache-
+    unfriendly `degree[]` access from random parents) ~16 Melem/s, all
+    at the largest size. Time ratios `t(131072)/t(16384)` of 7.83/7.81/
+    9.14 confirm near-linear `O(n)` scaling across topologies.
+  - Example `cargo run --example prufer_demo` walks through all six
+    canonical sequences (empty, two upstream-C fixtures, constant/star,
+    ascending/path, mixed) and asserts the tree invariants (vcount/
+    ecount, undirected, no self-loops, no duplicates, connected via
+    union-find).
+
 - **ALGO-CN-015** — `linegraph` constructor over an existing graph.
   **Fifteenth member of the `constructors/` family.** Counterpart of
   `igraph_linegraph` in `references/igraph/src/constructors/linegraph.c`.

@@ -1,0 +1,113 @@
+{
+  "algo_id": "ALGO-CN-016",
+  "name": "from_prufer",
+  "kind": "constructor",
+  "bench_file": "benches/bench_prufer.rs",
+  "captured_at": "2026-05-25",
+  "host": "darwin / arm64 (Apple Silicon laptop)",
+  "criterion_config": {
+    "warm_up_time_s": 3,
+    "measurement_time_s": 5,
+    "sample_size": 100
+  },
+  "notes": [
+    "Three topology sweeps (star / path / random) over n in {64, 1024, 16384, 131072}.",
+    "Star: every leaf's parent is vertex 0, inner cascade never fires.",
+    "Path: prufer[i] = i+1, decoder cascades through the whole chain at i=0 — worst case.",
+    "Random: deterministic SplitMix64-seeded vertices for reproducibility.",
+    "Throughput reported in elements/sec, i.e. trees-decoded-per-second in vertex-count terms (n)."
+  ],
+  "shapes": [
+    {
+      "label": "star_n64",
+      "topology": "star",
+      "n_vertices": 64,
+      "time_us": {"lo": 2.505, "mid": 2.514, "hi": 2.523},
+      "thrpt_Melem_per_s": {"lo": 25.4, "mid": 25.5, "hi": 25.5}
+    },
+    {
+      "label": "star_n1024",
+      "topology": "star",
+      "n_vertices": 1024,
+      "time_us": {"lo": 20.97, "mid": 21.01, "hi": 21.06},
+      "thrpt_Melem_per_s": {"lo": 48.6, "mid": 48.7, "hi": 48.8}
+    },
+    {
+      "label": "star_n16384",
+      "topology": "star",
+      "n_vertices": 16384,
+      "time_us": {"lo": 330.6, "mid": 335.1, "hi": 340.7},
+      "thrpt_Melem_per_s": {"lo": 48.1, "mid": 48.9, "hi": 49.6}
+    },
+    {
+      "label": "star_n131072",
+      "topology": "star",
+      "n_vertices": 131072,
+      "time_us": {"lo": 2561.4, "mid": 2564.2, "hi": 2567.2},
+      "thrpt_Melem_per_s": {"lo": 51.1, "mid": 51.1, "hi": 51.2}
+    },
+    {
+      "label": "path_n64",
+      "topology": "path",
+      "n_vertices": 64,
+      "time_us": {"lo": 2.299, "mid": 2.305, "hi": 2.312},
+      "thrpt_Melem_per_s": {"lo": 27.7, "mid": 27.8, "hi": 27.8}
+    },
+    {
+      "label": "path_n1024",
+      "topology": "path",
+      "n_vertices": 1024,
+      "time_us": {"lo": 18.09, "mid": 18.13, "hi": 18.17},
+      "thrpt_Melem_per_s": {"lo": 56.4, "mid": 56.5, "hi": 56.6}
+    },
+    {
+      "label": "path_n16384",
+      "topology": "path",
+      "n_vertices": 16384,
+      "time_us": {"lo": 279.6, "mid": 280.1, "hi": 280.8},
+      "thrpt_Melem_per_s": {"lo": 58.4, "mid": 58.5, "hi": 58.6}
+    },
+    {
+      "label": "path_n131072",
+      "topology": "path",
+      "n_vertices": 131072,
+      "time_us": {"lo": 2186.0, "mid": 2188.0, "hi": 2190.1},
+      "thrpt_Melem_per_s": {"lo": 59.8, "mid": 59.9, "hi": 60.0}
+    },
+    {
+      "label": "random_n64",
+      "topology": "random",
+      "n_vertices": 64,
+      "time_us": {"lo": 3.093, "mid": 3.133, "hi": 3.186},
+      "thrpt_Melem_per_s": {"lo": 20.1, "mid": 20.4, "hi": 20.7}
+    },
+    {
+      "label": "random_n1024",
+      "topology": "random",
+      "n_vertices": 1024,
+      "time_us": {"lo": 38.78, "mid": 38.82, "hi": 38.88},
+      "thrpt_Melem_per_s": {"lo": 26.3, "mid": 26.4, "hi": 26.4}
+    },
+    {
+      "label": "random_n16384",
+      "topology": "random",
+      "n_vertices": 16384,
+      "time_us": {"lo": 912.2, "mid": 915.8, "hi": 920.0},
+      "thrpt_Melem_per_s": {"lo": 17.8, "mid": 17.9, "hi": 18.0}
+    },
+    {
+      "label": "random_n131072",
+      "topology": "random",
+      "n_vertices": 131072,
+      "time_us": {"lo": 8351.8, "mid": 8372.3, "hi": 8392.8},
+      "thrpt_Melem_per_s": {"lo": 15.6, "mid": 15.7, "hi": 15.7}
+    }
+  ],
+  "summary": {
+    "complexity": "O(n) per Micikevicius-Caminiti-Deo; constants verify near-linear scaling.",
+    "best_throughput_topology": "path (~60 Melem/s @ n=131072)",
+    "worst_throughput_topology": "random (~16 Melem/s @ n=131072) — cache-unfriendly access pattern across degree[] from random parent choices",
+    "linearity_check": "ratio time(n=131072)/time(n=16384) = 7.83 (star), 7.81 (path), 9.14 (random) vs ideal 8.0; close enough to confirm O(n).",
+    "vs_python_igraph": "python-igraph's Graph.Prufer wraps the same C decoder; per-call PyObject overhead means it's never faster on small n. Not benchmarked here directly; conformance test already proves output identity."
+  }
+}

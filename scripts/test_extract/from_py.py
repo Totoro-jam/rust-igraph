@@ -6652,6 +6652,75 @@ LINEGRAPH_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-016 — `Graph.Prufer(seq)` (Python bindings; dispatches to the
+# same C `igraph_from_prufer`). Fixtures span: empty (P_2), single-entry,
+# repeated-vertex (star), ascending (path), and an arbitrary mixed
+# sequence — five distinct topologies so cross-source ordering doesn't
+# rely on any one canonicalisation.
+PRUFER_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "from_prufer_py_empty_yields_p2",
+        "origin": "python-igraph Graph.Prufer([]) → P_2 (2 vertices, 1 edge)",
+        "algo": "from_prufer",
+        "params": {"prufer": []},
+        "expected": {
+            "vcount": 2,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+    {
+        "case": "from_prufer_py_singleton",
+        "origin": "python-igraph Graph.Prufer([0]) → 3-vertex tree centred at 0",
+        "algo": "from_prufer",
+        "params": {"prufer": [0]},
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 1], [0, 2]],
+        },
+    },
+    {
+        "case": "from_prufer_py_constant_star",
+        "origin": "python-igraph Graph.Prufer([0,0,0,0]) → star S_6 centred at 0",
+        "algo": "from_prufer",
+        "params": {"prufer": [0, 0, 0, 0]},
+        "expected": {
+            "vcount": 6,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [0, 3], [0, 4], [0, 5]],
+        },
+    },
+    {
+        "case": "from_prufer_py_ascending_path",
+        "origin": "python-igraph Graph.Prufer([1,2,3,4]) → path P_6 on vertices 0-1-2-3-4-5",
+        "algo": "from_prufer",
+        "params": {"prufer": [1, 2, 3, 4]},
+        "expected": {
+            "vcount": 6,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]],
+        },
+    },
+    {
+        "case": "from_prufer_py_mixed_seq",
+        "origin": "python-igraph Graph.Prufer([0,2,4,1,1,0]) — mixed 6-entry seq → 8-vertex tree (same as C fixture 2)",
+        "algo": "from_prufer",
+        "params": {"prufer": [0, 2, 4, 1, 1, 0]},
+        "expected": {
+            "vcount": 8,
+            "ecount": 7,
+            "directed": False,
+            "edges": [[0, 1], [0, 3], [0, 7], [1, 4], [1, 6], [2, 4], [2, 5]],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -6822,6 +6891,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "kautz": KAUTZ_MANIFEST,
     "full_graph": FULL_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
+    "from_prufer": PRUFER_MANIFEST,
 }
 
 
@@ -6955,6 +7025,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "de_bruijn",
             "kautz",
             "full_graph",
+            "from_prufer",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

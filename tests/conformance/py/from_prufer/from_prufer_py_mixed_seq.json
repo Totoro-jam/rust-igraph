@@ -1,0 +1,56 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Prufer([0,2,4,1,1,0]) \u2014 mixed 6-entry seq \u2192 8-vertex tree (same as C fixture 2)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "from_prufer",
+  "params": {
+    "prufer": [
+      0,
+      2,
+      4,
+      1,
+      1,
+      0
+    ]
+  },
+  "expected": {
+    "vcount": 8,
+    "ecount": 7,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        2,
+        5
+      ]
+    ]
+  }
+}
