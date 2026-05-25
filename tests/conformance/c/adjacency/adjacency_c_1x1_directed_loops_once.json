@@ -1,0 +1,31 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_adjacency([[1]], IGRAPH_ADJ_DIRECTED, IGRAPH_LOOPS_ONCE) \u2014 single self-loop (tests/unit/igraph_adjacency.c, lines 76-81)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "adjacency",
+  "params": {
+    "matrix": [
+      [
+        1
+      ]
+    ],
+    "mode": "directed",
+    "loops": "once"
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 1,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        0
+      ]
+    ]
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_adjacency(M3, IGRAPH_ADJ_UPPER, IGRAPH_LOOPS_TWICE) \u2014 UPPER collapses TWICE\u2192ONCE so diag {4,0,6} = 4+6 loops; off-diag (0,1)=2, (1,2)=4 (tests/unit/igraph_adjacency.c, lines 191-196)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "adjacency",
+  "params": {
+    "matrix": [
+      [
+        4,
+        2,
+        0
+      ],
+      [
+        3,
+        0,
+        4
+      ],
+      [
+        0,
+        5,
+        6
+      ]
+    ],
+    "mode": "upper",
+    "loops": "twice"
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 16,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ]
+  }
+}

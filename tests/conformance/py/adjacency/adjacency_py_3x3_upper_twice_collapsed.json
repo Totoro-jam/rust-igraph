@@ -1,0 +1,103 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Adjacency(M3, mode='upper', loops='twice') \u2014 UPPER collapses TWICE\u2192ONCE \u2192 diag {4,0,6} stays as 10 loops; off-diag (0,1)=2, (1,2)=4",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "adjacency",
+  "params": {
+    "matrix": [
+      [
+        4,
+        2,
+        0
+      ],
+      [
+        3,
+        0,
+        4
+      ],
+      [
+        0,
+        5,
+        6
+      ]
+    ],
+    "mode": "upper",
+    "loops": "twice"
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 16,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ]
+  }
+}

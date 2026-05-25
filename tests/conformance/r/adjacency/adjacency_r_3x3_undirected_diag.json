@@ -1,0 +1,103 @@
+{
+  "source": "r",
+  "origin": "rigraph graph_from_adjacency_matrix([[4,2,0],[2,0,4],[0,4,6]], mode='undirected', diag=TRUE) \u2014 symmetric matrix with loops once; matches C M3_SYM+UNDIRECTED+LOOPS_ONCE",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "adjacency",
+  "params": {
+    "matrix": [
+      [
+        4,
+        2,
+        0
+      ],
+      [
+        2,
+        0,
+        4
+      ],
+      [
+        0,
+        4,
+        6
+      ]
+    ],
+    "mode": "undirected",
+    "loops": "once"
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 16,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ]
+  }
+}

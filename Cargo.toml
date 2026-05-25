@@ -190,6 +190,10 @@ path = "examples/atlas_demo.rs"
 name = "create_demo"
 path = "examples/create_demo.rs"
 
+[[example]]
+name = "adjacency_demo"
+path = "examples/adjacency_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -578,6 +582,11 @@ harness = false
 [[bench]]
 name = "bench_extended_chordal_ring"
 path = "benches/bench_extended_chordal_ring.rs"
+harness = false
+
+[[bench]]
+name = "bench_adjacency"
+path = "benches/bench_adjacency.rs"
 harness = false
 
 [[bench]]

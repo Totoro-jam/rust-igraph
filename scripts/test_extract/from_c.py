@@ -8219,6 +8219,233 @@ EXTENDED_CHORDAL_RING_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-029 — `igraph_adjacency` from `src/constructors/adjacency.c:335-386`.
+# The upstream unit test (`tests/unit/igraph_adjacency.c`) walks every
+# (mode × loop) combination with three carefully chosen matrices:
+#   M3      = [[4,2,0],[3,0,4],[0,5,6]]      — asymmetric, used by
+#             DIRECTED / MAX / PLUS / UPPER / LOWER (+ MIN+LOOPS_ONCE/TWICE).
+#   M3_SYM  = [[4,2,0],[2,0,4],[0,4,6]]      — symmetric, used by UNDIRECTED.
+#   M3_MIN  = [[4,2,0],[3,0,5],[0,4,6]]      — used solely by MIN+NO_LOOPS so
+#             the MIN result differs from MAX (both pairs share their min).
+# Per-mode loop collapse: LOOPS_TWICE behaves as LOOPS_ONCE for DIRECTED,
+# UPPER and LOWER (matrix only stores one half-edge per loop in those
+# layouts). The fixtures below canonicalise undirected edges to (min, max)
+# so the multiset comparison in the conformance harness is endpoint-order
+# agnostic.
+ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "adjacency_c_0x0_directed_loops_once",
+        "origin": "mirrors igraph_adjacency(0x0 matrix, IGRAPH_ADJ_DIRECTED, IGRAPH_LOOPS_ONCE) — empty directed graph (tests/unit/igraph_adjacency.c, lines 66-68)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [],
+            "mode": "directed",
+            "loops": "once",
+        },
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+    {
+        "case": "adjacency_c_1x1_directed_loops_once",
+        "origin": "mirrors igraph_adjacency([[1]], IGRAPH_ADJ_DIRECTED, IGRAPH_LOOPS_ONCE) — single self-loop (tests/unit/igraph_adjacency.c, lines 76-81)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[1]],
+            "mode": "directed",
+            "loops": "once",
+        },
+        "expected": {
+            "vcount": 1,
+            "ecount": 1,
+            "directed": True,
+            "edges": [[0, 0]],
+        },
+    },
+    {
+        "case": "adjacency_c_1x1_directed_loops_twice_collapsed",
+        "origin": "mirrors igraph_adjacency([[1]], IGRAPH_ADJ_DIRECTED, IGRAPH_LOOPS_TWICE) — DIRECTED collapses TWICE→ONCE so a single loop emits (tests/unit/igraph_adjacency.c, lines 82-87)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[1]],
+            "mode": "directed",
+            "loops": "twice",
+        },
+        "expected": {
+            "vcount": 1,
+            "ecount": 1,
+            "directed": True,
+            "edges": [[0, 0]],
+        },
+    },
+    {
+        "case": "adjacency_c_3x3_directed_no_loops",
+        "origin": "mirrors igraph_adjacency(M3=[[4,2,0],[3,0,4],[0,5,6]], IGRAPH_ADJ_DIRECTED, IGRAPH_NO_LOOPS) — 14 directed off-diagonal arcs (tests/unit/igraph_adjacency.c, lines 89-94)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "directed",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 14,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 1],
+                [1, 0], [1, 0], [1, 0],
+                [1, 2], [1, 2], [1, 2], [1, 2],
+                [2, 1], [2, 1], [2, 1], [2, 1], [2, 1],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_c_3x3_directed_loops_once",
+        "origin": "mirrors igraph_adjacency(M3, IGRAPH_ADJ_DIRECTED, IGRAPH_LOOPS_ONCE) — off-diagonal arcs plus diag {4,0,6} as loops (tests/unit/igraph_adjacency.c, lines 95-100)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "directed",
+            "loops": "once",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 24,
+            "directed": True,
+            "edges": [
+                [0, 0], [0, 0], [0, 0], [0, 0],
+                [0, 1], [0, 1],
+                [1, 0], [1, 0], [1, 0],
+                [1, 2], [1, 2], [1, 2], [1, 2],
+                [2, 1], [2, 1], [2, 1], [2, 1], [2, 1],
+                [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_c_3x3_undirected_loops_twice",
+        "origin": "mirrors igraph_adjacency(M3_SYM=[[4,2,0],[2,0,4],[0,4,6]], IGRAPH_ADJ_UNDIRECTED, IGRAPH_LOOPS_TWICE) — diagonal {4,0,6} halved to {2,0,3} loops, off-diag {2,4} carried as-is (tests/unit/igraph_adjacency.c, lines 119-124)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [2, 0, 4], [0, 4, 6]],
+            "mode": "undirected",
+            "loops": "twice",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 11,
+            "directed": False,
+            "edges": [
+                [0, 0], [0, 0],
+                [0, 1], [0, 1],
+                [1, 2], [1, 2], [1, 2], [1, 2],
+                [2, 2], [2, 2], [2, 2],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_c_3x3_max_no_loops",
+        "origin": "mirrors igraph_adjacency(M3, IGRAPH_ADJ_MAX, IGRAPH_NO_LOOPS) — pair (i,j) gets max(A[i,j], A[j,i]) edges; (0,1)=max(2,3)=3, (1,2)=max(4,5)=5 (tests/unit/igraph_adjacency.c, lines 125-130)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "max",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 8,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 1], [0, 1],
+                [1, 2], [1, 2], [1, 2], [1, 2], [1, 2],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_c_3x3_min_no_loops",
+        "origin": "mirrors igraph_adjacency(M3_MIN=[[4,2,0],[3,0,5],[0,4,6]], IGRAPH_ADJ_MIN, IGRAPH_NO_LOOPS) — pair (i,j) gets min(A[i,j], A[j,i]); (0,1)=min(2,3)=2, (1,2)=min(5,4)=4 (tests/unit/igraph_adjacency.c, lines 143-148)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 5], [0, 4, 6]],
+            "mode": "min",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 1],
+                [1, 2], [1, 2], [1, 2], [1, 2],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_c_3x3_plus_no_loops",
+        "origin": "mirrors igraph_adjacency(M3, IGRAPH_ADJ_PLUS, IGRAPH_NO_LOOPS) — pair (i,j) gets A[i,j]+A[j,i]; (0,1)=2+3=5, (1,2)=4+5=9 (tests/unit/igraph_adjacency.c, lines 161-166)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "plus",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 14,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 1], [0, 1], [0, 1], [0, 1],
+                [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_c_3x3_upper_loops_twice_collapsed",
+        "origin": "mirrors igraph_adjacency(M3, IGRAPH_ADJ_UPPER, IGRAPH_LOOPS_TWICE) — UPPER collapses TWICE→ONCE so diag {4,0,6} = 4+6 loops; off-diag (0,1)=2, (1,2)=4 (tests/unit/igraph_adjacency.c, lines 191-196)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "upper",
+            "loops": "twice",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 16,
+            "directed": False,
+            "edges": [
+                [0, 0], [0, 0], [0, 0], [0, 0],
+                [0, 1], [0, 1],
+                [1, 2], [1, 2], [1, 2], [1, 2],
+                [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_c_3x3_lower_no_loops",
+        "origin": "mirrors igraph_adjacency(M3, IGRAPH_ADJ_LOWER, IGRAPH_NO_LOOPS) — lower-triangle entries M[1,0]=3 and M[2,1]=5 produce 3 and 5 undirected edges (tests/unit/igraph_adjacency.c, lines 197-202)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "lower",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 8,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 1], [0, 1],
+                [1, 2], [1, 2], [1, 2], [1, 2], [1, 2],
+            ],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `igraph_linegraph` from `src/constructors/linegraph.c`.
 # The upstream unit test (`tests/unit/igraph_linegraph.c`) covers three
 # canonical shapes: (a) a multigraph + self-loop undirected case, (b) a
@@ -9423,6 +9650,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "full_multipartite": FULL_MULTIPARTITE_MANIFEST,
     "turan": TURAN_MANIFEST,
     "extended_chordal_ring": EXTENDED_CHORDAL_RING_MANIFEST,
+    "adjacency": ADJACENCY_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -9576,6 +9804,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "full_multipartite",
             "turan",
             "extended_chordal_ring",
+            "adjacency",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

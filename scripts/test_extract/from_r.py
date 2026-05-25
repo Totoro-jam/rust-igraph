@@ -7640,6 +7640,78 @@ PRUFER_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-029 — rigraph `graph_from_adjacency_matrix(A, mode=..., diag=...,
+# weighted=NULL)` dispatches to `igraph_adjacency()`. Modes mirror the C
+# enum (directed/undirected/max/min/plus/upper/lower); `diag` is a
+# boolean (TRUE = once, FALSE = NO_LOOPS); there is no native TWICE
+# wrapper, so TWICE-collapse semantics are exercised only via the C and
+# python sides. The fixtures here are computed by running the upstream
+# wrapper on the same M3 / M3_SYM matrices the C unit test uses.
+ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "adjacency_r_3x3_directed_no_diag",
+        "origin": "rigraph graph_from_adjacency_matrix([[4,2,0],[3,0,4],[0,5,6]], mode='directed', diag=FALSE) — 14 off-diagonal arcs (matches the C M3+DIRECTED+NO_LOOPS fixture)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "directed",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 14,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 1],
+                [1, 0], [1, 0], [1, 0],
+                [1, 2], [1, 2], [1, 2], [1, 2],
+                [2, 1], [2, 1], [2, 1], [2, 1], [2, 1],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_r_3x3_undirected_diag",
+        "origin": "rigraph graph_from_adjacency_matrix([[4,2,0],[2,0,4],[0,4,6]], mode='undirected', diag=TRUE) — symmetric matrix with loops once; matches C M3_SYM+UNDIRECTED+LOOPS_ONCE",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [2, 0, 4], [0, 4, 6]],
+            "mode": "undirected",
+            "loops": "once",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 16,
+            "directed": False,
+            "edges": [
+                [0, 0], [0, 0], [0, 0], [0, 0],
+                [0, 1], [0, 1],
+                [1, 2], [1, 2], [1, 2], [1, 2],
+                [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_r_3x3_lower_no_diag",
+        "origin": "rigraph graph_from_adjacency_matrix(M3, mode='lower', diag=FALSE) — only the strict lower triangle contributes: M[1,0]=3 plus M[2,1]=5 (matches C M3+LOWER+NO_LOOPS)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "lower",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 8,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 1], [0, 1],
+                [1, 2], [1, 2], [1, 2], [1, 2], [1, 2],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -7827,6 +7899,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "atlas": ATLAS_MANIFEST,
     "create": CREATE_MANIFEST,
     "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
+    "adjacency": ADJACENCY_MANIFEST,
 }
 
 
@@ -7972,6 +8045,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "atlas",
             "create",
             "triangular_lattice",
+            "adjacency",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

@@ -14867,3 +14867,184 @@ fn create_three_source_conformance() {
         );
     }
 }
+
+#[allow(clippy::too_many_lines)]
+fn check_adjacency_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::{AdjacencyMode, LoopsMode, adjacency};
+    use std::collections::BTreeMap;
+
+    let mode_str = case
+        .params
+        .get("mode")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_else(|| {
+            panic!(
+                "adjacency fixture {}: params.mode missing or not string",
+                path.display()
+            )
+        });
+    let mode = match mode_str {
+        "directed" => AdjacencyMode::Directed,
+        "undirected" => AdjacencyMode::Undirected,
+        "max" => AdjacencyMode::Max,
+        "min" => AdjacencyMode::Min,
+        "plus" => AdjacencyMode::Plus,
+        "upper" => AdjacencyMode::Upper,
+        "lower" => AdjacencyMode::Lower,
+        other => panic!(
+            "adjacency fixture {}: unknown mode {other:?}",
+            path.display()
+        ),
+    };
+
+    let loops_str = case
+        .params
+        .get("loops")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_else(|| {
+            panic!(
+                "adjacency fixture {}: params.loops missing or not string",
+                path.display()
+            )
+        });
+    let loops = match loops_str {
+        "no_loops" => LoopsMode::NoLoops,
+        "once" => LoopsMode::Once,
+        "twice" => LoopsMode::Twice,
+        other => panic!(
+            "adjacency fixture {}: unknown loops {other:?}",
+            path.display()
+        ),
+    };
+
+    let matrix_raw = case
+        .params
+        .get("matrix")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "adjacency fixture {}: params.matrix missing or not array",
+                path.display()
+            )
+        });
+    let matrix_rows: Vec<Vec<i64>> = matrix_raw
+        .iter()
+        .map(|row| {
+            row.as_array()
+                .unwrap_or_else(|| panic!("adjacency fixture {}: row not array", path.display()))
+                .iter()
+                .map(|v| v.as_i64().expect("matrix entry i64"))
+                .collect()
+        })
+        .collect();
+    let matrix_refs: Vec<&[i64]> = matrix_rows.iter().map(Vec::as_slice).collect();
+
+    let g = adjacency(&matrix_refs, mode, loops)
+        .expect("adjacency should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        g.vcount(),
+        want_vertices,
+        "adjacency vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.is_directed(),
+        want_directed,
+        "adjacency directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.ecount() as u64,
+        want_edges,
+        "adjacency ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "adjacency fixture {}: expected.edges missing",
+                path.display()
+            )
+        });
+
+    let directed = matches!(mode, AdjacencyMode::Directed);
+    let canon = |u: u32, w: u32| -> (u32, u32) { if directed || u <= w { (u, w) } else { (w, u) } };
+
+    let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for v in want_edges_raw {
+        let pair = v
+            .as_array()
+            .unwrap_or_else(|| panic!("adjacency fixture {}: edge not array", path.display()));
+        let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+        let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+        *want_ms.entry(canon(u, w)).or_insert(0) += 1;
+    }
+
+    let n_edges = u32::try_from(g.ecount()).expect("ecount fits u32 in conformance");
+    let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for eid in 0..n_edges {
+        let (u, w) = g.edge(eid).expect("adjacency edge id in range");
+        *got_ms.entry(canon(u, w)).or_insert(0) += 1;
+    }
+
+    assert_eq!(
+        got_ms,
+        want_ms,
+        "adjacency edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn adjacency_three_source_conformance() {
+    // `igraph_adjacency(matrix, mode, loops)` builds a graph from a
+    // square integer adjacency matrix. Exposed in igraph C
+    // (`igraph_adjacency`), python-igraph (`Graph.Adjacency`) and
+    // R-igraph (`graph_from_adjacency_matrix`), so the fixture set is
+    // three-source. Per-mode loop collapse: DIRECTED, UPPER and LOWER
+    // silently treat LoopsMode::Twice as Once (matrix only stores one
+    // copy of each loop in those layouts); the dispatcher hands the
+    // raw loops choice to `adjacency()` which performs the collapse
+    // internally — fixtures verify the resulting edge multiset.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("adjacency");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read adjacency fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse adjacency conformance fixture JSON");
+            assert_eq!(case.algo, "adjacency");
+            assert_eq!(case.source, src);
+            check_adjacency_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no adjacency fixtures from source {src}"
+        );
+    }
+}

@@ -101,6 +101,7 @@ pub use crate::algorithms::connectivity::reachability::count_reachable;
 pub use crate::algorithms::connectivity::reachability_matrix::reachability_matrix;
 pub use crate::algorithms::connectivity::strong::strongly_connected_components;
 pub use crate::algorithms::connectivity::transitive_closure::transitive_closure;
+pub use crate::algorithms::constructors::adjacency::{AdjacencyMode, LoopsMode, adjacency};
 pub use crate::algorithms::constructors::atlas::{ATLAS_SIZE, atlas};
 pub use crate::algorithms::constructors::circulant::circulant;
 pub use crate::algorithms::constructors::create::create;

@@ -15,6 +15,65 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-029** — `adjacency` dense integer adjacency-matrix
+  constructor. **Twenty-ninth member of the `constructors/` family**
+  and a faithful port of `igraph_adjacency` in
+  `references/igraph/src/constructors/adjacency.c:75-386`.
+  - `pub fn adjacency(matrix: &[&[i64]], mode: AdjacencyMode, loops: LoopsMode) -> IgraphResult<Graph>` —
+    given an `n × n` integer matrix whose entries are non-negative
+    edge multiplicities, an [`AdjacencyMode`] selecting one of seven
+    dispatch flavours (`Directed`, `Undirected`, `Max`, `Min`, `Plus`,
+    `Upper`, `Lower`), and a [`LoopsMode`] controlling how diagonal
+    entries become self-loops (`NoLoops` / `Once` / `Twice`), builds
+    the unique graph whose edge multiset matches the per-mode rule.
+  - **Type-level error elimination**: the upstream C entry takes
+    `igraph_matrix_t` (a dense `igraph_real_t` matrix that may carry
+    NaN or non-integer entries despite being interpreted as
+    multiplicities); accepting `&[&[i64]]` makes both paths
+    statically unreachable. The surviving structural errors are
+    ragged-matrix, negative-entry, asymmetric-matrix (`Undirected`
+    only), and odd-diagonal under `Twice` on symmetric modes — all
+    returning `IgraphError::InvalidArgument`.
+  - **Per-mode `Twice → Once` collapse**: matches upstream
+    `adjacency.c` lines 84, 168, 209 — for `Directed`, `Upper`, and
+    `Lower` modes the matrix only stores one copy of each loop, so
+    `LoopsMode::Twice` is silently treated as `LoopsMode::Once` for
+    those layouts (the diagonal entry passes through unhalved).
+  - **`Undirected` mode** requires `A == Aᵀ` and then delegates to
+    `Max` after the symmetry check (consumers explicitly opting into
+    `multiplicity = max(A(i,j), A(j,i))` semantics for the
+    undirected case).
+  - **Overflow protection**: `u32::try_from(nrow)` so adversarial
+    `nrow > u32::MAX` reports `InvalidArgument` rather than
+    truncating; `usize::checked_add` / `usize::checked_mul` on the
+    edge buffer pre-size; `u32::try_from` on every cross-domain
+    `i64 → u32` cast.
+  - **Tests**: 20 unit + 6 proptest covering all 7 × 3 mode/loops
+    combinations on the M3 family from
+    `references/igraph/tests/unit/igraph_adjacency.c`, the empty
+    `0 × 0` and singleton `1 × 1` shapes, the `Twice → Once` collapse
+    on `Directed`/`Upper`/`Lower`, all 4 error paths
+    (ragged / negative / asymmetric `Undirected` / odd-diagonal
+    `Twice` on symmetric mode), and proptest invariants
+    (`Max(A, A) == A`, `Min(A, A) == A`, `Upper + Lower` reproduces
+    asymmetric `Directed` off-diagonal walk, etc.).
+  - **Conformance**: 18 fixtures across all 3 source bindings
+    (C:11 / py:4 / R:3); python-igraph and R-igraph expose only the
+    `Once` semantics (no native `Twice` mode), so those lanes only
+    cover the `NoLoops` / `Once` paths. Comparison is via
+    directed-aware canonical edge multiset.
+  - **Bench**: M3 (3×3) shapes 550-860 ns (~10-20 Melem/s — per-call
+    overhead dominates); n=128 sparse directed 27.3 µs
+    (~4.7 Melem/s — n² traversal dominates over emission); n=128
+    dense directed ~466 µs / dense MAX ~217 µs (~35-37 Melem/s — L1
+    sweet spot); n=512 dense MAX (~130k edges) ~4.32 ms
+    (~30 Melem/s). Perf snapshot at
+    `.codefuse/tracking/perf/ALGO-CN-029.json`.
+  - **Example**: `cargo run --example adjacency_demo` walks the three
+    M3 matrices through every mode/loops combination, illustrating
+    how the same matrix produces very different graphs depending on
+    the dispatch.
+
 - **ALGO-CN-028** — `extended_chordal_ring` extended-chordal-ring
   constructor. **Twenty-eighth member of the `constructors/` family**
   and a faithful port of `igraph_extended_chordal_ring` in

@@ -1,0 +1,83 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_adjacency(M3_SYM=[[4,2,0],[2,0,4],[0,4,6]], IGRAPH_ADJ_UNDIRECTED, IGRAPH_LOOPS_TWICE) \u2014 diagonal {4,0,6} halved to {2,0,3} loops, off-diag {2,4} carried as-is (tests/unit/igraph_adjacency.c, lines 119-124)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "adjacency",
+  "params": {
+    "matrix": [
+      [
+        4,
+        2,
+        0
+      ],
+      [
+        2,
+        0,
+        4
+      ],
+      [
+        0,
+        4,
+        6
+      ]
+    ],
+    "mode": "undirected",
+    "loops": "twice"
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 11,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ]
+  }
+}

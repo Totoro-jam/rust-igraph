@@ -1,0 +1,95 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_adjacency(M3, IGRAPH_ADJ_PLUS, IGRAPH_NO_LOOPS) \u2014 pair (i,j) gets A[i,j]+A[j,i]; (0,1)=2+3=5, (1,2)=4+5=9 (tests/unit/igraph_adjacency.c, lines 161-166)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "adjacency",
+  "params": {
+    "matrix": [
+      [
+        4,
+        2,
+        0
+      ],
+      [
+        3,
+        0,
+        4
+      ],
+      [
+        0,
+        5,
+        6
+      ]
+    ],
+    "mode": "plus",
+    "loops": "no_loops"
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 14,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  }
+}

@@ -7463,6 +7463,105 @@ PRUFER_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-029 — `Graph.Adjacency(matrix, mode='directed'|'undirected'|'max'|
+# 'min'|'plus'|'upper'|'lower', loops='ignore'|'once'|'twice')` in python-igraph
+# dispatches to the same C `igraph_adjacency`. Captured live from
+# python-igraph 0.11.9 with the script:
+#   M3 = [[4,2,0],[3,0,4],[0,5,6]]
+#   for mode, loops in [('directed','ignore'), ('max','ignore'),
+#                       ('upper','twice'), ('plus','once')]:
+#       g = ig.Graph.Adjacency(M3, mode=mode, loops=loops)
+#       print(mode, loops, g.vcount(), g.ecount(), sorted(e.tuple for e in g.es))
+# Undirected edges canonicalised to (min, max) to match the Rust side's
+# `Graph::add_edges` storage. Loop count for python's 'once'/'twice'
+# matches the C semantics: 'twice' is halved (with TWICE→ONCE collapse for
+# directed/upper/lower per the C dispatcher).
+ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "adjacency_py_3x3_directed_ignore",
+        "origin": "python-igraph Graph.Adjacency([[4,2,0],[3,0,4],[0,5,6]], mode='directed', loops='ignore') — 14 off-diagonal arcs (M3 from C tests)",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "directed",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 14,
+            "directed": True,
+            "edges": [
+                [0, 1], [0, 1],
+                [1, 0], [1, 0], [1, 0],
+                [1, 2], [1, 2], [1, 2], [1, 2],
+                [2, 1], [2, 1], [2, 1], [2, 1], [2, 1],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_py_3x3_max_ignore",
+        "origin": "python-igraph Graph.Adjacency(M3, mode='max', loops='ignore') — pair (i,j) gets max(A[i,j],A[j,i]); (0,1)=3, (1,2)=5 → 8 undirected edges",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "max",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 8,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 1], [0, 1],
+                [1, 2], [1, 2], [1, 2], [1, 2], [1, 2],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_py_3x3_plus_once",
+        "origin": "python-igraph Graph.Adjacency(M3, mode='plus', loops='once') — PLUS off-diag (0,1)=5, (1,2)=9; diag {4,0,6} = 10 loops",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "plus",
+            "loops": "once",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 24,
+            "directed": False,
+            "edges": [
+                [0, 0], [0, 0], [0, 0], [0, 0],
+                [0, 1], [0, 1], [0, 1], [0, 1], [0, 1],
+                [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2],
+                [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2],
+            ],
+        },
+    },
+    {
+        "case": "adjacency_py_3x3_upper_twice_collapsed",
+        "origin": "python-igraph Graph.Adjacency(M3, mode='upper', loops='twice') — UPPER collapses TWICE→ONCE → diag {4,0,6} stays as 10 loops; off-diag (0,1)=2, (1,2)=4",
+        "algo": "adjacency",
+        "params": {
+            "matrix": [[4, 2, 0], [3, 0, 4], [0, 5, 6]],
+            "mode": "upper",
+            "loops": "twice",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 16,
+            "directed": False,
+            "edges": [
+                [0, 0], [0, 0], [0, 0], [0, 0],
+                [0, 1], [0, 1],
+                [1, 2], [1, 2], [1, 2], [1, 2],
+                [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -7645,6 +7744,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "create": CREATE_MANIFEST,
     "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
     "hexagonal_lattice": HEXAGONAL_LATTICE_MANIFEST,
+    "adjacency": ADJACENCY_MANIFEST,
 }
 
 
@@ -7789,6 +7889,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "create",
             "triangular_lattice",
             "hexagonal_lattice",
+            "adjacency",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

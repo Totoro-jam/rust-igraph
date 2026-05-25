@@ -1,0 +1,18 @@
+{
+  "awu": "ALGO-CN-029",
+  "captured_at": "2026-05-26",
+  "git_commit": "9cd79df",
+  "rust_m3_directed_no_loops_ns": null,
+  "rust_m3_directed_loops_once_ns": null,
+  "rust_m3_undirected_loops_twice_ns": 819,
+  "rust_m3_max_no_loops_ns": 584,
+  "rust_m3_min_no_loops_ns": 565,
+  "rust_m3_plus_no_loops_ns": 854,
+  "rust_m3_upper_loops_once_ns": 846,
+  "rust_n128_sparse_directed_no_loops_ns": 27252,
+  "rust_n128_dense_directed_no_loops_ns": 466830,
+  "rust_n128_dense_max_no_loops_ns": 217070,
+  "rust_n512_dense_max_no_loops_ns": 4318100,
+  "py_baseline_ns": null,
+  "notes": "Dense integer adjacency-matrix constructor (igraph_adjacency, 7-mode × 3-loops). All M3 (3x3) shapes finish in 550-860 ns — that is essentially the `Graph::with_directed` build cost plus the n^2 mode dispatch (the 3x3 traversal is trivial); throughput hovers in the 10-20 Melem/s band because each edge is one `Vec::push` plus a `from_to[i] = to` write into the adjacency rows. The n=128 sparse-directed shape (|E|=128) costs 27.3 us — ~4.7 Melem/s — because the n^2 traversal dominates over emission. Two dense n=128 shapes (Directed has |E|=128*127, MAX has |E|=128*127/2) show ~35 Melem/s emission throughput, confirming each edge add is amortised O(1) up to allocator pressure. The largest shape n=512 dense MAX (130k edges) finishes in 4.3 ms — ~30 Melem/s — with the slight tail-off attributable to L1 misses on the per-vertex adjacency Vec growth (one push per outgoing chord). No oracle baseline: python-igraph wraps this constructor as Graph.Adjacency() with the same 4-mode subset (Directed/Undirected/Upper/Lower under its own ADJ_* enums), but the per-call cost is wholly dominated by the Cython bridge; the C-side time is in the same ns/edge band so the comparison would not be meaningful at this scale. R wraps it as graph_from_adjacency_matrix() with only `mode={directed,undirected,max,min,plus,upper,lower}` and `diag={TRUE,FALSE}` (no native TWICE). Numbers from cargo bench --bench bench_adjacency -- --warm-up-time 1 --measurement-time 3 --sample-size 25 on Darwin/M-series release build."
+}

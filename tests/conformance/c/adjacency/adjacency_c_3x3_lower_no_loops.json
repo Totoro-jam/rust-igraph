@@ -1,0 +1,71 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_adjacency(M3, IGRAPH_ADJ_LOWER, IGRAPH_NO_LOOPS) \u2014 lower-triangle entries M[1,0]=3 and M[2,1]=5 produce 3 and 5 undirected edges (tests/unit/igraph_adjacency.c, lines 197-202)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "adjacency",
+  "params": {
+    "matrix": [
+      [
+        4,
+        2,
+        0
+      ],
+      [
+        3,
+        0,
+        4
+      ],
+      [
+        0,
+        5,
+        6
+      ]
+    ],
+    "mode": "lower",
+    "loops": "no_loops"
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 8,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  }
+}

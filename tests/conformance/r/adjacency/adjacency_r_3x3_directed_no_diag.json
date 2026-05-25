@@ -1,0 +1,95 @@
+{
+  "source": "r",
+  "origin": "rigraph graph_from_adjacency_matrix([[4,2,0],[3,0,4],[0,5,6]], mode='directed', diag=FALSE) \u2014 14 off-diagonal arcs (matches the C M3+DIRECTED+NO_LOOPS fixture)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "adjacency",
+  "params": {
+    "matrix": [
+      [
+        4,
+        2,
+        0
+      ],
+      [
+        3,
+        0,
+        4
+      ],
+      [
+        0,
+        5,
+        6
+      ]
+    ],
+    "mode": "directed",
+    "loops": "no_loops"
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 14,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        1
+      ]
+    ]
+  }
+}

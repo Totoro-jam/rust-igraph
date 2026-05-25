@@ -1,0 +1,63 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_adjacency(M3_MIN=[[4,2,0],[3,0,5],[0,4,6]], IGRAPH_ADJ_MIN, IGRAPH_NO_LOOPS) \u2014 pair (i,j) gets min(A[i,j], A[j,i]); (0,1)=min(2,3)=2, (1,2)=min(5,4)=4 (tests/unit/igraph_adjacency.c, lines 143-148)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "adjacency",
+  "params": {
+    "matrix": [
+      [
+        4,
+        2,
+        0
+      ],
+      [
+        3,
+        0,
+        5
+      ],
+      [
+        0,
+        4,
+        6
+      ]
+    ],
+    "mode": "min",
+    "loops": "no_loops"
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 6,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  }
+}
