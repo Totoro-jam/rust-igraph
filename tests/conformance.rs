@@ -13491,6 +13491,172 @@ fn turan_two_source_conformance() {
     }
 }
 
+#[allow(clippy::too_many_lines)]
+fn check_extended_chordal_ring_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::extended_chordal_ring;
+    use std::collections::BTreeMap;
+
+    let nodes_raw = case
+        .params
+        .get("nodes")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or_else(|| {
+            panic!(
+                "extended_chordal_ring fixture {}: params.nodes missing or not u64",
+                path.display()
+            )
+        });
+    let nodes = u32::try_from(nodes_raw).expect("nodes fits u32");
+
+    let directed = case
+        .params
+        .get("directed")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or_else(|| {
+            panic!(
+                "extended_chordal_ring fixture {}: params.directed missing",
+                path.display()
+            )
+        });
+
+    let w_raw = case
+        .params
+        .get("w")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "extended_chordal_ring fixture {}: params.w missing or not array",
+                path.display()
+            )
+        });
+    let w_rows: Vec<Vec<i64>> = w_raw
+        .iter()
+        .map(|row| {
+            row.as_array()
+                .unwrap_or_else(|| {
+                    panic!(
+                        "extended_chordal_ring fixture {}: w row not array",
+                        path.display()
+                    )
+                })
+                .iter()
+                .map(|v| v.as_i64().expect("i64 offset"))
+                .collect()
+        })
+        .collect();
+    let w_refs: Vec<&[i64]> = w_rows.iter().map(Vec::as_slice).collect();
+
+    let g = extended_chordal_ring(nodes, &w_refs, directed)
+        .expect("extended_chordal_ring should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        g.vcount(),
+        want_vertices,
+        "extended_chordal_ring vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.is_directed(),
+        want_directed,
+        "extended_chordal_ring directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.ecount() as u64,
+        want_edges,
+        "extended_chordal_ring ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "extended_chordal_ring fixture {}: expected.edges missing",
+                path.display()
+            )
+        });
+
+    let canon = |u: u32, w: u32| -> (u32, u32) { if directed || u <= w { (u, w) } else { (w, u) } };
+
+    let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for v in want_edges_raw {
+        let pair = v.as_array().unwrap_or_else(|| {
+            panic!(
+                "extended_chordal_ring fixture {}: edge not array",
+                path.display()
+            )
+        });
+        let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+        let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+        *want_ms.entry(canon(u, w)).or_insert(0) += 1;
+    }
+
+    let n_edges = u32::try_from(g.ecount()).expect("ecount fits u32 in conformance");
+    let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for eid in 0..n_edges {
+        let (u, w) = g.edge(eid).expect("extended_chordal_ring edge id in range");
+        *got_ms.entry(canon(u, w)).or_insert(0) += 1;
+    }
+
+    assert_eq!(
+        got_ms,
+        want_ms,
+        "extended_chordal_ring edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn extended_chordal_ring_two_source_conformance() {
+    // `igraph_extended_chordal_ring(nodes, W, directed)` builds a cycle
+    // plus chord offsets defined by matrix W (vertex i connects to
+    // (i + W[r, i mod period]) mod nodes for every row r). Exposed in
+    // igraph C (`igraph_extended_chordal_ring`) and R-igraph
+    // (`make_chordal_ring`), but no python-igraph binding, so the
+    // fixture set is two-source: C `.out` rows from
+    // `tests/unit/igraph_extended_chordal_ring.c` and R helper-shaped
+    // fixtures mirroring `make_chordal_ring` calls.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("extended_chordal_ring");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read extended_chordal_ring fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes)
+                .expect("parse extended_chordal_ring conformance fixture JSON");
+            assert_eq!(case.algo, "extended_chordal_ring");
+            assert_eq!(case.source, src);
+            check_extended_chordal_ring_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no extended_chordal_ring fixtures from source {src}"
+        );
+    }
+}
+
 fn check_linegraph_fixture(case: &Conformance, path: &std::path::Path) {
     use rust_igraph::linegraph;
     use std::collections::BTreeMap;

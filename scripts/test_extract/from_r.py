@@ -6990,6 +6990,97 @@ TURAN_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-028 — `make_chordal_ring(n, w, directed=FALSE)` (R-igraph,
+# references/rigraph/R/make.R:2334) dispatches to
+# `igraph_extended_chordal_ring`. python-igraph has no binding, so the
+# fixture set is two-source: C `.out` rows from
+# `tests/unit/igraph_extended_chordal_ring.c` plus R helper-shaped
+# fixtures mirroring `make_chordal_ring` calls. All three R fixtures use
+# the undirected default and stay within textbook ranges (period 1 / 3
+# / 2, nodes ≤ 10). Edge order follows the algorithm's emission order
+# (cycle first, then per-vertex per-row chords) and the conformance
+# dispatcher canonicalises (min, max) before multiset comparison.
+EXTENDED_CHORDAL_RING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "extended_chordal_ring_r_n8_period1_offset2",
+        "origin": "mirrors R-igraph make_chordal_ring(n=8, w=matrix(2), directed=FALSE) — 8-cycle plus 8 chord edges at offset +2 (period 1)",
+        "algo": "extended_chordal_ring",
+        "params": {
+            "nodes": 8,
+            "w": [[2]],
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 8,
+            "ecount": 16,
+            "directed": False,
+            "edges": [
+                # 8-cycle backbone (emission order)
+                [0, 1], [1, 2], [2, 3], [3, 4],
+                [4, 5], [5, 6], [6, 7], [7, 0],
+                # chord (i, (i+2) mod 8)
+                [0, 2], [1, 3], [2, 4], [3, 5],
+                [4, 6], [5, 7], [6, 0], [7, 1],
+            ],
+        },
+    },
+    {
+        "case": "extended_chordal_ring_r_n9_period3",
+        "origin": "mirrors R-igraph make_chordal_ring(n=9, w=matrix(c(2,3,4), 1, 3), directed=FALSE) — 9-cycle plus 9 chord edges with period 3 offsets {2,3,4}",
+        "algo": "extended_chordal_ring",
+        "params": {
+            "nodes": 9,
+            "w": [[2, 3, 4]],
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 9,
+            "ecount": 18,
+            "directed": False,
+            "edges": [
+                # 9-cycle backbone
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5],
+                [5, 6], [6, 7], [7, 8], [8, 0],
+                # chord per vertex (period 3): offsets [2,3,4]
+                [0, 2], [1, 4], [2, 6], [3, 5], [4, 7],
+                [5, 0], [6, 8], [7, 1], [8, 3],
+            ],
+        },
+    },
+    {
+        "case": "extended_chordal_ring_r_n10_period2_two_rows",
+        "origin": "mirrors R-igraph make_chordal_ring(n=10, w=matrix(c(2,3,4,5), 2, 2), directed=FALSE) — 10-cycle plus 20 chord edges from a 2×2 offset matrix (period 2)",
+        "algo": "extended_chordal_ring",
+        "params": {
+            "nodes": 10,
+            "w": [[2, 3], [4, 5]],
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 10,
+            "ecount": 30,
+            "directed": False,
+            "edges": [
+                # 10-cycle backbone
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5],
+                [5, 6], [6, 7], [7, 8], [8, 9], [9, 0],
+                # per-vertex chords: row0 then row1, mpos = i mod 2
+                [0, 2], [0, 4],   # i=0: +2, +4
+                [1, 4], [1, 6],   # i=1: +3, +5
+                [2, 4], [2, 6],   # i=2: +2, +4
+                [3, 6], [3, 8],   # i=3: +3, +5
+                [4, 6], [4, 8],   # i=4: +2, +4
+                [5, 8], [5, 0],   # i=5: +3, +5
+                [6, 8], [6, 0],   # i=6: +2, +4
+                [7, 0], [7, 2],   # i=7: +3, +5
+                [8, 0], [8, 2],   # i=8: +2, +4
+                [9, 2], [9, 4],   # i=9: +3, +5
+            ],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `make_line_graph` (R-igraph) dispatches to
 # `igraph_linegraph`. Fixtures cover the textbook small shapes —
 # triangle, K_4, star — that an R-bindings user would build with
@@ -7725,6 +7816,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "full_citation": FULL_CITATION_MANIFEST,
     "full_multipartite": FULL_MULTIPARTITE_MANIFEST,
     "turan": TURAN_MANIFEST,
+    "extended_chordal_ring": EXTENDED_CHORDAL_RING_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -7871,6 +7963,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "full_citation",
             "full_multipartite",
             "turan",
+            "extended_chordal_ring",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

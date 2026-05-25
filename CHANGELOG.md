@@ -15,6 +15,78 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-028** — `extended_chordal_ring` extended-chordal-ring
+  constructor. **Twenty-eighth member of the `constructors/` family**
+  and a faithful port of `igraph_extended_chordal_ring` in
+  `references/igraph/src/constructors/regular.c:868-963`.
+  - `pub fn extended_chordal_ring(nodes: u32, w: &[&[i64]], directed: bool) -> IgraphResult<Graph>` —
+    given `nodes`, a chord-offset matrix `w` (each row defines a
+    family of chord offsets with row length = "period" `p`, which
+    must divide `nodes`), and a `directed` flag, builds the union of
+    (a) the cycle `C_nodes` and (b) for every vertex `i ∈ [0, nodes)`
+    and every row `r ∈ [0, m)` of `w`, the chord edge
+    `(i, (i + w[r][i mod p]) mod nodes)`. Negative offsets are
+    accepted and handled via `i64::rem_euclid`, so `w = [[-3]]` for
+    `n = 5` produces the same chord set as `w = [[+2]]`.
+  - **Type-level error elimination**: the upstream C entry takes
+    `igraph_matrix_t` (a 2-D dense matrix accepting non-integer / NaN
+    entries that are then interpreted as offsets); accepting
+    `&[&[i64]]` makes that path statically unreachable. The only
+    structural error that survives is "ragged matrix" (rows of
+    different length), which returns
+    `IgraphError::InvalidArgument("extended_chordal_ring: matrix W
+    must have rows of equal length")`.
+  - **Degenerate inputs handled inline ahead of any work**:
+    - `nodes < 3` → `InvalidArgument("extended_chordal_ring: nodes
+      must be at least 3")` (upstream cycle-too-short guard).
+    - `nrow(w) == 0` (empty matrix) → pure cycle `C_nodes`; chord
+      pass is skipped.
+    - `period == 0` (row exists but has length 0) →
+      `InvalidArgument("extended_chordal_ring: period (W row length)
+      must be positive when W has rows")`.
+    - `nodes % period != 0` →
+      `InvalidArgument("extended_chordal_ring: period must divide
+      nodes")`.
+  - **Overflow protection**: `usize::checked_mul(nodes as usize,
+    nrow + 1)` for the edge buffer capacity (adversarial
+    `nodes = u32::MAX` reports `Overflow` rather than silently
+    truncating); `u32::try_from` on every chord target; `i64::rem_euclid`
+    for safe negative-offset modular arithmetic.
+  - **Tests**: 17 unit + 6 proptest covering pentagram pos/neg
+    equivalence (`(5, [[+2]], dir) ≡ (5, [[-3]], dir)` byte-for-byte
+    on canonical multiset), article-12-multigraph 36-edge byte-for-byte
+    reproduction of upstream
+    `references/igraph/tests/unit/igraph_extended_chordal_ring.c`
+    case 2, pure-cycle invariant when `W = []` across
+    `n ∈ {3, 5, 8, 12}`, every guard path (`nodes < 3`, `period == 0`,
+    `period ∤ nodes`, ragged `W`), and the closed-form
+    `ecount == nodes + nodes · nrow(w)` invariant in proptest sweeps
+    over `nodes ∈ [3, 20], period ∈ [1, nodes], nrow ∈ [0, 3]`,
+    `offsets ∈ [-50, 50]`.
+  - **Conformance**: python-igraph 0.11.x exposes **no**
+    `Graph.Extended_Chordal_Ring` binding (verified via
+    `hasattr(igraph.Graph, 'Extended_Chordal_Ring') == False`
+    against the live `.venv/` install), so this AWU runs a
+    **two-source** conformance test (the precedent set by
+    CN-024 `hexagonal_lattice` and CN-027 `turan` for absent-binding
+    lanes). R-igraph exposes `make_chordal_ring(n, w, directed = FALSE)`
+    sharing the upstream C entry. Fixture catalogue: C:3 (the three
+    canonical cases from upstream `igraph_extended_chordal_ring.c` —
+    pentagram-positive, pentagram-negative-equivalent, article
+    multigraph), py:0 (no binding), R:3
+    (`make_chordal_ring(8, matrix(2))`,
+    `make_chordal_ring(9, matrix(c(2,3,4), 1, 3))`,
+    `make_chordal_ring(10, matrix(c(2,3,4,5), 2, 2))`).
+  - **Performance**: O(|V| + |E|) — single cycle emission + a two-deep
+    per-vertex per-row chord pass. Throughput sweep on M-series
+    silicon: n=5 pentagram (10 edges) 11.6 Melem/s, n=12 article
+    multigraph (36 edges) 18.6 Melem/s, n=256 single-row (512 edges)
+    27.8 Melem/s, n=512 period-4 3-row (2048 edges) 28.5 Melem/s
+    (sweet spot — edge buffer L1-resident), n=4096 single-row
+    (8192 edges) 24.3 Melem/s, n=2048 period-4 3-row (8192 edges)
+    24.5 Melem/s (~8k-edge buffer pushes out of L1 but stays
+    L2-resident). No `python-igraph` baseline by construction.
+
 - **ALGO-CN-027** — `turan` Turán graph constructor returning
   `FullMultipartite { graph, types }` so the partition layout is
   recoverable from the result. **Twenty-seventh member of the

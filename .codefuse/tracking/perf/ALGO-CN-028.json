@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-CN-028",
+  "captured_at": "2026-05-26",
+  "git_commit": "6b02f60",
+  "rust_n5_pentagram_directed_thrpt_melem_s": 11.607,
+  "rust_n12_article_multigraph_thrpt_melem_s": 18.603,
+  "rust_n256_p1_offset_2_thrpt_melem_s": 27.780,
+  "rust_n512_p4_3rows_thrpt_melem_s": 28.452,
+  "rust_n4096_p1_offset_1024_thrpt_melem_s": 24.292,
+  "rust_n2048_p4_3rows_thrpt_melem_s": 24.532,
+  "py_baseline_ns": null,
+  "notes": "Extended chordal ring constructor (igraph_extended_chordal_ring port). Builds the cycle C_n then for every vertex i and every row r of W adds (i, (i + W[r, i mod period]) mod n). The work is O(n + n·m) with m = nrow(W). Throughput climbs from ~11.6 Melem/s on the 5-vertex pentagram (10 edges — overhead-dominated: Graph::new + the (Vec<(u32,u32)>, Vec<&[i64]>) validation pass) to a plateau of ~28 Melem/s on medium sizes (n=256 single-row, n=512 period-4 3-row) where the edge buffer is L1-resident. Large shapes (n=4096 single-row, n=2048 period-4 3-row) settle at ~24 Melem/s as the ~8k-edge buffer pushes out of L1 but stays L2-resident. The multi-row arm (3-row period 4) matches single-row throughput at equal edge counts because the per-vertex chord loop is straight-line code with no extra allocation per row. py_baseline_ns is null: python-igraph has no Extended_Chordal_Ring binding (confirmed via hasattr(igraph.Graph, 'Extended_Chordal_Ring') == False); the rigraph baseline (make_chordal_ring) and the C unit test (tests/unit/igraph_extended_chordal_ring.c with three cases — pentagram positive offset, pentagram negative-equivalent offset, 12-vertex article multigraph) are validated through the two-source conformance test. Numbers from `cargo bench --bench bench_extended_chordal_ring -- --warm-up-time 1 --measurement-time 3` on Darwin/M-series release build."
+}

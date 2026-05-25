@@ -8134,6 +8134,91 @@ TURAN_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-028 — `igraph_extended_chordal_ring` from
+# `src/constructors/regular.c:868-963`. Upstream unit test
+# (`tests/unit/igraph_extended_chordal_ring.c`) covers three cases:
+#   (1) n=5, W=[[2]], directed — pentagram + 5-cycle with all chords
+#       drawn two steps clockwise (10 directed edges total).
+#   (1b) n=5, W=[[-3]], directed — equivalent to case 1 by Euclidean wrap:
+#        (i − 3) ≡ (i + 2) (mod 5). Same 10-edge digraph.
+#   (2) n=12, W=[[4, 2], [8, 10]], undirected — the "from-article" case
+#       where igraph deliberately emits double-edges: chord row 0 column 0
+#       (offset 4 on even i) and chord row 1 column 0 (offset 8 ≡ -4) both
+#       collapse to the same undirected chord; same on the odd side with
+#       offsets 2 and 10 ≡ -2. 12 backbone + 12 × 2 chord = 36 edges in
+#       the resulting multigraph.
+# Edge lists below were computed by the same algorithm igraph C uses and
+# the canonical-form (lo, hi) is normalised for undirected fixtures so the
+# multiset comparison in the conformance harness lines up regardless of
+# in-graph endpoint order.
+EXTENDED_CHORDAL_RING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "extended_chordal_ring_c_pentagram_pos",
+        "origin": "mirrors igraph_extended_chordal_ring(nodes=5, W=[[2]], directed=true) — 5-cycle plus chord offset +2 (case 1 from tests/unit/igraph_extended_chordal_ring.c)",
+        "algo": "extended_chordal_ring",
+        "params": {
+            "nodes": 5,
+            "w": [[2]],
+            "directed": True,
+        },
+        "expected": {
+            "vcount": 5,
+            "ecount": 10,
+            "directed": True,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 0],
+                [0, 2], [1, 3], [2, 4], [3, 0], [4, 1],
+            ],
+        },
+    },
+    {
+        "case": "extended_chordal_ring_c_pentagram_neg_equivalent",
+        "origin": "mirrors igraph_extended_chordal_ring(nodes=5, W=[[-3]], directed=true) — equivalent to W=[[2]] because (i − 3) ≡ (i + 2) (mod 5) (case 1b from tests/unit/igraph_extended_chordal_ring.c)",
+        "algo": "extended_chordal_ring",
+        "params": {
+            "nodes": 5,
+            "w": [[-3]],
+            "directed": True,
+        },
+        "expected": {
+            "vcount": 5,
+            "ecount": 10,
+            "directed": True,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 0],
+                [0, 2], [1, 3], [2, 4], [3, 0], [4, 1],
+            ],
+        },
+    },
+    {
+        "case": "extended_chordal_ring_c_article_12_multigraph",
+        "origin": "mirrors igraph_extended_chordal_ring(nodes=12, W=[[4,2],[8,10]], undirected) — the 'from article' multigraph case where every chord appears twice (case 2 from tests/unit/igraph_extended_chordal_ring.c)",
+        "algo": "extended_chordal_ring",
+        "params": {
+            "nodes": 12,
+            "w": [[4, 2], [8, 10]],
+            "directed": False,
+        },
+        "expected": {
+            "vcount": 12,
+            "ecount": 36,
+            "directed": False,
+            "edges": [
+                # 12 backbone edges, each multiplicity 1.
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],
+                [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [0, 11],
+                # 6 distinct even-side chord edges, each multiplicity 2.
+                [0, 4], [0, 4], [2, 6], [2, 6], [4, 8], [4, 8],
+                [6, 10], [6, 10], [0, 8], [0, 8], [2, 10], [2, 10],
+                # 6 distinct odd-side chord edges, each multiplicity 2.
+                [1, 3], [1, 3], [3, 5], [3, 5], [5, 7], [5, 7],
+                [7, 9], [7, 9], [9, 11], [9, 11], [1, 11], [1, 11],
+            ],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `igraph_linegraph` from `src/constructors/linegraph.c`.
 # The upstream unit test (`tests/unit/igraph_linegraph.c`) covers three
 # canonical shapes: (a) a multigraph + self-loop undirected case, (b) a
@@ -9337,6 +9422,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "full_citation": FULL_CITATION_MANIFEST,
     "full_multipartite": FULL_MULTIPARTITE_MANIFEST,
     "turan": TURAN_MANIFEST,
+    "extended_chordal_ring": EXTENDED_CHORDAL_RING_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -9489,6 +9575,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "full_citation",
             "full_multipartite",
             "turan",
+            "extended_chordal_ring",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

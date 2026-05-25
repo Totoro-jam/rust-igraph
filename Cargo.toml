@@ -576,6 +576,11 @@ path = "benches/bench_turan.rs"
 harness = false
 
 [[bench]]
+name = "bench_extended_chordal_ring"
+path = "benches/bench_extended_chordal_ring.rs"
+harness = false
+
+[[bench]]
 name = "bench_linegraph"
 path = "benches/bench_linegraph.rs"
 harness = false

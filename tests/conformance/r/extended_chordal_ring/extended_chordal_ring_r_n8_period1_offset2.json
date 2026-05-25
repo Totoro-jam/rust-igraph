@@ -1,0 +1,91 @@
+{
+  "source": "r",
+  "origin": "mirrors R-igraph make_chordal_ring(n=8, w=matrix(2), directed=FALSE) \u2014 8-cycle plus 8 chord edges at offset +2 (period 1)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "extended_chordal_ring",
+  "params": {
+    "nodes": 8,
+    "w": [
+      [
+        2
+      ]
+    ],
+    "directed": false
+  },
+  "expected": {
+    "vcount": 8,
+    "ecount": 16,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        0
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        0
+      ],
+      [
+        7,
+        1
+      ]
+    ]
+  }
+}

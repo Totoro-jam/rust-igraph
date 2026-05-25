@@ -1,0 +1,67 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_extended_chordal_ring(nodes=5, W=[[2]], directed=true) \u2014 5-cycle plus chord offset +2 (case 1 from tests/unit/igraph_extended_chordal_ring.c)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "extended_chordal_ring",
+  "params": {
+    "nodes": 5,
+    "w": [
+      [
+        2
+      ]
+    ],
+    "directed": true
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 10,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        1
+      ]
+    ]
+  }
+}

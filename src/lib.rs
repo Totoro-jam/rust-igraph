@@ -105,6 +105,7 @@ pub use crate::algorithms::constructors::atlas::{ATLAS_SIZE, atlas};
 pub use crate::algorithms::constructors::circulant::circulant;
 pub use crate::algorithms::constructors::create::create;
 pub use crate::algorithms::constructors::de_bruijn::de_bruijn;
+pub use crate::algorithms::constructors::extended_chordal_ring::extended_chordal_ring;
 pub use crate::algorithms::constructors::famous::{famous, famous_names};
 pub use crate::algorithms::constructors::full::full_graph;
 pub use crate::algorithms::constructors::full_citation::full_citation;
