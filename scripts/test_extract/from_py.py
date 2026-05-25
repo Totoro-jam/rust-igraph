@@ -6854,6 +6854,82 @@ MYCIELSKI_GRAPH_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# python-igraph `Graph.Famous(name)` directly calls `igraph_famous` in
+# the C core (see `_igraph/graphobject.c`). The expected blocks below
+# were captured from python-igraph 0.11.9 so the rust port can be
+# compared byte-for-byte against a live binding.
+FAMOUS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "famous_py_bull",
+        "origin": "python-igraph Graph.Famous('Bull') — 5v/5e small witness",
+        "algo": "famous",
+        "params": {"name": "Bull"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 2], [1, 3], [2, 4]],
+        },
+    },
+    {
+        "case": "famous_py_petersen",
+        "origin": "python-igraph Graph.Famous('Petersen') — 10v/15e Petersen",
+        "algo": "famous",
+        "params": {"name": "Petersen"},
+        "expected": {
+            "vcount": 10,
+            "ecount": 15,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 4], [0, 5], [1, 2], [1, 6],
+                [2, 3], [2, 7], [3, 4], [3, 8], [4, 9],
+                [5, 7], [5, 8], [6, 8], [6, 9], [7, 9],
+            ],
+        },
+    },
+    {
+        "case": "famous_py_krackhardt_kite_lower",
+        "origin": "python-igraph Graph.Famous('krackhardt_kite') — lowercase dispatch path on 10v/18e",
+        "algo": "famous",
+        "params": {"name": "krackhardt_kite"},
+        "expected": {
+            "vcount": 10,
+            "ecount": 18,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 5], [1, 3], [1, 4], [1, 6],
+                [2, 3], [2, 5], [3, 4], [3, 5], [3, 6],
+                [4, 6], [5, 6], [5, 7], [6, 7], [7, 8], [8, 9],
+            ],
+        },
+    },
+    {
+        "case": "famous_py_meredith_counts",
+        "origin": "python-igraph Graph.Famous('Meredith') — 70v/140e largest entry; structural-only",
+        "algo": "famous",
+        "params": {"name": "Meredith"},
+        "expected": {
+            "vcount": 70,
+            "ecount": 140,
+            "directed": False,
+            "edges": None,
+        },
+    },
+    {
+        "case": "famous_py_zachary_counts",
+        "origin": "python-igraph Graph.Famous('Zachary') — 34v/78e karate club; structural-only",
+        "algo": "famous",
+        "params": {"name": "Zachary"},
+        "expected": {
+            "vcount": 34,
+            "ecount": 78,
+            "directed": False,
+            "edges": None,
+        },
+    },
+]
+
+
 MYCIELSKIAN_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "mycielskian_py_p3_one_iteration",
@@ -7127,6 +7203,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "lcf": LCF_MANIFEST,
     "mycielski_graph": MYCIELSKI_GRAPH_MANIFEST,
     "mycielskian": MYCIELSKIAN_MANIFEST,
+    "famous": FAMOUS_MANIFEST,
 }
 
 
@@ -7264,6 +7341,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "tree_from_parent_vector",
             "lcf",
             "mycielski_graph",
+            "famous",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

@@ -1,0 +1,81 @@
+{
+  "source": "c",
+  "origin": "igraph_i_famous_petersen (famous.c:180) \u2014 canonical 3-regular 10v/15e",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "famous",
+  "params": {
+    "name": "Petersen"
+  },
+  "expected": {
+    "vcount": 10,
+    "ecount": 15,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        6,
+        9
+      ],
+      [
+        7,
+        9
+      ]
+    ]
+  }
+}

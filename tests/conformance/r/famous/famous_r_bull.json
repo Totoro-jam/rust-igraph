@@ -1,0 +1,41 @@
+{
+  "source": "r",
+  "origin": "rigraph make_graph('Bull') \u2014 dispatches to famous_impl \u2192 igraph_famous",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "famous",
+  "params": {
+    "name": "Bull"
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 5,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ]
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "source": "c",
+  "origin": "igraph_i_famous_zachary (famous.c:237) \u2014 large 34v/78e karate-club; counts checked, edge list omitted to keep fixture compact",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "famous",
+  "params": {
+    "name": "Zachary"
+  },
+  "expected": {
+    "vcount": 34,
+    "ecount": 78,
+    "directed": false,
+    "edges": null
+  }
+}

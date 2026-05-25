@@ -103,6 +103,7 @@ pub use crate::algorithms::connectivity::strong::strongly_connected_components;
 pub use crate::algorithms::connectivity::transitive_closure::transitive_closure;
 pub use crate::algorithms::constructors::circulant::circulant;
 pub use crate::algorithms::constructors::de_bruijn::de_bruijn;
+pub use crate::algorithms::constructors::famous::{famous, famous_names};
 pub use crate::algorithms::constructors::full::full_graph;
 pub use crate::algorithms::constructors::generalized_petersen::generalized_petersen;
 pub use crate::algorithms::constructors::hamming::hamming;

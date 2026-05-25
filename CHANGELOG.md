@@ -15,6 +15,62 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-020** — `famous` + `famous_names` named-graph catalogue.
+  **Twentieth member of the `constructors/` family.** Counterpart of
+  `igraph_famous` in `references/igraph/src/constructors/famous.c`. Given
+  a case-insensitive ASCII name returns the canonical labelled copy of
+  one of 31 small graphs that recur throughout graph theory.
+  - `pub fn famous(name: &str) -> IgraphResult<Graph>` — case-insensitive
+    name dispatch over the static catalogue; returns `InvalidArgument`
+    with a helpful message for unknown names.
+  - `pub fn famous_names() -> &'static [&'static str]` — returns the
+    31-entry canonical-name slice for catalogue walks.
+  - Catalogue (alphabetical): Bull, Chvátal, Coxeter, Cubical, Diamond,
+    Dodecahedron, Folkman, Franklin, Frucht, Grötzsch, Heawood, Herschel,
+    House, HouseX, Icosahedron, Krackhardt Kite, Levi, McGee, Meredith,
+    Noperfectmatching, Nonline, Octahedron, Petersen, Robertson,
+    Smallestcyclicgroup, Tetrahedron, Thomassen, Tutte, Uniquely3colorable,
+    Walther, Zachary.
+  - Aliases follow upstream: `dodecahedral ≡ dodecahedron`, `grotzsch ≡
+    groetzsch` (German/English spelling), `icosahedral ≡ icosahedron`,
+    `octahedral ≡ octahedron`, `tetrahedral ≡ tetrahedron`.
+  - Storage: each graph is a `#[rustfmt::skip] const DATA_<NAME>: &'static
+    [u32]` array transliterated byte-for-byte from
+    `references/igraph/src/constructors/famous.c:26-249`. Layout is
+    `[vcount, ecount, directed_flag, edge0_a, edge0_b, …]`. Dispatch is
+    a linear scan over a 36-entry static `(name, data)` table using
+    `eq_ignore_ascii_case` so the whole table fits in L1 and a lookup
+    stays sub-microsecond.
+  - Size envelope: smallest is Diamond (4 v / 5 e), largest is Meredith
+    (70 v / 140 e). All 31 graphs are simple undirected.
+  - 10 unit tests cover every catalogue entry's published `(vcount,
+    ecount)`, case-insensitive dispatch, every alias collapsing to its
+    canonical name, the unknown-name error path, Petersen's 3-regularity,
+    Zachary's published (34 v / 78 e) shape, and the simple-undirected
+    invariant across the full catalogue.
+  - 16 conformance fixtures across the three sources: C:7 (Bull, Petersen,
+    Meredith counts, Zachary counts, dodecahedron case-insensitive,
+    grotzsch alias, tetrahedron alias), py:5 (Bull, Petersen, Meredith
+    counts, Zachary counts, krackhardt kite lowercase), R:4 (Bull,
+    Petersen, Zachary counts, tetrahedral alias). All three bindings
+    dispatch to the same C entry point (python-igraph `Graph.Famous(name)`,
+    R-igraph `make_graph("<name>")` → `famous_impl()` → `igraph_famous`),
+    so cross-source edge multisets match — conformance test compares
+    canonical `(min, max)` edge multisets.
+  - Runnable example: `cargo run --example famous_demo` walks every
+    `famous_names()` entry, validates simple-undirected, asserts
+    canonical counts for Petersen / Zachary / Tutte / Meredith, and
+    exercises case-insensitive dispatch + the German/English Grötzsch
+    alias + the unknown-name error path.
+  - Criterion bench at `benches/bench_famous.rs`; baseline in
+    `.codefuse/tracking/perf/ALGO-CN-020.json`. Per-call cost: Bull
+    619 ns, Petersen 982 ns, Meredith 5.4 μs; walking the full
+    31-graph catalogue costs 50.6 μs. The python-igraph baseline
+    (`Graph.Famous(name)`) sits at ~85 μs/call because the per-call
+    cost is dominated by the Cython entry path and Graph object
+    construction; Rust avoids both layers and runs 15.7×–207× faster
+    (52.4× speedup on the full 31-graph walk).
+
 - **ALGO-CN-019** — `mycielskian` + `mycielski_graph` Mycielski-construction
   pair. **Nineteenth member of the `constructors/` family.** Counterpart
   of `igraph_mycielskian` + `igraph_mycielski_graph` in

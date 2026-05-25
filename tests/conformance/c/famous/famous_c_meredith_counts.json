@@ -1,0 +1,20 @@
+{
+  "source": "c",
+  "origin": "igraph_i_famous_meredith (famous.c:139) \u2014 largest 70v/140e entry; structural-only check",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "famous",
+  "params": {
+    "name": "Meredith"
+  },
+  "expected": {
+    "vcount": 70,
+    "ecount": 140,
+    "directed": false,
+    "edges": null
+  }
+}

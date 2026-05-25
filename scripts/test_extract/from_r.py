@@ -6998,6 +6998,68 @@ MYCIELSKI_GRAPH_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# rigraph's `make_graph("<name>")` user-facing API resolves the string
+# branch to `famous_impl()` in `R/aaa-auto.R`, which calls the same
+# `igraph_famous` C entry point. `test-aaa-auto.R` exercises this path
+# (e.g. `make_graph("Zachary")` at line 10875). We pin a handful of
+# canonical witnesses here; edge lists for the larger graphs are dropped
+# in favour of structural counts so the JSON stays manageable.
+FAMOUS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "famous_r_bull",
+        "origin": "rigraph make_graph('Bull') — dispatches to famous_impl → igraph_famous",
+        "algo": "famous",
+        "params": {"name": "Bull"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 2], [1, 3], [2, 4]],
+        },
+    },
+    {
+        "case": "famous_r_petersen",
+        "origin": "rigraph make_graph('Petersen') — 10v/15e Petersen graph",
+        "algo": "famous",
+        "params": {"name": "Petersen"},
+        "expected": {
+            "vcount": 10,
+            "ecount": 15,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 4], [0, 5], [1, 2], [1, 6],
+                [2, 3], [2, 7], [3, 4], [3, 8], [4, 9],
+                [5, 7], [5, 8], [6, 8], [6, 9], [7, 9],
+            ],
+        },
+    },
+    {
+        "case": "famous_r_zachary_counts",
+        "origin": "rigraph make_graph('Zachary') — exercised directly by test-aaa-auto.R:10875",
+        "algo": "famous",
+        "params": {"name": "Zachary"},
+        "expected": {
+            "vcount": 34,
+            "ecount": 78,
+            "directed": False,
+            "edges": None,
+        },
+    },
+    {
+        "case": "famous_r_tetrahedral_alias",
+        "origin": "rigraph make_graph('Tetrahedral') — alias of 'Tetrahedron' (K_4)",
+        "algo": "famous",
+        "params": {"name": "Tetrahedral"},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [[0, 3], [1, 3], [2, 3], [0, 1], [1, 2], [0, 2]],
+        },
+    },
+]
+
+
 MYCIELSKIAN_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "mycielskian_r_p3_one_iteration",
@@ -7261,6 +7323,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "lcf": LCF_MANIFEST,
     "mycielski_graph": MYCIELSKI_GRAPH_MANIFEST,
     "mycielskian": MYCIELSKIAN_MANIFEST,
+    "famous": FAMOUS_MANIFEST,
 }
 
 
@@ -7398,6 +7461,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "tree_from_parent_vector",
             "lcf",
             "mycielski_graph",
+            "famous",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

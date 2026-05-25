@@ -8187,6 +8187,113 @@ MYCIELSKI_GRAPH_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# Fixtures for `igraph_famous`. Each entry pairs a canonical name with
+# the exact (vcount, ecount, edges) triple stored in the C source table
+# at `references/igraph/src/constructors/famous.c:26-249`. We sample the
+# smallest, the canonical mid-size, the largest, plus a couple of aliases
+# (case and synonym) so both dispatch paths exercise the same data.
+FAMOUS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "famous_c_bull",
+        "origin": "igraph_i_famous_bull (famous.c:26) — smallest entry, 5v/5e",
+        "algo": "famous",
+        "params": {"name": "Bull"},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 2], [1, 3], [2, 4]],
+        },
+    },
+    {
+        "case": "famous_c_petersen",
+        "origin": "igraph_i_famous_petersen (famous.c:180) — canonical 3-regular 10v/15e",
+        "algo": "famous",
+        "params": {"name": "Petersen"},
+        "expected": {
+            "vcount": 10,
+            "ecount": 15,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 4], [0, 5], [1, 2], [1, 6],
+                [2, 3], [2, 7], [3, 4], [3, 8], [4, 9],
+                [5, 7], [5, 8], [6, 8], [6, 9], [7, 9],
+            ],
+        },
+    },
+    {
+        "case": "famous_c_tetrahedron_alias",
+        "origin": "igraph_i_famous_tetrahedron via 'Tetrahedral' alias (famous.c:199 + dispatch)",
+        "algo": "famous",
+        "params": {"name": "Tetrahedral"},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [[0, 3], [1, 3], [2, 3], [0, 1], [1, 2], [0, 2]],
+        },
+    },
+    {
+        "case": "famous_c_dodecahedron_case",
+        "origin": "igraph_i_famous_dodecahedron via lowercase 'dodecahedron' (case-insensitive dispatch)",
+        "algo": "famous",
+        "params": {"name": "dodecahedron"},
+        "expected": {
+            "vcount": 20,
+            "ecount": 30,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 4], [0, 5], [1, 2], [1, 6], [2, 3], [2, 7],
+                [3, 4], [3, 8], [4, 9], [5, 10], [5, 11], [6, 10], [6, 14],
+                [7, 13], [7, 14], [8, 12], [8, 13], [9, 11], [9, 12],
+                [10, 15], [11, 16], [12, 17], [13, 18], [14, 19],
+                [15, 16], [15, 19], [16, 17], [17, 18], [18, 19],
+            ],
+        },
+    },
+    {
+        "case": "famous_c_grotzsch_alias",
+        "origin": "igraph_i_famous_grotzsch via 'Groetzsch' German alias (famous.c:82 + dispatch)",
+        "algo": "famous",
+        "params": {"name": "Groetzsch"},
+        "expected": {
+            "vcount": 11,
+            "ecount": 20,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 7], [0, 10], [1, 3], [1, 6], [1, 9],
+                [2, 4], [2, 6], [2, 8], [3, 4], [3, 8], [3, 10],
+                [4, 7], [4, 9], [5, 6], [5, 7], [5, 8], [5, 9], [5, 10],
+            ],
+        },
+    },
+    {
+        "case": "famous_c_zachary_counts",
+        "origin": "igraph_i_famous_zachary (famous.c:237) — large 34v/78e karate-club; counts checked, edge list omitted to keep fixture compact",
+        "algo": "famous",
+        "params": {"name": "Zachary"},
+        "expected": {
+            "vcount": 34,
+            "ecount": 78,
+            "directed": False,
+            "edges": None,
+        },
+    },
+    {
+        "case": "famous_c_meredith_counts",
+        "origin": "igraph_i_famous_meredith (famous.c:139) — largest 70v/140e entry; structural-only check",
+        "algo": "famous",
+        "params": {"name": "Meredith"},
+        "expected": {
+            "vcount": 70,
+            "ecount": 140,
+            "directed": False,
+            "edges": None,
+        },
+    },
+]
+
+
 MYCIELSKIAN_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "mycielskian_c_p3_one_iteration",
@@ -8479,6 +8586,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "lcf": LCF_MANIFEST,
     "mycielski_graph": MYCIELSKI_GRAPH_MANIFEST,
     "mycielskian": MYCIELSKIAN_MANIFEST,
+    "famous": FAMOUS_MANIFEST,
 }
 
 
@@ -8621,6 +8729,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "tree_from_parent_vector",
             "lcf",
             "mycielski_graph",
+            "famous",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

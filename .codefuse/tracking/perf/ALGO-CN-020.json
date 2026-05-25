@@ -1,0 +1,18 @@
+{
+  "awu": "ALGO-CN-020",
+  "captured_at": "2026-05-25",
+  "git_commit": "6d1a00a",
+  "rust_famous_bull_ns": 619,
+  "rust_famous_petersen_ns": 982,
+  "rust_famous_meredith_ns": 5443,
+  "rust_famous_walk_all_31_ns": 50638,
+  "py_famous_bull_ns": 128118,
+  "py_famous_petersen_ns": 86631,
+  "py_famous_meredith_ns": 85248,
+  "py_famous_walk_all_31_ns": 2653800,
+  "speedup_vs_py_bull": 207.0,
+  "speedup_vs_py_petersen": 88.2,
+  "speedup_vs_py_meredith": 15.7,
+  "speedup_vs_py_walk_all_31": 52.4,
+  "notes": "Famous deterministic constructor (ALGO-CN-020). Lookup is a linear scan over a 36-entry TABLE doing case-insensitive ASCII compare; in practice it stays in L1 and the whole hit takes <1μs even with the largest dataset (Meredith 70v/140e: 5.4μs end-to-end, dominated by the bulk add_edges call). Walking the entire 31-graph catalogue costs ~50μs in release mode. The python-igraph baseline (`Graph.Famous(name)`) sits at ~85μs/call because the per-call cost is dominated by the Cython entry path and Graph object construction; Rust avoids both layers and the 31-name walk speedup tracks the per-call ratio. Capture: `cargo bench --bench bench_famous -- --quick` on Darwin/M-series release; python baseline via `.venv/bin/python -m igraph` averaged over 200 iterations. Medians (criterion middle column) reported for rust numbers."
+}

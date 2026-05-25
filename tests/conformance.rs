@@ -13526,3 +13526,120 @@ fn mycielskian_three_source_conformance() {
         );
     }
 }
+
+fn check_famous_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::famous;
+    use std::collections::BTreeMap;
+
+    let name = case
+        .params
+        .get("name")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_else(|| panic!("famous fixture {}: params.name missing", path.display()));
+
+    let g = famous(name).expect("famous() should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges_count = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        g.vcount(),
+        want_vertices,
+        "famous vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.is_directed(),
+        want_directed,
+        "famous directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.ecount() as u64,
+        want_edges_count,
+        "famous ecount mismatch in {}",
+        path.display()
+    );
+
+    let edges_field = case
+        .expected
+        .get("edges")
+        .unwrap_or_else(|| panic!("famous fixture {}: expected.edges missing", path.display()));
+    if edges_field.is_null() {
+        return;
+    }
+    let want_edges_raw = edges_field.as_array().unwrap_or_else(|| {
+        panic!(
+            "famous fixture {}: expected.edges not array/null",
+            path.display()
+        )
+    });
+
+    let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for v in want_edges_raw {
+        let pair = v
+            .as_array()
+            .unwrap_or_else(|| panic!("famous fixture {}: edge not array", path.display()));
+        let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+        let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+        let key = if u <= w { (u, w) } else { (w, u) };
+        *want_ms.entry(key).or_insert(0) += 1;
+    }
+
+    let n_edges = u32::try_from(g.ecount()).expect("ecount fits u32 in conformance");
+    let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for eid in 0..n_edges {
+        let (u, w) = g.edge(eid).expect("edge id in range");
+        let key = if u <= w { (u, w) } else { (w, u) };
+        *got_ms.entry(key).or_insert(0) += 1;
+    }
+
+    assert_eq!(
+        got_ms,
+        want_ms,
+        "famous edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn famous_three_source_conformance() {
+    // `igraph_famous(name)` is exercised by all three official bindings:
+    // C directly, python-igraph's `Graph.Famous(name)`, and rigraph's
+    // `make_graph("<name>")` (which dispatches to `famous_impl`). The
+    // edge tables are static so the canonical-pair multiset check is the
+    // strongest equivalent of "bit-for-bit identical to igraph C".
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("famous");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read famous fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse famous conformance fixture JSON");
+            assert_eq!(case.algo, "famous");
+            assert_eq!(case.source, src);
+            check_famous_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no famous fixtures from source {src}"
+        );
+    }
+}
