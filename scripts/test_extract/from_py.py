@@ -7562,6 +7562,89 @@ ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-030 — `Graph.Weighted_Adjacency(matrix, mode, loops)` is the
+# real-valued sibling of `Graph.Adjacency`. python-igraph wraps the same
+# C dispatch (`igraph_weighted_adjacency`), so we capture the same M3
+# matrix family but with f64 weights instead of integer multiplicities.
+# Edges are canonicalised to (min, max) for undirected variants to match
+# Rust storage. Weights are returned in the **edge order** the python-igraph
+# wrapper returns them (parallel to its `Graph.es["weight"]`), and we
+# compare them order-agnostic via a sorted (edge, weight) pair list in the
+# Rust harness.
+WEIGHTED_ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "weighted_adjacency_py_3x3_directed_ignore",
+        "origin": "python-igraph Graph.Weighted_Adjacency([[2.0,0.5,0],[1.5,0,2.0],[0,2.5,3.0]], mode='directed', loops='ignore') — 4 off-diagonal weighted arcs",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "directed",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[1, 0], [0, 1], [2, 1], [1, 2]],
+            "weights": [1.5, 0.5, 2.5, 2.0],
+        },
+    },
+    {
+        "case": "weighted_adjacency_py_3x3_max_ignore",
+        "origin": "python-igraph Graph.Weighted_Adjacency(M3, mode='max', loops='ignore') — (0,1)=max(0.5,1.5)=1.5, (1,2)=max(2.0,2.5)=2.5; pair (0,2) zero so skipped",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "max",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 1], [1, 2]],
+            "weights": [1.5, 2.5],
+        },
+    },
+    {
+        "case": "weighted_adjacency_py_3x3_plus_once",
+        "origin": "python-igraph Graph.Weighted_Adjacency(M3, mode='plus', loops='once') — PLUS off-diag sums + diag passes through unhalved",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "plus",
+            "loops": "once",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": False,
+            # row-major upper triangle: i=0 j=0 diag 2.0; i=0 j=1 (0,1)=0.5+1.5=2.0;
+            # i=1 j=2 (1,2)=2.0+2.5=4.5; i=2 j=2 diag 3.0
+            "edges": [[0, 0], [0, 1], [1, 2], [2, 2]],
+            "weights": [2.0, 2.0, 4.5, 3.0],
+        },
+    },
+    {
+        "case": "weighted_adjacency_py_3x3_upper_twice_collapsed",
+        "origin": "python-igraph Graph.Weighted_Adjacency(M3, mode='upper', loops='twice') — UPPER collapses TWICE→ONCE; diag stays at 2.0 and 3.0 (un-halved)",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "upper",
+            "loops": "twice",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 0], [0, 1], [1, 2], [2, 2]],
+            "weights": [2.0, 0.5, 2.0, 3.0],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -7745,6 +7828,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
     "hexagonal_lattice": HEXAGONAL_LATTICE_MANIFEST,
     "adjacency": ADJACENCY_MANIFEST,
+    "weighted_adjacency": WEIGHTED_ADJACENCY_MANIFEST,
 }
 
 
@@ -7890,6 +7974,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "triangular_lattice",
             "hexagonal_lattice",
             "adjacency",
+            "weighted_adjacency",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

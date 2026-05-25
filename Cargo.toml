@@ -194,6 +194,10 @@ path = "examples/create_demo.rs"
 name = "adjacency_demo"
 path = "examples/adjacency_demo.rs"
 
+[[example]]
+name = "weighted_adjacency_demo"
+path = "examples/weighted_adjacency_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -587,6 +591,11 @@ harness = false
 [[bench]]
 name = "bench_adjacency"
 path = "benches/bench_adjacency.rs"
+harness = false
+
+[[bench]]
+name = "bench_weighted_adjacency"
+path = "benches/bench_weighted_adjacency.rs"
 harness = false
 
 [[bench]]

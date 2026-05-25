@@ -1,0 +1,18 @@
+{
+  "awu": "ALGO-CN-030",
+  "captured_at": "2026-05-26",
+  "git_commit": "dd70a65",
+  "rust_m3_directed_no_loops_ns": 389,
+  "rust_m3_directed_loops_once_ns": 668,
+  "rust_m3_undirected_loops_twice_ns": 371,
+  "rust_m3_max_no_loops_ns": 347,
+  "rust_m3_min_no_loops_ns": 353,
+  "rust_m3_plus_no_loops_ns": 343,
+  "rust_m3_upper_loops_once_ns": 366,
+  "rust_n128_sparse_directed_no_loops_ns": 14663,
+  "rust_n128_dense_directed_no_loops_ns": 468160,
+  "rust_n128_dense_max_no_loops_ns": 210930,
+  "rust_n512_dense_max_no_loops_ns": 4251500,
+  "py_baseline_ns": null,
+  "notes": "Dense f64 adjacency-matrix constructor (igraph_weighted_adjacency, 7-mode × 3-loops). M3 (3x3) shapes finish in 340-670 ns — the per-call cost is dominated by `Graph::with_directed` build plus the n^2 mode dispatch (the 3x3 traversal is trivial); the Directed+Once case is the outlier because it walks the diagonal (two extra `weights.push` operations on top of the off-diagonal column-major emit). The n=128 sparse-directed shape (|E|=128) costs 14.7 us — ~8.7 Melem/s — because the n^2 traversal dominates over emission when most cells are zero (notably faster than the integer-multiplicity sibling CN-029 because each weight emit is one `f64` write whereas CN-029 push_multi can multiply per cell). The two dense n=128 shapes (Directed |E|=128*127, MAX |E|=128*127/2) show ~34-39 Melem/s, ~+10-20% over CN-029's integer baseline because no per-cell loop multiplies a multiplicity into N pushes. The largest n=512 dense MAX (130k edges) finishes in 4.3 ms — ~30 Melem/s — with the same L1-pressure tail-off seen in CN-029. The CN-030 and CN-029 numbers are directly comparable shape-for-shape with the same M3 ratio; CN-030 sits within 5-10% of CN-029 at small n and pulls ahead at larger dense n where the single f64 write per cell is faster than the integer multiplicity loop. No oracle baseline: python-igraph exposes this via `Graph.Weighted_Adjacency()` and R via `graph_from_adjacency_matrix(..., weighted=TRUE)`, but again the bridge overhead in both wrappers wholly dominates the C-side work at this scale so a comparison would be misleading. Numbers from `cargo bench --bench bench_weighted_adjacency -- --warm-up-time 1 --measurement-time 3 --sample-size 25` on Darwin/M-series release build."
+}

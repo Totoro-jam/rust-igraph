@@ -8446,6 +8446,213 @@ ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-030 — `igraph_weighted_adjacency` from `src/constructors/adjacency.c`.
+# Real-valued sibling of `igraph_adjacency`. Same 7-mode × 3-loops dispatch.
+# Each non-zero cell produces exactly ONE edge whose weight is the cell's
+# value (after the per-mode reduction). Loop-weight adjustment per mode:
+# NoLoops drops the diagonal, Twice halves it, Once passes through.
+# DIRECTED / UPPER / LOWER all collapse Twice → Once.
+# Undirected accepts pairs where both sides are NaN as "symmetric".
+# These fixtures mirror the upstream C unit test
+# (tests/unit/igraph_weighted_adjacency.c) and the values are hand-checked.
+# Edges are canonicalised to (min, max) for undirected variants so the
+# conformance harness can compare as an order-agnostic multiset.
+WEIGHTED_ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "weighted_adjacency_c_0x0_directed_loops_once",
+        "origin": "mirrors igraph_weighted_adjacency(0x0, IGRAPH_ADJ_DIRECTED, IGRAPH_LOOPS_ONCE) — empty directed graph (tests/unit/igraph_weighted_adjacency.c)",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [],
+            "mode": "directed",
+            "loops": "once",
+        },
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+            "weights": [],
+        },
+    },
+    {
+        "case": "weighted_adjacency_c_1x1_directed_loops_once",
+        "origin": "mirrors igraph_weighted_adjacency([[1.5]], IGRAPH_ADJ_DIRECTED, IGRAPH_LOOPS_ONCE) — single weighted self-loop",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[1.5]],
+            "mode": "directed",
+            "loops": "once",
+        },
+        "expected": {
+            "vcount": 1,
+            "ecount": 1,
+            "directed": True,
+            "edges": [[0, 0]],
+            "weights": [1.5],
+        },
+    },
+    {
+        "case": "weighted_adjacency_c_1x1_directed_loops_twice_collapsed",
+        "origin": "mirrors igraph_weighted_adjacency([[1.5]], IGRAPH_ADJ_DIRECTED, IGRAPH_LOOPS_TWICE) — DIRECTED collapses TWICE→ONCE so diag weight passes through unhalved",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[1.5]],
+            "mode": "directed",
+            "loops": "twice",
+        },
+        "expected": {
+            "vcount": 1,
+            "ecount": 1,
+            "directed": True,
+            "edges": [[0, 0]],
+            "weights": [1.5],
+        },
+    },
+    {
+        "case": "weighted_adjacency_c_3x3_directed_no_loops",
+        "origin": "mirrors igraph_weighted_adjacency(M3=[[2.0,0.5,0],[1.5,0,2.0],[0,2.5,3.0]], IGRAPH_ADJ_DIRECTED, IGRAPH_NO_LOOPS) — column-major emit drops diagonal, 4 off-diagonal non-zeros",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "directed",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": True,
+            # column-major: j=0 i=1 (1,0)=1.5; j=1 i=0 (0,1)=0.5, i=2 (2,1)=2.5; j=2 i=1 (1,2)=2.0
+            "edges": [[1, 0], [0, 1], [2, 1], [1, 2]],
+            "weights": [1.5, 0.5, 2.5, 2.0],
+        },
+    },
+    {
+        "case": "weighted_adjacency_c_3x3_directed_loops_once",
+        "origin": "mirrors igraph_weighted_adjacency(M3, IGRAPH_ADJ_DIRECTED, IGRAPH_LOOPS_ONCE) — diagonal non-zeros (2.0, 3.0) emit as un-halved self-loops",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "directed",
+            "loops": "once",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 6,
+            "directed": True,
+            # column-major: j=0 (0,0)=2.0, (1,0)=1.5; j=1 (0,1)=0.5, (2,1)=2.5; j=2 (1,2)=2.0, (2,2)=3.0
+            "edges": [[0, 0], [1, 0], [0, 1], [2, 1], [1, 2], [2, 2]],
+            "weights": [2.0, 1.5, 0.5, 2.5, 2.0, 3.0],
+        },
+    },
+    {
+        "case": "weighted_adjacency_c_3x3_undirected_loops_twice",
+        "origin": "mirrors igraph_weighted_adjacency(M3_SYM=[[2.0,0.5,0],[0.5,0,2.0],[0,2.0,3.0]], IGRAPH_ADJ_UNDIRECTED, IGRAPH_LOOPS_TWICE) — diagonal weights halved (2.0→1.0, 3.0→1.5), off-diagonal pass-through",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [0.5, 0.0, 2.0], [0.0, 2.0, 3.0]],
+            "mode": "undirected",
+            "loops": "twice",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": False,
+            # row-major lower walk: i=0 diag 2.0→1.0; i=1 (1,0)=0.5; i=2 diag 3.0→1.5, (2,1)=2.0
+            "edges": [[0, 0], [0, 1], [2, 2], [1, 2]],
+            "weights": [1.0, 0.5, 1.5, 2.0],
+        },
+    },
+    {
+        "case": "weighted_adjacency_c_3x3_max_no_loops",
+        "origin": "mirrors igraph_weighted_adjacency(M3, IGRAPH_ADJ_MAX, IGRAPH_NO_LOOPS) — pair (i,j) gets max(A[i,j], A[j,i]); (0,1)=max(0.5,1.5)=1.5, (1,2)=max(2.0,2.5)=2.5, (0,2)=0 skipped",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "max",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 1], [1, 2]],
+            "weights": [1.5, 2.5],
+        },
+    },
+    {
+        "case": "weighted_adjacency_c_3x3_min_no_loops",
+        "origin": "mirrors igraph_weighted_adjacency(M3, IGRAPH_ADJ_MIN, IGRAPH_NO_LOOPS) — pair (i,j) gets min(A[i,j], A[j,i]); (0,1)=min(0.5,1.5)=0.5, (1,2)=min(2.0,2.5)=2.0",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "min",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 1], [1, 2]],
+            "weights": [0.5, 2.0],
+        },
+    },
+    {
+        "case": "weighted_adjacency_c_3x3_plus_no_loops",
+        "origin": "mirrors igraph_weighted_adjacency(M3, IGRAPH_ADJ_PLUS, IGRAPH_NO_LOOPS) — pair (i,j) gets A[i,j]+A[j,i]; (0,1)=0.5+1.5=2.0, (1,2)=2.0+2.5=4.5",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "plus",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 1], [1, 2]],
+            "weights": [2.0, 4.5],
+        },
+    },
+    {
+        "case": "weighted_adjacency_c_3x3_upper_loops_twice_collapsed",
+        "origin": "mirrors igraph_weighted_adjacency(M3, IGRAPH_ADJ_UPPER, IGRAPH_LOOPS_TWICE) — UPPER collapses TWICE→ONCE so diag weights pass through unhalved (2.0, 3.0); upper triangle (0,1)=0.5, (1,2)=2.0",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "upper",
+            "loops": "twice",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": False,
+            # column-major upper: j=0 diag 2.0; j=1 (0,1)=0.5; j=2 (1,2)=2.0, diag 3.0
+            "edges": [[0, 0], [0, 1], [1, 2], [2, 2]],
+            "weights": [2.0, 0.5, 2.0, 3.0],
+        },
+    },
+    {
+        "case": "weighted_adjacency_c_3x3_lower_no_loops",
+        "origin": "mirrors igraph_weighted_adjacency(M3, IGRAPH_ADJ_LOWER, IGRAPH_NO_LOOPS) — strict lower triangle entries M[1,0]=1.5, M[2,1]=2.5; M[2,0]=0 skipped",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "lower",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": False,
+            # column-major lower (canonicalised to (min, max) for undirected)
+            "edges": [[0, 1], [1, 2]],
+            "weights": [1.5, 2.5],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `igraph_linegraph` from `src/constructors/linegraph.c`.
 # The upstream unit test (`tests/unit/igraph_linegraph.c`) covers three
 # canonical shapes: (a) a multigraph + self-loop undirected case, (b) a
@@ -9651,6 +9858,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "turan": TURAN_MANIFEST,
     "extended_chordal_ring": EXTENDED_CHORDAL_RING_MANIFEST,
     "adjacency": ADJACENCY_MANIFEST,
+    "weighted_adjacency": WEIGHTED_ADJACENCY_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -9805,6 +10013,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "turan",
             "extended_chordal_ring",
             "adjacency",
+            "weighted_adjacency",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

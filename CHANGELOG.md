@@ -15,6 +15,85 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-030** — `weighted_adjacency` dense `f64` adjacency-matrix
+  constructor returning `(Graph, Vec<f64>)`. **Thirtieth member of the
+  `constructors/` family** and a faithful port of
+  `igraph_weighted_adjacency` in
+  `references/igraph/src/constructors/adjacency.c:472-787`.
+  - `pub fn weighted_adjacency(matrix: &[&[f64]], mode: AdjacencyMode, loops: LoopsMode) -> IgraphResult<(Graph, Vec<f64>)>` —
+    given an `n × n` real-valued matrix interpreted as weighted
+    adjacency entries (each non-zero value is a single weighted edge,
+    not a multiplicity), an [`AdjacencyMode`] selecting one of seven
+    dispatch flavours (`Directed`, `Undirected`, `Max`, `Min`, `Plus`,
+    `Upper`, `Lower`), and a [`LoopsMode`] controlling self-loop
+    emission, builds the unique weighted graph whose `(edge, weight)`
+    multiset matches the per-mode rule, returning both the topology
+    and the per-edge weight vector aligned with `Graph::edge(eid)`.
+  - **Shares `AdjacencyMode` / `LoopsMode` with CN-029** — same enum
+    semantics, same `Twice → Once` per-mode collapse (upstream
+    `adjacency.c` line 558, 619, 654 for `Directed`/`Upper`/`Lower`),
+    same `Undirected` symmetry guard. The only error path beyond
+    CN-029's structural set is **NaN-tolerant asymmetry**: under
+    `Undirected`, two entries `m[i][j]` and `m[j][i]` that are both
+    `NaN` count as symmetric (matching IEEE 754 weighted-edge
+    convention where `NaN ≡ NaN` for "no information"), while one
+    `NaN` against any non-`NaN` triggers `InvalidArgument`.
+  - **NaN propagation in `Max` / `Min`**: weight comparison via
+    `m1 < m2 || m2.is_nan()` (so any `NaN` operand wins) — matches
+    upstream `adjacency.c:586-594` exactly. `Plus` mode just sums
+    `m[i][j] + m[j][i]`; `NaN + finite = NaN` is the standard IEEE
+    propagation.
+  - **Loop weight adjustment**: `NoLoops` zeroes the diagonal in
+    place ahead of the off-diagonal walk; `Once` passes the diagonal
+    entry through unhalved; `Twice` halves the diagonal weight (`w/2`)
+    for `Undirected` / `Max` / `Min` / `Plus`, then becomes `Once`
+    semantics (unhalved) for `Directed` / `Upper` / `Lower` per the
+    upstream collapse — odd-integer diagonals on symmetric modes
+    therefore do **not** error here (unlike CN-029's integer-only
+    `Twice`-divisibility guard) because real-valued halving is
+    well-defined.
+  - **Type-level error elimination**: accepting `&[&[f64]]` rather
+    than `igraph_matrix_t` makes "wrong element type" statically
+    unreachable; the surviving structural errors are ragged-matrix,
+    non-square (caught by `if row.len() != nrow`), `NaN`-vs-finite
+    asymmetry under `Undirected`, and `usize::MAX`-class overflow on
+    the edge-buffer pre-size.
+  - **Overflow protection**: `u32::try_from(nrow)` so adversarial
+    `nrow > u32::MAX` reports `InvalidArgument` rather than
+    truncating; `usize::checked_mul(nrow, nrow)` on the maximum
+    possible edge count; `u32::try_from` on every `usize → u32`
+    cast for edge endpoints.
+  - **Tests**: 29 unit + 6 proptest covering all 7 × 3 mode/loops
+    combinations on the M3 family from
+    `references/igraph/tests/unit/igraph_weighted_adjacency.c`, the
+    empty `0 × 0` and singleton `1 × 1` shapes, the `Twice → Once`
+    collapse on `Directed`/`Upper`/`Lower`, the `Twice` halving on
+    `Undirected`/`Max`/`Min`/`Plus`, all 4 error paths
+    (ragged / non-square / `NaN`-vs-finite asymmetric `Undirected` /
+    `nrow > u32::MAX`), and proptest invariants (`Max(A, A) == A`
+    weighted, `Min(A, A) == A` weighted, `Undirected ≡ Max(A, Aᵀ)`
+    on symmetric `A`, `Plus(A) sums to 2·trace(A)` on the diagonal
+    under `Twice`, etc.).
+  - **Conformance**: 18 fixtures across all 3 source bindings
+    (C:11 / py:4 / R:3) — same fixture density as CN-029.
+    python-igraph and R-igraph expose only the `Once` semantics
+    (no native `Twice` mode), so those lanes only cover the
+    `NoLoops` / `Once` paths. Comparison is via directed-aware
+    canonical `((u, v), weight_bits)` multiset, with `NaN` weights
+    bit-compared via `f64::to_bits()` + `u64::MAX` sentinel so two
+    `NaN`s count as equal.
+  - **Bench**: M3 (3×3) shapes 343-668 ns (~5-10 Melem/s — per-call
+    overhead dominates); n=128 sparse 14.7 µs (~8.7 Melem/s);
+    n=128 dense directed ~468 µs (~35 Melem/s — L1 sweet spot);
+    n=128 dense `Max` ~211 µs (~78 Melem/s — symmetric walk emits
+    half the edges); n=512 dense `Max` (~130k edges) ~4.25 ms
+    (~31 Melem/s). Perf snapshot at
+    `.codefuse/tracking/perf/ALGO-CN-030.json`.
+  - **Example**: `cargo run --example weighted_adjacency_demo` walks
+    a small weighted matrix through every mode/loops combination,
+    illustrating how `Max` vs `Min` vs `Plus` produce very different
+    weight aggregations from the same input.
+
 - **ALGO-CN-029** — `adjacency` dense integer adjacency-matrix
   constructor. **Twenty-ninth member of the `constructors/` family**
   and a faithful port of `igraph_adjacency` in

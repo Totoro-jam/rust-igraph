@@ -1,0 +1,61 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_weighted_adjacency(M3_SYM=[[2.0,0.5,0],[0.5,0,2.0],[0,2.0,3.0]], IGRAPH_ADJ_UNDIRECTED, IGRAPH_LOOPS_TWICE) \u2014 diagonal weights halved (2.0\u21921.0, 3.0\u21921.5), off-diagonal pass-through",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "weighted_adjacency",
+  "params": {
+    "matrix": [
+      [
+        2.0,
+        0.5,
+        0.0
+      ],
+      [
+        0.5,
+        0.0,
+        2.0
+      ],
+      [
+        0.0,
+        2.0,
+        3.0
+      ]
+    ],
+    "mode": "undirected",
+    "loops": "twice"
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 4,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "weights": [
+      1.0,
+      0.5,
+      1.5,
+      2.0
+    ]
+  }
+}

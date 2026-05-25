@@ -1,0 +1,61 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_weighted_adjacency(M3=[[2.0,0.5,0],[1.5,0,2.0],[0,2.5,3.0]], IGRAPH_ADJ_DIRECTED, IGRAPH_NO_LOOPS) \u2014 column-major emit drops diagonal, 4 off-diagonal non-zeros",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "weighted_adjacency",
+  "params": {
+    "matrix": [
+      [
+        2.0,
+        0.5,
+        0.0
+      ],
+      [
+        1.5,
+        0.0,
+        2.0
+      ],
+      [
+        0.0,
+        2.5,
+        3.0
+      ]
+    ],
+    "mode": "directed",
+    "loops": "no_loops"
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 4,
+    "directed": true,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "weights": [
+      1.5,
+      0.5,
+      2.5,
+      2.0
+    ]
+  }
+}

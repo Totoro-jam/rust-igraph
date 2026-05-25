@@ -15048,3 +15048,211 @@ fn adjacency_three_source_conformance() {
         );
     }
 }
+
+#[allow(clippy::too_many_lines)]
+fn check_weighted_adjacency_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::{AdjacencyMode, LoopsMode, weighted_adjacency};
+    use std::collections::BTreeMap;
+
+    let mode_str = case
+        .params
+        .get("mode")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_else(|| {
+            panic!(
+                "weighted_adjacency fixture {}: params.mode missing or not string",
+                path.display()
+            )
+        });
+    let mode = match mode_str {
+        "directed" => AdjacencyMode::Directed,
+        "undirected" => AdjacencyMode::Undirected,
+        "max" => AdjacencyMode::Max,
+        "min" => AdjacencyMode::Min,
+        "plus" => AdjacencyMode::Plus,
+        "upper" => AdjacencyMode::Upper,
+        "lower" => AdjacencyMode::Lower,
+        other => panic!(
+            "weighted_adjacency fixture {}: unknown mode {other:?}",
+            path.display()
+        ),
+    };
+
+    let loops_str = case
+        .params
+        .get("loops")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_else(|| {
+            panic!(
+                "weighted_adjacency fixture {}: params.loops missing or not string",
+                path.display()
+            )
+        });
+    let loops = match loops_str {
+        "no_loops" => LoopsMode::NoLoops,
+        "once" => LoopsMode::Once,
+        "twice" => LoopsMode::Twice,
+        other => panic!(
+            "weighted_adjacency fixture {}: unknown loops {other:?}",
+            path.display()
+        ),
+    };
+
+    let matrix_raw = case
+        .params
+        .get("matrix")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "weighted_adjacency fixture {}: params.matrix missing or not array",
+                path.display()
+            )
+        });
+    let matrix_rows: Vec<Vec<f64>> = matrix_raw
+        .iter()
+        .map(|row| {
+            row.as_array()
+                .unwrap_or_else(|| {
+                    panic!(
+                        "weighted_adjacency fixture {}: row not array",
+                        path.display()
+                    )
+                })
+                .iter()
+                .map(|v| v.as_f64().expect("matrix entry f64"))
+                .collect()
+        })
+        .collect();
+    let matrix_refs: Vec<&[f64]> = matrix_rows.iter().map(Vec::as_slice).collect();
+
+    let (g, w_got) = weighted_adjacency(&matrix_refs, mode, loops)
+        .expect("weighted_adjacency should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        g.vcount(),
+        want_vertices,
+        "weighted_adjacency vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.is_directed(),
+        want_directed,
+        "weighted_adjacency directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.ecount() as u64,
+        want_edges,
+        "weighted_adjacency ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "weighted_adjacency fixture {}: expected.edges missing",
+                path.display()
+            )
+        });
+    let want_weights_raw = case
+        .expected
+        .get("weights")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "weighted_adjacency fixture {}: expected.weights missing",
+                path.display()
+            )
+        });
+    assert_eq!(
+        want_edges_raw.len(),
+        want_weights_raw.len(),
+        "weighted_adjacency fixture {}: edges/weights length mismatch",
+        path.display(),
+    );
+
+    let directed = matches!(mode, AdjacencyMode::Directed);
+    let canon = |u: u32, w: u32| -> (u32, u32) { if directed || u <= w { (u, w) } else { (w, u) } };
+    let key = |w: f64| -> u64 { if w.is_nan() { u64::MAX } else { w.to_bits() } };
+
+    let mut want_ms: BTreeMap<((u32, u32), u64), u32> = BTreeMap::new();
+    for (edge, wt) in want_edges_raw.iter().zip(want_weights_raw.iter()) {
+        let pair = edge.as_array().unwrap_or_else(|| {
+            panic!(
+                "weighted_adjacency fixture {}: edge not array",
+                path.display()
+            )
+        });
+        let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+        let v = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+        let weight = wt.as_f64().expect("weight f64");
+        *want_ms.entry((canon(u, v), key(weight))).or_insert(0) += 1;
+    }
+
+    let n_edges = u32::try_from(g.ecount()).expect("ecount fits u32 in conformance");
+    let mut got_ms: BTreeMap<((u32, u32), u64), u32> = BTreeMap::new();
+    for eid in 0..n_edges {
+        let (u, v) = g.edge(eid).expect("weighted_adjacency edge id in range");
+        let weight = w_got[eid as usize];
+        *got_ms.entry((canon(u, v), key(weight))).or_insert(0) += 1;
+    }
+
+    assert_eq!(
+        got_ms,
+        want_ms,
+        "weighted_adjacency edge/weight multiset mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn weighted_adjacency_three_source_conformance() {
+    // `igraph_weighted_adjacency(matrix, mode, loops)` builds a graph
+    // plus a per-edge weight vector from a real-valued n × n matrix.
+    // Exposed in igraph C (`igraph_weighted_adjacency`), python-igraph
+    // (`Graph.Weighted_Adjacency`) and R-igraph
+    // (`graph_from_adjacency_matrix(..., weighted = TRUE)`), so the
+    // fixture set is three-source. Per-mode loop collapse mirrors the
+    // integer sibling (DIRECTED, UPPER, LOWER collapse TWICE→ONCE);
+    // ONCE/Twice on the diagonal halves the stored weight to keep
+    // round-trip consistency on undirected graphs.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("weighted_adjacency");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read weighted_adjacency fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes)
+                .expect("parse weighted_adjacency conformance fixture JSON");
+            assert_eq!(case.algo, "weighted_adjacency");
+            assert_eq!(case.source, src);
+            check_weighted_adjacency_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no weighted_adjacency fixtures from source {src}"
+        );
+    }
+}

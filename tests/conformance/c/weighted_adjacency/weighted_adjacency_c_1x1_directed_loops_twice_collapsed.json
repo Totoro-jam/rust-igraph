@@ -1,0 +1,34 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_weighted_adjacency([[1.5]], IGRAPH_ADJ_DIRECTED, IGRAPH_LOOPS_TWICE) \u2014 DIRECTED collapses TWICE\u2192ONCE so diag weight passes through unhalved",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "weighted_adjacency",
+  "params": {
+    "matrix": [
+      [
+        1.5
+      ]
+    ],
+    "mode": "directed",
+    "loops": "twice"
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 1,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        0
+      ]
+    ],
+    "weights": [
+      1.5
+    ]
+  }
+}

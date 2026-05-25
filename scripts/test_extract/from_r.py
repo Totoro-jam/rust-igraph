@@ -7712,6 +7712,69 @@ ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-030 — rigraph `graph_from_adjacency_matrix(A, mode=...,
+# diag=..., weighted=TRUE)` dispatches to `igraph_weighted_adjacency()`
+# when the `weighted` argument is non-NULL. As with the integer wrapper,
+# `diag=TRUE` corresponds to LOOPS_ONCE and there is no native TWICE mode
+# (TWICE-halving is exercised via the C and python sides instead). The
+# fixtures here mirror the M3 family used by the C unit test, captured
+# from the R wrapper.
+WEIGHTED_ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "weighted_adjacency_r_3x3_directed_no_diag",
+        "origin": "rigraph graph_from_adjacency_matrix([[2.0,0.5,0],[1.5,0,2.0],[0,2.5,3.0]], mode='directed', diag=FALSE, weighted=TRUE) — 4 weighted off-diagonal arcs",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "directed",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[1, 0], [0, 1], [2, 1], [1, 2]],
+            "weights": [1.5, 0.5, 2.5, 2.0],
+        },
+    },
+    {
+        "case": "weighted_adjacency_r_3x3_undirected_diag",
+        "origin": "rigraph graph_from_adjacency_matrix(M3_SYM, mode='undirected', diag=TRUE, weighted=TRUE) — diagonal kept un-halved (R wrapper only exposes ONCE)",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [0.5, 0.0, 2.0], [0.0, 2.0, 3.0]],
+            "mode": "undirected",
+            "loops": "once",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": False,
+            # row-major lower: i=0 diag 2.0; i=1 (1,0)=0.5; i=2 diag 3.0, (2,1)=2.0
+            "edges": [[0, 0], [0, 1], [2, 2], [1, 2]],
+            "weights": [2.0, 0.5, 3.0, 2.0],
+        },
+    },
+    {
+        "case": "weighted_adjacency_r_3x3_lower_no_diag",
+        "origin": "rigraph graph_from_adjacency_matrix(M3, mode='lower', diag=FALSE, weighted=TRUE) — strict lower triangle: M[1,0]=1.5, M[2,1]=2.5; M[2,0]=0 skipped",
+        "algo": "weighted_adjacency",
+        "params": {
+            "matrix": [[2.0, 0.5, 0.0], [1.5, 0.0, 2.0], [0.0, 2.5, 3.0]],
+            "mode": "lower",
+            "loops": "no_loops",
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 1], [1, 2]],
+            "weights": [1.5, 2.5],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -7900,6 +7963,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "create": CREATE_MANIFEST,
     "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
     "adjacency": ADJACENCY_MANIFEST,
+    "weighted_adjacency": WEIGHTED_ADJACENCY_MANIFEST,
 }
 
 
@@ -8046,6 +8110,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "create",
             "triangular_lattice",
             "adjacency",
+            "weighted_adjacency",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural
