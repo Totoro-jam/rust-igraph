@@ -12473,3 +12473,108 @@ fn de_bruijn_three_source_conformance() {
         );
     }
 }
+
+fn check_kautz_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::kautz;
+
+    let m = er_param_u32(case, "m", path);
+    let n = er_param_u32(case, "n", path);
+
+    let graph = kautz(m, n).expect("kautz should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        graph.vcount(),
+        want_vertices,
+        "vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        graph.is_directed(),
+        want_directed,
+        "directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        graph.ecount() as u64,
+        want_edges,
+        "ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| panic!("kautz fixture {}: expected.edges missing", path.display()));
+    let want_pairs: Vec<(u32, u32)> = want_edges_raw
+        .iter()
+        .map(|v| {
+            let pair = v
+                .as_array()
+                .unwrap_or_else(|| panic!("kautz fixture {}: edge not array", path.display()));
+            let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+            let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+            (u, w)
+        })
+        .collect();
+
+    let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32 in conformance");
+    let got_pairs: Vec<(u32, u32)> = (0..n_edges)
+        .map(|eid| {
+            graph
+                .edge(eid)
+                .expect("conformance kautz edge id in bounds")
+        })
+        .collect();
+
+    assert_eq!(
+        got_pairs,
+        want_pairs,
+        "kautz arc list mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn kautz_three_source_conformance() {
+    // K(m, n) is always directed and the C source emits arcs in a fixed
+    // source-major, target-ascending order. python-igraph (`Graph.Kautz`)
+    // and rigraph (`make_kautz_graph`) both dispatch to `igraph_kautz`,
+    // so the ordered arc list is identical across the three oracles.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("kautz");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read kautz fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse kautz conformance fixture JSON");
+            assert_eq!(case.algo, "kautz");
+            assert_eq!(case.source, src);
+            check_kautz_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no kautz fixtures from source {src}"
+        );
+    }
+}

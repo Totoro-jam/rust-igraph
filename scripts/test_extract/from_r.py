@@ -6528,6 +6528,58 @@ DE_BRUIJN_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+KAUTZ_MANIFEST: List[Dict[str, Any]] = [
+    # rigraph exposes `igraph::make_kautz_graph(m, n)`, which dispatches
+    # directly to the upstream `igraph_kautz()` C entry point. Edge order
+    # therefore matches the C and python-igraph oracles byte-for-byte:
+    # source-major, target-ascending over the m valid successor letters.
+    {
+        "case": "kautz_r_m2_n1",
+        "origin": "rigraph make_kautz_graph(m=2, n=1) — 6 vertices, 12 directed arcs",
+        "algo": "kautz",
+        "params": {"m": 2, "n": 1},
+        "expected": {
+            "vcount": 6,
+            "ecount": 12,
+            "directed": True,
+            "edges": [
+                [0, 2], [0, 3],
+                [1, 4], [1, 5],
+                [2, 0], [2, 1],
+                [3, 4], [3, 5],
+                [4, 0], [4, 1],
+                [5, 2], [5, 3],
+            ],
+        },
+    },
+    {
+        "case": "kautz_r_m2_n2",
+        "origin": "rigraph make_kautz_graph(m=2, n=2) — 12 vertices, 24 directed arcs",
+        "algo": "kautz",
+        "params": {"m": 2, "n": 2},
+        "expected": {
+            "vcount": 12,
+            "ecount": 24,
+            "directed": True,
+            "edges": [
+                [0, 4], [0, 5],
+                [1, 6], [1, 7],
+                [2, 8], [2, 9],
+                [3, 10], [3, 11],
+                [4, 0], [4, 1],
+                [5, 2], [5, 3],
+                [6, 8], [6, 9],
+                [7, 10], [7, 11],
+                [8, 0], [8, 1],
+                [9, 2], [9, 3],
+                [10, 4], [10, 5],
+                [11, 6], [11, 7],
+            ],
+        },
+    },
+]
+
+
 SQUARE_LATTICE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "square_lattice_r_dim_three_path",
@@ -6877,6 +6929,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "generalized_petersen": GENERALIZED_PETERSEN_MANIFEST,
     "circulant": CIRCULANT_MANIFEST,
     "de_bruijn": DE_BRUIJN_MANIFEST,
+    "kautz": KAUTZ_MANIFEST,
 }
 
 
@@ -7008,6 +7061,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "generalized_petersen",
             "circulant",
             "de_bruijn",
+            "kautz",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

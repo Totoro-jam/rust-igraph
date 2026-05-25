@@ -11,6 +11,7 @@ pub mod generalized_petersen;
 pub mod hamming;
 pub mod hypercube;
 pub mod kary_tree;
+pub mod kautz;
 pub mod regular_tree;
 pub mod ring;
 pub mod square_lattice;

@@ -1,0 +1,21 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_kautz(m=0, n=0) \u2014 single vertex via the n=0 \u2192 directed K_{m+1} path",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "kautz",
+  "params": {
+    "m": 0,
+    "n": 0
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

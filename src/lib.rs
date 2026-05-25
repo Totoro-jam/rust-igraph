@@ -107,6 +107,7 @@ pub use crate::algorithms::constructors::generalized_petersen::generalized_peter
 pub use crate::algorithms::constructors::hamming::hamming;
 pub use crate::algorithms::constructors::hypercube::{MAX_HYPERCUBE_DIMENSION, hypercube};
 pub use crate::algorithms::constructors::kary_tree::{TreeMode, kary_tree};
+pub use crate::algorithms::constructors::kautz::kautz;
 pub use crate::algorithms::constructors::regular_tree::regular_tree;
 pub use crate::algorithms::constructors::ring::{cycle_graph, path_graph, ring_graph};
 pub use crate::algorithms::constructors::square_lattice::square_lattice;

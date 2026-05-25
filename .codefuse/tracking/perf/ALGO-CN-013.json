@@ -1,0 +1,91 @@
+{
+  "algo_id": "ALGO-CN-013",
+  "algo": "kautz",
+  "captured_at": "2026-05-25",
+  "git_commit": "81aead3",
+  "machine": "darwin-arm64",
+  "criterion_version": "0.5",
+  "configs": [
+    {
+      "label": "k_2_1",
+      "m": 2,
+      "n": 1,
+      "vcount": 6,
+      "ecount": 12
+    },
+    {
+      "label": "k_3_2",
+      "m": 3,
+      "n": 2,
+      "vcount": 36,
+      "ecount": 108
+    },
+    {
+      "label": "k_2_8",
+      "m": 2,
+      "n": 8,
+      "vcount": 768,
+      "ecount": 1536
+    },
+    {
+      "label": "k_4_4",
+      "m": 4,
+      "n": 4,
+      "vcount": 1280,
+      "ecount": 5120
+    },
+    {
+      "label": "k_2_14",
+      "m": 2,
+      "n": 14,
+      "vcount": 49152,
+      "ecount": 98304
+    },
+    {
+      "label": "k_5_5",
+      "m": 5,
+      "n": 5,
+      "vcount": 18750,
+      "ecount": 93750
+    }
+  ],
+  "results": {
+    "kautz/k_2_1": {
+      "time_low": "978.89 ns",
+      "time_mid": "985.58 ns",
+      "time_high": "987.25 ns",
+      "throughput": "~12.2 Marc/s"
+    },
+    "kautz/k_3_2": {
+      "time_low": "3.6765 us",
+      "time_mid": "3.6770 us",
+      "time_high": "3.6793 us",
+      "throughput": "~29.4 Marc/s"
+    },
+    "kautz/k_2_8": {
+      "time_low": "42.265 us",
+      "time_mid": "42.307 us",
+      "time_high": "42.474 us",
+      "throughput": "~36.3 Marc/s"
+    },
+    "kautz/k_4_4": {
+      "time_low": "132.85 us",
+      "time_mid": "133.72 us",
+      "time_high": "133.94 us",
+      "throughput": "~38.3 Marc/s"
+    },
+    "kautz/k_2_14": {
+      "time_low": "4.0032 ms",
+      "time_mid": "4.0073 ms",
+      "time_high": "4.0236 ms",
+      "throughput": "~24.5 Marc/s"
+    },
+    "kautz/k_5_5": {
+      "time_low": "3.0814 ms",
+      "time_mid": "3.0830 ms",
+      "time_high": "3.0896 ms",
+      "throughput": "~30.4 Marc/s"
+    }
+  },
+  "notes": "K(m, n) constructor: two-pass — first walks all (m+1)·m^n valid strings (no two consecutive equal) to populate the sparse-code → dense-id maps `index1` (size (m+1)^(n+1)) and `index2` (size vcount); second emits exactly m·vcount arcs in source-major / digit-ascending order with `basis = (fromvalue·(m+1)) mod allstrings` hoisted once per source vertex. The asymptotic sparse-table size (m+1)^(n+1) is `(m+1)/m × vcount`, so for binary alphabets (m=2) the index1 table is ~1.5× vcount and dominates allocator pressure at k_2_14; for richer alphabets (k_5_5) the constant overhead per arc drops and throughput climbs to ~30 Marc/s. Peak throughput at k_4_4 (~38 Marc/s) where the table fits L2 cache cleanly. No clippy lints, no `unsafe`, all u64 widening for overflow safety in the basis computation."
+}

@@ -15,6 +15,70 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-013** — `kautz` deterministic constructor.
+  **Thirteenth member of the `constructors/` family.** Counterpart of
+  `igraph_kautz` in `references/igraph/src/constructors/kautz.c:61-210`.
+  Builds the **directed** Kautz graph `K(m, n)` on `(m+1)·m^n`
+  vertices whose labels are length-`n+1` strings over an alphabet of
+  `m+1` letters subject to the constraint that no two consecutive
+  letters in the string may be equal. An arc goes from
+  `v = (a_0, …, a_n)` to every `w = (a_1, …, a_n, b)` with `b ≠ a_n`,
+  giving out-degree exactly `m` and in-degree exactly `m` for
+  `n ≥ 1`.
+  - `pub fn kautz(m: u32, n: u32) -> IgraphResult<Graph>`. Result is
+    always directed (matches `IGRAPH_DIRECTED` in C). The sparse
+    base-`(m+1)` string codes are mapped to dense vertex ids via two
+    inverse tables (`index1` of size `(m+1)^(n+1)`, 1-based sentinel;
+    `index2` of size `vcount`) built by a single in-order cursor walk
+    over the valid strings using `digits[]` + a positional-weight
+    `table[i] = (m+1)^(n-i)`. Arc emission is source-major and
+    target-ascending: `basis = (fromvalue·(m+1)) mod allstrings`
+    hoisted once per source vertex, then for each `digit ∈ [0, m]`
+    with `digit ≠ lastdigit` an arc is emitted to
+    `index1[basis + digit] − 1`.
+  - Degenerate inputs dispatched ahead of any table allocation:
+    `n == 0` → directed `K_{m+1}` with no self-loops (the C source
+    delegates to `igraph_full`; this crate inlines the emission to
+    avoid pulling in a not-yet-ported helper); `m == 0 ∧ n ≥ 1` →
+    empty 0-vertex graph (single-symbol alphabet cannot satisfy the
+    no-consecutive-equal constraint); `m == 0 ∧ n == 0` → singleton.
+  - Overflow protection: `u32::checked_pow` / `u32::checked_mul` /
+    `u32::checked_add` on every dimension (`m+1`, `n+1`, `m^n`,
+    `(m+1)·m^n`, `(m+1)^(n+1)`); `usize::checked_mul` for the edge
+    buffer length; and a `u64` widening for the
+    `(fromvalue·(m+1)) mod allstrings` basis so the intermediate
+    product never silently truncates. Out-of-range inputs return
+    `IgraphError::InvalidArgument` rather than panicking.
+  - Conformance: python-igraph (`Graph.Kautz(m, n)`) and R-igraph
+    (`make_kautz_graph(m, n)`) both dispatch to the same upstream
+    `igraph_kautz()` C entry point, so the ordered arc list is
+    identical across all three sources. The conformance test compares
+    the raw ordered arc list rather than the canonicalised multiset —
+    any drift in emission order would be a real regression. Fixture
+    catalogue: C oracle covers `K(2,1)`, `K(0,10)`, `K(0,0)`,
+    `K(5,0)`, `K(3,1)`, `K(2,2)`, `K(3,2)` (7 cases including the
+    `tests/unit/igraph_kautz.c` canonical scenarios plus the
+    upstream-style degenerate-input gates); python-igraph oracle adds
+    `K(2,1)`, `K(3,2)` (2 cases); R-igraph oracle adds `K(2,1)`,
+    `K(2,2)` (2 cases) — 11 fixtures total.
+  - Structural properties verified by proptest sweep: exactly
+    `(m+1)·m^n` vertices, exactly `m·(m+1)·m^n` arcs, every vertex
+    has out-degree `m` and in-degree `m`, and the loopless-and-simple
+    invariant holds (no `(v, v)` arcs and no duplicated `(u, v)`
+    pairs across the full edge list).
+  - Performance: criterion bench `bench_kautz` covers six shapes
+    spanning the tiny canonical cases through `K(2, 14)` (98 304
+    arcs) and `K(5, 5)` (93 750 arcs). Peak throughput
+    ~30–38 Marc/s in the L2-friendly band (`k_4_4` / `k_5_5`) and
+    ~24 Marc/s at the largest binary shape `k_2_14` where the
+    `(m+1)/m × vcount` sparse table dominates allocator pressure.
+    Baseline captured at `.codefuse/tracking/perf/ALGO-CN-013.json`.
+  - Runnable example: `cargo run --example kautz_demo` walks the
+    canonical specialisations including both degenerate paths
+    (`K(0, 0)`, `K(0, 5)`, `K(5, 0)`) and the `tests/unit/igraph_kautz.c`
+    canonical case `K(2, 1)`, asserting vcount/ecount/total-degree
+    and the loopless invariant for each one.
+
 - **ALGO-CN-012** — `de_bruijn` deterministic constructor.
   **Twelfth member of the `constructors/` family.** Counterpart of
   `igraph_de_bruijn` in
