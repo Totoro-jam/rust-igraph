@@ -1,0 +1,45 @@
+{
+  "source": "c",
+  "origin": "igraph_atlas(18) \u2014 last 4-vertex entry, the complete graph K_4",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "atlas",
+  "params": {
+    "number": 18
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 6,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  }
+}

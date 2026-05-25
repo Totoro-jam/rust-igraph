@@ -1,0 +1,25 @@
+{
+  "source": "c",
+  "origin": "igraph_atlas(3) \u2014 first 2-vertex non-trivial graph, K_2",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "atlas",
+  "params": {
+    "number": 3
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 1,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}

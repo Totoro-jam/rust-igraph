@@ -5,6 +5,8 @@
 //! whose shape is fully determined by their integer parameters, with no
 //! RNG involvement.
 
+pub mod atlas;
+pub mod atlas_edges;
 pub mod circulant;
 pub mod de_bruijn;
 pub mod famous;

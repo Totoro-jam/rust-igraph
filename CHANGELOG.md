@@ -15,6 +15,83 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-021** — `atlas` + `ATLAS_SIZE` Read-Wilson graph atlas
+  constructor. **Twenty-first member of the `constructors/` family.**
+  Counterpart of `igraph_atlas` in
+  `references/igraph/src/constructors/atlas.c:50-87`. Given an index
+  `number ∈ [0, 1253)` returns the `number`-th of the 1253 simple
+  unlabelled undirected graphs on 0..7 vertices in the ordering of
+  Ronald C. Read and Robin J. Wilson, *An Atlas of Graphs* (Oxford
+  University Press, 1998).
+  - `pub fn atlas(number: u32) -> IgraphResult<Graph>` — single
+    position-table indirection + bulk `add_edges`. Out-of-range indices
+    return `InvalidArgument`.
+  - `pub const ATLAS_SIZE: u32 = 1253` — total catalogue size.
+  - Ordering convention (canonical, matches upstream byte-for-byte):
+    (1) by ascending vertex count, (2) for fixed vertex count by
+    ascending edge count, (3) for fixed vertex/edge count by ascending
+    lexicographic degree sequence, (4) for fixed degree sequence by
+    ascending automorphism count.
+  - Per-vertex-count starting offsets: `STARTS = [0, 1, 2, 4, 8, 19,
+    53, 209, 1253]`. The first index in each cell is the null graph
+    on `n` vertices; the last index in each non-trivial cell is the
+    complete graph `K_n`: `atlas(3) = K_2`, `atlas(7) = K_3`,
+    `atlas(18) = K_4`, `atlas(52) = K_5`, `atlas(208) = K_6`,
+    `atlas(1252) = K_7`.
+  - Storage: two `#[rustfmt::skip] pub(super) const &[u32]` arrays in
+    `src/algorithms/constructors/atlas_edges.rs` — `ATLAS_EDGES_POS`
+    (length 1253, starting offsets into the flat data block) and
+    `ATLAS_EDGES` (length 27146, flat header+edge data with layout
+    `[vcount, ecount, edge0_a, edge0_b, …]` per graph). Both
+    transliterated byte-for-byte from
+    `references/igraph/src/constructors/atlas-edges.h` so the
+    per-index dispatch reproduces the C, python-igraph
+    (`Graph.Atlas(number)`), and R-igraph (`graph_from_atlas(n)` →
+    `igraph_atlas`) emission identically.
+  - Overflow protection: `usize::checked_mul(ecount, 2)` guards the
+    edge buffer length (per-graph upper bound is `2·21 = 42` so
+    overflow is impossible in practice but the check stays for
+    adversarial position-table corruption), defensive bounds check
+    on `pos + 2 ≤ ATLAS_EDGES.len()` and
+    `pos + 2 + 2·ecount ≤ ATLAS_EDGES.len()` returns
+    `InvalidArgument` rather than panicking on a corrupt table.
+  - 8 unit tests cover (a) out-of-range error path (number = 1253,
+    1254, `u32::MAX`), (b) `ATLAS_SIZE` matches upstream count,
+    (c) null-graph cell-start indices for all 8 vertex counts,
+    (d) small-known-graph identities for `atlas(3) = K_2`,
+    `atlas(7) = K_3`, `atlas(18) = K_4` with canonical edge multiset
+    compare, (e) `atlas(1252) = K_7` with 6-regularity check,
+    (f) no self-loops or repeated edges across a 19-index
+    representative spread, (g) exhaustive 1253-graph walk for
+    degree-sum invariant + undirected flag, (h) every index in
+    `start[n]..start[n+1]` has exactly `n` vertices. The exhaustive
+    sweep is strictly stronger than any sample-based proptest, so
+    no proptest was added.
+  - 19 conformance fixtures across the three sources: C:8 (null0,
+    k2_single_edge, triangle, k4, v6_null, k6_last_6v, v7_null,
+    k7_last_atlas_graph), py:7 (null0, k2, k4, idx70_skipped_in_upstream,
+    idx180_skipped_in_upstream, k6, k7_last — python-igraph cells skip
+    a few interior indices the C test catalogue omits), R:4 (null0,
+    triangle, k4, k7_last). Cross-source emission order is byte-stable
+    because all three bindings read the same on-disk `atlas-edges.h`
+    table, but R-igraph re-canonicalises 1-based→0-based, so the
+    conformance test compares canonical `(min, max)` edge multisets.
+  - Runnable example: `cargo run --example atlas_demo` walks the
+    cell-boundary invariants, verifies `K_2..K_7` complete-graph
+    landings at the published indices, lists the first six graphs by
+    index, walks the entire 1253-graph catalogue verifying undirected /
+    well-formed / no self-loops / degree-sum invariants, and exercises
+    the out-of-range error path.
+  - Criterion bench at `benches/bench_atlas.rs`; baseline in
+    `.codefuse/tracking/perf/ALGO-CN-021.json`. Per-call cost: 226 ns
+    (null graph at idx 0) → 1141 ns (K_7 at idx 1252) — dominated by
+    `add_edges` since position-table indirection is two array indexes.
+    Full 1253-graph catalogue walk costs 1.06 ms. python-igraph's
+    `Graph.Atlas(number)` baseline sits at ~85 μs/call regardless of
+    graph size (fixed Cython entry + Graph object construction
+    overhead), so Rust is 87.7×–375.8× faster (375.8× on the null
+    graph, 101.4× on the full 1253-graph walk).
+
 - **ALGO-CN-020** — `famous` + `famous_names` named-graph catalogue.
   **Twentieth member of the `constructors/` family.** Counterpart of
   `igraph_famous` in `references/igraph/src/constructors/famous.c`. Given

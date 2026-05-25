@@ -1,0 +1,20 @@
+{
+  "source": "c",
+  "origin": "igraph_atlas(0) \u2014 null graph on 0 vertices (atlas.c:63-87)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "atlas",
+  "params": {
+    "number": 0
+  },
+  "expected": {
+    "vcount": 0,
+    "ecount": 0,
+    "directed": false,
+    "edges": []
+  }
+}

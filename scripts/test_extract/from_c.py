@@ -8294,6 +8294,131 @@ FAMOUS_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# Fixtures for `igraph_atlas` (ALGO-CN-021). The atlas catalogues every
+# simple undirected unlabelled graph on 0..7 vertices in the Read-Wilson
+# (1998) ordering (vcount asc, then ecount asc, then degree-sequence lex,
+# then automorphism count). Indices selected to sweep across cells:
+#  - 0..3 cover the 0-, 1-, 2-vertex cells
+#  - 7 / 18 are the K_3 / K_4 last-entry-of-cell graphs
+#  - 53 / 208 / 209 / 1252 are cell boundaries (first 6v null, last 6v K_6,
+#    first 7v null, last 7v K_7)
+#  - 70 and 180 are skipped in python-igraph's connectivity tests
+#    (test_atlas.py:174) — included here because the constructor itself
+#    handles them fine and we want to catch any regression that changes
+#    that.
+ATLAS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "atlas_c_null0",
+        "origin": "igraph_atlas(0) — null graph on 0 vertices (atlas.c:63-87)",
+        "algo": "atlas",
+        "params": {"number": 0},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "atlas_c_k2_single_edge",
+        "origin": "igraph_atlas(3) — first 2-vertex non-trivial graph, K_2",
+        "algo": "atlas",
+        "params": {"number": 3},
+        "expected": {
+            "vcount": 2,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+    {
+        "case": "atlas_c_triangle",
+        "origin": "igraph_atlas(7) — last 3-vertex entry, the triangle K_3",
+        "algo": "atlas",
+        "params": {"number": 7},
+        "expected": {
+            "vcount": 3,
+            "ecount": 3,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 2]],
+        },
+    },
+    {
+        "case": "atlas_c_k4",
+        "origin": "igraph_atlas(18) — last 4-vertex entry, the complete graph K_4",
+        "algo": "atlas",
+        "params": {"number": 18},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [0, 2], [0, 3], [1, 3], [2, 3]],
+        },
+    },
+    {
+        "case": "atlas_c_v6_null",
+        "origin": "igraph_atlas(53) — first 6-vertex entry (null graph), cell boundary",
+        "algo": "atlas",
+        "params": {"number": 53},
+        "expected": {
+            "vcount": 6,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "atlas_c_k6_last_6v",
+        "origin": "igraph_atlas(208) — last 6-vertex entry, the complete graph K_6",
+        "algo": "atlas",
+        "params": {"number": 208},
+        "expected": {
+            "vcount": 6,
+            "ecount": 15,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4], [0, 5],
+                [1, 2], [1, 3], [1, 4], [1, 5],
+                [2, 3], [2, 4], [2, 5],
+                [3, 4], [3, 5],
+                [4, 5],
+            ],
+        },
+    },
+    {
+        "case": "atlas_c_v7_null",
+        "origin": "igraph_atlas(209) — first 7-vertex entry (null graph), cell boundary",
+        "algo": "atlas",
+        "params": {"number": 209},
+        "expected": {
+            "vcount": 7,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "atlas_c_k7_last_atlas_graph",
+        "origin": "igraph_atlas(1252) — last entry in the atlas, the complete graph K_7",
+        "algo": "atlas",
+        "params": {"number": 1252},
+        "expected": {
+            "vcount": 7,
+            "ecount": 21,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6],
+                [1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
+                [2, 3], [2, 4], [2, 5], [2, 6],
+                [3, 4], [3, 5], [3, 6],
+                [4, 5], [4, 6],
+                [5, 6],
+            ],
+        },
+    },
+]
+
+
 MYCIELSKIAN_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "mycielskian_c_p3_one_iteration",
@@ -8587,6 +8712,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mycielski_graph": MYCIELSKI_GRAPH_MANIFEST,
     "mycielskian": MYCIELSKIAN_MANIFEST,
     "famous": FAMOUS_MANIFEST,
+    "atlas": ATLAS_MANIFEST,
 }
 
 
@@ -8730,6 +8856,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "lcf",
             "mycielski_graph",
             "famous",
+            "atlas",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

@@ -1,0 +1,20 @@
+{
+  "source": "c",
+  "origin": "igraph_atlas(53) \u2014 first 6-vertex entry (null graph), cell boundary",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "atlas",
+  "params": {
+    "number": 53
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 0,
+    "directed": false,
+    "edges": []
+  }
+}

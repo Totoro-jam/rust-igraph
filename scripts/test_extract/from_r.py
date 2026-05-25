@@ -7060,6 +7060,70 @@ FAMOUS_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# rigraph exposes `graph_from_atlas(n)` (also aliased `atlas(n)`) in
+# `R/make_graph.R` — the binding ultimately calls the same C
+# `igraph_atlas` entry point through `graph_from_atlas_impl`. The R man
+# page (`man/graph_from_atlas.Rd`) and `test-aaa-auto.R` cover indexing,
+# so we mirror small canonical witnesses here.
+ATLAS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "atlas_r_null0",
+        "origin": "rigraph graph_from_atlas(0) — null graph on 0 vertices (R uses 0-based indexing here, like C)",
+        "algo": "atlas",
+        "params": {"number": 0},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "atlas_r_triangle",
+        "origin": "rigraph graph_from_atlas(7) — the triangle K_3, last 3-vertex entry",
+        "algo": "atlas",
+        "params": {"number": 7},
+        "expected": {
+            "vcount": 3,
+            "ecount": 3,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 2]],
+        },
+    },
+    {
+        "case": "atlas_r_k4",
+        "origin": "rigraph graph_from_atlas(18) — complete K_4, last 4-vertex entry",
+        "algo": "atlas",
+        "params": {"number": 18},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [0, 2], [0, 3], [1, 3], [2, 3]],
+        },
+    },
+    {
+        "case": "atlas_r_k7_last",
+        "origin": "rigraph graph_from_atlas(1252) — complete K_7, the final atlas entry",
+        "algo": "atlas",
+        "params": {"number": 1252},
+        "expected": {
+            "vcount": 7,
+            "ecount": 21,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6],
+                [1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
+                [2, 3], [2, 4], [2, 5], [2, 6],
+                [3, 4], [3, 5], [3, 6],
+                [4, 5], [4, 6],
+                [5, 6],
+            ],
+        },
+    },
+]
+
+
 MYCIELSKIAN_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "mycielskian_r_p3_one_iteration",
@@ -7324,6 +7388,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mycielski_graph": MYCIELSKI_GRAPH_MANIFEST,
     "mycielskian": MYCIELSKIAN_MANIFEST,
     "famous": FAMOUS_MANIFEST,
+    "atlas": ATLAS_MANIFEST,
 }
 
 
@@ -7462,6 +7527,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "lcf",
             "mycielski_graph",
             "famous",
+            "atlas",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

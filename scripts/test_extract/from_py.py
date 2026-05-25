@@ -6930,6 +6930,118 @@ FAMOUS_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# python-igraph `Graph.Atlas(number)` calls `igraph_atlas` in the C core.
+# Captured live from python-igraph 0.11.9 with the script:
+#   for i in [0, 3, 18, 70, 180, 208, 1252]:
+#       g = ig.Graph.Atlas(i); print(g.vcount(), g.ecount(), [e.tuple for e in g.es])
+# Indices 70 and 180 are the ones python-igraph's own test_atlas.py drops
+# from its connectivity sweep (line 174); including them here guards the
+# *constructor* from regressions even though they're connectivity edge
+# cases.
+ATLAS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "atlas_py_null0",
+        "origin": "python-igraph Graph.Atlas(0) — null graph on 0 vertices",
+        "algo": "atlas",
+        "params": {"number": 0},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "atlas_py_k2",
+        "origin": "python-igraph Graph.Atlas(3) — single edge K_2",
+        "algo": "atlas",
+        "params": {"number": 3},
+        "expected": {
+            "vcount": 2,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+    {
+        "case": "atlas_py_k4",
+        "origin": "python-igraph Graph.Atlas(18) — complete K_4",
+        "algo": "atlas",
+        "params": {"number": 18},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [0, 2], [0, 3], [1, 3], [2, 3]],
+        },
+    },
+    {
+        "case": "atlas_py_idx70_skipped_in_upstream",
+        "origin": "python-igraph Graph.Atlas(70) — 6v/4e graph dropped from upstream pagerank sweep; constructor itself is well-formed",
+        "algo": "atlas",
+        "params": {"number": 70},
+        "expected": {
+            "vcount": 6,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 2], [0, 4], [1, 3], [3, 5]],
+        },
+    },
+    {
+        "case": "atlas_py_idx180_skipped_in_upstream",
+        "origin": "python-igraph Graph.Atlas(180) — 6v/10e graph dropped from upstream pagerank sweep",
+        "algo": "atlas",
+        "params": {"number": 180},
+        "expected": {
+            "vcount": 6,
+            "ecount": 10,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [0, 4],
+                [1, 3], [1, 4], [4, 5], [3, 5], [1, 5],
+            ],
+        },
+    },
+    {
+        "case": "atlas_py_k6",
+        "origin": "python-igraph Graph.Atlas(208) — complete K_6, last 6-vertex entry",
+        "algo": "atlas",
+        "params": {"number": 208},
+        "expected": {
+            "vcount": 6,
+            "ecount": 15,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4], [0, 5],
+                [1, 2], [1, 3], [1, 4], [1, 5],
+                [2, 3], [2, 4], [2, 5],
+                [3, 4], [3, 5],
+                [4, 5],
+            ],
+        },
+    },
+    {
+        "case": "atlas_py_k7_last",
+        "origin": "python-igraph Graph.Atlas(1252) — complete K_7, last entry in the atlas",
+        "algo": "atlas",
+        "params": {"number": 1252},
+        "expected": {
+            "vcount": 7,
+            "ecount": 21,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6],
+                [1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
+                [2, 3], [2, 4], [2, 5], [2, 6],
+                [3, 4], [3, 5], [3, 6],
+                [4, 5], [4, 6],
+                [5, 6],
+            ],
+        },
+    },
+]
+
+
 MYCIELSKIAN_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "mycielskian_py_p3_one_iteration",
@@ -7204,6 +7316,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mycielski_graph": MYCIELSKI_GRAPH_MANIFEST,
     "mycielskian": MYCIELSKIAN_MANIFEST,
     "famous": FAMOUS_MANIFEST,
+    "atlas": ATLAS_MANIFEST,
 }
 
 
@@ -7342,6 +7455,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "lcf",
             "mycielski_graph",
             "famous",
+            "atlas",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

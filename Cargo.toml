@@ -166,6 +166,10 @@ path = "examples/mycielskian_demo.rs"
 name = "famous_demo"
 path = "examples/famous_demo.rs"
 
+[[example]]
+name = "atlas_demo"
+path = "examples/atlas_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -554,6 +558,11 @@ harness = false
 [[bench]]
 name = "bench_famous"
 path = "benches/bench_famous.rs"
+harness = false
+
+[[bench]]
+name = "bench_atlas"
+path = "benches/bench_atlas.rs"
 harness = false
 
 [lints.rust]

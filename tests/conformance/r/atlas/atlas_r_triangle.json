@@ -1,0 +1,33 @@
+{
+  "source": "r",
+  "origin": "rigraph graph_from_atlas(7) \u2014 the triangle K_3, last 3-vertex entry",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "atlas",
+  "params": {
+    "number": 7
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 3,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  }
+}
