@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-CN-027",
+  "captured_at": "2026-05-26",
+  "git_commit": "d935900",
+  "rust_t_6_3_octahedron_thrpt_melem_s": 12.622,
+  "rust_t_13_4_thrpt_melem_s": 28.295,
+  "rust_t_96_3_balanced_thrpt_melem_s": 42.342,
+  "rust_t_128_4_balanced_thrpt_melem_s": 41.649,
+  "rust_t_101_3_skewed_thrpt_melem_s": 41.969,
+  "rust_t_200_7_skewed_thrpt_melem_s": 35.177,
+  "py_baseline_ns": null,
+  "notes": "Turan graph constructor (igraph_turan port). Thin wrapper over full_multipartite with balanced partition sizes (quotient = n/r, remainder = n%r → first `remainder` partitions get size quotient+1, the rest get size quotient). Reuses the FullMultipartite (graph + types) return type and the entire inter-partition edge emission path, so the inner work is identical to ALGO-CN-026. Throughput climbs from ~12.6 Melem/s on the octahedron T(6,3) (12 edges — overhead-dominated: Graph::new + add_edges and the Vec<u32> partitions allocation) to ~42 Melem/s on the medium balanced T(96,3) / T(128,4) (~3-6k edges, edge buffer L1-resident). Skewed-remainder T(101,3) is on par with balanced shapes (the per-partition branch is a single index compare, not a hot path). Large T(200,7) drops slightly to ~35 Melem/s as the 17k-edge buffer spills out of L1 but stays L2-resident. py_baseline_ns is null: python-igraph has no Turan binding (confirmed via hasattr(igraph.Graph, 'Turan') == False); the rigraph baseline (make_turan via turan_impl) and the C unit test (tests/unit/igraph_turan.c with 6 .out cases) are validated through the two-source conformance test. Numbers from `cargo bench --bench bench_turan -- --warm-up-time 1 --measurement-time 3` on Darwin/M-series release build."
+}

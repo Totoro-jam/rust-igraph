@@ -13340,6 +13340,157 @@ fn full_multipartite_three_source_conformance() {
     }
 }
 
+fn check_turan_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::turan;
+    use std::collections::BTreeMap;
+
+    let n_raw = case
+        .params
+        .get("n")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or_else(|| {
+            panic!(
+                "turan fixture {}: params.n missing or not u64",
+                path.display()
+            )
+        });
+    let r_raw = case
+        .params
+        .get("r")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or_else(|| {
+            panic!(
+                "turan fixture {}: params.r missing or not u64",
+                path.display()
+            )
+        });
+    let n = u32::try_from(n_raw).expect("n fits u32");
+    let r = u32::try_from(r_raw).expect("r fits u32");
+
+    let result = turan(n, r).expect("turan should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert!(!want_directed, "turan fixtures are always undirected");
+
+    assert_eq!(
+        result.graph.vcount(),
+        want_vertices,
+        "turan vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        result.graph.is_directed(),
+        want_directed,
+        "turan directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        result.graph.ecount() as u64,
+        want_edges,
+        "turan ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_types_raw = case
+        .expected
+        .get("types")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "turan fixture {}: expected.types missing or not array",
+                path.display()
+            )
+        });
+    let want_types: Vec<u32> = want_types_raw
+        .iter()
+        .map(|v| u32::try_from(v.as_u64().expect("u64")).expect("u32 type fits"))
+        .collect();
+    assert_eq!(
+        result.types,
+        want_types,
+        "turan types mismatch in {}",
+        path.display(),
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| panic!("turan fixture {}: expected.edges missing", path.display()));
+
+    let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for v in want_edges_raw {
+        let pair = v
+            .as_array()
+            .unwrap_or_else(|| panic!("turan fixture {}: edge not array", path.display()));
+        let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+        let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+        let key = if u <= w { (u, w) } else { (w, u) };
+        *want_ms.entry(key).or_insert(0) += 1;
+    }
+
+    let n_edges = u32::try_from(result.graph.ecount()).expect("ecount fits u32 in conformance");
+    let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for eid in 0..n_edges {
+        let (u, w) = result.graph.edge(eid).expect("turan edge id in range");
+        let key = if u <= w { (u, w) } else { (w, u) };
+        *got_ms.entry(key).or_insert(0) += 1;
+    }
+
+    assert_eq!(
+        got_ms,
+        want_ms,
+        "turan edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn turan_two_source_conformance() {
+    // `igraph_turan(n, r)` is a thin wrapper over
+    // `igraph_full_multipartite` with balanced partition sizes
+    // (Turán's theorem). It is exposed in igraph C and R-igraph
+    // (`make_turan`) but has no python-igraph binding, so the fixture
+    // set is two-source: C `.out` rows from
+    // `tests/unit/igraph_turan.out` and R helper-shaped fixtures
+    // mirroring `make_turan` calls.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("turan");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read turan fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse turan conformance fixture JSON");
+            assert_eq!(case.algo, "turan");
+            assert_eq!(case.source, src);
+            check_turan_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no turan fixtures from source {src}"
+        );
+    }
+}
+
 fn check_linegraph_fixture(case: &Conformance, path: &std::path::Path) {
     use rust_igraph::linegraph;
     use std::collections::BTreeMap;

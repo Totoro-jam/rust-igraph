@@ -8022,6 +8022,118 @@ FULL_MULTIPARTITE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-027 — `igraph_turan` from `src/constructors/full.c:281-325`.
+# Upstream unit test (`tests/unit/igraph_turan.c`) emits six cases in
+# `igraph_turan.out`: (1) n=0, r=10 → empty + empty types, (2) n=10, r=1
+# → 10 isolated vertices, (3) n=4, r=6 → capped to r=4 yielding K_4
+# (types = [0,1,2,3]), (4) n=13, r=4 → 63 edges across partitions
+# [4,3,3,3] (types = [0,0,0,0,1,1,1,2,2,2,3,3,3]), (5) n=8, r=3 → 21
+# edges across [3,3,2] (types = [0,0,0,1,1,1,2,2]), (6) n=6, r=3 → 12
+# edges across [2,2,2] (types = [0,0,1,1,2,2], the octahedron / cocktail
+# party graph). Edge multisets are byte-for-byte copies from the upstream
+# `.out`. The Rust constructor is undirected only, matching upstream.
+TURAN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "turan_c_n0_r10_empty",
+        "origin": "mirrors igraph_turan(n=0, r=10) — empty graph, empty types (case 1 from tests/unit/igraph_turan.out)",
+        "algo": "turan",
+        "params": {"n": 0, "r": 10},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+            "types": [],
+        },
+    },
+    {
+        "case": "turan_c_n10_r1_isolated",
+        "origin": "mirrors igraph_turan(n=10, r=1) — 10 isolated vertices, types=[0]*10 (case 2 from tests/unit/igraph_turan.out)",
+        "algo": "turan",
+        "params": {"n": 10, "r": 1},
+        "expected": {
+            "vcount": 10,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+            "types": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+    },
+    {
+        "case": "turan_c_n4_r6_capped_k4",
+        "origin": "mirrors igraph_turan(n=4, r=6) — r capped to n=4 yielding K_4, types=[0,1,2,3] (case 3 from tests/unit/igraph_turan.out)",
+        "algo": "turan",
+        "params": {"n": 4, "r": 6},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]],
+            "types": [0, 1, 2, 3],
+        },
+    },
+    {
+        "case": "turan_c_n13_r4_partitions_4_3_3_3",
+        "origin": "mirrors igraph_turan(n=13, r=4) — partitions [4,3,3,3], 63 edges, isomorphic to full_multipartite(4,3,3,3) (case 4 from tests/unit/igraph_turan.out)",
+        "algo": "turan",
+        "params": {"n": 13, "r": 4},
+        "expected": {
+            "vcount": 13,
+            "ecount": 63,
+            "directed": False,
+            "edges": [
+                [0, 4], [0, 5], [0, 6], [0, 7], [0, 8], [0, 9], [0, 10], [0, 11], [0, 12],
+                [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9], [1, 10], [1, 11], [1, 12],
+                [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10], [2, 11], [2, 12],
+                [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [3, 9], [3, 10], [3, 11], [3, 12],
+                [4, 7], [4, 8], [4, 9], [4, 10], [4, 11], [4, 12],
+                [5, 7], [5, 8], [5, 9], [5, 10], [5, 11], [5, 12],
+                [6, 7], [6, 8], [6, 9], [6, 10], [6, 11], [6, 12],
+                [7, 10], [7, 11], [7, 12],
+                [8, 10], [8, 11], [8, 12],
+                [9, 10], [9, 11], [9, 12],
+            ],
+            "types": [0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3],
+        },
+    },
+    {
+        "case": "turan_c_n8_r3_partitions_3_3_2",
+        "origin": "mirrors igraph_turan(n=8, r=3) — partitions [3,3,2], 21 edges, isomorphic to full_multipartite(3,3,2) (case 5 from tests/unit/igraph_turan.out)",
+        "algo": "turan",
+        "params": {"n": 8, "r": 3},
+        "expected": {
+            "vcount": 8,
+            "ecount": 21,
+            "directed": False,
+            "edges": [
+                [0, 3], [0, 4], [0, 5], [0, 6], [0, 7],
+                [1, 3], [1, 4], [1, 5], [1, 6], [1, 7],
+                [2, 3], [2, 4], [2, 5], [2, 6], [2, 7],
+                [3, 6], [3, 7], [4, 6], [4, 7], [5, 6], [5, 7],
+            ],
+            "types": [0, 0, 0, 1, 1, 1, 2, 2],
+        },
+    },
+    {
+        "case": "turan_c_n6_r3_octahedron",
+        "origin": "mirrors igraph_turan(n=6, r=3) — partitions [2,2,2], 12 edges, the cocktail-party graph K_{2,2,2} / octahedron, isomorphic to full_multipartite(2,2,2) (case 6 from tests/unit/igraph_turan.out)",
+        "algo": "turan",
+        "params": {"n": 6, "r": 3},
+        "expected": {
+            "vcount": 6,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 2], [0, 3], [0, 4], [0, 5],
+                [1, 2], [1, 3], [1, 4], [1, 5],
+                [2, 4], [2, 5], [3, 4], [3, 5],
+            ],
+            "types": [0, 0, 1, 1, 2, 2],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `igraph_linegraph` from `src/constructors/linegraph.c`.
 # The upstream unit test (`tests/unit/igraph_linegraph.c`) covers three
 # canonical shapes: (a) a multigraph + self-loop undirected case, (b) a
@@ -9224,6 +9336,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "full_graph": FULL_MANIFEST,
     "full_citation": FULL_CITATION_MANIFEST,
     "full_multipartite": FULL_MULTIPARTITE_MANIFEST,
+    "turan": TURAN_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -9375,6 +9488,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "full_graph",
             "full_citation",
             "full_multipartite",
+            "turan",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

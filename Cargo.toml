@@ -163,6 +163,10 @@ name = "full_multipartite_demo"
 path = "examples/full_multipartite_demo.rs"
 
 [[example]]
+name = "turan_demo"
+path = "examples/turan_demo.rs"
+
+[[example]]
 name = "linegraph_demo"
 path = "examples/linegraph_demo.rs"
 
@@ -564,6 +568,11 @@ harness = false
 [[bench]]
 name = "bench_full_multipartite"
 path = "benches/bench_full_multipartite.rs"
+harness = false
+
+[[bench]]
+name = "bench_turan"
+path = "benches/bench_turan.rs"
 harness = false
 
 [[bench]]

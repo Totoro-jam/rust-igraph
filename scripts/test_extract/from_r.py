@@ -6919,6 +6919,77 @@ FULL_MULTIPARTITE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-027 — `make_turan(n, r)` (R-igraph, references/rigraph/R/make.R:2790)
+# dispatches via `turan_impl` to `igraph_turan`. Like upstream the R
+# wrapper returns the graph plus a `types` attribute. Fixtures pick the
+# canonical R-help shapes: (a) T(10, 3) — the unique 4-balanced
+# tripartition, (b) T(7, 4) — quotient 1, remainder 3, sizes [2,2,2,1],
+# (c) T(9, 3) — balanced [3,3,3] giving K_{3,3,3} a.k.a. the "complete
+# tripartite 9".
+TURAN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "turan_r_n10_r3",
+        "origin": "mirrors R-igraph make_turan(n=10, r=3) — partitions [4,3,3], 33 edges across three balanced parts (rigraph help example)",
+        "algo": "turan",
+        "params": {"n": 10, "r": 3},
+        "expected": {
+            "vcount": 10,
+            "ecount": 33,
+            "directed": False,
+            "edges": [
+                [0, 4], [0, 5], [0, 6], [0, 7], [0, 8], [0, 9],
+                [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9],
+                [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9],
+                [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [3, 9],
+                [4, 7], [4, 8], [4, 9],
+                [5, 7], [5, 8], [5, 9],
+                [6, 7], [6, 8], [6, 9],
+            ],
+            "types": [0, 0, 0, 0, 1, 1, 1, 2, 2, 2],
+        },
+    },
+    {
+        "case": "turan_r_n7_r4",
+        "origin": "mirrors R-igraph make_turan(n=7, r=4) — partitions [2,2,2,1] (quotient 1, remainder 3), 18 edges",
+        "algo": "turan",
+        "params": {"n": 7, "r": 4},
+        "expected": {
+            "vcount": 7,
+            "ecount": 18,
+            "directed": False,
+            "edges": [
+                [0, 2], [0, 3], [0, 4], [0, 5], [0, 6],
+                [1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
+                [2, 4], [2, 5], [2, 6],
+                [3, 4], [3, 5], [3, 6],
+                [4, 6], [5, 6],
+            ],
+            "types": [0, 0, 1, 1, 2, 2, 3],
+        },
+    },
+    {
+        "case": "turan_r_n9_r3_balanced",
+        "origin": "mirrors R-igraph make_turan(n=9, r=3) — balanced partitions [3,3,3] giving the complete tripartite K_{3,3,3}, 27 edges",
+        "algo": "turan",
+        "params": {"n": 9, "r": 3},
+        "expected": {
+            "vcount": 9,
+            "ecount": 27,
+            "directed": False,
+            "edges": [
+                [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8],
+                [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8],
+                [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8],
+                [3, 6], [3, 7], [3, 8],
+                [4, 6], [4, 7], [4, 8],
+                [5, 6], [5, 7], [5, 8],
+            ],
+            "types": [0, 0, 0, 1, 1, 1, 2, 2, 2],
+        },
+    },
+]
+
+
 # ALGO-CN-015 — `make_line_graph` (R-igraph) dispatches to
 # `igraph_linegraph`. Fixtures cover the textbook small shapes —
 # triangle, K_4, star — that an R-bindings user would build with
@@ -7653,6 +7724,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "full_graph": FULL_MANIFEST,
     "full_citation": FULL_CITATION_MANIFEST,
     "full_multipartite": FULL_MULTIPARTITE_MANIFEST,
+    "turan": TURAN_MANIFEST,
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
@@ -7798,6 +7870,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "full_graph",
             "full_citation",
             "full_multipartite",
+            "turan",
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",

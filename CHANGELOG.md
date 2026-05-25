@@ -15,6 +15,104 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-027** — `turan` Turán graph constructor returning
+  `FullMultipartite { graph, types }` so the partition layout is
+  recoverable from the result. **Twenty-seventh member of the
+  `constructors/` family** and a thin balanced wrapper over
+  [`full_multipartite`]. Counterpart of `igraph_turan` in
+  `references/igraph/src/constructors/full.c:281-325`.
+  - `pub fn turan(n: u32, r: u32) -> IgraphResult<FullMultipartite>` —
+    builds the unique (up to isomorphism) `n`-vertex graph that
+    maximises the number of edges subject to containing no clique of
+    size `r + 1` (Turán's 1941 theorem). Concretely the complete
+    `r'`-partite graph with maximally balanced partition sizes, where
+    `r' = min(r, n)`, `q = n / r'`, `s = n % r'`, the first `s`
+    partitions get size `q + 1`, and the remaining `r' − s` partitions
+    get size `q`. Always undirected (matching upstream — Turán graphs
+    are not defined as directed objects).
+  - **Implementation**: thin wrapper over
+    `full_multipartite(&partitions, false, MultipartiteMode::All)`. The
+    only original work is the `Vec<u32>` partition build via a single
+    `for i in 0..r_effective` loop that pushes `q + 1` when
+    `i < remainder` and `q` otherwise (matching upstream's
+    `igraph_vector_int_fill(quotient)` + per-index `++` post-loop). All
+    inter-partition edge emission is delegated to CN-026, so the inner
+    work is byte-for-byte identical to `full_multipartite`'s 4-deep
+    source-major walk.
+  - **Degenerate inputs handled inline ahead of any work**:
+    - `n == 0` short-circuits to `full_multipartite(&[], false, All)`
+      returning the empty graph with empty `types`, regardless of `r`
+      (matching upstream's `if (n == 0) return IGRAPH_SUCCESS` after
+      `igraph_empty`).
+    - `r == 0 ∧ n > 0` returns
+      `IgraphError::InvalidArgument("turan: number of partitions must
+      be positive when n > 0")` (mirroring upstream's `IGRAPH_EINVAL`).
+    - `r > n` silently caps to `r_effective = n` yielding `K_n` with
+      `r' = n` singleton partitions and `types = [0, 1, …, n − 1]`
+      (matching upstream's `r = n` reassignment).
+  - **Overflow protection**: `quotient.checked_add(1)` for the
+    `q + 1` partition size so adversarial inputs cannot silently wrap;
+    the wrapped `full_multipartite` carries the heavier
+    `u64.checked_add` for `n_acc` prefix sums and `usize::checked_mul`
+    for the edge buffer capacity.
+  - **Tests**: 15 unit + 6 proptest covering (a) all 6 upstream `.out`
+    cases from `references/igraph/tests/unit/igraph_turan.out` byte-
+    for-byte (`igraph_turan(0, 10)` empty guard, `igraph_turan(10, 1)`
+    10 isolated vertices, `igraph_turan(4, 6)` capped to `K_4`,
+    `igraph_turan(13, 4)` with `types = [0,0,0,0,1,1,1,2,2,2,3,3,3]`
+    and 63 edges, `igraph_turan(8, 3)` with `types = [0,0,0,1,1,1,2,2]`
+    and 21 edges, `igraph_turan(6, 3)` the octahedron `K_{2,2,2}` with
+    12 edges), (b) the closed-form `E = ½ · Σ n_i · (N − n_i)` cross-
+    check for `T(13, 4) = 63`, `T(8, 3) = 21`, `T(6, 3) = 12`,
+    `T(12, 4) = 54`, (c) the partition-size-differs-by-at-most-one
+    Turán-balance invariant, (d) the types-vector-is-monotone partition-
+    major invariant, (e) the no-edge-lives-inside-a-single-partition
+    multipartite invariant, (f) the always-undirected invariant, (g)
+    `T(n, n + extra) ≡ T(n, n)` for every `extra ≥ 0` (the r-capping
+    invariant), (h) `T(13, 4)` is isomorphic to
+    `full_multipartite(&[4, 3, 3, 3], false, All)` byte-for-byte (same
+    edge multiset + same types), plus a proptest sweep across
+    `n ∈ [0, 30], r ∈ [1, 10]`.
+  - **Two-source conformance** (no `Graph.Turan` in python-igraph):
+    9 fixtures.
+    - python-igraph 0.11.x exposes NO `Graph.Turan` binding —
+      `hasattr(igraph.Graph, 'Turan') == False` against the live
+      `.venv/` installation — so this AWU runs the C + R two-lane
+      pattern (mirroring the precedent set by CN-024 hexagonal_lattice
+      for absent-binding lanes).
+    - C lane (6) — the 6 `.out` cases from
+      `references/igraph/tests/unit/igraph_turan.out`
+      (`igraph_turan(0, 10)` empty, `igraph_turan(10, 1)` 10 isolated,
+      `igraph_turan(4, 6)` capped to `K_4`, `igraph_turan(13, 4)` 63-
+      edge canonical, `igraph_turan(8, 3)` 21-edge, `igraph_turan(6, 3)`
+      octahedron).
+    - py lane (0) — no binding.
+    - R lane (3) — `make_turan(10, 3)` with sizes `[4, 3, 3]`,
+      `make_turan(7, 4)` with sizes `[2, 2, 2, 1]` and 18 edges,
+      `make_turan(9, 3)` balanced `K_{3,3,3}` — all dispatching to
+      `turan_impl() → igraph_turan()`.
+    - Conformance test (`tests/conformance.rs::check_turan_fixture`
+      + `turan_two_source_conformance`) uses canonical `(min, max)`
+      edge multiset compare plus the exact types vector. Walks both
+      `tests/conformance/c/turan/` and `tests/conformance/r/turan/`
+      directories.
+  - **Bench** (`benches/bench_turan.rs`): 6 shapes covering tiny seed
+    graphs (`T(6, 3)` octahedron, `T(13, 4)`), dense balanced
+    (`T(96, 3)`, `T(128, 4)`), and skewed remainder (`T(101, 3)`,
+    `T(200, 7)`). Throughput climbs from ~12.6 Melem/s on `T(6, 3)`
+    (12 edges — overhead-dominated by `Graph::new` + `add_edges` + the
+    `Vec<u32>` partition allocation) to ~42 Melem/s on the medium-
+    balanced `T(96, 3)` / `T(128, 4)` (~3-6k edges, edge buffer L1-
+    resident). Skewed-remainder `T(101, 3)` is on par with balanced
+    shapes (~42 Melem/s — the per-partition branch is a single index
+    compare, not a hot path). Larger `T(200, 7)` drops to ~35 Melem/s
+    as the 17k-edge buffer spills out of L1 but stays L2-resident.
+    `py_baseline_ns` is null by construction.
+  - **Example** (`examples/turan_demo.rs`): walks the canonical shapes
+    `T(0, 10)`, `T(10, 1)`, `T(4, 6)` cap, `T(6, 3)` octahedron,
+    `T(13, 4)` partitions `[4, 3, 3, 3]` and verifies the structural
+    invariants (always-undirected, monotone types, no intra-partition
+    edges, closed-form ecount).
 - **ALGO-CN-026** — `full_multipartite` complete multipartite (and
   bipartite) constructor returning `FullMultipartite { graph, types }`
   with the `types: Vec<u32>` partition labels. **Twenty-sixth member of
