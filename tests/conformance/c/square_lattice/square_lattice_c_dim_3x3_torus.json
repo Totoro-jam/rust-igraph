@@ -1,0 +1,103 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_square_lattice(dim=[3,3], periodic=[true,true]) \u2014 3x3 torus, 18 e 4-regular",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "square_lattice",
+  "params": {
+    "dim": [
+      3,
+      3
+    ],
+    "nei": 1,
+    "directed": false,
+    "mutual": false,
+    "periodic": [
+      true,
+      true
+    ]
+  },
+  "expected": {
+    "vcount": 9,
+    "ecount": 18,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        2,
+        8
+      ]
+    ]
+  }
+}

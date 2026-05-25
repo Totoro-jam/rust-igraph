@@ -10,6 +10,7 @@ pub mod hypercube;
 pub mod kary_tree;
 pub mod regular_tree;
 pub mod ring;
+pub mod square_lattice;
 pub mod star;
 pub mod symmetric_tree;
 pub mod wheel;

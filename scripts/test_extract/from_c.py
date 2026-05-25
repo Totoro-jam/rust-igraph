@@ -6935,6 +6935,181 @@ HYPERCUBE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+SQUARE_LATTICE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "square_lattice_c_dim_zero_singleton",
+        "origin": "mirrors igraph_square_lattice(dim=[], nei=1) — empty-dim singleton",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [],
+            "nei": 1,
+            "directed": False,
+            "mutual": False,
+            "periodic": None,
+        },
+        "expected": {
+            "vcount": 1,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "square_lattice_c_dim_three_path",
+        "origin": "mirrors igraph_square_lattice(dim=[3], nei=1, periodic=[false]) — path P_3",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [3],
+            "nei": 1,
+            "directed": False,
+            "mutual": False,
+            "periodic": [False],
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 1], [1, 2]],
+        },
+    },
+    {
+        "case": "square_lattice_c_dim_three_periodic_cycle",
+        "origin": "mirrors igraph_square_lattice(dim=[3], nei=1, periodic=[true]) — cycle C_3",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [3],
+            "nei": 1,
+            "directed": False,
+            "mutual": False,
+            "periodic": [True],
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 3,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [0, 2]],
+        },
+    },
+    {
+        "case": "square_lattice_c_dim_2x2_four_cycle",
+        "origin": "mirrors igraph_square_lattice(dim=[2,2], nei=1) — 2x2 grid is the 4-cycle",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [2, 2],
+            "nei": 1,
+            "directed": False,
+            "mutual": False,
+            "periodic": None,
+        },
+        "expected": {
+            "vcount": 4,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 3], [2, 3]],
+        },
+    },
+    {
+        "case": "square_lattice_c_dim_3x3_grid",
+        "origin": "mirrors igraph_square_lattice(dim=[3,3], nei=1) — 3x3 grid, 9 v 12 e",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [3, 3],
+            "nei": 1,
+            "directed": False,
+            "mutual": False,
+            "periodic": None,
+        },
+        "expected": {
+            "vcount": 9,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 3],
+                [1, 2], [1, 4],
+                [2, 5],
+                [3, 4], [3, 6],
+                [4, 5], [4, 7],
+                [5, 8],
+                [6, 7],
+                [7, 8],
+            ],
+        },
+    },
+    {
+        "case": "square_lattice_c_dim_3x3_torus",
+        "origin": "mirrors igraph_square_lattice(dim=[3,3], periodic=[true,true]) — 3x3 torus, 18 e 4-regular",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [3, 3],
+            "nei": 1,
+            "directed": False,
+            "mutual": False,
+            "periodic": [True, True],
+        },
+        "expected": {
+            "vcount": 9,
+            "ecount": 18,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 3],
+                [1, 2], [1, 4],
+                [0, 2], [2, 5],
+                [3, 4], [3, 6],
+                [4, 5], [4, 7],
+                [3, 5], [5, 8],
+                [6, 7], [0, 6],
+                [7, 8], [1, 7],
+                [6, 8], [2, 8],
+            ],
+        },
+    },
+    {
+        "case": "square_lattice_c_dim_2x2x2_cube",
+        "origin": "mirrors igraph_square_lattice(dim=[2,2,2], nei=1) — Q_3 cube, 8 v 12 e",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [2, 2, 2],
+            "nei": 1,
+            "directed": False,
+            "mutual": False,
+            "periodic": None,
+        },
+        "expected": {
+            "vcount": 8,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 4],
+                [1, 3], [1, 5],
+                [2, 3], [2, 6],
+                [3, 7],
+                [4, 5], [4, 6],
+                [5, 7],
+                [6, 7],
+            ],
+        },
+    },
+    {
+        "case": "square_lattice_c_dim_three_directed_mutual",
+        "origin": "mirrors igraph_square_lattice(dim=[3], directed=true, mutual=true) — arcs both ways on path",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [3],
+            "nei": 1,
+            "directed": True,
+            "mutual": True,
+            "periodic": None,
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 4,
+            "directed": True,
+            "edges": [[0, 1], [1, 2], [1, 0], [2, 1]],
+        },
+    },
+]
+
+
 HAMMING_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "hamming_c_n0_q5_singleton",
@@ -7211,6 +7386,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "regular_tree": REGULAR_TREE_MANIFEST,
     "hypercube": HYPERCUBE_MANIFEST,
     "hamming": HAMMING_MANIFEST,
+    "square_lattice": SQUARE_LATTICE_MANIFEST,
 }
 
 
@@ -7343,6 +7519,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "regular_tree",
             "hypercube",
             "hamming",
+            "square_lattice",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

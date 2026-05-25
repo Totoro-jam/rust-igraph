@@ -15,6 +15,89 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-009** — `square_lattice` deterministic constructor.
+  **Ninth member of the `constructors/` family.** Counterpart of
+  `igraph_square_lattice` in
+  `references/igraph/src/constructors/lattice.c:60-298`. Builds a
+  d-dimensional Cartesian-product grid over a shape
+  `[n_0, n_1, …, n_{d-1}]` with optional per-axis torus wrap and
+  optional bidirectional arc emission. Vertex ids follow the
+  little-endian convention: lattice site `(i_0, i_1, …, i_{d-1})`
+  carries id `i_0 + n_0·i_1 + n_0·n_1·i_2 + …`, matching upstream.
+  - `pub fn square_lattice(dim: &[u32], nei: u32, directed: bool, mutual: bool, periodic: Option<&[bool]>) -> IgraphResult<Graph>`.
+    No artificial cap on `dim.len()` or per-axis `n_d`: vertex-count
+    product is chained through `checked_mul`, stride walk uses
+    `checked_mul`, and a slice length over `u32::MAX` is rejected with
+    `InvalidArgument`. `nei = 1` is the only currently supported
+    neighbourhood radius — `nei >= 2` (handled in C by a post-hoc
+    `igraph_connect_neighborhood` pass) returns `InvalidArgument` and
+    defers to a future AWU; `nei = 0` is also rejected.
+  - **Algorithm**: for each vertex and each axis `d` emit the forward
+    neighbour `(v, v + stride_d)` whenever `coord_d + 1 < n_d`, plus
+    the wrap edge `(v, v − (n_d − 1)·stride_d)` when `periodic[d]` is
+    set. Wrap edges are **suppressed for dimension size 2** so the
+    cycle does not duplicate the forward edge into a parallel pair —
+    same rule as upstream. `directed && mutual` additionally emits the
+    symmetric back arc for each forward and wrap edge so undirected
+    edges become bidirectional arc pairs; `directed && !mutual`
+    produces the same forward set without back arcs. Total work:
+    `O(|V| · d) = O(|E|)`.
+  - **Truth table** for `square_lattice(dim, 1, directed, mutual, periodic)`:
+
+    | dim          | periodic         | directed | mutual | vcount | ecount | shape                |
+    |--------------|------------------|----------|--------|--------|--------|----------------------|
+    | `[]`         | n/a              | false    | false  | 1      | 0      | singleton (0-d)      |
+    | `[3]`        | none             | false    | false  | 3      | 2      | path `P_3`           |
+    | `[3]`        | `[true]`         | false    | false  | 3      | 3      | cycle `C_3`          |
+    | `[3, 3]`     | none             | false    | false  | 9      | 12     | 2-D grid             |
+    | `[3, 3]`     | `[true, true]`   | false    | false  | 9      | 18     | 2-D torus (4-reg.)   |
+    | `[2, 2, 2]`  | none             | false    | false  | 8      | 12     | cube `Q_3`           |
+    | `[3]`        | none             | true     | true   | 3      | 4      | bidir. `P_3` arcs    |
+
+  - **Structural properties** (covered by both unit and proptest):
+    undirected non-periodic has `Σ_d (Π_{i≠d} n_i)·(n_d − 1)` edges;
+    undirected periodic doubles each cycle dim subject to the
+    `n_d > 2` suppression rule; 2-D `n × n` torus is 4-regular when
+    `n ≥ 3`; `[2, 2, 2]` reproduces the hypercube `Q_3` edge-by-edge
+    against [`hypercube`]; `directed && mutual` doubles every
+    undirected edge count exactly.
+  - **Bounds & overflow**: dimension count over `u32::MAX` rejected;
+    vertex-count and stride products use `checked_mul`; `nei == 0` or
+    `nei >= 2` rejected with `InvalidArgument`; mismatched
+    `periodic.len() != dim.len()` rejected.
+  - **Tests** (`src/algorithms/constructors/square_lattice.rs`): 17
+    unit tests covering 0-d singleton, 1-d path, 1-d periodic cycle
+    (with the wrap canonicalisation that turns `(2, 0)` into
+    `(0, 2)`), 2-d 3×3 grid, 2-d 3×3 torus regularity, 2-D dim-2
+    wrap suppression, 3-D `[2, 2, 2]` ≡ `Q_3` edge-by-edge, directed
+    only, directed+mutual edge count doubling on `P_3`, and all
+    validation error paths. 4 proptest invariants
+    (`proptest-harness` feature) check edge-count formula across
+    random shapes, every emitted edge connects coords that differ in
+    exactly one position by 1 (mod `n_d` when periodic), wrap
+    suppression for dim 2, and the cube ≡ `Q_3` equivalence on random
+    `[2, 2, k]` shapes.
+  - **Conformance** (`tests/conformance/{c,py,r}/square_lattice/`):
+    8 C cases (zero-singleton, 1-d path, 1-d periodic cycle,
+    2×2 four-cycle, 3×3 grid, 3×3 torus, `[2, 2, 2]` cube,
+    1-d directed+mutual), 4 python-igraph cases, and 4 R-igraph
+    cases. Because the lattice emission order is **not portable
+    across upstream sources** (python, R, and our port produce
+    different edge orderings for the same shape — especially with
+    torus wraps), the conformance test compares the **canonicalised
+    edge multiset** for both directed and undirected variants. Total:
+    8 + 4 + 4 = 16 fixtures.
+  - **Bench** (`benches/bench_square_lattice.rs`,
+    `.codefuse/tracking/perf/ALGO-CN-009.json`): 7 bench points across
+    4 shapes (2-d 100×100, 2-d 200×200, 3-d 30×30×30, 2-d 100×100
+    torus). Throughput stays in the **19.5 – 33.0 Medge/s** band:
+    undirected non-periodic ≈ 30 – 33 Medge/s, 2-D torus drops to
+    ≈ 22 Medge/s due to the branchy wrap path, `directed && mutual`
+    drops to ≈ 20 Medge/s due to the symmetric back-arc emission.
+  - **Example** (`examples/square_lattice_demo.rs`): walks 1-D path,
+    1-D periodic cycle, 2-D 3×3 grid, 2-D 3×3 torus, 3-D `[2, 2, 2]`
+    cube ≡ `Q_3`, and 1-D directed+mutual with structural assertions
+    on every variant.
 - **ALGO-CN-008** — `hamming` deterministic constructor.
   **Eighth member of the `constructors/` family.** Counterpart of
   `igraph_hamming` in

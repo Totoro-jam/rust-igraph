@@ -1,0 +1,83 @@
+{
+  "algo_id": "ALGO-CN-009",
+  "algo": "square_lattice",
+  "captured_at": "2026-05-25",
+  "git_commit": "589503c",
+  "machine": "darwin-arm64",
+  "criterion_version": "0.5",
+  "configs": [
+    {
+      "label": "2d_100x100",
+      "dim": [100, 100],
+      "periodic": null,
+      "vcount": 10000,
+      "ecount": 19800
+    },
+    {
+      "label": "2d_200x200",
+      "dim": [200, 200],
+      "periodic": null,
+      "vcount": 40000,
+      "ecount": 79600
+    },
+    {
+      "label": "3d_30x30x30",
+      "dim": [30, 30, 30],
+      "periodic": null,
+      "vcount": 27000,
+      "ecount": 78300
+    },
+    {
+      "label": "2d_100x100_torus",
+      "dim": [100, 100],
+      "periodic": [true, true],
+      "vcount": 10000,
+      "ecount": 20000
+    }
+  ],
+  "results": {
+    "square_lattice/undirected/2d_100x100": {
+      "time_low": "596.94 us",
+      "time_mid": "598.74 us",
+      "time_high": "600.93 us",
+      "throughput": "~33.0 Medge/s"
+    },
+    "square_lattice/undirected/2d_200x200": {
+      "time_low": "2.5801 ms",
+      "time_mid": "2.5830 ms",
+      "time_high": "2.5860 ms",
+      "throughput": "~30.8 Medge/s"
+    },
+    "square_lattice/undirected/3d_30x30x30": {
+      "time_low": "2.5702 ms",
+      "time_mid": "2.5747 ms",
+      "time_high": "2.5808 ms",
+      "throughput": "~30.4 Medge/s"
+    },
+    "square_lattice/undirected/2d_100x100_torus": {
+      "time_low": "900.19 us",
+      "time_mid": "903.11 us",
+      "time_high": "906.04 us",
+      "throughput": "~22.1 Medge/s"
+    },
+    "square_lattice/directed_mutual/2d_100x100": {
+      "time_low": "1.9030 ms",
+      "time_mid": "1.9067 ms",
+      "time_high": "1.9105 ms",
+      "throughput": "~20.7 Medge/s"
+    },
+    "square_lattice/directed_mutual/2d_200x200": {
+      "time_low": "8.1265 ms",
+      "time_mid": "8.1368 ms",
+      "time_high": "8.1482 ms",
+      "throughput": "~19.5 Medge/s"
+    },
+    "square_lattice/directed_mutual/3d_30x30x30": {
+      "time_low": "7.8555 ms",
+      "time_mid": "7.8647 ms",
+      "time_high": "7.8748 ms",
+      "throughput": "~19.9 Medge/s"
+    }
+  },
+  "notes": "Walk cost is O(|V| * d): for each lattice vertex we run the per-axis forward (plus optional backward for directed+mutual) emission. Throughput stays in the 20-33 Medge/s band across shapes — the 2-D torus tax (extra wrap edges + branchy carry) pulls the per-edge cost up vs the non-periodic grid, and directed+mutual adds the symmetric back-arc pass for a ~2/3 throughput. 3-D pays for the deeper carry/coords walk but stays comparable per emitted edge. No allocator hot path: the edges Vec grows linearly; Graph::new + add_edges dominates the post-walk cost on large shapes."
+}

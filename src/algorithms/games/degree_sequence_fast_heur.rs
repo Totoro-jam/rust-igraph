@@ -52,7 +52,7 @@
 //! Non-graphical input is rejected up front. For sequences that pass the
 //! graphicality test but happen to be especially hostile to the heuristic
 //! (e.g. very dense, near-regular sequences with low slack), the
-//! attempt-restart counter is bounded by [`MAX_OUTER_ATTEMPTS`]; the
+//! attempt-restart counter is bounded by `MAX_OUTER_ATTEMPTS` (1024); the
 //! function returns `InvalidArgument` once exhausted.
 
 #![allow(
@@ -434,7 +434,7 @@ fn run_directed(
 /// * Undirected mode with a non-graphical sequence (Erdős–Gallai fails).
 /// * Directed mode with `Σ out ≠ Σ in` or a non-graphical pair
 ///   (Fulkerson–Chen–Anstee fails).
-/// * Heuristic exhausted [`MAX_OUTER_ATTEMPTS`] restarts.
+/// * Heuristic exhausted `MAX_OUTER_ATTEMPTS` (1024) restarts.
 ///
 /// [`degree_sequence_game_vl`]: crate::degree_sequence_game_vl
 ///

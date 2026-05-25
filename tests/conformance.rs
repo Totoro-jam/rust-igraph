@@ -11854,3 +11854,196 @@ fn hamming_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + directed/canon compare + array params
+fn square_lattice_three_source_conformance() {
+    // Multi-dimensional square lattice with optional per-axis torus
+    // wrap and directed/mutual flags. Documented in
+    // `regular.c:igraph_square_lattice`. Only `nei in {0, 1}` is
+    // supported by this port; fixtures all set `nei = 1`.
+    use rust_igraph::square_lattice;
+
+    fn canon(u: u32, v: u32) -> (u32, u32) {
+        if u <= v { (u, v) } else { (v, u) }
+    }
+
+    fn parse_u32_array(case: &Conformance, key: &str, path: &std::path::Path) -> Vec<u32> {
+        let Some(arr) = case.params.get(key).and_then(serde_json::Value::as_array) else {
+            panic!(
+                "square_lattice fixture {}: param `{}` missing or not array",
+                path.display(),
+                key
+            );
+        };
+        arr.iter()
+            .map(|v| {
+                u32::try_from(v.as_u64().unwrap_or_else(|| {
+                    panic!(
+                        "square_lattice fixture {}: param `{}` element not u64",
+                        path.display(),
+                        key
+                    )
+                }))
+                .expect("dim element fits u32")
+            })
+            .collect()
+    }
+
+    fn parse_optional_bool_array(
+        case: &Conformance,
+        key: &str,
+        path: &std::path::Path,
+    ) -> Option<Vec<bool>> {
+        match case.params.get(key) {
+            None | Some(serde_json::Value::Null) => None,
+            Some(serde_json::Value::Array(arr)) => Some(
+                arr.iter()
+                    .map(|v| {
+                        v.as_bool().unwrap_or_else(|| {
+                            panic!(
+                                "square_lattice fixture {}: param `{}` element not bool",
+                                path.display(),
+                                key
+                            )
+                        })
+                    })
+                    .collect(),
+            ),
+            _ => panic!(
+                "square_lattice fixture {}: param `{}` neither null nor array",
+                path.display(),
+                key
+            ),
+        }
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("square_lattice");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read square_lattice fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes)
+                .expect("parse square_lattice conformance fixture JSON");
+            assert_eq!(case.algo, "square_lattice");
+
+            let dim = parse_u32_array(&case, "dim", &path);
+            let nei = er_param_u32(&case, "nei", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let mutual = er_param_bool(&case, "mutual", &path);
+            let periodic = parse_optional_bool_array(&case, "periodic", &path);
+
+            let graph = square_lattice(&dim, nei, directed, mutual, periodic.as_deref())
+                .expect("square_lattice should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_edges = er_expected_u64(&case, "ecount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.ecount() as u64,
+                want_edges,
+                "ecount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let want_edges_raw = case
+                .expected
+                .get("edges")
+                .and_then(serde_json::Value::as_array)
+                .unwrap_or_else(|| {
+                    panic!(
+                        "square_lattice fixture {}: expected.edges missing or not array",
+                        path.display()
+                    )
+                });
+            let mut want_pairs: Vec<(u32, u32)> = Vec::with_capacity(want_edges_raw.len());
+            for v in want_edges_raw {
+                let pair = v.as_array().unwrap_or_else(|| {
+                    panic!(
+                        "square_lattice fixture {}: expected.edges entry not array",
+                        path.display()
+                    )
+                });
+                let u = u32::try_from(pair[0].as_u64().expect("edge endpoint u64"))
+                    .expect("edge endpoint fits in u32");
+                let w = u32::try_from(pair[1].as_u64().expect("edge endpoint u64"))
+                    .expect("edge endpoint fits in u32");
+                want_pairs.push((u, w));
+            }
+
+            let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32 in conformance");
+            let got_pairs: Vec<(u32, u32)> = (0..n_edges)
+                .map(|eid| {
+                    graph
+                        .edge(eid)
+                        .expect("conformance square_lattice edge id in bounds")
+                })
+                .collect();
+
+            // Always compare as a canonicalized multiset: both endpoints
+            // are by convention `min(u,v) <= max(u,v)` after Graph::add_edges,
+            // but the emission *order* in the C reference is a function of
+            // the lattice walk and is not portable across the three sources
+            // (python and R cite different vertex orderings even for the
+            // same shape). Multiset compare gives a clean cross-impl check.
+            let mut got_canon: Vec<(u32, u32)> =
+                got_pairs.iter().map(|&(u, v)| canon(u, v)).collect();
+            let mut want_canon: Vec<(u32, u32)> =
+                want_pairs.iter().map(|&(u, v)| canon(u, v)).collect();
+            got_canon.sort_unstable();
+            want_canon.sort_unstable();
+            assert_eq!(
+                got_canon,
+                want_canon,
+                "square_lattice edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no square_lattice fixtures from source {src}"
+        );
+    }
+}

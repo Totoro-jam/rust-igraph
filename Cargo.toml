@@ -126,6 +126,10 @@ path = "examples/hypercube_demo.rs"
 name = "hamming_demo"
 path = "examples/hamming_demo.rs"
 
+[[example]]
+name = "square_lattice_demo"
+path = "examples/square_lattice_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -454,6 +458,11 @@ harness = false
 [[bench]]
 name = "bench_hamming"
 path = "benches/bench_hamming.rs"
+harness = false
+
+[[bench]]
+name = "bench_square_lattice"
+path = "benches/bench_square_lattice.rs"
 harness = false
 
 [lints.rust]

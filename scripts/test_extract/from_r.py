@@ -6407,6 +6407,99 @@ HYPERCUBE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+SQUARE_LATTICE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "square_lattice_r_dim_three_path",
+        "origin": "rigraph make_lattice(c(3), nei=1, circular=FALSE) — path P_3",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [3],
+            "nei": 1,
+            "directed": False,
+            "mutual": False,
+            "periodic": [False],
+        },
+        "expected": {
+            "vcount": 3,
+            "ecount": 2,
+            "directed": False,
+            "edges": [[0, 1], [1, 2]],
+        },
+    },
+    {
+        "case": "square_lattice_r_dim_3x3_grid",
+        "origin": "rigraph make_lattice(c(3,3), nei=1, circular=FALSE) — 3x3 grid",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [3, 3],
+            "nei": 1,
+            "directed": False,
+            "mutual": False,
+            "periodic": None,
+        },
+        "expected": {
+            "vcount": 9,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 3],
+                [1, 2], [1, 4],
+                [2, 5],
+                [3, 4], [3, 6],
+                [4, 5], [4, 7],
+                [5, 8],
+                [6, 7],
+                [7, 8],
+            ],
+        },
+    },
+    {
+        "case": "square_lattice_r_dim_2x2_four_cycle",
+        "origin": "rigraph make_lattice(c(2,2), nei=1) — 2x2 is 4-cycle",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [2, 2],
+            "nei": 1,
+            "directed": False,
+            "mutual": False,
+            "periodic": None,
+        },
+        "expected": {
+            "vcount": 4,
+            "ecount": 4,
+            "directed": False,
+            "edges": [[0, 1], [0, 2], [1, 3], [2, 3]],
+        },
+    },
+    {
+        "case": "square_lattice_r_dim_2x2x2_cube",
+        "origin": "rigraph make_lattice(c(2,2,2), nei=1) — Q_3 cube",
+        "algo": "square_lattice",
+        "params": {
+            "dim": [2, 2, 2],
+            "nei": 1,
+            "directed": False,
+            "mutual": False,
+            "periodic": None,
+        },
+        "expected": {
+            "vcount": 8,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 4],
+                [1, 3], [1, 5],
+                [2, 3], [2, 6],
+                [3, 7],
+                [4, 5], [4, 6],
+                [5, 7],
+                [6, 7],
+            ],
+        },
+    },
+]
+
+
 HAMMING_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "hamming_r_n1_q3_is_k3",
@@ -6659,6 +6752,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "regular_tree": REGULAR_TREE_MANIFEST,
     "hypercube": HYPERCUBE_MANIFEST,
     "hamming": HAMMING_MANIFEST,
+    "square_lattice": SQUARE_LATTICE_MANIFEST,
 }
 
 
@@ -6786,6 +6880,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "regular_tree",
             "hypercube",
             "hamming",
+            "square_lattice",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural
