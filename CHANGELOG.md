@@ -15,6 +15,73 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-018** — `lcf` LCF (Lederberg-Coxeter-Frucht) cubic-graph
+  constructor. **Eighteenth member of the `constructors/` family.**
+  Counterpart of `igraph_lcf` in `references/igraph/src/constructors/lcf.c`.
+  Given vertex count `n`, an integer shift pattern `shifts[0..k]`
+  (positive or negative offsets relative to a Hamilton cycle), and a
+  `repeats` count, materialises the unique 3-regular simple undirected
+  graph encoded by the LCF notation `[shifts]^repeats`.
+  - `pub fn lcf(n: u32, shifts: &[i64], repeats: u32) -> IgraphResult<Graph>`.
+    Algorithm: (1) emit Hamilton-cycle backbone `0–1–2–…–(n−1)–0`
+    (skipped when `n ≤ 1`), (2) chord pass — for each
+    `sptr ∈ [0, repeats·shifts.len())` compute
+    `u = sptr mod n`, `s = shifts[sptr mod shifts.len()]`,
+    `v = ((u as i64) + s).rem_euclid(n as i64)`, emit candidate chord
+    `(u, v)`, (3) inline simplify via `BTreeSet<(u32, u32)>` with
+    canonical `(min, max)` insert — self-loops where `u == v` are
+    silently dropped and any chord already in the seen-set is a no-op,
+    mirroring upstream's terminal `igraph_simplify(loops=true, multi=true)`
+    collapse. Result is always `Graph::new(n, false)` (the C constructor
+    is fixed `IGRAPH_UNDIRECTED`). Overflow protection: `i64` widening
+    for the chord arithmetic so `shifts = [i64::MAX]` cannot silently
+    wrap before the `rem_euclid` modular reduction.
+  - 15 unit tests covering: Franklin `[5,-5]^6` n=12 (18 edges, bipartite
+    cubic), Heawood `[5,-5]^7` n=14 (21 edges, girth-6 cage), Frucht
+    `[-5,-2,-4,2,5,-2,2,5,-2,-5,4,2]^1` n=12 (18 edges, only 3-regular
+    planar graph with trivial automorphism group), Truncated tetrahedron
+    `[2,6,-2,-6]^3` n=12, Truncated octahedron `[3,-7,7,-3]^6` n=24 (36
+    edges), pure-Hamilton-cycle when `shifts` is empty or `repeats == 0`,
+    n=2 self-loop collapse (every chord is a self-loop; only backbone
+    survives, ecount=1), `lcf(0, [], 0)` → empty graph (upstream bug #996
+    regression), negative-shift wrap via `rem_euclid`, large-shift wrap
+    `|s| ≥ n`, duplicate-chord collapse, mixed-shift smoke. All assert
+    cubic-regularity, simple-undirected, and exact edge multiset where
+    possible.
+  - 7 proptest invariants (`proptest-harness` feature) over
+    `n ∈ [0, 30]`, `shifts.len() ∈ [0, 6]`, `repeats ∈ [0, 4]`: result
+    always undirected, no self-loops survive, no parallel edges survive
+    (canonical multiset uniqueness); edge count ≤ `n + repeats·shifts.len()`
+    (chord-pass upper bound before simplify); pure-cycle invariant when
+    `repeats == 0` or `shifts` is empty; `n == 0` always yields empty
+    regardless of pattern; `n == 1` always yields singleton; unrolled-shifts
+    equivalence (`lcf(n, shifts, k) ≡ lcf(n, shifts.repeat(k), 1)` as
+    edge multisets); maximum degree bounded by `2 + 2·shifts.len()` per
+    vertex.
+  - 14 three-source conformance fixtures (`C:6 / py:5 / R:3`) under
+    `tests/conformance/{c,py,r}/lcf/`: C — Franklin, three_minus2_repeats_4_n8,
+    two_minus2_repeats_2_n2 (self-loop collapse), two_repeats_2_n2,
+    null_graph_bug_996, Heawood; py — Franklin, Heawood, Truncated
+    tetrahedron, empty-shifts pure-cycle, single-shift repeats=3;
+    R — Franklin, Heawood, repeats_zero_pure_cycle. Conformance test
+    compares canonical `(min, max)` edge multisets (cross-source
+    emission order is not byte-stable; upstream's terminal simplify
+    rewrites the edge list).
+  - `examples/lcf_demo.rs` — walks Franklin, Heawood, Frucht, Truncated
+    tetrahedron, Truncated octahedron, pure-cycle, n=2 self-loop
+    collapse, bug #996 null-graph; asserts cubic-regularity and
+    simple-undirectedness for each.
+  - `benches/bench_lcf.rs` (criterion) — `famous` group over the five
+    catalogue graphs, `cycle_only` sweep `n ∈ {64, 1024, 16384, 131072}`,
+    `chord_heavy` sweep same `n` with `shifts = [3,-5,7,-11,13]` and
+    `repeats = n/5`. Snapshot at `.codefuse/tracking/perf/ALGO-CN-018.json`:
+    famous shapes ~7.8–9.4 Melem/s, cycle-only `n=131072` 12.578 ms
+    (10.4 Melem/s), chord-heavy `n=131072` 27.531 ms (4.8 Melem/s);
+    cycle-only scaling 17.9×/20.7×/9.0× and chord-heavy 23.7×/20.0×/9.0×
+    per 16×/16×/8× `n` step confirm near-linear with mild log overhead
+    from `BTreeSet` inserts (matches upstream's `igraph_simplify`
+    envelope).
+
 - **ALGO-CN-017** — `tree_from_parent_vector` parent-vector tree/forest
   decoder. **Seventeenth member of the `constructors/` family.**
   Counterpart of `igraph_tree_from_parent_vector` in

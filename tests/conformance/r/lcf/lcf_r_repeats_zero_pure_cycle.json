@@ -1,0 +1,47 @@
+{
+  "source": "r",
+  "origin": "rigraph graph_from_lcf(5, c(1, 2, 3), 0) \u2014 repeats=0 skips the entire chord pass; result is C_5",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lcf",
+  "params": {
+    "n": 5,
+    "shifts": [
+      1,
+      2,
+      3
+    ],
+    "repeats": 0
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 5,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ]
+  }
+}

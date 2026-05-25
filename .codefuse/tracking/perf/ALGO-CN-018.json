@@ -1,0 +1,120 @@
+{
+  "awu": "ALGO-CN-018",
+  "function": "lcf",
+  "bench_file": "benches/bench_lcf.rs",
+  "captured_on": "2026-05-25",
+  "host": {
+    "machine": "Darwin 25.5.0 (Apple Silicon)",
+    "rustc": "1.87.0 (locally; project MSRV 1.85)",
+    "profile": "bench (--quick, --noplot, criterion 0.5.x)",
+    "notes": "Median of three samples. Inline simplify uses BTreeSet<(u32,u32)>; thus the asymptotic factor is O((n + repeats*shifts.len()) * log(n + repeats*shifts.len()))."
+  },
+  "results": [
+    {
+      "group": "lcf/famous",
+      "case": "franklin",
+      "params": {"n": 12, "shifts": [5, -5], "repeats": 6},
+      "time_lo": "1.5271 µs",
+      "time_med": "1.5314 µs",
+      "time_hi": "1.5485 µs",
+      "throughput_med": "7.8361 Melem/s"
+    },
+    {
+      "group": "lcf/famous",
+      "case": "heawood",
+      "params": {"n": 14, "shifts": [5, -5], "repeats": 7},
+      "time_lo": "1.6672 µs",
+      "time_med": "1.6678 µs",
+      "time_hi": "1.6701 µs",
+      "throughput_med": "8.3945 Melem/s"
+    },
+    {
+      "group": "lcf/famous",
+      "case": "frucht",
+      "params": {"n": 12, "shifts": "[-5,-2,-4,2,5,-2,2,5,-2,-5,4,2]", "repeats": 1},
+      "time_lo": "1.5021 µs",
+      "time_med": "1.5398 µs",
+      "time_hi": "1.5492 µs",
+      "throughput_med": "7.7933 Melem/s"
+    },
+    {
+      "group": "lcf/famous",
+      "case": "truncated_tetrahedron",
+      "params": {"n": 12, "shifts": [2, 6, -2, -6], "repeats": 3},
+      "time_lo": "1.4835 µs",
+      "time_med": "1.5031 µs",
+      "time_hi": "1.5079 µs",
+      "throughput_med": "7.9837 Melem/s"
+    },
+    {
+      "group": "lcf/famous",
+      "case": "truncated_octahedron",
+      "params": {"n": 24, "shifts": [3, -7, 7, -3], "repeats": 6},
+      "time_lo": "2.5343 µs",
+      "time_med": "2.5404 µs",
+      "time_hi": "2.5648 µs",
+      "throughput_med": "9.4475 Melem/s"
+    },
+    {
+      "group": "lcf/cycle_only",
+      "case": "n=64",
+      "time_med": "3.7915 µs",
+      "throughput_med": "16.880 Melem/s"
+    },
+    {
+      "group": "lcf/cycle_only",
+      "case": "n=1024",
+      "time_med": "67.750 µs",
+      "throughput_med": "15.114 Melem/s"
+    },
+    {
+      "group": "lcf/cycle_only",
+      "case": "n=16384",
+      "time_med": "1.4026 ms",
+      "throughput_med": "11.681 Melem/s"
+    },
+    {
+      "group": "lcf/cycle_only",
+      "case": "n=131072",
+      "time_med": "12.578 ms",
+      "throughput_med": "10.421 Melem/s"
+    },
+    {
+      "group": "lcf/chord_heavy",
+      "case": "n=64 (shifts=[3,-5,7,-11,13], repeats=12)",
+      "time_med": "6.4844 µs",
+      "throughput_med": "9.8699 Melem/s"
+    },
+    {
+      "group": "lcf/chord_heavy",
+      "case": "n=1024 (shifts=[3,-5,7,-11,13], repeats=204)",
+      "time_med": "153.61 µs",
+      "throughput_med": "6.6661 Melem/s"
+    },
+    {
+      "group": "lcf/chord_heavy",
+      "case": "n=16384 (shifts=[3,-5,7,-11,13], repeats=3276)",
+      "time_med": "3.0693 ms",
+      "throughput_med": "5.3381 Melem/s"
+    },
+    {
+      "group": "lcf/chord_heavy",
+      "case": "n=131072 (shifts=[3,-5,7,-11,13], repeats=26214)",
+      "time_med": "27.531 ms",
+      "throughput_med": "4.7609 Melem/s"
+    }
+  ],
+  "scaling_notes": {
+    "cycle_only_ratios": [
+      "1024 / 64 (16x n) = 17.9x time → near-linear with mild log overhead from BTreeSet inserts",
+      "16384 / 1024 (16x n) = 20.7x time → log factor visible",
+      "131072 / 16384 (8x n) = 9.0x time"
+    ],
+    "chord_heavy_ratios": [
+      "1024 / 64 (16x n) = 23.7x time → super-linear due to chord-pass log factor",
+      "16384 / 1024 (16x n) = 20.0x time",
+      "131072 / 16384 (8x n) = 9.0x time"
+    ],
+    "verdict": "Within expected O((n+m) log(n+m)) envelope from the inline BTreeSet simplify pass. Comparable to upstream igraph_lcf which delegates to igraph_simplify(loops=true, multi=true) at the end."
+  }
+}

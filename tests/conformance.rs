@@ -13132,3 +13132,136 @@ fn tree_from_parent_vector_three_source_conformance() {
         );
     }
 }
+
+fn check_lcf_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::lcf;
+    use std::collections::BTreeMap;
+
+    let n_val = case
+        .params
+        .get("n")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or_else(|| panic!("lcf fixture {}: params.n missing", path.display()));
+    let n = u32::try_from(n_val)
+        .unwrap_or_else(|_| panic!("lcf fixture {}: params.n exceeds u32", path.display()));
+
+    let shifts: Vec<i64> = case
+        .params
+        .get("shifts")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| panic!("lcf fixture {}: params.shifts missing", path.display()))
+        .iter()
+        .map(|v| {
+            v.as_i64()
+                .unwrap_or_else(|| panic!("lcf fixture {}: shifts entry not i64", path.display()))
+        })
+        .collect();
+
+    let repeats_val = case
+        .params
+        .get("repeats")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or_else(|| panic!("lcf fixture {}: params.repeats missing", path.display()));
+    let repeats = u32::try_from(repeats_val)
+        .unwrap_or_else(|_| panic!("lcf fixture {}: params.repeats exceeds u32", path.display()));
+
+    let g = lcf(n, &shifts, repeats).expect("lcf should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        g.vcount(),
+        want_vertices,
+        "lcf vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.is_directed(),
+        want_directed,
+        "lcf directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.ecount() as u64,
+        want_edges,
+        "lcf ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| panic!("lcf fixture {}: expected.edges missing", path.display()));
+
+    // lcf is always undirected; compare canonical (min, max) edge multisets
+    // so the fixture is robust to internal edge-storage ordering.
+    let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for v in want_edges_raw {
+        let pair = v
+            .as_array()
+            .unwrap_or_else(|| panic!("lcf fixture {}: edge not array", path.display()));
+        let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+        let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+        let key = if u <= w { (u, w) } else { (w, u) };
+        *want_ms.entry(key).or_insert(0) += 1;
+    }
+
+    let n_edges = u32::try_from(g.ecount()).expect("ecount fits u32 in conformance");
+    let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for eid in 0..n_edges {
+        let (u, w) = g.edge(eid).expect("edge id in range");
+        let key = if u <= w { (u, w) } else { (w, u) };
+        *got_ms.entry(key).or_insert(0) += 1;
+    }
+
+    assert_eq!(
+        got_ms,
+        want_ms,
+        "lcf edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn lcf_three_source_conformance() {
+    // `igraph_lcf` is reached identically by python-igraph (`Graph.LCF`)
+    // and rigraph (`graph_from_lcf`). The C unit test asserts ecount and
+    // checks Franklin via isomorphism; we tighten that to a canonical
+    // edge-multiset compare so cross-source orderings remain compatible
+    // while still catching arithmetic regressions.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("lcf");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read lcf fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse lcf conformance fixture JSON");
+            assert_eq!(case.algo, "lcf");
+            assert_eq!(case.source, src);
+            check_lcf_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no lcf fixtures from source {src}"
+        );
+    }
+}

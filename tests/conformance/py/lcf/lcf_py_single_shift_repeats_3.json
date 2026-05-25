@@ -1,0 +1,61 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.LCF(6, [3], 6) \u2014 every vertex paired across the diameter; antipode chords collapse to 3 unique edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lcf",
+  "params": {
+    "n": 6,
+    "shifts": [
+      3
+    ],
+    "repeats": 6
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 9,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        5
+      ]
+    ]
+  }
+}

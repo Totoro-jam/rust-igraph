@@ -1,0 +1,100 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.LCF(12, [2, 6, -2, -6], 3) \u2014 truncated tetrahedron (12 vertices, 18 edges, cubic)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lcf",
+  "params": {
+    "n": 12,
+    "shifts": [
+      2,
+      6,
+      -2,
+      -6
+    ],
+    "repeats": 3
+  },
+  "expected": {
+    "vcount": 12,
+    "ecount": 18,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        0,
+        11
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        3,
+        9
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        5,
+        11
+      ],
+      [
+        8,
+        10
+      ]
+    ]
+  }
+}

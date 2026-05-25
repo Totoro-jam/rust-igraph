@@ -6924,6 +6924,59 @@ TREE_FROM_PARENT_VECTOR_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-018 — `graph_from_lcf(n, shifts, repeats)` (rigraph, formerly
+# `graph.lcf`) dispatches to the same C `igraph_lcf`. rigraph's
+# `test-aaa-auto.R` snapshot exercises the Franklin graph and a single
+# trivial fixture; we add Heawood and a pure-cycle case to round out the
+# topology coverage.
+LCF_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "lcf_r_franklin",
+        "origin": "rigraph graph_from_lcf(12, c(5, -5), 6) — Franklin graph, the canonical LCF showcase (12 vertices, 18 edges)",
+        "algo": "lcf",
+        "params": {"n": 12, "shifts": [5, -5], "repeats": 6},
+        "expected": {
+            "vcount": 12,
+            "ecount": 18,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7],
+                [7, 8], [8, 9], [9, 10], [10, 11], [0, 11],
+                [0, 5], [1, 8], [2, 7], [3, 10], [4, 9], [6, 11],
+            ],
+        },
+    },
+    {
+        "case": "lcf_r_heawood",
+        "origin": "rigraph graph_from_lcf(14, c(5, -5), 7) — Heawood graph (14 vertices, 21 edges, bipartite cubic, girth 6)",
+        "algo": "lcf",
+        "params": {"n": 14, "shifts": [5, -5], "repeats": 7},
+        "expected": {
+            "vcount": 14,
+            "ecount": 21,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7],
+                [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13], [0, 13],
+                [0, 5], [1, 10], [2, 7], [3, 12], [4, 9], [6, 11], [8, 13],
+            ],
+        },
+    },
+    {
+        "case": "lcf_r_repeats_zero_pure_cycle",
+        "origin": "rigraph graph_from_lcf(5, c(1, 2, 3), 0) — repeats=0 skips the entire chord pass; result is C_5",
+        "algo": "lcf",
+        "params": {"n": 5, "shifts": [1, 2, 3], "repeats": 0},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [3, 4], [0, 4]],
+        },
+    },
+]
+
+
 PRUFER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "from_prufer_r_make_tree_13_3_roundtrip",
@@ -7145,6 +7198,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
+    "lcf": LCF_MANIFEST,
 }
 
 
@@ -7280,6 +7334,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "full_graph",
             "from_prufer",
             "tree_from_parent_vector",
+            "lcf",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

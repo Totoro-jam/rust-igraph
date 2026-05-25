@@ -8018,6 +8018,99 @@ TREE_FROM_PARENT_VECTOR_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-018 — `igraph_lcf` from `src/constructors/lcf.c`. The upstream
+# unit test (`tests/unit/igraph_lcf.c` + `.out`) asserts ecount/vcount for
+# a handful of LCF descriptions and validates Franklin via isomorphism
+# with `igraph_famous("franklin")`. We mirror the structural checks and
+# pin the resulting canonical edge list — the constructor is deterministic
+# so cross-source comparison is unambiguous.
+LCF_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "lcf_c_franklin_5_minus5_repeats_6",
+        "origin": "mirrors igraph_lcf.c Franklin fixture: lcf_small(12, 5, -5, 6, 0) — 12 vertices, 18 edges, isomorphic to igraph_famous(\"franklin\")",
+        "algo": "lcf",
+        "params": {"n": 12, "shifts": [5, -5], "repeats": 6},
+        "expected": {
+            "vcount": 12,
+            "ecount": 18,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7],
+                [7, 8], [8, 9], [9, 10], [10, 11], [0, 11],
+                [0, 5], [1, 8], [2, 7], [3, 10], [4, 9], [6, 11],
+            ],
+        },
+    },
+    {
+        "case": "lcf_c_three_minus2_repeats_4_n8",
+        "origin": "mirrors igraph_lcf.c ad-hoc fixture: lcf_small(8, 3, -2, 4, 0) — 8 vertices, 16 edges (Hamilton C_8 + 8 distinct chords)",
+        "algo": "lcf",
+        "params": {"n": 8, "shifts": [3, -2], "repeats": 4},
+        "expected": {
+            "vcount": 8,
+            "ecount": 16,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [0, 7],
+                [0, 3], [1, 7], [2, 5], [1, 3], [4, 7], [3, 5], [1, 6], [5, 7],
+            ],
+        },
+    },
+    {
+        "case": "lcf_c_two_minus2_repeats_2_n2",
+        "origin": "mirrors igraph_lcf.c collapse fixture: lcf_small(2, 2, -2, 2, 0) — n=2 forces every chord into a self-loop; simplify collapses to 1 backbone edge",
+        "algo": "lcf",
+        "params": {"n": 2, "shifts": [2, -2], "repeats": 2},
+        "expected": {
+            "vcount": 2,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+    {
+        "case": "lcf_c_two_repeats_2_n2",
+        "origin": "mirrors igraph_lcf.c collapse fixture: lcf_small(2, 2, 2, 0) — single-shift variant of the above, same 1-edge outcome",
+        "algo": "lcf",
+        "params": {"n": 2, "shifts": [2], "repeats": 2},
+        "expected": {
+            "vcount": 2,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+    {
+        "case": "lcf_c_null_graph_bug_996",
+        "origin": "mirrors igraph_lcf.c bug #996 regression: lcf_small(0, 0) → 0-vertex empty graph (no shifts, no chord pass)",
+        "algo": "lcf",
+        "params": {"n": 0, "shifts": [], "repeats": 0},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "directed": False,
+            "edges": [],
+        },
+    },
+    {
+        "case": "lcf_c_heawood_5_minus5_repeats_7",
+        "origin": "synthetic-but-canonical Heawood fixture: lcf(14, [5,-5], 7) is the LCF description of igraph_famous(\"heawood\") — 14 vertices, 21 edges, bipartite cubic, girth 6",
+        "algo": "lcf",
+        "params": {"n": 14, "shifts": [5, -5], "repeats": 7},
+        "expected": {
+            "vcount": 14,
+            "ecount": 21,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7],
+                [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13], [0, 13],
+                [0, 5], [1, 10], [2, 7], [3, 12], [4, 9], [6, 11], [8, 13],
+            ],
+        },
+    },
+]
+
+
 PRUFER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "from_prufer_c_seq_2323",
@@ -8234,6 +8327,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
+    "lcf": LCF_MANIFEST,
 }
 
 
@@ -8374,6 +8468,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "full_graph",
             "from_prufer",
             "tree_from_parent_vector",
+            "lcf",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

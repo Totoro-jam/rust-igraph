@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_lcf.c collapse fixture: lcf_small(2, 2, -2, 2, 0) \u2014 n=2 forces every chord into a self-loop; simplify collapses to 1 backbone edge",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lcf",
+  "params": {
+    "n": 2,
+    "shifts": [
+      2,
+      -2
+    ],
+    "repeats": 2
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 1,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}

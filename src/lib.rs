@@ -109,6 +109,7 @@ pub use crate::algorithms::constructors::hamming::hamming;
 pub use crate::algorithms::constructors::hypercube::{MAX_HYPERCUBE_DIMENSION, hypercube};
 pub use crate::algorithms::constructors::kary_tree::{TreeMode, kary_tree};
 pub use crate::algorithms::constructors::kautz::kautz;
+pub use crate::algorithms::constructors::lcf::lcf;
 pub use crate::algorithms::constructors::linegraph::linegraph;
 pub use crate::algorithms::constructors::prufer::from_prufer;
 pub use crate::algorithms::constructors::regular_tree::regular_tree;

@@ -6730,6 +6730,91 @@ TREE_FROM_PARENT_VECTOR_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-018 — `Graph.LCF(n, shifts, repeats)` in python-igraph dispatches
+# to the same C `igraph_lcf`. We mirror the upstream C bench fixtures and
+# add canonical-LCF graphs from the standard cubic-graph catalogue
+# (Frucht, Truncated tetrahedron, Truncated octahedron) — every entry is
+# pinned to its canonical (sorted) edge list so cross-source comparison is
+# deterministic.
+LCF_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "lcf_py_franklin",
+        "origin": "python-igraph Graph.LCF(12, [5, -5], 6) — Franklin graph (12 vertices, 18 edges, bipartite cubic)",
+        "algo": "lcf",
+        "params": {"n": 12, "shifts": [5, -5], "repeats": 6},
+        "expected": {
+            "vcount": 12,
+            "ecount": 18,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7],
+                [7, 8], [8, 9], [9, 10], [10, 11], [0, 11],
+                [0, 5], [1, 8], [2, 7], [3, 10], [4, 9], [6, 11],
+            ],
+        },
+    },
+    {
+        "case": "lcf_py_heawood",
+        "origin": "python-igraph Graph.LCF(14, [5, -5], 7) — Heawood graph (14 vertices, 21 edges, bipartite cubic, girth 6)",
+        "algo": "lcf",
+        "params": {"n": 14, "shifts": [5, -5], "repeats": 7},
+        "expected": {
+            "vcount": 14,
+            "ecount": 21,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7],
+                [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13], [0, 13],
+                [0, 5], [1, 10], [2, 7], [3, 12], [4, 9], [6, 11], [8, 13],
+            ],
+        },
+    },
+    {
+        "case": "lcf_py_truncated_tetrahedron",
+        "origin": "python-igraph Graph.LCF(12, [2, 6, -2, -6], 3) — truncated tetrahedron (12 vertices, 18 edges, cubic)",
+        "algo": "lcf",
+        "params": {"n": 12, "shifts": [2, 6, -2, -6], "repeats": 3},
+        "expected": {
+            "vcount": 12,
+            "ecount": 18,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7],
+                [7, 8], [8, 9], [9, 10], [10, 11], [0, 11],
+                [0, 2], [1, 7], [3, 9], [4, 6], [5, 11], [8, 10],
+            ],
+        },
+    },
+    {
+        "case": "lcf_py_empty_shifts_pure_cycle",
+        "origin": "python-igraph Graph.LCF(6, [], 0) — chord pass skipped; result is pure Hamilton cycle C_6",
+        "algo": "lcf",
+        "params": {"n": 6, "shifts": [], "repeats": 0},
+        "expected": {
+            "vcount": 6,
+            "ecount": 6,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [0, 5]],
+        },
+    },
+    {
+        "case": "lcf_py_single_shift_repeats_3",
+        "origin": "python-igraph Graph.LCF(6, [3], 6) — every vertex paired across the diameter; antipode chords collapse to 3 unique edges",
+        "algo": "lcf",
+        "params": {"n": 6, "shifts": [3], "repeats": 6},
+        "expected": {
+            "vcount": 6,
+            "ecount": 9,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [0, 5],
+                [0, 3], [1, 4], [2, 5],
+            ],
+        },
+    },
+]
+
+
 PRUFER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "from_prufer_py_empty_yields_p2",
@@ -6966,6 +7051,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "linegraph": LINEGRAPH_MANIFEST,
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
+    "lcf": LCF_MANIFEST,
 }
 
 
@@ -7101,6 +7187,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "full_graph",
             "from_prufer",
             "tree_from_parent_vector",
+            "lcf",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

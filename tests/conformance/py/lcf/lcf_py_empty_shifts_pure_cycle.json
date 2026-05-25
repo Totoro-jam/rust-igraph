@@ -1,0 +1,47 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.LCF(6, [], 0) \u2014 chord pass skipped; result is pure Hamilton cycle C_6",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "lcf",
+  "params": {
+    "n": 6,
+    "shifts": [],
+    "repeats": 0
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 6,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ]
+  }
+}
