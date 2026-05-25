@@ -1,0 +1,25 @@
+{
+  "source": "py",
+  "origin": "no upstream binding in python-igraph 0.11.x; mycielskian(singleton, k=1) promotes to P_2 (k=1 base case)",
+  "graph": {
+    "n": 1,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mycielskian",
+  "params": {
+    "k": 1
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 1,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}

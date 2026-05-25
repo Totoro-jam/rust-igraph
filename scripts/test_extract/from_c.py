@@ -8111,6 +8111,155 @@ LCF_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# `igraph_mycielskian` / `igraph_mycielski_graph` have no dedicated unit
+# test in `references/igraph/tests/unit/` (the algorithm landed without a
+# self-test). The fixtures below are synthesised from the published
+# Mycielski recurrence `(v', e') = (2v + 1, 3e + v)` and from the
+# canonical small cases (M_3 = C_5, M_4 = Grötzsch graph). They are
+# C-equivalent in lineage because the rigraph snapshot (`r_*` fixtures
+# below) executes the same `igraph_mycielski_graph` C function and lands
+# on the same edge multisets.
+MYCIELSKI_GRAPH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "mycielski_graph_c_k0_null",
+        "origin": "mycielski_graph(0) → null graph (k=0 base case)",
+        "algo": "mycielski_graph",
+        "params": {"k": 0},
+        "expected": {"vcount": 0, "ecount": 0, "directed": False, "edges": []},
+    },
+    {
+        "case": "mycielski_graph_c_k1_singleton",
+        "origin": "mycielski_graph(1) → singleton (k=1 base case)",
+        "algo": "mycielski_graph",
+        "params": {"k": 1},
+        "expected": {"vcount": 1, "ecount": 0, "directed": False, "edges": []},
+    },
+    {
+        "case": "mycielski_graph_c_k2_p2",
+        "origin": "mycielski_graph(2) → P_2 (k=2 base case, single edge)",
+        "algo": "mycielski_graph",
+        "params": {"k": 2},
+        "expected": {"vcount": 2, "ecount": 1, "directed": False, "edges": [[0, 1]]},
+    },
+    {
+        "case": "mycielski_graph_c_k3_c5",
+        "origin": "mycielski_graph(3) → C_5 (5-cycle); first non-trivial Mycielski case",
+        "algo": "mycielski_graph",
+        "params": {"k": 3},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [0, 3], [1, 2], [2, 4], [3, 4]],
+        },
+    },
+    {
+        "case": "mycielski_graph_c_k4_grotzsch",
+        "origin": "mycielski_graph(4) → Grötzsch graph (11v/20e, triangle-free, χ=4)",
+        "algo": "mycielski_graph",
+        "params": {"k": 4},
+        "expected": {
+            "vcount": 11,
+            "ecount": 20,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 3], [1, 2], [2, 4], [3, 4],
+                [0, 6], [1, 5], [0, 8], [3, 5], [1, 7],
+                [2, 6], [2, 9], [4, 7], [3, 9], [4, 8],
+                [5, 10], [6, 10], [7, 10], [8, 10], [9, 10],
+            ],
+        },
+    },
+    {
+        "case": "mycielski_graph_c_k5_recurrence",
+        "origin": "mycielski_graph(5) → 23v/71e (Mycielski recurrence applied once more to Grötzsch)",
+        "algo": "mycielski_graph",
+        "params": {"k": 5},
+        "expected": {
+            "vcount": 23,
+            "ecount": 71,
+            "directed": False,
+            # Edge list omitted; the structural recurrence check (vcount + ecount)
+            # is enough at this scale and matches what the upstream C API exposes.
+            "edges": None,
+        },
+    },
+]
+
+
+MYCIELSKIAN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "mycielskian_c_p3_one_iteration",
+        "origin": "mycielskian(P_3, k=1) → 7v/9e; mirrors the recurrence on the smallest non-trivial path",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "mycielskian",
+        "params": {"k": 1},
+        "expected": {
+            "vcount": 7,
+            "ecount": 9,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2],
+                [0, 4], [1, 3], [1, 5], [2, 4],
+                [3, 6], [4, 6], [5, 6],
+            ],
+        },
+    },
+    {
+        "case": "mycielskian_c_c5_one_iteration",
+        "origin": "mycielskian(C_5, k=1) → 11v/20e (= Grötzsch graph, since C_5 = M_3)",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (0, 3), (1, 2), (2, 4), (3, 4)],
+            directed=False,
+        ),
+        "algo": "mycielskian",
+        "params": {"k": 1},
+        "expected": {
+            "vcount": 11,
+            "ecount": 20,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 3], [1, 2], [2, 4], [3, 4],
+                [0, 6], [1, 5], [0, 8], [3, 5], [1, 7],
+                [2, 6], [2, 9], [4, 7], [3, 9], [4, 8],
+                [5, 10], [6, 10], [7, 10], [8, 10], [9, 10],
+            ],
+        },
+    },
+    {
+        "case": "mycielskian_c_null_two_iterations",
+        "origin": "mycielskian(null, k=2) → P_2; promotes null→singleton (k=1) then singleton→P_2 (k=0)",
+        "graph_factory": lambda: ig.Graph(n=0, edges=[], directed=False),
+        "algo": "mycielskian",
+        "params": {"k": 2},
+        "expected": {
+            "vcount": 2,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+    {
+        "case": "mycielskian_c_k0_identity",
+        "origin": "mycielskian(K_3, k=0) → input unchanged (k=0 short-circuit)",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 2), (0, 2)],
+            directed=False,
+        ),
+        "algo": "mycielskian",
+        "params": {"k": 0},
+        "expected": {
+            "vcount": 3,
+            "ecount": 3,
+            "directed": False,
+            "edges": [[0, 1], [1, 2], [0, 2]],
+        },
+    },
+]
+
+
 PRUFER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "from_prufer_c_seq_2323",
@@ -8328,6 +8477,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
     "lcf": LCF_MANIFEST,
+    "mycielski_graph": MYCIELSKI_GRAPH_MANIFEST,
+    "mycielskian": MYCIELSKIAN_MANIFEST,
 }
 
 
@@ -8469,6 +8620,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",
+            "mycielski_graph",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

@@ -1,0 +1,41 @@
+{
+  "source": "r",
+  "origin": "rigraph test-aaa-auto.R snapshot: mycielski_graph_impl(k=3) \u2192 C_5 (IGRAPH U--- 5 5, edges 1-2 1-4 2-3 3-5 4-5)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mycielski_graph",
+  "params": {
+    "k": 3
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 5,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ]
+    ]
+  }
+}

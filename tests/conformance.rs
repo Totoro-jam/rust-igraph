@@ -13265,3 +13265,264 @@ fn lcf_three_source_conformance() {
         );
     }
 }
+
+fn check_mycielski_graph_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::mycielski_graph;
+    use std::collections::BTreeMap;
+
+    let k_val = case
+        .params
+        .get("k")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or_else(|| {
+            panic!(
+                "mycielski_graph fixture {}: params.k missing",
+                path.display()
+            )
+        });
+    let k = u32::try_from(k_val).unwrap_or_else(|_| {
+        panic!(
+            "mycielski_graph fixture {}: params.k exceeds u32",
+            path.display()
+        )
+    });
+
+    let g = mycielski_graph(k).expect("mycielski_graph should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges_count = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        g.vcount(),
+        want_vertices,
+        "mycielski_graph vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.is_directed(),
+        want_directed,
+        "mycielski_graph directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.ecount() as u64,
+        want_edges_count,
+        "mycielski_graph ecount mismatch in {}",
+        path.display()
+    );
+
+    let edges_field = case.expected.get("edges").unwrap_or_else(|| {
+        panic!(
+            "mycielski_graph fixture {}: expected.edges field missing",
+            path.display()
+        )
+    });
+    // `null` edges => counts-only check (used for high-k fixtures where
+    // the full edge list bloats the JSON for negligible extra signal).
+    if edges_field.is_null() {
+        return;
+    }
+    let want_edges_raw = edges_field.as_array().unwrap_or_else(|| {
+        panic!(
+            "mycielski_graph fixture {}: expected.edges not array/null",
+            path.display()
+        )
+    });
+
+    let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for v in want_edges_raw {
+        let pair = v.as_array().unwrap_or_else(|| {
+            panic!("mycielski_graph fixture {}: edge not array", path.display())
+        });
+        let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+        let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+        let key = if u <= w { (u, w) } else { (w, u) };
+        *want_ms.entry(key).or_insert(0) += 1;
+    }
+
+    let n_edges = u32::try_from(g.ecount()).expect("ecount fits u32 in conformance");
+    let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for eid in 0..n_edges {
+        let (u, w) = g.edge(eid).expect("edge id in range");
+        let key = if u <= w { (u, w) } else { (w, u) };
+        *got_ms.entry(key).or_insert(0) += 1;
+    }
+
+    assert_eq!(
+        got_ms,
+        want_ms,
+        "mycielski_graph edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn mycielski_graph_three_source_conformance() {
+    // `igraph_mycielski_graph(k)` is reached by rigraph (`mycielski_graph`)
+    // and identically by the upstream C API. python-igraph 0.11.x has no
+    // binding yet so the `py` lane uses the published recurrence with the
+    // same canonical small cases. Edge multisets are canonical-pair
+    // compared so internal storage order is irrelevant.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("mycielski_graph");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read mycielski_graph fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes)
+                .expect("parse mycielski_graph conformance fixture JSON");
+            assert_eq!(case.algo, "mycielski_graph");
+            assert_eq!(case.source, src);
+            check_mycielski_graph_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no mycielski_graph fixtures from source {src}"
+        );
+    }
+}
+
+fn check_mycielskian_fixture(case: &Conformance, path: &std::path::Path) {
+    use rust_igraph::mycielskian;
+    use std::collections::BTreeMap;
+
+    let k_val = case
+        .params
+        .get("k")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or_else(|| panic!("mycielskian fixture {}: params.k missing", path.display()));
+    let k = u32::try_from(k_val).unwrap_or_else(|_| {
+        panic!(
+            "mycielskian fixture {}: params.k exceeds u32",
+            path.display()
+        )
+    });
+
+    let g_in = build_graph(&case.graph);
+    let g = mycielskian(&g_in, k).expect("mycielskian should succeed on conformance fixtures");
+
+    let want_vertices = er_expected_u32(case, "vcount", path);
+    let want_edges_count = er_expected_u64(case, "ecount", path);
+    let want_directed = er_expected_bool(case, "directed", path);
+
+    assert_eq!(
+        g.vcount(),
+        want_vertices,
+        "mycielskian vcount mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.is_directed(),
+        want_directed,
+        "mycielskian directed mismatch in {}",
+        path.display()
+    );
+    assert_eq!(
+        g.ecount() as u64,
+        want_edges_count,
+        "mycielskian ecount mismatch in {}",
+        path.display()
+    );
+
+    let want_edges_raw = case
+        .expected
+        .get("edges")
+        .and_then(serde_json::Value::as_array)
+        .unwrap_or_else(|| {
+            panic!(
+                "mycielskian fixture {}: expected.edges missing",
+                path.display()
+            )
+        });
+
+    let mut want_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for v in want_edges_raw {
+        let pair = v
+            .as_array()
+            .unwrap_or_else(|| panic!("mycielskian fixture {}: edge not array", path.display()));
+        let u = u32::try_from(pair[0].as_u64().expect("u64")).expect("u32");
+        let w = u32::try_from(pair[1].as_u64().expect("u64")).expect("u32");
+        let key = if want_directed || u <= w {
+            (u, w)
+        } else {
+            (w, u)
+        };
+        *want_ms.entry(key).or_insert(0) += 1;
+    }
+
+    let n_edges = u32::try_from(g.ecount()).expect("ecount fits u32 in conformance");
+    let mut got_ms: BTreeMap<(u32, u32), u32> = BTreeMap::new();
+    for eid in 0..n_edges {
+        let (u, w) = g.edge(eid).expect("edge id in range");
+        let key = if want_directed || u <= w {
+            (u, w)
+        } else {
+            (w, u)
+        };
+        *got_ms.entry(key).or_insert(0) += 1;
+    }
+
+    assert_eq!(
+        got_ms,
+        want_ms,
+        "mycielskian edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+        path.display(),
+        case.source,
+        case.origin,
+    );
+}
+
+#[test]
+fn mycielskian_three_source_conformance() {
+    // `igraph_mycielskian(graph, k)` iterates the Mycielski construction
+    // `k` times on an arbitrary input graph (same C function used by
+    // rigraph's `mycielskian()`). Edge multisets are canonical-pair
+    // compared (treating undirected endpoints as `(min, max)`) so storage
+    // order is irrelevant.
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("mycielskian");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read mycielskian fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse mycielskian conformance fixture JSON");
+            assert_eq!(case.algo, "mycielskian");
+            assert_eq!(case.source, src);
+            check_mycielskian_fixture(&case, &path);
+            seen_sources.insert(src);
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no mycielskian fixtures from source {src}"
+        );
+    }
+}

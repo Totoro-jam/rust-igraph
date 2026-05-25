@@ -1,0 +1,25 @@
+{
+  "source": "c",
+  "origin": "mycielski_graph(2) \u2192 P_2 (k=2 base case, single edge)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mycielski_graph",
+  "params": {
+    "k": 2
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 1,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}

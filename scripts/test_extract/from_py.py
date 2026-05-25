@@ -6815,6 +6815,79 @@ LCF_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-019 — python-igraph 0.11.x exposes neither `Graph.Mycielski`
+# nor `Graph.Mycielskian`; the upstream C functions land in the next
+# Cython binding update. Until then the "py" lane keeps the conformance
+# corpus complete by mirroring the published Mycielski recurrence
+# `(v', e') = (2v + 1, 3e + v)` plus the canonical small cases
+# (M_3 = C_5, M_4 = Grötzsch). The rigraph snapshot (`r_*` fixtures)
+# executes the same igraph C `igraph_mycielski_graph` and lands on the
+# same edge multisets, so the cross-source check stays meaningful.
+MYCIELSKI_GRAPH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "mycielski_graph_py_k3_c5",
+        "origin": "no upstream binding in python-igraph 0.11.x; computed from M_3 = C_5 (the canonical first non-trivial Mycielski graph)",
+        "algo": "mycielski_graph",
+        "params": {"k": 3},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [0, 3], [1, 2], [2, 4], [3, 4]],
+        },
+    },
+    {
+        "case": "mycielski_graph_py_k4_grotzsch_counts",
+        "origin": "no upstream binding in python-igraph 0.11.x; M_4 = Grötzsch graph (11 vertices, 20 edges, triangle-free, χ=4)",
+        "algo": "mycielski_graph",
+        "params": {"k": 4},
+        "expected": {
+            "vcount": 11,
+            "ecount": 20,
+            "directed": False,
+            # Counts-only check (edges = null) — the structural recurrence
+            # plus triangle-free property is what the literature pins down;
+            # full edge list is exercised by the C and R lanes.
+            "edges": None,
+        },
+    },
+]
+
+
+MYCIELSKIAN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "mycielskian_py_p3_one_iteration",
+        "origin": "no upstream binding in python-igraph 0.11.x; mycielskian(P_3, k=1) → 7v/9e from the published recurrence",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "mycielskian",
+        "params": {"k": 1},
+        "expected": {
+            "vcount": 7,
+            "ecount": 9,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2],
+                [0, 4], [1, 3], [1, 5], [2, 4],
+                [3, 6], [4, 6], [5, 6],
+            ],
+        },
+    },
+    {
+        "case": "mycielskian_py_singleton_one_iteration_is_p2",
+        "origin": "no upstream binding in python-igraph 0.11.x; mycielskian(singleton, k=1) promotes to P_2 (k=1 base case)",
+        "graph_factory": lambda: ig.Graph(n=1, edges=[], directed=False),
+        "algo": "mycielskian",
+        "params": {"k": 1},
+        "expected": {
+            "vcount": 2,
+            "ecount": 1,
+            "directed": False,
+            "edges": [[0, 1]],
+        },
+    },
+]
+
+
 PRUFER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "from_prufer_py_empty_yields_p2",
@@ -7052,6 +7125,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
     "lcf": LCF_MANIFEST,
+    "mycielski_graph": MYCIELSKI_GRAPH_MANIFEST,
+    "mycielskian": MYCIELSKIAN_MANIFEST,
 }
 
 
@@ -7188,6 +7263,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",
+            "mycielski_graph",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

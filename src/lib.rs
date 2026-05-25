@@ -111,6 +111,7 @@ pub use crate::algorithms::constructors::kary_tree::{TreeMode, kary_tree};
 pub use crate::algorithms::constructors::kautz::kautz;
 pub use crate::algorithms::constructors::lcf::lcf;
 pub use crate::algorithms::constructors::linegraph::linegraph;
+pub use crate::algorithms::constructors::mycielskian::{mycielski_graph, mycielskian};
 pub use crate::algorithms::constructors::prufer::from_prufer;
 pub use crate::algorithms::constructors::regular_tree::regular_tree;
 pub use crate::algorithms::constructors::ring::{cycle_graph, path_graph, ring_graph};

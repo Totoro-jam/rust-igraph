@@ -15,6 +15,65 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-019** — `mycielskian` + `mycielski_graph` Mycielski-construction
+  pair. **Nineteenth member of the `constructors/` family.** Counterpart
+  of `igraph_mycielskian` + `igraph_mycielski_graph` in
+  `references/igraph/src/constructors/mycielskian.c`. Given a graph
+  `G = (V, E)` and a non-negative iteration count `k`, the Mycielski
+  construction `μ(G)` produces a triangle-free larger graph whose
+  chromatic number is one higher than `G`'s. Per-iteration recurrence
+  `(v', e') = (2v + 1, 3e + v)` is exact, and the construction preserves
+  directedness.
+  - `pub fn mycielskian(graph: &Graph, k: u32) -> IgraphResult<Graph>` —
+    apply the construction `k` times to an arbitrary input graph.
+  - `pub fn mycielski_graph(k: u32) -> IgraphResult<Graph>` — produce the
+    canonical Mycielski chain element `M_k`, with `M_2 = P_2`, `M_3 = C_5`,
+    `M_4 = Grötzsch` (11 vertices, 20 edges, triangle-free, χ = 4),
+    `M_5 = (23 vertices, 71 edges)`, etc. `k ∈ {0, 1}` returns null /
+    singleton in-band per project convention.
+  - Single-iteration emission: for input with `n` vertices and edge list
+    `[(u_0, v_0), …, (u_{m-1}, v_{m-1})]`, output has `2n + 1` vertices
+    labelled `0..n` (originals) ∪ `n..2n` (shadow copies) ∪ `{2n}` (apex),
+    and edges (1) originals reproduced verbatim, (2) `(u_i, v_i + n)` and
+    `(u_i + n, v_i)` for each original edge (`2m` cross edges), (3)
+    `(j + n, 2n)` for `j ∈ [0, n)` (`n` apex edges).
+  - Per-iteration cost `O(e + v)` — `stage_input_edges` copies the current
+    row once, `project_counts` pre-flight grows the output buffer via
+    `Vec::resize` so all subsequent work is in-place pointer arithmetic,
+    and the final `Graph::add_edges` call is a single bulk insertion.
+  - Promotion chain handles degenerate inputs in-band:
+    `null → singleton (k=1) → P_2 (k=2)`.
+  - Overflow protection: `u32::checked_mul(2)` + `checked_add(1)` for
+    `2v + 1`, `usize::checked_mul(3)` + `checked_add(v)` for `3e + v`,
+    `try_from` on every cross-domain boundary so adversarial sizes report
+    `Overflow` rather than silently wrapping.
+  - 18 unit tests + 6 proptest invariants covering M_2..M_5 chain
+    counts, Grötzsch construction from `C_5`, directed preservation,
+    null/singleton/P_2 promotion chain, `k=0` identity, recurrence
+    on arbitrary inputs, shadow-degree and apex-degree invariants,
+    overflow paths.
+  - 17 conformance fixtures: C:10 (`k0_null`, `k1_singleton`, `k2_p2`,
+    `k3_c5`, `k4_grotzsch`, `k5_recurrence` for `mycielski_graph`;
+    `p3_one_iteration`, `c5_one_iteration`, `null_two_iterations`,
+    `k0_identity` for `mycielskian`), py:4 (`k3_c5`, `k4_grotzsch_counts`
+    for `mycielski_graph`; `p3_one_iteration`, `singleton_one_iteration_is_p2`
+    for `mycielskian` — flagged "no upstream binding in python-igraph 0.11.x"),
+    R:3 (`k3_c5` for `mycielski_graph`; `p3_one_iteration`,
+    `p3_two_iterations` for `mycielskian` from rigraph snapshot).
+  - igraph C has no dedicated unit test for mycielskian; C-lane fixtures
+    use synthetic-but-canonical recurrence-derived shapes (same pattern
+    as ALGO-CN-018 lcf for the bug #996 regression).
+  - Runnable example: `cargo run --example mycielskian_demo` walks
+    `M_2..M_5`, applies the construction to `C_5` to recover Grötzsch,
+    demonstrates directed preservation, and confirms the
+    `null → singleton → P_2` promotion chain.
+  - Criterion bench at `benches/bench_mycielskian.rs`; baseline in
+    `.codefuse/tracking/perf/ALGO-CN-019.json`. `mycielski_graph(10)`
+    builds a 513-vertex/4099-edge graph in ~1.05 ms; `mycielskian(C_n, 2)`
+    scales linearly in n at ~0.51 μs/vertex (n=32: 15 μs, n=64: 31 μs,
+    n=128: 65 μs). No external baseline — python-igraph 0.11.x exposes
+    neither binding.
+
 - **ALGO-CN-018** — `lcf` LCF (Lederberg-Coxeter-Frucht) cubic-graph
   constructor. **Eighteenth member of the `constructors/` family.**
   Counterpart of `igraph_lcf` in `references/igraph/src/constructors/lcf.c`.

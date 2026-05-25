@@ -15,6 +15,7 @@ pub mod kary_tree;
 pub mod kautz;
 pub mod lcf;
 pub mod linegraph;
+pub mod mycielskian;
 pub mod prufer;
 pub mod regular_tree;
 pub mod ring;

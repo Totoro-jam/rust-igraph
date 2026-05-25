@@ -1,0 +1,20 @@
+{
+  "source": "c",
+  "origin": "mycielski_graph(1) \u2192 singleton (k=1 base case)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mycielski_graph",
+  "params": {
+    "k": 1
+  },
+  "expected": {
+    "vcount": 1,
+    "ecount": 0,
+    "directed": false,
+    "edges": []
+  }
+}

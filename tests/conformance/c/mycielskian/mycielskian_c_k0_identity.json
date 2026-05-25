@@ -1,0 +1,46 @@
+{
+  "source": "c",
+  "origin": "mycielskian(K_3, k=0) \u2192 input unchanged (k=0 short-circuit)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mycielskian",
+  "params": {
+    "k": 0
+  },
+  "expected": {
+    "vcount": 3,
+    "ecount": 3,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ]
+  }
+}

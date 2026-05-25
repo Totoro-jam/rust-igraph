@@ -6977,6 +6977,66 @@ LCF_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CN-019 — rigraph's `test-aaa-auto.R` auto-test snapshot exercises
+# both `mycielski_graph(k=3)` (yielding C_5) and `mycielskian(P_3)` /
+# `mycielskian(P_3, k=2)` (yielding 7v/9e and 15v/34e). Edge lists below
+# were copied from the snapshot file (`_snaps/aaa-auto.md`) and converted
+# from R's 1-based to 0-based indexing.
+MYCIELSKI_GRAPH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "mycielski_graph_r_k3_c5",
+        "origin": "rigraph test-aaa-auto.R snapshot: mycielski_graph_impl(k=3) → C_5 (IGRAPH U--- 5 5, edges 1-2 1-4 2-3 3-5 4-5)",
+        "algo": "mycielski_graph",
+        "params": {"k": 3},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": False,
+            "edges": [[0, 1], [0, 3], [1, 2], [2, 4], [3, 4]],
+        },
+    },
+]
+
+
+MYCIELSKIAN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "mycielskian_r_p3_one_iteration",
+        "origin": "rigraph test-aaa-auto.R snapshot: mycielskian_impl(graph=P_3) → 7v/9e (default k=1)",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "mycielskian",
+        "params": {"k": 1},
+        "expected": {
+            "vcount": 7,
+            "ecount": 9,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2],
+                [0, 4], [1, 3], [1, 5], [2, 4],
+                [3, 6], [4, 6], [5, 6],
+            ],
+        },
+    },
+    {
+        "case": "mycielskian_r_p3_two_iterations",
+        "origin": "rigraph test-aaa-auto.R snapshot: mycielskian_impl(graph=P_3, k=2) → 15v/34e",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "mycielskian",
+        "params": {"k": 2},
+        "expected": {
+            "vcount": 15,
+            "ecount": 34,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [0, 4], [1, 3], [1, 5], [2, 4], [3, 6], [4, 6], [5, 6],
+                [0, 8], [1, 7], [1, 9], [2, 8], [0, 11], [4, 7], [1, 10], [3, 8], [1, 12], [5, 8],
+                [2, 11], [4, 9], [3, 13], [6, 10], [4, 13], [6, 11], [5, 13], [6, 12],
+                [7, 14], [8, 14], [9, 14], [10, 14], [11, 14], [12, 14], [13, 14],
+            ],
+        },
+    },
+]
+
+
 PRUFER_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "from_prufer_r_make_tree_13_3_roundtrip",
@@ -7199,6 +7259,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "from_prufer": PRUFER_MANIFEST,
     "tree_from_parent_vector": TREE_FROM_PARENT_VECTOR_MANIFEST,
     "lcf": LCF_MANIFEST,
+    "mycielski_graph": MYCIELSKI_GRAPH_MANIFEST,
+    "mycielskian": MYCIELSKIAN_MANIFEST,
 }
 
 
@@ -7335,6 +7397,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "from_prufer",
             "tree_from_parent_vector",
             "lcf",
+            "mycielski_graph",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

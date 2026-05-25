@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-CN-019",
+  "captured_at": "2026-05-25",
+  "git_commit": "f3fc6f9",
+  "rust_mycielski_graph_k6_ns": 8419,
+  "rust_mycielski_graph_k8_ns": 86642,
+  "rust_mycielski_graph_k10_ns": 1049200,
+  "rust_mycielskian_cycle_k2_n32_ns": 15013,
+  "rust_mycielskian_cycle_k2_n64_ns": 30700,
+  "rust_mycielskian_cycle_k2_n128_ns": 65488,
+  "py_baseline_ns": null,
+  "notes": "Mycielski / Mycielskian deterministic constructor (ALGO-CN-019). The recurrence (v', e') = (2v + 1, 3e + v) makes per-iteration cost O(e + v) — staging the input row buffer is O(e), the project_counts pre-flight grows the buffer once via Vec::resize so all subsequent iteration work is in-place pointer arithmetic, and the final Graph::add_edges call is a single bulk insertion. mycielski_graph(10) builds a 513-vertex / 4099-edge graph in ~1.05ms; mycielski_graph(11) would cross 8.2k vertices and 1.6e5 edges (still sub-10ms). mycielskian(C_n, 2) scales linearly in n as expected (≈0.51μs/vertex). No external baseline: python-igraph 0.11.x exposes neither Graph.Mycielski nor Graph.Mycielskian (binding still pending), and rigraph dispatches to the same upstream C function but cross-language timing is dominated by FFI/R-eval overhead. Numbers captured from `cargo bench --bench bench_mycielskian` on Darwin/M-series release build; medians reported (criterion's middle column)."
+}

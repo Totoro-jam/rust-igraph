@@ -1,0 +1,20 @@
+{
+  "source": "py",
+  "origin": "no upstream binding in python-igraph 0.11.x; M_4 = Gr\u00f6tzsch graph (11 vertices, 20 edges, triangle-free, \u03c7=4)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mycielski_graph",
+  "params": {
+    "k": 4
+  },
+  "expected": {
+    "vcount": 11,
+    "ecount": 20,
+    "directed": false,
+    "edges": null
+  }
+}

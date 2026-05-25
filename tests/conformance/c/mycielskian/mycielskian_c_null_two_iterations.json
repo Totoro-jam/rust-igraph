@@ -1,0 +1,25 @@
+{
+  "source": "c",
+  "origin": "mycielskian(null, k=2) \u2192 P_2; promotes null\u2192singleton (k=1) then singleton\u2192P_2 (k=0)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mycielskian",
+  "params": {
+    "k": 2
+  },
+  "expected": {
+    "vcount": 2,
+    "ecount": 1,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}
