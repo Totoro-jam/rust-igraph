@@ -15,6 +15,73 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-010** — `generalized_petersen` deterministic constructor.
+  **Tenth member of the `constructors/` family.** Counterpart of
+  `igraph_generalized_petersen` in
+  `references/igraph/src/constructors/generalized_petersen.c:58-95`.
+  Builds the generalized Petersen graph `G(n, k)` on `2n` vertices in
+  two layers: outer cycle `v_0..v_{n-1}` on ids `0..n` and inner
+  circulant `u_0..u_{n-1}` of shift `k` on ids `n..2n`, joined by `n`
+  rung edges `v_i — u_i` — exactly `3n` edges.
+  - `pub fn generalized_petersen(n: u32, k: u32) -> IgraphResult<Graph>`.
+    Always undirected (the C constructor is fixed `IGRAPH_UNDIRECTED`).
+    Constraints `n ≥ 3` and `0 < k < n/2` (strict — `2k < n`; `2k = n`
+    would emit parallel inner edges); overflow guarded via
+    `checked_mul` on both `2*n` and `3*n`.
+  - **Algorithm**: for each `i ∈ [0, n)` push the outer cycle edge
+    `(i, (i+1) mod n)`, the rung `(i, i+n)`, and the inner circulant
+    edge `(i+n, ((i+k) mod n) + n)`, in that order. Total work
+    `O(n)` plus the cost of `Graph::add_edges`.
+  - **Famous specializations**:
+
+    | n  | k | name                          | vcount | ecount | note                |
+    |----|---|-------------------------------|--------|--------|---------------------|
+    | 5  | 2 | Petersen                      | 10     | 15     | 3-reg, girth 5      |
+    | 8  | 3 | Möbius–Kantor                 | 16     | 24     | bipartite, girth 6  |
+    | 10 | 3 | Desargues                     | 20     | 30     | bipartite           |
+    | 12 | 5 | Nauru                         | 24     | 36     | symmetric           |
+
+  - **Structural properties** (covered by unit + proptest sweep):
+    every `G(n,k)` is 3-regular and simple; the outer-layer subgraph
+    is exactly `C_n`; rungs cover every `i`; the inner layer is
+    exactly the circulant with shift `k`; closed-form `|V| = 2n`,
+    `|E| = 3n`.
+  - **Bounds & overflow**: `n < 3` rejected; `k = 0` rejected; `2k ≥ n`
+    rejected (covers both `2k = n` parallel-edge case and `k > n/2`);
+    `2*n` and `3*n` overflow checked.
+  - **Tests** (`src/algorithms/constructors/generalized_petersen.rs`):
+    14 unit tests covering Petersen, Möbius–Kantor, Desargues, Nauru,
+    a 3-regularity sweep over all valid `(n, k)` pairs with
+    `n ∈ [3, 20]`, the canonical edge-emission order for `G(5, 2)`,
+    presence of outer-cycle / rung / inner-circulant edges, and every
+    validation error path. 5 proptest invariants
+    (`proptest-harness` feature) check `|V| = 2n`, `|E| = 3n`,
+    3-regularity + simplicity, the outer cycle, the rungs, and the
+    inner-circulant layer across random valid `(n, k)`.
+  - **Conformance** (`tests/conformance/{c,py,r}/generalized_petersen/`):
+    8 fixtures total — 6 from igraph C
+    (`g_3_1`, `g_4_1`, `g_5_2_petersen`, `g_6_2`, `g_7_2`,
+    `g_8_3_mobius_kantor`), 1 from python-igraph
+    (`Graph.Famous('Petersen')` = G(5,2)), and 1 from R-igraph
+    (`make_graph('Petersen')`). Emission order is internal-loop-driven
+    and differs from the upstream Famous-database layouts, so the
+    cross-source test compares canonicalised edge multisets — the
+    same strategy used by `square_lattice` above. Famous layouts for
+    Dodecahedron / Möbius–Kantor / Desargues / Nauru are isomorphic
+    to GPGs but use polytope-embedded vertex labellings that the
+    multiset compare cannot reconcile without isomorphism, so they
+    are deliberately out of py/R scope.
+  - **Bench**
+    (`benches/bench_generalized_petersen.rs` /
+    `.codefuse/tracking/perf/ALGO-CN-010.json`): 6 shapes from the
+    eponymous Petersen up through `G(10000, 101)`. Throughput tops out
+    around 24 Medge/s for large `n`; small-`n` shapes pay 1–2 µs in
+    `Graph::new` + `add_edges`. Work per call is exactly `3n` edge
+    pushes — a single linear loop.
+  - **Example** (`examples/generalized_petersen_demo.rs`): walks the
+    four canonical specializations (Petersen, Möbius–Kantor,
+    Desargues, Nauru) and verifies the standard structural invariants.
+
 - **ALGO-CN-009** — `square_lattice` deterministic constructor.
   **Ninth member of the `constructors/` family.** Counterpart of
   `igraph_square_lattice` in

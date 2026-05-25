@@ -1,0 +1,91 @@
+{
+  "algo_id": "ALGO-CN-010",
+  "algo": "generalized_petersen",
+  "captured_at": "2026-05-25",
+  "git_commit": "8e0737b",
+  "machine": "darwin-arm64",
+  "criterion_version": "0.5",
+  "configs": [
+    {
+      "label": "petersen_5_2",
+      "n": 5,
+      "k": 2,
+      "vcount": 10,
+      "ecount": 15
+    },
+    {
+      "label": "mobius_kantor_8_3",
+      "n": 8,
+      "k": 3,
+      "vcount": 16,
+      "ecount": 24
+    },
+    {
+      "label": "desargues_10_3",
+      "n": 10,
+      "k": 3,
+      "vcount": 20,
+      "ecount": 30
+    },
+    {
+      "label": "nauru_12_5",
+      "n": 12,
+      "k": 5,
+      "vcount": 24,
+      "ecount": 36
+    },
+    {
+      "label": "gpg_n1000_k7",
+      "n": 1000,
+      "k": 7,
+      "vcount": 2000,
+      "ecount": 3000
+    },
+    {
+      "label": "gpg_n10000_k101",
+      "n": 10000,
+      "k": 101,
+      "vcount": 20000,
+      "ecount": 30000
+    }
+  ],
+  "results": {
+    "generalized_petersen/petersen_5_2": {
+      "time_low": "1.038 us",
+      "time_mid": "1.046 us",
+      "time_high": "1.058 us",
+      "throughput": "~14.3 Medge/s"
+    },
+    "generalized_petersen/mobius_kantor_8_3": {
+      "time_low": "1.5723 us",
+      "time_mid": "1.5905 us",
+      "time_high": "1.6139 us",
+      "throughput": "~15.1 Medge/s"
+    },
+    "generalized_petersen/desargues_10_3": {
+      "time_low": "1.6305 us",
+      "time_mid": "1.6336 us",
+      "time_high": "1.6369 us",
+      "throughput": "~18.4 Medge/s"
+    },
+    "generalized_petersen/nauru_12_5": {
+      "time_low": "2.1059 us",
+      "time_mid": "2.1118 us",
+      "time_high": "2.1183 us",
+      "throughput": "~17.0 Medge/s"
+    },
+    "generalized_petersen/gpg_n1000_k7": {
+      "time_low": "122.30 us",
+      "time_mid": "122.96 us",
+      "time_high": "123.78 us",
+      "throughput": "~24.4 Medge/s"
+    },
+    "generalized_petersen/gpg_n10000_k101": {
+      "time_low": "1.4849 ms",
+      "time_mid": "1.4968 ms",
+      "time_high": "1.5142 ms",
+      "throughput": "~20.0 Medge/s"
+    }
+  },
+  "notes": "Work per call is exactly 3n edge pushes plus Graph::new + add_edges. Throughput tops out in the 20-24 Medge/s band for n >= 1000 where the per-call overhead is amortised. Small-n shapes (5..=12) cost roughly 1-2 us mostly in Graph::new and add_edges canonicalisation; the construction loop itself is a single linear pass with three pushes per iteration. No allocator hot path beyond the edge Vec growth which is preallocated to capacity 3n."
+}

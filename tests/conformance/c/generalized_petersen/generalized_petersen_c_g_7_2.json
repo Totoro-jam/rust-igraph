@@ -1,0 +1,106 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_generalized_petersen(n=7, k=2) \u2014 odd-n with k=2",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "generalized_petersen",
+  "params": {
+    "n": 7,
+    "k": 2
+  },
+  "expected": {
+    "vcount": 14,
+    "ecount": 21,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        7,
+        9
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        8
+      ],
+      [
+        8,
+        10
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        9
+      ],
+      [
+        9,
+        11
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        10
+      ],
+      [
+        10,
+        12
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        11
+      ],
+      [
+        11,
+        13
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        5,
+        12
+      ],
+      [
+        7,
+        12
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        13
+      ],
+      [
+        8,
+        13
+      ]
+    ]
+  }
+}

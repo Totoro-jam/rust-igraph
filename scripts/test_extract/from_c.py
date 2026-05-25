@@ -7219,6 +7219,121 @@ HAMMING_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+GENERALIZED_PETERSEN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "generalized_petersen_c_g_3_1",
+        "origin": "mirrors igraph_generalized_petersen(n=3, k=1) — triangular prism, smallest valid",
+        "algo": "generalized_petersen",
+        "params": {"n": 3, "k": 1},
+        "expected": {
+            "vcount": 6,
+            "ecount": 9,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 3], [3, 4],
+                [1, 2], [1, 4], [4, 5],
+                [0, 2], [2, 5], [3, 5],
+            ],
+        },
+    },
+    {
+        "case": "generalized_petersen_c_g_4_1",
+        "origin": "mirrors igraph_generalized_petersen(n=4, k=1) — 4-prism ≡ Q_3 (3-cube)",
+        "algo": "generalized_petersen",
+        "params": {"n": 4, "k": 1},
+        "expected": {
+            "vcount": 8,
+            "ecount": 12,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 4], [4, 5],
+                [1, 2], [1, 5], [5, 6],
+                [2, 3], [2, 6], [6, 7],
+                [0, 3], [3, 7], [4, 7],
+            ],
+        },
+    },
+    {
+        "case": "generalized_petersen_c_g_5_2_petersen",
+        "origin": "mirrors igraph_generalized_petersen(n=5, k=2) — the classic Petersen graph",
+        "algo": "generalized_petersen",
+        "params": {"n": 5, "k": 2},
+        "expected": {
+            "vcount": 10,
+            "ecount": 15,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 5], [5, 7],
+                [1, 2], [1, 6], [6, 8],
+                [2, 3], [2, 7], [7, 9],
+                [3, 4], [3, 8], [5, 8],
+                [0, 4], [4, 9], [6, 9],
+            ],
+        },
+    },
+    {
+        "case": "generalized_petersen_c_g_6_2",
+        "origin": "mirrors igraph_generalized_petersen(n=6, k=2) — even-n with non-trivial circulant shift",
+        "algo": "generalized_petersen",
+        "params": {"n": 6, "k": 2},
+        "expected": {
+            "vcount": 12,
+            "ecount": 18,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 6], [6, 8],
+                [1, 2], [1, 7], [7, 9],
+                [2, 3], [2, 8], [8, 10],
+                [3, 4], [3, 9], [9, 11],
+                [4, 5], [4, 10], [6, 10],
+                [0, 5], [5, 11], [7, 11],
+            ],
+        },
+    },
+    {
+        "case": "generalized_petersen_c_g_7_2",
+        "origin": "mirrors igraph_generalized_petersen(n=7, k=2) — odd-n with k=2",
+        "algo": "generalized_petersen",
+        "params": {"n": 7, "k": 2},
+        "expected": {
+            "vcount": 14,
+            "ecount": 21,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 7], [7, 9],
+                [1, 2], [1, 8], [8, 10],
+                [2, 3], [2, 9], [9, 11],
+                [3, 4], [3, 10], [10, 12],
+                [4, 5], [4, 11], [11, 13],
+                [5, 6], [5, 12], [7, 12],
+                [0, 6], [6, 13], [8, 13],
+            ],
+        },
+    },
+    {
+        "case": "generalized_petersen_c_g_8_3_mobius_kantor",
+        "origin": "mirrors igraph_generalized_petersen(n=8, k=3) — the Möbius–Kantor graph",
+        "algo": "generalized_petersen",
+        "params": {"n": 8, "k": 3},
+        "expected": {
+            "vcount": 16,
+            "ecount": 24,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 8], [8, 11],
+                [1, 2], [1, 9], [9, 12],
+                [2, 3], [2, 10], [10, 13],
+                [3, 4], [3, 11], [11, 14],
+                [4, 5], [4, 12], [12, 15],
+                [5, 6], [5, 13], [8, 13],
+                [6, 7], [6, 14], [9, 14],
+                [0, 7], [7, 15], [10, 15],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -7387,6 +7502,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "hypercube": HYPERCUBE_MANIFEST,
     "hamming": HAMMING_MANIFEST,
     "square_lattice": SQUARE_LATTICE_MANIFEST,
+    "generalized_petersen": GENERALIZED_PETERSEN_MANIFEST,
 }
 
 
@@ -7520,6 +7636,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "hypercube",
             "hamming",
             "square_lattice",
+            "generalized_petersen",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

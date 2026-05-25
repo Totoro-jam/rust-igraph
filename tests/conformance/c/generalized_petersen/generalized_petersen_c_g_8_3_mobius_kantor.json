@@ -1,0 +1,118 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_generalized_petersen(n=8, k=3) \u2014 the M\u00f6bius\u2013Kantor graph",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "generalized_petersen",
+  "params": {
+    "n": 8,
+    "k": 3
+  },
+  "expected": {
+    "vcount": 16,
+    "ecount": 24,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        8
+      ],
+      [
+        8,
+        11
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        9
+      ],
+      [
+        9,
+        12
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        10
+      ],
+      [
+        10,
+        13
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        11
+      ],
+      [
+        11,
+        14
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        12
+      ],
+      [
+        12,
+        15
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        5,
+        13
+      ],
+      [
+        8,
+        13
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        6,
+        14
+      ],
+      [
+        9,
+        14
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        7,
+        15
+      ],
+      [
+        10,
+        15
+      ]
+    ]
+  }
+}

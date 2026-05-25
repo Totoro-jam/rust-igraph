@@ -1,0 +1,82 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_generalized_petersen(n=5, k=2) \u2014 the classic Petersen graph",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "generalized_petersen",
+  "params": {
+    "n": 5,
+    "k": 2
+  },
+  "expected": {
+    "vcount": 10,
+    "ecount": 15,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        7,
+        9
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        6,
+        9
+      ]
+    ]
+  }
+}

@@ -130,6 +130,10 @@ path = "examples/hamming_demo.rs"
 name = "square_lattice_demo"
 path = "examples/square_lattice_demo.rs"
 
+[[example]]
+name = "generalized_petersen_demo"
+path = "examples/generalized_petersen_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -463,6 +467,11 @@ harness = false
 [[bench]]
 name = "bench_square_lattice"
 path = "benches/bench_square_lattice.rs"
+harness = false
+
+[[bench]]
+name = "bench_generalized_petersen"
+path = "benches/bench_generalized_petersen.rs"
 harness = false
 
 [lints.rust]

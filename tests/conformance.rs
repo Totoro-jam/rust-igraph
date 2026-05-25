@@ -12047,3 +12047,143 @@ fn square_lattice_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + canonicalised edge multiset compare
+fn generalized_petersen_three_source_conformance() {
+    // Generalized Petersen graph G(n, k). Constraints: n >= 3 and
+    // 0 < k < n/2. Always undirected; |V| = 2n, |E| = 3n.
+    //
+    // Edge emission order differs between sources:
+    //   * C reference (this port) emits (outer, rung, inner) per i.
+    //   * python-igraph / R-igraph's Famous-database `Petersen` and
+    //     `Dodecahedron` graphs lay out their edges in a different
+    //     order entirely.
+    // We therefore compare the canonicalised edge multiset, mirroring
+    // the strategy used by square_lattice above.
+    use rust_igraph::generalized_petersen;
+
+    fn canon(u: u32, v: u32) -> (u32, u32) {
+        if u <= v { (u, v) } else { (v, u) }
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("generalized_petersen");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read generalized_petersen fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance = serde_json::from_slice(&bytes)
+                .expect("parse generalized_petersen conformance fixture JSON");
+            assert_eq!(case.algo, "generalized_petersen");
+
+            let n = er_param_u32(&case, "n", &path);
+            let k = er_param_u32(&case, "k", &path);
+
+            let graph = generalized_petersen(n, k)
+                .expect("generalized_petersen should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_edges = er_expected_u64(&case, "ecount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.ecount() as u64,
+                want_edges,
+                "ecount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let want_edges_raw = case
+                .expected
+                .get("edges")
+                .and_then(serde_json::Value::as_array)
+                .unwrap_or_else(|| {
+                    panic!(
+                        "generalized_petersen fixture {}: expected.edges missing or not array",
+                        path.display()
+                    )
+                });
+            let mut want_pairs: Vec<(u32, u32)> = Vec::with_capacity(want_edges_raw.len());
+            for v in want_edges_raw {
+                let pair = v.as_array().unwrap_or_else(|| {
+                    panic!(
+                        "generalized_petersen fixture {}: expected.edges entry not array",
+                        path.display()
+                    )
+                });
+                let u = u32::try_from(pair[0].as_u64().expect("edge endpoint u64"))
+                    .expect("edge endpoint fits in u32");
+                let w = u32::try_from(pair[1].as_u64().expect("edge endpoint u64"))
+                    .expect("edge endpoint fits in u32");
+                want_pairs.push((u, w));
+            }
+
+            let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32 in conformance");
+            let got_pairs: Vec<(u32, u32)> = (0..n_edges)
+                .map(|eid| {
+                    graph
+                        .edge(eid)
+                        .expect("conformance generalized_petersen edge id in bounds")
+                })
+                .collect();
+
+            let mut got_canon: Vec<(u32, u32)> =
+                got_pairs.iter().map(|&(u, v)| canon(u, v)).collect();
+            let mut want_canon: Vec<(u32, u32)> =
+                want_pairs.iter().map(|&(u, v)| canon(u, v)).collect();
+            got_canon.sort_unstable();
+            want_canon.sort_unstable();
+            assert_eq!(
+                got_canon,
+                want_canon,
+                "generalized_petersen edge multiset mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no generalized_petersen fixtures from source {src}"
+        );
+    }
+}

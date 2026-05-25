@@ -6123,6 +6123,37 @@ HYPERCUBE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+GENERALIZED_PETERSEN_MANIFEST: List[Dict[str, Any]] = [
+    # Note: python-igraph does not expose `Graph.GeneralizedPetersen`
+    # directly. We use Graph.Famous('Petersen') as the only available
+    # canonical G(n,k) labeling — Famous('Dodecahedron') is also
+    # isomorphic to G(10,2) but uses an embedded-polytope vertex layout
+    # whose edge multiset differs from the canonical one, so we cannot
+    # include it without isomorphism-based comparison.
+    {
+        "case": "generalized_petersen_py_g_5_2_petersen",
+        "origin": "python-igraph Graph.Famous('Petersen') — the classic Petersen graph G(5,2)",
+        "algo": "generalized_petersen",
+        "params": {"n": 5, "k": 2},
+        "expected": {
+            "vcount": 10,
+            "ecount": 15,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 4], [0, 5],
+                [1, 2], [1, 6],
+                [2, 3], [2, 7],
+                [3, 4], [3, 8],
+                [4, 9],
+                [5, 7], [5, 8],
+                [6, 8], [6, 9],
+                [7, 9],
+            ],
+        },
+    },
+]
+
+
 SQUARE_LATTICE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "square_lattice_py_dim_three_path",
@@ -6468,6 +6499,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "hypercube": HYPERCUBE_MANIFEST,
     "hamming": HAMMING_MANIFEST,
     "square_lattice": SQUARE_LATTICE_MANIFEST,
+    "generalized_petersen": GENERALIZED_PETERSEN_MANIFEST,
 }
 
 
@@ -6596,6 +6628,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "hypercube",
             "hamming",
             "square_lattice",
+            "generalized_petersen",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries
