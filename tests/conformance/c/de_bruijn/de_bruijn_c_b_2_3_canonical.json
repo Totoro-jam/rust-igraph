@@ -1,0 +1,86 @@
+{
+  "source": "c",
+  "origin": "mirrors igraph_de_bruijn(m=2, n=3) \u2014 binary length-3 strings, 8 vertices and 16 arcs",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "de_bruijn",
+  "params": {
+    "m": 2,
+    "n": 3
+  },
+  "expected": {
+    "vcount": 8,
+    "ecount": 16,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        6,
+        4
+      ],
+      [
+        6,
+        5
+      ],
+      [
+        7,
+        6
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  }
+}

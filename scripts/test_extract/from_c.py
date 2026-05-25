@@ -7425,6 +7425,110 @@ CIRCULANT_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+DE_BRUIJN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "de_bruijn_c_b_1_1_singleton_self_loop",
+        "origin": "mirrors igraph_de_bruijn(m=1, n=1) — single vertex with one self-loop",
+        "algo": "de_bruijn",
+        "params": {"m": 1, "n": 1},
+        "expected": {
+            "vcount": 1,
+            "ecount": 1,
+            "directed": True,
+            "edges": [
+                [0, 0],
+            ],
+        },
+    },
+    {
+        "case": "de_bruijn_c_b_2_1_directed_k2_with_loops",
+        "origin": "mirrors igraph_de_bruijn(m=2, n=1) — 2 vertices, 4 directed arcs incl. both self-loops",
+        "algo": "de_bruijn",
+        "params": {"m": 2, "n": 1},
+        "expected": {
+            "vcount": 2,
+            "ecount": 4,
+            "directed": True,
+            "edges": [
+                [0, 0], [0, 1], [1, 0], [1, 1],
+            ],
+        },
+    },
+    {
+        "case": "de_bruijn_c_b_2_2_canonical",
+        "origin": "mirrors igraph_de_bruijn(m=2, n=2) — 4 vertices, 8 arcs via rewrite (i, (i*m mod 4) + b)",
+        "algo": "de_bruijn",
+        "params": {"m": 2, "n": 2},
+        "expected": {
+            "vcount": 4,
+            "ecount": 8,
+            "directed": True,
+            "edges": [
+                [0, 0], [0, 1],
+                [1, 2], [1, 3],
+                [2, 0], [2, 1],
+                [3, 2], [3, 3],
+            ],
+        },
+    },
+    {
+        "case": "de_bruijn_c_b_3_2_canonical",
+        "origin": "mirrors igraph_de_bruijn(m=3, n=2) — 9 vertices, 27 arcs (alphabet of 3, strings of length 2)",
+        "algo": "de_bruijn",
+        "params": {"m": 3, "n": 2},
+        "expected": {
+            "vcount": 9,
+            "ecount": 27,
+            "directed": True,
+            "edges": [
+                [0, 0], [0, 1], [0, 2],
+                [1, 3], [1, 4], [1, 5],
+                [2, 6], [2, 7], [2, 8],
+                [3, 0], [3, 1], [3, 2],
+                [4, 3], [4, 4], [4, 5],
+                [5, 6], [5, 7], [5, 8],
+                [6, 0], [6, 1], [6, 2],
+                [7, 3], [7, 4], [7, 5],
+                [8, 6], [8, 7], [8, 8],
+            ],
+        },
+    },
+    {
+        "case": "de_bruijn_c_b_2_3_canonical",
+        "origin": "mirrors igraph_de_bruijn(m=2, n=3) — binary length-3 strings, 8 vertices and 16 arcs",
+        "algo": "de_bruijn",
+        "params": {"m": 2, "n": 3},
+        "expected": {
+            "vcount": 8,
+            "ecount": 16,
+            "directed": True,
+            "edges": [
+                [0, 0], [0, 1],
+                [1, 2], [1, 3],
+                [2, 4], [2, 5],
+                [3, 6], [3, 7],
+                [4, 0], [4, 1],
+                [5, 2], [5, 3],
+                [6, 4], [6, 5],
+                [7, 6], [7, 7],
+            ],
+        },
+    },
+    {
+        "case": "de_bruijn_c_n_zero_singleton",
+        "origin": "mirrors igraph_de_bruijn(m=k, n=0) — exactly one vertex (the empty string), zero arcs",
+        "algo": "de_bruijn",
+        "params": {"m": 5, "n": 0},
+        "expected": {
+            "vcount": 1,
+            "ecount": 0,
+            "directed": True,
+            "edges": [],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -7595,6 +7699,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "square_lattice": SQUARE_LATTICE_MANIFEST,
     "generalized_petersen": GENERALIZED_PETERSEN_MANIFEST,
     "circulant": CIRCULANT_MANIFEST,
+    "de_bruijn": DE_BRUIJN_MANIFEST,
 }
 
 
@@ -7730,6 +7835,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "square_lattice",
             "generalized_petersen",
             "circulant",
+            "de_bruijn",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

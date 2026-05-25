@@ -6191,6 +6191,52 @@ CIRCULANT_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+DE_BRUIJN_MANIFEST: List[Dict[str, Any]] = [
+    # python-igraph exposes `Graph.De_Bruijn(m, n)` directly. Edge
+    # emission order matches the upstream C exactly: for each vertex
+    # i ∈ [0, m^n), arcs (i, (i*m mod vcount) + b) for b ∈ [0, m).
+    {
+        "case": "de_bruijn_py_b_2_2",
+        "origin": "python-igraph Graph.De_Bruijn(m=2, n=2) — 4 vertices, 8 directed arcs",
+        "algo": "de_bruijn",
+        "params": {"m": 2, "n": 2},
+        "expected": {
+            "vcount": 4,
+            "ecount": 8,
+            "directed": True,
+            "edges": [
+                [0, 0], [0, 1],
+                [1, 2], [1, 3],
+                [2, 0], [2, 1],
+                [3, 2], [3, 3],
+            ],
+        },
+    },
+    {
+        "case": "de_bruijn_py_b_3_2",
+        "origin": "python-igraph Graph.De_Bruijn(m=3, n=2) — 9 vertices, 27 directed arcs",
+        "algo": "de_bruijn",
+        "params": {"m": 3, "n": 2},
+        "expected": {
+            "vcount": 9,
+            "ecount": 27,
+            "directed": True,
+            "edges": [
+                [0, 0], [0, 1], [0, 2],
+                [1, 3], [1, 4], [1, 5],
+                [2, 6], [2, 7], [2, 8],
+                [3, 0], [3, 1], [3, 2],
+                [4, 3], [4, 4], [4, 5],
+                [5, 6], [5, 7], [5, 8],
+                [6, 0], [6, 1], [6, 2],
+                [7, 3], [7, 4], [7, 5],
+                [8, 6], [8, 7], [8, 8],
+            ],
+        },
+    },
+]
+
+
 SQUARE_LATTICE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "square_lattice_py_dim_three_path",
@@ -6538,6 +6584,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "square_lattice": SQUARE_LATTICE_MANIFEST,
     "generalized_petersen": GENERALIZED_PETERSEN_MANIFEST,
     "circulant": CIRCULANT_MANIFEST,
+    "de_bruijn": DE_BRUIJN_MANIFEST,
 }
 
 
@@ -6668,6 +6715,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "square_lattice",
             "generalized_petersen",
             "circulant",
+            "de_bruijn",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

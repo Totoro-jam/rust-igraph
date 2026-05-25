@@ -138,6 +138,10 @@ path = "examples/generalized_petersen_demo.rs"
 name = "circulant_demo"
 path = "examples/circulant_demo.rs"
 
+[[example]]
+name = "de_bruijn_demo"
+path = "examples/de_bruijn_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -481,6 +485,11 @@ harness = false
 [[bench]]
 name = "bench_circulant"
 path = "benches/bench_circulant.rs"
+harness = false
+
+[[bench]]
+name = "bench_de_bruijn"
+path = "benches/bench_de_bruijn.rs"
 harness = false
 
 [lints.rust]

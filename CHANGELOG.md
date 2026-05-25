@@ -15,6 +15,75 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-012** — `de_bruijn` deterministic constructor.
+  **Twelfth member of the `constructors/` family.** Counterpart of
+  `igraph_de_bruijn` in
+  `references/igraph/src/constructors/de_bruijn.c:58-113`. Builds the
+  **directed** De Bruijn graph `B(m, n)` on `m^n` vertices whose
+  vertices are length-`n` strings drawn from an alphabet of `m`
+  symbols. There is an arc from `v = (a_1, …, a_n)` to
+  `w = (a_2, …, a_n, b)` for every alphabet symbol `b` — i.e. `w` is
+  obtained from `v` by dropping the first symbol and appending one.
+  - `pub fn de_bruijn(m: u32, n: u32) -> IgraphResult<Graph>`. Result
+    is always directed (matches `IGRAPH_DIRECTED` in C). Vertices are
+    encoded as integers in `[0, m^n)` via little-endian base-`m`, and
+    the arc rewrite reduces to integer arithmetic: from vertex `i` the
+    `m` successors are `((i * m) mod m^n) + b` for `b ∈ [0, m)`.
+  - **Arithmetic encoding with basis-hoisting**: the inner loop hoists
+    `basis = (i * m) mod m^n` (computed once per source vertex) and
+    only adds `b` for each successor — `O(|V| + |E|) = O(m^(n+1))`
+    total work with no division or modulus inside the inner loop.
+  - **Overflow protection**: `u32::checked_pow(n)` validates the
+    vertex count; the edge count `m · m^n` is then checked via
+    `usize::checked_mul`. Both surface as
+    `IgraphError::InvalidArgument` with a deterministic message
+    (`"de_bruijn: m^n overflows u32 …"` or `"de_bruijn: m^(n+1)
+    overflows usize …"`) — never produces a silently-wrapped graph.
+  - **Degenerate forms** (all match upstream):
+    * `n == 0` → singleton directed graph with no arcs (the unique
+      length-0 string maps nowhere)
+    * `m == 0` → empty directed graph
+    * `m == 1, n == 1` → single vertex with one self-loop `(0, 0)`
+    * `B(2, 1)` → directed `K_2` plus both self-loops (4 arcs total)
+  - **Structural invariants** (verified by test): for `n ≥ 1` every
+    vertex has out-degree exactly `m` and in-degree exactly `m`; the
+    arc list is emitted in source-major order with successors in
+    ascending `b`; every arc `(u, v)` satisfies
+    `v ∈ [(u·m) mod m^n, (u·m) mod m^n + m)`.
+  - **Tests** (`src/algorithms/constructors/de_bruijn.rs`):
+    12 unit tests covering `n=0` singleton, `m=0` null, `m=1 n=1`
+    self-loop, `B(2,1)` directed-`K_2`-with-loops, exact arc list of
+    `B(2,2)`, `B(3,2)` per-vertex in/out degree audit, `B(2,3)` /
+    `B(4,3)` count check, the rewrite rule on `B(3,2)`, the
+    `(m, n) = (2, 32)` overflow rejection, and uniform in/out-degree
+    sweep over `(m, n) ∈ [1..=4] × [1..=3]`. 3 proptest invariants
+    (`proptest-harness` feature) check `vcount == m^n` and
+    `ecount == m^(n+1)` exactness, per-vertex in/out-degree equals
+    `m`, and the rewrite rule across random valid inputs.
+  - **Conformance** (`tests/conformance/{c,py,r}/de_bruijn/`):
+    10 fixtures total — 6 from igraph C (`b_2_2`, `b_2_3`, `b_3_2`,
+    `b_4_3`, `b_2_1_with_loops`, `b_1_1_singleton_loop`), 2 from
+    python-igraph (`b_2_2_py`, `b_3_2_py` via `Graph.De_Bruijn(m, n)`),
+    and 2 from R-igraph (`b_2_2_r`, `b_3_2_r` via
+    `make_de_bruijn_graph(m, n)`). **Note**: python-igraph and rigraph
+    both dispatch directly to the upstream C entry point, so the arc
+    emission order is identical across all three sources — the
+    cross-source test therefore compares the raw ordered arc list
+    rather than canonicalising into a multiset.
+  - **Bench** (`benches/bench_de_bruijn.rs` /
+    `.codefuse/tracking/perf/ALGO-CN-012.json`): 6 shapes from
+    `B(2, 2)` through `B(4, 7)` (16 384 vertices, 65 536 arcs).
+    Throughput plateaus around 11-23 Marc/s for the larger shapes;
+    `B(2, 2)` clocks ~370 ns end-to-end. The inner loop is dominated
+    by the `Vec::push` and final `Graph::add_edges` copy — the
+    arithmetic itself is essentially free.
+  - **Example** (`examples/de_bruijn_demo.rs`): walks the canonical
+    specialisations `B(1, 1)`, `B(2, 1)`, `B(2, 2)`, `B(2, 3)`, and
+    `B(3, 2)`; verifies the standard structural invariants
+    (vcount/ecount/total degree) for each one; and demonstrates the
+    rewrite rule by iterating every arc of `B(3, 2)` and asserting
+    `v ∈ [(u·3) mod 9, (u·3) mod 9 + 3)`.
+
 - **ALGO-CN-011** — `circulant` deterministic constructor.
   **Eleventh member of the `constructors/` family.** Counterpart of
   `igraph_circulant` in

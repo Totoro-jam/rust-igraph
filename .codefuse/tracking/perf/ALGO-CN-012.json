@@ -1,0 +1,91 @@
+{
+  "algo_id": "ALGO-CN-012",
+  "algo": "de_bruijn",
+  "captured_at": "2026-05-25",
+  "git_commit": "1eae91f",
+  "machine": "darwin-arm64",
+  "criterion_version": "0.5",
+  "configs": [
+    {
+      "label": "b_2_2",
+      "m": 2,
+      "n": 2,
+      "vcount": 4,
+      "ecount": 8
+    },
+    {
+      "label": "b_3_2",
+      "m": 3,
+      "n": 2,
+      "vcount": 9,
+      "ecount": 27
+    },
+    {
+      "label": "b_2_8",
+      "m": 2,
+      "n": 8,
+      "vcount": 256,
+      "ecount": 512
+    },
+    {
+      "label": "b_4_4",
+      "m": 4,
+      "n": 4,
+      "vcount": 256,
+      "ecount": 1024
+    },
+    {
+      "label": "b_2_16",
+      "m": 2,
+      "n": 16,
+      "vcount": 65536,
+      "ecount": 131072
+    },
+    {
+      "label": "b_5_6",
+      "m": 5,
+      "n": 6,
+      "vcount": 15625,
+      "ecount": 78125
+    }
+  ],
+  "results": {
+    "de_bruijn/b_2_2": {
+      "time_low": "689.62 ns",
+      "time_mid": "690.20 ns",
+      "time_high": "692.53 ns",
+      "throughput": "~11.6 Marc/s"
+    },
+    "de_bruijn/b_3_2": {
+      "time_low": "2.3739 us",
+      "time_mid": "2.3878 us",
+      "time_high": "2.3913 us",
+      "throughput": "~11.3 Marc/s"
+    },
+    "de_bruijn/b_2_8": {
+      "time_low": "25.866 us",
+      "time_mid": "26.027 us",
+      "time_high": "26.067 us",
+      "throughput": "~19.7 Marc/s"
+    },
+    "de_bruijn/b_4_4": {
+      "time_low": "48.317 us",
+      "time_mid": "48.648 us",
+      "time_high": "48.731 us",
+      "throughput": "~21.0 Marc/s"
+    },
+    "de_bruijn/b_2_16": {
+      "time_low": "5.5451 ms",
+      "time_mid": "5.6748 ms",
+      "time_high": "5.7072 ms",
+      "throughput": "~23.1 Marc/s"
+    },
+    "de_bruijn/b_5_6": {
+      "time_low": "5.3163 ms",
+      "time_mid": "5.3825 ms",
+      "time_high": "5.3991 ms",
+      "throughput": "~14.5 Marc/s"
+    }
+  },
+  "notes": "B(m, n) emits exactly m^(n+1) arcs in two nested loops. Per-arc work is one u64 multiply + modulus for the basis (hoisted out of the inner alphabet loop), one u64 add + truncating cast, and a Vec::push into a preallocated buffer. Graph::add_edges dominates at the larger sizes — the b_2_16 / b_5_6 shapes amortise Graph::new overhead and throughput tops out around 21-23 Marc/s. Small inputs (b_2_2, b_3_2) sit in the ~0.7-2.4 us band, mostly Graph::new + boundary checks. No allocator hot path beyond the preallocated edge Vec. The `basis = (i * m) mod m^n` factorisation is critical: the m successors of i share the same basis so we do the divmod once per source vertex rather than once per arc."
+}
