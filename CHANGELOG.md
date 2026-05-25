@@ -15,6 +15,78 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-024** — `hexagonal_lattice` planar hexagonal (honeycomb)
+  lattice constructor. **Twenty-fourth member of the `constructors/`
+  family** and the planar dual of [`triangular_lattice`]. Counterpart of
+  `igraph_hexagonal_lattice` in
+  `references/igraph/src/constructors/lattices.c:350-601`.
+  - `pub fn hexagonal_lattice(dims: &[u32], directed: bool, mutual: bool) -> IgraphResult<Graph>`
+    — single `dims`-length dispatch (1=triangle outline, 2=quasi-rectangle,
+    3=hexagon) with a shared emitter that emits up-to-two local neighbour
+    candidates per lattice site: right `(k + 1, j)` always, and up-left
+    `(k - 1, j + 1)` only when `k` is odd. Vertex indexing follows
+    upstream's `lex_ordering = false` convention via per-row prefix sums.
+  - **Three shape branches** with a single emitter:
+    - `dims=[n]` → triangular outline of `n` hexagons per side. The
+      shape helper uses upstream's exact `row_count_raw = size + 2; for i
+      in 0..(row_count_raw - 1)` loop with `len = 2 · (row_count_raw - i)
+      − (3 if i == 0 else 1)` — subtle off-by-one trap (the loop runs
+      over `size + 1` rows, not `size`, and the first row sheds 3 instead
+      of 1). `dims=[5]` gives the canonical 46-vertex / 60-arc .out
+      fixture.
+    - `dims=[size_x, size_y]` → quasi-rectangle of `size_x × size_y`
+      hexagons. `dims=[2, 2]` matches the python-igraph
+      `testHexagonalLattice` 16-vertex / 19-edge fixture.
+    - `dims=[size_x, size_y, size_z]` → hexagonal outline with three
+      sides carrying `size_x, size_y, size_z` hexagons respectively.
+      `dims=[3, 4, 5]` gives the canonical 94-vertex / 129-edge .out
+      fixture. Zero in any dim collapses to the empty graph (upstream
+      `igraph_vector_int_any_smaller(dims, 1)` guard).
+  - **Degree ≤ 3 invariant**: every vertex carries at most three
+    neighbours (vs the planar dual's ≤ 6) — the honeycomb tiling
+    structural property that distinguishes hexagonal from triangular
+    lattices.
+  - **Directed-mutual matrix**: `directed=false` ignores `mutual`;
+    `directed=true, mutual=false` emits one arc per edge; `directed=true,
+    mutual=true` doubles emission so each undirected edge becomes a
+    forward+reverse pair. Comparison in the conformance lane uses
+    directed-aware multiset equality.
+  - **Tests**: 12 unit + 6 proptest covering (a) every dim arity branch,
+    (b) the directed/mutual cross-product, (c) `dims=[1]` single-hexagon
+    C_6, (d) zero-dim guard, (e) max-degree-≤-3 structural invariant,
+    (f) the upstream `.out`-derived `dims=[5]` triangle side 5 fixture
+    (46 vertices, 60 arcs), (g) the canonical `dims=[3, 4, 5]` hexagon
+    fixture (94 vertices, 129 edges).
+  - **Two-source conformance**: 10 fixtures
+    (`tests/conformance/{c,py}/hexagonal_lattice/`). **R lane skipped**:
+    R-igraph 2.x exposes no `hexagonal_lattice` wrapper (verified via
+    `references/rigraph/R/`), so the integration test compares C and py
+    only. C lane (7): single hexagon directed, triangle side 5 directed
+    full 60-arc reproduction, rectangle 4×5 directed-mutual 154-arc,
+    hexagon (3,4,5) undirected-mutual 129-edge match, two zero-dim
+    guards, rectangle 2×2 undirected. py lane (3): `Graph.Hexagonal_Lattice([2, 2], ...)`
+    in all three mode combinations.
+  - **Bench** (`benches/bench_hexagonal_lattice.rs`, baseline at
+    `.codefuse/tracking/perf/ALGO-CN-024.json`): five shapes across
+    both flag groups. `triangle_50` ≈ 133 µs (~30 Medge/s),
+    `triangle_100` ≈ 575 µs (~27 Medge/s), `rect_100x100` ≈ 1.19 ms,
+    `rect_200x100` ≈ 2.52 ms, `hex_30_30_30` ≈ 303 µs. Directed-mutual
+    variants land in the 17–22 Medge/s band. Throughput edges out
+    `triangular_lattice` on similar `|V|+|E|` budgets because hexagonal
+    vertices carry degree ≤ 3 (vs triangular's ≤ 6), so per-vertex
+    candidate evaluations are fewer.
+  - Example: `cargo run --example hexagonal_lattice_demo` walks a
+    7-case truth table (single hexagon, triangle side 5, rect 2×2
+    plain/mutual, rect 4×5 mutual, hexagon (3,4,5), zero-dim guard)
+    asserting vcount, ecount, and the degree-≤-3 invariant.
+  - **Translation bug caught + fixed during Step 5**: my first draft of
+    `triangle_shape` used `row_count = size + 1` (reading the upstream
+    loop bound as `row_count` rather than `row_count_raw - 1`), which
+    produced 20 vertices / 12 arcs for `dims=[5]` instead of the
+    canonical 46 / 60. The unit-test sweep against the upstream `.out`
+    file (`references/igraph/tests/unit/igraph_hexagonal_lattice.out`)
+    surfaced the mismatch immediately; fixed by transcribing upstream's
+    `row_count_raw = size + 2; loop 0..row_count_raw - 1` verbatim.
 - **ALGO-CN-023** — `triangular_lattice` planar triangular lattice
   constructor. **Twenty-third member of the `constructors/` family**
   and the planar dual of the hexagonal lattice. Counterpart of

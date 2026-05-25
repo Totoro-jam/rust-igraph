@@ -14,6 +14,7 @@ pub mod famous;
 pub mod full;
 pub mod generalized_petersen;
 pub mod hamming;
+pub mod hexagonal_lattice;
 pub mod hypercube;
 pub mod kary_tree;
 pub mod kautz;

@@ -1,0 +1,49 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_hexagonal_lattice.out \u2014 'Triangular hexagonal lattice, single hexagon' block, dims=[1] dir=true \u2192 C_6 (6v, 6 arcs)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "hexagonal_lattice",
+  "params": {
+    "dims": [
+      1
+    ],
+    "directed": true,
+    "mutual": false
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 6,
+    "directed": true,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ]
+  }
+}

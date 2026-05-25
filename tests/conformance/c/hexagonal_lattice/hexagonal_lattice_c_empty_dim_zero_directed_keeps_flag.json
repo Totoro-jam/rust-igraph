@@ -1,0 +1,26 @@
+{
+  "source": "c",
+  "origin": "lattices.c:580 \u2014 empty graph still carries `directed` from the call site",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "hexagonal_lattice",
+  "params": {
+    "dims": [
+      0,
+      3,
+      4
+    ],
+    "directed": true,
+    "mutual": true
+  },
+  "expected": {
+    "vcount": 0,
+    "ecount": 0,
+    "directed": true,
+    "edges": []
+  }
+}

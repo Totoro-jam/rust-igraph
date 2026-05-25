@@ -7085,6 +7085,49 @@ TRIANGULAR_LATTICE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+def _py_hex_lattice_expected(dims: List[int], directed: bool, mutual: bool) -> Dict[str, Any]:
+    """Same idea as `_hex_lattice_expected` in `from_c.py` but anchored
+    to the python-igraph wrapper `Graph.Hexagonal_Lattice`. Both
+    converge on the same C core so the edges agree."""
+    g = ig.Graph.Hexagonal_Lattice(dims, directed=directed, mutual=mutual)
+    return {
+        "vcount": g.vcount(),
+        "ecount": g.ecount(),
+        "directed": bool(g.is_directed()),
+        "edges": [list(e.tuple) for e in g.es],
+    }
+
+
+# Fixtures for `Graph.Hexagonal_Lattice` (ALGO-CN-024). Mirrors the
+# python-igraph `testHexagonalLattice` test
+# (`tests/test_generators.py:135-164`) which is the canonical lane
+# checker for the constructor's edge-set contract: dims=[2,2] in three
+# (directed, mutual) combinations.
+HEXAGONAL_LATTICE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "hexagonal_lattice_py_2x2_undirected",
+        "origin": "python-igraph Graph.Hexagonal_Lattice([2, 2]) — undirected default",
+        "algo": "hexagonal_lattice",
+        "params": {"dims": [2, 2], "directed": False, "mutual": False},
+        "expected": _py_hex_lattice_expected([2, 2], False, False),
+    },
+    {
+        "case": "hexagonal_lattice_py_2x2_directed_unilateral",
+        "origin": "python-igraph Graph.Hexagonal_Lattice([2, 2], directed=True, mutual=False)",
+        "algo": "hexagonal_lattice",
+        "params": {"dims": [2, 2], "directed": True, "mutual": False},
+        "expected": _py_hex_lattice_expected([2, 2], True, False),
+    },
+    {
+        "case": "hexagonal_lattice_py_2x2_directed_mutual",
+        "origin": "python-igraph Graph.Hexagonal_Lattice([2, 2], directed=True, mutual=True)",
+        "algo": "hexagonal_lattice",
+        "params": {"dims": [2, 2], "directed": True, "mutual": True},
+        "expected": _py_hex_lattice_expected([2, 2], True, True),
+    },
+]
+
+
 # python-igraph `Graph.Atlas(number)` calls `igraph_atlas` in the C core.
 # Captured live from python-igraph 0.11.9 with the script:
 #   for i in [0, 3, 18, 70, 180, 208, 1252]:
@@ -7474,6 +7517,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "atlas": ATLAS_MANIFEST,
     "create": CREATE_MANIFEST,
     "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
+    "hexagonal_lattice": HEXAGONAL_LATTICE_MANIFEST,
 }
 
 
@@ -7615,6 +7659,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "atlas",
             "create",
             "triangular_lattice",
+            "hexagonal_lattice",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

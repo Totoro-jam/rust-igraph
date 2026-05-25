@@ -131,6 +131,10 @@ name = "square_lattice_demo"
 path = "examples/square_lattice_demo.rs"
 
 [[example]]
+name = "hexagonal_lattice_demo"
+path = "examples/hexagonal_lattice_demo.rs"
+
+[[example]]
 name = "generalized_petersen_demo"
 path = "examples/generalized_petersen_demo.rs"
 
@@ -512,6 +516,11 @@ harness = false
 [[bench]]
 name = "bench_triangular_lattice"
 path = "benches/bench_triangular_lattice.rs"
+harness = false
+
+[[bench]]
+name = "bench_hexagonal_lattice"
+path = "benches/bench_hexagonal_lattice.rs"
 harness = false
 
 [[bench]]

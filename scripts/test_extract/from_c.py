@@ -8546,6 +8546,91 @@ TRIANGULAR_LATTICE_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+def _hex_lattice_expected(dims: List[int], directed: bool, mutual: bool) -> Dict[str, Any]:
+    """Compute the canonical (vcount, ecount, edges) payload via the same
+    `igraph_hexagonal_lattice` implementation python-igraph wraps —
+    keeps the C-extracted manifest faithful without manually copying
+    100+ edge lines from the .out file."""
+    g = ig.Graph.Hexagonal_Lattice(dims, directed=directed, mutual=mutual)
+    return {
+        "vcount": g.vcount(),
+        "ecount": g.ecount(),
+        "directed": bool(g.is_directed()),
+        "edges": [list(e.tuple) for e in g.es],
+    }
+
+
+# Fixtures for `igraph_hexagonal_lattice` (ALGO-CN-024). Mirrors
+# `tests/unit/igraph_hexagonal_lattice.c` which walks the four shape
+# branches (`dims=[1]`, `dims=[5]`, `dims=[4,5]`, `dims=[3,4,5]`) plus
+# the empty-graph and 4-dim error paths; the negative-dim path is
+# eliminated at the type level by Rust's `&[u32]` signature.
+HEXAGONAL_LATTICE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "hexagonal_lattice_c_single_hexagon_directed",
+        "origin": (
+            "tests/unit/igraph_hexagonal_lattice.out — "
+            "'Triangular hexagonal lattice, single hexagon' block, dims=[1] dir=true → C_6 (6v, 6 arcs)"
+        ),
+        "algo": "hexagonal_lattice",
+        "params": {"dims": [1], "directed": True, "mutual": False},
+        "expected": _hex_lattice_expected([1], True, False),
+    },
+    {
+        "case": "hexagonal_lattice_c_triangle_side_5_directed",
+        "origin": (
+            "tests/unit/igraph_hexagonal_lattice.out — "
+            "'Triangular hexagonal lattice' block, dims=[5] dir=true (46v, 60 arcs)"
+        ),
+        "algo": "hexagonal_lattice",
+        "params": {"dims": [5], "directed": True, "mutual": False},
+        "expected": _hex_lattice_expected([5], True, False),
+    },
+    {
+        "case": "hexagonal_lattice_c_rectangle_4x5_directed_mutual",
+        "origin": (
+            "tests/unit/igraph_hexagonal_lattice.out — "
+            "'Rectangular hexagonal lattice' block, dims=[4,5] dir+mut (58v, 154 arcs)"
+        ),
+        "algo": "hexagonal_lattice",
+        "params": {"dims": [4, 5], "directed": True, "mutual": True},
+        "expected": _hex_lattice_expected([4, 5], True, True),
+    },
+    {
+        "case": "hexagonal_lattice_c_hexagon_3_4_5_undirected_mutual",
+        "origin": (
+            "tests/unit/igraph_hexagonal_lattice.out — "
+            "'Hexagonal hexagonal lattice' block, dims=[3,4,5] undirected+mutual "
+            "(directed=false silently collapses mutual; 94v, 129 edges)"
+        ),
+        "algo": "hexagonal_lattice",
+        "params": {"dims": [3, 4, 5], "directed": False, "mutual": True},
+        "expected": _hex_lattice_expected([3, 4, 5], False, True),
+    },
+    {
+        "case": "hexagonal_lattice_c_empty_dim_zero",
+        "origin": "lattices.c:580 — any dim == 0 collapses to igraph_empty(0, directed)",
+        "algo": "hexagonal_lattice",
+        "params": {"dims": [3, 0], "directed": False, "mutual": False},
+        "expected": {"vcount": 0, "ecount": 0, "directed": False, "edges": []},
+    },
+    {
+        "case": "hexagonal_lattice_c_empty_dim_zero_directed_keeps_flag",
+        "origin": "lattices.c:580 — empty graph still carries `directed` from the call site",
+        "algo": "hexagonal_lattice",
+        "params": {"dims": [0, 3, 4], "directed": True, "mutual": True},
+        "expected": {"vcount": 0, "ecount": 0, "directed": True, "edges": []},
+    },
+    {
+        "case": "hexagonal_lattice_c_rectangle_2x2_undirected",
+        "origin": "lattices.c:570 — quasi-rectangle dims=[2,2] (16v, 19 undirected edges)",
+        "algo": "hexagonal_lattice",
+        "params": {"dims": [2, 2], "directed": False, "mutual": False},
+        "expected": _hex_lattice_expected([2, 2], False, False),
+    },
+]
+
+
 ATLAS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "atlas_c_null0",
@@ -8955,6 +9040,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "atlas": ATLAS_MANIFEST,
     "create": CREATE_MANIFEST,
     "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
+    "hexagonal_lattice": HEXAGONAL_LATTICE_MANIFEST,
 }
 
 
@@ -9101,6 +9187,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "atlas",
             "create",
             "triangular_lattice",
+            "hexagonal_lattice",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural
