@@ -134,6 +134,10 @@ path = "examples/square_lattice_demo.rs"
 name = "generalized_petersen_demo"
 path = "examples/generalized_petersen_demo.rs"
 
+[[example]]
+name = "circulant_demo"
+path = "examples/circulant_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -472,6 +476,11 @@ harness = false
 [[bench]]
 name = "bench_generalized_petersen"
 path = "benches/bench_generalized_petersen.rs"
+harness = false
+
+[[bench]]
+name = "bench_circulant"
+path = "benches/bench_circulant.rs"
 harness = false
 
 [lints.rust]

@@ -5,6 +5,7 @@
 //! whose shape is fully determined by their integer parameters, with no
 //! RNG involvement.
 
+pub mod circulant;
 pub mod generalized_petersen;
 pub mod hamming;
 pub mod hypercube;

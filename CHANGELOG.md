@@ -15,6 +15,83 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-CN-011** — `circulant` deterministic constructor.
+  **Eleventh member of the `constructors/` family.** Counterpart of
+  `igraph_circulant` in
+  `references/igraph/src/constructors/circulant.c:70-170`. Builds the
+  circulant graph `G(n, shifts)` on `n` vertices where for each
+  `s ∈ shifts` (after normalisation) edge `(v_j, v_{(j+s) mod n})` is
+  emitted for every `j ∈ [0, n)`.
+  - `pub fn circulant(n: u32, shifts: &[i64], directed: bool) -> IgraphResult<Graph>`.
+    Supports both directed and undirected output; accepts negative
+    shifts (lifted into `[0, n)` via signed `mod`); overflow guarded
+    via `checked_mul` on the edge-`Vec` pre-allocation.
+  - **Shift normalisation**: `s := s mod n` lifted to `[0, n)`; then for
+    `!directed`, shifts `s ≥ (n + 1) / 2` fold to `n − s` (so shift 3 on
+    `n = 5` collapses to shift 2, avoiding duplicate undirected edges);
+    zero shift always suppressed (would emit self-loops); duplicates
+    deduped via linear `seen.contains` scan (kept linear because
+    `|shifts|` is typically small).
+  - **Edge emission**: per canonical shift, push `(j, (j + s) mod n)`
+    for `j ∈ [0, limit)`, where `limit = n / 2` when
+    `!directed && n is even && s == n / 2` (even-`n` antipodal shift
+    halves to avoid duplicating the perfect matching), else `limit = n`.
+    Total work `O(n · |canonical shifts|)` plus `Graph::add_edges`.
+  - **Canonical generalisations** verified by test:
+
+    | call                                  | equivalent                       | note                          |
+    |---------------------------------------|----------------------------------|-------------------------------|
+    | `circulant(n, &[1], false)`           | `ring_graph(n)` = `C_n`          | basic cycle                   |
+    | `circulant(n, &[k], false)`           | inner layer of `G(n, k)`         | for `0 < k < n/2`             |
+    | `circulant(n, &[1, …, n/2], false)`   | `K_n`                            | every distinct undirected shift |
+    | `circulant(n, &[s], true)`            | directed cycle of step `s`       | per-shift orientation kept    |
+
+  - **Structural properties** (covered by unit + proptest sweep):
+    every `circulant(n, shifts, false)` is simple (no loops, no
+    parallel edges) and vertex-regular with degree
+    `2·|canonical shifts after halving|`; negative shifts always
+    equivalent to their positive normalisation.
+  - **Bounds & overflow**: shift normalisation uses signed `i64` mod;
+    `u32::try_from` guards the lifted value; `n * |canonical shifts|`
+    edge capacity uses `checked_mul`.
+  - **Tests** (`src/algorithms/constructors/circulant.rs`):
+    17 unit tests covering the empty graph, `n = 1`, ring equivalence,
+    directed-cycle equivalence, suppression of shift = 0, duplicate
+    shifts, the complementary-shift collapse, even-`n` antipodal
+    halving, odd-`n` no-shortcut, the complete-graph specialisation,
+    negative-shift normalisation, simplicity, and equivalence with the
+    inner layer of `generalized_petersen`. 4 proptest invariants
+    (`proptest-harness` feature) check simplicity of undirected
+    output, vertex-regularity, negative-shift equivalence, and the
+    `K_n` specialisation across random valid inputs.
+  - **Conformance** (`tests/conformance/{c,py,r}/circulant/`):
+    10 fixtures total — 6 from igraph C (`c_5_shifts_1`,
+    `c_6_shifts_1_3_antipodal`, `c_7_shifts_1_2_squared_cycle`,
+    `k4_shifts_1_2_complete`, `c_5_shifts_neg1_directed`,
+    `c_8_shifts_1_3_directed`), 2 from python-igraph
+    (`circulant_py_c_5_shifts_1_ring` via `Graph.Ring(5)` and
+    `circulant_py_k4_shifts_1_2_tetrahedral` via
+    `Graph.Famous('Tetrahedral')`), and 2 from R-igraph
+    (`circulant_r_c_6_shifts_1_ring` via `make_ring(6)` and
+    `circulant_r_k5_shifts_1_2_full` via `make_full_graph(5)`).
+    **Note**: python-igraph 0.11.x and rigraph do NOT expose a direct
+    `Graph.Circulant` constructor, so py/R fixtures use the canonical
+    equivalents from the truth table above; the cross-source test
+    compares canonicalised `(lo, hi)` edge multisets for undirected
+    fixtures and preserves orientation for directed ones.
+  - **Bench**
+    (`benches/bench_circulant.rs` /
+    `.codefuse/tracking/perf/ALGO-CN-011.json`): 6 shapes from `C_5`
+    through `circulant(10000, [1, 5, 17, 101])`. Throughput tops out
+    around 27 Medge/s for large `n`; the even-`n` antipodal shape
+    halves the per-shift work as expected. Small-`n` shapes pay
+    600 ns – 2.2 µs in `Graph::new` + `add_edges`.
+  - **Example** (`examples/circulant_demo.rs`): walks five canonical
+    specialisations — `C_5`, `C_6 + matching` (shift `[1, 3]`),
+    squared cycle on 7 vertices, `K_4` via `[1, 2]`, and a directed
+    8-vertex circulant — and verifies the standard structural
+    invariants (vcount/ecount/regularity) for each one.
+
 - **ALGO-CN-010** — `generalized_petersen` deterministic constructor.
   **Tenth member of the `constructors/` family.** Counterpart of
   `igraph_generalized_petersen` in

@@ -1,0 +1,97 @@
+{
+  "algo_id": "ALGO-CN-011",
+  "algo": "circulant",
+  "captured_at": "2026-05-25",
+  "git_commit": "7bff18c",
+  "machine": "darwin-arm64",
+  "criterion_version": "0.5",
+  "configs": [
+    {
+      "label": "c_5_shift_1",
+      "n": 5,
+      "shifts": [1],
+      "directed": false,
+      "vcount": 5,
+      "ecount": 5
+    },
+    {
+      "label": "c_8_shift_4_antipodal",
+      "n": 8,
+      "shifts": [4],
+      "directed": false,
+      "vcount": 8,
+      "ecount": 4
+    },
+    {
+      "label": "squared_c_10",
+      "n": 10,
+      "shifts": [1, 2],
+      "directed": false,
+      "vcount": 10,
+      "ecount": 20
+    },
+    {
+      "label": "k_10_full_shifts",
+      "n": 10,
+      "shifts": [1, 2, 3, 4, 5],
+      "directed": false,
+      "vcount": 10,
+      "ecount": 45
+    },
+    {
+      "label": "n_1000_shift_7",
+      "n": 1000,
+      "shifts": [7],
+      "directed": false,
+      "vcount": 1000,
+      "ecount": 1000
+    },
+    {
+      "label": "n_10000_shifts_1_5_17_101",
+      "n": 10000,
+      "shifts": [1, 5, 17, 101],
+      "directed": false,
+      "vcount": 10000,
+      "ecount": 40000
+    }
+  ],
+  "results": {
+    "circulant/c_5_shift_1": {
+      "time_low": "670.55 ns",
+      "time_mid": "676.97 ns",
+      "time_high": "685.21 ns",
+      "throughput": "~7.4 Medge/s"
+    },
+    "circulant/c_8_shift_4_antipodal": {
+      "time_low": "577.55 ns",
+      "time_mid": "588.18 ns",
+      "time_high": "608.02 ns",
+      "throughput": "~6.8 Medge/s"
+    },
+    "circulant/squared_c_10": {
+      "time_low": "1.3923 us",
+      "time_mid": "1.4022 us",
+      "time_high": "1.4169 us",
+      "throughput": "~14.3 Medge/s"
+    },
+    "circulant/k_10_full_shifts": {
+      "time_low": "2.2018 us",
+      "time_mid": "2.2093 us",
+      "time_high": "2.2208 us",
+      "throughput": "~20.4 Medge/s"
+    },
+    "circulant/n_1000_shift_7": {
+      "time_low": "35.888 us",
+      "time_mid": "36.542 us",
+      "time_high": "37.927 us",
+      "throughput": "~27.4 Medge/s"
+    },
+    "circulant/n_10000_shifts_1_5_17_101": {
+      "time_low": "1.9025 ms",
+      "time_mid": "1.9078 ms",
+      "time_high": "1.9129 ms",
+      "throughput": "~21.0 Medge/s"
+    }
+  },
+  "notes": "Per-call cost factors into (1) shift normalisation and dedup over |shifts| with O(|shifts|^2) due to the linear `seen.contains` lookup — kept linear because |shifts| is typically <= 10 and the bool[n] table version would allocate n bools per call, (2) edge enumeration which is exactly the sum of `limit` values across canonical shifts (n for most, n/2 for an even-n undirected antipodal shift), and (3) Graph::new + add_edges canonicalisation. Throughput tops out in the 20-27 Medge/s band for n >= 1000 where Graph::add_edges dominates. Small-n shapes sit at 0.6-2.2 us, mostly in Graph::new and add_edges. No allocator hot path beyond the edge Vec growth which is preallocated to `n * |canonical shifts|`."
+}

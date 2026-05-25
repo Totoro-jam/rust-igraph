@@ -1,0 +1,49 @@
+{
+  "source": "r",
+  "origin": "rigraph make_ring(6, directed=FALSE, circular=TRUE) \u2014 equivalent to circulant(6, [1], False) = C_6",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "circulant",
+  "params": {
+    "n": 6,
+    "shifts": [
+      1
+    ],
+    "directed": false
+  },
+  "expected": {
+    "vcount": 6,
+    "ecount": 6,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ]
+  }
+}

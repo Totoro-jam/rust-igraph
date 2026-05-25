@@ -7334,6 +7334,97 @@ GENERALIZED_PETERSEN_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+CIRCULANT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "circulant_c_c_5_shifts_1",
+        "origin": "mirrors igraph_circulant(n=5, shifts=[1], directed=false) — equivalent to C_5",
+        "algo": "circulant",
+        "params": {"n": 5, "shifts": [1], "directed": False},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [0, 4],
+            ],
+        },
+    },
+    {
+        "case": "circulant_c_c_6_shifts_1_3_antipodal",
+        "origin": "mirrors igraph_circulant(n=6, shifts=[1,3], directed=false) — even-n with antipodal shift halves to perfect matching",
+        "algo": "circulant",
+        "params": {"n": 6, "shifts": [1, 3], "directed": False},
+        "expected": {
+            "vcount": 6,
+            "ecount": 9,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [0, 5],
+                [0, 3], [1, 4], [2, 5],
+            ],
+        },
+    },
+    {
+        "case": "circulant_c_c_7_shifts_1_2_squared_cycle",
+        "origin": "mirrors igraph_circulant(n=7, shifts=[1,2], directed=false) — squared cycle on 7 vertices",
+        "algo": "circulant",
+        "params": {"n": 7, "shifts": [1, 2], "directed": False},
+        "expected": {
+            "vcount": 7,
+            "ecount": 14,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [0, 6],
+                [0, 2], [1, 3], [2, 4], [3, 5], [4, 6], [0, 5], [1, 6],
+            ],
+        },
+    },
+    {
+        "case": "circulant_c_k4_shifts_1_2_complete",
+        "origin": "mirrors igraph_circulant(n=4, shifts=[1,2], directed=false) — equivalent to K_4 (every distinct undirected shift)",
+        "algo": "circulant",
+        "params": {"n": 4, "shifts": [1, 2], "directed": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [0, 3], [0, 2], [1, 3],
+            ],
+        },
+    },
+    {
+        "case": "circulant_c_c_5_shifts_neg1_directed",
+        "origin": "mirrors igraph_circulant(n=5, shifts=[-1], directed=true) — directed backward cycle via negative shift",
+        "algo": "circulant",
+        "params": {"n": 5, "shifts": [-1], "directed": True},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": True,
+            "edges": [
+                [0, 4], [1, 0], [2, 1], [3, 2], [4, 3],
+            ],
+        },
+    },
+    {
+        "case": "circulant_c_c_8_shifts_1_3_directed",
+        "origin": "mirrors igraph_circulant(n=8, shifts=[1,3], directed=true) — directed circulant with two distinct shifts",
+        "algo": "circulant",
+        "params": {"n": 8, "shifts": [1, 3], "directed": True},
+        "expected": {
+            "vcount": 8,
+            "ecount": 16,
+            "directed": True,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 0],
+                [0, 3], [1, 4], [2, 5], [3, 6], [4, 7], [5, 0], [6, 1], [7, 2],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -7503,6 +7594,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "hamming": HAMMING_MANIFEST,
     "square_lattice": SQUARE_LATTICE_MANIFEST,
     "generalized_petersen": GENERALIZED_PETERSEN_MANIFEST,
+    "circulant": CIRCULANT_MANIFEST,
 }
 
 
@@ -7637,6 +7729,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "hamming",
             "square_lattice",
             "generalized_petersen",
+            "circulant",
         ):
             # Generators produce a graph from params alone — graph
             # payload is a placeholder, expected carries the structural

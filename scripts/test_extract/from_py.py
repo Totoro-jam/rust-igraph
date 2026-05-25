@@ -6154,6 +6154,43 @@ GENERALIZED_PETERSEN_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+CIRCULANT_MANIFEST: List[Dict[str, Any]] = [
+    # Note: python-igraph 0.11.x does not expose `Graph.Circulant`
+    # directly. We cover the two canonical specializations whose Famous /
+    # constructor forms map onto a single-shift / full-shift-set
+    # circulant: Graph.Ring(n, circular=True) ≡ circulant(n, [1], false)
+    # and Graph.Famous('Tetrahedral') ≡ circulant(4, [1, 2], false) = K_4.
+    {
+        "case": "circulant_py_c_5_shifts_1_ring",
+        "origin": "python-igraph Graph.Ring(n=5, circular=True) — equivalent to circulant(5, [1], False) = C_5",
+        "algo": "circulant",
+        "params": {"n": 5, "shifts": [1], "directed": False},
+        "expected": {
+            "vcount": 5,
+            "ecount": 5,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [0, 4],
+            ],
+        },
+    },
+    {
+        "case": "circulant_py_k4_shifts_1_2_tetrahedral",
+        "origin": "python-igraph Graph.Famous('Tetrahedral') — equivalent to circulant(4, [1, 2], False) = K_4",
+        "algo": "circulant",
+        "params": {"n": 4, "shifts": [1, 2], "directed": False},
+        "expected": {
+            "vcount": 4,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 3], [1, 3], [2, 3], [0, 1], [1, 2], [0, 2],
+            ],
+        },
+    },
+]
+
+
 SQUARE_LATTICE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "square_lattice_py_dim_three_path",
@@ -6500,6 +6537,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "hamming": HAMMING_MANIFEST,
     "square_lattice": SQUARE_LATTICE_MANIFEST,
     "generalized_petersen": GENERALIZED_PETERSEN_MANIFEST,
+    "circulant": CIRCULANT_MANIFEST,
 }
 
 
@@ -6629,6 +6667,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "hamming",
             "square_lattice",
             "generalized_petersen",
+            "circulant",
         ):
             # Generators produce a graph from params alone; the
             # graph payload is a placeholder. The expected block carries

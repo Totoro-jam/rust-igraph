@@ -6438,6 +6438,48 @@ GENERALIZED_PETERSEN_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+CIRCULANT_MANIFEST: List[Dict[str, Any]] = [
+    # Note: R-igraph does not expose `igraph::make_circulant` directly
+    # at this version. We cover the same two canonical specializations
+    # used in the python manifest via rigraph's make_ring (single-shift
+    # cycle) and make_full_graph (every distinct undirected shift =
+    # K_n). Both functions dispatch to the same igraph_ring / igraph_full
+    # C entry points used internally by circulant for these inputs, so
+    # the canonical edge multiset must agree.
+    {
+        "case": "circulant_r_c_6_shifts_1_ring",
+        "origin": "rigraph make_ring(6, directed=FALSE, circular=TRUE) — equivalent to circulant(6, [1], False) = C_6",
+        "algo": "circulant",
+        "params": {"n": 6, "shifts": [1], "directed": False},
+        "expected": {
+            "vcount": 6,
+            "ecount": 6,
+            "directed": False,
+            "edges": [
+                [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [0, 5],
+            ],
+        },
+    },
+    {
+        "case": "circulant_r_k5_shifts_1_2_full",
+        "origin": "rigraph make_full_graph(5, directed=FALSE) — equivalent to circulant(5, [1, 2], False) = K_5",
+        "algo": "circulant",
+        "params": {"n": 5, "shifts": [1, 2], "directed": False},
+        "expected": {
+            "vcount": 5,
+            "ecount": 10,
+            "directed": False,
+            "edges": [
+                [0, 1], [0, 2], [0, 3], [0, 4],
+                [1, 2], [1, 3], [1, 4],
+                [2, 3], [2, 4],
+                [3, 4],
+            ],
+        },
+    },
+]
+
+
 SQUARE_LATTICE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "square_lattice_r_dim_three_path",
@@ -6785,6 +6827,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "hamming": HAMMING_MANIFEST,
     "square_lattice": SQUARE_LATTICE_MANIFEST,
     "generalized_petersen": GENERALIZED_PETERSEN_MANIFEST,
+    "circulant": CIRCULANT_MANIFEST,
 }
 
 
@@ -6914,6 +6957,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "hamming",
             "square_lattice",
             "generalized_petersen",
+            "circulant",
         ):
             # Generators produce a graph from params alone; graph
             # payload is a placeholder, expected carries structural

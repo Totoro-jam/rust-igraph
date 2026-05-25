@@ -1,0 +1,45 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Ring(n=5, circular=True) \u2014 equivalent to circulant(5, [1], False) = C_5",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "circulant",
+  "params": {
+    "n": 5,
+    "shifts": [
+      1
+    ],
+    "directed": false
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 5,
+    "directed": false,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ]
+  }
+}
