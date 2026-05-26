@@ -4,6 +4,7 @@
 //! `io::read_edgelist`. The full algorithm catalog is filled in by AWUs
 //! across Phases 1-10 (see `docs/plans/MASTER_PLAN.md`).
 
+pub mod coloring;
 pub mod community;
 pub mod connectivity;
 pub mod constructors;

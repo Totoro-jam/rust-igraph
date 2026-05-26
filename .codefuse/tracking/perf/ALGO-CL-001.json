@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-CL-001",
+  "captured_at": "2026-05-27",
+  "git_commit": "pending",
+  "algorithms": [
+    "vertex_coloring_greedy (CN)",
+    "vertex_coloring_greedy (DSATUR)",
+    "is_vertex_coloring",
+    "is_bipartite_coloring",
+    "is_edge_coloring"
+  ],
+  "test_count": 31,
+  "proptest_count": 5,
+  "py_baseline_ns": null,
+  "notes": "Greedy vertex coloring with CN and DSATUR heuristics, plus three coloring validators. Lazy-deletion BinaryHeap avoids custom indexed-heap data structure. CN mirrors igraph_i_vertex_coloring_greedy_cn (1-based internal colors). DSATUR mirrors igraph_i_vertex_coloring_dsatur (0-based colors, saturation+degree priority). Validators: is_vertex_coloring, is_bipartite_coloring (with directed edge-direction detection), is_edge_coloring. All handle self-loops, multi-edges, directed graphs. Reference: coloring.c 519 lines."
+}
