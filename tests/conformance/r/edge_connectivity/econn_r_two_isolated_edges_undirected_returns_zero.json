@@ -1,0 +1,24 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R (edge_connectivity(make_graph(edges=c(1,2,3,4), directed=FALSE)) == 0); two components {0,1} and {2,3} \u2192 graph not connected \u2192 cheap connectedness short-circuit returns 0.",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "edge_connectivity",
+  "params": {
+    "checks": true
+  },
+  "expected": 0
+}

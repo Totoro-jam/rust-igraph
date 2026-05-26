@@ -15,6 +15,64 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-016** — `edge_connectivity` (alias `adhesion`): global edge
+  connectivity (adhesion) of a graph — the minimum number of edges
+  whose removal disconnects the graph. Mirrors
+  `igraph_edge_connectivity` at
+  `references/igraph/src/flow/flow.c:2238` and its alias
+  `igraph_adhesion` (flow.c:2466). Computes
+  `min_{v ≠ 0} st_edge_connectivity(0, v)` for undirected graphs and
+  both `(0, v)` and `(v, 0)` for directed graphs — the fixed-vertex
+  iteration is correct because any global min-cut separates vertex 0
+  from at least one vertex on the other side, and runs in `V - 1`
+  max-flow computations instead of the `V(V - 1)` of the pairwise loop
+  (matching `igraph_mincut_value`'s directed branch at
+  flow.c:1706-1723). When `checks=true` (recommended), runs the cheap
+  short-circuits shared with FL-015 (flow.c:2069-2122): (1) empty
+  graph → 0; (2) disconnected (weak for undirected, strong for
+  directed) → 0; (3) any vertex with `min(in, out) = 1` → 1.
+  **No complete-graph shortcut** — flow.c:2168-2180 explicitly notes
+  that completeness alone doesn't determine edge connectivity because
+  multigraphs admit `lambda > n - 1` (parallel edges raise the min
+  cut). Result is `i64` matching upstream's `igraph_integer_t`.
+  - `pub fn edge_connectivity(graph: &Graph, checks: bool) ->
+    IgraphResult<i64>`.
+  - `pub fn adhesion(graph: &Graph, checks: bool) -> IgraphResult<i64>`
+    — exact synonym for naming parity with the upstream API and the
+    White–Harary (2001) sociological-network literature.
+  - Tests cover the two C unit-test fixtures
+    (`tests/unit/igraph_edge_connectivity.c`: 7-vertex directed graph
+    → 1, 7-vertex undirected graph → 2), R parity from
+    `tests/testthat/test-flow.R` (`make_ring(5, circular=F)` → 1,
+    `make_graph(edges=c(1,2,3,4), directed=F)` → 0,
+    `make_ring(5, circular=T)` → 2), py parity from
+    `test_flow.py:27,29-30` (`Tree(10, 3, "out")` directed → 0,
+    `Full(4)` undirected → 3), edge cases (empty, single vertex, K_2,
+    K_5 undirected, K_4 directed mutual → 3), the no-complete-shortcut
+    multigraph case (two parallel edges between 0-1 → `lambda = 2`,
+    not 1), undirected tree → 1, directed cycle → 1, cycle-with-chord
+    → 2, and `checks=false == checks=true` agreement on a small
+    fixture battery. Proptest pins four invariants: `0 ≤ ec ≤ m`,
+    `checks=false` agrees with `checks=true`, Whitney's
+    `ec ≤ min_degree` (undirected), and `ec ≤ st_edge_connectivity(s,
+    t)` for every `s ≠ t`.
+  - Three-source conformance fixtures landed under
+    `tests/conformance/{c,py,r}/edge_connectivity/` (5 + 2 + 3
+    fixtures) covering all three cheap short-circuit branches plus
+    the fixed-vertex loop path on K_5 and C_5; harness asserts at
+    least one fixture from each of c/py/r and they all pass.
+  - Bench `benches/bench_edge_connectivity.rs` captures both regimes:
+    cheap short-circuits (textbook 222 ns, layered 2.6–34.3 µs scaling
+    with the SCC `O(V+E)` cost) and the fixed-vertex loop on rings
+    and complete graphs (`C_6` 2.5 µs / `C_{12}` 8.4 µs linear in V;
+    `K_4` 1.3 µs / `K_8` 8.5 µs). The fixed-vertex loop is ~170×
+    faster than FL-015's pairwise loop on the same `C_{12}` fixture
+    because it runs `V - 1` max-flow calls instead of `V(V - 1)`.
+  - Demo `examples/edge_connectivity_demo.rs` exercises every branch
+    end-to-end (cycle, path, disconnected, complete, directed out-tree,
+    multigraph parallel edges, directed cycle) and prints the
+    adhesion alias parity.
+
 - **ALGO-FL-015** — `vertex_connectivity` (alias `cohesion`): global
   vertex connectivity (cohesion) of a graph — the minimum number of
   internal vertices whose removal disconnects some pair of vertices.

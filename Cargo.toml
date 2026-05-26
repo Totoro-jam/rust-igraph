@@ -71,6 +71,10 @@ name = "vertex_connectivity_demo"
 path = "examples/vertex_connectivity_demo.rs"
 
 [[example]]
+name = "edge_connectivity_demo"
+path = "examples/edge_connectivity_demo.rs"
+
+[[example]]
 name = "hsbm_demo"
 path = "examples/hsbm_demo.rs"
 
@@ -449,6 +453,11 @@ harness = false
 [[bench]]
 name = "bench_vertex_connectivity"
 path = "benches/bench_vertex_connectivity.rs"
+harness = false
+
+[[bench]]
+name = "bench_edge_connectivity"
+path = "benches/bench_edge_connectivity.rs"
 harness = false
 
 [[bench]]

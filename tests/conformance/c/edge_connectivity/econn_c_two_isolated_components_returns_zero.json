@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "C dispatcher flow.c:2287-2289 \u2192 flow.c:2090-2093 \u2014 disconnected short-circuit returns 0 for two disjoint undirected edges 0-1 and 2-3.",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "edge_connectivity",
+  "params": {
+    "checks": true
+  },
+  "expected": 0
+}

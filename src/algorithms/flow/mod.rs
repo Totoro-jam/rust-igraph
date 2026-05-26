@@ -10,6 +10,7 @@
 //! unit-capacity fixtures and within numerical tolerance on weighted
 //! ones.
 
+pub(crate) mod edge_connectivity;
 pub(crate) mod edge_disjoint_paths;
 pub(crate) mod max_flow;
 pub(crate) mod st_edge_connectivity;
@@ -18,6 +19,7 @@ pub(crate) mod st_vertex_connectivity;
 pub(crate) mod vertex_connectivity;
 pub(crate) mod vertex_disjoint_paths;
 
+pub use edge_connectivity::{adhesion, edge_connectivity};
 pub use edge_disjoint_paths::edge_disjoint_paths;
 pub use max_flow::max_flow_value;
 pub use st_edge_connectivity::st_edge_connectivity;

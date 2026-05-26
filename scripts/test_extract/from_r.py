@@ -3934,6 +3934,67 @@ VCONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-016: edge_connectivity (global adhesion). rigraph exposes
+# `edge_connectivity(graph)` (no source/target → global) and the alias
+# `adhesion(graph)` via R/aaa-auto.R wrapping `igraph_edge_connectivity`.
+# Tests at tests/testthat/test-flow.R cover three global cases mirroring
+# the vertex_connectivity layout:
+#   - make_ring(5, circular=FALSE)            → ec = 1 (undirected path:
+#                                                end edges are bridges)
+#   - make_graph(edges=c(1,2,3,4),            → ec = 0 (two isolated
+#                directed=FALSE)               edges → graph disconnected)
+#   - make_ring(5, circular=TRUE)             → ec = 2 (undirected 5-cycle
+#                                                — every cut must remove
+#                                                two edges; no cheap
+#                                                short-circuit fires:
+#                                                connected, min-degree=2,
+#                                                and edge_connectivity has
+#                                                no complete-graph shortcut
+#                                                so the fixed-vertex loop
+#                                                runs)
+ECONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "econn_r_path5_undirected_returns_one",
+        "origin": "rigraph tests/testthat/test-flow.R "
+        "(edge_connectivity(make_ring(5, circular=FALSE)) == 1); "
+        "undirected path 0-1-2-3-4 — every internal edge is a bridge — "
+        "so the cheap min-degree short-circuit returns 1 immediately.",
+        "graph_factory": lambda: ig.Graph.Ring(5, circular=False, directed=False),
+        "algo": "edge_connectivity",
+        "params": {"checks": True},
+        "expected": 1,
+    },
+    {
+        "case": "econn_r_two_isolated_edges_undirected_returns_zero",
+        "origin": "rigraph tests/testthat/test-flow.R "
+        "(edge_connectivity(make_graph(edges=c(1,2,3,4), "
+        "directed=FALSE)) == 0); two components {0,1} and {2,3} → graph "
+        "not connected → cheap connectedness short-circuit returns 0.",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (2, 3)],
+            directed=False,
+        ),
+        "algo": "edge_connectivity",
+        "params": {"checks": True},
+        "expected": 0,
+    },
+    {
+        "case": "econn_r_ring5_undirected_returns_two",
+        "origin": "rigraph tests/testthat/test-flow.R "
+        "(edge_connectivity(make_ring(5, circular=TRUE)) == 2); "
+        "undirected 5-cycle — no cheap short-circuit fires (connected, "
+        "min-degree=2, no complete-graph shortcut for edge_connectivity), "
+        "so the fixed-vertex loop runs and yields the global min edge "
+        "cut value of 2.",
+        "graph_factory": lambda: ig.Graph.Ring(5, circular=True, directed=False),
+        "algo": "edge_connectivity",
+        "params": {"checks": True},
+        "expected": 2,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
 # Generator — RNG state not portable across implementations, so we
@@ -8321,6 +8382,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_vertex_connectivity": ST_VCONN_MANIFEST,
     "vertex_disjoint_paths": VDP_MANIFEST,
     "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
+    "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

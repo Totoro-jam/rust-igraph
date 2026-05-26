@@ -3656,6 +3656,38 @@ VCONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-016: global edge_connectivity (adhesion). Mirrors
+# `Graph.edge_connectivity()` (no source/target) and `Graph.adhesion()`
+# in python-igraph (Cython wrapper on `igraph_edge_connectivity`).
+# Two fixtures exercise the two main paths: a complete undirected K_4
+# (no cheap shortcut — completeness alone doesn't bound edge connectivity
+# for multigraphs — so the fixed-vertex loop runs and yields n-1 = 3),
+# plus a directed BFS in-tree (not strongly connected ⇒ 0 via cheap
+# connectedness check).
+ECONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "econn_py_full_4v_returns_three",
+        "origin": "K_4 undirected; no complete-graph short-circuit for "
+        "edge_connectivity (flow.c:2168-2180 comment), so the fixed-vertex "
+        "loop runs and returns n-1 = 3 (min cut isolates any single vertex)",
+        "graph_factory": lambda: ig.Graph.Full(4, directed=False, loops=False),
+        "algo": "edge_connectivity",
+        "params": {"checks": True},
+        "expected": 3,
+    },
+    {
+        "case": "econn_py_tree_10v_directed_returns_zero",
+        "origin": "test_flow.py:27 — Graph.Tree(10, 3, mode='out').adhesion() "
+        "== 0 (directed out-tree of 10 nodes is not strongly connected, so the "
+        "cheap connectedness check short-circuits to 0)",
+        "graph_factory": lambda: ig.Graph.Tree(10, 3, mode="out"),
+        "algo": "edge_connectivity",
+        "params": {"checks": True},
+        "expected": 0,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
 # wrapper on the same `igraph_forest_fire_game` C entry point). RNG
@@ -8166,6 +8198,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_vertex_connectivity": ST_VCONN_MANIFEST,
     "vertex_disjoint_paths": VDP_MANIFEST,
     "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
+    "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

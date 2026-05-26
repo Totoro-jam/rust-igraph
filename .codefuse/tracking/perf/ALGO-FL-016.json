@@ -1,0 +1,17 @@
+{
+  "awu": "ALGO-FL-016",
+  "function": "edge_connectivity",
+  "captured_at": "2026-05-26",
+  "git_commit": "072aebb",
+  "rust_textbook_6v_path_checks_true_ns": 222,
+  "rust_layered_L4_W8_checks_true_ns": 2642,
+  "rust_layered_L6_W16_checks_true_ns": 8773,
+  "rust_layered_L8_W32_checks_true_ns": 34291,
+  "rust_fixed_vertex_ring_C6_ns": 2493,
+  "rust_fixed_vertex_ring_C8_ns": 4292,
+  "rust_fixed_vertex_ring_C12_ns": 8423,
+  "rust_fixed_vertex_complete_K4_ns": 1327,
+  "rust_fixed_vertex_complete_K6_ns": 4537,
+  "rust_fixed_vertex_complete_K8_ns": 8507,
+  "notes": "Two regimes: (1) cheap short-circuits when checks=true — `textbook` (undirected path, min-degree=1) returns in 222 ns; `layered` (directed, not strongly connected) returns in 2.6-34 µs scaling with SCC O(V+E). (2) Fixed-vertex loop fires on rings + complete graphs (connected + min-degree>=2 leave the result undecided, and edge_connectivity has no complete-graph shortcut per flow.c:2168-2180 because multigraphs admit lambda > n-1). On sparse rings C6/C8/C12 cost 2.5/4.3/8.4 µs (linear in V — each FL-011 call on unit-cap sparse graphs runs Dinic in O(E) with a 2-augmenting-path cutoff). On dense K4/K6/K8 cost 1.3/4.5/8.5 µs — slightly cheaper per-vertex than rings because each augmenting path is shorter, but V-1 calls vs. V-1 calls. Compared to FL-015's `pairwise_loop_ring/C12` at 1.4 ms, FL-016 is ~170× faster on the same C12 fixture because the fixed-vertex loop runs V-1 max-flow calls instead of V(V-1) — the asymptotic advantage of computing global connectivity via fixed-vertex iteration instead of all-pairs. Captured with --quick (single sample-set per fixture); for stable medians use the default profile."
+}

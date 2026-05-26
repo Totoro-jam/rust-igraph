@@ -1,0 +1,32 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R (edge_connectivity(make_ring(5, circular=FALSE)) == 1); undirected path 0-1-2-3-4 \u2014 every internal edge is a bridge \u2014 so the cheap min-degree short-circuit returns 1 immediately.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "edge_connectivity",
+  "params": {
+    "checks": true
+  },
+  "expected": 1
+}

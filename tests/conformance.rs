@@ -16060,3 +16060,67 @@ fn vertex_connectivity_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn edge_connectivity_three_source_conformance() {
+    // ALGO-FL-016: global adhesion — minimum number of edges whose
+    // removal disconnects the graph. Computed as
+    // min_{v != 0} st_edge_connectivity(0, v) (both directions for
+    // directed graphs), with optional cheap short-circuits on empty,
+    // disconnected, and min-degree=1 inputs when `checks=true`. No
+    // complete-graph shortcut (flow.c:2168-2180): multigraphs can have
+    // lambda > n-1, so even K_n must run the fixed-vertex loop.
+    use rust_igraph::edge_connectivity;
+
+    let mut seen = std::collections::HashSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("edge_connectivity");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "edge_connectivity");
+            let g = build_graph(&case.graph);
+            let checks = case
+                .params
+                .get("checks")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(true);
+            let value = edge_connectivity(&g, checks).expect("edge_connectivity");
+            let actual = serde_json::json!(value);
+            assert!(
+                json_approx_eq(&actual, &case.expected),
+                "edge_connectivity conformance failure\n  fixture: {}\n  source:  {}\n  origin:  {}\n  actual:   {}\n  expected: {}",
+                path.display(),
+                case.source,
+                case.origin,
+                actual,
+                case.expected,
+            );
+            assert_eq!(case.source, src);
+            seen.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen.contains(src),
+            "no edge_connectivity fixtures from source {src}"
+        );
+    }
+}

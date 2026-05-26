@@ -1,0 +1,36 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R (edge_connectivity(make_ring(5, circular=TRUE)) == 2); undirected 5-cycle \u2014 no cheap short-circuit fires (connected, min-degree=2, no complete-graph shortcut for edge_connectivity), so the fixed-vertex loop runs and yields the global min edge cut value of 2.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "edge_connectivity",
+  "params": {
+    "checks": true
+  },
+  "expected": 2
+}

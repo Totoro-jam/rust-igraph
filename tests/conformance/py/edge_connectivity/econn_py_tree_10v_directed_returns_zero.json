@@ -1,0 +1,52 @@
+{
+  "source": "py",
+  "origin": "test_flow.py:27 \u2014 Graph.Tree(10, 3, mode='out').adhesion() == 0 (directed out-tree of 10 nodes is not strongly connected, so the cheap connectedness check short-circuits to 0)",
+  "graph": {
+    "n": 10,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        2,
+        9
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "edge_connectivity",
+  "params": {
+    "checks": true
+  },
+  "expected": 0
+}

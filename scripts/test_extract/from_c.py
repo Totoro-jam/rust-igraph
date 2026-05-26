@@ -4322,6 +4322,89 @@ VCONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-016: edge_connectivity (global adhesion). Mirrors
+# `igraph_edge_connectivity` in references/igraph/src/flow/flow.c:2270
+# and its alias `igraph_adhesion` at flow.c:2433. The dedicated C unit
+# test tests/unit/igraph_edge_connectivity.c covers both the cheap
+# short-circuits (singleton/disconnected/min-deg=1) and the fixed-vertex
+# st_edge_connectivity loop reached via the no-shortcut path. We pin
+# five branches: the two 7v fixtures shared with VCONN_GLOBAL (whose
+# edge connectivity is computable from the same edge list — directed
+# has a vertex with in/out=1 so cheap=1, undirected runs the full loop
+# returning 2), the empty short-circuit, the disconnected short-circuit,
+# and K_5 which exercises the no-shortcut fixed-vertex loop.
+ECONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "econn_c_directed_7v_equals_one",
+        "origin": "C dispatcher flow.c:2270 + flow.c:2076 — 7v directed "
+        "(same edge list as vconn_c_directed_7v) hits the min(in,out)=1 "
+        "short-circuit (vertex 6 has out=1,in=1) ⇒ edge_connectivity=1.",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (1, 6), (6, 3), (5, 0),
+            ],
+            directed=True,
+        ),
+        "algo": "edge_connectivity",
+        "params": {"checks": True},
+        "expected": 1,
+    },
+    {
+        "case": "econn_c_undirected_7v_equals_two",
+        "origin": "C dispatcher flow.c:2270 + fixed-vertex loop "
+        "flow.c:1706-1723 — 7v undirected (same edge list as "
+        "vconn_c_undirected_7v); min-degree=2 so cheap checks pass; "
+        "fixed-vertex loop isolates vertex 0 by removing {(0,1),(0,2)} "
+        "⇒ edge_connectivity=2.",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (1, 6), (6, 3),
+            ],
+            directed=False,
+        ),
+        "algo": "edge_connectivity",
+        "params": {"checks": True},
+        "expected": 2,
+    },
+    {
+        "case": "econn_c_empty_returns_zero",
+        "origin": "C dispatcher flow.c:2281-2284 — singleton/empty "
+        "graph short circuit returns 0.",
+        "graph_factory": lambda: ig.Graph(n=0, edges=[], directed=False),
+        "algo": "edge_connectivity",
+        "params": {"checks": True},
+        "expected": 0,
+    },
+    {
+        "case": "econn_c_two_isolated_components_returns_zero",
+        "origin": "C dispatcher flow.c:2287-2289 → flow.c:2090-2093 — "
+        "disconnected short-circuit returns 0 for two disjoint "
+        "undirected edges 0-1 and 2-3.",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (2, 3)],
+            directed=False,
+        ),
+        "algo": "edge_connectivity",
+        "params": {"checks": True},
+        "expected": 0,
+    },
+    {
+        "case": "econn_c_complete_undirected_5v_returns_four",
+        "origin": "C dispatcher flow.c:2287-2295 — K_5 undirected "
+        "(min-degree=4, no cheap short-circuit) runs the fixed-vertex "
+        "loop ⇒ edge_connectivity = 4 (n - 1 for simple K_n).",
+        "graph_factory": lambda: ig.Graph.Full(5, directed=False, loops=False),
+        "algo": "edge_connectivity",
+        "params": {"checks": True},
+        "expected": 4,
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -10460,6 +10543,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_vertex_connectivity": ST_VCONN_MANIFEST,
     "vertex_disjoint_paths": VDP_MANIFEST,
     "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
+    "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

@@ -1,0 +1,60 @@
+{
+  "source": "c",
+  "origin": "C dispatcher flow.c:2270 + flow.c:2076 \u2014 7v directed (same edge list as vconn_c_directed_7v) hits the min(in,out)=1 short-circuit (vertex 6 has out=1,in=1) \u21d2 edge_connectivity=1.",
+  "graph": {
+    "n": 7,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        6,
+        3
+      ],
+      [
+        5,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "edge_connectivity",
+  "params": {
+    "checks": true
+  },
+  "expected": 1
+}
