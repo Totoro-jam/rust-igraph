@@ -43,8 +43,8 @@ fn build_shapes() -> Vec<Shape> {
     // set) so |E| = n on a 128 × 128 board.
     let n_sparse = 128usize;
     let mut sparse = vec![vec![0i64; n_sparse]; n_sparse];
-    for i in 0..n_sparse {
-        sparse[i][(i + 1) % n_sparse] = 1;
+    for (i, row) in sparse.iter_mut().enumerate() {
+        row[(i + 1) % n_sparse] = 1;
     }
 
     // Dense unit matrix 128 × 128 — every entry is 1.
