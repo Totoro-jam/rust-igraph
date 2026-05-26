@@ -344,6 +344,11 @@ path = "benches/bench_rich_club.rs"
 harness = false
 
 [[bench]]
+name = "bench_pagerank_linsys"
+path = "benches/bench_pagerank_linsys.rs"
+harness = false
+
+[[bench]]
 name = "bench_community_voronoi"
 path = "benches/bench_community_voronoi.rs"
 harness = false

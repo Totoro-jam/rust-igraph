@@ -973,6 +973,32 @@ proptest! {
                      "pagerank does not sum to 1 (got {})", sum);
     }
 
+    /// `pagerank_linsys` parity with `pagerank` on small random graphs.
+    /// GMRES converges to the unique fixed point of `(I - α·Mᵀ)x = (1-α)/N·1`,
+    /// the same fixed point power iteration reaches in PR-011, so the two
+    /// backends must agree elementwise within the combined tolerance of
+    /// their stopping rules (PR-011 `eps=1e-10`, PR-011c relative residual
+    /// `1e-13` → ~1e-9 worst-case parity).
+    #[test]
+    fn pagerank_linsys_matches_power_iter(g in arb_graph(8)) {
+        let n = g.vcount() as usize;
+        let a = rust_igraph::pagerank(&g).unwrap();
+        let b = rust_igraph::pagerank_linsys(&g).unwrap();
+        prop_assert_eq!(a.len(), n);
+        prop_assert_eq!(b.len(), n);
+        if n == 0 { return Ok(()); }
+        let mut sum: f64 = 0.0;
+        for (v, (&ai, &bi)) in a.iter().zip(b.iter()).enumerate() {
+            prop_assert!(bi.is_finite(), "pr_linsys[{}] = {} not finite", v, bi);
+            prop_assert!(bi >= -1e-12, "pr_linsys[{}] = {} negative", v, bi);
+            prop_assert!((ai - bi).abs() < 1e-9,
+                         "vertex {}: power={} linsys={}", v, ai, bi);
+            sum += bi;
+        }
+        prop_assert!((sum - 1.0).abs() < 1e-6,
+                     "pagerank_linsys does not sum to 1 (got {})", sum);
+    }
+
     /// Edge betweenness invariants: nonneg, finite, length equals ecount.
     /// Sum of edge_betweenness across edges of an undirected geodesic
     /// equals (vertex sum of dependencies / 2) — a weak but useful

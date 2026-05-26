@@ -15,6 +15,62 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-PR-011c** — `pagerank_linsys`: second backend for
+  [`pagerank`] that casts the same fixed point as a non-singular
+  linear system and solves it with restarted GMRES. The Google
+  matrix `G = (1 - α)/N · 1·1ᵀ + α · M` gives `pr = G · pr`, which
+  rearranges to `(I - α · Mᵀ) · pr = (1 - α)/N · 1`; `α < 1` keeps
+  the operator non-singular, so a Krylov solver converges in at most
+  `O(spectral_gap)` Arnoldi steps without ever materialising any
+  matrix.
+  - `pub fn pagerank_linsys(graph: &Graph) -> IgraphResult<Vec<f64>>` —
+    same signature as [`pagerank`]. Returns a length-`vcount`
+    probability vector summing to ~1, agreeing with the power-iter
+    backend within `1e-9` elementwise on every shared conformance
+    fixture (the limit comes from PR-011's `eps = 1e-10` stopping
+    rule; GMRES itself reaches the true fixed point to ≤ machine
+    precision).
+  - **Hand-rolled GMRES, no new deps.** Restart dimension `m = 30`,
+    `max_restarts = 50`, relative residual tolerance `1e-13`.
+    Implementation: modified Gram-Schmidt Arnoldi, Givens rotations
+    applied in-place to a flat row-major Hessenberg buffer, back-sub
+    on the triangulated system, and a single
+    `(m + 1) · |V|` flat `Vec<f64>` for the Krylov basis (no
+    per-iteration `vec!`). Matvec is `O(|V| + |E|)`, fused-multiply-
+    add over a pre-computed `inv_out_deg` lookup; dangling-vertex
+    correction is baked in (one `O(|D|)` sweep per matvec).
+  - **Edge cases match PR-011.** Empty graph → `vec![]`; singleton →
+    `vec![1.0]`. Directed and undirected both supported (undirected
+    self-loops contribute twice, identical to PR-011's convention).
+  - **Conformance / tests.** 9 unit tests in
+    `src/algorithms/properties/pagerank_linsys.rs` (incl. parity vs.
+    `pagerank` on K4-minus-edge, 2-vertex dangling, and 7-leaf star);
+    1 proptest (`pagerank_linsys_matches_power_iter` over
+    `arb_graph(8)`) in `tests/property.rs`; 1 conformance test
+    (`pagerank_linsys_three_source_conformance` in
+    `tests/conformance.rs`) reusing the PR-011 `tests/conformance/
+    {c,py,r}/pagerank/` fixtures (`1e-6` tolerance vs.
+    python-igraph's ARPACK).
+  - **Performance.** GMRES is `1.16–1.63×` slower than power
+    iteration at `α = 0.85` (`bench_pagerank_linsys`):
+    karate 18 µs / 12 µs, grid-30×30 769 µs / 472 µs, gnp(1000,
+    p=0.05) 1.17 ms / 1.01 ms. The trade-off is genuinely
+    algorithmic: power iteration's contraction factor at `α = 0.85`
+    is fast enough that 142 matvecs are competitive with GMRES's
+    12–30 Arnoldi steps plus `m²` orthogonalisation. The GMRES
+    backend is the right pick when (a) you need a tighter residual
+    than `eps = 1e-10` without inflating the iteration count, or
+    (b) the spectral gap shrinks (e.g. `α → 1`); both regimes
+    require parameterising `α`, which lands separately.
+  - **Scope.** Unweighted only; a weighted GMRES backend would be
+    PR-011d.
+  - Bench scenarios: karate, 30×30 grid, gnp(1000, 0.05), each with
+    a power-iter sibling for direct comparison. Perf snapshot lands
+    in `.codefuse/tracking/perf/ALGO-PR-011c.json`. Example:
+    `cargo run --release --example pagerank_linsys_demo` prints the
+    top-10 vertices of karate under both backends with the max
+    elementwise difference (`2.6e-11` on this fixture).
+
 - **ALGO-PR-040** — `rich_club_sequence` per-vertex rich-club coefficient
   sequence over a user-supplied vertex peeling order. Faithful port of
   `igraph_rich_club_sequence` in

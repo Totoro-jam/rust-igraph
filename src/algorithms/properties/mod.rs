@@ -36,6 +36,7 @@ pub(crate) mod knn;
 pub(crate) mod multiplicity;
 pub(crate) mod neighborhood;
 pub(crate) mod pagerank;
+pub(crate) mod pagerank_linsys;
 pub(crate) mod pagerank_weighted;
 pub(crate) mod reciprocity;
 pub(crate) mod rich_club;
@@ -79,6 +80,7 @@ pub use neighborhood::{
     neighborhood_with_mode,
 };
 pub use pagerank::pagerank;
+pub use pagerank_linsys::pagerank_linsys;
 pub use pagerank_weighted::pagerank_weighted;
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
 pub use rich_club::rich_club_sequence;

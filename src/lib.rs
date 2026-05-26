@@ -251,6 +251,7 @@ pub use crate::algorithms::properties::neighborhood::{
     neighborhood_with_mode,
 };
 pub use crate::algorithms::properties::pagerank::pagerank;
+pub use crate::algorithms::properties::pagerank_linsys::pagerank_linsys;
 pub use crate::algorithms::properties::pagerank_weighted::pagerank_weighted;
 pub use crate::algorithms::properties::reciprocity::{
     ReciprocityMode, reciprocity, reciprocity_with_mode,

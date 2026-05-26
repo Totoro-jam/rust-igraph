@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-PR-011c",
+  "rust_pagerank_linsys_karate_ns": 18124,
+  "rust_pagerank_power_karate_ns": 12406,
+  "rust_pagerank_linsys_grid_30x30_ns": 769330,
+  "rust_pagerank_power_grid_30x30_ns": 472110,
+  "rust_pagerank_linsys_gnp_1000_p005_ns": 1168800,
+  "rust_pagerank_power_gnp_1000_p005_ns": 1012900,
+  "py_pagerank_karate_ns": null,
+  "captured_at": "2026-05-26",
+  "git_commit": "e79a8cd",
+  "notes": "Phase 1 GMRES PageRank backend (src/algorithms/properties/pagerank_linsys.rs) vs. PR-011 power iteration, both at alpha=0.85, both terminating against the same fixed point. GMRES is 1.16-1.63x slower than power iteration on these scenarios — power iteration's contraction factor at alpha=0.85 is fast enough that it converges in ~142 matvecs to its 1e-10 epsilon, which is competitive with GMRES's 12-30 Arnoldi steps + 30^2 modified Gram-Schmidt overhead. GMRES does win on tighter tolerance (1e-13 residual vs 1e-10) and on graphs where the spectral gap is small (alpha near 1), but PR-011 hardcodes alpha=0.85 so those regimes are not exercisable here without modifying PR-011 first. The implementation lives entirely in this module: hand-rolled modified Gram-Schmidt Arnoldi, Givens rotations applied in-place to a flat row-major Hessenberg buffer, back-substitution, and a single (RESTART_DIM+1)*|V| flat allocation for the Krylov basis (no per-iteration vec!). Pre-computed inv_out_deg lookup turns the matvec inner loop into pure fused multiply-add. Karate (34v / 78e) and grid-30x30 (900v / 1740e) are matvec-overhead-dominated; gnp(1000, 0.05) (~25k edges) is the closest scenario to a regime where GMRES's superior algorithmic constant could matter, and the gap there shrinks to ~1.16x. python-igraph exposes only the ARPACK pagerank backend (which solves the same problem via a different eigenproblem framing) so a direct cross-language comparison would mix two algorithmic axes; deferred."
+}

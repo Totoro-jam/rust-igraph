@@ -844,6 +844,50 @@ fn pagerank_three_source_conformance() {
 }
 
 #[test]
+fn pagerank_linsys_three_source_conformance() {
+    // PR-011c reuses PR-011's fixtures: both backends solve the same
+    // fixed point, so the expected vectors are identical. GMRES tolerance
+    // is `1e-13` on the residual, hence the parity budget here is the
+    // same `1e-6` as PR-011's run_conformance comparison vs. python-igraph.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("pagerank");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g = build_graph(&case.graph);
+            let pr = rust_igraph::pagerank_linsys(&g).expect("pagerank_linsys");
+            let exp = case
+                .expected
+                .as_array()
+                .expect("expected is JSON array of numbers");
+            assert_eq!(pr.len(), exp.len(), "{}: length mismatch", path.display());
+            for (i, (rust, exp_v)) in pr.iter().zip(exp.iter()).enumerate() {
+                let py = exp_v.as_f64().expect("expected entry as f64");
+                assert!(
+                    (rust - py).abs() < 1e-6,
+                    "{}: vertex {i}: rust={rust} expected={py}",
+                    path.display()
+                );
+            }
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "pagerank");
+        }
+    }
+}
+
+#[test]
 fn edge_betweenness_three_source_conformance() {
     run_conformance("edge_betweenness", |g, _params| {
         let eb = rust_igraph::edge_betweenness(g).expect("edge_betweenness");
