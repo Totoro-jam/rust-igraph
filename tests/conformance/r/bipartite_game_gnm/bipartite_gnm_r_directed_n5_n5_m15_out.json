@@ -1,0 +1,30 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_bipartite(5, 5, type='gnm', m=15, directed=TRUE, mode='out')): bottom\u2192top directed arcs only",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnm",
+  "params": {
+    "n1": 5,
+    "n2": 5,
+    "m": 15,
+    "directed": true,
+    "mode": "out",
+    "seed": 9990202
+  },
+  "expected": {
+    "vcount": 10,
+    "n1": 5,
+    "n2": 5,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 15,
+    "ecount_max": 15,
+    "bipartite_partitions": true,
+    "edges_bottom_to_top": true
+  }
+}

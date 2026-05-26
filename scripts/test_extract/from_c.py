@@ -4868,6 +4868,165 @@ FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-030: bipartite_game_gnp / bipartite_game_gnm. Mirrors
+# `igraph_bipartite_game_gnp` and `igraph_bipartite_game_gnm` in
+# misc/bipartite.c. RNG state is not portable across C/py/R bindings,
+# so we capture structural invariants only — vcount==n1+n2, exact
+# types partition (n1 false then n2 true), simple, every edge crosses
+# the partition, gnm: ecount==m exactly, gnp: ecount in band around
+# E[m]=p*max_edges with conservative ±4σ window.
+BIPARTITE_GAME_GNP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "bipartite_gnp_c_undirected_n10_n8_p03_all",
+        "origin": "tests/unit/igraph_bipartite_game.c — gnp small "
+        "undirected case (n1=10, n2=8, p=0.3, mode=all)",
+        "algo": "bipartite_game_gnp",
+        "params": {
+            "n1": 10,
+            "n2": 8,
+            "p": 0.3,
+            "directed": False,
+            "mode": "all",
+            "seed": 5_550_001,
+        },
+        "expected": {
+            "vcount": 18,
+            "n1": 10,
+            "n2": 8,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 6,
+            "ecount_max": 60,
+            "bipartite_partitions": True,
+        },
+    },
+    {
+        "case": "bipartite_gnp_c_directed_n8_n6_p04_out",
+        "origin": "tests/unit/igraph_bipartite_game.c — gnp directed "
+        "out (n1=8, n2=6, p=0.4, mode=out, bottom→top arcs only)",
+        "algo": "bipartite_game_gnp",
+        "params": {
+            "n1": 8,
+            "n2": 6,
+            "p": 0.4,
+            "directed": True,
+            "mode": "out",
+            "seed": 5_550_003,
+        },
+        "expected": {
+            "vcount": 14,
+            "n1": 8,
+            "n2": 6,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 6,
+            "ecount_max": 48,
+            "bipartite_partitions": True,
+            "edges_bottom_to_top": True,
+        },
+    },
+    {
+        "case": "bipartite_gnp_c_undirected_n5_n4_p1_complete",
+        "origin": "tests/unit/igraph_bipartite_game.c — gnp p=1 "
+        "boundary; mode=all undirected yields complete K_{5,4}",
+        "algo": "bipartite_game_gnp",
+        "params": {
+            "n1": 5,
+            "n2": 4,
+            "p": 1.0,
+            "directed": False,
+            "mode": "all",
+            "seed": 5_550_004,
+        },
+        "expected": {
+            "vcount": 9,
+            "n1": 5,
+            "n2": 4,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 20,
+            "ecount_max": 20,
+            "bipartite_partitions": True,
+        },
+    },
+]
+
+BIPARTITE_GAME_GNM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "bipartite_gnm_c_undirected_n20_n15_m50_all",
+        "origin": "tests/unit/igraph_bipartite_game.c — gnm exact "
+        "count (n1=20, n2=15, m=50, mode=all, undirected)",
+        "algo": "bipartite_game_gnm",
+        "params": {
+            "n1": 20,
+            "n2": 15,
+            "m": 50,
+            "directed": False,
+            "mode": "all",
+            "seed": 5_550_002,
+        },
+        "expected": {
+            "vcount": 35,
+            "n1": 20,
+            "n2": 15,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 50,
+            "ecount_max": 50,
+            "bipartite_partitions": True,
+        },
+    },
+    {
+        "case": "bipartite_gnm_c_directed_n6_n4_m12_in",
+        "origin": "tests/unit/igraph_bipartite_game.c — gnm directed "
+        "in (n1=6, n2=4, m=12, mode=in, top→bottom arcs only)",
+        "algo": "bipartite_game_gnm",
+        "params": {
+            "n1": 6,
+            "n2": 4,
+            "m": 12,
+            "directed": True,
+            "mode": "in",
+            "seed": 5_550_005,
+        },
+        "expected": {
+            "vcount": 10,
+            "n1": 6,
+            "n2": 4,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 12,
+            "ecount_max": 12,
+            "bipartite_partitions": True,
+            "edges_top_to_bottom": True,
+        },
+    },
+    {
+        "case": "bipartite_gnm_c_n5_n5_m25_all_complete",
+        "origin": "tests/unit/igraph_bipartite_game.c — gnm m=max "
+        "boundary; undirected mode=all yields complete K_{5,5}",
+        "algo": "bipartite_game_gnm",
+        "params": {
+            "n1": 5,
+            "n2": 5,
+            "m": 25,
+            "directed": False,
+            "mode": "all",
+            "seed": 5_550_006,
+        },
+        "expected": {
+            "vcount": 10,
+            "n1": 5,
+            "n2": 5,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 25,
+            "ecount_max": 25,
+            "bipartite_partitions": True,
+        },
+    },
+]
+
 # ALGO-GN-014: preference_game. Mirrors `igraph_preference_game` in
 # games/preference.c (Faust–Wasserman block model). RNG state is not
 # portable across implementations, so we capture structural invariants
@@ -10950,6 +11109,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "tree_game_lerw": TREE_LERW_MANIFEST,
     "grg_game": GRG_MANIFEST,
     "forest_fire_game": FOREST_FIRE_MANIFEST,
+    "bipartite_game_gnp": BIPARTITE_GAME_GNP_MANIFEST,
+    "bipartite_game_gnm": BIPARTITE_GAME_GNM_MANIFEST,
     "preference_game": PREFERENCE_MANIFEST,
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "establishment_game": ESTABLISHMENT_MANIFEST,
@@ -11107,6 +11268,8 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "tree_game_lerw",
             "grg_game",
             "forest_fire_game",
+            "bipartite_game_gnp",
+            "bipartite_game_gnm",
             "preference_game",
             "asymmetric_preference_game",
             "establishment_game",

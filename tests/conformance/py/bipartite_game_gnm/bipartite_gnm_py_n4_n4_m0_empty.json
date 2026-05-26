@@ -1,0 +1,29 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Random_Bipartite boundary m=0): no edges yet n1+n2 vertices and types partition",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnm",
+  "params": {
+    "n1": 4,
+    "n2": 4,
+    "m": 0,
+    "directed": false,
+    "mode": "all",
+    "seed": 7770203
+  },
+  "expected": {
+    "vcount": 8,
+    "n1": 4,
+    "n2": 4,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 0,
+    "bipartite_partitions": true
+  }
+}

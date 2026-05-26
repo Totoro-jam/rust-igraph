@@ -1,0 +1,29 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_bipartite_game.c \u2014 gnp small undirected case (n1=10, n2=8, p=0.3, mode=all)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnp",
+  "params": {
+    "n1": 10,
+    "n2": 8,
+    "p": 0.3,
+    "directed": false,
+    "mode": "all",
+    "seed": 5550001
+  },
+  "expected": {
+    "vcount": 18,
+    "n1": 10,
+    "n2": 8,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 6,
+    "ecount_max": 60,
+    "bipartite_partitions": true
+  }
+}

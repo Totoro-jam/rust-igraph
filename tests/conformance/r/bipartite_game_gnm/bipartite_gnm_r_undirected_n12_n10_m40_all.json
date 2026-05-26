@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_bipartite(12, 10, type='gnm', m=40, directed=FALSE, mode='all')): exact-count undirected case",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnm",
+  "params": {
+    "n1": 12,
+    "n2": 10,
+    "m": 40,
+    "directed": false,
+    "mode": "all",
+    "seed": 9990201
+  },
+  "expected": {
+    "vcount": 22,
+    "n1": 12,
+    "n2": 10,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 40,
+    "ecount_max": 40,
+    "bipartite_partitions": true
+  }
+}

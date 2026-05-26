@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Random_Bipartite(6, 7, p=0.5, directed=True, neimode='in')): top\u2192bottom directed",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnp",
+  "params": {
+    "n1": 6,
+    "n2": 7,
+    "p": 0.5,
+    "directed": true,
+    "mode": "in",
+    "seed": 7770102
+  },
+  "expected": {
+    "vcount": 13,
+    "n1": 6,
+    "n2": 7,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 8,
+    "ecount_max": 42,
+    "bipartite_partitions": true,
+    "edges_top_to_bottom": true
+  }
+}

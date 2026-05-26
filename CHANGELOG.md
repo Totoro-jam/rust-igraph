@@ -15,6 +15,59 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-030** — `bipartite_game_gnp` / `bipartite_game_gnm` bipartite
+  Erdős-Rényi random-graph generators. Counterparts of
+  `igraph_bipartite_game_gnp()` / `igraph_bipartite_game_gnm()` in
+  `references/igraph/src/games/bipartite.c`. Two sampling families share
+  the same partition convention: vertices `0..n1-1` form the *bottom*
+  partition (`types[i] = false`), vertices `n1..n1+n2-1` form the *top*
+  partition (`types[i] = true`).
+  - `bipartite_game_gnp(n1: u32, n2: u32, p: f64, directed: bool, mode: BipartiteMode, seed: u64) -> IgraphResult<BipartiteGraph>`:
+    Batagelj-Brandes 2005 geometric-skip sampler over the bipartite pair
+    space — `n1·n2` ordered cross-pairs for `Out`/`In`/undirected `All`,
+    or `2·n1·n2` for directed `All` (each ordered cross-pair sampled
+    independently). Validates `p ∈ [0, 1]`; NaN/Inf rejected.
+  - `bipartite_game_gnm(n1: u32, n2: u32, m: u64, directed: bool, mode: BipartiteMode, seed: u64) -> IgraphResult<BipartiteGraph>`:
+    Floyd distinct-sample over the same pair space, decodes each sampled
+    pair-index back to `(bottom, top)` via `to = idx/n1; from = idx − to·n1; to += n1`
+    (swap for `In`; second half of the index space encodes `top → bottom`
+    for directed `All`). Rejects `m > cap` where `cap` matches the pair
+    count above.
+  - `BipartiteMode::{Out, In, All}` mirrors the C `IGRAPH_OUT` / `IGRAPH_IN`
+    / `IGRAPH_ALL` family. For undirected graphs every mode produces a
+    single edge per cross-pair; for directed graphs `Out` emits
+    bottom→top arcs, `In` emits top→bottom arcs, `All` emits both
+    directions independently.
+  - Returns `BipartiteGraph { graph: Graph, types: Vec<bool> }` where
+    `types` is the partition indicator vector.
+  - Edge cases: `n1 == 0` or `n2 == 0` returns the requested vertex set
+    with zero edges; `p == 0` short-circuits to edgeless; `p == 1` (or
+    `m == cap`) produces the complete bipartite graph K_{n1,n2} (or its
+    directed counterpart). Deterministic given the input tuple via
+    `SplitMix64`.
+  - Conformance: 18 fixtures (3 C + 3 py + 3 R per algo) under
+    `tests/conformance/{c,py,r}/bipartite_game_{gnp,gnm}/`. RNG state is
+    not portable, so fixtures assert structural invariants only —
+    `vcount`, `n1`/`n2` partition counts, `directed` flag,
+    `types[0..n1] = false` / `types[n1..n1+n2] = true`, every edge
+    crosses the bipartition, `is_simple` (no self-loops, no multi-edges
+    via canonical-pair `HashSet`), `ecount` band, plus
+    `edges_bottom_to_top` / `edges_top_to_bottom` for directed `Out`/`In`
+    cases.
+  - Bench at `benches/bench_bipartite_game.rs` covers four groups
+    (`gnp/undirected`, `gnp/directed_all`, `gnm/undirected`,
+    `gnm/directed_out`) at `(n1, n2) ∈ {100, 1 000, 5 000}²`. Baseline
+    at `.codefuse/tracking/perf/ALGO-GN-030.json`: gnp at `p = 0.05`
+    ~250-600 Melem/s of pair-space throughput; gnm at
+    `m = 10·max(n1,n2)` ~14-23 Melem/s of distinct-sample throughput
+    (Floyd HashSet dominates).
+  - Example: `examples/bipartite_game_demo.rs` builds a sparse undirected
+    G(200, 150, p = 0.05) and a directed G(200, 150, m = 600) with
+    `mode = Out`, then prints per-side degree means and the top-5 hubs
+    on each partition.
+  - Re-exported as `rust_igraph::{BipartiteGraph, BipartiteMode,
+    bipartite_game_gnp, bipartite_game_gnm}`.
+
 - **ALGO-FL-030** — `dominator_tree`: **Lengauer-Tarjan dominator tree** of
   a directed flowgraph. Given a directed graph and a root `r`, vertex `v`
   *dominates* `w` iff every path `r → w` goes through `v`; the *immediate

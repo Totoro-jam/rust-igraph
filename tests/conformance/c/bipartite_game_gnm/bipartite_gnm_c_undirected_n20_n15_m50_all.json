@@ -1,0 +1,29 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_bipartite_game.c \u2014 gnm exact count (n1=20, n2=15, m=50, mode=all, undirected)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnm",
+  "params": {
+    "n1": 20,
+    "n2": 15,
+    "m": 50,
+    "directed": false,
+    "mode": "all",
+    "seed": 5550002
+  },
+  "expected": {
+    "vcount": 35,
+    "n1": 20,
+    "n2": 15,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 50,
+    "ecount_max": 50,
+    "bipartite_partitions": true
+  }
+}

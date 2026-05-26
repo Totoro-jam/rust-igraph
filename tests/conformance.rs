@@ -6179,6 +6179,246 @@ fn forest_fire_game_three_source_conformance() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)] // two algos × three-source dispatch + invariants
+fn bipartite_game_three_source_conformance() {
+    // Bipartite Erdős–Rényi G(n1, n2, p) and G(n1, n2, m). RNG state is
+    // not portable across implementations, so we check structural
+    // invariants only:
+    //   * vcount = n1 + n2 (exact)
+    //   * directed flag matches the param
+    //   * types[0..n1] == false, types[n1..n1+n2] == true
+    //   * every edge crosses the partition (types[u] != types[v])
+    //   * is_simple: no self-loops, no parallel edges (HashSet canonical
+    //     pair check; in directed graphs, ordered pair check)
+    //   * ecount_min <= ecount <= ecount_max
+    //   * if edges_bottom_to_top: every arc points u<n1 -> v>=n1
+    //   * if edges_top_to_bottom: every arc points u>=n1 -> v<n1
+    use rust_igraph::{BipartiteMode, bipartite_game_gnm, bipartite_game_gnp};
+    use std::collections::HashSet;
+
+    fn decode_mode(s: &str, path: &std::path::Path) -> BipartiteMode {
+        match s {
+            "out" => BipartiteMode::Out,
+            "in" => BipartiteMode::In,
+            "all" => BipartiteMode::All,
+            other => panic!(
+                "bipartite fixture {}: unknown mode {:?}",
+                path.display(),
+                other
+            ),
+        }
+    }
+
+    fn er_param_str<'a>(case: &'a Conformance, key: &str, path: &std::path::Path) -> &'a str {
+        case.params
+            .get(key)
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_else(|| {
+                panic!(
+                    "bipartite fixture {}: param `{}` missing or not str",
+                    path.display(),
+                    key
+                )
+            })
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<(&'static str, &'static str)>::new();
+    for src in ["c", "py", "r"] {
+        for algo in ["bipartite_game_gnp", "bipartite_game_gnm"] {
+            let dir = workspace_root()
+                .join("tests/conformance")
+                .join(src)
+                .join(algo);
+            if !dir.is_dir() {
+                continue;
+            }
+            for entry in fs::read_dir(&dir).expect("read fixture dir") {
+                let entry = entry.expect("dir entry");
+                let path = entry.path();
+                if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                    continue;
+                }
+                let bytes = fs::read(&path).expect("read fixture file");
+                let case: Conformance =
+                    serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+                assert_eq!(case.algo, algo);
+
+                let n1 = er_param_u32(&case, "n1", &path);
+                let n2 = er_param_u32(&case, "n2", &path);
+                let directed = er_param_bool(&case, "directed", &path);
+                let mode = decode_mode(er_param_str(&case, "mode", &path), &path);
+                let seed = er_param_u64(&case, "seed", &path);
+
+                let bp = if algo == "bipartite_game_gnp" {
+                    let p = er_param_f64(&case, "p", &path);
+                    bipartite_game_gnp(n1, n2, p, directed, mode, seed)
+                        .expect("bipartite_game_gnp should succeed on conformance fixtures")
+                } else {
+                    let m = er_param_u64(&case, "m", &path);
+                    bipartite_game_gnm(n1, n2, m, directed, mode, seed)
+                        .expect("bipartite_game_gnm should succeed on conformance fixtures")
+                };
+                let graph = &bp.graph;
+                let types = &bp.types;
+
+                let want_vertices = er_expected_u32(&case, "vcount", &path);
+                let want_n1 = er_expected_u32(&case, "n1", &path);
+                let want_n2 = er_expected_u32(&case, "n2", &path);
+                let want_directed = er_expected_bool(&case, "directed", &path);
+                let want_is_simple = er_expected_bool(&case, "is_simple", &path);
+                let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+                let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+
+                assert_eq!(
+                    graph.vcount(),
+                    want_vertices,
+                    "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+                assert_eq!(want_n1, n1);
+                assert_eq!(want_n2, n2);
+                assert_eq!(
+                    graph.is_directed(),
+                    want_directed,
+                    "directed mismatch in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+                let types_len = u32::try_from(types.len()).expect("types length fits u32");
+                assert_eq!(
+                    types_len,
+                    n1 + n2,
+                    "types length mismatch in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+                for (i, &t) in types.iter().enumerate() {
+                    let idx = u32::try_from(i).expect("partition index fits u32");
+                    let in_top = idx >= n1;
+                    assert_eq!(
+                        t,
+                        in_top,
+                        "types[{i}] = {t} but should be {in_top} in {}\n  source: {}",
+                        path.display(),
+                        case.source,
+                    );
+                }
+
+                let ecount = graph.ecount() as u64;
+                assert!(
+                    ecount >= want_ecount_min && ecount <= want_ecount_max,
+                    "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                    ecount,
+                    want_ecount_min,
+                    want_ecount_max,
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+
+                // bipartite_partitions: every edge crosses the partition
+                let want_bp_partitions = case
+                    .expected
+                    .get("bipartite_partitions")
+                    .and_then(serde_json::Value::as_bool)
+                    .unwrap_or(false);
+                let want_bottom_to_top = case
+                    .expected
+                    .get("edges_bottom_to_top")
+                    .and_then(serde_json::Value::as_bool)
+                    .unwrap_or(false);
+                let want_top_to_bottom = case
+                    .expected
+                    .get("edges_top_to_bottom")
+                    .and_then(serde_json::Value::as_bool)
+                    .unwrap_or(false);
+
+                let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+                let mut simple_set: HashSet<(u32, u32)> = HashSet::with_capacity(n_edges as usize);
+                for eid in 0..n_edges {
+                    let (u, v) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for bipartite fixture");
+                    if want_bp_partitions {
+                        let tu = types[u as usize];
+                        let tv = types[v as usize];
+                        assert_ne!(
+                            tu,
+                            tv,
+                            "edge {eid} = ({u},{v}) does not cross bipartition in {}\n  source: {}",
+                            path.display(),
+                            case.source,
+                        );
+                    }
+                    if want_bottom_to_top {
+                        assert!(
+                            u < n1 && v >= n1,
+                            "edge {eid} = ({u},{v}) is not bottom→top (n1={n1}) in {}\n  source: {}",
+                            path.display(),
+                            case.source,
+                        );
+                    }
+                    if want_top_to_bottom {
+                        assert!(
+                            u >= n1 && v < n1,
+                            "edge {eid} = ({u},{v}) is not top→bottom (n1={n1}) in {}\n  source: {}",
+                            path.display(),
+                            case.source,
+                        );
+                    }
+                    if want_is_simple {
+                        assert_ne!(
+                            u,
+                            v,
+                            "self-loop in {} (edge {eid})\n  source: {}",
+                            path.display(),
+                            case.source,
+                        );
+                        let pair = if graph.is_directed() || u <= v {
+                            (u, v)
+                        } else {
+                            (v, u)
+                        };
+                        assert!(
+                            simple_set.insert(pair),
+                            "multi-edge {pair:?} in {}\n  source: {}",
+                            path.display(),
+                            case.source,
+                        );
+                    }
+                }
+
+                assert_eq!(case.source, src);
+                let src_key: &'static str = match src {
+                    "c" => "c",
+                    "py" => "py",
+                    "r" => "r",
+                    _ => unreachable!(),
+                };
+                let algo_key: &'static str = match algo {
+                    "bipartite_game_gnp" => "bipartite_game_gnp",
+                    "bipartite_game_gnm" => "bipartite_game_gnm",
+                    _ => unreachable!(),
+                };
+                seen_sources.insert((src_key, algo_key));
+            }
+        }
+    }
+    for src in ["c", "py", "r"] {
+        for algo in ["bipartite_game_gnp", "bipartite_game_gnm"] {
+            assert!(
+                seen_sources.contains(&(src, algo)),
+                "no {algo} fixtures from source {src}"
+            );
+        }
+    }
+}
+
+#[test]
 #[allow(clippy::too_many_lines)] // three-source dispatch + invariant checks
 fn simple_interconnected_islands_game_three_source_conformance() {
     // Inter-connected Erdős–Rényi islands. RNG state is not portable

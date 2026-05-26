@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_bipartite boundary p=0): no edges; only the n1+n2 vertices and types partition",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnp",
+  "params": {
+    "n1": 3,
+    "n2": 3,
+    "p": 0.0,
+    "directed": false,
+    "mode": "all",
+    "seed": 9990103
+  },
+  "expected": {
+    "vcount": 6,
+    "n1": 3,
+    "n2": 3,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 0,
+    "ecount_max": 0,
+    "bipartite_partitions": true
+  }
+}

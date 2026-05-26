@@ -7,6 +7,7 @@
 pub mod barabasi;
 pub mod barabasi_aging;
 pub mod barabasi_psumtree;
+pub mod bipartite;
 pub mod callaway_traits;
 pub mod chung_lu;
 pub mod cited_type;

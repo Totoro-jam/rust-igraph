@@ -1,0 +1,19 @@
+{
+  "awu": "ALGO-GN-030",
+  "captured_at": "2026-05-26",
+  "git_commit": "294e218",
+  "rust_gnp_undirected_100x100_ns": 16039,
+  "rust_gnp_undirected_1000x1000_ns": 1944900,
+  "rust_gnp_undirected_5000x5000_ns": 67363000,
+  "rust_gnp_directed_all_100x100_ns": 44050,
+  "rust_gnp_directed_all_1000x1000_ns": 5856500,
+  "rust_gnp_directed_all_5000x5000_ns": 191270000,
+  "rust_gnm_undirected_100x100_ns": 42111,
+  "rust_gnm_undirected_1000x1000_ns": 484450,
+  "rust_gnm_undirected_5000x5000_ns": 3460800,
+  "rust_gnm_directed_out_100x100_ns": 42566,
+  "rust_gnm_directed_out_1000x1000_ns": 490730,
+  "rust_gnm_directed_out_5000x5000_ns": 2751500,
+  "py_baseline_ns": null,
+  "notes": "Bipartite Erdős-Rényi (igraph_bipartite_game_gnp / igraph_bipartite_game_gnm). gnp uses Batagelj-Brandes geometric skip across the pair space (n1*n2 for Out/In/All-undirected, 2*n1*n2 for All-directed). gnm uses Floyd distinct-sample then pair-index decode. Throughput on gnp scales linearly with the pair count: ~250-600 Melem/s for the sparse p=0.05 regime (the geometric draw + decode + push_edge dominates). All-directed costs ~3x the undirected variant because of the 2x pair space plus the second-half decode. gnm undirected/directed-Out track each other closely (Floyd hashset insertion is the bottleneck), throughput ~14-23 Melem/s on the m = 10*max(n1,n2) sample edge budget. No oracle baseline: python-igraph exposes Graph.Random_Bipartite and rigraph exposes sample_bipartite, but RNG state is not portable, so conformance asserts structural invariants only (vcount, partitions, ecount band, edges_bottom_to_top / edges_top_to_bottom, is_simple via canonical-pair check). Numbers from cargo bench --bench bench_bipartite_game on Darwin/M-series release build, --sample-size 10 --measurement-time 2 --warm-up-time 1."
+}

@@ -429,6 +429,11 @@ path = "benches/bench_forestfire.rs"
 harness = false
 
 [[bench]]
+name = "bench_bipartite_game"
+path = "benches/bench_bipartite_game.rs"
+harness = false
+
+[[bench]]
 name = "bench_max_flow"
 path = "benches/bench_max_flow.rs"
 harness = false

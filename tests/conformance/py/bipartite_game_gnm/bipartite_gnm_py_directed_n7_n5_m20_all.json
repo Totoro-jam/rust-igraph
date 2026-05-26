@@ -1,0 +1,29 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors ig.Graph.Random_Bipartite(7, 5, m=20, directed=True, neimode='all')): mutual arcs allowed",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnm",
+  "params": {
+    "n1": 7,
+    "n2": 5,
+    "m": 20,
+    "directed": true,
+    "mode": "all",
+    "seed": 7770202
+  },
+  "expected": {
+    "vcount": 12,
+    "n1": 7,
+    "n2": 5,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 20,
+    "ecount_max": 20,
+    "bipartite_partitions": true
+  }
+}

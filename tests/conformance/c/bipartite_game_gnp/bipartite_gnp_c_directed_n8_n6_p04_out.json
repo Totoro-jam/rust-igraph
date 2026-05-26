@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_bipartite_game.c \u2014 gnp directed out (n1=8, n2=6, p=0.4, mode=out, bottom\u2192top arcs only)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnp",
+  "params": {
+    "n1": 8,
+    "n2": 6,
+    "p": 0.4,
+    "directed": true,
+    "mode": "out",
+    "seed": 5550003
+  },
+  "expected": {
+    "vcount": 14,
+    "n1": 8,
+    "n2": 6,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 6,
+    "ecount_max": 48,
+    "bipartite_partitions": true,
+    "edges_bottom_to_top": true
+  }
+}

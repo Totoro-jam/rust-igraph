@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_bipartite(6, 6, type='gnp', p=0.3, directed=TRUE, mode='all')): directed with mutual arcs allowed",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnp",
+  "params": {
+    "n1": 6,
+    "n2": 6,
+    "p": 0.3,
+    "directed": true,
+    "mode": "all",
+    "seed": 9990102
+  },
+  "expected": {
+    "vcount": 12,
+    "n1": 6,
+    "n2": 6,
+    "directed": true,
+    "is_simple": true,
+    "ecount_min": 5,
+    "ecount_max": 72,
+    "bipartite_partitions": true
+  }
+}

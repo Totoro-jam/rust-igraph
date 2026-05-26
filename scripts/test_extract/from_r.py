@@ -4314,6 +4314,166 @@ FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-030: bipartite_game_gnp / bipartite_game_gnm. Mirrors
+# rigraph's `sample_bipartite(n1, n2, type=c('gnp','gnm'), p=NULL,
+# m=NULL, directed=FALSE, mode=c('all','out','in'))` (auto-bound
+# `sample_bipartite_impl`). RNG state is not portable, so we encode
+# structural invariants only.
+BIPARTITE_GAME_GNP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "bipartite_gnp_r_undirected_n15_n10_p02_all",
+        "origin": "constructed (mirrors sample_bipartite(15, 10, "
+        "type='gnp', p=0.2, directed=FALSE, mode='all')): sparse "
+        "undirected case",
+        "algo": "bipartite_game_gnp",
+        "params": {
+            "n1": 15,
+            "n2": 10,
+            "p": 0.2,
+            "directed": False,
+            "mode": "all",
+            "seed": 9_990_101,
+        },
+        "expected": {
+            "vcount": 25,
+            "n1": 15,
+            "n2": 10,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 8,
+            "ecount_max": 80,
+            "bipartite_partitions": True,
+        },
+    },
+    {
+        "case": "bipartite_gnp_r_directed_n6_n6_p03_all",
+        "origin": "constructed (mirrors sample_bipartite(6, 6, "
+        "type='gnp', p=0.3, directed=TRUE, mode='all')): directed "
+        "with mutual arcs allowed",
+        "algo": "bipartite_game_gnp",
+        "params": {
+            "n1": 6,
+            "n2": 6,
+            "p": 0.3,
+            "directed": True,
+            "mode": "all",
+            "seed": 9_990_102,
+        },
+        "expected": {
+            "vcount": 12,
+            "n1": 6,
+            "n2": 6,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 5,
+            "ecount_max": 72,
+            "bipartite_partitions": True,
+        },
+    },
+    {
+        "case": "bipartite_gnp_r_undirected_n3_n3_p0_empty",
+        "origin": "constructed (mirrors sample_bipartite boundary p=0): "
+        "no edges; only the n1+n2 vertices and types partition",
+        "algo": "bipartite_game_gnp",
+        "params": {
+            "n1": 3,
+            "n2": 3,
+            "p": 0.0,
+            "directed": False,
+            "mode": "all",
+            "seed": 9_990_103,
+        },
+        "expected": {
+            "vcount": 6,
+            "n1": 3,
+            "n2": 3,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 0,
+            "ecount_max": 0,
+            "bipartite_partitions": True,
+        },
+    },
+]
+
+BIPARTITE_GAME_GNM_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "bipartite_gnm_r_undirected_n12_n10_m40_all",
+        "origin": "constructed (mirrors sample_bipartite(12, 10, "
+        "type='gnm', m=40, directed=FALSE, mode='all')): exact-count "
+        "undirected case",
+        "algo": "bipartite_game_gnm",
+        "params": {
+            "n1": 12,
+            "n2": 10,
+            "m": 40,
+            "directed": False,
+            "mode": "all",
+            "seed": 9_990_201,
+        },
+        "expected": {
+            "vcount": 22,
+            "n1": 12,
+            "n2": 10,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 40,
+            "ecount_max": 40,
+            "bipartite_partitions": True,
+        },
+    },
+    {
+        "case": "bipartite_gnm_r_directed_n5_n5_m15_out",
+        "origin": "constructed (mirrors sample_bipartite(5, 5, "
+        "type='gnm', m=15, directed=TRUE, mode='out')): bottom→top "
+        "directed arcs only",
+        "algo": "bipartite_game_gnm",
+        "params": {
+            "n1": 5,
+            "n2": 5,
+            "m": 15,
+            "directed": True,
+            "mode": "out",
+            "seed": 9_990_202,
+        },
+        "expected": {
+            "vcount": 10,
+            "n1": 5,
+            "n2": 5,
+            "directed": True,
+            "is_simple": True,
+            "ecount_min": 15,
+            "ecount_max": 15,
+            "bipartite_partitions": True,
+            "edges_bottom_to_top": True,
+        },
+    },
+    {
+        "case": "bipartite_gnm_r_n4_n3_m12_all_complete",
+        "origin": "constructed (mirrors sample_bipartite boundary m=max): "
+        "undirected mode='all' yields complete K_{4,3}",
+        "algo": "bipartite_game_gnm",
+        "params": {
+            "n1": 4,
+            "n2": 3,
+            "m": 12,
+            "directed": False,
+            "mode": "all",
+            "seed": 9_990_203,
+        },
+        "expected": {
+            "vcount": 7,
+            "n1": 4,
+            "n2": 3,
+            "directed": False,
+            "is_simple": True,
+            "ecount_min": 12,
+            "ecount_max": 12,
+            "bipartite_partitions": True,
+        },
+    },
+]
+
 # ALGO-GN-014: preference_game. Mirrors rigraph's `sample_pref(nodes,
 # types, type.dist, fixed.sizes, pref.matrix, ...)` — the auto-bound
 # `preference_game_impl`. RNG state is not portable, so we encode
@@ -8634,6 +8794,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "tree_game_lerw": TREE_LERW_MANIFEST,
     "grg_game": GRG_MANIFEST,
     "forest_fire_game": FOREST_FIRE_MANIFEST,
+    "bipartite_game_gnp": BIPARTITE_GAME_GNP_MANIFEST,
+    "bipartite_game_gnm": BIPARTITE_GAME_GNM_MANIFEST,
     "preference_game": PREFERENCE_MANIFEST,
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "establishment_game": ESTABLISHMENT_MANIFEST,
@@ -8785,6 +8947,8 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "tree_game_lerw",
             "grg_game",
             "forest_fire_game",
+            "bipartite_game_gnp",
+            "bipartite_game_gnm",
             "preference_game",
             "asymmetric_preference_game",
             "establishment_game",

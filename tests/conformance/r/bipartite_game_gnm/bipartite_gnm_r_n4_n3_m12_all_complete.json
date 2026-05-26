@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors sample_bipartite boundary m=max): undirected mode='all' yields complete K_{4,3}",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnm",
+  "params": {
+    "n1": 4,
+    "n2": 3,
+    "m": 12,
+    "directed": false,
+    "mode": "all",
+    "seed": 9990203
+  },
+  "expected": {
+    "vcount": 7,
+    "n1": 4,
+    "n2": 3,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 12,
+    "ecount_max": 12,
+    "bipartite_partitions": true
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_bipartite_game.c \u2014 gnp p=1 boundary; mode=all undirected yields complete K_{5,4}",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "bipartite_game_gnp",
+  "params": {
+    "n1": 5,
+    "n2": 4,
+    "p": 1.0,
+    "directed": false,
+    "mode": "all",
+    "seed": 5550004
+  },
+  "expected": {
+    "vcount": 9,
+    "n1": 5,
+    "n2": 4,
+    "directed": false,
+    "is_simple": true,
+    "ecount_min": 20,
+    "ecount_max": 20,
+    "bipartite_partitions": true
+  }
+}
