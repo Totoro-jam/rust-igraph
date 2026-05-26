@@ -1,0 +1,11 @@
+{
+  "awu": "ALGO-FL-012",
+  "function": "edge_disjoint_paths",
+  "captured_at": "2026-05-26",
+  "git_commit": "9010913",
+  "rust_textbook_6v_8e_directed_ns": 402,
+  "rust_layered_L4_W8_ns": 5332,
+  "rust_layered_L6_W16_ns": 21344,
+  "rust_layered_L8_W32_ns": 87787,
+  "notes": "Same wrapper shape as FL-011 (NULL-cap max_flow_value + round + i64 cast). Re-benched FL-011 in the same session for fair comparison: FL-011 textbook=437ns, L4W8=5064ns, L6W16=21376ns, L8W32=86816ns — within criterion's confidence interval of FL-012's numbers, confirming Menger's theorem holds at the perf layer too (both functions are pointwise the same code path). The earlier FL-011 snapshot of 1099/12102/46686/239910 was captured on a more loaded machine; both wrappers' true micro-cost is sub-nanosecond beyond the bare delegate. Throughput in elements/sec for layered fixtures rises from ~40 Melem/s (L4W8, 240 arcs) to ~84 Melem/s (L8W32, 7232 arcs) as per-vertex BFS amortizes more arcs."
+}

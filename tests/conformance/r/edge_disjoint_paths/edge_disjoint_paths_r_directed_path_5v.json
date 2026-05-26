@@ -1,0 +1,33 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R:188 (`edge_disjoint_paths(make_ring(5, directed=TRUE, circular=FALSE), source=1, target=3)` == 1); R 1-indexed source=1,target=3 \u2192 Rust 0-indexed source=0, target=2",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "edge_disjoint_paths",
+  "params": {
+    "source": 0,
+    "target": 2
+  },
+  "expected": 1
+}

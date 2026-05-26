@@ -3760,6 +3760,43 @@ ST_EDGE_CONN_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-012: edge_disjoint_paths. rigraph exposes
+# `edge_disjoint_paths(graph, source, target)` which dispatches to
+# `igraph_edge_disjoint_paths`. Test tests/testthat/test-flow.R:183-189
+# asserts:
+#   - K_5 undirected: `edge_disjoint_paths(g_full, source=1, target=2)
+#     == 4`
+#   - directed acyclic ring 1→2→3→4→5: `edge_disjoint_paths(g_path,
+#     source=1, target=3) == 1`
+# (R is 1-indexed; we shift to 0-indexed here.)
+ED_PATHS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edge_disjoint_paths_r_full_5v",
+        "origin": "rigraph tests/testthat/test-flow.R:185 "
+        "(`edge_disjoint_paths(make_full_graph(5), source=1, target=2)` "
+        "== 4); R 1-indexed source=1,target=2 → Rust 0-indexed "
+        "source=0, target=1",
+        "graph_factory": lambda: ig.Graph.Full(5, directed=False),
+        "algo": "edge_disjoint_paths",
+        "params": {"source": 0, "target": 1},
+        "expected": 4,
+    },
+    {
+        "case": "edge_disjoint_paths_r_directed_path_5v",
+        "origin": "rigraph tests/testthat/test-flow.R:188 "
+        "(`edge_disjoint_paths(make_ring(5, directed=TRUE, "
+        "circular=FALSE), source=1, target=3)` == 1); R 1-indexed "
+        "source=1,target=3 → Rust 0-indexed source=0, target=2",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=True
+        ),
+        "algo": "edge_disjoint_paths",
+        "params": {"source": 0, "target": 2},
+        "expected": 1,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
 # Generator — RNG state not portable across implementations, so we
@@ -8143,6 +8180,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "max_flow_value": MAXFLOW_MANIFEST,
     "st_mincut_value": ST_MINCUT_MANIFEST,
     "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
+    "edge_disjoint_paths": ED_PATHS_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

@@ -3938,6 +3938,104 @@ ST_EDGE_CONN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-012: edge_disjoint_paths. Mirrors `igraph_edge_disjoint_paths`
+# in references/igraph/src/flow/flow.c:2326 — a 15-line wrapper around
+# `igraph_maxflow_value` with NULL capacity (unit caps), cast to integer.
+# By Menger's theorem the max number of edge-disjoint s→t paths equals
+# the unit-capacity max-flow. The dedicated C unit test
+# tests/unit/igraph_edge_disjoint_paths.c:23-46 builds a 6-vertex directed
+# graph with edges (0,1)(0,2)(1,2)(1,3)(2,4)(3,4)(3,5)(4,5)(3,3) (note the
+# self-loop at vertex 3), asserts ep(0→5)=2, ep(0→3)=1, ep(3→0)=0,
+# ep(3→5)=2; then converts to undirected and asserts ep(4→3)=3.
+ED_PATHS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edge_disjoint_paths_c_directed_0_to_5",
+        "origin": "tests/unit/igraph_edge_disjoint_paths.c:31-32 — 6-vertex "
+        "directed graph with edges (0,1)(0,2)(1,2)(1,3)(2,4)(3,4)(3,5)(4,5)"
+        "(3,3 self-loop), source=0, target=5 → edge_disjoint_paths == 2",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (3, 3),
+            ],
+            directed=True,
+        ),
+        "algo": "edge_disjoint_paths",
+        "params": {"source": 0, "target": 5},
+        "expected": 2,
+    },
+    {
+        "case": "edge_disjoint_paths_c_directed_0_to_3",
+        "origin": "tests/unit/igraph_edge_disjoint_paths.c:34-35 — same "
+        "6-vertex directed fixture, source=0, target=3 → "
+        "edge_disjoint_paths == 1 (bottleneck via vertex 1)",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (3, 3),
+            ],
+            directed=True,
+        ),
+        "algo": "edge_disjoint_paths",
+        "params": {"source": 0, "target": 3},
+        "expected": 1,
+    },
+    {
+        "case": "edge_disjoint_paths_c_directed_3_to_0",
+        "origin": "tests/unit/igraph_edge_disjoint_paths.c:37-38 — same "
+        "6-vertex directed fixture, source=3, target=0 → "
+        "edge_disjoint_paths == 0 (no reverse path)",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (3, 3),
+            ],
+            directed=True,
+        ),
+        "algo": "edge_disjoint_paths",
+        "params": {"source": 3, "target": 0},
+        "expected": 0,
+    },
+    {
+        "case": "edge_disjoint_paths_c_directed_3_to_5",
+        "origin": "tests/unit/igraph_edge_disjoint_paths.c:40-41 — same "
+        "6-vertex directed fixture, source=3, target=5 → "
+        "edge_disjoint_paths == 2 (direct (3,5) + (3,4)→(4,5))",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (3, 3),
+            ],
+            directed=True,
+        ),
+        "algo": "edge_disjoint_paths",
+        "params": {"source": 3, "target": 5},
+        "expected": 2,
+    },
+    {
+        "case": "edge_disjoint_paths_c_undirected_4_to_3",
+        "origin": "tests/unit/igraph_edge_disjoint_paths.c:43-46 — same "
+        "fixture after igraph_to_undirected (each arc → one edge), "
+        "source=4, target=3 → edge_disjoint_paths == 3 (direct edge + "
+        "via 2→1 + via 5)",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (3, 3),
+            ],
+            directed=False,
+        ),
+        "algo": "edge_disjoint_paths",
+        "params": {"source": 4, "target": 3},
+        "expected": 3,
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -10072,6 +10170,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "max_flow_value": MAXFLOW_MANIFEST,
     "st_mincut_value": ST_MINCUT_MANIFEST,
     "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
+    "edge_disjoint_paths": ED_PATHS_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

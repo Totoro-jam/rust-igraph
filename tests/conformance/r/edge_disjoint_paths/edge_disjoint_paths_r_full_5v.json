@@ -1,0 +1,57 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R:185 (`edge_disjoint_paths(make_full_graph(5), source=1, target=2)` == 4); R 1-indexed source=1,target=2 \u2192 Rust 0-indexed source=0, target=1",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "edge_disjoint_paths",
+  "params": {
+    "source": 0,
+    "target": 1
+  },
+  "expected": 4
+}

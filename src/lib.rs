@@ -133,6 +133,7 @@ pub use crate::algorithms::constructors::triangular_lattice::triangular_lattice;
 pub use crate::algorithms::constructors::turan::turan;
 pub use crate::algorithms::constructors::weighted_adjacency::weighted_adjacency;
 pub use crate::algorithms::constructors::wheel::{WheelMode, wheel_graph};
+pub use crate::algorithms::flow::edge_disjoint_paths::edge_disjoint_paths;
 pub use crate::algorithms::flow::max_flow::max_flow_value;
 pub use crate::algorithms::flow::st_edge_connectivity::st_edge_connectivity;
 pub use crate::algorithms::flow::st_mincut::st_mincut_value;

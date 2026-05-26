@@ -15,6 +15,50 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-012** — `edge_disjoint_paths`: maximum number of pairwise
+  edge-disjoint `source → target` paths. Mirrors
+  `igraph_edge_disjoint_paths` at
+  `references/igraph/src/flow/flow.c:2326`, a 15-line wrapper that
+  rejects `source == target` and then delegates to
+  `igraph_maxflow_value` with `NULL` capacity (unit capacities per
+  edge), casting the resulting `igraph_real_t` to `igraph_int_t`.
+  By **Menger's theorem** (1927) the value equals
+  [`st_edge_connectivity`] on every input and equals
+  `round(max_flow_value(g, s, t, None))` on unit caps.
+  - `pub fn edge_disjoint_paths(graph: &Graph, source: VertexId,
+    target: VertexId) -> IgraphResult<i64>`. Returns `i64` to match
+    igraph C's `igraph_int_t`. Error contract inherits from
+    [`max_flow_value`]: `VertexOutOfRange` for bad source/target,
+    `InvalidArgument` for `source == target`, and the same `Internal`
+    guard if the unit-cap max-flow value escapes `i64` range
+    (unreachable in practice — `ecount() ≤ u32::MAX`).
+  - Same wrapper shape as `st_edge_connectivity` (FL-011); kept as a
+    separate Rust function for naming parity with igraph C so call
+    sites can pick the name that matches their intent
+    ("paths" vs. "connectivity").
+  - 11 unit tests verbatim-replay `tests/unit/igraph_edge_disjoint_paths.c`
+    (6v directed fixture with self-loop at vertex 3, asserts
+    ep(0→5)=2, ep(0→3)=1, ep(3→0)=0, ep(3→5)=2; undirected variant
+    asserts ep(4→3)=3) plus a belt-and-suspenders
+    `matches_st_edge_connectivity` invariant on K_5; 1 proptest
+    `menger_equals_st_edge_connectivity` cross-checks Menger equality
+    on random unit-cap graphs (transitively inheriting FL-002's
+    Edmonds-Karp oracle).
+  - Three-source conformance: 5 C fixtures from the dedicated unit
+    test, 2 py fixtures via `Graph.edge_disjoint_paths` (which
+    python-igraph aliases to `Graph.edge_connectivity` in
+    `src/igraph/__init__.py:342`), 2 R fixtures from
+    `tests/testthat/test-flow.R:183-189`.
+  - Bench: `bench_edge_disjoint_paths` (textbook 6v/8e + layered
+    `L4×W8`, `L6×W16`, `L8×W32`). Headline: textbook = 402 ns,
+    L4×W8 = 5.3 µs, L6×W16 = 21.3 µs, L8×W32 = 87.8 µs. Same-session
+    re-bench of FL-011 confirms the two wrappers run at identical
+    speed within criterion's confidence interval, as expected
+    (pointwise the same code path).
+  - Example: `cargo run --example edge_disjoint_paths_demo`.
+  - Re-exports: `rust_igraph::edge_disjoint_paths` and
+    `rust_igraph::algorithms::flow::edge_disjoint_paths`.
+
 - **ALGO-FL-011** — `st_edge_connectivity`: minimum number of edges
   whose removal disconnects `source` from `target`. Mirrors
   `igraph_st_edge_connectivity` at

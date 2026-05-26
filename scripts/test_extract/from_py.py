@@ -3524,6 +3524,40 @@ ST_EDGE_CONN_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-012: edge_disjoint_paths. python-igraph aliases
+# `Graph.edge_disjoint_paths = Graph.edge_connectivity` in
+# src/igraph/__init__.py:342, so the same `CutTests.testEdgeConnectivity`
+# fixture from tests/test_flow.py:18 exercises both names. Documented as
+# a Menger-theorem equivalent in doc/source/analysis.rst:204. Replays the
+# 4-vertex undirected fixture (ec == 2) plus a K_5 sanity (ep == 4).
+ED_PATHS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "edge_disjoint_paths_py_undirected_4v",
+        "origin": "python-igraph tests/test_flow.py:CutTests.testEdgeConnectivity:18 "
+        "(g = Graph(4, [(0,1),(0,2),(1,2),(1,3),(2,3)]); "
+        "g.edge_disjoint_paths(0, 3) == 2 via alias "
+        "edge_disjoint_paths = edge_connectivity at "
+        "src/igraph/__init__.py:342)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "algo": "edge_disjoint_paths",
+        "params": {"source": 0, "target": 3},
+        "expected": 2,
+    },
+    {
+        "case": "edge_disjoint_paths_py_undirected_full_5v",
+        "origin": "K_5 undirected: every vertex has 4 incident edges so by "
+        "Menger ep(s, t) == 4 for every pair; matches "
+        "edge_connectivity(K_5) == 4 in test-flow.R:148",
+        "graph_factory": lambda: ig.Graph.Full(5, directed=False),
+        "algo": "edge_disjoint_paths",
+        "params": {"source": 0, "target": 4},
+        "expected": 4,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
 # wrapper on the same `igraph_forest_fire_game` C entry point). RNG
@@ -8030,6 +8064,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "max_flow_value": MAXFLOW_MANIFEST,
     "st_mincut_value": ST_MINCUT_MANIFEST,
     "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
+    "edge_disjoint_paths": ED_PATHS_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,
