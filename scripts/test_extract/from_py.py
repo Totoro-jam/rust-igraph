@@ -3490,6 +3490,40 @@ ST_MINCUT_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-011: st_edge_connectivity. python-igraph exposes
+# `Graph.edge_connectivity(source, target)` which dispatches to
+# `igraph_st_edge_connectivity` when both endpoints are supplied. Test
+# tests/test_flow.py:CutTests.testEdgeConnectivity:18 asserts
+# `g.edge_connectivity(0, 3) == 2` on the same 4-vertex undirected
+# graph used for maxflow. We replay that assertion verbatim plus a
+# directed K4 sanity check (every pair has ec = 3 since every vertex
+# has out-degree 3 to every other vertex).
+ST_EDGE_CONN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "st_edge_conn_py_undirected_4v",
+        "origin": "python-igraph tests/test_flow.py:CutTests.testEdgeConnectivity:18 "
+        "(g = Graph(4, [(0,1),(0,2),(1,2),(1,3),(2,3)]); "
+        "g.edge_connectivity(0, 3) == 2)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "algo": "st_edge_connectivity",
+        "params": {"source": 0, "target": 3},
+        "expected": 2,
+    },
+    {
+        "case": "st_edge_conn_py_undirected_full_5v",
+        "origin": "K_5 undirected: every pair (s, t) has 4 edge-disjoint "
+        "paths → st_edge_connectivity(s, t) == 4 (matches "
+        "edge_connectivity(K_5) == 4 in test-flow.R:148)",
+        "graph_factory": lambda: ig.Graph.Full(5, directed=False),
+        "algo": "st_edge_connectivity",
+        "params": {"source": 0, "target": 4},
+        "expected": 4,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
 # wrapper on the same `igraph_forest_fire_game` C entry point). RNG
@@ -7995,6 +8029,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
     "max_flow_value": MAXFLOW_MANIFEST,
     "st_mincut_value": ST_MINCUT_MANIFEST,
+    "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

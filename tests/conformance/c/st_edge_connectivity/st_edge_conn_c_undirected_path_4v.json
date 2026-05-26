@@ -1,0 +1,29 @@
+{
+  "source": "c",
+  "origin": "structural: 0\u20141\u20142\u20143 undirected path, every edge is a bottleneck \u2192 st_edge_connectivity(0, 3) == 1",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "st_edge_connectivity",
+  "params": {
+    "source": 0,
+    "target": 3
+  },
+  "expected": 1
+}

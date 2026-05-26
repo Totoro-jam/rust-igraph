@@ -3723,6 +3723,43 @@ ST_MINCUT_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-011: st_edge_connectivity. rigraph exposes
+# `edge_connectivity(graph, source, target)` which dispatches to
+# `igraph_st_edge_connectivity` when both endpoints are supplied. Test
+# tests/testthat/test-flow.R:146-154 asserts:
+#   - K_5 undirected: `edge_connectivity(g_full, source=1, target=2)
+#     == 4`
+#   - directed acyclic ring 1→2→3→4→5: `edge_connectivity(g_path,
+#     source=1, target=3) == 1`
+# (R is 1-indexed; we shift to 0-indexed here.)
+ST_EDGE_CONN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "st_edge_conn_r_full_5v",
+        "origin": "rigraph tests/testthat/test-flow.R:148 "
+        "(`edge_connectivity(make_full_graph(5), source=1, target=2)` "
+        "== 4); R 1-indexed source=1,target=2 → Rust 0-indexed "
+        "source=0, target=1",
+        "graph_factory": lambda: ig.Graph.Full(5, directed=False),
+        "algo": "st_edge_connectivity",
+        "params": {"source": 0, "target": 1},
+        "expected": 4,
+    },
+    {
+        "case": "st_edge_conn_r_directed_path_5v",
+        "origin": "rigraph tests/testthat/test-flow.R:153 "
+        "(`edge_connectivity(make_ring(5, directed=TRUE, "
+        "circular=FALSE), source=1, target=3)` == 1); R 1-indexed "
+        "source=1,target=3 → Rust 0-indexed source=0, target=2",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=True
+        ),
+        "algo": "st_edge_connectivity",
+        "params": {"source": 0, "target": 2},
+        "expected": 1,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
 # Generator — RNG state not portable across implementations, so we
@@ -8105,6 +8142,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
     "max_flow_value": MAXFLOW_MANIFEST,
     "st_mincut_value": ST_MINCUT_MANIFEST,
+    "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

@@ -3904,6 +3904,40 @@ ST_MINCUT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-011: st_edge_connectivity. Mirrors `igraph_st_edge_connectivity`
+# in references/igraph/src/flow/flow.c:2219 — a 15-line wrapper around
+# `igraph_maxflow_value` with NULL capacity (unit caps), cast to integer.
+# The dedicated C unit test tests/unit/igraph_st_edge_connectivity.c:23-38
+# builds a 6-vertex directed graph with edges
+# (0,1)(0,2)(1,2)(1,3)(2,4)(3,4)(3,5)(4,5), asserts ec(0→5) == 2.
+ST_EDGE_CONN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "st_edge_conn_c_directed_6v",
+        "origin": "tests/unit/igraph_st_edge_connectivity.c:23-38 — 6-vertex "
+        "directed graph with edges (0,1)(0,2)(1,2)(1,3)(2,4)(3,4)(3,5)"
+        "(4,5), source=0, target=5 → st_edge_connectivity == 2",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 4), (3, 4), (3, 5), (4, 5)],
+            directed=True,
+        ),
+        "algo": "st_edge_connectivity",
+        "params": {"source": 0, "target": 5},
+        "expected": 2,
+    },
+    {
+        "case": "st_edge_conn_c_undirected_path_4v",
+        "origin": "structural: 0—1—2—3 undirected path, every edge is a "
+        "bottleneck → st_edge_connectivity(0, 3) == 1",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "st_edge_connectivity",
+        "params": {"source": 0, "target": 3},
+        "expected": 1,
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -10037,6 +10071,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
     "max_flow_value": MAXFLOW_MANIFEST,
     "st_mincut_value": ST_MINCUT_MANIFEST,
+    "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

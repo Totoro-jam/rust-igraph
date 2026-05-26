@@ -11,7 +11,9 @@
 //! ones.
 
 pub(crate) mod max_flow;
+pub(crate) mod st_edge_connectivity;
 pub(crate) mod st_mincut;
 
 pub use max_flow::max_flow_value;
+pub use st_edge_connectivity::st_edge_connectivity;
 pub use st_mincut::st_mincut_value;

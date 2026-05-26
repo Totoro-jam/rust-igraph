@@ -1,0 +1,11 @@
+{
+  "awu": "ALGO-FL-011",
+  "function": "st_edge_connectivity",
+  "captured_at": "2026-05-26",
+  "git_commit": "679764b",
+  "rust_textbook_6v_8e_directed_ns": 1099,
+  "rust_layered_L4_W8_ns": 12102,
+  "rust_layered_L6_W16_ns": 46686,
+  "rust_layered_L8_W32_ns": 239910,
+  "notes": "Thin wrapper over max_flow_value with unit caps + i64 cast. The textbook 6v/8e instance runs faster than the FL-010 mincut textbook (1.10 µs vs 1.57 µs) because the unit-capacity Network::build path is slightly cheaper than the weighted one (vs. capacity=None vs. Some(&[..])). Wrapper overhead (round + bounds check) is sub-nanosecond and lost in noise. Layered scaling matches FL-002 / FL-010 closely as expected (same Dinic backend). Throughput rises with E because per-vertex BFS amortizes more arcs."
+}

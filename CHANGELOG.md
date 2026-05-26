@@ -15,6 +15,57 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-011** — `st_edge_connectivity`: minimum number of edges
+  whose removal disconnects `source` from `target`. Mirrors
+  `igraph_st_edge_connectivity` at
+  `references/igraph/src/flow/flow.c:2219`, a 15-line wrapper that
+  rejects `source == target` and then delegates to
+  `igraph_maxflow_value` with `NULL` capacity (unit capacities per
+  edge), casting the resulting `igraph_real_t` to `igraph_int_t`.
+  By the **max-flow / min-cut theorem** on unit capacities the value
+  equals `round(max_flow_value(g, s, t, None))`.
+  - `pub fn st_edge_connectivity(graph: &Graph, source: VertexId,
+    target: VertexId) -> IgraphResult<i64>`. Returns `i64` to match
+    igraph C's `igraph_int_t`. Error contract inherits from
+    [`max_flow_value`]: `VertexOutOfRange` for bad source/target,
+    `InvalidArgument` when `source == target`. An `Internal` error
+    fires only on the unreachable case of a non-integer / negative /
+    `> i64::MAX` flow value (defensive against floating-point drift).
+  - **Tests / conformance.** 11 unit tests in
+    `src/algorithms/flow/st_edge_connectivity.rs` (input validation,
+    isolated endpoints → 0, single edge = 1, two parallel paths = 2,
+    three parallel arcs = 3, directed anti-parallel arc isolation,
+    undirected bottleneck, `K_5` undirected, igraph C unit-test
+    fixture replay). 1 proptest cross-validates
+    `st_edge_connectivity(g, s, t) == round(max_flow_value(g, s, t,
+    None))` on random unit-cap graphs. 6 three-source conformance
+    fixtures wired into `tests/conformance.rs`
+    (`st_edge_connectivity_three_source_conformance`):
+    - C × 2 — verbatim mirror of
+      `tests/unit/igraph_st_edge_connectivity.c:23-38` + an
+      undirected-path structural case.
+    - py × 2 —
+      `tests/test_flow.py:CutTests.testEdgeConnectivity:18`
+      (`g.edge_connectivity(0, 3) == 2`) + `Graph.Full(5)` sanity.
+    - R × 2 — `test-flow.R:148, 153` (`make_full_graph(5)` →
+      ec = 4; directed path `make_ring(5, directed=TRUE,
+      circular=FALSE)` source=1→target=3 → ec = 1; both shifted to
+      0-indexed for Rust).
+  - **Performance.** Criterion at `benches/bench_st_edge_connectivity.rs`.
+    Headline numbers (mean, 1.10 GHz · macOS arm64, `lto = thin`,
+    `codegen-units = 1`):
+    - textbook 6v / 8e directed: **1.10 µs**
+    - layered L4 × W8 (74e):  **12.1 µs**
+    - layered L6 × W16 (288e):  **46.7 µs**
+    - layered L8 × W32 (1088e): **239.9 µs**
+    Slightly faster than the equivalent FL-010 mincut bench on the
+    textbook (1.57 µs) because unit-capacity `Network::build`
+    short-circuits the per-edge `capacity[e]` lookup.
+  - **Runnable example.** `examples/st_edge_connectivity_demo.rs` —
+    runs the C unit-test fixture, two-parallel-paths, K_5, and the
+    disconnected-endpoint case. Run with
+    `cargo run --example st_edge_connectivity_demo`.
+
 - **ALGO-FL-010** — `st_mincut_value`: scalar s-t minimum-cut value
   (capacity of the smallest edge set whose removal disconnects
   `source` from `target`). Mirrors `igraph_st_mincut_value` at

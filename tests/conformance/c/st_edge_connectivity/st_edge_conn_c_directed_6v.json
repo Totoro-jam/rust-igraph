@@ -1,0 +1,49 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_st_edge_connectivity.c:23-38 \u2014 6-vertex directed graph with edges (0,1)(0,2)(1,2)(1,3)(2,4)(3,4)(3,5)(4,5), source=0, target=5 \u2192 st_edge_connectivity == 2",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "st_edge_connectivity",
+  "params": {
+    "source": 0,
+    "target": 5
+  },
+  "expected": 2
+}
