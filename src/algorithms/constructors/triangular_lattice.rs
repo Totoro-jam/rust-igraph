@@ -265,7 +265,7 @@ fn layout(
     }
 
     let mut g = Graph::new(vcount, directed)?;
-    g.add_edges(edges.into_iter())?;
+    g.add_edges(edges)?;
     Ok(g)
 }
 

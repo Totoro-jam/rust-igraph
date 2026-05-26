@@ -1,0 +1,52 @@
+{
+  "source": "py",
+  "origin": "constructed (Graph.Citing_Cited_Type with row-zero pref): citing type 0 has all-zero weights \u21d2 uniform fallback fires only for those steps; citing type 1 samples structurally. No self-loops.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "citing_cited_type_game",
+  "params": {
+    "nodes": 15,
+    "types": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    "pref": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    "edges_per_step": 1,
+    "directed": true,
+    "seed": 9994013
+  },
+  "expected": {
+    "vcount": 15,
+    "directed": true,
+    "ecount_min": 14,
+    "ecount_max": 14,
+    "no_self_loops": true,
+    "max_type": 1
+  }
+}

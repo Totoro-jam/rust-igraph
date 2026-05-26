@@ -10,6 +10,7 @@ pub mod barabasi_psumtree;
 pub mod callaway_traits;
 pub mod chung_lu;
 pub mod cited_type;
+pub mod citing_cited_type;
 pub mod correlated;
 pub mod degree_sequence;
 pub mod degree_sequence_configuration_simple;

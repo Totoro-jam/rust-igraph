@@ -4140,6 +4140,88 @@ CITED_TYPE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-029: citing_cited_type_game. Mirrors rigraph's
+# `sample_cit_cit_types(types, pref, edges, directed=TRUE)` — an R
+# wrapper on `igraph_citing_cited_type_game`. Generalises cited_type by
+# also conditioning on the citing vertex's type: weight is
+# pref[type[citing]][type[cited]] (one psumtree per citing type).
+# Multi-edges allowed when eps≥2; NEVER self-loops (uniform fallback
+# samples [0, i)). RNG state is not portable — structural invariants only.
+CITING_CITED_TYPE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "citing_cited_r_uniform_pref_n30_2types_eps3_directed",
+        "origin": "tests/testthat/test-aaa-auto.R::sample_cit_cit_types — "
+        "sample_cit_cit_types(types=[0,1,...], pref=2x2 ones, edges=3, "
+        "directed=TRUE)",
+        "algo": "citing_cited_type_game",
+        "params": {
+            "nodes": 30,
+            "types": [v % 2 for v in range(30)],
+            "pref": [[1.0, 1.0], [1.0, 1.0]],
+            "edges_per_step": 3,
+            "directed": True,
+            "seed": 3_224_001,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": True,
+            "ecount_min": 87,  # (30-1)*3 = 87
+            "ecount_max": 87,
+            "no_self_loops": True,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "citing_cited_r_concentrated_pref_n50_3types_eps2_undirected",
+        "origin": "constructed (sample_cit_cit_types with concentrated "
+        "3x3 diagonal pref): same-type citing concentration, no "
+        "self-loops, exact (n-1)*eps = 98 edges",
+        "algo": "citing_cited_type_game",
+        "params": {
+            "nodes": 50,
+            "types": [v % 3 for v in range(50)],
+            "pref": [
+                [10.0, 0.05, 0.05],
+                [0.05, 10.0, 0.05],
+                [0.05, 0.05, 10.0],
+            ],
+            "edges_per_step": 2,
+            "directed": False,
+            "seed": 3_224_002,
+        },
+        "expected": {
+            "vcount": 50,
+            "directed": False,
+            "ecount_min": 98,
+            "ecount_max": 98,
+            "no_self_loops": True,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "citing_cited_r_eps1_single_type_n15_directed",
+        "origin": "constructed (sample_cit_cit_types with edges=1, "
+        "pref=[[1]]): exactly (n-1) edges = 14, no self-loops",
+        "algo": "citing_cited_type_game",
+        "params": {
+            "nodes": 15,
+            "types": [0 for _ in range(15)],
+            "pref": [[1.0]],
+            "edges_per_step": 1,
+            "directed": True,
+            "seed": 3_224_003,
+        },
+        "expected": {
+            "vcount": 15,
+            "directed": True,
+            "ecount_min": 14,
+            "ecount_max": 14,
+            "no_self_loops": True,
+            "max_type": 0,
+        },
+    },
+]
+
 # ALGO-GN-018: lastcit_game. Mirrors rigraph's `sample_last_cit`
 # (R wrapper on `igraph_lastcit_game`). Each new vertex emits
 # `edges_per_node` outgoing citations; cited vertices' weights decay
@@ -7913,6 +7995,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "establishment_game": ESTABLISHMENT_MANIFEST,
     "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
     "cited_type_game": CITED_TYPE_MANIFEST,
+    "citing_cited_type_game": CITING_CITED_TYPE_MANIFEST,
     "lastcit_game": LASTCIT_MANIFEST,
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
@@ -8063,6 +8146,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "establishment_game",
             "callaway_traits_game",
             "cited_type_game",
+            "citing_cited_type_game",
             "lastcit_game",
             "recent_degree_game",
             "barabasi_game_psumtree",

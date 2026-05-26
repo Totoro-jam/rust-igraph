@@ -208,12 +208,16 @@ pub fn full_multipartite(
             // edge_from starts at n_acc[from_type] and increments per i.
             // The cast to VertexId is safe: n_acc[from_type] < total_v ≤ u32::MAX.
             #[allow(clippy::cast_possible_truncation)]
-            let mut edge_from = n_acc[from_type] as VertexId;
-            for _i in 0..partitions[from_type] {
+            let from_base = n_acc[from_type] as VertexId;
+            for i in 0..partitions[from_type] {
+                #[allow(clippy::cast_possible_truncation)]
+                let edge_from = from_base + i as VertexId;
                 for to_type in (from_type + 1)..no_of_types {
                     #[allow(clippy::cast_possible_truncation)]
-                    let mut edge_to = n_acc[to_type] as VertexId;
-                    for _j in 0..partitions[to_type] {
+                    let to_base = n_acc[to_type] as VertexId;
+                    for j in 0..partitions[to_type] {
+                        #[allow(clippy::cast_possible_truncation)]
+                        let edge_to = to_base + j as VertexId;
                         if !directed || mode == MultipartiteMode::Out {
                             edges.push((edge_from, edge_to));
                         } else if mode == MultipartiteMode::In {
@@ -223,10 +227,8 @@ pub fn full_multipartite(
                             edges.push((edge_from, edge_to));
                             edges.push((edge_to, edge_from));
                         }
-                        edge_to += 1;
                     }
                 }
-                edge_from += 1;
             }
         }
     }

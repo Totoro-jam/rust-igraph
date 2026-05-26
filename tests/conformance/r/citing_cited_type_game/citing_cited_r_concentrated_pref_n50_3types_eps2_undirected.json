@@ -1,0 +1,94 @@
+{
+  "source": "r",
+  "origin": "constructed (sample_cit_cit_types with concentrated 3x3 diagonal pref): same-type citing concentration, no self-loops, exact (n-1)*eps = 98 edges",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "citing_cited_type_game",
+  "params": {
+    "nodes": 50,
+    "types": [
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      0,
+      1
+    ],
+    "pref": [
+      [
+        10.0,
+        0.05,
+        0.05
+      ],
+      [
+        0.05,
+        10.0,
+        0.05
+      ],
+      [
+        0.05,
+        0.05,
+        10.0
+      ]
+    ],
+    "edges_per_step": 2,
+    "directed": false,
+    "seed": 3224002
+  },
+  "expected": {
+    "vcount": 50,
+    "directed": false,
+    "ecount_min": 98,
+    "ecount_max": 98,
+    "no_self_loops": true,
+    "max_type": 2
+  }
+}

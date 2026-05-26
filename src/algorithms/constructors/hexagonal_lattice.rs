@@ -6,7 +6,7 @@
 //! Builds a planar hexagonal (honeycomb) lattice whose vertices have
 //! coordinates `(i, j)` for non-negative integers, with `(i, j)` joined
 //! to `(i + 1, j)` and (when `i` is odd) also to `(i - 1, j + 1)`. The
-//! graph is the planar dual of [`triangular_lattice`]:
+//! graph is the planar dual of [`crate::triangular_lattice`]:
 //! 1:1 correspondence between length-6 cycles here and triangles there.
 //! Every vertex has degree at most 3.
 //!
@@ -278,7 +278,7 @@ fn layout(
     }
 
     let mut g = Graph::new(vcount, directed)?;
-    g.add_edges(edges.into_iter())?;
+    g.add_edges(edges)?;
     Ok(g)
 }
 

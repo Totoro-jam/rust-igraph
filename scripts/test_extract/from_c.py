@@ -4175,6 +4175,84 @@ CITED_TYPE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+CITING_CITED_TYPE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "citing_cited_c_identity_pref_n20_2types_eps2_directed",
+        "origin": "constructed (mirrors igraph_citing_cited_type_game(n=20, "
+        "types=[0,1,0,1,...], pref=[[1,1],[1,1]], edges_per_step=2, directed)) — "
+        "uniform 2x2 pref ⇒ exactly (n-1)*eps edges, no self-loops",
+        "algo": "citing_cited_type_game",
+        "params": {
+            "nodes": 20,
+            "types": [v % 2 for v in range(20)],
+            "pref": [[1.0, 1.0], [1.0, 1.0]],
+            "edges_per_step": 2,
+            "directed": True,
+            "seed": 9_993_001,
+        },
+        "expected": {
+            "vcount": 20,
+            "directed": True,
+            "ecount_min": 38,  # (20-1)*2 = 38
+            "ecount_max": 38,
+            "no_self_loops": True,
+            "max_type": 1,
+        },
+    },
+    {
+        "case": "citing_cited_c_assortative_pref_n30_3types_eps3_undirected",
+        "origin": "constructed (mirrors igraph_citing_cited_type_game(n=30, "
+        "types=[0,1,2,...], pref diagonal-dominant 3x3, edges_per_step=3, "
+        "undirected)) — strictly positive pref ⇒ (n-1)*eps edges, no self-loops",
+        "algo": "citing_cited_type_game",
+        "params": {
+            "nodes": 30,
+            "types": [v % 3 for v in range(30)],
+            "pref": [
+                [10.0, 0.1, 0.1],
+                [0.1, 10.0, 0.1],
+                [0.1, 0.1, 10.0],
+            ],
+            "edges_per_step": 3,
+            "directed": False,
+            "seed": 9_993_002,
+        },
+        "expected": {
+            "vcount": 30,
+            "directed": False,
+            "ecount_min": 87,  # (30-1)*3 = 87
+            "ecount_max": 87,
+            "no_self_loops": True,
+            "max_type": 2,
+        },
+    },
+    {
+        "case": "citing_cited_c_zero_pref_uniform_fallback_n12_directed",
+        "origin": "constructed (mirrors igraph_citing_cited_type_game(n=12, "
+        "types=[0]*12, pref=[[0.0]], edges_per_step=2, directed)) — sum=0 ⇒ "
+        "uniform fallback RNG_INTEGER(0, i-1) ⇒ every target strictly less "
+        "than its source, NEVER a self-loop (contrast cited_type which "
+        "self-loops in this regime)",
+        "algo": "citing_cited_type_game",
+        "params": {
+            "nodes": 12,
+            "types": [0 for _ in range(12)],
+            "pref": [[0.0]],
+            "edges_per_step": 2,
+            "directed": True,
+            "seed": 9_993_003,
+        },
+        "expected": {
+            "vcount": 12,
+            "directed": True,
+            "ecount_min": 22,  # (12-1)*2 = 22
+            "ecount_max": 22,
+            "no_self_loops": True,
+            "max_type": 0,
+        },
+    },
+]
+
 LASTCIT_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "lastcit_c_uniform_pref_n25_3bins_eps2_directed",
@@ -9818,6 +9896,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "establishment_game": ESTABLISHMENT_MANIFEST,
     "callaway_traits_game": CALLAWAY_TRAITS_MANIFEST,
     "cited_type_game": CITED_TYPE_MANIFEST,
+    "citing_cited_type_game": CITING_CITED_TYPE_MANIFEST,
     "lastcit_game": LASTCIT_MANIFEST,
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
@@ -9974,6 +10053,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "establishment_game",
             "callaway_traits_game",
             "cited_type_game",
+            "citing_cited_type_game",
             "lastcit_game",
             "recent_degree_game",
             "barabasi_game_psumtree",

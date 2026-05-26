@@ -1,0 +1,17 @@
+{
+  "awu": "ALGO-GN-029",
+  "captured_at": "2026-05-26",
+  "git_commit": "5bd3fd6",
+  "rust_size_scaling_eps3_uniform_n500_ns": 104980,
+  "rust_size_scaling_eps3_uniform_n5000_ns": 1736300,
+  "rust_eps_count_n1000_skewed_eps1_ns": 69685,
+  "rust_eps_count_n1000_skewed_eps4_ns": 342970,
+  "rust_eps_count_n1000_skewed_eps16_ns": 1474800,
+  "rust_types_scaling_n1000_eps2_t2_ns": 165910,
+  "rust_types_scaling_n1000_eps2_t4_ns": 169830,
+  "rust_types_scaling_n1000_eps2_t8_ns": 181510,
+  "rust_types_scaling_n1000_eps2_t16_ns": 245860,
+  "rust_undirected_n1000_uniform_eps4_ns": 344440,
+  "py_baseline_ns": null,
+  "notes": "Citing-cited-type citation game: T parallel Fenwick BITs indexed by candidate cited vertex, one per citing type, weighted by pref[citing_type][cited_type]. Each step (n-1 steps total) draws edges_per_step samples by `search_bounded` on the BIT for the citing vertex's type (or uniform [0, i) when sums[t]==0), then inserts vertex i with weight pref[j][type[i]] into all T trees. Per-step cost: O(eps · log n) for sampling + O(T · log n) for the per-step append. size_scaling/eps3_uniform/n5000 ≈ 1.74 ms = 2.88 Melem/s — the 5x scale-up from n=500 (104 µs) is essentially the n·log n term plus the constant edge-add cost; matches expectation. eps_count/n1000_skewed scales near-linearly (eps=1 → 70 µs, eps=4 → 343 µs ≈ 4.9x, eps=16 → 1.47 ms ≈ 21x) confirming per-draw `search_bounded` dominates over the constant per-step append cost. types_scaling shows mild O(T) growth (t=2 → 166 µs, t=16 → 246 µs, ~1.5x for 8x types) — the per-step append loop is the contributor, while sample cost is independent of T. undirected/n1000_uniform_eps4 at 344 µs matches the directed eps=4 baseline (343 µs), confirming the symmetrisation cost is absorbed by the batched add_edges path. No oracle baseline: python-igraph exposes Graph.Citing_Cited_Type and rigraph exposes sample_cit_cit_types, but RNG state is not portable, so conformance asserts structural invariants only (vcount exact, directed exact, ecount band, no_self_loops). Numbers from cargo bench --bench bench_citing_cited_type -- --quick on Darwin/M-series release build."
+}

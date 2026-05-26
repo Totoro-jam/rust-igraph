@@ -15,6 +15,63 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-029** — `citing_cited_type_game` citing×cited-type growing
+  citation network. **Twenty-ninth member of the `games/` family** and
+  a faithful port of `igraph_citing_cited_type_game` in
+  `references/igraph/src/games/citations.c:340-499`.
+  - `pub fn citing_cited_type_game(nodes: u32, types: &[u32], pref: &[&[f64]], edges_per_step: u32, directed: bool, seed: u64) -> IgraphResult<Graph>` —
+    generalises `cited_type_game` by letting the **citing** vertex's
+    type also matter: vertex `i` cites `edges_per_step` earlier
+    vertices, drawing each target from a per-citing-type Fenwick BIT
+    weighted by `pref[type[i]][type[j]]`. Maintains `T = max(types)+1`
+    parallel `PsumTree`s of size `nodes`; pre-seeds vertex 0 into all
+    trees so the first step has a non-empty draw pool, then per step
+    `i` does `edges_per_step` `search_bounded` calls on
+    `sumtrees[type[i]]` (or uniform `[0, i)` when `sums[type[i]] == 0`,
+    matching the C reference fallback at `citations.c:444-460`), and
+    finally inserts vertex `i` into all `T` trees with weight
+    `pref[j][type[i]]`. Cost per step: `O(eps · log n)` for sampling +
+    `O(T · log n)` for the per-step append.
+  - **No self-loops, structurally**: even in the uniform-fallback
+    regime the RNG samples `[0, i)` BEFORE vertex `i` is appended to
+    the trees, so the citing vertex can never select itself. Asserted
+    in unit `positive_pref_never_self_loops` and proptest
+    `no_self_loops_when_pref_positive`.
+  - **Multi-edges ARE allowed** when `edges_per_step ≥ 2` (two draws
+    at one step may pick the same target); simplicity is therefore
+    NOT asserted on output and not enforced by `add_edges` (which is
+    a multigraph append in this crate).
+  - **Strict input validation up front**, mirroring the C reference:
+    `types.len() == nodes`, `pref` has `T` rows × `T` cols (square),
+    every `pref[j][k]` is finite (rejects `NaN`/`±Inf`) and
+    non-negative, and `edges_per_step == 0` short-circuits to an empty
+    graph. All error paths covered by dedicated unit tests.
+  - **Per-module private `PsumTree`** following the established crate
+    pattern (see `barabasi_psumtree.rs:96-97`) — the Fenwick BIT is
+    self-contained per game module to keep diffs focused and avoid
+    premature abstraction.
+  - **Conformance**: three-source structural fixtures (3 from `c`, 3
+    from `py`, 3 from `r`) under
+    `tests/conformance/{c,py,r}/citing_cited_type_game/`. RNG state is
+    not portable across implementations, so each fixture pins
+    parameters and asserts `vcount` exact, `directed` flag exact,
+    `ecount` in band `[min, max]` (both bounds equal to `(n-1)·eps`
+    for positive pref), and `no_self_loops` whenever flagged.
+  - **Coverage**: 25 in-module tests (20 unit + 5 proptest) hit error
+    paths (length, shape, NaN, Inf, negative), structural invariants
+    (`source = i`, `dst < src` for directed), regime checks
+    (assortative concentration, off-diagonal cross-type, all-zero-row
+    fallback to uniform). Plus 1 integration test on 9 fixtures.
+  - Demo: `cargo run --example citing_cited_type_demo` shows the
+    citation-flow matrix concentrating ≈ 98 % on the diagonal under a
+    `diag(10) + off(0.1)` 3×3 pref — within 0.4 pp of the steady-state
+    target `10 / (10 + 0.1·2) = 98.0 %`.
+  - Bench: `cargo bench --bench bench_citing_cited_type` — at the
+    `n=5_000`, `eps=3`, `T=4` operating point the generator runs at
+    `≈ 2.88 Melem/s`; per-step cost grows linearly in `eps` and only
+    weakly (`~T·log n`) in the number of types. Baseline snapshot at
+    `.codefuse/tracking/perf/ALGO-GN-029.json`.
+
 - **ALGO-CN-030** — `weighted_adjacency` dense `f64` adjacency-matrix
   constructor returning `(Graph, Vec<f64>)`. **Thirtieth member of the
   `constructors/` family** and a faithful port of

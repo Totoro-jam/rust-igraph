@@ -1,0 +1,67 @@
+{
+  "source": "r",
+  "origin": "tests/testthat/test-aaa-auto.R::sample_cit_cit_types \u2014 sample_cit_cit_types(types=[0,1,...], pref=2x2 ones, edges=3, directed=TRUE)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "citing_cited_type_game",
+  "params": {
+    "nodes": 30,
+    "types": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+    ],
+    "pref": [
+      [
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    "edges_per_step": 3,
+    "directed": true,
+    "seed": 3224001
+  },
+  "expected": {
+    "vcount": 30,
+    "directed": true,
+    "ecount_min": 87,
+    "ecount_max": 87,
+    "no_self_loops": true,
+    "max_type": 1
+  }
+}

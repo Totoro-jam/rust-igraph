@@ -479,6 +479,11 @@ path = "benches/bench_cited_type.rs"
 harness = false
 
 [[bench]]
+name = "bench_citing_cited_type"
+path = "benches/bench_citing_cited_type.rs"
+harness = false
+
+[[bench]]
 name = "bench_lastcit"
 path = "benches/bench_lastcit.rs"
 harness = false

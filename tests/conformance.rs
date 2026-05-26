@@ -15256,3 +15256,166 @@ fn weighted_adjacency_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + invariant checks
+fn citing_cited_type_game_three_source_conformance() {
+    // Citing-cited-type citation game (ALGO-GN-029). RNG state is not
+    // portable; each fixture pins parameters and asserts structural
+    // invariants:
+    //   * vcount = nodes (exact);
+    //   * directed flag exact;
+    //   * ecount lies in a band [ecount_min, ecount_max] — for
+    //     positive-pref runs both bounds equal (n-1)*eps;
+    //   * citing_cited_type NEVER self-loops: even under the uniform
+    //     fallback (sums[citing_type[i]] == 0) the RNG samples [0, i),
+    //     and the new vertex i is only added to the trees AFTER its
+    //     out-edges are drawn. So no_self_loops is structurally
+    //     guaranteed and asserted whenever the fixture flags it;
+    //   * citing_cited_type MAY produce multi-edges when eps≥2
+    //     (multiple draws at one step may select the same target);
+    //     simplicity is therefore NOT asserted here.
+    use rust_igraph::citing_cited_type_game;
+
+    fn parse_u32_array(case: &Conformance, key: &str, path: &std::path::Path) -> Vec<u32> {
+        case.params
+            .get(key)
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| {
+                panic!(
+                    "citing_cited_type fixture {}: param `{}` missing or not array",
+                    path.display(),
+                    key
+                )
+            })
+            .iter()
+            .map(|cell| {
+                let n = cell.as_u64().unwrap_or_else(|| {
+                    panic!(
+                        "citing_cited_type fixture {}: param `{}` cell is not u64",
+                        path.display(),
+                        key
+                    )
+                });
+                u32::try_from(n).unwrap_or_else(|_| {
+                    panic!(
+                        "citing_cited_type fixture {}: param `{}` cell {} does not fit u32",
+                        path.display(),
+                        key,
+                        n
+                    )
+                })
+            })
+            .collect()
+    }
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("citing_cited_type_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "citing_cited_type_game");
+
+            let nodes = er_param_u32(&case, "nodes", &path);
+            let types = parse_u32_array(&case, "types", &path);
+            let pref_rows = er_param_f64_matrix(&case, "pref", &path);
+            let pref_views: Vec<&[f64]> = pref_rows.iter().map(Vec::as_slice).collect();
+            let edges_per_step = er_param_u32(&case, "edges_per_step", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph =
+                citing_cited_type_game(nodes, &types, &pref_views, edges_per_step, directed, seed)
+                    .expect("citing_cited_type_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_ecount_min = er_expected_u64(&case, "ecount_min", &path);
+            let want_ecount_max = er_expected_u64(&case, "ecount_max", &path);
+            let want_max_type = er_expected_u32(&case, "max_type", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            let ecount = graph.ecount() as u64;
+            assert!(
+                ecount >= want_ecount_min && ecount <= want_ecount_max,
+                "ecount {} outside band [{}, {}] in {}\n  source: {}\n  origin: {}",
+                ecount,
+                want_ecount_min,
+                want_ecount_max,
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            for (v, &t) in types.iter().enumerate() {
+                assert!(
+                    t <= want_max_type,
+                    "vertex {v} has type {t} > max_type {want_max_type} in {}\n  source: {}\n  origin: {}",
+                    path.display(),
+                    case.source,
+                    case.origin,
+                );
+            }
+
+            let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+            if let Some(true) = case
+                .expected
+                .get("no_self_loops")
+                .and_then(serde_json::Value::as_bool)
+            {
+                for eid in 0..n_edges {
+                    let (u, v) = graph.edge(eid).expect("edge id in bounds");
+                    assert_ne!(
+                        u,
+                        v,
+                        "edge {eid}: self-loop ({u}-{v}) but no_self_loops=true in {}",
+                        path.display()
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no citing_cited_type_game fixtures from source {src}"
+        );
+    }
+}
