@@ -3829,6 +3829,41 @@ GRG_MANIFEST: List[Dict[str, Any]] = [
 # self-loops, no duplicate directed edges, no parallels) and a loose
 # ecount band: lower bound ≈ n-1 (one ambassador edge per new vertex),
 # upper bound generous to absorb burn-tail variance.
+# ALGO-FL-002: max_flow_value. Mirrors `igraph_maxflow_value` in
+# references/igraph/src/flow/flow.c. The igraph C unit test
+# tests/unit/igraph_maxflow.c covers two scenarios; we mirror the
+# small undirected one (the other reads from a DIMACS file we don't
+# bundle). The "no-capacity" variant supplements the C case with the
+# same graph at unit capacity (max flow = bottleneck count of
+# vertex-disjoint paths from 0 to 3 = 2).
+MAXFLOW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "maxflow_c_undirected_4v_weighted",
+        "origin": "tests/unit/igraph_maxflow.c:213-228 — undirected 4-vertex graph "
+        "with edges (0-1,0-2,1-2,1-3,2-3) and capacities (4,2,10,2,2), "
+        "source=0, target=3 → max flow = 4 (bottleneck = (1,3)+(2,3))",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "graph_weights": [4.0, 2.0, 10.0, 2.0, 2.0],
+        "algo": "max_flow_value",
+        "params": {"source": 0, "target": 3, "use_capacity": True},
+        "expected": 4.0,
+    },
+    {
+        "case": "maxflow_c_undirected_4v_unit",
+        "origin": "tests/unit/igraph_maxflow.c structure (undirected 4-vertex "
+        "graph) with unit capacities → 2 vertex-disjoint paths 0→1→3 and "
+        "0→2→3, so unit max-flow value = 2",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "algo": "max_flow_value",
+        "params": {"source": 0, "target": 3, "use_capacity": False},
+        "expected": 2.0,
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -9960,6 +9995,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "rich_club_sequence": RICH_CLUB_MANIFEST,
     "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
+    "max_flow_value": MAXFLOW_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

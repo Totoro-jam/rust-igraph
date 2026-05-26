@@ -253,6 +253,12 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 
 Each phase's per-AWU table is materialized here as work approaches.
 
+### Phase 5 — Flow + Cut + MST (partial)
+
+| ID | Task | C source | LOC | Complexity | Deps | Status | Commit | Big-O | Conformance |
+|----|------|----------|-----|------------|------|--------|--------|-------|-------------|
+| ALGO-FL-002 | `max_flow_value` (Dinic's algorithm — BFS level graph + DFS blocking flow; returns scalar max-flow value matching the igraph C push-relabel reference value bit-for-bit on unit-capacity fixtures and within `1e-9` on weighted fixtures; rejects `source == target` and `source/target >= vcount`; null capacity = unit capacity per edge) | flow/flow.c (igraph_maxflow_value entry; Dinic is self-rolled, not ported — picked over push-relabel for simpler code while preserving the unique optimum value) | ~400 | rewrite | core/Graph | done | 2026-05-26 | O(V²·E) | C: flow.c examples / py: maxflow_value / R: max_flow |
+
 ---
 
 ## Counters

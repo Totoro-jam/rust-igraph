@@ -1,0 +1,38 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_maxflow.c structure (undirected 4-vertex graph) with unit capacities \u2192 2 vertex-disjoint paths 0\u21921\u21923 and 0\u21922\u21923, so unit max-flow value = 2",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "max_flow_value",
+  "params": {
+    "source": 0,
+    "target": 3,
+    "use_capacity": false
+  },
+  "expected": 2.0
+}

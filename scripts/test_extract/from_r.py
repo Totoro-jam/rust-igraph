@@ -3671,6 +3671,32 @@ GRG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-002: max_flow_value. Mirrors rigraph's `max_flow(g, source,
+# target, capacity)` — the R bindings expose only the full `max_flow`
+# (returning `value`, `flow`, `cut`, ...), and the unit test in
+# rigraph tests/testthat/test-flow.R:111-128 checks `flow$value` on a
+# 6-vertex directed graph with explicit capacities. Edges (1-indexed
+# in R) translate to 0-indexed: (0,2,3), (2,3,1), (3,1,2), (0,4,1),
+# (4,5,2), (5,1,10). Two vertex-disjoint augmenting paths each
+# delivering 1 unit of flow → max-flow value = 2.
+MAXFLOW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "maxflow_r_directed_6v_weighted",
+        "origin": "rigraph tests/testthat/test-flow.R:111-128 — "
+        "`max_flow(g_ring_acyc, source='1', target='2')$value == 2`",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 2), (2, 3), (3, 1), (0, 4), (4, 5), (5, 1)],
+            directed=True,
+        ),
+        "graph_weights": [3.0, 1.0, 2.0, 1.0, 2.0, 10.0],
+        "algo": "max_flow_value",
+        "params": {"source": 0, "target": 1, "use_capacity": True},
+        "expected": 2.0,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
 # Generator — RNG state not portable across implementations, so we
@@ -8051,6 +8077,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitivity_barrat": TRANS_BARRAT_MANIFEST,
     "decompose": DECOMPOSE_MANIFEST,
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
+    "max_flow_value": MAXFLOW_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

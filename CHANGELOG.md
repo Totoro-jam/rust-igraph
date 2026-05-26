@@ -15,6 +15,51 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-002** — `max_flow_value`: scalar maximum-flow value from
+  `source` to `target` via **Dinic's algorithm** (BFS level-graph +
+  DFS blocking-flow with current-arc pointer optimisation, O(V²·E)
+  worst case). igraph C exposes the same function over a
+  Goldberg-Tarjan push-relabel solver; the scalar max-flow is unique
+  (Ford-Fulkerson + max-flow / min-cut duality), so the value matches
+  exactly on integer capacities and within `1e-12` on `f64`.
+  - `pub fn max_flow_value(graph: &Graph, source: VertexId, target:
+    VertexId, capacity: Option<&[f64]>) -> IgraphResult<f64>`.
+    `capacity` defaults to unit on every edge when `None`; otherwise
+    its length must equal `graph.ecount()` and entries must be finite
+    and `≥ 0`. Errors: [`IgraphError::VertexOutOfRange`] on out-of-
+    range endpoints; [`IgraphError::InvalidArgument`] for
+    `source == target`, mismatched capacity length, or negative /
+    non-finite capacity.
+  - **Undirected handling matches igraph C.** Each undirected edge
+    `(i, j)` of capacity `c` becomes two opposing directed arcs of
+    capacity `c` in the residual network, so e.g. a single
+    undirected `0-3` edge with capacity 1 admits unit flow in either
+    orientation.
+  - **Residual network layout.** Flat arc array stored in pairs
+    `(2k, 2k+1)`; the reverse arc of arc `i` is `i ^ 1`. Per-vertex
+    `iter[v]` pointer skips saturated arcs during the DFS blocking
+    phase so each arc is visited at most twice per phase. No `unsafe`,
+    no allocations in the inner loop beyond the BFS queue / DFS
+    recursion.
+  - **Tests / conformance.** 16 unit tests in
+    `src/algorithms/flow/max_flow.rs` (input validation, single-edge
+    directed/undirected, parallel-path bottleneck, CLRS 26.1-1
+    textbook = 23, multigraph parallel edges = 7, self-loop, weighted
+    fractional flow). 2 proptest invariants
+    (`matches_edmonds_karp_directed/undirected`, 80 cases each) cross-
+    validate against a hand-rolled Edmonds-Karp reference inside the
+    test module. 5 three-source conformance fixtures
+    (`tests/conformance/{c,py,r}/max_flow_value/`): C 4-vertex
+    undirected unit + weighted from `tests/unit/igraph_maxflow.c:213`,
+    Python mirror of `test_flow.py:36-40`, R 6-vertex directed from
+    `test-flow.R:111-128`.
+  - **Perf.** CLRS instance: 5.4 µs; layered 4×8 unit-cap: 53 µs;
+    layered 6×16: 414 µs; layered 8×32: 374 µs. Numbers from
+    `cargo bench --bench bench_max_flow -- --quick` on Darwin/M-series
+    release build. Snapshot in
+    `.codefuse/tracking/perf/ALGO-FL-002.json`. Runnable demo:
+    `cargo run --example max_flow_demo`.
+
 - **ALGO-PR-011c** — `pagerank_linsys`: second backend for
   [`pagerank`] that casts the same fixed point as a non-singular
   linear system and solves it with restarted GMRES. The Google

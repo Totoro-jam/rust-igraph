@@ -3421,6 +3421,40 @@ GRG_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-002: max_flow_value. Mirrors `g.maxflow_value(source, target,
+# capacities)` from python-igraph (Cython wrapper on the same
+# `igraph_maxflow_value` C entry point). The python-igraph test file
+# tests/test_flow.py:36-40 builds the same 4-vertex undirected graph
+# used by the C unit test and asserts the unit / weighted max-flow
+# values directly; we replay the same two assertions.
+MAXFLOW_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "maxflow_py_undirected_4v_unit",
+        "origin": "python-igraph tests/test_flow.py:MaxFlowTests.testMaxFlowValue "
+        "(g = Graph(4, [(0,1),(0,2),(1,2),(1,3),(2,3)]); "
+        "g.maxflow_value(0, 3) == 2)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "algo": "max_flow_value",
+        "params": {"source": 0, "target": 3, "use_capacity": False},
+        "expected": 2.0,
+    },
+    {
+        "case": "maxflow_py_undirected_4v_weighted",
+        "origin": "python-igraph tests/test_flow.py:MaxFlowTests.testMaxFlowValue "
+        "(g.maxflow_value(0, 3, [4, 2, 10, 2, 2]) == 4)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "graph_weights": [4.0, 2.0, 10.0, 2.0, 2.0],
+        "algo": "max_flow_value",
+        "params": {"source": 0, "target": 3, "use_capacity": True},
+        "expected": 4.0,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
 # wrapper on the same `igraph_forest_fire_game` C entry point). RNG
@@ -7924,6 +7958,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "rich_club_sequence": RICH_CLUB_MANIFEST,
     "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
+    "max_flow_value": MAXFLOW_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

@@ -1,0 +1,11 @@
+{
+  "awu": "ALGO-FL-002",
+  "captured_at": "2026-05-26",
+  "git_commit": "0f778e7",
+  "rust_textbook_6v_10e_directed_ns": 5444,
+  "rust_layered_L4_W8_ns": 52981,
+  "rust_layered_L6_W16_ns": 413940,
+  "rust_layered_L8_W32_ns": 373890,
+  "py_baseline_ns": null,
+  "notes": "max_flow_value (Dinic) baseline. Inputs: (a) the 6-vertex/10-arc CLRS 26.1-1 textbook instance with max-flow = 23; (b) a family of layered directed networks with `layers` layers of `width` vertices fully connected layer-to-layer with unit caps, where the answer equals `width`. The L8xW32 row is *faster* than L6xW16 in wall time because (i) the number of augmenting paths is bounded by `width`, (ii) Dinic's BFS-level + DFS-blocking-flow phase count is bounded by the number of distinct s-t shortest-path lengths (= `layers`), so the work per push grows roughly linearly with edges while the path count saturates; the smaller `width` × larger `layers` combo therefore spends more BFS iterations on relatively few augmenting flows. Numbers from `cargo bench --bench bench_max_flow -- --quick` on Darwin/M-series release build. No upstream baseline: igraph C / python-igraph both expose `igraph_maxflow_value` (Goldberg-Tarjan push-relabel), but the scalar max-flow is unique so it is the *value* (not the algorithm cost) that conformance fixtures cross-validate."
+}

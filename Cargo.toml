@@ -43,6 +43,10 @@ name = "bfs_karate"
 path = "examples/bfs_karate.rs"
 
 [[example]]
+name = "max_flow_demo"
+path = "examples/max_flow_demo.rs"
+
+[[example]]
 name = "hsbm_demo"
 path = "examples/hsbm_demo.rs"
 
@@ -386,6 +390,11 @@ harness = false
 [[bench]]
 name = "bench_forestfire"
 path = "benches/bench_forestfire.rs"
+harness = false
+
+[[bench]]
+name = "bench_max_flow"
+path = "benches/bench_max_flow.rs"
 harness = false
 
 [[bench]]
