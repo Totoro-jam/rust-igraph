@@ -92,13 +92,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // G(n1, n2, p): sparse Bernoulli sampler. mode=All on an undirected
     // graph just means "every cross-pair sampled once".
     let p = 0.05;
-    let gnp = bipartite_game_gnp(n1, n2, p, false, BipartiteMode::All, 0xB1_AE_DE_01)?;
-    report(&format!("G(n1, n2, p={p}) undirected/All"), &gnp, n1, n2);
+    let graph_p = bipartite_game_gnp(n1, n2, p, false, BipartiteMode::All, 0xB1_AE_DE_01)?;
+    report(
+        &format!("G(n1, n2, p={p}) undirected/All"),
+        &graph_p,
+        n1,
+        n2,
+    );
 
     // G(n1, n2, m): fixed-edge sampler with a directed Out arc set.
     let m: u64 = 600;
-    let gnm = bipartite_game_gnm(n1, n2, m, true, BipartiteMode::Out, 0xB1_AE_DE_02)?;
-    report(&format!("G(n1, n2, m={m}) directed/Out"), &gnm, n1, n2);
+    let graph_m = bipartite_game_gnm(n1, n2, m, true, BipartiteMode::Out, 0xB1_AE_DE_02)?;
+    report(&format!("G(n1, n2, m={m}) directed/Out"), &graph_m, n1, n2);
 
     Ok(())
 }
