@@ -15,6 +15,60 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-030** — `dominator_tree`: **Lengauer-Tarjan dominator tree** of
+  a directed flowgraph. Given a directed graph and a root `r`, vertex `v`
+  *dominates* `w` iff every path `r → w` goes through `v`; the *immediate
+  dominator* `idom(w)` is the unique dominator closest to `w`. Mirrors
+  `igraph_dominator_tree` at `references/igraph/src/flow/st-cuts.c:434-609`
+  (~180 lines including the `dbucket`/`LINK`/`COMPRESS`/`EVAL` helpers at
+  `st-cuts.c:286-375`). Rust-native re-implementation:
+  1. **DFS phase** — iterative neighbour-cursor DFS from `root` assigns
+     DFS numbers `semi[v]`, the inverse `vertex[i]`, and the spanning-tree
+     `parent[v]`. Direction is `mode`-dependent: `Out` follows out-edges,
+     `In` follows in-edges (post-dominator tree).
+  2. **Reverse pass** `i = component_size-1 .. 1` — for each `w = vertex[i]`,
+     walks `w`'s opposite-mode neighbours `v`, computes
+     `semi[w] = min(semi[w], semi[EVAL(v)])`, inserts `w` into
+     `bucket[vertex[semi[w]]]`, then `LINK(parent[w], w)` and drains the
+     parent's bucket: for each `v` in the bucket, `u = EVAL(v)` and
+     `idom[v] = (semi[u] < semi[v] ? u : parent[w])`.
+  3. **Forward fixup** `i = 1 .. component_size-1` — propagates the
+     immediate dominator wherever the semi-dominator deferred:
+     `if idom[w] != vertex[semi[w]] then idom[w] = idom[idom[w]]`.
+  - `pub fn dominator_tree(graph: &Graph, root: VertexId, mode: DominatorMode)
+    -> IgraphResult<DominatorTree>`. `DominatorMode::{Out, In}` matches
+    `IGRAPH_OUT` / `IGRAPH_IN`; `IGRAPH_ALL` is rejected (the algorithm
+    requires a *directed* flowgraph).
+  - Returns `DominatorTree { idom: Vec<i32>, tree: Graph, leftout: Vec<u32> }`.
+    `idom[v] = -1` for `root`, `-2` for vertices unreachable from `root`,
+    else the immediate-dominator vertex id (0-based). `tree` is a directed
+    graph with the same `vcount()` as the input — edges go parent→child
+    (`Out`) or child→parent (`In`), unreachable vertices appear as isolates.
+    `leftout` lists unreachable vertex ids in ascending order.
+  - Error contract: `InvalidArgument` on undirected input (matches the
+    igraph C behaviour at `st-cuts.c:439`). `VertexOutOfRange` if
+    `root >= vcount()`.
+  - Tests: unit + proptest random-DAG harness exercising
+    `idom == parent on a tree`, `unreachable ⇔ idom == -2`, and the
+    `tree.vcount() == g.vcount() ∧ tree.ecount() == #reachable_non_root`
+    invariants. Three-source conformance: 4 C fixtures from
+    `tests/unit/igraph_dominator_tree.c`, 4 python-igraph fixtures from
+    `tests/test_structural.py::testDominators`, 4 R fixtures from
+    `tests/testthat/test-flow.R` + `test-aaa-auto.R`.
+  - Runnable demo: `cargo run --example dominator_tree_demo` — prints the
+    `idom` vector, tree edges, and `leftout` for the canonical 13-vertex
+    LT example, the 6-vertex R-igraph DAG, the 20-vertex flowgraph with
+    an unreachable component, and the 13-vertex reversed graph with
+    `mode=In`. Each reachable vertex's `idom` is brute-force checked
+    against every simple `root → w` path.
+  - Criterion baseline `.codefuse/tracking/perf/ALGO-FL-030.json`: 13v
+    classical at 6.1 µs; complete binary trees `depth_6..12` and a
+    reducible-flowgraph stress (`n_64..4096` with deterministic
+    `i → i/2` back-edges) capture both pure-DFS-tree and bucket-active
+    regimes. Theoretical complexity is
+    O(|V| + |E|·α(|E|, |V|)) — near-linear with the inverse Ackermann
+    factor from `EVAL` path compression.
+
 - **ALGO-FL-020** — `gomory_hu_tree`: all-pairs minimum-cut **Gomory-Hu
   cut tree** via **Gusfield 1990**. Mirrors `igraph_gomory_hu_tree` at
   `references/igraph/src/flow/flow.c:3079` (a ~70-line driver that loops

@@ -1,0 +1,118 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_dominator_tree.c:65-89 \u2014 same 13v flowgraph with every edge reversed, mode=IN.",
+  "graph": {
+    "n": 13,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        6,
+        3
+      ],
+      [
+        7,
+        3
+      ],
+      [
+        12,
+        4
+      ],
+      [
+        8,
+        5
+      ],
+      [
+        9,
+        6
+      ],
+      [
+        9,
+        7
+      ],
+      [
+        10,
+        7
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        11,
+        8
+      ],
+      [
+        11,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        9,
+        11
+      ],
+      [
+        0,
+        11
+      ],
+      [
+        8,
+        12
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "dominator_tree",
+  "params": {
+    "root": 0,
+    "mode": "in"
+  },
+  "expected": {
+    "idom": [
+      -1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      3,
+      3,
+      0,
+      0,
+      7,
+      0,
+      4
+    ],
+    "leftout": []
+  }
+}

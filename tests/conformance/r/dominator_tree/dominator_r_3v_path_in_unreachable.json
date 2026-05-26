@@ -1,0 +1,35 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-aaa-auto.R:8095-8121 + _snaps/aaa-auto.md:6862-6873 \u2014 path_graph_impl(n=3, directed=TRUE) with root=1 and mode='in' has only the root reachable on reverse edges; dom = [-1, -2, -2], leftout = [1, 2].",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "dominator_tree",
+  "params": {
+    "root": 0,
+    "mode": "in"
+  },
+  "expected": {
+    "idom": [
+      -1,
+      -2,
+      -2
+    ],
+    "leftout": [
+      1,
+      2
+    ]
+  }
+}

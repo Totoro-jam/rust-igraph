@@ -16665,3 +16665,158 @@ fn gomory_hu_tree_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn dominator_tree_three_source_conformance() {
+    // ALGO-FL-030: Lengauer-Tarjan dominator tree. Fixtures lift the
+    // exact tests in `references/igraph/tests/unit/igraph_dominator_tree.c`,
+    // `references/python-igraph/tests/test_structural.py::testDominators`,
+    // and `references/rigraph/tests/testthat/test-flow.R` /
+    // `test-aaa-auto.R::dominator_tree_impl`. Output is canonical (every
+    // reachable vertex has exactly one immediate dominator), so the
+    // runner asserts element-wise on `idom: Vec<i32>` and on the
+    // `leftout` (sorted unreachable-vertex) list. `expected.raises: true`
+    // flips to the error-path branch (undirected graphs reject).
+    use rust_igraph::{DominatorMode, dominator_tree};
+
+    let mut seen = std::collections::HashSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("dominator_tree");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "dominator_tree");
+            assert_eq!(case.source, src);
+
+            let g = build_graph(&case.graph);
+
+            let root = u32::try_from(
+                case.params
+                    .get("root")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`params.root` required"),
+            )
+            .expect("root fits in u32");
+            let mode_str = case
+                .params
+                .get("mode")
+                .and_then(serde_json::Value::as_str)
+                .expect("`params.mode` required");
+            let mode = match mode_str {
+                "out" => DominatorMode::Out,
+                "in" => DominatorMode::In,
+                other => panic!("unknown mode: {other}"),
+            };
+
+            let expected_obj = case
+                .expected
+                .as_object()
+                .expect("expected must be an object");
+
+            if expected_obj
+                .get("raises")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false)
+            {
+                let err = dominator_tree(&g, root, mode);
+                assert!(
+                    err.is_err(),
+                    "dominator_tree should reject this fixture\n  fixture: {}\n  origin:  {}",
+                    path.display(),
+                    case.origin,
+                );
+                seen.insert(match src {
+                    "c" => "c",
+                    "py" => "py",
+                    "r" => "r",
+                    _ => unreachable!(),
+                });
+                continue;
+            }
+
+            let result = dominator_tree(&g, root, mode).expect("dominator_tree");
+
+            let want_idom: Vec<i32> = expected_obj
+                .get("idom")
+                .and_then(serde_json::Value::as_array)
+                .expect("`expected.idom` required")
+                .iter()
+                .map(|v| {
+                    i32::try_from(v.as_i64().expect("idom entry must be int"))
+                        .expect("idom entry fits in i32")
+                })
+                .collect();
+            assert_eq!(
+                result.idom,
+                want_idom,
+                "dominator_tree idom mismatch\n  fixture: {}\n  origin:  {}",
+                path.display(),
+                case.origin,
+            );
+
+            let want_leftout: Vec<u32> = expected_obj
+                .get("leftout")
+                .and_then(serde_json::Value::as_array)
+                .expect("`expected.leftout` required")
+                .iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("leftout entry must be uint"))
+                        .expect("leftout entry fits in u32")
+                })
+                .collect();
+            assert_eq!(
+                result.leftout,
+                want_leftout,
+                "dominator_tree leftout mismatch\n  fixture: {}",
+                path.display(),
+            );
+
+            // Tree shape invariants: tree is directed, vcount matches,
+            // ecount = (#reachable non-root) = (#vertices with idom>=0).
+            assert!(
+                result.tree.is_directed(),
+                "dominator tree must be directed\n  fixture: {}",
+                path.display(),
+            );
+            assert_eq!(
+                result.tree.vcount(),
+                g.vcount(),
+                "dominator tree vcount must match input\n  fixture: {}",
+                path.display(),
+            );
+            let reachable_non_root = result.idom.iter().filter(|&&d| d >= 0).count();
+            assert_eq!(
+                result.tree.ecount(),
+                reachable_non_root,
+                "dominator tree ecount must equal #(reachable, non-root)\n  fixture: {}",
+                path.display(),
+            );
+
+            seen.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen.contains(src),
+            "no dominator_tree fixtures from source {src}"
+        );
+    }
+}

@@ -1,0 +1,31 @@
+{
+  "source": "r",
+  "origin": "rigraph dominator_tree on an undirected graph errors (igraph C IGRAPH_EINVAL).",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "dominator_tree",
+  "params": {
+    "root": 0,
+    "mode": "out"
+  },
+  "expected": {
+    "raises": true
+  }
+}

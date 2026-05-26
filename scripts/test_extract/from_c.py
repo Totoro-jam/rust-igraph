@@ -4686,6 +4686,120 @@ GOMORY_HU_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-030: dominator_tree (Lengauer-Tarjan). Three fixtures lifted
+# directly from `references/igraph/tests/unit/igraph_dominator_tree.c`
+# (and its `.out` reference) plus one negative case. The reference idom
+# vectors use the same `-1` = root / `-2` = unreachable sentinels as the
+# Rust port.
+DOMINATOR_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dominator_c_13v_classical_out",
+        "origin": "tests/unit/igraph_dominator_tree.c:28-56 — "
+        "13-vertex directed Lengauer-Tarjan example; root=0, mode=OUT.",
+        "graph_factory": lambda: ig.Graph(
+            n=13,
+            edges=[
+                (0, 1), (0, 7), (0, 10),
+                (1, 2), (1, 5),
+                (2, 3),
+                (3, 4),
+                (4, 3), (4, 0),
+                (5, 3), (5, 6),
+                (6, 3),
+                (7, 8), (7, 10), (7, 11),
+                (8, 9),
+                (9, 4), (9, 8),
+                (10, 11),
+                (11, 12),
+                (12, 9),
+            ],
+            directed=True,
+        ),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "out"},
+        "expected": {
+            "idom": [-1, 0, 1, 0, 0, 1, 5, 0, 0, 0, 0, 0, 11],
+            "leftout": [],
+        },
+    },
+    {
+        "case": "dominator_c_13v_reversed_in",
+        "origin": "tests/unit/igraph_dominator_tree.c:65-89 — "
+        "same 13v flowgraph with every edge reversed, mode=IN.",
+        "graph_factory": lambda: ig.Graph(
+            n=13,
+            edges=[
+                (1, 0), (2, 0), (3, 0),
+                (4, 1),
+                (1, 2), (4, 2), (5, 2),
+                (6, 3), (7, 3),
+                (12, 4),
+                (8, 5),
+                (9, 6),
+                (9, 7), (10, 7),
+                (5, 8), (11, 8),
+                (11, 9),
+                (9, 10),
+                (9, 11), (0, 11),
+                (8, 12),
+            ],
+            directed=True,
+        ),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "in"},
+        "expected": {
+            "idom": [-1, 0, 0, 0, 0, 0, 3, 3, 0, 0, 7, 0, 4],
+            "leftout": [],
+        },
+    },
+    {
+        "case": "dominator_c_20v_unreachable_out",
+        "origin": "tests/unit/igraph_dominator_tree.c:101-121 — "
+        "20-vertex graph with disconnected component {5,6,7,16..19}; "
+        "mode=OUT, root=0. idom uses -2 for unreachable.",
+        "graph_factory": lambda: ig.Graph(
+            n=20,
+            edges=[
+                (0, 1), (0, 2), (0, 3),
+                (1, 4),
+                (2, 1), (2, 4), (2, 8),
+                (3, 9), (3, 10),
+                (4, 15),
+                (8, 11),
+                (9, 12),
+                (10, 12), (10, 13),
+                (11, 8), (11, 14),
+                (12, 14),
+                (13, 12),
+                (14, 12), (14, 0),
+                (15, 11),
+            ],
+            directed=True,
+        ),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "out"},
+        "expected": {
+            "idom": [
+                -1, 0, 0, 0, 0, -2, -2, -2, 0, 3,
+                3, 0, 0, 10, 0, 4, -2, -2, -2, -2,
+            ],
+            "leftout": [5, 6, 7, 16, 17, 18, 19],
+        },
+    },
+    {
+        "case": "dominator_c_undirected_rejects",
+        "origin": "constructed — igraph_dominator_tree returns "
+        "IGRAPH_EINVAL on undirected input (the algorithm is defined "
+        "only for directed flowgraphs).",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "out"},
+        "expected": {"raises": True},
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -10828,6 +10942,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
+    "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

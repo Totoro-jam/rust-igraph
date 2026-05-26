@@ -1,0 +1,21 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R:240-243 \u2014 make_empty_graph(n=1, directed=TRUE); dom_tree_one$dom[1] = -1.",
+  "graph": {
+    "n": 1,
+    "edges": [],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "dominator_tree",
+  "params": {
+    "root": 0,
+    "mode": "out"
+  },
+  "expected": {
+    "idom": [
+      -1
+    ],
+    "leftout": []
+  }
+}

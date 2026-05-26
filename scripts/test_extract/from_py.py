@@ -3877,6 +3877,126 @@ GOMORY_HU_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-030: dominator_tree. python-igraph exposes
+# `Graph.dominator(root, mode=)` (note the singular name — `dominator`,
+# not `dominator_tree`), which returns a Python list of immediate-dominator
+# vertex ids with `-1` at the root and `float('nan')` at unreachable
+# vertices (python-igraph upcasts to float for the NaN sentinel). The
+# fixtures below mirror python-igraph/tests/test_structural.py:1057-1175
+# `StructuralTests.testDominators` exactly. We normalise the float NaN
+# to the integer sentinel `-2` in the `expected.idom` JSON, matching the
+# Rust port's `DominatorTree { idom: Vec<i32> }` convention (root = -1,
+# unreachable = -2). The runner uses element-wise int comparison.
+DOMINATOR_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dominator_py_13v_classical_out",
+        "origin": "python-igraph/tests/test_structural.py:1057-1090 — "
+        "13-vertex Lengauer-Tarjan example, g.dominator(0).",
+        "graph_factory": lambda: ig.Graph(
+            n=13,
+            edges=[
+                (0, 1), (0, 7), (0, 10),
+                (1, 2), (1, 5),
+                (2, 3),
+                (3, 4),
+                (4, 3), (4, 0),
+                (5, 3), (5, 6),
+                (6, 3),
+                (7, 8), (7, 10), (7, 11),
+                (8, 9),
+                (9, 4), (9, 8),
+                (10, 11),
+                (11, 12),
+                (12, 9),
+            ],
+            directed=True,
+        ),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "out"},
+        "expected": {
+            "idom": [-1, 0, 1, 0, 0, 1, 5, 0, 0, 0, 0, 0, 11],
+            "leftout": [],
+        },
+    },
+    {
+        "case": "dominator_py_13v_reversed_in",
+        "origin": "python-igraph/tests/test_structural.py:1092-1122 — "
+        "13-vertex flowgraph with reversed edges, g.dominator(0, mode=IN).",
+        "graph_factory": lambda: ig.Graph(
+            n=13,
+            edges=[
+                (1, 0), (2, 0), (3, 0),
+                (4, 1),
+                (1, 2), (4, 2), (5, 2),
+                (6, 3), (7, 3),
+                (12, 4),
+                (8, 5),
+                (9, 6),
+                (9, 7), (10, 7),
+                (5, 8), (11, 8),
+                (11, 9),
+                (9, 10),
+                (9, 11), (0, 11),
+                (8, 12),
+            ],
+            directed=True,
+        ),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "in"},
+        "expected": {
+            "idom": [-1, 0, 0, 0, 0, 0, 3, 3, 0, 0, 7, 0, 4],
+            "leftout": [],
+        },
+    },
+    {
+        "case": "dominator_py_20v_unreachable_out",
+        "origin": "python-igraph/tests/test_structural.py:1124-1175 — "
+        "20-vertex graph with unreachable component {5,6,7,16..19}; "
+        "Python NaN sentinels normalised to -2 for the Rust runner.",
+        "graph_factory": lambda: ig.Graph(
+            n=20,
+            edges=[
+                (0, 1), (0, 2), (0, 3),
+                (1, 4),
+                (2, 1), (2, 4), (2, 8),
+                (3, 9), (3, 10),
+                (4, 15),
+                (8, 11),
+                (9, 12),
+                (10, 12), (10, 13),
+                (11, 8), (11, 14),
+                (12, 14),
+                (13, 12),
+                (14, 12), (14, 0),
+                (15, 11),
+            ],
+            directed=True,
+        ),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "out"},
+        "expected": {
+            "idom": [
+                -1, 0, 0, 0, 0, -2, -2, -2, 0, 3,
+                3, 0, 0, 10, 0, 4, -2, -2, -2, -2,
+            ],
+            "leftout": [5, 6, 7, 16, 17, 18, 19],
+        },
+    },
+    {
+        "case": "dominator_py_undirected_rejects",
+        "origin": "python-igraph Graph.dominator on an undirected graph "
+        "raises InternalError (igraph C returns IGRAPH_EINVAL — the "
+        "algorithm is defined only for directed flowgraphs).",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "out"},
+        "expected": {"raises": True},
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
 # wrapper on the same `igraph_forest_fire_game` C entry point). RNG
@@ -8391,6 +8511,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
+    "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

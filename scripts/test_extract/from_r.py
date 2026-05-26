@@ -4165,6 +4165,76 @@ GOMORY_HU_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-030: dominator_tree. R-igraph exposes
+# `dominator_tree(graph, root, mode = c("out", "in"))` (and the
+# low-level `dominator_tree_impl()`). The R high-level binding returns
+# a list `$dom`, `$domtree`, `$leftout` with 1-based vertex ids and
+# `-1` at the root. The low-level `_impl` returns the C array as-is
+# (0-based, -2 for unreachable). We keep all expected vectors in the
+# Rust port's 0-based -1/-2 convention since the conformance runner
+# is implementation-agnostic.
+DOMINATOR_TREE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "dominator_r_5v_tree_out",
+        "origin": "rigraph tests/testthat/test-flow.R:228-238 — "
+        "6-vertex DAG with edges (1,2),(2,3),(3,4),(2,5),(5,6); "
+        "dominator_tree(g, root=1) ⇒ dom[2..6] = 1,2,3,2,5. "
+        "Converted to 0-based: edges (0,1),(1,2),(2,3),(1,4),(4,5); "
+        "root=0; idom = [-1, 0, 1, 2, 1, 4].",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (1, 4), (4, 5)],
+            directed=True,
+        ),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "out"},
+        "expected": {
+            "idom": [-1, 0, 1, 2, 1, 4],
+            "leftout": [],
+        },
+    },
+    {
+        "case": "dominator_r_single_vertex_out",
+        "origin": "rigraph tests/testthat/test-flow.R:240-243 — "
+        "make_empty_graph(n=1, directed=TRUE); dom_tree_one$dom[1] = -1.",
+        "graph_factory": lambda: ig.Graph(n=1, edges=[], directed=True),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "out"},
+        "expected": {
+            "idom": [-1],
+            "leftout": [],
+        },
+    },
+    {
+        "case": "dominator_r_3v_path_in_unreachable",
+        "origin": "rigraph tests/testthat/test-aaa-auto.R:8095-8121 + "
+        "_snaps/aaa-auto.md:6862-6873 — path_graph_impl(n=3, "
+        "directed=TRUE) with root=1 and mode='in' has only the root "
+        "reachable on reverse edges; dom = [-1, -2, -2], leftout = [1, 2].",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "in"},
+        "expected": {
+            "idom": [-1, -2, -2],
+            "leftout": [1, 2],
+        },
+    },
+    {
+        "case": "dominator_r_undirected_rejects",
+        "origin": "rigraph dominator_tree on an undirected graph errors "
+        "(igraph C IGRAPH_EINVAL).",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "dominator_tree",
+        "params": {"root": 0, "mode": "out"},
+        "expected": {"raises": True},
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
 # Generator — RNG state not portable across implementations, so we
@@ -8556,6 +8626,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
+    "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

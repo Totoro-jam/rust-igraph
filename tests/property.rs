@@ -3683,3 +3683,136 @@ proptest! {
         prop_assert_eq!(rw.merges, ru.merges);
     }
 }
+
+// ALGO-FL-030: dominator-tree invariants.
+//
+// These invariants verify the Lengauer-Tarjan output on arbitrary small
+// directed graphs without depending on an external oracle:
+//
+// 1. Shape: `idom` has length `vcount`; `idom[root] == -1`; every other
+//    entry is either `-2` (unreachable) or a valid vertex id; tree has
+//    one edge per reachable non-root vertex.
+// 2. Reachability: a vertex `v` has `idom[v] >= 0` if and only if `v` is
+//    BFS-reachable from `root`, and `leftout` enumerates exactly the
+//    unreachable set in ascending order.
+// 3. Direction equivalence: `dominator_tree(g, root, In)` and
+//    `dominator_tree(reverse(g), root, Out)` produce identical `idom`
+//    vectors. This is the algorithm's defining symmetry — IN-mode is
+//    OUT-mode on the reverse graph.
+// 4. Dominance property (brute force, n ≤ 7): for every reachable
+//    non-root `w`, every simple path from `root` to `w` must contain
+//    `idom[w]`. Verified by exhaustive DFS path enumeration.
+#[cfg(feature = "proptest-harness")]
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(40))]
+
+    #[test]
+    fn dominator_tree_shape_and_reachability(g in arb_directed_graph(10)) {
+        use rust_igraph::{DominatorMode, dominator_tree, bfs};
+        let n = g.vcount();
+        let dt = dominator_tree(&g, 0, DominatorMode::Out).expect("root 0 is valid");
+
+        // Shape.
+        prop_assert_eq!(dt.idom.len(), n as usize);
+        prop_assert_eq!(dt.idom[0], -1, "idom[root] must be -1");
+        for v in 1..n {
+            let d = dt.idom[v as usize];
+            prop_assert!(d == -2 || (d >= 0 && (d as u32) < n),
+                         "idom[{}] = {} out of range", v, d);
+        }
+
+        // Reachability: idom[v] >= 0 iff v reachable.
+        let reachable: std::collections::BTreeSet<u32> =
+            bfs(&g, 0).expect("bfs root 0").into_iter().collect();
+        for v in 0..n {
+            let d = dt.idom[v as usize];
+            if reachable.contains(&v) {
+                if v == 0 {
+                    prop_assert_eq!(d, -1, "root must have idom = -1");
+                } else {
+                    prop_assert!(d >= 0, "reachable vertex {} must have idom >= 0", v);
+                }
+            } else {
+                prop_assert_eq!(d, -2, "unreachable vertex {} must have idom = -2", v);
+            }
+        }
+
+        // leftout = sorted complement of reachable set.
+        let expected_leftout: Vec<u32> = (0..n).filter(|v| !reachable.contains(v)).collect();
+        prop_assert_eq!(&dt.leftout, &expected_leftout);
+
+        // Tree edge count = number of reachable non-root vertices.
+        let reachable_non_root = reachable.len().saturating_sub(1) as u32;
+        prop_assert_eq!(dt.tree.ecount() as u32, reachable_non_root);
+    }
+
+    #[test]
+    fn dominator_tree_in_mode_equals_reverse_out_mode(g in arb_directed_graph(10)) {
+        use rust_igraph::{DominatorMode, Graph, dominator_tree};
+        let n = g.vcount();
+        let m = u32::try_from(g.ecount()).expect("ecount fits u32");
+        let mut g_rev = Graph::new(n, true).expect("directed reverse graph");
+        for e in 0..m {
+            let (u, v) = g.edge(e).expect("edge");
+            g_rev.add_edge(v, u).expect("reverse edge");
+        }
+        let in_mode = dominator_tree(&g, 0, DominatorMode::In).expect("In mode");
+        let out_mode = dominator_tree(&g_rev, 0, DominatorMode::Out).expect("Out on rev");
+        prop_assert_eq!(&in_mode.idom, &out_mode.idom);
+        prop_assert_eq!(&in_mode.leftout, &out_mode.leftout);
+    }
+
+    /// Brute-force dominance check: for every reachable non-root vertex
+    /// `w`, every simple root-to-`w` path must pass through `idom(w)`.
+    /// Bound `n ≤ 7` so simple-path enumeration stays feasible.
+    #[test]
+    fn dominator_tree_idom_lies_on_every_path_brute_force(g in arb_directed_graph(7)) {
+        use rust_igraph::{DominatorMode, dominator_tree};
+        let n = g.vcount();
+        let dt = dominator_tree(&g, 0, DominatorMode::Out).expect("compute");
+        for w in 1..n {
+            let d = dt.idom[w as usize];
+            if d < 0 {
+                continue;
+            }
+            let d_u = d as u32;
+            // Enumerate every simple root->w path.
+            let mut paths: Vec<Vec<u32>> = Vec::new();
+            let mut stack: Vec<u32> = vec![0];
+            let mut on_stack = vec![false; n as usize];
+            on_stack[0] = true;
+            fn dfs_paths(
+                g: &rust_igraph::Graph,
+                cur: u32, t: u32,
+                stack: &mut Vec<u32>, on_stack: &mut [bool],
+                out: &mut Vec<Vec<u32>>,
+            ) {
+                if cur == t {
+                    out.push(stack.clone());
+                    return;
+                }
+                // Iterate via edge ids to stay on the public API.
+                let m = u32::try_from(g.ecount()).expect("ecount fits u32");
+                for e in 0..m {
+                    let (from, to) = g.edge(e).expect("edge");
+                    if from == cur && !on_stack[to as usize] {
+                        on_stack[to as usize] = true;
+                        stack.push(to);
+                        dfs_paths(g, to, t, stack, on_stack, out);
+                        stack.pop();
+                        on_stack[to as usize] = false;
+                    }
+                }
+            }
+            dfs_paths(&g, 0, w, &mut stack, &mut on_stack, &mut paths);
+            prop_assert!(!paths.is_empty(),
+                         "vertex {} marked reachable (idom={}) but no path found", w, d);
+            for p in &paths {
+                prop_assert!(
+                    p.contains(&d_u),
+                    "idom({}) = {} missing from path {:?}", w, d_u, p
+                );
+            }
+        }
+    }
+}

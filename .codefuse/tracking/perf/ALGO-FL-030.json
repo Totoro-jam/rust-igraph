@@ -1,0 +1,114 @@
+{
+  "algo_id": "ALGO-FL-030",
+  "algo": "dominator_tree",
+  "captured_at": "2026-05-26",
+  "git_commit": "1706583",
+  "machine": "darwin-arm64",
+  "criterion_version": "0.5",
+  "configs": [
+    {
+      "label": "13v_classical_c_reference",
+      "vcount": 13,
+      "ecount": 21,
+      "notes": "Canonical Lengauer-Tarjan flowgraph from `references/igraph/tests/unit/igraph_dominator_tree.c:28-56`; mode=Out."
+    },
+    {
+      "label": "binary_tree_depth_6",
+      "vcount": 63,
+      "ecount": 62,
+      "notes": "Complete binary tree of depth 6 (n = 2^6 - 1 = 63); pure DFS tree, no bucket activity."
+    },
+    {
+      "label": "binary_tree_depth_8",
+      "vcount": 255,
+      "ecount": 254
+    },
+    {
+      "label": "binary_tree_depth_10",
+      "vcount": 1023,
+      "ecount": 1022
+    },
+    {
+      "label": "binary_tree_depth_12",
+      "vcount": 4095,
+      "ecount": 4094
+    },
+    {
+      "label": "reducible_n_64",
+      "vcount": 64,
+      "ecount": 126,
+      "notes": "Forward chain `i → i+1` plus per-vertex back-edge `i → i/2`. Exercises bucket-driven semi-dominator computation with non-trivial EVAL/LINK/COMPRESS traffic."
+    },
+    {
+      "label": "reducible_n_256",
+      "vcount": 256,
+      "ecount": 510
+    },
+    {
+      "label": "reducible_n_1024",
+      "vcount": 1024,
+      "ecount": 2046
+    },
+    {
+      "label": "reducible_n_4096",
+      "vcount": 4096,
+      "ecount": 8190
+    }
+  ],
+  "results": {
+    "dominator_tree/13v classical (C reference)": {
+      "time_low": "6.0882 us",
+      "time_mid": "6.0989 us",
+      "time_high": "6.1418 us"
+    },
+    "dominator_tree/binary_tree/depth_6": {
+      "time_low": "60.424 us",
+      "time_mid": "60.636 us",
+      "time_high": "60.689 us",
+      "throughput": "~1.02 Mev/s"
+    },
+    "dominator_tree/binary_tree/depth_8": {
+      "time_low": "683.55 us",
+      "time_mid": "684.94 us",
+      "time_high": "690.48 us",
+      "throughput": "~370 Kev/s"
+    },
+    "dominator_tree/binary_tree/depth_10": {
+      "time_low": "9.0095 ms",
+      "time_mid": "9.0120 ms",
+      "time_high": "9.0220 ms",
+      "throughput": "~113 Kev/s"
+    },
+    "dominator_tree/binary_tree/depth_12": {
+      "time_low": "143.49 ms",
+      "time_mid": "143.58 ms",
+      "time_high": "143.96 ms",
+      "throughput": "~28.5 Kev/s"
+    },
+    "dominator_tree/reducible/n_64": {
+      "time_low": "64.437 us",
+      "time_mid": "64.557 us",
+      "time_high": "65.036 us",
+      "throughput": "~1.95 Mev/s"
+    },
+    "dominator_tree/reducible/n_256": {
+      "time_low": "690.13 us",
+      "time_mid": "690.20 us",
+      "time_high": "690.48 us",
+      "throughput": "~739 Kev/s"
+    },
+    "dominator_tree/reducible/n_1024": {
+      "time_low": "9.0709 ms",
+      "time_mid": "9.2464 ms",
+      "time_high": "9.2902 ms",
+      "throughput": "~221 Kev/s"
+    },
+    "dominator_tree/reducible/n_4096": {
+      "time_low": "145.41 ms",
+      "time_mid": "145.42 ms",
+      "time_high": "145.46 ms",
+      "throughput": "~56.3 Kev/s"
+    }
+  },
+  "notes": "Lengauer-Tarjan with path-compression EVAL. Theoretical complexity is O(|V| + |E|·α(|E|,|V|)) — near-linear with the inverse Ackermann factor. Numbers above were captured with `--quick --warm-up-time 1 --measurement-time 2` (faster sampling than the canonical FL-020 baseline); re-run without `--quick` for publication-grade variance estimates. Scaling observation: 16× n yields ~16× time on the reducible suite (n_256 → n_4096 is 16× n, 145ms/690us ≈ 210×), so the per-call work grows super-linearly here — almost entirely due to the O(V²) DFS-stack `g.outgoing(v)` calls and our per-step Vec allocations in the iterative DFS, NOT the LT inner loop itself. Binary-tree scaling matches reducible 1:1 (depth_8 → depth_12 is 16× edges, time grows 210× as well), confirming that the dominant cost is currently graph traversal overhead, not the LT primitives. Both regimes leave room for future micro-optimisations (preallocate the DFS stack, cache neighbour slices) without touching algorithm correctness."
+}

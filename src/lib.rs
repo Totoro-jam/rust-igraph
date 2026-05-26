@@ -133,6 +133,7 @@ pub use crate::algorithms::constructors::triangular_lattice::triangular_lattice;
 pub use crate::algorithms::constructors::turan::turan;
 pub use crate::algorithms::constructors::weighted_adjacency::weighted_adjacency;
 pub use crate::algorithms::constructors::wheel::{WheelMode, wheel_graph};
+pub use crate::algorithms::flow::dominator_tree::{DominatorMode, DominatorTree, dominator_tree};
 pub use crate::algorithms::flow::edge_connectivity::{adhesion, edge_connectivity};
 pub use crate::algorithms::flow::edge_disjoint_paths::edge_disjoint_paths;
 pub use crate::algorithms::flow::gomory_hu_tree::{GomoryHuTree, gomory_hu_tree};
