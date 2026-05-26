@@ -1,0 +1,36 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R style: min_cut on directed 3-cycle with capacities c(2, 0.5, 3). The bottleneck arc 1\u21922 with weight 0.5 dominates the fixed-vertex iteration \u21d2 mincut_value = 0.5.",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      2.0,
+      0.5,
+      3.0
+    ]
+  },
+  "algo": "mincut_value",
+  "params": {
+    "capacity": [
+      2.0,
+      0.5,
+      3.0
+    ]
+  },
+  "expected": 0.5
+}

@@ -3995,6 +3995,51 @@ ECONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-017: mincut_value — weighted global minimum-cut value.
+# rigraph exposes `min_cut(graph, capacity = NULL)` returning the
+# numeric mincut. We pin three rigraph-style fixtures: undirected ring
+# with unit caps (matches edge_connectivity), undirected ring with a
+# single weighted bridge edge, and a directed cycle with mixed arc
+# capacities.
+MINCUT_VALUE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "mincut_r_ring5_undirected_unit_caps_returns_two",
+        "origin": "rigraph tests/testthat/test-flow.R style: "
+        "min_cut(make_ring(5)) == 2 — unit-capacity ring lambda(C_5) = 2.",
+        "graph_factory": lambda: ig.Graph.Ring(5, circular=True, directed=False),
+        "algo": "mincut_value",
+        "params": {"capacity": None},
+        "expected": 2.0,
+    },
+    {
+        "case": "mincut_r_ring5_undirected_one_weak_edge",
+        "origin": "rigraph tests/testthat/test-flow.R style: "
+        "min_cut(g, capacity=c(10, 10, 0.5, 10, 10)) — single 0.5 "
+        "bridge edge. Cheapest 2-edge cut is 0.5 + 10 = 10.5 (any other "
+        "non-bridge pair costs ≥ 20).",
+        "graph_factory": lambda: ig.Graph.Ring(5, circular=True, directed=False),
+        "graph_weights": [10.0, 10.0, 0.5, 10.0, 10.0],
+        "algo": "mincut_value",
+        "params": {"capacity": [10.0, 10.0, 0.5, 10.0, 10.0]},
+        "expected": 10.5,
+    },
+    {
+        "case": "mincut_r_directed_3cycle_weighted",
+        "origin": "rigraph tests/testthat/test-flow.R style: "
+        "min_cut on directed 3-cycle with capacities c(2, 0.5, 3). "
+        "The bottleneck arc 1→2 with weight 0.5 dominates the "
+        "fixed-vertex iteration ⇒ mincut_value = 0.5.",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "graph_weights": [2.0, 0.5, 3.0],
+        "algo": "mincut_value",
+        "params": {"capacity": [2.0, 0.5, 3.0]},
+        "expected": 0.5,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
 # Generator — RNG state not portable across implementations, so we
@@ -8383,6 +8428,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "vertex_disjoint_paths": VDP_MANIFEST,
     "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
+    "mincut_value": MINCUT_VALUE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

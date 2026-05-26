@@ -1,0 +1,42 @@
+{
+  "source": "py",
+  "origin": "Weighted undirected path 0-1-2-3-4 with capacities [1, 1, 0.25, 1]; bridge edge 2-3 has the smallest capacity, so the global min cut isolates {3, 4} at cost 0.25.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      1.0,
+      0.25,
+      1.0
+    ]
+  },
+  "algo": "mincut_value",
+  "params": {
+    "capacity": [
+      1.0,
+      1.0,
+      0.25,
+      1.0
+    ]
+  },
+  "expected": 0.25
+}

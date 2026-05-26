@@ -75,6 +75,10 @@ name = "edge_connectivity_demo"
 path = "examples/edge_connectivity_demo.rs"
 
 [[example]]
+name = "mincut_value_demo"
+path = "examples/mincut_value_demo.rs"
+
+[[example]]
 name = "hsbm_demo"
 path = "examples/hsbm_demo.rs"
 
@@ -458,6 +462,11 @@ harness = false
 [[bench]]
 name = "bench_edge_connectivity"
 path = "benches/bench_edge_connectivity.rs"
+harness = false
+
+[[bench]]
+name = "bench_mincut_value"
+path = "benches/bench_mincut_value.rs"
 harness = false
 
 [[bench]]

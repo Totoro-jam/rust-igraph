@@ -15,6 +15,71 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-017** — `mincut_value`: global minimum-cut **value** —
+  weighted generalisation of FL-016. Returns `f64` (total minimum
+  capacity of edges whose removal makes a directed graph not strongly
+  connected, or an undirected graph not connected). Mirrors
+  `igraph_mincut_value` at
+  `references/igraph/src/flow/flow.c:1692`. `capacity: Option<&[f64]>`
+  matches the igraph C API (`None` = unit capacities). For
+  `vcount ≤ 1` returns `f64::INFINITY` (mirrors `IGRAPH_INFINITY` init
+  at flow.c:1699). Otherwise runs the fixed-vertex iteration also used
+  by FL-016: pick vertex 0, call `max_flow_value(graph, 0, v,
+  capacity)` for every `v ≠ 0` (undirected) or both `(0, v)` and
+  `(v, 0)` (directed); track the running minimum with early-exit at
+  `0.0`. Correctness: every global min-cut separates 0 from at least
+  one other vertex, so `mincut = min_{v != 0} max_flow(0, v)`.
+  Deliberately does **not** port Stoer-Wagner for the undirected case
+  — the fixed-vertex iteration via FL-002 covers both directed and
+  undirected with one code path, trading asymptotic optimality on
+  dense undirected inputs for code simplicity and exact parity with
+  the directed branch.
+  - `pub fn mincut_value(graph: &Graph, capacity: Option<&[f64]>) ->
+    IgraphResult<f64>`.
+  - Unlike FL-016 there is no `checks` parameter, because the igraph C
+    `igraph_mincut_value` API does not expose one (the cheap
+    short-circuits only apply to the integer-valued unit-cap case).
+  - Capacity validation happens up front (length must match `ecount`,
+    every entry must be finite and `≥ 0`) so `n = 0`, `n = 1`, and
+    `n ≥ 2` all return the same `InvalidArgument` error shape on bad
+    capacity inputs instead of `n ≤ 1` silently returning `+∞`.
+  - Tests cover the 5 C-fixture cases from
+    `tests/unit/igraph_mincut.c` (directed 3-cycle unit caps → 1,
+    weighted directed 3-cycle → 1 (bottleneck arc), undirected
+    ring `C_5` unit caps → 2, two isolated edges → 0, complete `K_4`
+    undirected → 3), 2 py fixtures from `test_flow.py:CutTests`,
+    3 R fixtures from `test-flow.R` (including the C_5 weak-edge
+    case → 10.5), plus edge cases: empty graph → `+∞`, single vertex
+    → `+∞`, K_2 unit caps → 1, multigraph parallel edges → 2 (parallel
+    edges raise the cut), C_5 with cheap bridge → 10.5, directed
+    out-tree → 0 (sink has no out-arcs), K_5 with cheap edges only on
+    vertex 0 → 4 (isolating vertex 0). Proptest pins 4 invariants:
+    result is always non-negative and finite-or-`+∞`, `None` matches
+    unit-cap vector, `mincut_value(g, None) as i64 ==
+    edge_connectivity(g, true)` (unit-cap equivalence), and doubling
+    every capacity doubles the mincut value (linearity).
+  - Three-source conformance fixtures landed under
+    `tests/conformance/{c,py,r}/mincut_value/` (5 + 2 + 3 fixtures)
+    exercising both unit and weighted capacity paths in both
+    directions; harness asserts at least one fixture from each of
+    c/py/r and all 10 pass.
+  - Bench `benches/bench_mincut_value.rs` captures five regimes:
+    textbook `C_5` (1.7 µs), `layered_unit_caps` (10.4/45.3/199.8 µs
+    for L4xW8/L6xW16/L8xW32 — ~4–6× slower than FL-016 on the same
+    fixtures because the `checks=true` SCC short-circuit cannot apply
+    without a `checks` parameter), `fixed_vertex_ring` (2.3/3.9/8.3 µs
+    on C6/C8/C12 — per-call parity with FL-016 on connected inputs),
+    `fixed_vertex_complete` (1.1/4.4/8.0 µs on K4/K6/K8), and
+    `weighted_ring` (2.6/4.5/9.7 µs on C6/C8/C12 — ~10–15% overhead
+    over the unit-cap ring because Dinic's `f64`-min reduction is
+    slightly more expensive than the `u32` counter early-exit when
+    augmenting paths carry capacity 1 exactly).
+  - Demo `examples/mincut_value_demo.rs` walks 8 cases end-to-end:
+    empty graph (`+∞`), single vertex (`+∞`), C_5 unit caps (2),
+    C_5 with weak bridge (10.5), two isolated edges (0), directed
+    3-cycle weighted (1, bottleneck arc), multigraph 2 parallel
+    edges (2), K_5 with cheap edges on vertex 0 (4, isolating cost).
+
 - **ALGO-FL-016** — `edge_connectivity` (alias `adhesion`): global edge
   connectivity (adhesion) of a graph — the minimum number of edges
   whose removal disconnects the graph. Mirrors

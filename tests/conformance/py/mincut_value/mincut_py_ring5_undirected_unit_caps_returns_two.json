@@ -1,0 +1,36 @@
+{
+  "source": "py",
+  "origin": "test_flow.py \u2014 Graph.Ring(5).mincut_value() == 2.0; unit-capacity ring lambda(C_5) = 2 (mirrors edge_connectivity).",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mincut_value",
+  "params": {
+    "capacity": null
+  },
+  "expected": 2.0
+}

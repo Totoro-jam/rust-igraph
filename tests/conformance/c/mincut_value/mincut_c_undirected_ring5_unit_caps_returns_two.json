@@ -1,0 +1,36 @@
+{
+  "source": "c",
+  "origin": "C dispatcher flow.c:1702 \u2014 undirected ring C_5 unit capacities; igraph_i_mincut_value_undirected (Stoer-Wagner in C; fixed-vertex loop here) \u21d2 mincut_value = 2.0.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mincut_value",
+  "params": {
+    "capacity": null
+  },
+  "expected": 2.0
+}

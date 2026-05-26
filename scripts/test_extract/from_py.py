@@ -3688,6 +3688,37 @@ ECONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-017: mincut_value — weighted global minimum-cut value.
+# python-igraph exposes `Graph.mincut_value(capacity=None)` directly
+# (test_flow.py:CutTests.testMincutValue). We pin two cases: a
+# unit-capacity ring (matches edge_connectivity) and a weighted
+# undirected path where the bottleneck edge dominates the cut.
+MINCUT_VALUE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "mincut_py_ring5_undirected_unit_caps_returns_two",
+        "origin": "test_flow.py — Graph.Ring(5).mincut_value() == 2.0; "
+        "unit-capacity ring lambda(C_5) = 2 (mirrors edge_connectivity).",
+        "graph_factory": lambda: ig.Graph.Ring(5, directed=False, circular=True),
+        "algo": "mincut_value",
+        "params": {"capacity": None},
+        "expected": 2.0,
+    },
+    {
+        "case": "mincut_py_path5_undirected_weighted_returns_one_quarter",
+        "origin": "Weighted undirected path 0-1-2-3-4 with capacities "
+        "[1, 1, 0.25, 1]; bridge edge 2-3 has the smallest capacity, "
+        "so the global min cut isolates {3, 4} at cost 0.25.",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "graph_weights": [1.0, 1.0, 0.25, 1.0],
+        "algo": "mincut_value",
+        "params": {"capacity": [1.0, 1.0, 0.25, 1.0]},
+        "expected": 0.25,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
 # wrapper on the same `igraph_forest_fire_game` C entry point). RNG
@@ -8199,6 +8230,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "vertex_disjoint_paths": VDP_MANIFEST,
     "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
+    "mincut_value": MINCUT_VALUE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

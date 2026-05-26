@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "C dispatcher: undirected, two isolated edges \u2192 disconnected \u21d2 max_flow(0, v) = 0 for any v in the other component \u21d2 mincut_value = 0.0.",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "mincut_value",
+  "params": {
+    "capacity": null
+  },
+  "expected": 0.0
+}

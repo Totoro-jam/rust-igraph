@@ -1,0 +1,28 @@
+{
+  "source": "c",
+  "origin": "C dispatcher flow.c:1706-1723 \u2014 directed 3-cycle 0\u21921\u21922\u21920 with unit capacities; every arc is a directed bridge \u21d2 mincut_value = 1.0.",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "mincut_value",
+  "params": {
+    "capacity": null
+  },
+  "expected": 1.0
+}

@@ -1,0 +1,48 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R style: min_cut(g, capacity=c(10, 10, 0.5, 10, 10)) \u2014 single 0.5 bridge edge. Cheapest 2-edge cut is 0.5 + 10 = 10.5 (any other non-bridge pair costs \u2265 20).",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      10.0,
+      10.0,
+      0.5,
+      10.0,
+      10.0
+    ]
+  },
+  "algo": "mincut_value",
+  "params": {
+    "capacity": [
+      10.0,
+      10.0,
+      0.5,
+      10.0,
+      10.0
+    ]
+  },
+  "expected": 10.5
+}

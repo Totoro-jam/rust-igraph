@@ -1,0 +1,20 @@
+{
+  "awu": "ALGO-FL-017",
+  "function": "mincut_value",
+  "captured_at": "2026-05-26",
+  "git_commit": "e40de68",
+  "rust_textbook_C5_unit_caps_ns": 1677,
+  "rust_layered_L4_W8_unit_caps_ns": 10359,
+  "rust_layered_L6_W16_unit_caps_ns": 45323,
+  "rust_layered_L8_W32_unit_caps_ns": 199790,
+  "rust_fixed_vertex_ring_C6_ns": 2299,
+  "rust_fixed_vertex_ring_C8_ns": 3929,
+  "rust_fixed_vertex_ring_C12_ns": 8260,
+  "rust_fixed_vertex_complete_K4_ns": 1145,
+  "rust_fixed_vertex_complete_K6_ns": 4381,
+  "rust_fixed_vertex_complete_K8_ns": 7996,
+  "rust_weighted_ring_C6_ns": 2559,
+  "rust_weighted_ring_C8_ns": 4479,
+  "rust_weighted_ring_C12_ns": 9673,
+  "notes": "FL-017 has no `checks` parameter (mirrors igraph C's `igraph_mincut_value` which does not expose the short-circuit toggle), so every input traverses the V-1 fixed-vertex FL-002 loop modulo the early-exit at value 0. Two regimes: (1) `layered` directed fixtures are not strongly connected, so each FL-002 call short-circuits at the BFS step — cost dominated by the BFS sweep over E, scaling L4xW8/L6xW16/L8xW32 = 10.4/45.3/199.8 µs ≈ E (number of layered edges). Compared to FL-016's `edge_connectivity` on the same layered inputs (2.6/8.8/34.3 µs with `checks=true`), FL-017 is ~4-6× slower because it cannot short-circuit on the cheap SCC check — it must run the inner BFS V-1 times instead of bailing once. (2) `fixed_vertex_ring`/`fixed_vertex_complete` connected fixtures match FL-016 closely (2.3/3.9/8.3 µs vs FL-016 2.5/4.3/8.4 µs on C6/C8/C12; 1.1/4.4/8.0 µs vs FL-016 1.3/4.5/8.5 µs on K4/K6/K8) — both call FL-002 V-1 times with the same Dinic backend, so the per-call cost is identical. The weighted `weighted_ring` group (C6/C8/C12 = 2.6/4.5/9.7 µs) is ~10-15% slower than the unit-cap ring because Dinic's f64-min reduction is slightly more expensive than the u32-counter early-exit when augmenting paths carry capacity 1 exactly. Captured with --quick (single sample-set per fixture); for stable medians use the default profile."
+}

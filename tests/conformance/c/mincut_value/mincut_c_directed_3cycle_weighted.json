@@ -1,0 +1,36 @@
+{
+  "source": "c",
+  "origin": "C dispatcher flow.c:1706-1723 \u2014 directed 3-cycle with weights [3, 1, 2]; bottleneck arc 1\u21922 weight 1 minimises every 0\u2192v / v\u21920 cut \u21d2 mincut_value = 1.0.",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      3.0,
+      1.0,
+      2.0
+    ]
+  },
+  "algo": "mincut_value",
+  "params": {
+    "capacity": [
+      3.0,
+      1.0,
+      2.0
+    ]
+  },
+  "expected": 1.0
+}

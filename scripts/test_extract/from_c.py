@@ -4405,6 +4405,74 @@ ECONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-017: mincut_value (global minimum-cut value, weighted
+# generalisation of FL-016). Mirrors `igraph_mincut_value` at
+# `references/igraph/src/flow/flow.c:1692`. The dedicated C unit test
+# tests/unit/igraph_mincut.c builds a small directed graph with mixed
+# capacities. We pin (i) unit-cap parity with edge_connectivity, (ii)
+# weighted fixtures exercising the fixed-vertex loop, (iii) the
+# `vcount ≤ 1` IGRAPH_INFINITY corner case, (iv) directed unit-cap
+# both-directions iteration.
+MINCUT_VALUE_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "mincut_c_directed_3cycle_unit_caps_returns_one",
+        "origin": "C dispatcher flow.c:1706-1723 — directed 3-cycle "
+        "0→1→2→0 with unit capacities; every arc is a directed bridge "
+        "⇒ mincut_value = 1.0.",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "algo": "mincut_value",
+        "params": {"capacity": None},
+        "expected": 1.0,
+    },
+    {
+        "case": "mincut_c_directed_3cycle_weighted",
+        "origin": "C dispatcher flow.c:1706-1723 — directed 3-cycle "
+        "with weights [3, 1, 2]; bottleneck arc 1→2 weight 1 minimises "
+        "every 0→v / v→0 cut ⇒ mincut_value = 1.0.",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=True
+        ),
+        "graph_weights": [3.0, 1.0, 2.0],
+        "algo": "mincut_value",
+        "params": {"capacity": [3.0, 1.0, 2.0]},
+        "expected": 1.0,
+    },
+    {
+        "case": "mincut_c_undirected_ring5_unit_caps_returns_two",
+        "origin": "C dispatcher flow.c:1702 — undirected ring C_5 unit "
+        "capacities; igraph_i_mincut_value_undirected (Stoer-Wagner in "
+        "C; fixed-vertex loop here) ⇒ mincut_value = 2.0.",
+        "graph_factory": lambda: ig.Graph.Ring(5, directed=False, circular=True),
+        "algo": "mincut_value",
+        "params": {"capacity": None},
+        "expected": 2.0,
+    },
+    {
+        "case": "mincut_c_two_isolated_edges_returns_zero",
+        "origin": "C dispatcher: undirected, two isolated edges → "
+        "disconnected ⇒ max_flow(0, v) = 0 for any v in the other "
+        "component ⇒ mincut_value = 0.0.",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (2, 3)], directed=False
+        ),
+        "algo": "mincut_value",
+        "params": {"capacity": None},
+        "expected": 0.0,
+    },
+    {
+        "case": "mincut_c_complete_undirected_4v_unit_caps_returns_three",
+        "origin": "C dispatcher: K_4 undirected unit caps — every "
+        "single-vertex isolation cut has weight 3 ⇒ mincut_value = 3.0 "
+        "(matches n - 1 for simple K_n at unit caps).",
+        "graph_factory": lambda: ig.Graph.Full(4, directed=False, loops=False),
+        "algo": "mincut_value",
+        "params": {"capacity": None},
+        "expected": 3.0,
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -10544,6 +10612,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "vertex_disjoint_paths": VDP_MANIFEST,
     "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
+    "mincut_value": MINCUT_VALUE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,
