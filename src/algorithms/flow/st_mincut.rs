@@ -110,8 +110,9 @@ pub fn st_mincut_value(
 /// `cut`, `partition`, and `partition2` outputs alongside the flow
 /// value. Our implementation:
 ///
-/// 1. Calls [`max_flow_with_residual`] to run Dinic and obtain both
-///    the flow value and the final residual network.
+/// 1. Calls the crate-private `max_flow_with_residual` backend (the
+///    shared Dinic entry point that also powers [`max_flow_value`]) to
+///    obtain both the flow value and the final residual network.
 /// 2. Runs one BFS from `source` in the residual graph (following only
 ///    arcs with strictly positive residual capacity). The set of
 ///    reachable vertices is precisely the source-side `S` of a
