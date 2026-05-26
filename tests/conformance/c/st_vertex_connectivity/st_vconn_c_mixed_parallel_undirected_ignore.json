@@ -1,0 +1,38 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_st_vertex_connectivity.c:48-50 \u2014 2v undirected with (0,1)\u00d73 + (1,0)\u00d72 (printed as 'directed' but the C `igraph_small` call is IGRAPH_UNDIRECTED), mode=IGNORE \u2192 0",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "st_vertex_connectivity",
+  "params": {
+    "source": 0,
+    "target": 1,
+    "mode": "ignore"
+  },
+  "expected": 0
+}

@@ -1,0 +1,42 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_st_vertex_connectivity.c:64-66 \u2014 3v undirected (0,1)\u00d72 + (1,2)\u00d74, s=0, t=2, mode=ERROR \u2192 1 (vertex 1 is the only path)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "st_vertex_connectivity",
+  "params": {
+    "source": 0,
+    "target": 2,
+    "mode": "error"
+  },
+  "expected": 1
+}

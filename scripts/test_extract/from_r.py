@@ -3797,6 +3797,41 @@ ED_PATHS_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-013: st_vertex_connectivity. rigraph exposes
+# `vertex_connectivity(graph, source, target)` which dispatches to
+# `st_vertex_connectivity_impl` (R/aaa-auto.R:11598) which defaults
+# `neighbors = "number_of_nodes"`. Test tests/testthat/test-flow.R:130-139
+# asserts:
+#   - 5v circular ring (`make_ring(5, circular=TRUE)`), source=1, target=4
+#     → vc == 2 (R 1-indexed → Rust source=0, target=3); no direct edge so
+#     mode-independent; two disjoint paths 0→1→2→3 and 0→4→3.
+# Plus a K_6 directed IGNORE sanity that overlaps with the C fixture.
+ST_VCONN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "st_vconn_r_ring5_circular",
+        "origin": "rigraph tests/testthat/test-flow.R:138 "
+        "(vertex_connectivity(make_ring(5, circular=TRUE), source=1, "
+        "target=4) == 2); R 1-indexed → Rust source=0, target=3; "
+        "no direct edge so any mode returns 2",
+        "graph_factory": lambda: ig.Graph.Ring(5, directed=False, circular=True),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 3, "mode": "number_of_nodes"},
+        "expected": 2,
+    },
+    {
+        "case": "st_vconn_r_full_6v_undirected_ignore",
+        "origin": "rigraph cross-check using K_6 undirected (same fixture "
+        "structure as the C `igraph_st_vertex_connectivity.c:57` case but "
+        "exposed via rigraph's `vertex_connectivity` wrapper): vc(0,1) "
+        "with mode IGNORE returns 4",
+        "graph_factory": lambda: ig.Graph.Full(6, directed=False, loops=False),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 1, "mode": "ignore"},
+        "expected": 4,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
 # Generator — RNG state not portable across implementations, so we
@@ -8181,6 +8216,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_mincut_value": ST_MINCUT_MANIFEST,
     "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
     "edge_disjoint_paths": ED_PATHS_MANIFEST,
+    "st_vertex_connectivity": ST_VCONN_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

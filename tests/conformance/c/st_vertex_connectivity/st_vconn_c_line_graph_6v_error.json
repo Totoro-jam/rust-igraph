@@ -1,0 +1,38 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_st_vertex_connectivity.c:52-54 \u2014 6v undirected path 0-1-2-3-4-5, s=0, t=5, mode=ERROR \u2192 1 (any internal vertex cuts)",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "st_vertex_connectivity",
+  "params": {
+    "source": 0,
+    "target": 5,
+    "mode": "error"
+  },
+  "expected": 1
+}

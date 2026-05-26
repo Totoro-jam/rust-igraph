@@ -1,0 +1,22 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_st_vertex_connectivity.c:40-42 \u2014 same 2v undirected fixture, mode=NUMBER_OF_NODES \u2192 2",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "st_vertex_connectivity",
+  "params": {
+    "source": 0,
+    "target": 1,
+    "mode": "number_of_nodes"
+  },
+  "expected": 2
+}

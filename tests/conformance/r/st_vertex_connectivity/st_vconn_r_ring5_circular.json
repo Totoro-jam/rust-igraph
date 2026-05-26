@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R:138 (vertex_connectivity(make_ring(5, circular=TRUE), source=1, target=4) == 2); R 1-indexed \u2192 Rust source=0, target=3; no direct edge so any mode returns 2",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "st_vertex_connectivity",
+  "params": {
+    "source": 0,
+    "target": 3,
+    "mode": "number_of_nodes"
+  },
+  "expected": 2
+}

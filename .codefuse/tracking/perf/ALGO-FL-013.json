@@ -1,0 +1,11 @@
+{
+  "awu": "ALGO-FL-013",
+  "function": "st_vertex_connectivity",
+  "captured_at": "2026-05-26",
+  "git_commit": "5e9b831",
+  "rust_textbook_6v_path_undirected_ns": 7250,
+  "rust_layered_L4_W8_ns": 692080,
+  "rust_layered_L6_W16_ns": 22075000,
+  "rust_layered_L8_W32_ns": 727580000,
+  "notes": "Vertex-splitting reduction (Even §5.5) plus unit-cap max-flow on the split graph: 2n vertices and (m + n) arcs for directed input, or (2m + n) arcs for undirected (the MUTUAL conversion duplicates every edge). Same layered fixture shape as FL-011/FL-012 to keep the JSONs comparable cell-for-cell. Headline ratios FL-013 / FL-012 on the layered grid: L4W8 = 692 µs / 5.3 µs ≈ 130×, L6W16 = 22 ms / 21 µs ≈ 1030×, L8W32 = 728 ms / 88 µs ≈ 8300×. The blow-up is structural — every original arc spawns one inter-half arc and every original vertex spawns one intra-half arc, then we run Dinic's on a graph that is roughly twice as wide. The disable-incident-arcs step also forces source/target zero passes that don't appear in the edge-connectivity wrapper. Textbook (6v undirected path → 1 internal vertex disjoint path) is 7.25 µs vs FL-012's 402 ns ≈ 18× — small graph, the split-graph overhead dominates. L8W32 trips criterion's 5 s budget (estimated 66 s for 100 samples) — acceptable for a one-shot baseline; future work could shrink the split-graph residual by special-casing unit-capacity reachability without flow."
+}

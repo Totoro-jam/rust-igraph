@@ -59,6 +59,10 @@ name = "edge_disjoint_paths_demo"
 path = "examples/edge_disjoint_paths_demo.rs"
 
 [[example]]
+name = "st_vertex_connectivity_demo"
+path = "examples/st_vertex_connectivity_demo.rs"
+
+[[example]]
 name = "hsbm_demo"
 path = "examples/hsbm_demo.rs"
 
@@ -422,6 +426,11 @@ harness = false
 [[bench]]
 name = "bench_edge_disjoint_paths"
 path = "benches/bench_edge_disjoint_paths.rs"
+harness = false
+
+[[bench]]
+name = "bench_st_vertex_connectivity"
+path = "benches/bench_st_vertex_connectivity.rs"
 harness = false
 
 [[bench]]

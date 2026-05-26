@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_st_vertex_connectivity.c:44-46 \u2014 2v undirected with 3 parallel edges (0,1)\u00d73, mode=IGNORE \u2192 0 (direct arcs subtracted)",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "st_vertex_connectivity",
+  "params": {
+    "source": 0,
+    "target": 1,
+    "mode": "ignore"
+  },
+  "expected": 0
+}

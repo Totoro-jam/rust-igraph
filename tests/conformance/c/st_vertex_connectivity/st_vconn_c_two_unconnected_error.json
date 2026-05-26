@@ -1,0 +1,17 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_st_vertex_connectivity.c:32-34 \u2014 2v undirected with no edges, s=0, t=1, mode=ERROR \u2192 0 (no direct edge, max-flow on split graph = 0)",
+  "graph": {
+    "n": 2,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "st_vertex_connectivity",
+  "params": {
+    "source": 0,
+    "target": 1,
+    "mode": "error"
+  },
+  "expected": 0
+}

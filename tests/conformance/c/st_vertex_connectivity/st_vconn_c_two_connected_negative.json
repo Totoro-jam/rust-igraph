@@ -1,0 +1,22 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_st_vertex_connectivity.c:36-38 \u2014 2v undirected with one edge (0,1), mode=NEGATIVE \u2192 -1",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "st_vertex_connectivity",
+  "params": {
+    "source": 0,
+    "target": 1,
+    "mode": "negative"
+  },
+  "expected": -1
+}

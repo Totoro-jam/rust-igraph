@@ -15,6 +15,56 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-013** — `st_vertex_connectivity`: minimum number of internal
+  vertices whose removal disconnects `source → target`. Mirrors
+  `igraph_st_vertex_connectivity` at
+  `references/igraph/src/connectivity/connectivity.c:31`. Algorithm is
+  the textbook **vertex-splitting reduction** (Even, *Graph Algorithms*
+  §5.5): each vertex `v` is split into `v_out` and `v_in` joined by an
+  internal arc of capacity 1; every original arc `u → v` becomes
+  `u_out → v_in` with capacity 1; the s-t vertex connectivity then
+  equals the unit-cap max-flow from `source_out` to `target_in` on the
+  split graph (Menger 1927: max number of internally vertex-disjoint
+  paths = min vertex cut). Direct `source → target` arcs are handled
+  per the [`VconnNei`] mode (the upstream
+  `igraph_vconn_nei_t` enum).
+  - `pub fn st_vertex_connectivity(graph: &Graph, source: VertexId,
+    target: VertexId, mode: VconnNei) -> IgraphResult<i64>` plus the
+    `pub enum VconnNei { Error, Negative, NumberOfNodes, Ignore }`.
+    Returns `i64` to match igraph C's `igraph_int_t`.
+  - The split-graph layout follows igraph's own convention so the
+    disable-incident-arcs phase is bit-exact: vertex `v` maps to
+    `v_out = v` (output half, first `n` vertices) and
+    `v_in = v + n` (input half, last `n` vertices). For undirected
+    input we apply the same `IGRAPH_TO_DIRECTED_MUTUAL` conversion as
+    upstream — every edge becomes two arcs.
+  - Whitney 1932 bound: `st_vertex_connectivity(s, t) ≤
+    st_edge_connectivity(s, t)` on every input, verified by a proptest
+    invariant against [`st_edge_connectivity`].
+  - 15 unit tests verbatim-replay
+    `tests/unit/igraph_st_vertex_connectivity.c` (path 6v `vc(0,5)=1`,
+    2v direct-edge under all four `VconnNei` modes, K_6 IGNORE
+    `vc(0,1)=4`, parallel directed paths `vc(0,3)=2`, isolated
+    endpoints `vc=0`) plus error-contract tests for
+    `source == target`, out-of-range endpoints, and `vcount < 2`.
+    2 proptests: `vc_le_ec` (Whitney bound) and
+    `disconnected_returns_zero`.
+  - Three-source conformance: 9 C fixtures (full unit test replay),
+    2 py fixtures (`Graph.vertex_connectivity` with a `source`/`target`
+    pair), 2 R fixtures (`igraph::vertex_connectivity(graph, source =,
+    target =)` per `test-flow.R:138`).
+  - Bench: `bench_st_vertex_connectivity` (textbook 6v path + layered
+    `L4×W8`, `L6×W16`, `L8×W32`). Headline: textbook = 7.25 µs,
+    L4×W8 = 692 µs, L6×W16 = 22 ms, L8×W32 = 728 ms. The blow-up vs.
+    FL-012 (130×→8300×) is structural — the split graph doubles
+    vertex count and the disable-incident-arcs phase forces zero-cap
+    passes that FL-012 skips. See
+    `.codefuse/tracking/perf/ALGO-FL-013.json` for the breakdown.
+  - Example: `cargo run --example st_vertex_connectivity_demo`.
+  - Re-exports: `rust_igraph::{VconnNei, st_vertex_connectivity}` and
+    `rust_igraph::algorithms::flow::st_vertex_connectivity::{VconnNei,
+    st_vertex_connectivity}`.
+
 - **ALGO-FL-012** — `edge_disjoint_paths`: maximum number of pairwise
   edge-disjoint `source → target` paths. Mirrors
   `igraph_edge_disjoint_paths` at

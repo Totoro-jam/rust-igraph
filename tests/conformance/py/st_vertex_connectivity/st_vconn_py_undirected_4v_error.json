@@ -1,0 +1,38 @@
+{
+  "source": "py",
+  "origin": "python-igraph tests/test_flow.py:CutTests.testVertexConnectivity (g = Graph(4, [(0,1),(0,2),(1,2),(1,3),(2,3)]); g.vertex_connectivity(0, 3, neighbors='error') == 2 \u2014 no direct edge between 0 and 3 so ERROR mode is safe; vertex 1 and 2 each lie on every 0\u21923 path so vc = 2)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "st_vertex_connectivity",
+  "params": {
+    "source": 0,
+    "target": 3,
+    "mode": "error"
+  },
+  "expected": 2
+}

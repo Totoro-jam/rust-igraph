@@ -4036,6 +4036,116 @@ ED_PATHS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-013: st_vertex_connectivity. Mirrors `igraph_st_vertex_connectivity`
+# in references/igraph/src/flow/flow.c:1922 — uses the vertex-splitting
+# reduction (`igraph_i_split_vertices` from flow_conversion.c:61) and a
+# unit-cap max-flow on the split graph. The dedicated C unit test
+# tests/unit/igraph_st_vertex_connectivity.c:32-66 has nine print-cases;
+# the three trailing CHECK_ERROR cases at lines 70-83 verify error paths
+# (source==target, n==0, n==1) and are exercised in the Rust unit-test
+# module directly rather than via the JSON conformance harness.
+ST_VCONN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "st_vconn_c_two_unconnected_error",
+        "origin": "tests/unit/igraph_st_vertex_connectivity.c:32-34 — 2v "
+        "undirected with no edges, s=0, t=1, mode=ERROR → 0 (no direct "
+        "edge, max-flow on split graph = 0)",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[], directed=False),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 1, "mode": "error"},
+        "expected": 0,
+    },
+    {
+        "case": "st_vconn_c_two_connected_negative",
+        "origin": "tests/unit/igraph_st_vertex_connectivity.c:36-38 — 2v "
+        "undirected with one edge (0,1), mode=NEGATIVE → -1",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[(0, 1)], directed=False),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 1, "mode": "negative"},
+        "expected": -1,
+    },
+    {
+        "case": "st_vconn_c_two_connected_number_of_nodes",
+        "origin": "tests/unit/igraph_st_vertex_connectivity.c:40-42 — same "
+        "2v undirected fixture, mode=NUMBER_OF_NODES → 2",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[(0, 1)], directed=False),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 1, "mode": "number_of_nodes"},
+        "expected": 2,
+    },
+    {
+        "case": "st_vconn_c_three_parallel_undirected_ignore",
+        "origin": "tests/unit/igraph_st_vertex_connectivity.c:44-46 — 2v "
+        "undirected with 3 parallel edges (0,1)×3, mode=IGNORE → 0 "
+        "(direct arcs subtracted)",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1), (0, 1)], directed=False
+        ),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 1, "mode": "ignore"},
+        "expected": 0,
+    },
+    {
+        "case": "st_vconn_c_mixed_parallel_undirected_ignore",
+        "origin": "tests/unit/igraph_st_vertex_connectivity.c:48-50 — 2v "
+        "undirected with (0,1)×3 + (1,0)×2 (printed as 'directed' but the "
+        "C `igraph_small` call is IGRAPH_UNDIRECTED), mode=IGNORE → 0",
+        "graph_factory": lambda: ig.Graph(
+            n=2,
+            edges=[(0, 1), (0, 1), (0, 1), (1, 0), (1, 0)],
+            directed=False,
+        ),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 1, "mode": "ignore"},
+        "expected": 0,
+    },
+    {
+        "case": "st_vconn_c_line_graph_6v_error",
+        "origin": "tests/unit/igraph_st_vertex_connectivity.c:52-54 — 6v "
+        "undirected path 0-1-2-3-4-5, s=0, t=5, mode=ERROR → 1 "
+        "(any internal vertex cuts)",
+        "graph_factory": lambda: ig.Graph(
+            n=6, edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)], directed=False
+        ),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 5, "mode": "error"},
+        "expected": 1,
+    },
+    {
+        "case": "st_vconn_c_full_graph_6v_undirected_ignore",
+        "origin": "tests/unit/igraph_st_vertex_connectivity.c:56-58 — K_6 "
+        "undirected, s=0, t=1, mode=IGNORE → 4 (must remove all "
+        "internal vertices)",
+        "graph_factory": lambda: ig.Graph.Full(n=6, directed=False, loops=False),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 1, "mode": "ignore"},
+        "expected": 4,
+    },
+    {
+        "case": "st_vconn_c_full_graph_6v_directed_ignore",
+        "origin": "tests/unit/igraph_st_vertex_connectivity.c:60-62 — K_6 "
+        "directed (both arcs for every pair), s=0, t=1, mode=IGNORE → 4",
+        "graph_factory": lambda: ig.Graph.Full(n=6, directed=True, loops=False),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 1, "mode": "ignore"},
+        "expected": 4,
+    },
+    {
+        "case": "st_vconn_c_three_vertex_bottleneck_error",
+        "origin": "tests/unit/igraph_st_vertex_connectivity.c:64-66 — 3v "
+        "undirected (0,1)×2 + (1,2)×4, s=0, t=2, mode=ERROR → 1 "
+        "(vertex 1 is the only path)",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (0, 1), (1, 2), (1, 2), (1, 2), (1, 2)],
+            directed=False,
+        ),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 2, "mode": "error"},
+        "expected": 1,
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -10171,6 +10281,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_mincut_value": ST_MINCUT_MANIFEST,
     "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
     "edge_disjoint_paths": ED_PATHS_MANIFEST,
+    "st_vertex_connectivity": ST_VCONN_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

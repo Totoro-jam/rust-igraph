@@ -3558,6 +3558,41 @@ ED_PATHS_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-013: st_vertex_connectivity. python-igraph exposes the same
+# function (`Graph.vertex_connectivity(source, target, neighbors=...)`)
+# from src/igraph/__init__.py. The `tests/test_flow.py`
+# `CutTests.testVertexConnectivity` test verifies the same 4-vertex
+# fixture as testEdgeConnectivity: G = (0,1)(0,2)(1,2)(1,3)(2,3) →
+# vc(0, 3) == 2 (vertices 1 and 2 are both bottlenecks; either alone
+# suffices to disconnect → vc = 2). Plus a K_5 directed sanity.
+ST_VCONN_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "st_vconn_py_undirected_4v_error",
+        "origin": "python-igraph tests/test_flow.py:CutTests.testVertexConnectivity "
+        "(g = Graph(4, [(0,1),(0,2),(1,2),(1,3),(2,3)]); "
+        "g.vertex_connectivity(0, 3, neighbors='error') == 2 — no direct "
+        "edge between 0 and 3 so ERROR mode is safe; vertex 1 and 2 each "
+        "lie on every 0→3 path so vc = 2)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 3, "mode": "error"},
+        "expected": 2,
+    },
+    {
+        "case": "st_vconn_py_full_5v_directed_ignore",
+        "origin": "K_5 directed (both arcs for every pair). Every pair has "
+        "n-2 = 3 internally vertex-disjoint paths plus a direct arc; "
+        "with IGNORE mode the direct arc is subtracted → vc = 3",
+        "graph_factory": lambda: ig.Graph.Full(5, directed=True, loops=False),
+        "algo": "st_vertex_connectivity",
+        "params": {"source": 0, "target": 1, "mode": "ignore"},
+        "expected": 3,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
 # wrapper on the same `igraph_forest_fire_game` C entry point). RNG
@@ -8065,6 +8100,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_mincut_value": ST_MINCUT_MANIFEST,
     "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
     "edge_disjoint_paths": ED_PATHS_MANIFEST,
+    "st_vertex_connectivity": ST_VCONN_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

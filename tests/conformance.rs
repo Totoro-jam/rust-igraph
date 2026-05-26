@@ -15845,3 +15845,86 @@ fn edge_disjoint_paths_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn st_vertex_connectivity_three_source_conformance() {
+    // ALGO-FL-013: vertex-splitting reduction + unit-cap max-flow, with
+    // `VconnNei` directing how a direct s→t edge is reported. Fixtures
+    // from C, py, R pin the four modes (Error / Negative /
+    // NumberOfNodes / Ignore) to their ground-truth integer values.
+    use rust_igraph::{VconnNei, st_vertex_connectivity};
+
+    let mut seen = std::collections::HashSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("st_vertex_connectivity");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "st_vertex_connectivity");
+            let g = build_graph(&case.graph);
+            let source = u32::try_from(
+                case.params
+                    .get("source")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`source` param required"),
+            )
+            .expect("source fits in u32");
+            let target = u32::try_from(
+                case.params
+                    .get("target")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`target` param required"),
+            )
+            .expect("target fits in u32");
+            let mode_str = case
+                .params
+                .get("mode")
+                .and_then(serde_json::Value::as_str)
+                .expect("`mode` param required");
+            let mode = match mode_str {
+                "error" => VconnNei::Error,
+                "negative" => VconnNei::Negative,
+                "number_of_nodes" => VconnNei::NumberOfNodes,
+                "ignore" => VconnNei::Ignore,
+                other => panic!("unknown VconnNei mode `{other}` in {path:?}"),
+            };
+            let value =
+                st_vertex_connectivity(&g, source, target, mode).expect("st_vertex_connectivity");
+            let actual = serde_json::json!(value);
+            assert!(
+                json_approx_eq(&actual, &case.expected),
+                "st_vertex_connectivity conformance failure\n  fixture: {}\n  source:  {}\n  origin:  {}\n  actual:   {}\n  expected: {}",
+                path.display(),
+                case.source,
+                case.origin,
+                actual,
+                case.expected,
+            );
+            assert_eq!(case.source, src);
+            seen.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen.contains(src),
+            "no st_vertex_connectivity fixtures from source {src}"
+        );
+    }
+}
