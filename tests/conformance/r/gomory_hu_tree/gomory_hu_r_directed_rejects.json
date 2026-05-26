@@ -1,0 +1,34 @@
+{
+  "source": "r",
+  "origin": "rigraph gomory_hu_tree on a directed graph errors with 'only defined for undirected graphs' (mirrors C IGRAPH_EINVAL).",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "gomory_hu_tree",
+  "params": {
+    "capacity": null
+  },
+  "expected": {
+    "raises": true
+  }
+}

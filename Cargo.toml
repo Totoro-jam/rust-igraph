@@ -435,6 +435,11 @@ path = "benches/bench_st_mincut.rs"
 harness = false
 
 [[bench]]
+name = "bench_gomory_hu_tree"
+path = "benches/bench_gomory_hu_tree.rs"
+harness = false
+
+[[bench]]
 name = "bench_st_edge_connectivity"
 path = "benches/bench_st_edge_connectivity.rs"
 harness = false

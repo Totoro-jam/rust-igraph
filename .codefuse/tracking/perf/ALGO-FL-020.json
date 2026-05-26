@@ -1,0 +1,117 @@
+{
+  "algo_id": "ALGO-FL-020",
+  "algo": "gomory_hu_tree",
+  "captured_at": "2026-05-26",
+  "git_commit": "4e53e1d",
+  "machine": "darwin-arm64",
+  "criterion_version": "0.5",
+  "configs": [
+    {
+      "label": "6v_weighted_c_reference",
+      "vcount": 6,
+      "ecount": 9,
+      "notes": "Canonical igraph C unit-test fixture; 5 st_mincut calls."
+    },
+    {
+      "label": "K_8",
+      "vcount": 8,
+      "ecount": 28,
+      "notes": "K_n complete graph, unit caps. 7 st_mincut calls; each is a degree-7 max-flow on a dense network."
+    },
+    {
+      "label": "K_16",
+      "vcount": 16,
+      "ecount": 120,
+      "notes": "K_n complete graph, unit caps. 15 st_mincut calls."
+    },
+    {
+      "label": "K_32",
+      "vcount": 32,
+      "ecount": 496,
+      "notes": "K_n complete graph, unit caps. 31 st_mincut calls."
+    },
+    {
+      "label": "K_64",
+      "vcount": 64,
+      "ecount": 2016,
+      "notes": "K_n complete graph, unit caps. 63 st_mincut calls."
+    },
+    {
+      "label": "C_16",
+      "vcount": 16,
+      "ecount": 16,
+      "notes": "Cycle C_n unit caps; min-cut = 2 between every pair."
+    },
+    {
+      "label": "C_64",
+      "vcount": 64,
+      "ecount": 64
+    },
+    {
+      "label": "C_256",
+      "vcount": 256,
+      "ecount": 256
+    },
+    {
+      "label": "C_1024",
+      "vcount": 1024,
+      "ecount": 1024
+    }
+  ],
+  "results": {
+    "gomory_hu_tree/6v weighted (C reference)": {
+      "time_low": "5.4563 us",
+      "time_mid": "5.5059 us",
+      "time_high": "5.5789 us"
+    },
+    "gomory_hu_tree/complete/K_8": {
+      "time_low": "10.931 us",
+      "time_mid": "10.955 us",
+      "time_high": "10.985 us",
+      "throughput": "~2.56 Mev/s"
+    },
+    "gomory_hu_tree/complete/K_16": {
+      "time_low": "59.952 us",
+      "time_mid": "61.487 us",
+      "time_high": "64.050 us",
+      "throughput": "~1.95 Mev/s"
+    },
+    "gomory_hu_tree/complete/K_32": {
+      "time_low": "342.38 us",
+      "time_mid": "343.79 us",
+      "time_high": "346.28 us",
+      "throughput": "~1.44 Mev/s"
+    },
+    "gomory_hu_tree/complete/K_64": {
+      "time_low": "2.1926 ms",
+      "time_mid": "2.2083 ms",
+      "time_high": "2.2325 ms",
+      "throughput": "~913 Kev/s"
+    },
+    "gomory_hu_tree/cycle/C_16": {
+      "time_low": "21.312 us",
+      "time_mid": "21.393 us",
+      "time_high": "21.516 us",
+      "throughput": "~748 Kv/s"
+    },
+    "gomory_hu_tree/cycle/C_64": {
+      "time_low": "271.66 us",
+      "time_mid": "272.87 us",
+      "time_high": "274.58 us",
+      "throughput": "~235 Kv/s"
+    },
+    "gomory_hu_tree/cycle/C_256": {
+      "time_low": "4.0545 ms",
+      "time_mid": "4.0669 ms",
+      "time_high": "4.0832 ms",
+      "throughput": "~62.9 Kv/s"
+    },
+    "gomory_hu_tree/cycle/C_1024": {
+      "time_low": "67.463 ms",
+      "time_mid": "67.702 ms",
+      "time_high": "67.982 ms",
+      "throughput": "~15.1 Kv/s"
+    }
+  },
+  "notes": "Gusfield's algorithm performs exactly `vcount - 1` calls to `st_mincut` (FL-018), each backed by Dinic max-flow. The K_n suite shows the expected dense scaling: time grows roughly as n^3 (n max-flow calls on a network with O(n^2) edges, each Dinic running in O(V*E)), confirmed by the 10.9µs (n=8) → 2.2ms (n=64) step ratio of ~200× over an 8× increase in n. The cycle C_n suite is the per-call overhead floor: each Dinic finds a 2-edge cut in one BFS pass, so the cost is dominated by the n-1 calls' setup; the 21µs (n=16) → 67ms (n=1024) ratio of ~3200× over 64× n confirms the n^2 floor (st_mincut is O(V+E) per call on a cycle, repeated n times). No clippy lints; no allocation in the inner loop beyond what st_mincut requires."
+}

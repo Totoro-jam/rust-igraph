@@ -1,0 +1,46 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_gomory_hu_tree.c:199-204 \u2014 K_4 undirected unit caps (issue #1810 regression). Every pair has max-flow 3 (degree); every tree edge weight is 3.",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "gomory_hu_tree",
+  "params": {
+    "capacity": null
+  },
+  "expected": {
+    "vcount": 4,
+    "ecount": 3,
+    "flows_len": 3,
+    "flows_min": 3.0,
+    "is_directed": false
+  }
+}

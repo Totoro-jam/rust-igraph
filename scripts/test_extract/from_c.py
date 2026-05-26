@@ -4588,6 +4588,104 @@ ST_MINCUT_PARTITION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-020: gomory_hu_tree. Mirrors `igraph_gomory_hu_tree` at
+# `references/igraph/src/flow/flow.c:2479-2616` and the C unit fixtures
+# in `references/igraph/tests/unit/igraph_gomory_hu_tree.c`. The tree
+# itself is not unique (Gusfield depends on iteration order), so the
+# manifest pins only *shape invariants* and a `flows_min` floor; the
+# Rust runner additionally verifies the Gomory-Hu property by
+# recomputing `max_flow_value` for every pair and asserting equality
+# with the min-edge-weight along the unique tree path between them.
+GOMORY_HU_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "gomory_hu_c_empty",
+        "origin": "tests/unit/igraph_gomory_hu_tree.c:170-176 — "
+        "empty undirected graph (n=0); tree vcount=0, flows empty.",
+        "graph_factory": lambda: ig.Graph(n=0, edges=[], directed=False),
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": None},
+        "expected": {
+            "vcount": 0,
+            "ecount": 0,
+            "flows_len": 0,
+            "is_directed": False,
+        },
+    },
+    {
+        "case": "gomory_hu_c_6v_weighted",
+        "origin": "tests/unit/igraph_gomory_hu_tree.c:178-191 — "
+        "6-vertex undirected (0-1)(0-2)(1-2)(1-3)(1-4)(2-4)(3-4)(3-5)"
+        "(4-5) caps [1,7,1,3,2,4,1,6,2]. validate_tree compares each "
+        "pair's tree-path min weight against max_flow_value.",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[
+                (0, 1),
+                (0, 2),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 4),
+                (3, 4),
+                (3, 5),
+                (4, 5),
+            ],
+            directed=False,
+        ),
+        "graph_weights": [1.0, 7.0, 1.0, 3.0, 2.0, 4.0, 1.0, 6.0, 2.0],
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": [1.0, 7.0, 1.0, 3.0, 2.0, 4.0, 1.0, 6.0, 2.0]},
+        "expected": {
+            "vcount": 6,
+            "ecount": 5,
+            "flows_len": 5,
+            "flows_min": 0.0,
+            "is_directed": False,
+        },
+    },
+    {
+        "case": "gomory_hu_c_k4_unit_caps",
+        "origin": "tests/unit/igraph_gomory_hu_tree.c:199-204 — "
+        "K_4 undirected unit caps (issue #1810 regression). Every "
+        "pair has max-flow 3 (degree); every tree edge weight is 3.",
+        "graph_factory": lambda: ig.Graph.Full(4, directed=False, loops=False),
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": None},
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "flows_len": 3,
+            "flows_min": 3.0,
+            "is_directed": False,
+        },
+    },
+    {
+        "case": "gomory_hu_c_6v_directed_rejects",
+        "origin": "tests/unit/igraph_gomory_hu_tree.c:206-212 — "
+        "same 6v edge set directed=true returns IGRAPH_EINVAL; "
+        "Gomory-Hu is defined only for undirected graphs.",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[
+                (0, 1),
+                (0, 2),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 4),
+                (3, 4),
+                (3, 5),
+                (4, 5),
+            ],
+            directed=True,
+        ),
+        "graph_weights": [1.0, 7.0, 1.0, 3.0, 2.0, 4.0, 1.0, 6.0, 2.0],
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": [1.0, 7.0, 1.0, 3.0, 2.0, 4.0, 1.0, 6.0, 2.0]},
+        "expected": {"raises": True},
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -10729,6 +10827,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
+    "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

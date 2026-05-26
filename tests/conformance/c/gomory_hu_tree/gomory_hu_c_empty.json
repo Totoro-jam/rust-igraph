@@ -1,0 +1,20 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_gomory_hu_tree.c:170-176 \u2014 empty undirected graph (n=0); tree vcount=0, flows empty.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "gomory_hu_tree",
+  "params": {
+    "capacity": null
+  },
+  "expected": {
+    "vcount": 0,
+    "ecount": 0,
+    "flows_len": 0,
+    "is_directed": false
+  }
+}

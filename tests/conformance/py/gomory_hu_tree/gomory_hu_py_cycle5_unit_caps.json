@@ -1,0 +1,42 @@
+{
+  "source": "py",
+  "origin": "C_5 undirected unit caps (5-vertex cycle). Every pair has max-flow exactly 2 (two edge-disjoint paths around the cycle), so every GH tree edge weight = 2.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "gomory_hu_tree",
+  "params": {
+    "capacity": null
+  },
+  "expected": {
+    "vcount": 5,
+    "ecount": 4,
+    "flows_len": 4,
+    "flows_min": 2.0,
+    "is_directed": false
+  }
+}

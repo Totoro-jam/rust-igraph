@@ -135,6 +135,7 @@ pub use crate::algorithms::constructors::weighted_adjacency::weighted_adjacency;
 pub use crate::algorithms::constructors::wheel::{WheelMode, wheel_graph};
 pub use crate::algorithms::flow::edge_connectivity::{adhesion, edge_connectivity};
 pub use crate::algorithms::flow::edge_disjoint_paths::edge_disjoint_paths;
+pub use crate::algorithms::flow::gomory_hu_tree::{GomoryHuTree, gomory_hu_tree};
 pub use crate::algorithms::flow::max_flow::max_flow_value;
 pub use crate::algorithms::flow::mincut_value::mincut_value;
 pub use crate::algorithms::flow::st_edge_connectivity::st_edge_connectivity;

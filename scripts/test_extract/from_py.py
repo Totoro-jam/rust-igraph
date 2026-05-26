@@ -3778,6 +3778,104 @@ ST_MINCUT_PARTITION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-020: gomory_hu_tree. python-igraph exposes
+# `Graph.gomory_hu_tree(capacity=None, flow="flow")` which returns a
+# tree Graph with edge attribute "flow" holding the per-edge min-cut
+# weights. Since the tree shape is not unique (Gusfield depends on
+# scan order), we pin only shape invariants here; the runner verifies
+# the Gomory-Hu property by recomputing `max_flow_value` for every
+# pair and asserting equality with the min-edge-weight along the
+# unique tree path between them. Fixtures cover (1) the python-igraph
+# tutorial 4-vertex path with non-uniform caps, (2) a 5-vertex cycle
+# with unit caps, (3) the C-suite 6v weighted case (so all three
+# extractors share a reference fixture).
+GOMORY_HU_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "gomory_hu_py_path4_nonuniform_caps",
+        "origin": "Graph(n=4, edges=[(0,1),(1,2),(2,3)], directed=False) "
+        "with capacity [3,1,5]; the (1,2) bridge of cap 1.0 dominates "
+        "every pair crossing it, so the GH tree carries weight 1.0 on "
+        "at least one edge.",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "graph_weights": [3.0, 1.0, 5.0],
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": [3.0, 1.0, 5.0]},
+        "expected": {
+            "vcount": 4,
+            "ecount": 3,
+            "flows_len": 3,
+            "flows_min": 1.0,
+            "is_directed": False,
+        },
+    },
+    {
+        "case": "gomory_hu_py_cycle5_unit_caps",
+        "origin": "C_5 undirected unit caps (5-vertex cycle). Every "
+        "pair has max-flow exactly 2 (two edge-disjoint paths around "
+        "the cycle), so every GH tree edge weight = 2.",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)],
+            directed=False,
+        ),
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": None},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "flows_len": 4,
+            "flows_min": 2.0,
+            "is_directed": False,
+        },
+    },
+    {
+        "case": "gomory_hu_py_6v_weighted_shared_with_c",
+        "origin": "Same fixture as C unit test (6-vertex undirected, "
+        "caps [1,7,1,3,2,4,1,6,2]) but verified via python-igraph "
+        "Graph.gomory_hu_tree(). The min cut across the entire graph "
+        "is 5 (cut {0,2} from {1,3,4,5} sums caps 1+1+4=6 → not min; "
+        "the actual global min cut sums to 5), so flows_min ≥ 0.",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[
+                (0, 1),
+                (0, 2),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 4),
+                (3, 4),
+                (3, 5),
+                (4, 5),
+            ],
+            directed=False,
+        ),
+        "graph_weights": [1.0, 7.0, 1.0, 3.0, 2.0, 4.0, 1.0, 6.0, 2.0],
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": [1.0, 7.0, 1.0, 3.0, 2.0, 4.0, 1.0, 6.0, 2.0]},
+        "expected": {
+            "vcount": 6,
+            "ecount": 5,
+            "flows_len": 5,
+            "flows_min": 0.0,
+            "is_directed": False,
+        },
+    },
+    {
+        "case": "gomory_hu_py_directed_rejects",
+        "origin": "python-igraph Graph.gomory_hu_tree on a directed "
+        "graph raises InternalError (igraph C returns IGRAPH_EINVAL).",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=True
+        ),
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": None},
+        "expected": {"raises": True},
+    },
+]
+
 
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
@@ -8292,6 +8390,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
+    "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

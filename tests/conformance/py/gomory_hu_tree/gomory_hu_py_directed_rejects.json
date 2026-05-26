@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.gomory_hu_tree on a directed graph raises InternalError (igraph C returns IGRAPH_EINVAL).",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "gomory_hu_tree",
+  "params": {
+    "capacity": null
+  },
+  "expected": {
+    "raises": true
+  }
+}

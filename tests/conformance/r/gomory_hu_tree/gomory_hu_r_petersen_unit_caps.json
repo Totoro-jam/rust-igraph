@@ -1,0 +1,82 @@
+{
+  "source": "r",
+  "origin": "rigraph make_graph('Petersen') \u2014 10-vertex 3-regular unit caps. Petersen graph is 3-edge-connected, so every tree edge weight = 3.",
+  "graph": {
+    "n": 10,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        6,
+        9
+      ],
+      [
+        7,
+        9
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "gomory_hu_tree",
+  "params": {
+    "capacity": null
+  },
+  "expected": {
+    "vcount": 10,
+    "ecount": 9,
+    "flows_len": 9,
+    "flows_min": 3.0,
+    "is_directed": false
+  }
+}

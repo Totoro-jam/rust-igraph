@@ -16431,3 +16431,237 @@ fn st_mincut_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + Gomory-Hu property check
+fn gomory_hu_tree_three_source_conformance() {
+    // ALGO-FL-020: Gomory-Hu cut tree. The tree is not unique (Gusfield
+    // depends on scan order), so fixtures pin only shape invariants
+    // (`vcount`, `ecount`, `flows_len`, `flows_min`, `is_directed`).
+    // The runner additionally verifies the Gomory-Hu *property* on
+    // every fixture: for each pair (u,v), the minimum tree-path edge
+    // weight equals `max_flow_value(graph, u, v, caps)` — that's the
+    // deep correctness check that the cheap field gates can't catch.
+    // `expected: {"raises": true}` flips to the error-path branch
+    // (directed graphs reject).
+    let mut seen = std::collections::HashSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("gomory_hu_tree");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "gomory_hu_tree");
+            assert_eq!(case.source, src);
+
+            let g = build_graph(&case.graph);
+            let caps_vec: Option<Vec<f64>> = case.params.get("capacity").and_then(|v| {
+                if v.is_null() {
+                    None
+                } else {
+                    Some(
+                        v.as_array()
+                            .expect("capacity must be array or null")
+                            .iter()
+                            .map(|x| x.as_f64().expect("capacity entry must be f64"))
+                            .collect::<Vec<_>>(),
+                    )
+                }
+            });
+
+            let expected_obj = case
+                .expected
+                .as_object()
+                .expect("expected must be an object");
+
+            if expected_obj
+                .get("raises")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false)
+            {
+                let err = rust_igraph::gomory_hu_tree(&g, caps_vec.as_deref());
+                assert!(
+                    err.is_err(),
+                    "gomory_hu_tree should reject this fixture\n  fixture: {}\n  origin:  {}",
+                    path.display(),
+                    case.origin,
+                );
+                seen.insert(match src {
+                    "c" => "c",
+                    "py" => "py",
+                    "r" => "r",
+                    _ => unreachable!(),
+                });
+                continue;
+            }
+
+            let result =
+                rust_igraph::gomory_hu_tree(&g, caps_vec.as_deref()).expect("gomory_hu_tree");
+            let n = result.tree.vcount();
+
+            // ---- Shape invariants ----
+            let exp_vcount = u32::try_from(
+                expected_obj
+                    .get("vcount")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`expected.vcount` required"),
+            )
+            .expect("vcount fits in u32");
+            assert_eq!(
+                n,
+                exp_vcount,
+                "gomory_hu_tree vcount mismatch\n  fixture: {}\n  origin:  {}",
+                path.display(),
+                case.origin,
+            );
+
+            let want_ecount = usize::try_from(
+                expected_obj
+                    .get("ecount")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`expected.ecount` required"),
+            )
+            .expect("ecount fits in usize");
+            assert_eq!(
+                result.tree.ecount(),
+                want_ecount,
+                "gomory_hu_tree ecount mismatch\n  fixture: {}",
+                path.display(),
+            );
+
+            let want_flows_len = usize::try_from(
+                expected_obj
+                    .get("flows_len")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`expected.flows_len` required"),
+            )
+            .expect("flows_len fits in usize");
+            assert_eq!(
+                result.flows.len(),
+                want_flows_len,
+                "gomory_hu_tree flows_len mismatch\n  fixture: {}",
+                path.display(),
+            );
+
+            assert_eq!(
+                result.tree.is_directed(),
+                expected_obj
+                    .get("is_directed")
+                    .and_then(serde_json::Value::as_bool)
+                    .expect("`expected.is_directed` required"),
+                "gomory_hu_tree tree should be undirected\n  fixture: {}",
+                path.display(),
+            );
+
+            // flows must be finite and non-negative.
+            for &fv in &result.flows {
+                assert!(
+                    fv.is_finite() && fv >= 0.0,
+                    "flow value {fv} not finite or negative in {}",
+                    path.display()
+                );
+            }
+            if let Some(exp_min) = expected_obj
+                .get("flows_min")
+                .and_then(serde_json::Value::as_f64)
+            {
+                for &fv in &result.flows {
+                    assert!(
+                        fv + 1e-9_f64 >= exp_min,
+                        "flow value {fv} below floor {exp_min} in {}",
+                        path.display()
+                    );
+                }
+            }
+
+            // ---- Gomory-Hu property check ----
+            // For empty / single-vertex graphs there are no pairs.
+            if n < 2 {
+                seen.insert(match src {
+                    "c" => "c",
+                    "py" => "py",
+                    "r" => "r",
+                    _ => unreachable!(),
+                });
+                continue;
+            }
+
+            // Build tree adjacency with edge ids so we can recover the
+            // per-edge flow weight along any path.
+            let tree_ecount = u32::try_from(result.tree.ecount()).expect("tree ecount fits in u32");
+            let mut tree_adj: Vec<Vec<(u32, u32)>> = vec![Vec::new(); n as usize];
+            for eid in 0..tree_ecount {
+                let (u, v) = result.tree.edge(eid).expect("tree edge");
+                tree_adj[u as usize].push((v, eid));
+                tree_adj[v as usize].push((u, eid));
+            }
+
+            for src_v in 0..n {
+                for dst_v in (src_v + 1)..n {
+                    // BFS in tree from src_v to find unique path to dst_v.
+                    let mut parent: Vec<Option<(u32, u32)>> = vec![None; n as usize];
+                    let mut visited = vec![false; n as usize];
+                    visited[src_v as usize] = true;
+                    let mut q = vec![src_v];
+                    let mut hp = 0;
+                    while hp < q.len() && !visited[dst_v as usize] {
+                        let u = q[hp];
+                        hp += 1;
+                        for &(w, eid) in &tree_adj[u as usize] {
+                            if !visited[w as usize] {
+                                visited[w as usize] = true;
+                                parent[w as usize] = Some((u, eid));
+                                q.push(w);
+                            }
+                        }
+                    }
+                    // Walk back collecting edge ids; take the min flow.
+                    let mut cur = dst_v;
+                    let mut path_min: Option<f64> = None;
+                    while let Some((p, eid)) = parent[cur as usize] {
+                        let fv = result.flows[eid as usize];
+                        path_min = Some(path_min.map_or(fv, |m: f64| m.min(fv)));
+                        cur = p;
+                    }
+                    let tree_path_min =
+                        path_min.expect("tree must be connected for non-trivial pairs");
+
+                    let mf = rust_igraph::max_flow_value(&g, src_v, dst_v, caps_vec.as_deref())
+                        .expect("max_flow_value");
+                    let scale = tree_path_min.abs().max(mf.abs()).max(1.0);
+                    assert!(
+                        (tree_path_min - mf).abs() <= 1e-9_f64 * scale,
+                        "Gomory-Hu property violated\n  \
+                         fixture: {}\n  pair: ({src_v},{dst_v})\n  \
+                         tree-path-min: {tree_path_min}\n  max-flow: {mf}",
+                        path.display(),
+                    );
+                }
+            }
+
+            seen.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen.contains(src),
+            "no gomory_hu_tree fixtures from source {src}"
+        );
+    }
+}

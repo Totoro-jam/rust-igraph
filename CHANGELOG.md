@@ -15,6 +15,51 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-020** — `gomory_hu_tree`: all-pairs minimum-cut **Gomory-Hu
+  cut tree** via **Gusfield 1990**. Mirrors `igraph_gomory_hu_tree` at
+  `references/igraph/src/flow/flow.c:3079` (a ~70-line driver that loops
+  `igraph_maxflow_value` over a partial parent array and accumulates an
+  edge list). Rust-native re-implementation (not a line-by-line port):
+  1. Single-pass driver over vertices `1..vcount()`. For each `i`,
+     `t = parent[i]`, runs `st_mincut(graph, i, t, capacity)` (FL-018)
+     once. The returned source-side partition `S` (always containing `i`)
+     is used to re-parent every `j > i` that lies in `S` and currently
+     points to `t` — exactly the Gusfield update rule, but using the
+     already-computed `StMincut` partition instead of a second BFS pass.
+  2. Builds the tree edge list as `(i, parent[i])` for `i in 1..n`,
+     with `flows[i - 1] = mincut.value` from the `i`-th call.
+  3. Returns `GomoryHuTree { tree: Graph, flows: Vec<f64> }`. `tree` has
+     the same `vcount()` as the input, exactly `vcount() - 1` edges,
+     and is undirected by construction (Gomory-Hu trees are always
+     undirected even when the input is undirected — directed inputs are
+     rejected at entry to match igraph C semantics and avoid ambiguity
+     about which direction the cut should travel).
+  - `pub fn gomory_hu_tree(graph: &Graph, capacity: Option<&[f64]>) ->
+    IgraphResult<GomoryHuTree>`. The output satisfies the **Gomory-Hu
+    property**: for every pair `(u, v)`, `min(flows[e] for e on tree
+    path from u to v) == max_flow_value(graph, u, v, capacity)`. This is
+    the test invariant exercised by the proptest harness and the runnable
+    example.
+  - Error contract: `InvalidArgument` on directed input (matches igraph
+    C 0.10.x behaviour); `InvalidArgument` if `capacity.len() != ecount`
+    or any capacity is negative / non-finite; `VertexOutOfRange` is
+    impossible because no caller-supplied vertex enters the path.
+  - Empty graph (`vcount == 0`) and single-vertex graph (`vcount == 1`)
+    both return a tree with `0` edges and `flows = []`. Disconnected
+    inputs return a tree whose inter-component edges carry weight `0.0`
+    (the all-pairs min-cut across components is `0`, which is the
+    correct degenerate value).
+  - Backend reuse: every iteration calls the **same** `st_mincut`
+    backend as FL-018, so all FL-020 testing also exercises FL-018's
+    Dinic-based max-flow plus partition extraction. Total: 22 unit
+    + proptest tests, 12 three-source conformance fixtures (4 each
+    from igraph C / python-igraph / rigraph), a 5-case runnable
+    `examples/gomory_hu_tree_demo.rs` (K_4, C_5, the canonical C 6v
+    weighted fixture, P_4 with caps `[3, 1, 5]`, Petersen), and a
+    9-config criterion baseline (`6v_weighted`, `K_8..K_64`,
+    `C_16..C_1024`) in `.codefuse/tracking/perf/ALGO-FL-020.json`.
+    Observed scaling: K_n grows ~n^3 (10.9µs at n=8, 2.2ms at n=64);
+    C_n grows ~n^2 (21µs at n=16, 67ms at n=1024).
 - **ALGO-FL-018** — `st_mincut`: full s-t minimum-cut **partition** —
   the value plus the cut edge ids and the source-side / sink-side
   vertex bipartition. Mirrors `igraph_st_mincut` at

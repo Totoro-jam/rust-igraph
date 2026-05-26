@@ -4089,6 +4089,81 @@ ST_MINCUT_PARTITION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-020: gomory_hu_tree. R-igraph exposes
+# `gomory_hu_tree(graph, capacity = NULL)` which returns the cut tree
+# as a Graph with edge attribute "flow" carrying min-cut weights.
+# Tree shape is non-unique (Gusfield depends on scan order); we pin
+# only shape invariants here and let the Rust runner verify the
+# Gomory-Hu property via `max_flow_value` on every pair.
+GOMORY_HU_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "gomory_hu_r_full_5v_unit_caps",
+        "origin": "rigraph make_full_graph(5, directed=FALSE) — K_5 "
+        "unit caps. Each pair has max-flow 4 (degree); every tree "
+        "edge weight = 4.",
+        "graph_factory": lambda: ig.Graph.Full(5, directed=False, loops=False),
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": None},
+        "expected": {
+            "vcount": 5,
+            "ecount": 4,
+            "flows_len": 4,
+            "flows_min": 4.0,
+            "is_directed": False,
+        },
+    },
+    {
+        "case": "gomory_hu_r_petersen_unit_caps",
+        "origin": "rigraph make_graph('Petersen') — 10-vertex 3-regular "
+        "unit caps. Petersen graph is 3-edge-connected, so every tree "
+        "edge weight = 3.",
+        "graph_factory": lambda: ig.Graph.Famous("Petersen"),
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": None},
+        "expected": {
+            "vcount": 10,
+            "ecount": 9,
+            "flows_len": 9,
+            "flows_min": 3.0,
+            "is_directed": False,
+        },
+    },
+    {
+        "case": "gomory_hu_r_path6_unit_caps",
+        "origin": "rigraph make_ring(6, directed=FALSE, circular=FALSE) "
+        "— P_6 path unit caps. Every cut on a path equals 1; the GH "
+        "tree must carry flow 1 on every edge.",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)],
+            directed=False,
+        ),
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": None},
+        "expected": {
+            "vcount": 6,
+            "ecount": 5,
+            "flows_len": 5,
+            "flows_min": 1.0,
+            "is_directed": False,
+        },
+    },
+    {
+        "case": "gomory_hu_r_directed_rejects",
+        "origin": "rigraph gomory_hu_tree on a directed graph errors "
+        "with 'only defined for undirected graphs' (mirrors C "
+        "IGRAPH_EINVAL).",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 0)],
+            directed=True,
+        ),
+        "algo": "gomory_hu_tree",
+        "params": {"capacity": None},
+        "expected": {"raises": True},
+    },
+]
+
 
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
@@ -8480,6 +8555,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
+    "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,
