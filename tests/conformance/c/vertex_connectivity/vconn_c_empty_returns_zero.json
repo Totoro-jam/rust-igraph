@@ -1,0 +1,15 @@
+{
+  "source": "c",
+  "origin": "C dispatcher flow.c:2084-2087 \u2014 empty graph short circuit returns 0.",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "vertex_connectivity",
+  "params": {
+    "checks": true
+  },
+  "expected": 0
+}

@@ -1,0 +1,14 @@
+{
+  "awu": "ALGO-FL-015",
+  "function": "vertex_connectivity",
+  "captured_at": "2026-05-26",
+  "git_commit": "e3fb573",
+  "rust_textbook_6v_path_checks_true_ns": 240,
+  "rust_layered_L4_W8_checks_true_ns": 2668,
+  "rust_layered_L6_W16_checks_true_ns": 8793,
+  "rust_layered_L8_W32_checks_true_ns": 34910,
+  "rust_pairwise_loop_ring_C6_ns": 79900,
+  "rust_pairwise_loop_ring_C8_ns": 269600,
+  "rust_pairwise_loop_ring_C12_ns": 1422600,
+  "notes": "Two regimes: (1) cheap short-circuits when checks=true — `textbook` (undirected path, min-degree=1) returns in 240 ns; `layered` (directed, not strongly connected) returns in 2.7-35 µs scaling with SCC O(V+E). (2) Worst-case pairwise FL-013 loop fires on rings (connected + min-degree=2 + not complete bypass all three short-circuits) — C6/C8/C12 cost 80 µs / 270 µs / 1.4 ms = ~3.4× and ~5.3× growth, consistent with the O(V^2)·FL-013 = O(V^3·E^2) complexity (E = V on a ring → O(V^5) overall, matching igraph C's docstring bound). The cheap short-circuits give a 300×-5,800× speed-up over the brute-force loop on the same vertex count, which is why igraph C defaults to checks=true. Captured with --quick (single sample-set per fixture); for stable medians use the default profile."
+}

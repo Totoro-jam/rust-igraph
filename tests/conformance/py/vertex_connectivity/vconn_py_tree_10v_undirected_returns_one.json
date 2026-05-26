@@ -1,0 +1,52 @@
+{
+  "source": "py",
+  "origin": "test_flow.py:29 \u2014 Graph.Tree(10, 3).cohesion() == 1 (undirected balanced ternary tree of 10 nodes; every leaf has degree 1 so vc = 1 via min-degree short-circuit)",
+  "graph": {
+    "n": 10,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        2,
+        9
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "vertex_connectivity",
+  "params": {
+    "checks": true
+  },
+  "expected": 1
+}

@@ -3626,6 +3626,36 @@ VDP_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-015: global vertex_connectivity (cohesion). Mirrors
+# `Graph.vertex_connectivity()` (no source/target) and `Graph.cohesion()`
+# in python-igraph (Cython wrapper on `igraph_vertex_connectivity`).
+# Two fixtures: a Barabasi tree (vc = 1) and a directed BFS in-tree
+# (vc = 0, not strongly connected) — both straight from
+# test_flow.py:27-30.
+VCONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "vconn_py_full_4v_returns_three",
+        "origin": "K_4 undirected; complete graph short-circuit yields "
+        "vc = vcount - 1 = 3 (test_flow.py:CutTests setUp uses similar "
+        "small fixtures)",
+        "graph_factory": lambda: ig.Graph.Full(4, directed=False, loops=False),
+        "algo": "vertex_connectivity",
+        "params": {"checks": True},
+        "expected": 3,
+    },
+    {
+        "case": "vconn_py_tree_10v_undirected_returns_one",
+        "origin": "test_flow.py:29 — Graph.Tree(10, 3).cohesion() == 1 "
+        "(undirected balanced ternary tree of 10 nodes; every leaf has "
+        "degree 1 so vc = 1 via min-degree short-circuit)",
+        "graph_factory": lambda: ig.Graph.Tree(10, 3),
+        "algo": "vertex_connectivity",
+        "params": {"checks": True},
+        "expected": 1,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
 # wrapper on the same `igraph_forest_fire_game` C entry point). RNG
@@ -8135,6 +8165,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_disjoint_paths": ED_PATHS_MANIFEST,
     "st_vertex_connectivity": ST_VCONN_MANIFEST,
     "vertex_disjoint_paths": VDP_MANIFEST,
+    "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

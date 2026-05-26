@@ -3870,6 +3870,70 @@ VDP_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-015: vertex_connectivity (global cohesion). rigraph exposes
+# `vertex_connectivity(graph)` (no source/target → global) and the
+# alias `cohesion(graph)` via R/aaa-auto.R wrapping
+# `igraph_vertex_connectivity`. Tests at tests/testthat/test-flow.R:130-138
+# cover three global cases:
+#   - make_ring(5, circular=FALSE)            → vc = 1 (undirected path)
+#   - make_graph(edges=c(1,2,3,4),            → vc = 0 (two isolated edges)
+#                directed=FALSE)
+#   - make_ring(5, circular=TRUE)             → vc = 2 (undirected 5-cycle)
+#                                                (R uses source/target=2;
+#                                                 we record the global form
+#                                                 because both kappa(s,t)
+#                                                 evaluate to 2 on the ring
+#                                                 and the global min agrees)
+# Also cover cohesion alias hits in tests/testthat/test-cohesion.R:
+#   - karate → cohesion = 1, kite → cohesion = 1, camp → cohesion = 2.
+# These named-graph fixtures are not bundled here; the three ring/path
+# cases give branch coverage for the cheap short-circuits and the
+# pairwise loop.
+VCONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "vconn_r_path5_undirected_returns_one",
+        "origin": "rigraph tests/testthat/test-flow.R:131-132 "
+        "(vertex_connectivity(make_ring(5, circular=FALSE)) == 1); "
+        "undirected path 0-1-2-3-4 has endpoints of degree 1 → cheap "
+        "min-degree short-circuit returns 1.",
+        "graph_factory": lambda: ig.Graph.Ring(5, circular=False, directed=False),
+        "algo": "vertex_connectivity",
+        "params": {"checks": True},
+        "expected": 1,
+    },
+    {
+        "case": "vconn_r_two_isolated_edges_undirected_returns_zero",
+        "origin": "rigraph tests/testthat/test-flow.R:134-135 "
+        "(vertex_connectivity(make_graph(edges=c(1,2,3,4), "
+        "directed=FALSE)) == 0); two components {0,1} and {2,3} → "
+        "graph not connected → cheap connectedness short-circuit "
+        "returns 0.",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (2, 3)],
+            directed=False,
+        ),
+        "algo": "vertex_connectivity",
+        "params": {"checks": True},
+        "expected": 0,
+    },
+    {
+        "case": "vconn_r_ring5_undirected_returns_two",
+        "origin": "rigraph tests/testthat/test-flow.R:137-138 "
+        "(s-t form: vertex_connectivity(make_ring(5, circular=TRUE), "
+        "source=1, target=4) == 2); the global vertex_connectivity of "
+        "an undirected 5-cycle is 2 (every internal pair needs two "
+        "vertices removed). Captured here as the global form so the "
+        "FL-015 conformance covers the pairwise-loop path (no cheap "
+        "short-circuit fires: connected, min-degree=2, not complete).",
+        "graph_factory": lambda: ig.Graph.Ring(5, circular=True, directed=False),
+        "algo": "vertex_connectivity",
+        "params": {"checks": True},
+        "expected": 2,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
 # Generator — RNG state not portable across implementations, so we
@@ -8256,6 +8320,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_disjoint_paths": ED_PATHS_MANIFEST,
     "st_vertex_connectivity": ST_VCONN_MANIFEST,
     "vertex_disjoint_paths": VDP_MANIFEST,
+    "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

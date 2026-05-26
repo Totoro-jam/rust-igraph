@@ -15999,3 +15999,64 @@ fn vertex_disjoint_paths_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn vertex_connectivity_three_source_conformance() {
+    // ALGO-FL-015: global cohesion — minimum number of internal vertices
+    // whose removal disconnects some pair of vertices. Computed as
+    // min_{s != t} st_vertex_connectivity(s, t, NumberOfNodes) with
+    // optional cheap short-circuits when `checks=true`.
+    use rust_igraph::vertex_connectivity;
+
+    let mut seen = std::collections::HashSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("vertex_connectivity");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "vertex_connectivity");
+            let g = build_graph(&case.graph);
+            let checks = case
+                .params
+                .get("checks")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(true);
+            let value = vertex_connectivity(&g, checks).expect("vertex_connectivity");
+            let actual = serde_json::json!(value);
+            assert!(
+                json_approx_eq(&actual, &case.expected),
+                "vertex_connectivity conformance failure\n  fixture: {}\n  source:  {}\n  origin:  {}\n  actual:   {}\n  expected: {}",
+                path.display(),
+                case.source,
+                case.origin,
+                actual,
+                case.expected,
+            );
+            assert_eq!(case.source, src);
+            seen.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen.contains(src),
+            "no vertex_connectivity fixtures from source {src}"
+        );
+    }
+}

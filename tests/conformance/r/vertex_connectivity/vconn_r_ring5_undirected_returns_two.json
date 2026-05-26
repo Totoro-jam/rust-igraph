@@ -1,0 +1,36 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R:137-138 (s-t form: vertex_connectivity(make_ring(5, circular=TRUE), source=1, target=4) == 2); the global vertex_connectivity of an undirected 5-cycle is 2 (every internal pair needs two vertices removed). Captured here as the global form so the FL-015 conformance covers the pairwise-loop path (no cheap short-circuit fires: connected, min-degree=2, not complete).",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "vertex_connectivity",
+  "params": {
+    "checks": true
+  },
+  "expected": 2
+}

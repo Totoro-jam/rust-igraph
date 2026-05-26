@@ -4245,6 +4245,83 @@ VDP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-015: vertex_connectivity (global cohesion). Mirrors
+# `igraph_vertex_connectivity` in references/igraph/src/flow/flow.c:2158
+# and its alias `igraph_cohesion` in flow.c:2470. The C unit test
+# tests/unit/igraph_cohesion.c:29-44 has two IGRAPH_ASSERT cases on the
+# same 7v edge list (directed → vc=1, undirected → vc=2). We also pin a
+# few short-circuit cases (empty / disconnected / tree / complete /
+# ring) since the C dispatcher in flow.c:2158-2192 has four branches we
+# want full per-branch coverage on.
+VCONN_GLOBAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "vconn_c_directed_7v_equals_one",
+        "origin": "tests/unit/igraph_cohesion.c:29-34 — 7v directed "
+        "graph (edges 0-1 0-2 1-2 1-3 2-4 3-4 3-5 4-5 1-6 6-3 5-0); "
+        "igraph_cohesion returns 1.",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (1, 6), (6, 3), (5, 0),
+            ],
+            directed=True,
+        ),
+        "algo": "vertex_connectivity",
+        "params": {"checks": True},
+        "expected": 1,
+    },
+    {
+        "case": "vconn_c_undirected_7v_equals_two",
+        "origin": "tests/unit/igraph_cohesion.c:38-43 — 7v undirected "
+        "graph (edges 0-1 0-2 1-2 1-3 2-4 3-4 3-5 4-5 1-6 6-3); "
+        "igraph_cohesion returns 2.",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (1, 6), (6, 3),
+            ],
+            directed=False,
+        ),
+        "algo": "vertex_connectivity",
+        "params": {"checks": True},
+        "expected": 2,
+    },
+    {
+        "case": "vconn_c_empty_returns_zero",
+        "origin": "C dispatcher flow.c:2084-2087 — empty graph short "
+        "circuit returns 0.",
+        "graph_factory": lambda: ig.Graph(n=0, edges=[], directed=False),
+        "algo": "vertex_connectivity",
+        "params": {"checks": True},
+        "expected": 0,
+    },
+    {
+        "case": "vconn_c_two_isolated_components_returns_zero",
+        "origin": "C dispatcher flow.c:2090-2093 — disconnected "
+        "(strongly for directed, weakly for undirected) short-circuit "
+        "returns 0; two disjoint undirected edges 0-1 and 2-3.",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (2, 3)],
+            directed=False,
+        ),
+        "algo": "vertex_connectivity",
+        "params": {"checks": True},
+        "expected": 0,
+    },
+    {
+        "case": "vconn_c_complete_undirected_6v_returns_five",
+        "origin": "C dispatcher flow.c:2168-2180 — complete-graph "
+        "short-circuit returns vcount-1 = 5 for K_6.",
+        "graph_factory": lambda: ig.Graph.Full(6, directed=False, loops=False),
+        "algo": "vertex_connectivity",
+        "params": {"checks": True},
+        "expected": 5,
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -10382,6 +10459,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_disjoint_paths": ED_PATHS_MANIFEST,
     "st_vertex_connectivity": ST_VCONN_MANIFEST,
     "vertex_disjoint_paths": VDP_MANIFEST,
+    "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

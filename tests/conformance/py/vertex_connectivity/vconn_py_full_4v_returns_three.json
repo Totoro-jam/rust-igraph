@@ -1,0 +1,40 @@
+{
+  "source": "py",
+  "origin": "K_4 undirected; complete graph short-circuit yields vc = vcount - 1 = 3 (test_flow.py:CutTests setUp uses similar small fixtures)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "vertex_connectivity",
+  "params": {
+    "checks": true
+  },
+  "expected": 3
+}

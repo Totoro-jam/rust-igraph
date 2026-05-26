@@ -15,6 +15,58 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-015** — `vertex_connectivity` (alias `cohesion`): global
+  vertex connectivity (cohesion) of a graph — the minimum number of
+  internal vertices whose removal disconnects some pair of vertices.
+  Mirrors `igraph_vertex_connectivity` at
+  `references/igraph/src/flow/flow.c:2158` and its alias
+  `igraph_cohesion` (flow.c:2470). Computes
+  `min_{s ≠ t} st_vertex_connectivity(s, t, NumberOfNodes)` — using
+  `NumberOfNodes` mode so direct s→t edges return the n-sentinel and
+  never lower the running minimum (matching the upstream loop at
+  flow.c:1969-2037). When `checks=true` (recommended), runs the cheap
+  short-circuits suggested by Peter McMahan (flow.c:2069-2122): (1)
+  empty graph → 0; (2) disconnected (weak for undirected, strong for
+  directed) → 0; (3) any vertex with `min(in, out) = 1` → 1; (4)
+  complete graph → `n - 1`. Each helper is `O(V + E)` and the
+  short-circuits give a 300×-5,800× speed-up over the brute-force
+  pairwise loop on the FL-015 bench fixtures. Pairwise loop iterates
+  `j > i` for undirected and all `j ≠ i` for directed, with early-exit
+  when `min_conn` hits 0. Result is `i64` matching upstream's
+  `igraph_integer_t`.
+  - `pub fn vertex_connectivity(graph: &Graph, checks: bool) ->
+    IgraphResult<i64>`.
+  - `pub fn cohesion(graph: &Graph, checks: bool) -> IgraphResult<i64>`
+    — exact synonym for naming parity with the upstream API and the
+    White–Harary (2001) sociological-network literature.
+  - Tests cover the two C unit-test fixtures
+    (`tests/unit/igraph_cohesion.c`: 7-vertex directed graph → 1,
+    7-vertex undirected graph → 2), R parity from
+    `tests/testthat/test-flow.R:130-138` (`make_ring(5, circular=F)` →
+    1, `make_graph(edges=c(1,2,3,4), directed=F)` → 0,
+    `make_ring(5, circular=T)` → 2), py parity from
+    `test_flow.py:27,29-30` (`Tree(10, 3, "out")` directed → 0,
+    same tree undirected → 1, `Full(4)` → 3), edge cases (empty,
+    single vertex, two disconnected vertices, K_2, K_6, mutual K_5),
+    cycle-with-chord (pairwise-loop path), and `checks=false ==
+    checks=true` agreement on a small fixture battery. Proptest pins
+    three invariants: `0 ≤ vc ≤ n - 1`, Whitney's `vc ≤ min_degree`
+    (undirected), and `checks=false` agrees with `checks=true` on
+    random small graphs.
+  - Three-source conformance fixtures landed under
+    `tests/conformance/{c,py,r}/vertex_connectivity/` (5 + 2 + 3
+    fixtures) covering all four cheap short-circuit branches plus the
+    pairwise-loop path; harness asserts at least one fixture from each
+    of c/py/r and they all pass.
+  - Bench `benches/bench_vertex_connectivity.rs` captures both regimes:
+    cheap short-circuits (textbook 240 ns, layered 2.7–34.9 µs scaling
+    with the SCC `O(V+E)` cost) and the brute-force pairwise loop on
+    rings (`C_6` 80 µs → `C_{12}` 1.4 ms), confirming the `O(V^5)`
+    growth predicted by igraph C's docstring.
+  - Demo `examples/vertex_connectivity_demo.rs` exercises every branch
+    end-to-end (cycle, path, disconnected, complete, directed out-tree,
+    cycle-with-chord) and prints the cohesion alias parity.
+
 - **ALGO-FL-014** — `vertex_disjoint_paths`: maximum number of pairwise
   internally vertex-disjoint paths from `source` to `target`. Mirrors
   `igraph_vertex_disjoint_paths` at
