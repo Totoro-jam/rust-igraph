@@ -15634,3 +15634,78 @@ fn max_flow_value_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn st_mincut_value_three_source_conformance() {
+    // Bespoke fixture-walking runner (needs case.graph.weights + params.use_capacity).
+    // ALGO-FL-010 is a thin wrapper over max_flow_value by max-flow / min-cut duality;
+    // these fixtures pin the wrapper to the same per-source ground-truth values.
+    let mut seen = std::collections::HashSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("st_mincut_value");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "st_mincut_value");
+            let g = build_graph(&case.graph);
+            let source = u32::try_from(
+                case.params
+                    .get("source")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`source` param required"),
+            )
+            .expect("source fits in u32");
+            let target = u32::try_from(
+                case.params
+                    .get("target")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`target` param required"),
+            )
+            .expect("target fits in u32");
+            let use_cap = case
+                .params
+                .get("use_capacity")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false);
+            let cap_owned = case.graph.weights.clone();
+            let cap = if use_cap { cap_owned.as_deref() } else { None };
+            let value =
+                rust_igraph::st_mincut_value(&g, source, target, cap).expect("st_mincut_value");
+            let actual = serde_json::json!(value);
+            assert!(
+                json_approx_eq(&actual, &case.expected),
+                "st_mincut_value conformance failure\n  fixture: {}\n  source:  {}\n  origin:  {}\n  actual:   {}\n  expected: {}",
+                path.display(),
+                case.source,
+                case.origin,
+                actual,
+                case.expected,
+            );
+            assert_eq!(case.source, src);
+            seen.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen.contains(src),
+            "no st_mincut_value fixtures from source {src}"
+        );
+    }
+}

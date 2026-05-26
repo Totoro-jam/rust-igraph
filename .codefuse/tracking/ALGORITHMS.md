@@ -258,6 +258,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 | ID | Task | C source | LOC | Complexity | Deps | Status | Commit | Big-O | Conformance |
 |----|------|----------|-----|------------|------|--------|--------|-------|-------------|
 | ALGO-FL-002 | `max_flow_value` (Dinic's algorithm — BFS level graph + DFS blocking flow; returns scalar max-flow value matching the igraph C push-relabel reference value bit-for-bit on unit-capacity fixtures and within `1e-9` on weighted fixtures; rejects `source == target` and `source/target >= vcount`; null capacity = unit capacity per edge) | flow/flow.c (igraph_maxflow_value entry; Dinic is self-rolled, not ported — picked over push-relabel for simpler code while preserving the unique optimum value) | ~400 | rewrite | core/Graph | done | 2026-05-26 | O(V²·E) | C: flow.c examples / py: maxflow_value / R: max_flow |
+| ALGO-FL-010 | `st_mincut_value` (scalar s-t minimum-cut value; thin wrapper over `max_flow_value` justified by Ford-Fulkerson max-flow / min-cut duality — igraph C's counterpart at flow.c:1127 is a 5-line redirect; same error contract as the delegate) | flow/flow.c:1127 (`igraph_st_mincut_value`) | ~5 | wrapper | ALGO-FL-002 | done | 2026-05-26 | inherits FL-002 = O(V²·E) | C: tests/unit/igraph_st_mincut_value.c / py: test_flow.py:MinCutTests.testMinCutValue / R: tests/testthat/test-flow.R via `min_cut` |
 
 ---
 

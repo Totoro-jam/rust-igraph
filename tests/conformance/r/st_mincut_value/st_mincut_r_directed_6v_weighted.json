@@ -1,0 +1,49 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R:111-128 \u2014 by duality `min_cut(g_ring_acyc, source='1', target='2', capacity=c(3,1,2,1,2,10)) == 2`",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      3.0,
+      1.0,
+      2.0,
+      1.0,
+      2.0,
+      10.0
+    ]
+  },
+  "algo": "st_mincut_value",
+  "params": {
+    "source": 0,
+    "target": 1,
+    "use_capacity": true
+  },
+  "expected": 2.0
+}

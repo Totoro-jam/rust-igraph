@@ -566,13 +566,13 @@ mod proptest_tests {
                 rng_state
             };
             let mut g = Graph::new(n, true).unwrap();
-            let edge_count = (next() as u32 % (n * 3 + 1)) as u32;
+            let edge_count = next() as u32 % (n * 3 + 1);
             let mut caps = Vec::with_capacity(edge_count as usize);
             for _ in 0..edge_count {
                 let u = (next() as u32) % n;
                 let v = (next() as u32) % n;
                 g.add_edge(u, v).unwrap();
-                let c = ((next() as u32 % 16) + 1) as f64;
+                let c = f64::from((next() as u32 % 16) + 1);
                 caps.push(c);
             }
             let source = 0;
@@ -601,13 +601,13 @@ mod proptest_tests {
                 rng_state
             };
             let mut g = Graph::with_vertices(n);
-            let edge_count = (next() as u32 % (n * 3 + 1)) as u32;
+            let edge_count = next() as u32 % (n * 3 + 1);
             let mut caps = Vec::with_capacity(edge_count as usize);
             for _ in 0..edge_count {
                 let u = (next() as u32) % n;
                 let v = (next() as u32) % n;
                 g.add_edge(u, v).unwrap();
-                let c = ((next() as u32 % 16) + 1) as f64;
+                let c = f64::from((next() as u32 % 16) + 1);
                 caps.push(c);
             }
             let source = 0;

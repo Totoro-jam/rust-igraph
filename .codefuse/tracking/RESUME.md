@@ -393,3 +393,51 @@ doctest = **61 pass**.
   `degree_sequence.c` which is the largest remaining file but
   requires a Viger-Latapy / Erdős–Gallai sampler that is its own
   ~800-line algorithmic island.
+
+## 2026-05-26 — FL-002 landed (max_flow_value, Dinic)
+
+- Last commit: 671c428 `feat(flow): ALGO-FL-002 max_flow_value — Dinic's algorithm, full 9-step SOP`.
+- New AWU group bootstrapped: `src/algorithms/flow/` (mod.rs + max_flow.rs).
+- Self-rolled Dinic (BFS level + DFS blocking flow, current-arc opt),
+  not a translation of igraph C's push-relabel — picked for code simplicity
+  while preserving the unique scalar max-flow value.
+- Cross-validation: 2 proptest invariants vs. a hand-rolled Edmonds-Karp
+  reference (80 cases each); five conformance fixtures (c:2 / py:2 / r:1).
+- Perf snapshot in `.codefuse/tracking/perf/ALGO-FL-002.json`: CLRS 5.4 µs,
+  layered L8xW32 374 µs. Notable: L6xW16 (414 µs) > L8xW32 because
+  augmenting-path count is bounded by `width`, not edge count.
+- AWU triage: 0 wip, 0 blocked.
+- **Picked up**: next AWU is **ALGO-FL-010 — `st_mincut_value`** (~5 C
+  lines in `references/igraph/src/flow/flow.c:1127`; one-line wrapper
+  over `max_flow_value` by max-flow / min-cut duality). Subsequent
+  natural follow-ups: `edge_connectivity` (FL-011, min over s,t pairs
+  of unit-capacity st_mincut_value), `edge_disjoint_paths` (FL-012,
+  Menger duality), `adhesion` (FL-013).
+
+## 2026-05-26 — FL-010 landed (st_mincut_value, max-flow / min-cut duality)
+
+- Predecessor commit: 671c428 (FL-002 max_flow_value).
+- Intermediate CI fix: f3e5948 `fix(ci): bench_adjacency clippy::needless_range_loop`.
+- Wrapper: 1-line delegation to `max_flow_value` (matches igraph C's
+  flow.c:1127 redirect). 10 unit tests + 1 proptest invariant
+  (`mincut_equals_maxflow`, 256 cases) re-assert duality on random
+  Graph fixtures; combined with FL-002's Edmonds-Karp cross-validation,
+  the cut value inherits independent reference-checking transitively.
+- Three-source conformance: 5 fixtures (c:2 / py:2 / r:1). C source
+  is the dedicated `tests/unit/igraph_st_mincut_value.c` (6v directed,
+  cut=7); py uses `g.mincut_value(0, 3, ...)`; r uses `min_cut(g, source,
+  target, capacity)` which dispatches to `st_mincut_value_impl` when
+  both endpoints are given.
+- Cleanup: also fixed pre-existing `--all-features` clippy lints in
+  `max_flow.rs:569,575,604,610` (`unnecessary_cast`, `cast_lossless`)
+  that CI was silently masking because CI runs `--all-targets` without
+  `--all-features`. The flow module is now both CI-clean and
+  all-features-clean.
+- Perf snapshot in `.codefuse/tracking/perf/ALGO-FL-010.json`. Wrapper
+  overhead is measurable as zero: back-to-back textbook fixtures
+  measure `max_flow=1.61 µs` vs `mincut=1.57 µs`.
+- AWU triage: 0 wip, 0 blocked. **Next pick**: `edge_connectivity`
+  (FL-011) is the natural follow-up — minimum over `(s, t)` pairs of
+  `st_mincut_value(g, s, t, unit_caps)`, also a thin wrapper. After
+  that, `edge_disjoint_paths` (FL-012, Menger duality) and `adhesion`
+  (FL-013, identical to FL-011 but exposes the cut).

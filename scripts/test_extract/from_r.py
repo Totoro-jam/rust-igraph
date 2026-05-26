@@ -3696,6 +3696,32 @@ MAXFLOW_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-010: st_mincut_value. rigraph exposes `min_cut(g, source,
+# target, capacity, value.only=TRUE)` (R/flow.R:386-437) which
+# dispatches to `st_mincut_value_impl` whenever both source and target
+# are supplied — verbatim mirror of `igraph_st_mincut_value`. By
+# max-flow / min-cut duality the value equals `max_flow(g, source,
+# target, capacity)$value`; we therefore replay the same 6-vertex
+# directed fixture from test-flow.R as the maxflow manifest, with
+# expected mincut = 2.
+ST_MINCUT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "st_mincut_r_directed_6v_weighted",
+        "origin": "rigraph tests/testthat/test-flow.R:111-128 — by duality "
+        "`min_cut(g_ring_acyc, source='1', target='2', "
+        "capacity=c(3,1,2,1,2,10)) == 2`",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 2), (2, 3), (3, 1), (0, 4), (4, 5), (5, 1)],
+            directed=True,
+        ),
+        "graph_weights": [3.0, 1.0, 2.0, 1.0, 2.0, 10.0],
+        "algo": "st_mincut_value",
+        "params": {"source": 0, "target": 1, "use_capacity": True},
+        "expected": 2.0,
+    },
+]
+
 
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
@@ -8078,6 +8104,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "decompose": DECOMPOSE_MANIFEST,
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
     "max_flow_value": MAXFLOW_MANIFEST,
+    "st_mincut_value": ST_MINCUT_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

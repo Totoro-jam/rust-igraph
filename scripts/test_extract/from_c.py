@@ -3864,6 +3864,46 @@ MAXFLOW_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-010: st_mincut_value. Mirrors `igraph_st_mincut_value` in
+# references/igraph/src/flow/flow.c:1127 — a 5-line wrapper around
+# `igraph_maxflow_value` justified by Ford-Fulkerson's max-flow /
+# min-cut theorem (Ford-Fulkerson, 1956). The dedicated C unit test
+# tests/unit/igraph_st_mincut_value.c:23-42 builds a 6-vertex directed
+# graph with edges (0,1)(0,2)(1,2)(1,3)(2,4)(3,4)(3,5)(4,5) and
+# capacities [5,2,2,3,4,1,2,5], asserts mincut(0→5) == 7. We mirror
+# that fixture verbatim plus a unit-capacity variant of the small
+# undirected 4-vertex graph for cross-source uniformity.
+ST_MINCUT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "st_mincut_c_directed_6v_weighted",
+        "origin": "tests/unit/igraph_st_mincut_value.c:23-42 — 6-vertex directed "
+        "graph with edges (0,1)(0,2)(1,2)(1,3)(2,4)(3,4)(3,5)(4,5) and "
+        "capacities [5,2,2,3,4,1,2,5], source=0, target=5 → "
+        "st_mincut_value == 7",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 4), (3, 4), (3, 5), (4, 5)],
+            directed=True,
+        ),
+        "graph_weights": [5.0, 2.0, 2.0, 3.0, 4.0, 1.0, 2.0, 5.0],
+        "algo": "st_mincut_value",
+        "params": {"source": 0, "target": 5, "use_capacity": True},
+        "expected": 7.0,
+    },
+    {
+        "case": "st_mincut_c_undirected_4v_unit",
+        "origin": "tests/unit/igraph_maxflow.c structure (undirected 4-vertex "
+        "graph) with unit capacities → 2 vertex-disjoint paths from 0 to "
+        "3, so unit st_mincut_value = 2 (duality with max-flow)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "algo": "st_mincut_value",
+        "params": {"source": 0, "target": 3, "use_capacity": False},
+        "expected": 2.0,
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -9996,6 +10036,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
     "max_flow_value": MAXFLOW_MANIFEST,
+    "st_mincut_value": ST_MINCUT_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

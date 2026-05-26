@@ -15,6 +15,43 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-010** — `st_mincut_value`: scalar s-t minimum-cut value
+  (capacity of the smallest edge set whose removal disconnects
+  `source` from `target`). Mirrors `igraph_st_mincut_value` at
+  `references/igraph/src/flow/flow.c:1127`, a 5-line wrapper
+  delegating to `igraph_maxflow_value`. By the
+  **max-flow / min-cut theorem** (Ford-Fulkerson, 1956) the value
+  equals [`max_flow_value`]; this function exists for naming parity
+  with igraph C and for intent-revealing call sites.
+  - `pub fn st_mincut_value(graph: &Graph, source: VertexId, target:
+    VertexId, capacity: Option<&[f64]>) -> IgraphResult<f64>`. Same
+    arguments, same error contract, same precision as
+    [`max_flow_value`] (delegation is verbatim — no extra
+    validation, no extra arithmetic).
+  - **Tests / conformance.** 10 unit tests in
+    `src/algorithms/flow/st_mincut.rs` (source/target validation,
+    isolated endpoints → 0, single-edge cut, two parallel paths,
+    directed bottleneck, CLRS 26.1-1 = 23, undirected reference,
+    `equals_max_flow_value` belt-and-suspenders). 1 proptest
+    invariant (`mincut_equals_maxflow`, 256 cases) re-asserts duality
+    at the value level on random `Graph` fixtures; combined with the
+    Edmonds-Karp cross-validation already on `max_flow_value`, the
+    cut value inherits independent reference-checking transitively.
+    5 three-source conformance fixtures
+    (`tests/conformance/{c,py,r}/st_mincut_value/`): C 6-vertex
+    directed weighted from `tests/unit/igraph_st_mincut_value.c:23`
+    (cut=7) + 4-vertex undirected unit (cut=2); python-igraph
+    `mincut_value(0, 3, ...)` from `test_flow.py:74-75`; R
+    `min_cut(g, source, target, capacity)` from
+    `test-flow.R:111-128`.
+  - **Perf.** Wrapper overhead is measurable as zero: on the
+    textbook CLRS fixture, back-to-back criterion runs measure
+    `max_flow_value = 1.61 µs` vs `st_mincut_value = 1.57 µs` (well
+    within sample variance). Layered fixtures: 4×8 = 16 µs, 6×16 =
+    77 µs, 8×32 = 286 µs. Snapshot in
+    `.codefuse/tracking/perf/ALGO-FL-010.json`. Runnable demo:
+    `cargo run --example st_mincut_demo`.
+
 - **ALGO-FL-002** — `max_flow_value`: scalar maximum-flow value from
   `source` to `target` via **Dinic's algorithm** (BFS level-graph +
   DFS blocking-flow with current-arc pointer optimisation, O(V²·E)

@@ -134,6 +134,7 @@ pub use crate::algorithms::constructors::turan::turan;
 pub use crate::algorithms::constructors::weighted_adjacency::weighted_adjacency;
 pub use crate::algorithms::constructors::wheel::{WheelMode, wheel_graph};
 pub use crate::algorithms::flow::max_flow::max_flow_value;
+pub use crate::algorithms::flow::st_mincut::st_mincut_value;
 pub use crate::algorithms::games::barabasi::barabasi_game_bag;
 pub use crate::algorithms::games::barabasi_aging::barabasi_aging_game;
 pub use crate::algorithms::games::barabasi_psumtree::{

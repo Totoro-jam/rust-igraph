@@ -47,6 +47,10 @@ name = "max_flow_demo"
 path = "examples/max_flow_demo.rs"
 
 [[example]]
+name = "st_mincut_demo"
+path = "examples/st_mincut_demo.rs"
+
+[[example]]
 name = "hsbm_demo"
 path = "examples/hsbm_demo.rs"
 
@@ -395,6 +399,11 @@ harness = false
 [[bench]]
 name = "bench_max_flow"
 path = "benches/bench_max_flow.rs"
+harness = false
+
+[[bench]]
+name = "bench_st_mincut"
+path = "benches/bench_st_mincut.rs"
 harness = false
 
 [[bench]]

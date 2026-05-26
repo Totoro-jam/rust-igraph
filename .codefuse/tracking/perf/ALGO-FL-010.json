@@ -1,0 +1,15 @@
+{
+  "awu": "ALGO-FL-010",
+  "function": "st_mincut_value",
+  "captured_at": "2026-05-26",
+  "git_commit": "f3e5948",
+  "machine": "darwin / Apple Silicon (local laptop)",
+  "criterion_args": "--warm-up-time 1 --measurement-time 3 --sample-size 30",
+  "rust_textbook_6v_10e_directed_ns": 1571,
+  "rust_layered_L4_W8_ns": 15963,
+  "rust_layered_L6_W16_ns": 76595,
+  "rust_layered_L8_W32_ns": 285860,
+  "max_flow_value_textbook_ns_same_run": 1609,
+  "py_baseline_ns": null,
+  "notes": "ALGO-FL-010 is a thin wrapper over ALGO-FL-002 max_flow_value justified by max-flow / min-cut duality (Ford-Fulkerson 1956). The igraph C counterpart at flow.c:1127 is a 5-line redirect. The bench fixtures mirror bench_max_flow.rs so the wrapper overhead is directly observable; back-to-back measurement on the textbook fixture shows max_flow_value=1.61us vs st_mincut_value=1.57us, within measurement noise (zero overhead). py_baseline null: python-igraph mincut_value is the same underlying C entry point as maxflow_value (igraph_st_mincut_value calls igraph_maxflow_value); cross-language comparison is meaningful only against the Phase-1 PyO3 binding, not yet wired."
+}

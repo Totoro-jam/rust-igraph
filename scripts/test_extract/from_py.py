@@ -3454,6 +3454,41 @@ MAXFLOW_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-010: st_mincut_value. python-igraph exposes
+# `Graph.mincut_value(source, target, capacity)`. Test
+# tests/test_flow.py:MinCutTests.testMinCutValue:72-80 asserts
+# `g.mincut_value(0, 3) == 2` (unit caps) and
+# `g.mincut_value(0, 3, [4,2,10,2,2]) == 4` (weighted) on the same
+# 4-vertex undirected graph used for maxflow. We replay both
+# assertions verbatim — they hit the same `igraph_st_mincut_value` C
+# entry point that the C and R sources do.
+ST_MINCUT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "st_mincut_py_undirected_4v_unit",
+        "origin": "python-igraph tests/test_flow.py:MinCutTests.testMinCutValue:74 "
+        "(g = Graph(4, [(0,1),(0,2),(1,2),(1,3),(2,3)]); "
+        "g.mincut_value(0, 3) == 2)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "algo": "st_mincut_value",
+        "params": {"source": 0, "target": 3, "use_capacity": False},
+        "expected": 2.0,
+    },
+    {
+        "case": "st_mincut_py_undirected_4v_weighted",
+        "origin": "python-igraph tests/test_flow.py:MinCutTests.testMinCutValue:75 "
+        "(g.mincut_value(0, 3, [4, 2, 10, 2, 2]) == 4)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "graph_weights": [4.0, 2.0, 10.0, 2.0, 2.0],
+        "algo": "st_mincut_value",
+        "params": {"source": 0, "target": 3, "use_capacity": True},
+        "expected": 4.0,
+    },
+]
+
 
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
@@ -7959,6 +7994,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
     "max_flow_value": MAXFLOW_MANIFEST,
+    "st_mincut_value": ST_MINCUT_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,
