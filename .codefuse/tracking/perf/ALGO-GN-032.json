@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-GN-032",
+  "captured_at": "2026-05-27",
+  "git_commit": "pending",
+  "rust_no_aging_n100_ns": 20600,
+  "rust_no_aging_n1000_ns": 332000,
+  "rust_no_aging_n10000_ns": 4216000,
+  "rust_strong_aging_n100_ns": 20900,
+  "rust_strong_aging_n1000_ns": 345000,
+  "rust_strong_aging_n10000_ns": 4340000,
+  "rust_outpref_undirected_n100_ns": 21400,
+  "rust_outpref_undirected_n1000_ns": 355000,
+  "rust_outpref_undirected_n10000_ns": 4850000,
+  "py_baseline_ns": null,
+  "notes": "Recent-degree PA with vertex aging (igraph_recent_degree_aging_game). Hybrid of GN-019 sliding window + GN-021 age-sweep. Throughput 2-5 Melem/s across all three variants on Darwin/M-series release build. The strong_aging variant is marginally slower than no_aging due to non-trivial pow(age, -1) evaluations in the age sweep. outpref_undirected adds per-vertex degree feedback into the BIT but cost is comparable. No oracle baseline: RNG state not portable (IGRAPH_EXPERIMENTAL in upstream C)."
+}

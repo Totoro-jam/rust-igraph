@@ -5177,6 +5177,94 @@ BARABASI_AGING_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-032: recent_degree_aging_game. python-igraph exposes
+# ig.Graph.Recent_Degree_Aging which calls igraph_recent_degree_aging_game.
+# RNG not portable, so conformance is structural: vcount, ecount exact,
+# no_self_loops, directed flag.
+RECENT_DEGREE_AGING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "recent_degree_aging_py_no_aging_directed_m2",
+        "origin": "constructed (mirrors Graph.Recent_Degree_Aging(n=40, "
+        "m=2, outpref=False, pa_exp=1.0, aging_exp=0.0, aging_bins=10, "
+        "time_window=5, zero_appeal=1.0, directed=True)) — aging_exp=0 "
+        "collapses age term, ecount = 78",
+        "algo": "recent_degree_aging_game",
+        "params": {
+            "nodes": 40,
+            "m": 2,
+            "outpref": False,
+            "pa_exp": 1.0,
+            "aging_exp": 0.0,
+            "aging_bins": 10,
+            "time_window": 5,
+            "zero_appeal": 1.0,
+            "directed": True,
+            "seed": 9_996_101,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_aging_py_strong_aging_directed_m2",
+        "origin": "constructed (mirrors Graph.Recent_Degree_Aging(n=40, "
+        "m=2, outpref=False, pa_exp=1.0, aging_exp=-1.0, aging_bins=10, "
+        "time_window=8, zero_appeal=1.0, directed=True)) — aging_exp=-1 "
+        "suppresses old vertices; ecount = 78",
+        "algo": "recent_degree_aging_game",
+        "params": {
+            "nodes": 40,
+            "m": 2,
+            "outpref": False,
+            "pa_exp": 1.0,
+            "aging_exp": -1.0,
+            "aging_bins": 10,
+            "time_window": 8,
+            "zero_appeal": 1.0,
+            "directed": True,
+            "seed": 9_996_102,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_aging_py_outpref_undirected_m2",
+        "origin": "constructed (mirrors Graph.Recent_Degree_Aging(n=35, "
+        "m=2, outpref=True, pa_exp=1.0, aging_exp=-0.5, aging_bins=8, "
+        "time_window=10, zero_appeal=0.5, directed=False)) — undirected "
+        "+ outpref; ecount = 68",
+        "algo": "recent_degree_aging_game",
+        "params": {
+            "nodes": 35,
+            "m": 2,
+            "outpref": True,
+            "pa_exp": 1.0,
+            "aging_exp": -0.5,
+            "aging_bins": 8,
+            "time_window": 10,
+            "zero_appeal": 0.5,
+            "directed": False,
+            "seed": 9_996_103,
+        },
+        "expected": {
+            "vcount": 35,
+            "directed": False,
+            "ecount_min": 68,
+            "ecount_max": 68,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-022: dot_product_game. The Python binding does not expose a
 # direct `ig.Graph.DotProduct(...)` factory; the C kernel
 # `igraph_dot_product_game` is reached via the lower-level
@@ -8752,6 +8840,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
     "barabasi_aging_game": BARABASI_AGING_MANIFEST,
+    "recent_degree_aging_game": RECENT_DEGREE_AGING_MANIFEST,
     "dot_product_game": DOT_PRODUCT_MANIFEST,
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
@@ -8905,6 +8994,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "recent_degree_game",
             "barabasi_game_psumtree",
             "barabasi_aging_game",
+            "recent_degree_aging_game",
             "dot_product_game",
             "correlated_pair_game",
             "degree_sequence_game_configuration",

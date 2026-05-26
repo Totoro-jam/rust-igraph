@@ -5422,6 +5422,94 @@ BARABASI_AGING_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-032: recent_degree_aging_game. rigraph exposes
+# `sample_last_cit()` style wrapper; the C kernel is
+# igraph_recent_degree_aging_game. RNG not portable, so conformance is
+# structural: vcount, ecount exact, no_self_loops, directed flag.
+RECENT_DEGREE_AGING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "recent_degree_aging_r_no_aging_directed_m2",
+        "origin": "constructed (mirrors igraph_recent_degree_aging_game("
+        "n=40, m=2, out.pref=FALSE, pa.exp=1.0, aging.exp=0.0, "
+        "aging.bins=10, time.window=5, zero.appeal=1.0, directed=TRUE)) "
+        "— aging.exp=0 collapses age term; ecount = 78",
+        "algo": "recent_degree_aging_game",
+        "params": {
+            "nodes": 40,
+            "m": 2,
+            "outpref": False,
+            "pa_exp": 1.0,
+            "aging_exp": 0.0,
+            "aging_bins": 10,
+            "time_window": 5,
+            "zero_appeal": 1.0,
+            "directed": True,
+            "seed": 10_001_101,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_aging_r_strong_aging_directed_m2",
+        "origin": "constructed (mirrors igraph_recent_degree_aging_game("
+        "n=40, m=2, out.pref=FALSE, pa.exp=1.0, aging.exp=-1.0, "
+        "aging.bins=10, time.window=8, zero.appeal=1.0, directed=TRUE)) "
+        "— aging.exp=-1 suppresses old vertices; ecount = 78",
+        "algo": "recent_degree_aging_game",
+        "params": {
+            "nodes": 40,
+            "m": 2,
+            "outpref": False,
+            "pa_exp": 1.0,
+            "aging_exp": -1.0,
+            "aging_bins": 10,
+            "time_window": 8,
+            "zero_appeal": 1.0,
+            "directed": True,
+            "seed": 10_001_102,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_aging_r_outpref_undirected_m2",
+        "origin": "constructed (mirrors igraph_recent_degree_aging_game("
+        "n=35, m=2, out.pref=TRUE, pa.exp=1.0, aging.exp=-0.5, "
+        "aging.bins=8, time.window=10, zero.appeal=0.5, directed=FALSE)) "
+        "— undirected + outpref; ecount = 68",
+        "algo": "recent_degree_aging_game",
+        "params": {
+            "nodes": 35,
+            "m": 2,
+            "outpref": True,
+            "pa_exp": 1.0,
+            "aging_exp": -0.5,
+            "aging_bins": 8,
+            "time_window": 10,
+            "zero_appeal": 0.5,
+            "directed": False,
+            "seed": 10_001_103,
+        },
+        "expected": {
+            "vcount": 35,
+            "directed": False,
+            "ecount_min": 68,
+            "ecount_max": 68,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-022: dot_product_game. rigraph exposes
 # `sample_dot_product(vecs, directed = FALSE)` as the canonical R-side
 # wrapper (the C kernel is `igraph_dot_product_game`); the autobinding
@@ -8871,6 +8959,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
     "barabasi_aging_game": BARABASI_AGING_MANIFEST,
+    "recent_degree_aging_game": RECENT_DEGREE_AGING_MANIFEST,
     "dot_product_game": DOT_PRODUCT_MANIFEST,
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
@@ -9025,6 +9114,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "recent_degree_game",
             "barabasi_game_psumtree",
             "barabasi_aging_game",
+            "recent_degree_aging_game",
             "dot_product_game",
             "correlated_pair_game",
             "degree_sequence_game_configuration",

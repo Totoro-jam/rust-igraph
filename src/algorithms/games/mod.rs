@@ -31,6 +31,7 @@ pub mod k_regular;
 pub mod lastcit;
 pub mod preference;
 pub mod recent_degree;
+pub mod recent_degree_aging;
 pub mod sbm;
 pub mod static_fitness;
 pub mod tree;

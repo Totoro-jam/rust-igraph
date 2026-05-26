@@ -1,0 +1,30 @@
+{
+  "source": "py",
+  "origin": "constructed (mirrors Graph.Recent_Degree_Aging(n=35, m=2, outpref=True, pa_exp=1.0, aging_exp=-0.5, aging_bins=8, time_window=10, zero_appeal=0.5, directed=False)) \u2014 undirected + outpref; ecount = 68",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "recent_degree_aging_game",
+  "params": {
+    "nodes": 35,
+    "m": 2,
+    "outpref": true,
+    "pa_exp": 1.0,
+    "aging_exp": -0.5,
+    "aging_bins": 8,
+    "time_window": 10,
+    "zero_appeal": 0.5,
+    "directed": false,
+    "seed": 9996103
+  },
+  "expected": {
+    "vcount": 35,
+    "directed": false,
+    "ecount_min": 68,
+    "ecount_max": 68,
+    "no_self_loops": true
+  }
+}

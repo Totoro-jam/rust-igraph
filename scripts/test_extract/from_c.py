@@ -5885,6 +5885,102 @@ BARABASI_AGING_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-032: recent_degree_aging_game. Mirrors
+# igraph_recent_degree_aging_game (references/igraph/src/games/
+# recent_degree.c lines 228-381). Hybrid of GN-019 (recent-degree FIFO
+# sliding window) and GN-021 (vertex aging with binwidth-based age bins).
+# Weight = (pow(recent_deg, pa_exp) + zero_appeal) * pow(age, aging_exp).
+# Without outseq, ecount = (nodes - 1) * m exactly. Never self-loops by
+# construction (search_bounded clamps to [0, i)). RNG is not portable, so
+# conformance is structural only: vcount, ecount exact, no_self_loops.
+RECENT_DEGREE_AGING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "recent_degree_aging_c_no_aging_directed_m2",
+        "origin": "constructed (mirrors igraph_recent_degree_aging_game("
+        "n=40, m=2, outpref=false, pa_exp=1.0, aging_exp=0.0, "
+        "aging_bins=10, time_window=5, zero_appeal=1.0, directed=true)) "
+        "— aging_exp=0 collapses age term to 1 constant, so weights "
+        "reduce to (deg + 1), BA-like with recent-degree window; "
+        "ecount = (40-1)*2 = 78",
+        "algo": "recent_degree_aging_game",
+        "params": {
+            "nodes": 40,
+            "m": 2,
+            "outpref": False,
+            "pa_exp": 1.0,
+            "aging_exp": 0.0,
+            "aging_bins": 10,
+            "time_window": 5,
+            "zero_appeal": 1.0,
+            "directed": True,
+            "seed": 9_997_101,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_aging_c_strong_aging_directed_m2",
+        "origin": "constructed (mirrors igraph_recent_degree_aging_game("
+        "n=40, m=2, outpref=false, pa_exp=1.0, aging_exp=-1.0, "
+        "aging_bins=10, time_window=8, zero_appeal=1.0, directed=true)) "
+        "— aging_exp=-1 suppresses old vertices; time_window=8 means "
+        "recent degree resets after 8 steps; ecount = (40-1)*2 = 78",
+        "algo": "recent_degree_aging_game",
+        "params": {
+            "nodes": 40,
+            "m": 2,
+            "outpref": False,
+            "pa_exp": 1.0,
+            "aging_exp": -1.0,
+            "aging_bins": 10,
+            "time_window": 8,
+            "zero_appeal": 1.0,
+            "directed": True,
+            "seed": 9_997_102,
+        },
+        "expected": {
+            "vcount": 40,
+            "directed": True,
+            "ecount_min": 78,
+            "ecount_max": 78,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "recent_degree_aging_c_outpref_undirected_m2",
+        "origin": "constructed (mirrors igraph_recent_degree_aging_game("
+        "n=35, m=2, outpref=true, pa_exp=1.0, aging_exp=-0.5, "
+        "aging_bins=8, time_window=10, zero_appeal=0.5, directed=false)) "
+        "— undirected + outpref feeds the new vertex's own degree back "
+        "into its weight; ecount = (35-1)*2 = 68",
+        "algo": "recent_degree_aging_game",
+        "params": {
+            "nodes": 35,
+            "m": 2,
+            "outpref": True,
+            "pa_exp": 1.0,
+            "aging_exp": -0.5,
+            "aging_bins": 8,
+            "time_window": 10,
+            "zero_appeal": 0.5,
+            "directed": False,
+            "seed": 9_997_103,
+        },
+        "expected": {
+            "vcount": 35,
+            "directed": False,
+            "ecount_min": 68,
+            "ecount_max": 68,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-022: dot_product_game. Mirrors igraph_dot_product_game
 # (references/igraph/src/games/dotproduct.c:59-102). Per-pair Bernoulli
 # with edge probability = dot(v_i, v_j). Three fixtures cover the three
@@ -11190,6 +11286,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "recent_degree_game": RECENT_DEGREE_MANIFEST,
     "barabasi_game_psumtree": BARABASI_PSUMTREE_MANIFEST,
     "barabasi_aging_game": BARABASI_AGING_MANIFEST,
+    "recent_degree_aging_game": RECENT_DEGREE_AGING_MANIFEST,
     "dot_product_game": DOT_PRODUCT_MANIFEST,
     "correlated_game": CORRELATED_MANIFEST,
     "correlated_pair_game": CORRELATED_PAIR_MANIFEST,
@@ -11350,6 +11447,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "recent_degree_game",
             "barabasi_game_psumtree",
             "barabasi_aging_game",
+            "recent_degree_aging_game",
             "dot_product_game",
             "correlated_pair_game",
             "degree_sequence_game_configuration",

@@ -111,6 +111,10 @@ name = "recent_degree_demo"
 path = "examples/recent_degree_demo.rs"
 
 [[example]]
+name = "recent_degree_aging_demo"
+path = "examples/recent_degree_aging_demo.rs"
+
+[[example]]
 name = "barabasi_aging_demo"
 path = "examples/barabasi_aging_demo.rs"
 
@@ -610,6 +614,11 @@ harness = false
 [[bench]]
 name = "bench_recent_degree"
 path = "benches/bench_recent_degree.rs"
+harness = false
+
+[[bench]]
+name = "bench_recent_degree_aging"
+path = "benches/bench_recent_degree_aging.rs"
 harness = false
 
 [[bench]]

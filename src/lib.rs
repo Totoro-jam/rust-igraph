@@ -177,6 +177,7 @@ pub use crate::algorithms::games::k_regular::k_regular_game;
 pub use crate::algorithms::games::lastcit::lastcit_game;
 pub use crate::algorithms::games::preference::{asymmetric_preference_game, preference_game};
 pub use crate::algorithms::games::recent_degree::recent_degree_game;
+pub use crate::algorithms::games::recent_degree_aging::recent_degree_aging_game;
 pub use crate::algorithms::games::sbm::sbm_game;
 pub use crate::algorithms::games::static_fitness::{static_fitness_game, static_power_law_game};
 pub use crate::algorithms::games::tree::tree_game_lerw;
