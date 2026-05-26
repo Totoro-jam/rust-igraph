@@ -441,3 +441,29 @@ doctest = **61 pass**.
   `st_mincut_value(g, s, t, unit_caps)`, also a thin wrapper. After
   that, `edge_disjoint_paths` (FL-012, Menger duality) and `adhesion`
   (FL-013, identical to FL-011 but exposes the cut).
+
+## 2026-05-26 — FL-018 landed (st_mincut, partition variant; max_flow refactor)
+
+- Predecessor commit: 74a0699 (FL-017 mincut_value).
+- This commit: c97cb3f. Phase 1 counter 169 → 170 done.
+- FL-018 returns `StMincut { value, cut, partition, partition2 }`. The
+  partition is materialised by a BFS in the post-Dinic residual graph
+  from `source`; the cut is the set of original-edge ids that cross the
+  partition with positive capacity. Refactored `max_flow.rs` so the
+  shared backend `max_flow_with_residual(graph, source, target, capacity)
+  -> IgraphResult<(f64, Network)>` returns both the flow value and the
+  residual; `max_flow_value` drops the residual.
+- A side-effect of the refactor: FL-010 (`st_mincut_value`) is now ~3×
+  faster than its snapshot, because Dinic state is built once instead of
+  rebuilt around a cloned graph. Updated perf snapshot lives at
+  `.codefuse/tracking/perf/ALGO-FL-018.json`; the FL-010 file's headline
+  numbers are intentionally **not** rewritten — they reflect the
+  pre-refactor cost and are preserved for historical comparison.
+- 21 st_mincut tests (19 unit + 2 proptest), 10 three-source conformance
+  fixtures (4 C + 3 py + 3 R). Conformance runner enforces structural
+  invariants on every fixture; only pins exact cut/partition lists when
+  the upstream min cut is unique.
+- AWU triage: 0 wip, 0 blocked. **Next pick**: `gomory_hu_tree`
+  (ALGO-FL-020) — Gomory-Hu cut tree (V-1 max-flow calls; O(V·max-flow));
+  natural follow-up because it consumes FL-002 + FL-018 directly and
+  unlocks all-pairs min cut queries in O(V).
