@@ -3255,6 +3255,81 @@ ECC_PR031_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# `igraph_rich_club_sequence` reference test at
+# references/igraph/tests/unit/rich_club.c. Expected values are
+# transcribed from `rich_club.out` and re-cross-checked by hand from
+# exact rationals; NaN entries (trailing single-vertex / empty subgraph
+# under `loops=false`) are encoded as JSON `null` (the runner converts
+# NaN ↔ null both ways, mirroring the `ecc` convention above).
+RICH_CLUB_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # Test 3a — undirected, no self-loops, in-order vertex removal.
+        # 7 vertices, 8 edges. Output denominators are
+        # k*(k-1)/2 for k = 7,6,5,4,3,2,1.
+        "case": "rich_club_c_undirected_no_loop_inorder",
+        "origin": "rich_club.out Test 3a — undirected no-loop, vertex_order=[0..6]",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[(0, 3), (1, 3), (2, 3), (4, 3), (5, 3), (5, 6), (1, 2), (2, 5)],
+            directed=False,
+        ),
+        "algo": "rich_club_sequence",
+        "params": {
+            "vertex_order": [0, 1, 2, 3, 4, 5, 6],
+            "normalized": True,
+            "loops": False,
+            "directed": False,
+        },
+        "expected": [8 / 21, 7 / 15, 5 / 10, 3 / 6, 1 / 3, 1.0, None],
+    },
+    {
+        # Test 6a — directed, with one self-loop (4,4), in-order
+        # vertex removal. 7 vertices, 9 edges. Denominator is n^2
+        # (directed + loops), so the trailing single-vertex subgraph
+        # yields 0 (no remaining edges), not NaN.
+        "case": "rich_club_c_directed_loop_inorder",
+        "origin": "rich_club.out Test 6a — directed loop, vertex_order=[0..6]",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 2), (1, 2), (2, 3), (1, 3), (3, 5),
+                (3, 4), (5, 6), (6, 5), (4, 4),
+            ],
+            directed=True,
+        ),
+        "algo": "rich_club_sequence",
+        "params": {
+            "vertex_order": [0, 1, 2, 3, 4, 5, 6],
+            "normalized": True,
+            "loops": True,
+            "directed": True,
+        },
+        "expected": [9 / 49, 8 / 36, 6 / 25, 5 / 16, 3 / 9, 2 / 4, 0.0],
+    },
+    {
+        # Test 7a — same graph as Test 3a but with all edge weights = 2.
+        # Each rich-club coefficient is exactly double of Test 3a, with
+        # the trailing NaN preserved (denominator 0 from k*(k-1)/2 at k=1).
+        "case": "rich_club_c_weighted_double",
+        "origin": "rich_club.out Test 7a — weighted (all weights = 2), vertex_order=[0..6]",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[(0, 3), (1, 3), (2, 3), (4, 3), (5, 3), (5, 6), (1, 2), (2, 5)],
+            directed=False,
+        ),
+        "graph_weights": [2.0] * 8,
+        "algo": "rich_club_sequence",
+        "params": {
+            "vertex_order": [0, 1, 2, 3, 4, 5, 6],
+            "normalized": True,
+            "loops": False,
+            "directed": False,
+        },
+        "expected": [16 / 21, 14 / 15, 10 / 10, 6 / 6, 2 / 3, 2.0, None],
+    },
+]
+
+
 COMMUNITY_VORONOI_MANIFEST: List[Dict[str, Any]] = [
     # `igraph_community_voronoi` reference test at
     # references/igraph/tests/unit/igraph_community_voronoi.c. Expected
@@ -9882,6 +9957,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "decompose": DECOMPOSE_MANIFEST,
     "voronoi": VORONOI_MANIFEST,
     "ecc": ECC_PR031_MANIFEST,
+    "rich_club_sequence": RICH_CLUB_MANIFEST,
     "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,

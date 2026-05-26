@@ -1,0 +1,45 @@
+{
+  "source": "py",
+  "origin": "constructed: weighted K_{1,3}, peel leaves first \u2192 centre last",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      2.0,
+      4.0
+    ]
+  },
+  "algo": "rich_club_sequence",
+  "params": {
+    "vertex_order": [
+      1,
+      2,
+      3,
+      0
+    ],
+    "normalized": true,
+    "loops": false,
+    "directed": false
+  },
+  "expected": [
+    1.1666666666666667,
+    2.0,
+    4.0,
+    null
+  ]
+}

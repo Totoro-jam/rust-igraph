@@ -4433,6 +4433,104 @@ fn ecc_three_source_conformance() {
 }
 
 #[test]
+fn rich_club_sequence_three_source_conformance() {
+    // ALGO-PR-040: per-vertex rich-club coefficient sequence.
+    // python-igraph 0.11 does not expose `igraph_rich_club_sequence`;
+    // R-igraph keeps it as the internal `rich_club_sequence_impl()`
+    // (one auto-snapshot test under
+    // references/rigraph/tests/testthat/test-aaa-auto.R). The py/r
+    // manifests are hand-derived parity fixtures whose expected
+    // values follow directly from edge counts / weight sums of the
+    // induced peeled subgraph.
+    use rust_igraph::rich_club_sequence;
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("rich_club_sequence");
+        assert!(
+            dir.is_dir(),
+            "missing rich_club_sequence fixtures for source {src}"
+        );
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse rich_club fixture JSON");
+            assert_eq!(case.algo, "rich_club_sequence");
+            assert_eq!(case.source, src);
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.clone();
+            let weights_slice: Option<&[f64]> = weights.as_deref();
+            let vertex_order: Vec<u32> = case
+                .params
+                .get("vertex_order")
+                .and_then(serde_json::Value::as_array)
+                .expect("`vertex_order` param required")
+                .iter()
+                .map(|v| {
+                    u32::try_from(
+                        v.as_u64()
+                            .expect("vertex_order entries must be non-negative integers"),
+                    )
+                    .expect("vertex_order entry fits in u32")
+                })
+                .collect();
+            let normalized = case
+                .params
+                .get("normalized")
+                .and_then(serde_json::Value::as_bool)
+                .expect("`normalized` param required");
+            let loops = case
+                .params
+                .get("loops")
+                .and_then(serde_json::Value::as_bool)
+                .expect("`loops` param required");
+            let directed = case
+                .params
+                .get("directed")
+                .and_then(serde_json::Value::as_bool)
+                .expect("`directed` param required");
+            let values = rich_club_sequence(
+                &g,
+                weights_slice,
+                &vertex_order,
+                normalized,
+                loops,
+                directed,
+            )
+            .expect("rich_club_sequence");
+            // Encode NaN as JSON null — fixtures use null for NaN
+            // since `serde_json` rejects NaN in floats.
+            let actual = serde_json::Value::Array(
+                values
+                    .into_iter()
+                    .map(|v| {
+                        if v.is_nan() {
+                            serde_json::Value::Null
+                        } else {
+                            serde_json::json!(v)
+                        }
+                    })
+                    .collect(),
+            );
+            assert!(
+                json_approx_eq(&actual, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                actual,
+            );
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn count_triangles_three_source_conformance() {
     run_conformance("count_triangles", |g, _params| {
         let n = rust_igraph::count_triangles(g).expect("count_triangles");

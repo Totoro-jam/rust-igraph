@@ -1,0 +1,35 @@
+{
+  "source": "r",
+  "origin": "references/rigraph/tests/testthat/_snaps/aaa-auto.md:3081 \u2014 P_3 path_graph(3), vertex_order=1:3, normalized=FALSE, loops=TRUE, directed=FALSE",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "rich_club_sequence",
+  "params": {
+    "vertex_order": [
+      0,
+      1,
+      2
+    ],
+    "normalized": false,
+    "loops": true,
+    "directed": false
+  },
+  "expected": [
+    2.0,
+    1.0,
+    0.0
+  ]
+}

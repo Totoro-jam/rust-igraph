@@ -15,6 +15,70 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-PR-040** — `rich_club_sequence` per-vertex rich-club coefficient
+  sequence over a user-supplied vertex peeling order. Faithful port of
+  `igraph_rich_club_sequence` in
+  `references/igraph/src/properties/rich_club.c:91-166`.
+  - `pub fn rich_club_sequence(graph: &Graph, weights: Option<&[f64]>, vertex_order: &[VertexId], normalized: bool, loops: bool, directed: bool) -> IgraphResult<Vec<f64>>` —
+    returns a `Vec<f64>` of length `vcount` whose `i`-th entry is the
+    surviving edge count (or summed edge weight when `weights` is
+    `Some`) of the subgraph that remains after peeling the first `i`
+    vertices of `vertex_order` from the graph. With `normalized = true`,
+    each entry is divided by `total_possible_edges(vcount - i, directed,
+    loops)` — the same density denominator used by `igraph_density`.
+  - **Strictly O(|V| + |E|), no actual peeling.** Inverts
+    `vertex_order` once into `order_of[v]`, then for every edge `(v1,
+    v2)` adds its weight to `res[min(order_of[v1], order_of[v2])]` —
+    that bucket index is precisely the step at which the edge first
+    disappears. One reverse cumulative pass turns the "removed-at-step"
+    tally into the "surviving-after-step" sequence; an optional
+    `O(|V|)` per-step normalization closes it out.
+  - **`directed` flag silently coerced to `false` on undirected
+    graphs**, matching upstream's `if (!igraph_is_directed(graph))
+    directed = false;` line at `rich_club.c:118`. This keeps the
+    denominator consistent with the (already undirected) edge tally.
+  - **NaN as legitimate trailing sentinel.** In normalized mode the
+    final entry `res[vcount - 1]` is `0 / 0 = f64::NAN` whenever the
+    trailing single-vertex subgraph has zero possible edges (i.e.
+    `!loops`), matching upstream's `print_vector` `( NaN )` output in
+    `tests/unit/rich_club.out`. Conformance fixtures encode this as
+    JSON `null`; the runner converts NaN→null on actual values before
+    comparing.
+  - **Permutation validation in the inverse-build pass.** Any
+    out-of-range entry, duplicate, or omission is caught while building
+    `order_of[]` and returned as `IgraphError::InvalidArgument`; no
+    separate validation loop is needed.
+  - **Loops + normalization edge case.** When `normalized && !loops`
+    and the graph contains a self-loop, upstream issues a `Warning`
+    (not an error) and continues with the loopless denominator. This
+    port silently follows the same behaviour: the caller opted in to
+    "assume no loops", so the responsibility for that assumption is on
+    them.
+  - Full 9-step AWU SOP. **Unit tests** (16 cases): triangle K3 raw/
+    normalized; path P3 in-order/reverse-order; weighted contribution;
+    undirected coercion of `directed`; permutation validation
+    (length/out-of-range/duplicate); `weights` length check;
+    `vcount == 0` empty; `vcount == 1` NaN; `total_possible_edges`
+    coverage of all four (loops, directed) corners. **Proptest
+    invariants**: order-irrelevance of edge enumeration (any vertex
+    re-labeling that preserves degree sequence yields the same
+    sequence), monotone non-increasing raw counts as `i` grows, and
+    consistency between weighted-by-ones and unweighted modes.
+  - **Three-source conformance** (9 fixtures, all pass):
+    `tests/conformance/c/rich_club_sequence/` mirrors `rich_club.out`
+    Tests 3a (undirected/no-loop/in-order), 6a (directed/loop/in-order),
+    and 7a (weighted ×2 all-ones); `tests/conformance/py/` carries
+    three hand-derived parity cases (K3, P4, weighted star K_{1,3})
+    since python-igraph 0.11.9 does not expose a binding for
+    `rich_club_sequence`; `tests/conformance/r/` mirrors
+    `_snaps/aaa-auto.md:3068-3081` for the path-3 normalized and
+    unnormalized-with-loops snapshots plus a hand-derived K4 reverse
+    order case.
+  - **Criterion bench** at `benches/bench_rich_club.rs` with karate
+    (~336 ns), 30×30 grid (~5.6 µs), and G(1000, 0.05) (~33.7 µs).
+    Baseline snapshot at `.codefuse/tracking/perf/ALGO-PR-040.json`.
+  - **Runnable demo** at `examples/rich_club_karate.rs` — peels karate
+    by ascending degree and prints the rising rich-club density curve.
 - **ALGO-GN-029** — `citing_cited_type_game` citing×cited-type growing
   citation network. **Twenty-ninth member of the `games/` family** and
   a faithful port of `igraph_citing_cited_type_game` in

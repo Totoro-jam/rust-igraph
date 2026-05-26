@@ -339,6 +339,11 @@ path = "benches/bench_ecc.rs"
 harness = false
 
 [[bench]]
+name = "bench_rich_club"
+path = "benches/bench_rich_club.rs"
+harness = false
+
+[[bench]]
 name = "bench_community_voronoi"
 path = "benches/bench_community_voronoi.rs"
 harness = false

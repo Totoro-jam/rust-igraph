@@ -1,0 +1,8 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc dd57d2085b8f6542e6f424ee22c514c73d5cbee379ae27c8da50cf024501a241 # shrinks to g = Graph { n: 2, directed: false, from: [1], to: [1], oi: [0], ii: [0], os: [0, 0, 1], is: [0, 0, 1], cache: PropertyCache { known: Cell { value: 0 }, values: Cell { value: 0 } } }
+cc 7148ea2a8cf2714bcfca55b68f160ac017804046c22923fc16935c3771eb74fb # shrinks to g = Graph { n: 2, directed: false, from: [0, 0], to: [1, 1], oi: [0, 1], ii: [0, 1], os: [0, 2, 2], is: [0, 0, 2], cache: PropertyCache { known: Cell { value: 0 }, values: Cell { value: 0 } } }

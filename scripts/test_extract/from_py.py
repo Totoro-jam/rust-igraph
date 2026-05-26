@@ -2758,6 +2758,79 @@ ECC_PR031_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# python-igraph 0.11 does not expose `igraph_rich_club_sequence`. The
+# fixtures below are hand-derived from the algorithm's documented
+# definition (Zhou & Mondragón 2004): each output position i is the
+# rich-club coefficient of the subgraph induced by
+# `vertex_order[i:]`, equal to the count of remaining edges (or sum of
+# remaining weights) divided by `total_possible_edges(k, directed,
+# loops)`, where `k = n - i`. NaN is encoded as JSON `null` (the
+# runner converts NaN ↔ null both ways).
+RICH_CLUB_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # Triangle K_3, in-order removal; normalized; loops=false;
+        # directed=false. Subgraphs are K_3, K_2, K_1: 3/3, 1/1, 0/0.
+        "case": "rich_club_py_k3_inorder_normalized",
+        "origin": "constructed: K_3, vertex_order=[0,1,2], normalized → [1.0, 1.0, NaN]",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "rich_club_sequence",
+        "params": {
+            "vertex_order": [0, 1, 2],
+            "normalized": True,
+            "loops": False,
+            "directed": False,
+        },
+        "expected": [1.0, 1.0, None],
+    },
+    {
+        # 4-path 0—1—2—3, in-order removal; normalized; loops=false;
+        # directed=false. Edges left after removing prefix:
+        #   i=0: 3 edges, max 4*3/2 = 6 → 0.5
+        #   i=1: 2 edges, max 3*2/2 = 3 → 2/3
+        #   i=2: 1 edge,  max 2*1/2 = 1 → 1
+        #   i=3: 0 edges, max 0       → NaN
+        "case": "rich_club_py_path4_inorder_normalized",
+        "origin": "constructed: P_4 0-1-2-3, vertex_order=[0..3], normalized",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False
+        ),
+        "algo": "rich_club_sequence",
+        "params": {
+            "vertex_order": [0, 1, 2, 3],
+            "normalized": True,
+            "loops": False,
+            "directed": False,
+        },
+        "expected": [3 / 6, 2 / 3, 1.0, None],
+    },
+    {
+        # Weighted star K_{1,3} centred on vertex 0, weights [1, 2, 4].
+        # vertex_order=[1, 2, 3, 0] removes leaves first so the centre
+        # lives until the end.
+        #   i=0: full graph, weight = 1+2+4 = 7, max = 4*3/2 = 6 → 7/6
+        #   i=1: subgraph on {2,3,0}, edges (0,2)w=2 (0,3)w=4 → 6, max 3*2/2=3 → 2.0
+        #   i=2: subgraph on {3,0},   edge  (0,3)w=4         → 4, max 2*1/2=1 → 4.0
+        #   i=3: subgraph on {0} only → 0, max 0 → NaN
+        "case": "rich_club_py_star_weighted_centre_last",
+        "origin": "constructed: weighted K_{1,3}, peel leaves first → centre last",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False
+        ),
+        "graph_weights": [1.0, 2.0, 4.0],
+        "algo": "rich_club_sequence",
+        "params": {
+            "vertex_order": [1, 2, 3, 0],
+            "normalized": True,
+            "loops": False,
+            "directed": False,
+        },
+        "expected": [7 / 6, 2.0, 4.0, None],
+    },
+]
+
+
 COMMUNITY_VORONOI_MANIFEST: List[Dict[str, Any]] = [
     # python-igraph 0.11 does not expose `igraph_community_voronoi`.
     # The fixtures below are hand-derived from the algorithm's
@@ -7848,6 +7921,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "decompose": DECOMPOSE_MANIFEST,
     "voronoi": VORONOI_MANIFEST,
     "ecc": ECC_PR031_MANIFEST,
+    "rich_club_sequence": RICH_CLUB_MANIFEST,
     "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
     "minimum_spanning_tree": SPANNING_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,

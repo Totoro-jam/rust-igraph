@@ -3041,6 +3041,73 @@ ECC_PR031_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# R-igraph exposes `rich_club_sequence_impl()` (auto-generated wrapper
+# around `igraph_rich_club_sequence`). The first fixture below mirrors
+# the upstream snapshot test in
+# references/rigraph/tests/testthat/test-aaa-auto.R Test "132."
+# (P_3 path, vertex_order=1:3, normalized=true default), whose
+# Output line in `_snaps/aaa-auto.md:3073` is
+# `[1] 0.6666667 1.0000000 NaN`. The R `vertex_order=1:3` is 1-indexed
+# and translates to the 0-indexed `[0, 1, 2]` the Rust function
+# expects. The second fixture mirrors the second `expect_snapshot`
+# in the same test (`normalized=FALSE, loops=TRUE, directed=FALSE`),
+# whose output is `[1] 2 1 0` — raw edge counts at each peel step.
+RICH_CLUB_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "rich_club_r_path3_inorder_normalized",
+        "origin": "references/rigraph/tests/testthat/_snaps/aaa-auto.md:3073 — "
+        "P_3 path_graph(3), vertex_order=1:3, normalized default",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "rich_club_sequence",
+        "params": {
+            "vertex_order": [0, 1, 2],
+            "normalized": True,
+            "loops": False,
+            "directed": False,
+        },
+        "expected": [2 / 3, 1.0, None],
+    },
+    {
+        "case": "rich_club_r_path3_inorder_unnormalized_loops",
+        "origin": "references/rigraph/tests/testthat/_snaps/aaa-auto.md:3081 — "
+        "P_3 path_graph(3), vertex_order=1:3, normalized=FALSE, loops=TRUE, directed=FALSE",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "rich_club_sequence",
+        "params": {
+            "vertex_order": [0, 1, 2],
+            "normalized": False,
+            "loops": True,
+            "directed": False,
+        },
+        "expected": [2.0, 1.0, 0.0],
+    },
+    {
+        # Hand-derived companion: K_4, peel by reversed degree-tied
+        # order [3, 2, 1, 0]. Subgraph edge counts:
+        #   i=0: full K_4, 6 edges, max C(4,2)=6 → 1.0
+        #   i=1: K_3 on {2,1,0}, 3 edges, max 3 → 1.0
+        #   i=2: edge (1,0),     1 edge,  max 1 → 1.0
+        #   i=3: single vertex {0}, 0 edges, max 0 → NaN
+        "case": "rich_club_r_k4_reverse_order_normalized",
+        "origin": "hand-derived (R-style) — K_4 normalized, vertex_order=[3,2,1,0] → "
+        "[1.0, 1.0, 1.0, NaN]",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False, loops=False),
+        "algo": "rich_club_sequence",
+        "params": {
+            "vertex_order": [3, 2, 1, 0],
+            "normalized": True,
+            "loops": False,
+            "directed": False,
+        },
+        "expected": [1.0, 1.0, 1.0, None],
+    },
+]
+
+
 REINDEX_MEMBERSHIP_MANIFEST: List[Dict[str, Any]] = [
     # R-igraph exposes `igraph_reindex_membership` indirectly through
     # the C glue used by `make_clusters()` and community methods. The
@@ -7865,6 +7932,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "split_join_distance": SPLIT_JOIN_DISTANCE_MANIFEST,
     "voronoi": VORONOI_MANIFEST,
     "ecc": ECC_PR031_MANIFEST,
+    "rich_club_sequence": RICH_CLUB_MANIFEST,
     "community_voronoi": COMMUNITY_VORONOI_MANIFEST,
     "dfs": DFS_MANIFEST,
     "connected_components": CC_MANIFEST,

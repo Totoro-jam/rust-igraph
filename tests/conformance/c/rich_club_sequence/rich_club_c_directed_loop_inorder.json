@@ -1,0 +1,71 @@
+{
+  "source": "c",
+  "origin": "rich_club.out Test 6a \u2014 directed loop, vertex_order=[0..6]",
+  "graph": {
+    "n": 7,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        5
+      ],
+      [
+        4,
+        4
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "rich_club_sequence",
+  "params": {
+    "vertex_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "normalized": true,
+    "loops": true,
+    "directed": true
+  },
+  "expected": [
+    0.1836734693877551,
+    0.2222222222222222,
+    0.24,
+    0.3125,
+    0.3333333333333333,
+    0.5,
+    0.0
+  ]
+}

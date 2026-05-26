@@ -1,0 +1,39 @@
+{
+  "source": "py",
+  "origin": "constructed: K_3, vertex_order=[0,1,2], normalized \u2192 [1.0, 1.0, NaN]",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "rich_club_sequence",
+  "params": {
+    "vertex_order": [
+      0,
+      1,
+      2
+    ],
+    "normalized": true,
+    "loops": false,
+    "directed": false
+  },
+  "expected": [
+    1.0,
+    1.0,
+    null
+  ]
+}
