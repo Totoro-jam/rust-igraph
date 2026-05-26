@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "games/erdos_renyi.c \u2014 iea_game directed multigraph with self-loops allowed (n=40, m=100)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "iea_game",
+  "params": {
+    "n": 40,
+    "m": 100,
+    "directed": true,
+    "loops": true,
+    "seed": 5551001
+  },
+  "expected": {
+    "vcount": 40,
+    "ecount": 100,
+    "directed": true,
+    "no_self_loops": false
+  }
+}

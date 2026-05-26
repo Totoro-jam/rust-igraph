@@ -238,6 +238,10 @@ path = "examples/adjacency_demo.rs"
 name = "weighted_adjacency_demo"
 path = "examples/weighted_adjacency_demo.rs"
 
+[[example]]
+name = "iea_game_demo"
+path = "examples/iea_game_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -431,6 +435,11 @@ harness = false
 [[bench]]
 name = "bench_bipartite_game"
 path = "benches/bench_bipartite_game.rs"
+harness = false
+
+[[bench]]
+name = "bench_iea_game"
+path = "benches/bench_iea_game.rs"
 harness = false
 
 [[bench]]

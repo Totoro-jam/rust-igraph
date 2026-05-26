@@ -5027,6 +5027,74 @@ BIPARTITE_GAME_GNM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-031: iea_game. Mirrors `igraph_iea_game` in
+# games/erdos_renyi.c. The IEA model assigns each edge independently
+# to an ordered vertex pair (uniformly over [0,n)^2, or [0,n)×[0,n)\diag
+# when loops=false). Result has exactly m edges (multi-edges allowed,
+# self-loops controlled by `loops`). RNG state is not portable across
+# C/py/R, so we capture structural invariants only: vcount==n,
+# ecount==m EXACT, directedness preserved, and (when loops=false) every
+# edge must connect distinct vertices.
+IEA_GAME_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "iea_c_directed_loops_n40_m100",
+        "origin": "games/erdos_renyi.c — iea_game directed multigraph "
+        "with self-loops allowed (n=40, m=100)",
+        "algo": "iea_game",
+        "params": {
+            "n": 40,
+            "m": 100,
+            "directed": True,
+            "loops": True,
+            "seed": 5_551_001,
+        },
+        "expected": {
+            "vcount": 40,
+            "ecount": 100,
+            "directed": True,
+            "no_self_loops": False,
+        },
+    },
+    {
+        "case": "iea_c_directed_no_loops_n20_m80",
+        "origin": "games/erdos_renyi.c — iea_game directed multigraph "
+        "without self-loops (n=20, m=80)",
+        "algo": "iea_game",
+        "params": {
+            "n": 20,
+            "m": 80,
+            "directed": True,
+            "loops": False,
+            "seed": 5_551_002,
+        },
+        "expected": {
+            "vcount": 20,
+            "ecount": 80,
+            "directed": True,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "iea_c_undirected_no_loops_n15_m30",
+        "origin": "games/erdos_renyi.c — iea_game undirected multigraph "
+        "without self-loops (n=15, m=30)",
+        "algo": "iea_game",
+        "params": {
+            "n": 15,
+            "m": 30,
+            "directed": False,
+            "loops": False,
+            "seed": 5_551_003,
+        },
+        "expected": {
+            "vcount": 15,
+            "ecount": 30,
+            "directed": False,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-014: preference_game. Mirrors `igraph_preference_game` in
 # games/preference.c (Faust–Wasserman block model). RNG state is not
 # portable across implementations, so we capture structural invariants
@@ -11111,6 +11179,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "forest_fire_game": FOREST_FIRE_MANIFEST,
     "bipartite_game_gnp": BIPARTITE_GAME_GNP_MANIFEST,
     "bipartite_game_gnm": BIPARTITE_GAME_GNM_MANIFEST,
+    "iea_game": IEA_GAME_MANIFEST,
     "preference_game": PREFERENCE_MANIFEST,
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "establishment_game": ESTABLISHMENT_MANIFEST,
@@ -11270,6 +11339,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "forest_fire_game",
             "bipartite_game_gnp",
             "bipartite_game_gnm",
+            "iea_game",
             "preference_game",
             "asymmetric_preference_game",
             "establishment_game",

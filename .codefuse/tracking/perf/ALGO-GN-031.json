@@ -1,0 +1,16 @@
+{
+  "awu": "ALGO-GN-031",
+  "captured_at": "2026-05-26",
+  "git_commit": "b958eee",
+  "rust_directed_loops_n1000_m1000_ns": 41463,
+  "rust_directed_loops_n1000_m10000_ns": 463290,
+  "rust_directed_loops_n1000_m100000_ns": 5444300,
+  "rust_directed_no_loops_n1000_m1000_ns": 40083,
+  "rust_directed_no_loops_n1000_m10000_ns": 457630,
+  "rust_directed_no_loops_n1000_m100000_ns": 5569900,
+  "rust_undirected_no_loops_n1000_m1000_ns": 37584,
+  "rust_undirected_no_loops_n1000_m10000_ns": 459150,
+  "rust_undirected_no_loops_n1000_m100000_ns": 5403500,
+  "py_baseline_ns": null,
+  "notes": "Independent Edge Allocation random multigraph (igraph_iea_game). Pure independent sampling — each edge is one SplitMix64 gen_index draw (or two for loops=true), no rejection. Linear in m; n only affects PRNG modulo distribution. Throughput hovers around 18-24 Melem/s across all three variants, dominated by the SplitMix64 draws and the Vec::push of (u32, u32) into the staging buffer; ~5.5 ms for m=100_000 on Darwin/M-series release build (--sample-size 10 --measurement-time 2 --warm-up-time 1). directed-with-loops takes two PRNG draws per edge yet pays a virtually identical cost to the single-draw no_loops branch (loops branch is cheaper per draw because it skips the v-shift remap; balances out). No oracle baseline: igraph_iea_game is IGRAPH_EXPERIMENTAL in upstream C and RNG state is not portable, so conformance asserts structural invariants only (vcount, ecount EXACT, directedness, no_self_loops when loops=false)."
+}

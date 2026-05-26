@@ -25,6 +25,7 @@ pub mod forestfire;
 pub mod grg;
 pub mod growing_random;
 pub mod hsbm;
+pub mod iea_game;
 pub mod islands;
 pub mod k_regular;
 pub mod lastcit;

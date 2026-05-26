@@ -17060,3 +17060,107 @@ fn dominator_tree_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn iea_game_three_source_conformance() {
+    // ALGO-GN-031. Independent Edge Allocation random multigraph. RNG
+    // state is not portable across implementations, so we check
+    // structural invariants only:
+    //   * vcount = params.n (exact)
+    //   * directed flag exact
+    //   * ecount = params.m (EXACT — IEA always emits exactly m edges)
+    //   * if no_self_loops: every edge must have u != v
+    use rust_igraph::iea_game;
+
+    let mut seen_sources = std::collections::BTreeSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("iea_game");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "iea_game");
+
+            let n = er_param_u32(&case, "n", &path);
+            let m = er_param_u64(&case, "m", &path);
+            let directed = er_param_bool(&case, "directed", &path);
+            let loops = er_param_bool(&case, "loops", &path);
+            let seed = er_param_u64(&case, "seed", &path);
+
+            let graph = iea_game(n, m, directed, loops, seed)
+                .expect("iea_game should succeed on conformance fixtures");
+
+            let want_vertices = er_expected_u32(&case, "vcount", &path);
+            let want_ecount = er_expected_u64(&case, "ecount", &path);
+            let want_directed = er_expected_bool(&case, "directed", &path);
+            let want_no_self_loops = er_expected_bool(&case, "no_self_loops", &path);
+
+            assert_eq!(
+                graph.vcount(),
+                want_vertices,
+                "vcount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.is_directed(),
+                want_directed,
+                "directed mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+            assert_eq!(
+                graph.ecount() as u64,
+                want_ecount,
+                "ecount mismatch in {}\n  source: {}\n  origin: {}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+
+            if want_no_self_loops {
+                let n_edges = u32::try_from(graph.ecount()).expect("ecount fits in u32");
+                for eid in 0..n_edges {
+                    let (a, b) = graph
+                        .edge(eid)
+                        .expect("edge id within bounds for iea_game fixture");
+                    assert_ne!(
+                        a,
+                        b,
+                        "self-loop in {} (edge {eid}) when loops=false\n  source: {}\n  origin: {}",
+                        path.display(),
+                        case.source,
+                        case.origin,
+                    );
+                }
+            }
+
+            assert_eq!(case.source, src);
+            seen_sources.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen_sources.contains(src),
+            "no iea_game fixtures from source {src}"
+        );
+    }
+}

@@ -4474,6 +4474,70 @@ BIPARTITE_GAME_GNM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-031: iea_game. rigraph re-exports the C entry point through
+# the auto-bound `iea_game_impl`. RNG state is not portable, so we
+# capture structural invariants only: vcount==n, ecount==m EXACT,
+# directedness preserved, no self-loops when loops=FALSE.
+IEA_GAME_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "iea_r_directed_loops_n35_m140",
+        "origin": "constructed (mirrors rigraph iea_game_impl(n=35, m=140, "
+        "directed=TRUE, loops=TRUE)): directed multigraph with self-loops",
+        "algo": "iea_game",
+        "params": {
+            "n": 35,
+            "m": 140,
+            "directed": True,
+            "loops": True,
+            "seed": 5_553_001,
+        },
+        "expected": {
+            "vcount": 35,
+            "ecount": 140,
+            "directed": True,
+            "no_self_loops": False,
+        },
+    },
+    {
+        "case": "iea_r_undirected_no_loops_n18_m45",
+        "origin": "constructed (mirrors rigraph iea_game_impl(n=18, m=45, "
+        "directed=FALSE, loops=FALSE)): simple-pair undirected multigraph",
+        "algo": "iea_game",
+        "params": {
+            "n": 18,
+            "m": 45,
+            "directed": False,
+            "loops": False,
+            "seed": 5_553_002,
+        },
+        "expected": {
+            "vcount": 18,
+            "ecount": 45,
+            "directed": False,
+            "no_self_loops": True,
+        },
+    },
+    {
+        "case": "iea_r_directed_loops_n10_m0_empty",
+        "origin": "constructed (mirrors rigraph iea_game_impl boundary "
+        "m=0): vcount preserved, edgeless graph",
+        "algo": "iea_game",
+        "params": {
+            "n": 10,
+            "m": 0,
+            "directed": True,
+            "loops": True,
+            "seed": 5_553_003,
+        },
+        "expected": {
+            "vcount": 10,
+            "ecount": 0,
+            "directed": True,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-014: preference_game. Mirrors rigraph's `sample_pref(nodes,
 # types, type.dist, fixed.sizes, pref.matrix, ...)` — the auto-bound
 # `preference_game_impl`. RNG state is not portable, so we encode
@@ -8796,6 +8860,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "forest_fire_game": FOREST_FIRE_MANIFEST,
     "bipartite_game_gnp": BIPARTITE_GAME_GNP_MANIFEST,
     "bipartite_game_gnm": BIPARTITE_GAME_GNM_MANIFEST,
+    "iea_game": IEA_GAME_MANIFEST,
     "preference_game": PREFERENCE_MANIFEST,
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "establishment_game": ESTABLISHMENT_MANIFEST,
@@ -8949,6 +9014,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "forest_fire_game",
             "bipartite_game_gnp",
             "bipartite_game_gnm",
+            "iea_game",
             "preference_game",
             "asymmetric_preference_game",
             "establishment_game",

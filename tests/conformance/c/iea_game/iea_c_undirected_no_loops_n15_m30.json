@@ -1,0 +1,24 @@
+{
+  "source": "c",
+  "origin": "games/erdos_renyi.c \u2014 iea_game undirected multigraph without self-loops (n=15, m=30)",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "iea_game",
+  "params": {
+    "n": 15,
+    "m": 30,
+    "directed": false,
+    "loops": false,
+    "seed": 5551003
+  },
+  "expected": {
+    "vcount": 15,
+    "ecount": 30,
+    "directed": false,
+    "no_self_loops": true
+  }
+}

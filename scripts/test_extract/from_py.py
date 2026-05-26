@@ -4228,6 +4228,70 @@ BIPARTITE_GAME_GNM_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-GN-031: iea_game. Python-igraph exposes the IEA model through
+# the experimental `igraph_iea_game()` C entry point but the binding is
+# not stable across versions. Structural invariants only: vcount==n,
+# ecount==m EXACT, directedness preserved, no self-loops when loops=False.
+IEA_GAME_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "iea_py_directed_loops_n50_m200",
+        "origin": "constructed (mirrors igraph_iea_game): directed "
+        "multigraph with self-loops allowed, well-saturated edge count",
+        "algo": "iea_game",
+        "params": {
+            "n": 50,
+            "m": 200,
+            "directed": True,
+            "loops": True,
+            "seed": 5_552_001,
+        },
+        "expected": {
+            "vcount": 50,
+            "ecount": 200,
+            "directed": True,
+            "no_self_loops": False,
+        },
+    },
+    {
+        "case": "iea_py_undirected_loops_n30_m120",
+        "origin": "constructed (mirrors igraph_iea_game): undirected "
+        "multigraph with self-loops allowed",
+        "algo": "iea_game",
+        "params": {
+            "n": 30,
+            "m": 120,
+            "directed": False,
+            "loops": True,
+            "seed": 5_552_002,
+        },
+        "expected": {
+            "vcount": 30,
+            "ecount": 120,
+            "directed": False,
+            "no_self_loops": False,
+        },
+    },
+    {
+        "case": "iea_py_directed_no_loops_n25_m50",
+        "origin": "constructed (mirrors igraph_iea_game): directed "
+        "multigraph without self-loops, sparse regime",
+        "algo": "iea_game",
+        "params": {
+            "n": 25,
+            "m": 50,
+            "directed": True,
+            "loops": False,
+            "seed": 5_552_003,
+        },
+        "expected": {
+            "vcount": 25,
+            "ecount": 50,
+            "directed": True,
+            "no_self_loops": True,
+        },
+    },
+]
+
 # ALGO-GN-014: preference_game. Mirrors ig.Graph.Preference(n, type_dist,
 # pref_matrix, ...) — Cython wrapper on `igraph_preference_game`. RNG
 # state is not portable across implementations, so we capture
@@ -8677,6 +8741,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "forest_fire_game": FOREST_FIRE_MANIFEST,
     "bipartite_game_gnp": BIPARTITE_GAME_GNP_MANIFEST,
     "bipartite_game_gnm": BIPARTITE_GAME_GNM_MANIFEST,
+    "iea_game": IEA_GAME_MANIFEST,
     "preference_game": PREFERENCE_MANIFEST,
     "asymmetric_preference_game": ASYMMETRIC_PREFERENCE_MANIFEST,
     "establishment_game": ESTABLISHMENT_MANIFEST,
@@ -8829,6 +8894,7 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
             "forest_fire_game",
             "bipartite_game_gnp",
             "bipartite_game_gnm",
+            "iea_game",
             "preference_game",
             "asymmetric_preference_game",
             "establishment_game",

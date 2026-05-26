@@ -1,0 +1,24 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors rigraph iea_game_impl(n=18, m=45, directed=FALSE, loops=FALSE)): simple-pair undirected multigraph",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "iea_game",
+  "params": {
+    "n": 18,
+    "m": 45,
+    "directed": false,
+    "loops": false,
+    "seed": 5553002
+  },
+  "expected": {
+    "vcount": 18,
+    "ecount": 45,
+    "directed": false,
+    "no_self_loops": true
+  }
+}

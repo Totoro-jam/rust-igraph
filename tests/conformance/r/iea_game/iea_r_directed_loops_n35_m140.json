@@ -1,0 +1,24 @@
+{
+  "source": "r",
+  "origin": "constructed (mirrors rigraph iea_game_impl(n=35, m=140, directed=TRUE, loops=TRUE)): directed multigraph with self-loops",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "iea_game",
+  "params": {
+    "n": 35,
+    "m": 140,
+    "directed": true,
+    "loops": true,
+    "seed": 5553001
+  },
+  "expected": {
+    "vcount": 35,
+    "ecount": 140,
+    "directed": true,
+    "no_self_loops": false
+  }
+}

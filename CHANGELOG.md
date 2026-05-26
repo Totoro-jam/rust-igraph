@@ -15,6 +15,57 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-GN-031** — `iea_game`: **Independent Edge Allocation** random
+  multigraph generator. Counterpart of `igraph_iea_game()` at
+  `references/igraph/src/games/erdos_renyi.c:480-542` (upstream is an
+  `IGRAPH_EXPERIMENTAL` wrapper over `igraph_erdos_renyi_game_gnm` with
+  `IGRAPH_MULTI_SW | IGRAPH_LOOPS_SW`; the algorithm itself is the
+  textbook independent-edge construction).
+  - Signature:
+    `iea_game(n: u32, m: u64, directed: bool, loops: bool, seed: u64) -> IgraphResult<Graph>`.
+  - Sampling: each of the `m` edges is drawn independently and uniformly
+    over the ordered pair space — `[0, n)²` when `loops = true`, or
+    `[0, n) × ([0, n) \ {u})` when `loops = false`. The no-loops branch
+    uses the standard "shift v by 1 past u" remap: sample `v ∈ [0, n-1)`
+    and set `v += 1` whenever `v >= u`, yielding a uniform draw of `n-1`
+    distinct values with a single PRNG call. The C variant achieves the
+    same distribution via the matrix-extension trick, which is needed
+    there to amortise an unrelated rejection step; with our cleaner
+    Rust API the simpler shift is preferable.
+  - Guarantees: result has **exactly `m` edges** (the model is named for
+    this property), preserves the requested `directed` flag, and admits
+    multi-edges by construction — two edges may map to the same ordered
+    pair. The sampler is uniform over edge-labelled graphs; conditional
+    on simplicity it coincides with G(n, m) without replacement, but is
+    **not** uniform over multigraph realisations. Use
+    [`erdos_renyi_gnm`] when uniform sampling over simple graphs is
+    required.
+  - Validation: rejects `m > u32::MAX`, `m > 0 && n == 0`, and
+    `m > 0 && !loops && n < 2`. Empty requests (`m == 0`) succeed for
+    any `n >= 0`.
+  - Determinism: same `(n, m, directed, loops, seed)` always produces
+    the same graph via `SplitMix64`.
+  - Time complexity: `O(|V| + |E|)`. One PRNG draw for `loops = true`,
+    two draws for `loops = false`, plus one `push` per edge and a final
+    `Graph::add_edges` insertion.
+  - Conformance: 9 fixtures (3 each from C / py / R) under
+    `tests/conformance/{c,py,r}/iea_game/`. RNG state is not portable
+    across implementations, so fixtures assert structural invariants
+    only — `vcount == n`, `ecount == m` (**exact**, not a band),
+    `directed` flag, and `no_self_loops` (every edge has `u != v`)
+    when `loops = false`.
+  - Bench at `benches/bench_iea_game.rs` covers three groups
+    (`directed_loops`, `directed_no_loops`, `undirected_no_loops`) at
+    `n = 1 000`, `m ∈ {1k, 10k, 100k}`. Baseline at
+    `.codefuse/tracking/perf/ALGO-GN-031.json`: 18-24 Melem/s throughput
+    across all variants on Darwin/M-series release build; cost is
+    dominated by the SplitMix64 draws plus the `Vec::push` of
+    `(u32, u32)` into the staging buffer.
+  - Example: `examples/iea_game_demo.rs` builds three multigraphs
+    illustrating self-loop frequency, multi-edge multiplicity, and
+    the uniform marginal endpoint distribution.
+  - Re-exported as `rust_igraph::iea_game`.
+
 - **ALGO-GN-030** — `bipartite_game_gnp` / `bipartite_game_gnm` bipartite
   Erdős-Rényi random-graph generators. Counterparts of
   `igraph_bipartite_game_gnp()` / `igraph_bipartite_game_gnm()` in
