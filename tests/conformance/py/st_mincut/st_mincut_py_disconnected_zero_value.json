@@ -1,0 +1,28 @@
+{
+  "source": "py",
+  "origin": "Graph(n=4) with no edges. Graph.st_mincut(0, 3) \u21d2 value=0, empty cut, partition={0}, partition2={1,2,3}: no path from source to target, so the empty cut suffices.",
+  "graph": {
+    "n": 4,
+    "edges": [],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "st_mincut",
+  "params": {
+    "source": 0,
+    "target": 3,
+    "capacity": null
+  },
+  "expected": {
+    "value": 0.0,
+    "cut": [],
+    "partition": [
+      0
+    ],
+    "partition2": [
+      1,
+      2,
+      3
+    ]
+  }
+}

@@ -4039,6 +4039,56 @@ MINCUT_VALUE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-018: st_mincut — full source/sink partition. rigraph exposes
+# `min_cut(graph, source=s, target=t, capacity=NULL, value.only=FALSE)`
+# which returns a list of $value $cut $partition1 $partition2. We pin
+# three fixtures: a unit-cap single arc, a unit-cap two-parallel-paths
+# diamond (value pinned only — multiple optimal cuts), and an
+# undirected K_4 (value pinned only — multiple isolation cuts of the
+# same minimum cost).
+ST_MINCUT_PARTITION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "st_mincut_r_single_directed_edge_unit",
+        "origin": "rigraph tests/testthat/test-flow.R style: "
+        "min_cut(make_graph(c(1,2), directed=TRUE), source=1, target=2)"
+        " ⇒ value=1, cut=c(1), partition1=c(1), partition2=c(2).",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[(0, 1)], directed=True),
+        "algo": "st_mincut",
+        "params": {"source": 0, "target": 1, "capacity": None},
+        "expected": {
+            "value": 1.0,
+            "cut": [0],
+            "partition": [0],
+            "partition2": [1],
+        },
+    },
+    {
+        "case": "st_mincut_r_two_parallel_paths_unit_caps_value_only",
+        "origin": "rigraph tests/testthat/test-flow.R style: "
+        "min_cut on directed diamond (edges (1,2),(2,4),(1,3),(3,4)) "
+        "from 1 to 4 with unit caps ⇒ value=2; multiple optimal cuts "
+        "exist (e.g. {(1,2),(1,3)} or {(2,4),(3,4)}) so cut / "
+        "partition are not pinned.",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 3), (0, 2), (2, 3)], directed=True
+        ),
+        "algo": "st_mincut",
+        "params": {"source": 0, "target": 3, "capacity": None},
+        "expected": {"value": 2.0},
+    },
+    {
+        "case": "st_mincut_r_undirected_k4_unit_caps_value_only",
+        "origin": "rigraph tests/testthat/test-flow.R style: "
+        "min_cut(make_full_graph(4, directed=FALSE), source=1, "
+        "target=2) on K_4 unit caps ⇒ value=3 (single-vertex "
+        "isolation cuts are optimal; cut / partition non-unique).",
+        "graph_factory": lambda: ig.Graph.Full(4, directed=False, loops=False),
+        "algo": "st_mincut",
+        "params": {"source": 0, "target": 1, "capacity": None},
+        "expected": {"value": 3.0},
+    },
+]
+
 
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
@@ -8429,6 +8479,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "mincut_value": MINCUT_VALUE_MANIFEST,
+    "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

@@ -1,18 +1,22 @@
-//! `st_mincut` (max-flow / min-cut duality) baseline benchmarks for ALGO-FL-010.
+//! `st_mincut` (max-flow / min-cut duality) baseline benchmarks for
+//! ALGO-FL-010 (`st_mincut_value`, scalar) and ALGO-FL-018 (`st_mincut`,
+//! value + cut edge ids + source/sink partitions).
 //!
 //! Run: `cargo bench --bench bench_st_mincut`.
 //! Results land under `target/criterion/`. Headline numbers are recorded
-//! in `.codefuse/tracking/perf/ALGO-FL-010.json`.
+//! in `.codefuse/tracking/perf/ALGO-FL-010.json` and
+//! `.codefuse/tracking/perf/ALGO-FL-018.json`.
 //!
 //! `st_mincut_value` is a thin wrapper over `max_flow_value` by the
 //! Ford-Fulkerson max-flow / min-cut theorem (igraph C's
 //! `igraph_st_mincut_value` at flow.c:1127 is a 5-line redirect).
-//! These benches exist to (a) certify the wrapper introduces no
-//! measurable overhead vs. the bare delegate and (b) keep a perf
-//! snapshot per AWU per the SOP.
+//! `st_mincut` shares Dinic with `max_flow_value` via the crate-private
+//! `max_flow_with_residual` entry point and adds one BFS in the residual
+//! plus one linear edge sweep to materialise the partition + cut edge
+//! list. The bench pairs measure that extra cost.
 
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use rust_igraph::{Graph, st_mincut_value};
+use rust_igraph::{Graph, st_mincut, st_mincut_value};
 
 /// CLRS 26.1-1 max-flow textbook instance (6 vertices, 9 arcs, min-cut = 23).
 fn textbook() -> (Graph, Vec<f64>, u32, u32) {
@@ -89,5 +93,38 @@ fn bench_layered(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, bench_textbook, bench_layered);
+// FL-018 — full partition variant. Run the same regimes so we can
+// compare against the scalar wrapper above and quantify the cost of the
+// extra residual BFS + edge sweep.
+
+fn bench_partition_textbook(c: &mut Criterion) {
+    let (g, caps, s, t) = textbook();
+    c.bench_function("st_mincut/textbook (6v 10e directed)", |b| {
+        b.iter(|| st_mincut(&g, s, t, Some(&caps)).expect("mincut"));
+    });
+}
+
+fn bench_partition_layered(c: &mut Criterion) {
+    let mut group = c.benchmark_group("st_mincut/layered");
+    for (layers, width) in [(4u32, 8u32), (6, 16), (8, 32)] {
+        let (g, caps, s, t) = layered(layers, width);
+        group.throughput(Throughput::Elements(g.ecount() as u64));
+        group.bench_with_input(
+            BenchmarkId::from_parameter(format!("L{layers}xW{width}")),
+            &(g, caps, s, t),
+            |b, (g, caps, s, t)| {
+                b.iter(|| st_mincut(g, *s, *t, Some(caps)).expect("mincut"));
+            },
+        );
+    }
+    group.finish();
+}
+
+criterion_group!(
+    benches,
+    bench_textbook,
+    bench_layered,
+    bench_partition_textbook,
+    bench_partition_layered
+);
 criterion_main!(benches);

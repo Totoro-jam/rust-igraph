@@ -1,0 +1,52 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_st_mincut.c:40-50 \u2014 5-vertex directed graph (0,1)(1,2)(1,3)(2,4)(3,4), source=0 target=4, unit caps. Reference output cut=(0) partition=(0) partition2=(1,2,3,4); value = 1.0 since edge (0,1) is the unique source bridge.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "st_mincut",
+  "params": {
+    "source": 0,
+    "target": 4,
+    "capacity": null
+  },
+  "expected": {
+    "value": 1.0,
+    "cut": [
+      0
+    ],
+    "partition": [
+      0
+    ],
+    "partition2": [
+      1,
+      2,
+      3,
+      4
+    ]
+  }
+}

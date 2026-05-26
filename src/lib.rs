@@ -138,7 +138,7 @@ pub use crate::algorithms::flow::edge_disjoint_paths::edge_disjoint_paths;
 pub use crate::algorithms::flow::max_flow::max_flow_value;
 pub use crate::algorithms::flow::mincut_value::mincut_value;
 pub use crate::algorithms::flow::st_edge_connectivity::st_edge_connectivity;
-pub use crate::algorithms::flow::st_mincut::st_mincut_value;
+pub use crate::algorithms::flow::st_mincut::{StMincut, st_mincut, st_mincut_value};
 pub use crate::algorithms::flow::st_vertex_connectivity::{VconnNei, st_vertex_connectivity};
 pub use crate::algorithms::flow::vertex_connectivity::{cohesion, vertex_connectivity};
 pub use crate::algorithms::flow::vertex_disjoint_paths::vertex_disjoint_paths;

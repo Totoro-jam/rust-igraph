@@ -1,0 +1,36 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R style: min_cut on directed diamond (edges (1,2),(2,4),(1,3),(3,4)) from 1 to 4 with unit caps \u21d2 value=2; multiple optimal cuts exist (e.g. {(1,2),(1,3)} or {(2,4),(3,4)}) so cut / partition are not pinned.",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "st_mincut",
+  "params": {
+    "source": 0,
+    "target": 3,
+    "capacity": null
+  },
+  "expected": {
+    "value": 2.0
+  }
+}

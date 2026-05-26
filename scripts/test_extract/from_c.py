@@ -4473,6 +4473,121 @@ MINCUT_VALUE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-018: st_mincut (full s-t minimum-cut partition). Mirrors
+# `igraph_st_mincut` at `references/igraph/src/flow/flow.c:1140` —
+# a 47-line wrapper around `igraph_maxflow` that asks for the cut
+# edge list and source / sink partitions in addition to the value.
+# `expected` is a JSON object: `value` is always required; `cut`,
+# `partition`, `partition2` are optional and only pinned when the
+# minimum cut is unique (multiple optimal cuts may exist for the same
+# value, so we don't over-constrain).
+ST_MINCUT_PARTITION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # Replicates tests/unit/igraph_st_mincut.c verbatim
+        # (no-capacity branch, lines 45-50 of the C test).
+        "case": "st_mincut_c_directed_5v_unit_caps",
+        "origin": "tests/unit/igraph_st_mincut.c:40-50 — 5-vertex directed "
+        "graph (0,1)(1,2)(1,3)(2,4)(3,4), source=0 target=4, unit caps. "
+        "Reference output cut=(0) partition=(0) partition2=(1,2,3,4); "
+        "value = 1.0 since edge (0,1) is the unique source bridge.",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (1, 3), (2, 4), (3, 4)], directed=True
+        ),
+        "algo": "st_mincut",
+        "params": {"source": 0, "target": 4, "capacity": None},
+        "expected": {
+            "value": 1.0,
+            "cut": [0],
+            "partition": [0],
+            "partition2": [1, 2, 3, 4],
+        },
+    },
+    {
+        # Replicates tests/unit/igraph_st_mincut.c verbatim
+        # (weighted branch, lines 52-58 of the C test).
+        "case": "st_mincut_c_directed_5v_weighted",
+        "origin": "tests/unit/igraph_st_mincut.c:52-58 — same 5-vertex "
+        "directed graph with capacities [8,2,3,3,2]; reference cut=(1,4) "
+        "partition=(0,1,3) partition2=(2,4); value = 2.0 + 2.0 = 4.0.",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (1, 3), (2, 4), (3, 4)], directed=True
+        ),
+        "graph_weights": [8.0, 2.0, 3.0, 3.0, 2.0],
+        "algo": "st_mincut",
+        "params": {
+            "source": 0,
+            "target": 4,
+            "capacity": [8.0, 2.0, 3.0, 3.0, 2.0],
+        },
+        "expected": {
+            "value": 4.0,
+            "cut": [1, 4],
+            "partition": [0, 1, 3],
+            "partition2": [2, 4],
+        },
+    },
+    {
+        # CLRS 26.1-1: max flow = 23. Multiple min cuts may exist with
+        # value 23, so pin value only — the runner additionally checks
+        # the structural invariants (partition covers V, source in
+        # partition, target in partition2, sum cut caps == value, cut
+        # disconnects s from t).
+        "case": "st_mincut_c_clrs_textbook_value_only",
+        "origin": "CLRS 26.1-1 classic max-flow network mirrored from "
+        "igraph_maxflow.c tests; 6-vertex directed with edges "
+        "(0,1)(0,2)(1,3)(2,1)(2,4)(3,2)(3,5)(4,3)(4,5) caps "
+        "[16,13,12,4,14,9,20,7,4]; max flow = min cut = 23.",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[
+                (0, 1),
+                (0, 2),
+                (1, 3),
+                (2, 1),
+                (2, 4),
+                (3, 2),
+                (3, 5),
+                (4, 3),
+                (4, 5),
+            ],
+            directed=True,
+        ),
+        "graph_weights": [16.0, 13.0, 12.0, 4.0, 14.0, 9.0, 20.0, 7.0, 4.0],
+        "algo": "st_mincut",
+        "params": {
+            "source": 0,
+            "target": 5,
+            "capacity": [16.0, 13.0, 12.0, 4.0, 14.0, 9.0, 20.0, 7.0, 4.0],
+        },
+        "expected": {"value": 23.0},
+    },
+    {
+        # Undirected 4-vertex from igraph_maxflow.c with explicit caps;
+        # unique min cut crosses at (1,3) and (2,3) with caps 2 + 2 = 4.
+        # Pin value + partition + partition2 + cut.
+        "case": "st_mincut_c_undirected_4v_weighted",
+        "origin": "Adapted from igraph_maxflow.c 4-vertex undirected "
+        "reference: edges (0,1)(0,2)(1,2)(1,3)(2,3) with caps "
+        "[4,2,10,2,2]; min cut between {0,1,2} and {3} = 2+2 = 4.",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)], directed=False
+        ),
+        "graph_weights": [4.0, 2.0, 10.0, 2.0, 2.0],
+        "algo": "st_mincut",
+        "params": {
+            "source": 0,
+            "target": 3,
+            "capacity": [4.0, 2.0, 10.0, 2.0, 2.0],
+        },
+        "expected": {
+            "value": 4.0,
+            "cut": [3, 4],
+            "partition": [0, 1, 2],
+            "partition2": [3],
+        },
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -10613,6 +10728,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "mincut_value": MINCUT_VALUE_MANIFEST,
+    "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

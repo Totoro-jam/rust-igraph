@@ -1,0 +1,51 @@
+{
+  "source": "py",
+  "origin": "Graph(n=4, edges=[(0,1),(1,2),(2,3)], directed=True) with capacity [5,2,7]; unique bottleneck arc (1,2) cap 2 \u21d2 Graph.st_mincut(0, 3) value=2, cut=[1], partition=[0,1], partition2=[2,3].",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      5.0,
+      2.0,
+      7.0
+    ]
+  },
+  "algo": "st_mincut",
+  "params": {
+    "source": 0,
+    "target": 3,
+    "capacity": [
+      5.0,
+      2.0,
+      7.0
+    ]
+  },
+  "expected": {
+    "value": 2.0,
+    "cut": [
+      1
+    ],
+    "partition": [
+      0,
+      1
+    ],
+    "partition2": [
+      2,
+      3
+    ]
+  }
+}

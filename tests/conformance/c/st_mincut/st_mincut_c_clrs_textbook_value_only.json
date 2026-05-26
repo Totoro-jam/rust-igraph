@@ -1,0 +1,76 @@
+{
+  "source": "c",
+  "origin": "CLRS 26.1-1 classic max-flow network mirrored from igraph_maxflow.c tests; 6-vertex directed with edges (0,1)(0,2)(1,3)(2,1)(2,4)(3,2)(3,5)(4,3)(4,5) caps [16,13,12,4,14,9,20,7,4]; max flow = min cut = 23.",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": true,
+    "weights": [
+      16.0,
+      13.0,
+      12.0,
+      4.0,
+      14.0,
+      9.0,
+      20.0,
+      7.0,
+      4.0
+    ]
+  },
+  "algo": "st_mincut",
+  "params": {
+    "source": 0,
+    "target": 5,
+    "capacity": [
+      16.0,
+      13.0,
+      12.0,
+      4.0,
+      14.0,
+      9.0,
+      20.0,
+      7.0,
+      4.0
+    ]
+  },
+  "expected": {
+    "value": 23.0
+  }
+}

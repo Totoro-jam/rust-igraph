@@ -3718,6 +3718,66 @@ MINCUT_VALUE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-018: st_mincut (full s-t partition). python-igraph exposes
+# `Graph.st_mincut(source, target, capacity=None)` which returns a Cut
+# object carrying .value, .cut (edge ids), .partition[0] / partition[1].
+# We pin three regimes: (1) parallel arcs multigraph — unique min cut
+# saturates both, (2) directed bottleneck — pin every field, (3)
+# disconnected endpoints — value 0, empty cut, partition = {source}.
+ST_MINCUT_PARTITION_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "st_mincut_py_multigraph_two_parallel_arcs",
+        "origin": "Two parallel arcs 0→1 (directed multigraph). "
+        "Graph.st_mincut(0, 1) ⇒ value=2, cut=[0,1], partition=[0], "
+        "partition2=[1] — both arcs sit on the only frontier from 0.",
+        "graph_factory": lambda: ig.Graph(
+            n=2, edges=[(0, 1), (0, 1)], directed=True
+        ),
+        "algo": "st_mincut",
+        "params": {"source": 0, "target": 1, "capacity": None},
+        "expected": {
+            "value": 2.0,
+            "cut": [0, 1],
+            "partition": [0],
+            "partition2": [1],
+        },
+    },
+    {
+        "case": "st_mincut_py_directed_bottleneck_weighted",
+        "origin": "Graph(n=4, edges=[(0,1),(1,2),(2,3)], directed=True) "
+        "with capacity [5,2,7]; unique bottleneck arc (1,2) cap 2 ⇒ "
+        "Graph.st_mincut(0, 3) value=2, cut=[1], partition=[0,1], "
+        "partition2=[2,3].",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=True
+        ),
+        "graph_weights": [5.0, 2.0, 7.0],
+        "algo": "st_mincut",
+        "params": {"source": 0, "target": 3, "capacity": [5.0, 2.0, 7.0]},
+        "expected": {
+            "value": 2.0,
+            "cut": [1],
+            "partition": [0, 1],
+            "partition2": [2, 3],
+        },
+    },
+    {
+        "case": "st_mincut_py_disconnected_zero_value",
+        "origin": "Graph(n=4) with no edges. Graph.st_mincut(0, 3) ⇒ "
+        "value=0, empty cut, partition={0}, partition2={1,2,3}: "
+        "no path from source to target, so the empty cut suffices.",
+        "graph_factory": lambda: ig.Graph(n=4, edges=[], directed=True),
+        "algo": "st_mincut",
+        "params": {"source": 0, "target": 3, "capacity": None},
+        "expected": {
+            "value": 0.0,
+            "cut": [],
+            "partition": [0],
+            "partition2": [1, 2, 3],
+        },
+    },
+]
+
 
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
@@ -8231,6 +8291,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "vertex_connectivity": VCONN_GLOBAL_MANIFEST,
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "mincut_value": MINCUT_VALUE_MANIFEST,
+    "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

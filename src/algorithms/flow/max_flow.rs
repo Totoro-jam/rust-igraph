@@ -101,6 +101,21 @@ pub fn max_flow_value(
     target: VertexId,
     capacity: Option<&[f64]>,
 ) -> IgraphResult<f64> {
+    max_flow_with_residual(graph, source, target, capacity).map(|(v, _)| v)
+}
+
+/// Internal entry point: runs Dinic and returns both the scalar flow
+/// value AND the post-augmentation residual network. Crate-private —
+/// the public API exposes [`max_flow_value`] (value only) and FL-018's
+/// `st_mincut` (which uses the residual to extract a min-cut partition).
+///
+/// Same validation contract as [`max_flow_value`].
+pub(crate) fn max_flow_with_residual(
+    graph: &Graph,
+    source: VertexId,
+    target: VertexId,
+    capacity: Option<&[f64]>,
+) -> IgraphResult<(f64, Network)> {
     let n = graph.vcount();
     if n == 0 || source >= n {
         return Err(IgraphError::VertexOutOfRange { id: source, n });
@@ -134,7 +149,8 @@ pub fn max_flow_value(
 
     let net = Network::build(graph, capacity)?;
     let mut state = DinicState::new(net);
-    Ok(state.run(source, target))
+    let value = state.run(source, target);
+    Ok((value, state.into_network()))
 }
 
 /// Residual network in flat-CSR form with paired arcs.
@@ -142,19 +158,24 @@ pub fn max_flow_value(
 /// Arcs are stored in pairs: for each input forward arc at index `2k`,
 /// its reverse residual sits at index `2k + 1` (and vice versa). The
 /// XOR `idx ^ 1` recovers the paired arc.
-struct Network {
-    n: usize,
+///
+/// Crate-private: FL-018 (`st_mincut`) reads `cap` / `head` / `arcs_out`
+/// after Dinic terminates to BFS the source-side partition off the
+/// residual graph. Field visibility is `pub(crate)` for that reason
+/// only — outside `crate::algorithms::flow`, treat this as opaque.
+pub(crate) struct Network {
+    pub(crate) n: usize,
     /// Head (destination vertex) of each arc.
-    head: Vec<u32>,
+    pub(crate) head: Vec<u32>,
     /// Residual capacity of each arc (may be modified during the flow
     /// computation). For input forward arcs this starts at `capacity[e]`
     /// (or `1.0` if `capacity` is `None`); for the reverse residual
     /// this starts at `0.0` on directed input, or also at `capacity[e]`
     /// on undirected input.
-    cap: Vec<f64>,
+    pub(crate) cap: Vec<f64>,
     /// CSR-style adjacency: `arcs_out[v]` lists every arc index whose
     /// tail is `v`. Built once at construction.
-    arcs_out: Vec<Vec<u32>>,
+    pub(crate) arcs_out: Vec<Vec<u32>>,
 }
 
 impl Network {
@@ -224,6 +245,12 @@ impl DinicState {
             iter: vec![0_u32; n],
             queue: Vec::with_capacity(n),
         }
+    }
+
+    /// Surrender the residual network after `run`. Used by FL-018 to
+    /// BFS the source-side partition off the final residual.
+    fn into_network(self) -> Network {
+        self.net
     }
 
     fn run(&mut self, source: u32, target: u32) -> f64 {

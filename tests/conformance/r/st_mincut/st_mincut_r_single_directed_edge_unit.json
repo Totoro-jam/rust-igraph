@@ -1,0 +1,33 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R style: min_cut(make_graph(c(1,2), directed=TRUE), source=1, target=2) \u21d2 value=1, cut=c(1), partition1=c(1), partition2=c(2).",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "st_mincut",
+  "params": {
+    "source": 0,
+    "target": 1,
+    "capacity": null
+  },
+  "expected": {
+    "value": 1.0,
+    "cut": [
+      0
+    ],
+    "partition": [
+      0
+    ],
+    "partition2": [
+      1
+    ]
+  }
+}

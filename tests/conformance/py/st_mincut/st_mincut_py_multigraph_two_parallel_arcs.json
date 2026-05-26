@@ -1,0 +1,38 @@
+{
+  "source": "py",
+  "origin": "Two parallel arcs 0\u21921 (directed multigraph). Graph.st_mincut(0, 1) \u21d2 value=2, cut=[0,1], partition=[0], partition2=[1] \u2014 both arcs sit on the only frontier from 0.",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "st_mincut",
+  "params": {
+    "source": 0,
+    "target": 1,
+    "capacity": null
+  },
+  "expected": {
+    "value": 2.0,
+    "cut": [
+      0,
+      1
+    ],
+    "partition": [
+      0
+    ],
+    "partition2": [
+      1
+    ]
+  }
+}

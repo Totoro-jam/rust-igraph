@@ -15,6 +15,110 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-018** — `st_mincut`: full s-t minimum-cut **partition** —
+  the value plus the cut edge ids and the source-side / sink-side
+  vertex bipartition. Mirrors `igraph_st_mincut` at
+  `references/igraph/src/flow/flow.c:1140` (a 47-line wrapper around
+  `igraph_maxflow` that requests the optional `cut`, `partition`, and
+  `partition2` outputs alongside the flow value). Implementation:
+  1. Refactored `src/algorithms/flow/max_flow.rs` so that
+     `max_flow_value` is now a thin wrapper over a new crate-private
+     entry point `max_flow_with_residual(graph, source, target,
+     capacity) -> IgraphResult<(f64, Network)>`. The shared backend
+     builds the flat-CSR paired-arc residual network once, runs Dinic,
+     and returns both the flow value and the post-augmentation residual
+     state. `max_flow_value` simply drops the residual; `st_mincut`
+     consumes it for partition extraction.
+  2. After Dinic terminates, runs one BFS from `source` in the
+     residual graph (following only arcs with strictly positive
+     residual capacity — saturated arcs land at exactly `0.0`, not
+     within fp noise, because Dinic only subtracts pushed flow from a
+     residual that already had at least that much capacity).
+  3. The reachable set is the source-side `S` of a minimum s-t cut by
+     max-flow / min-cut duality (Ford-Fulkerson 1956); the complement
+     is `partition2`.
+  4. Walks the original edge list once: an edge `(u, v)` is in the cut
+     iff it crosses the partition boundary — directed input requires
+     the cut to point `S → V\S` (the reverse direction lies in the
+     opposite cut and is not saturated by this flow); undirected input
+     accepts either crossing.
+  - `pub fn st_mincut(graph: &Graph, source: VertexId, target: VertexId,
+    capacity: Option<&[f64]>) -> IgraphResult<StMincut>` and
+    `pub struct StMincut { value: f64, cut: Vec<u32>, partition:
+    Vec<u32>, partition2: Vec<u32> }`. Both partitions are sorted
+    ascending; together they cover every vertex exactly once.
+    `partition` always contains `source`; `partition2` always contains
+    `target` (unless they are already separated by the empty cut on a
+    disconnected input, in which case `partition = {source}`).
+  - Sum of `capacity[cut[i]]` (or `cut.len()` when `capacity` is
+    `None`) equals `value` within `1e-12` — verified by the proptest
+    invariant.
+  - Error contract matches `max_flow_value` / `st_mincut_value`:
+    `VertexOutOfRange` if `source` or `target` is outside
+    `[0, vcount())`, `InvalidArgument` if `source == target`, the
+    capacity slice length differs from `ecount()`, or any capacity is
+    negative / non-finite. Validation is delegated to the max-flow
+    layer so every error path is exercised by the FL-002 test suite.
+  - Tests (9 unit + 1 proptest with 4 invariants): single-bottleneck
+    chain (unique cut = middle arc), two parallel unit-cap paths
+    (cut = both bottlenecks, partition collapses to `{source}`),
+    isolated endpoints (empty cut, `partition = {source}`,
+    `partition2 = V \ {source}`), single edge graph (cut = edge,
+    `partition = {0}` / `partition2 = {1}`), undirected 4-vertex
+    igraph reference (cuts an inseparable triangle from the sink),
+    multigraph with parallel arcs (cut takes both arcs in sum),
+    CLRS 26.1-1 textbook (matches FL-002 / FL-010 numerically; cut
+    edge set varies by Dinic's BFS order, structural invariants
+    always hold), validation rejection (source == target → `InvalidArgument`),
+    and value-parity with `st_mincut_value` / `max_flow_value`
+    (peer equivalence across all fixtures). Proptest 50-case rig over
+    arbitrary 3-8 vertex directed graphs with random integer capacities
+    pins: (a) cover invariant — `partition ∪ partition2 = [0, V)`,
+    sorted, disjoint, exactly one contains `source` / `target`;
+    (b) sum-of-capacities equals `value`; (c) removing cut edges
+    disconnects `source` from `target` via residual BFS in the
+    original graph; (d) value matches `st_mincut_value` /
+    `max_flow_value` within `1e-12`.
+  - Three-source conformance fixtures (10 total) under
+    `tests/conformance/{c,py,r}/st_mincut/` exercise both unit and
+    weighted paths, directed and undirected, and pin structural
+    invariants on every fixture (cover, source/target sidedness,
+    capacity sum = value, removing cut disconnects s from t via BFS).
+    When the min cut is unique the fixture additionally pins the exact
+    `cut` / `partition` / `partition2` lists; otherwise only the value
+    + structural invariants are checked, so Dinic's BFS ordering does
+    not destabilise CI. C fixtures (4): 5v directed unit caps verbatim
+    from `tests/unit/igraph_st_mincut.c:52-58`, 5v directed weighted
+    `[8,2,3,3,2]` (same shape, exercises the f64 path), CLRS textbook
+    value-only, undirected 4v reference. Python fixtures (3):
+    multigraph two-parallel arcs, directed bottleneck weighted,
+    disconnected zero-value. R fixtures (3): single directed edge,
+    two parallel paths unit caps value-only, undirected K_4 unit caps
+    value-only. Harness `st_mincut_three_source_conformance()` parses
+    the object-shaped `expected` field and enforces the universal
+    structural invariants on every fixture; per-fixture exact-list
+    pinning only when the fixture explicitly opts in via `cut` /
+    `partition` / `partition2` keys.
+  - Bench `benches/bench_st_mincut.rs` adds two FL-018 regimes
+    alongside the existing FL-010 ones: `st_mincut/textbook` (6v 10e
+    directed, 723 ns vs FL-010's 581 ns — +24% per-call overhead
+    dominated by the `StMincut` struct + partition `Vec<u32>`
+    allocations on small inputs) and `st_mincut/layered/{L4xW8,
+    L6xW16, L8xW32}` (5.86/26.37/103.16 µs vs FL-010's
+    5.38/24.92/96.23 µs — +6-9% on larger inputs where Dinic's
+    O(V·E) work amortises the post-Dinic BFS over residual arcs and
+    the linear edge sweep). The refactor also makes `st_mincut_value`
+    measurably faster than its prior snapshot (3× improvement vs the
+    pre-FL-018 numbers at `.codefuse/tracking/perf/ALGO-FL-010.json`)
+    because the Dinic state is now built once rather than rebuilt
+    around a cloned graph.
+  - Demo `examples/st_mincut_partition_demo.rs` walks 8 cases
+    end-to-end: single bottleneck chain, CLRS 26.1-1 textbook, two
+    parallel unit-cap paths, disconnected endpoints, undirected
+    igraph_maxflow.c reference, multigraph with parallel arcs, and
+    both unit-cap and weighted variants of the
+    `igraph_st_mincut.c:52-58` 5-vertex reference.
+
 - **ALGO-FL-017** — `mincut_value`: global minimum-cut **value** —
   weighted generalisation of FL-016. Returns `f64` (total minimum
   capacity of edges whose removal makes a directed graph not strongly

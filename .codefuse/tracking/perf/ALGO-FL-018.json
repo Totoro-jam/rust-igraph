@@ -1,0 +1,18 @@
+{
+  "awu": "ALGO-FL-018",
+  "function": "st_mincut",
+  "captured_at": "2026-05-26",
+  "git_commit": "74a0699",
+  "machine": "darwin / Apple Silicon (local laptop)",
+  "criterion_args": "--warm-up-time 1 --measurement-time 3 (100-sample default)",
+  "rust_st_mincut_textbook_6v_10e_directed_ns": 723,
+  "rust_st_mincut_layered_L4_W8_ns": 5859,
+  "rust_st_mincut_layered_L6_W16_ns": 26373,
+  "rust_st_mincut_layered_L8_W32_ns": 103163,
+  "rust_st_mincut_value_textbook_6v_10e_directed_ns_same_run": 581,
+  "rust_st_mincut_value_layered_L4_W8_ns_same_run": 5383,
+  "rust_st_mincut_value_layered_L6_W16_ns_same_run": 24915,
+  "rust_st_mincut_value_layered_L8_W32_ns_same_run": 96227,
+  "py_baseline_ns": null,
+  "notes": "FL-018 vs FL-010 overhead (extra residual BFS + edge sweep to materialise the cut + partitions): textbook 723ns vs 581ns (+24%), layered L4xW8 5.86us vs 5.38us (+9%), L6xW16 26.37us vs 24.92us (+6%), L8xW32 103.16us vs 96.23us (+7%). The overhead is dominated by the post-Dinic BFS over the residual graph (one pass over V + 2E arcs) plus the edge sweep (one pass over E). On layered fixtures these passes are O(V+E) and amortise to near-zero relative to Dinic's O(V*E) work — the +6-9% measured matches the predicted ratio of one extra BFS over the doubled residual arc count. The +24% on the 6v textbook is the per-call constant cost (allocating the StMincut struct + two Vec<u32> partitions) dominating when Dinic itself only takes ~500ns. Compared to the freshly-rerun FL-010 numbers here (581/5383/24915/96227 ns), the headline FL-010 snapshot at .codefuse/tracking/perf/ALGO-FL-010.json (captured at commit f3e5948 in a prior session) ran with --sample-size 30 and shows 1571/15963/76595/285860 ns. The 3x speedup since then traces to the FL-018 max_flow refactor: `max_flow_value` is now a thin wrapper over `max_flow_with_residual` that drops the residual; the Dinic state is built once instead of being rebuilt around a cloned graph (see src/algorithms/flow/max_flow.rs). FL-010 inherits this improvement for free. py_baseline null: python-igraph's `Graph.mincut(source, target, capacity)` returns a `Cut` object backed by the same C entry point; cross-language comparison is meaningful only against the not-yet-wired Phase-1 PyO3 binding."
+}

@@ -16194,3 +16194,240 @@ fn mincut_value_three_source_conformance() {
         );
     }
 }
+
+#[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + structural-invariant block + optional pin
+fn st_mincut_three_source_conformance() {
+    // ALGO-FL-018: full s-t minimum-cut partition. `expected` is an
+    // object — `value` is always required; `cut`, `partition`,
+    // `partition2` are optional and only pinned when the upstream
+    // minimum cut is unique. The runner additionally enforces
+    // structural invariants on every fixture:
+    //   * source ∈ partition, target ∈ partition2
+    //   * partition ∪ partition2 covers V exactly once
+    //   * sum of cut-edge capacities equals `value`
+    //   * removing the cut disconnects source from target
+    // Mirrors `igraph_st_mincut` (flow.c:1140).
+    use std::collections::HashSet;
+
+    let mut seen = std::collections::HashSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("st_mincut");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "st_mincut");
+            assert_eq!(case.source, src);
+
+            let g = build_graph(&case.graph);
+            let n = g.vcount();
+            let directed = g.is_directed();
+            let source = u32::try_from(
+                case.params
+                    .get("source")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`source` param required"),
+            )
+            .expect("source fits in u32");
+            let target = u32::try_from(
+                case.params
+                    .get("target")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`target` param required"),
+            )
+            .expect("target fits in u32");
+            let caps_vec: Option<Vec<f64>> = case.params.get("capacity").and_then(|v| {
+                if v.is_null() {
+                    None
+                } else {
+                    Some(
+                        v.as_array()
+                            .expect("capacity must be array or null")
+                            .iter()
+                            .map(|x| x.as_f64().expect("capacity entry must be f64"))
+                            .collect::<Vec<_>>(),
+                    )
+                }
+            });
+            let result =
+                rust_igraph::st_mincut(&g, source, target, caps_vec.as_deref()).expect("st_mincut");
+
+            let expected_obj = case
+                .expected
+                .as_object()
+                .expect("expected must be an object");
+            let expected_value = expected_obj
+                .get("value")
+                .and_then(serde_json::Value::as_f64)
+                .expect("`expected.value` required");
+            assert!(
+                json_approx_eq(
+                    &serde_json::json!(result.value),
+                    &serde_json::json!(expected_value)
+                ),
+                "st_mincut value mismatch\n  fixture: {}\n  origin:  {}\n  actual:   {}\n  expected: {}",
+                path.display(),
+                case.origin,
+                result.value,
+                expected_value,
+            );
+
+            // Structural invariants — always enforced.
+            assert_eq!(
+                result.partition.len() + result.partition2.len(),
+                n as usize,
+                "partitions must cover V exactly\n  fixture: {}\n  partition: {:?}\n  partition2: {:?}",
+                path.display(),
+                result.partition,
+                result.partition2,
+            );
+            let mut seen_v = vec![false; n as usize];
+            for &v in result.partition.iter().chain(result.partition2.iter()) {
+                assert!(
+                    !seen_v[v as usize],
+                    "vertex {v} duplicated across partitions in {}",
+                    path.display()
+                );
+                seen_v[v as usize] = true;
+            }
+            assert!(
+                result.partition.contains(&source),
+                "source not in partition in {}",
+                path.display()
+            );
+            assert!(
+                result.partition2.contains(&target),
+                "target not in partition2 in {}",
+                path.display()
+            );
+
+            // Sum of cut capacities equals value (within tolerance).
+            // Fixture cut sizes are bounded by ecount() and well under
+            // 2^53, so the usize → f64 round-trip in the `None` arm is
+            // exact.
+            #[allow(clippy::cast_precision_loss)]
+            let sum_caps: f64 = match caps_vec.as_deref() {
+                Some(c) => result.cut.iter().map(|&e| c[e as usize]).sum(),
+                None => result.cut.len() as f64,
+            };
+            let scale = expected_value.abs().max(sum_caps.abs()).max(1.0);
+            assert!(
+                (sum_caps - expected_value).abs() <= 1e-9_f64 * scale,
+                "cut capacity sum {sum_caps} does not match value {expected_value} in {}",
+                path.display()
+            );
+
+            // Removing the cut disconnects source from target.
+            let cut_set: HashSet<u32> = result.cut.iter().copied().collect();
+            let mut adj: Vec<Vec<u32>> = vec![Vec::new(); n as usize];
+            let edge_count =
+                u32::try_from(g.ecount()).expect("conformance fixture ecount fits in u32");
+            for eid in 0..edge_count {
+                if cut_set.contains(&eid) {
+                    continue;
+                }
+                let (u, v) = g.edge(eid).expect("edge");
+                adj[u as usize].push(v);
+                if !directed {
+                    adj[v as usize].push(u);
+                }
+            }
+            let mut visited = vec![false; n as usize];
+            visited[source as usize] = true;
+            let mut q = vec![source];
+            let mut hp = 0;
+            while hp < q.len() {
+                let v = q[hp] as usize;
+                hp += 1;
+                for &w in &adj[v] {
+                    if !visited[w as usize] {
+                        visited[w as usize] = true;
+                        q.push(w);
+                    }
+                }
+            }
+            assert!(
+                !visited[target as usize],
+                "removing cut did not disconnect source from target in {}",
+                path.display()
+            );
+
+            // Pin cut / partition / partition2 exactly when the fixture
+            // requests it (i.e. the min cut is upstream-unique).
+            if let Some(exp_cut) = expected_obj.get("cut") {
+                let mut got_cut = result.cut.clone();
+                got_cut.sort_unstable();
+                let mut want_cut: Vec<u32> = exp_cut
+                    .as_array()
+                    .expect("expected.cut must be array")
+                    .iter()
+                    .map(|x| u32::try_from(x.as_u64().expect("cut entry must be u64")).unwrap())
+                    .collect();
+                want_cut.sort_unstable();
+                assert_eq!(
+                    got_cut,
+                    want_cut,
+                    "st_mincut cut mismatch in {}",
+                    path.display()
+                );
+            }
+            if let Some(exp_part) = expected_obj.get("partition") {
+                let want_part: Vec<u32> = exp_part
+                    .as_array()
+                    .expect("expected.partition must be array")
+                    .iter()
+                    .map(|x| {
+                        u32::try_from(x.as_u64().expect("partition entry must be u64")).unwrap()
+                    })
+                    .collect();
+                assert_eq!(
+                    result.partition,
+                    want_part,
+                    "st_mincut partition mismatch in {}",
+                    path.display()
+                );
+            }
+            if let Some(exp_part2) = expected_obj.get("partition2") {
+                let want_part2: Vec<u32> = exp_part2
+                    .as_array()
+                    .expect("expected.partition2 must be array")
+                    .iter()
+                    .map(|x| {
+                        u32::try_from(x.as_u64().expect("partition2 entry must be u64")).unwrap()
+                    })
+                    .collect();
+                assert_eq!(
+                    result.partition2,
+                    want_part2,
+                    "st_mincut partition2 mismatch in {}",
+                    path.display()
+                );
+            }
+
+            seen.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen.contains(src),
+            "no st_mincut fixtures from source {src}"
+        );
+    }
+}
