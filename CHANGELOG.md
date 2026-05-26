@@ -15,6 +15,52 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
+- **ALGO-FL-014** — `vertex_disjoint_paths`: maximum number of pairwise
+  internally vertex-disjoint paths from `source` to `target`. Mirrors
+  `igraph_vertex_disjoint_paths` at
+  `references/igraph/src/flow/flow.c:2374`. Thin wrapper that calls
+  [`st_vertex_connectivity`] with `VconnNei::Ignore` (which subtracts the
+  direct-edge contribution from the split-graph max-flow) and then adds
+  the count of direct `source → target` edges back on top: by Menger
+  (1927), every parallel arc contributes one trivially internally-
+  disjoint path of length 1. The result is `i64` matching upstream's
+  `igraph_integer_t`.
+  - `pub fn vertex_disjoint_paths(graph: &Graph, source: VertexId,
+    target: VertexId) -> IgraphResult<i64>`.
+  - Error contract delegates to [`st_vertex_connectivity`]
+    (`VertexOutOfRange` for ids ≥ `vcount()`, `InvalidArgument` for
+    `source == target` or `vcount() < 2`, `Internal` for the rare
+    `i64` overflow on `vc + direct_count`).
+  - 11 unit tests: error contract (source == target, both endpoints
+    out-of-range), basic correctness (isolated endpoints, single direct
+    edge, two parallel directed paths, direct edge + interior detour,
+    4 parallel arcs, directed-chain has no reverse path), the C unit
+    test's two multigraph cases (directed + undirected on the same 7v
+    fixture), and two invariants — `vdp = vc(Ignore) + direct_count`
+    when a direct edge exists (plus a sentinel sanity-check that
+    `VconnNei::NumberOfNodes` is NOT interchangeable since it returns
+    `vcount()` instead of the additive count), and
+    `vdp == st_vertex_connectivity(Ignore)` when no direct edge exists.
+    2 proptests cross-validate the Menger equality and the
+    `vdp ≤ ecount()` slack-free upper bound across random unit-cap
+    directed/undirected graphs.
+  - Three-source conformance: 5 C fixtures verbatim-replaying
+    `tests/unit/igraph_vertex_disjoint_paths.c:32-47` (the directed and
+    undirected halves of the 7v multigraph), 2 py fixtures
+    (`Graph.vertex_disjoint_paths` aliased to `Graph.vertex_connectivity`
+    per `src/igraph/__init__.py:341` — K_5 directed `vdp(0,1)=4` plus
+    undirected path `vdp(0,3)=1`), 2 R fixtures
+    (`igraph::vertex_disjoint_paths(graph, source =, target =)` per
+    `test-flow.R:201-207` — K_5 undirected `vdp(0,1)=4` and directed
+    P_5 `vdp(0,2)=1`). All 9 fixtures pass.
+  - Bench: `bench_vertex_disjoint_paths` mirrors the FL-013 fixture
+    shape (textbook 6v path + layered `L4×W8`, `L6×W16`, `L8×W32`)
+    so the JSONs compare cell-for-cell. Headline: textbook = 8.64 µs,
+    L4×W8 = 717 µs, L6×W16 = 22.7 ms, L8×W32 = 721 ms. Overhead vs.
+    FL-013 is bounded by one `get_all_eids_between` call (O(deg(s)));
+    on the layered grids the FL-014 / FL-013 ratio is 1.00× — 1.04×,
+    so the wrapper is essentially free past the textbook size.
+
 - **ALGO-FL-013** — `st_vertex_connectivity`: minimum number of internal
   vertices whose removal disconnects `source → target`. Mirrors
   `igraph_st_vertex_connectivity` at

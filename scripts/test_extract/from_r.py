@@ -3832,6 +3832,44 @@ ST_VCONN_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-014: vertex_disjoint_paths. rigraph exposes
+# `vertex_disjoint_paths(graph, source, target)` via
+# R/aaa-auto.R wrapping `igraph_vertex_disjoint_paths`. Tests at
+# tests/testthat/test-flow.R:201-207 cover two minimal cases:
+#   - make_full_graph(5), source=1, target=2 (R 1-indexed) →
+#     vdp(0, 1) = 4 on undirected K_5 (all four other vertices give
+#     four internally vertex-disjoint paths plus the direct edge,
+#     but igraph subtracts the direct-edge count under `Ignore`
+#     and adds it back → 1 direct + 3 detours = 4 in our convention).
+#   - make_ring(5, directed=TRUE, circular=FALSE), source=1, target=3 →
+#     vdp(0, 2) = 1 on the directed path 0→1→2→3→4 (single chain).
+VDP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "vdp_r_full_5v_0_to_1",
+        "origin": "rigraph tests/testthat/test-flow.R:202-203 "
+        "(vertex_disjoint_paths(make_full_graph(5), source=1, "
+        "target=2) == 4); R 1-indexed → Rust source=0, target=1; "
+        "undirected K_5 → 4 disjoint paths",
+        "graph_factory": lambda: ig.Graph.Full(5, directed=False, loops=False),
+        "algo": "vertex_disjoint_paths",
+        "params": {"source": 0, "target": 1},
+        "expected": 4,
+    },
+    {
+        "case": "vdp_r_directed_path5_0_to_2",
+        "origin": "rigraph tests/testthat/test-flow.R:205-206 "
+        "(vertex_disjoint_paths(make_ring(5, directed=TRUE, "
+        "circular=FALSE), source=1, target=3) == 1); R 1-indexed → "
+        "Rust source=0, target=2; directed path 0→1→2→3→4 has a "
+        "single 0→2 walk so vdp = 1",
+        "graph_factory": lambda: ig.Graph.Ring(5, directed=True, circular=False),
+        "algo": "vertex_disjoint_paths",
+        "params": {"source": 0, "target": 2},
+        "expected": 1,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors rigraph's
 # `sample_forestfire(nodes, fw.prob, bw.factor=1, ambs=1, directed=TRUE)`.
 # Generator — RNG state not portable across implementations, so we
@@ -8217,6 +8255,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
     "edge_disjoint_paths": ED_PATHS_MANIFEST,
     "st_vertex_connectivity": ST_VCONN_MANIFEST,
+    "vertex_disjoint_paths": VDP_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

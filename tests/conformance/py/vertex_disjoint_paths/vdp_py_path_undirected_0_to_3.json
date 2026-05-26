@@ -1,0 +1,33 @@
+{
+  "source": "py",
+  "origin": "Undirected path 0-1-2-3-4; vertex_disjoint_paths(0, 3) = 1 because vertices 1 and 2 are bottlenecks for any 0\u21923 walk",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "vertex_disjoint_paths",
+  "params": {
+    "source": 0,
+    "target": 3
+  },
+  "expected": 1
+}

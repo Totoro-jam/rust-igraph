@@ -15928,3 +15928,74 @@ fn st_vertex_connectivity_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn vertex_disjoint_paths_three_source_conformance() {
+    // ALGO-FL-014: Menger-equivalent count of internally vertex-disjoint
+    // s→t paths. Wrapper that calls st_vertex_connectivity(Ignore) and
+    // adds back the direct s→t edge count, so this conformance check
+    // independently pins the wrapper sum (vs. the per-mode dispatch
+    // covered by FL-013's own conformance).
+    use rust_igraph::vertex_disjoint_paths;
+
+    let mut seen = std::collections::HashSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("vertex_disjoint_paths");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "vertex_disjoint_paths");
+            let g = build_graph(&case.graph);
+            let source = u32::try_from(
+                case.params
+                    .get("source")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`source` param required"),
+            )
+            .expect("source fits in u32");
+            let target = u32::try_from(
+                case.params
+                    .get("target")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`target` param required"),
+            )
+            .expect("target fits in u32");
+            let value = vertex_disjoint_paths(&g, source, target).expect("vertex_disjoint_paths");
+            let actual = serde_json::json!(value);
+            assert!(
+                json_approx_eq(&actual, &case.expected),
+                "vertex_disjoint_paths conformance failure\n  fixture: {}\n  source:  {}\n  origin:  {}\n  actual:   {}\n  expected: {}",
+                path.display(),
+                case.source,
+                case.origin,
+                actual,
+                case.expected,
+            );
+            assert_eq!(case.source, src);
+            seen.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen.contains(src),
+            "no vertex_disjoint_paths fixtures from source {src}"
+        );
+    }
+}

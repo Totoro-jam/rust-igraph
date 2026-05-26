@@ -4146,6 +4146,105 @@ ST_VCONN_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-014: vertex_disjoint_paths. Mirrors `igraph_vertex_disjoint_paths`
+# in references/igraph/src/flow/flow.c:2374 — calls
+# `igraph_i_st_vertex_connectivity_{directed,undirected}` with
+# IGRAPH_VCONN_NEI_IGNORE and adds the direct-edge count back. The dedicated
+# C unit test tests/unit/igraph_vertex_disjoint_paths.c:23-52 has five
+# IGRAPH_ASSERT cases (3 directed + 2 undirected on the same 7v multigraph).
+VDP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "vdp_c_directed_0_to_5",
+        "origin": "tests/unit/igraph_vertex_disjoint_paths.c:32-33 — 7v "
+        "directed multigraph with direct edge 0→5, self-loop at 3, mutual "
+        "arcs (1,3)+(3,1); vdp(0,5)=3 (one direct + two via interior).",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (0, 5), (3, 3),
+                (5, 2), (1, 3), (3, 1),
+            ],
+            directed=True,
+        ),
+        "algo": "vertex_disjoint_paths",
+        "params": {"source": 0, "target": 5},
+        "expected": 3,
+    },
+    {
+        "case": "vdp_c_directed_1_to_3",
+        "origin": "tests/unit/igraph_vertex_disjoint_paths.c:35-36 — same "
+        "7v directed multigraph; vdp(1,3)=2 — the two parallel mutual "
+        "(1,3) arcs count once for the direct-edge bonus, plus one "
+        "internal path via vertex 2 / 4.",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (0, 5), (3, 3),
+                (5, 2), (1, 3), (3, 1),
+            ],
+            directed=True,
+        ),
+        "algo": "vertex_disjoint_paths",
+        "params": {"source": 1, "target": 3},
+        "expected": 2,
+    },
+    {
+        "case": "vdp_c_directed_4_to_0",
+        "origin": "tests/unit/igraph_vertex_disjoint_paths.c:38-39 — same "
+        "7v directed multigraph; vdp(4,0)=0 (no path from 4 back to 0 in "
+        "directed orientation).",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (0, 5), (3, 3),
+                (5, 2), (1, 3), (3, 1),
+            ],
+            directed=True,
+        ),
+        "algo": "vertex_disjoint_paths",
+        "params": {"source": 4, "target": 0},
+        "expected": 0,
+    },
+    {
+        "case": "vdp_c_undirected_4_to_0",
+        "origin": "tests/unit/igraph_vertex_disjoint_paths.c:43-44 — same "
+        "fixture after igraph_to_undirected(EACH); vdp(4,0)=3.",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (0, 5), (3, 3),
+                (5, 2), (1, 3), (3, 1),
+            ],
+            directed=False,
+        ),
+        "algo": "vertex_disjoint_paths",
+        "params": {"source": 4, "target": 0},
+        "expected": 3,
+    },
+    {
+        "case": "vdp_c_undirected_1_to_3",
+        "origin": "tests/unit/igraph_vertex_disjoint_paths.c:46-47 — same "
+        "undirected fixture; vdp(1,3)=5 (three parallel direct edges plus "
+        "two interior-disjoint paths).",
+        "graph_factory": lambda: ig.Graph(
+            n=7,
+            edges=[
+                (0, 1), (0, 2), (1, 2), (1, 3), (2, 4),
+                (3, 4), (3, 5), (4, 5), (0, 5), (3, 3),
+                (5, 2), (1, 3), (3, 1),
+            ],
+            directed=False,
+        ),
+        "algo": "vertex_disjoint_paths",
+        "params": {"source": 1, "target": 3},
+        "expected": 5,
+    },
+]
+
 FOREST_FIRE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "forest_fire_c_directed_n50_fw02_bw05_ambs2",
@@ -10282,6 +10381,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
     "edge_disjoint_paths": ED_PATHS_MANIFEST,
     "st_vertex_connectivity": ST_VCONN_MANIFEST,
+    "vertex_disjoint_paths": VDP_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

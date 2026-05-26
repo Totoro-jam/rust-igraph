@@ -1,0 +1,33 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R:205-206 (vertex_disjoint_paths(make_ring(5, directed=TRUE, circular=FALSE), source=1, target=3) == 1); R 1-indexed \u2192 Rust source=0, target=2; directed path 0\u21921\u21922\u21923\u21924 has a single 0\u21922 walk so vdp = 1",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "vertex_disjoint_paths",
+  "params": {
+    "source": 0,
+    "target": 2
+  },
+  "expected": 1
+}

@@ -1,0 +1,57 @@
+{
+  "source": "r",
+  "origin": "rigraph tests/testthat/test-flow.R:202-203 (vertex_disjoint_paths(make_full_graph(5), source=1, target=2) == 4); R 1-indexed \u2192 Rust source=0, target=1; undirected K_5 \u2192 4 disjoint paths",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "vertex_disjoint_paths",
+  "params": {
+    "source": 0,
+    "target": 1
+  },
+  "expected": 4
+}

@@ -3593,6 +3593,39 @@ ST_VCONN_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-FL-014: vertex_disjoint_paths. python-igraph aliases
+# `Graph.vertex_disjoint_paths` to `Graph.vertex_connectivity(source,
+# target)` at src/igraph/__init__.py:341 — the dedicated `igraph_vertex_
+# disjoint_paths` C entry is exposed without the explicit `neighbors=`
+# parameter (the C implementation always uses `IGRAPH_VCONN_NEI_IGNORE`
+# and adds the direct-edge count). Two fixtures echo the rigraph
+# test-flow.R:202-206 cases, giving Rust port + python + R triple
+# cross-validation on the same minimal graphs.
+VDP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "vdp_py_full_5v_directed_0_to_1",
+        "origin": "K_5 directed (every pair has both arcs); "
+        "vertex_disjoint_paths(0, 1) = n-1 = 4 (direct arc + "
+        "3 disjoint detours through {2,3,4})",
+        "graph_factory": lambda: ig.Graph.Full(5, directed=True, loops=False),
+        "algo": "vertex_disjoint_paths",
+        "params": {"source": 0, "target": 1},
+        "expected": 4,
+    },
+    {
+        "case": "vdp_py_path_undirected_0_to_3",
+        "origin": "Undirected path 0-1-2-3-4; vertex_disjoint_paths(0, 3) "
+        "= 1 because vertices 1 and 2 are bottlenecks for any 0→3 walk",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "algo": "vertex_disjoint_paths",
+        "params": {"source": 0, "target": 3},
+        "expected": 1,
+    },
+]
+
+
 # ALGO-GN-006: forest_fire_game. Mirrors `ig.Graph.Forest_Fire(n,
 # fw_prob, bw_factor, ambs, directed)` from python-igraph (Cython
 # wrapper on the same `igraph_forest_fire_game` C entry point). RNG
@@ -8101,6 +8134,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_edge_connectivity": ST_EDGE_CONN_MANIFEST,
     "edge_disjoint_paths": ED_PATHS_MANIFEST,
     "st_vertex_connectivity": ST_VCONN_MANIFEST,
+    "vertex_disjoint_paths": VDP_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
     "erdos_renyi_gnm": ERDOS_RENYI_GNM_MANIFEST,
     "barabasi_game_bag": BARABASI_BAG_MANIFEST,

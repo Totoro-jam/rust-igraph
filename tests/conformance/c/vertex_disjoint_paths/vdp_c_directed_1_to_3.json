@@ -1,0 +1,69 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_vertex_disjoint_paths.c:35-36 \u2014 same 7v directed multigraph; vdp(1,3)=2 \u2014 the two parallel mutual (1,3) arcs count once for the direct-edge bonus, plus one internal path via vertex 2 / 4.",
+  "graph": {
+    "n": 7,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "vertex_disjoint_paths",
+  "params": {
+    "source": 1,
+    "target": 3
+  },
+  "expected": 2
+}

@@ -1,0 +1,69 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_vertex_disjoint_paths.c:32-33 \u2014 7v directed multigraph with direct edge 0\u21925, self-loop at 3, mutual arcs (1,3)+(3,1); vdp(0,5)=3 (one direct + two via interior).",
+  "graph": {
+    "n": 7,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "vertex_disjoint_paths",
+  "params": {
+    "source": 0,
+    "target": 5
+  },
+  "expected": 3
+}

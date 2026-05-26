@@ -1,0 +1,11 @@
+{
+  "awu": "ALGO-FL-014",
+  "function": "vertex_disjoint_paths",
+  "captured_at": "2026-05-26",
+  "git_commit": "d6eb04a",
+  "rust_textbook_6v_path_undirected_ns": 8638,
+  "rust_layered_L4_W8_ns": 717240,
+  "rust_layered_L6_W16_ns": 22699000,
+  "rust_layered_L8_W32_ns": 721280000,
+  "notes": "Thin wrapper over ALGO-FL-013 st_vertex_connectivity(Ignore) plus one get_all_eids_between(s, t) call (O(deg(s)) hash-set lookup) to add the direct-edge count back. Same layered fixture shape as bench_st_vertex_connectivity.rs so ratios are directly comparable. Observed FL-014 / FL-013 medians: textbook = 8.64 µs / 7.25 µs ≈ 1.19× (within criterion noise — the get_all_eids_between call on a 6-vertex graph is essentially free), L4W8 = 717 µs / 692 µs ≈ 1.04×, L6W16 = 22.7 ms / 22.1 ms ≈ 1.03×, L8W32 = 721 ms / 728 ms ≈ 1.00×. As expected: the eids lookup is amortised away on the larger layered grids where max-flow dominates. Captured with short profile (--warm-up-time 1 --measurement-time 3 --sample-size 30) because L8W32 trips the default 5 s budget; numbers are stable to one significant figure against the FL-013 baseline."
+}

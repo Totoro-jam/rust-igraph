@@ -1,0 +1,69 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_vertex_disjoint_paths.c:38-39 \u2014 same 7v directed multigraph; vdp(4,0)=0 (no path from 4 back to 0 in directed orientation).",
+  "graph": {
+    "n": 7,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "vertex_disjoint_paths",
+  "params": {
+    "source": 4,
+    "target": 0
+  },
+  "expected": 0
+}
