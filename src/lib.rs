@@ -204,6 +204,7 @@ pub use crate::algorithms::layout::simple::{
     layout_circle, layout_grid, layout_grid_3d, layout_random, layout_random_3d, layout_sphere,
     layout_star,
 };
+pub use crate::algorithms::layout::sugiyama::{SugiyamaParams, SugiyamaResult, layout_sugiyama};
 pub use crate::algorithms::matching::{
     MatchingResult, is_matching, is_maximal_matching, maximum_bipartite_matching,
     maximum_bipartite_matching_weighted,

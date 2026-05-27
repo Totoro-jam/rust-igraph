@@ -34,6 +34,15 @@ pub(crate) mod kamada_kawai;
 )]
 pub(crate) mod reingold_tilford;
 pub(crate) mod simple;
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
+    clippy::needless_range_loop,
+    clippy::too_many_arguments
+)]
+pub(crate) mod sugiyama;
 
 pub use fruchterman_reingold::{
     FrBounds, FrBounds3d, FrGrid, FrParams, FrParams3d, layout_fruchterman_reingold,
@@ -47,3 +56,4 @@ pub use simple::{
     layout_circle, layout_grid, layout_grid_3d, layout_random, layout_random_3d, layout_sphere,
     layout_star,
 };
+pub use sugiyama::{SugiyamaParams, SugiyamaResult, layout_sugiyama};
