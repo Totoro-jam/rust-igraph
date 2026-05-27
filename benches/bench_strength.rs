@@ -1,6 +1,7 @@
 use criterion::{Criterion, criterion_group, criterion_main};
 use rust_igraph::{Graph, StrengthMode, diversity, strength, strength_with_mode};
 
+#[allow(clippy::cast_precision_loss)]
 fn bench_strength(c: &mut Criterion) {
     let mut group = c.benchmark_group("strength/undirected_all");
     for n in [100u32, 1000, 10_000] {

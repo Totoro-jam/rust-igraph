@@ -46,6 +46,7 @@ pub(crate) mod rich_club;
 pub(crate) mod strength;
 pub(crate) mod topological_sorting;
 pub(crate) mod triangles;
+pub(crate) mod trussness;
 
 pub use assortativity::{assortativity_degree, assortativity_degree_directed};
 pub use assortativity_weighted::{
@@ -100,3 +101,4 @@ pub use triangles::{
     count_adjacent_triangles, count_triangles, transitivity_local_undirected,
     transitivity_undirected,
 };
+pub use trussness::trussness;

@@ -1,0 +1,25 @@
+{
+  "algo": "ALGO-PR-036",
+  "name": "trussness",
+  "date": "2026-05-27",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "trussness/sparse_chain",
+      "sizes": [100, 500, 1000],
+      "note": "chain of triangles, trussness=3 throughout"
+    },
+    {
+      "group": "trussness/dense_clique",
+      "sizes": [20, 50, 100],
+      "note": "complete graph K_n, trussness=n for all edges"
+    },
+    {
+      "group": "trussness/band_graph",
+      "sizes": [200, 1000, 5000],
+      "note": "each vertex connected to next 4 neighbors"
+    }
+  ],
+  "status": "baseline_created"
+}

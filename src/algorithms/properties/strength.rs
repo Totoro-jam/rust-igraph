@@ -683,7 +683,7 @@ mod proptests {
                 return Ok(());
             }
             let weights: Vec<f64> = (0..g.ecount())
-                .map(|i| (i as f64 + 1.0))
+                .map(|i| i as f64 + 1.0)
                 .collect();
             let d = diversity(&g, &weights).unwrap();
             for (v, &val) in d.iter().enumerate() {
