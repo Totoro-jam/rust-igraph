@@ -24,6 +24,8 @@ pub(crate) mod rewire;
 )]
 pub(crate) mod rewire_edges;
 pub(crate) mod simplify;
+pub(crate) mod to_directed;
+pub(crate) mod to_undirected;
 pub(crate) mod union;
 
 pub use complementer::complementer;
@@ -42,4 +44,6 @@ pub use reverse::reverse;
 pub use rewire::rewire;
 pub use rewire_edges::rewire_edges;
 pub use simplify::simplify;
+pub use to_directed::{ToDirectedMode, to_directed};
+pub use to_undirected::{ToUndirectedMode, to_undirected};
 pub use union::union;
