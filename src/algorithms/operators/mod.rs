@@ -9,6 +9,7 @@ pub(crate) mod disjoint_union;
 pub(crate) mod induced_subgraph;
 pub(crate) mod intersection;
 pub(crate) mod is_same_graph;
+pub(crate) mod reverse;
 pub(crate) mod simplify;
 pub(crate) mod union;
 
@@ -18,5 +19,6 @@ pub use disjoint_union::{disjoint_union, disjoint_union_many};
 pub use induced_subgraph::{InducedSubgraphResult, induced_subgraph};
 pub use intersection::intersection;
 pub use is_same_graph::is_same_graph;
+pub use reverse::reverse;
 pub use simplify::simplify;
 pub use union::union;

@@ -88,6 +88,7 @@ pub(crate) mod lgl;
 )]
 pub(crate) mod mds;
 #[allow(
+    unknown_lints,
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
