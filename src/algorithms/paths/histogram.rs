@@ -275,7 +275,7 @@ mod tests {
     }
 }
 
-#[cfg(feature = "proptest-harness")]
+#[cfg(all(test, feature = "proptest-harness"))]
 mod proptests {
     use super::*;
     use crate::create;

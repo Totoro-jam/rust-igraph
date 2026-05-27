@@ -513,7 +513,7 @@ mod tests {
         assert!(close(vi, 0.0, 1e-12));
     }
 
-    #[cfg(feature = "proptest-harness")]
+    #[cfg(all(test, feature = "proptest-harness"))]
     mod prop {
         use super::*;
         use proptest::prelude::*;

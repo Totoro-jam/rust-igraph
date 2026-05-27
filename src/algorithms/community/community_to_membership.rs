@@ -309,7 +309,7 @@ mod tests {
         assert_eq!(cut.csize.len(), 2);
     }
 
-    #[cfg(feature = "proptest-harness")]
+    #[cfg(all(test, feature = "proptest-harness"))]
     mod prop {
         use super::*;
         use proptest::prelude::*;

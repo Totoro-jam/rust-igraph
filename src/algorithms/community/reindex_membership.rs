@@ -274,7 +274,7 @@ mod tests {
         assert_eq!(fast.new_to_old, expected_new_to_old);
     }
 
-    #[cfg(feature = "proptest-harness")]
+    #[cfg(all(test, feature = "proptest-harness"))]
     mod prop {
         use super::*;
         use proptest::prelude::*;

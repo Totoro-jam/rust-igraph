@@ -929,7 +929,7 @@ mod tests {
 
     // ── proptest ────────────────────────────────────────────────
 
-    #[cfg(feature = "proptest-harness")]
+    #[cfg(all(test, feature = "proptest-harness"))]
     mod proptests {
         use super::*;
         use proptest::prelude::*;

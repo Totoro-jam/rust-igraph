@@ -1093,7 +1093,7 @@ mod tests {
         assert!((1..=6).contains(&r.nb_clusters));
     }
 
-    #[cfg(feature = "proptest-harness")]
+    #[cfg(all(test, feature = "proptest-harness"))]
     mod prop {
         use super::*;
         use proptest::prelude::*;

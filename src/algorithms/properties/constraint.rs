@@ -276,8 +276,8 @@ mod tests {
         let g = create(&[(0, 1), (0, 2), (0, 3), (0, 4)], 5, false).expect("ok");
         let c = constraint(&g, None).expect("ok");
         assert!(approx_eq(c[0], 0.25), "center: {}", c[0]);
-        for i in 1..5 {
-            assert!(approx_eq(c[i], 1.0), "leaf {i}: {}", c[i]);
+        for (i, &val) in c.iter().enumerate().skip(1) {
+            assert!(approx_eq(val, 1.0), "leaf {i}: {val}");
         }
     }
 
@@ -356,12 +356,8 @@ mod tests {
         let g = create(&[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)], 4, false).expect("ok");
         let c = constraint(&g, None).expect("ok");
         let expected = 25.0 / 27.0;
-        for i in 0..4 {
-            assert!(
-                approx_eq(c[i], expected),
-                "v{i}: {} expected {expected}",
-                c[i]
-            );
+        for (i, &val) in c.iter().enumerate() {
+            assert!(approx_eq(val, expected), "v{i}: {val} expected {expected}",);
         }
     }
 
@@ -387,7 +383,7 @@ mod tests {
     }
 }
 
-#[cfg(feature = "proptest-harness")]
+#[cfg(all(test, feature = "proptest-harness"))]
 mod proptests {
     use super::*;
     use crate::create;

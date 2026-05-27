@@ -1,4 +1,4 @@
-//! ALGO-PR-040 example: Burt's constraint demo.
+//! ALGO-PR-032 example: Burt's constraint demo.
 //!
 //! Run: `cargo run --example constraint_demo`.
 
@@ -17,35 +17,35 @@ fn main() {
     println!("\n=== Triangle (0-1-2) ===");
     let g = create(&[(0, 1), (1, 2), (0, 2)], 3, false).unwrap();
     let c = constraint(&g, None).unwrap();
-    for i in 0..3 {
-        println!("  v{i}: {:.4}", c[i]);
+    for (i, val) in c.iter().enumerate() {
+        println!("  v{i}: {val:.4}");
     }
 
     println!("\n=== Path 0-1-2 ===");
     let g = create(&[(0, 1), (1, 2)], 3, false).unwrap();
     let c = constraint(&g, None).unwrap();
-    for i in 0..3 {
-        println!("  v{i}: {:.4}", c[i]);
+    for (i, val) in c.iter().enumerate() {
+        println!("  v{i}: {val:.4}");
     }
 
     println!("\n=== K4 complete ===");
     let g = create(&[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)], 4, false).unwrap();
     let c = constraint(&g, None).unwrap();
-    for i in 0..4 {
-        println!("  v{i}: {:.4}", c[i]);
+    for (i, val) in c.iter().enumerate() {
+        println!("  v{i}: {val:.4}");
     }
 
     println!("\n=== Weighted path 0-1-2 (w=[1,3]) ===");
     let g = create(&[(0, 1), (1, 2)], 3, false).unwrap();
     let c = constraint(&g, Some(&[1.0, 3.0])).unwrap();
-    for i in 0..3 {
-        println!("  v{i}: {:.4}", c[i]);
+    for (i, val) in c.iter().enumerate() {
+        println!("  v{i}: {val:.4}");
     }
 
     println!("\n=== Directed path 0->1->2 ===");
     let g = create(&[(0, 1), (1, 2)], 3, true).unwrap();
     let c = constraint(&g, None).unwrap();
-    for i in 0..3 {
-        println!("  v{i}: {:.4}", c[i]);
+    for (i, val) in c.iter().enumerate() {
+        println!("  v{i}: {val:.4}");
     }
 }

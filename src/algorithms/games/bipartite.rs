@@ -741,7 +741,7 @@ mod tests {
 
     // ------- proptest harness (gated; runs under `cargo test --features proptest-harness`) -------
 
-    #[cfg(feature = "proptest-harness")]
+    #[cfg(all(test, feature = "proptest-harness"))]
     mod prop {
         use super::super::*;
         use proptest::prelude::*;

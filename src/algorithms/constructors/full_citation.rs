@@ -231,7 +231,7 @@ mod tests {
         assert!(!full_citation(5, false).expect("ok").is_directed());
     }
 
-    #[cfg(feature = "proptest-harness")]
+    #[cfg(all(test, feature = "proptest-harness"))]
     mod prop {
         use super::*;
         use proptest::prelude::*;
