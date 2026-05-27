@@ -199,6 +199,7 @@ pub use crate::algorithms::games::watts::watts_strogatz_game;
 pub use crate::algorithms::io::dimacs::{
     DimacsGraph, DimacsProblem, read_dimacs, write_dimacs_flow,
 };
+pub use crate::algorithms::io::dot::write_dot;
 pub use crate::algorithms::io::edgelist::read_edgelist;
 pub use crate::algorithms::io::gml::{read_gml, write_gml};
 pub use crate::algorithms::io::lgl::{LglGraph, read_lgl, write_lgl};
