@@ -58,6 +58,7 @@ pub(crate) mod pagerank_weighted;
 pub(crate) mod reciprocity;
 pub(crate) mod rich_club;
 pub(crate) mod similarity;
+pub(crate) mod sort_by_degree;
 pub(crate) mod stochastic;
 pub(crate) mod strength;
 pub(crate) mod topological_sorting;
@@ -130,6 +131,7 @@ pub use similarity::{
     bibcoupling, cocitation, similarity_dice_pairs, similarity_inverse_log_weighted_pairs,
     similarity_jaccard_pairs,
 };
+pub use sort_by_degree::{SortOrder, sort_vertices_by_degree};
 pub use stochastic::get_stochastic;
 pub use strength::{StrengthMode, diversity, strength, strength_with_mode};
 pub use topological_sorting::topological_sorting;
