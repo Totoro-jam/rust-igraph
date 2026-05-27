@@ -13,6 +13,7 @@ pub mod constructors;
 pub mod cycles;
 pub mod feedback_arc_set;
 pub mod flow;
+pub mod fundamental_cycles;
 pub mod games;
 pub mod io;
 pub mod layout;

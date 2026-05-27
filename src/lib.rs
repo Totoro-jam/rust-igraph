@@ -159,6 +159,7 @@ pub use crate::algorithms::flow::st_mincut::{StMincut, st_mincut, st_mincut_valu
 pub use crate::algorithms::flow::st_vertex_connectivity::{VconnNei, st_vertex_connectivity};
 pub use crate::algorithms::flow::vertex_connectivity::{cohesion, vertex_connectivity};
 pub use crate::algorithms::flow::vertex_disjoint_paths::vertex_disjoint_paths;
+pub use crate::algorithms::fundamental_cycles::fundamental_cycles;
 pub use crate::algorithms::games::barabasi::barabasi_game_bag;
 pub use crate::algorithms::games::barabasi_aging::barabasi_aging_game;
 pub use crate::algorithms::games::barabasi_psumtree::{
