@@ -343,6 +343,7 @@ pub use crate::algorithms::properties::hits::{
     HitsScores, hub_and_authority_scores, hub_and_authority_scores_weighted,
 };
 pub use crate::algorithms::properties::is_acyclic::is_acyclic;
+pub use crate::algorithms::properties::is_bipartite::{BipartiteResult, is_bipartite};
 pub use crate::algorithms::properties::is_complete::is_complete;
 pub use crate::algorithms::properties::is_dag::is_dag;
 pub use crate::algorithms::properties::is_forest::is_forest;
