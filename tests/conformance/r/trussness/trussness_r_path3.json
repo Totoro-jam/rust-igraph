@@ -1,0 +1,25 @@
+{
+  "source": "r",
+  "origin": "R-igraph test-aaa-auto.R #162: path_graph_impl(n=3) \u2014 no triangles, all edges trussness 2",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "trussness",
+  "params": {},
+  "expected": [
+    2,
+    2
+  ]
+}

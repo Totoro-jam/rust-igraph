@@ -8685,6 +8685,37 @@ WEIGHTED_ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-PR-036: trussness. python-igraph does NOT expose `trussness`
+# (as of 0.11.x). Fixtures are hand-computed from the k-truss
+# definition (edge trussness = max k such that edge is in a k-truss).
+TRUSSNESS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "trussness_py_k4",
+        "origin": "hand-computed: K4 (complete graph on 4 vertices) — every edge in 2 triangles, trussness 4",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "algo": "trussness",
+        "params": {},
+        "expected": [4, 4, 4, 4, 4, 4],
+    },
+    {
+        "case": "trussness_py_bridge_triangles",
+        "origin": "hand-computed: two triangles (0-1-2) and (3-4-5) joined by bridge 2-3 — triangles trussness 3, bridge trussness 2",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 2), (2, 3), (3, 4), (3, 5), (4, 5)],
+            directed=False,
+        ),
+        "algo": "trussness",
+        "params": {},
+        "expected": [3, 3, 3, 2, 3, 3, 3],
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -8887,6 +8918,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "hexagonal_lattice": HEXAGONAL_LATTICE_MANIFEST,
     "adjacency": ADJACENCY_MANIFEST,
     "weighted_adjacency": WEIGHTED_ADJACENCY_MANIFEST,
+    "trussness": TRUSSNESS_MANIFEST,
 }
 
 

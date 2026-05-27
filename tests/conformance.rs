@@ -17291,3 +17291,17 @@ fn recent_degree_aging_game_three_source_conformance() {
         );
     }
 }
+
+#[test]
+fn trussness_three_source_conformance() {
+    use rust_igraph::trussness;
+    run_conformance("trussness", |g, _params| {
+        let result = trussness(g).expect("trussness");
+        serde_json::Value::Array(
+            result
+                .into_iter()
+                .map(|v| serde_json::Value::Number(serde_json::Number::from(v)))
+                .collect(),
+        )
+    });
+}

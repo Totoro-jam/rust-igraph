@@ -8800,6 +8800,37 @@ WEIGHTED_ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-PR-036: trussness. R-igraph exposes `trussness_impl`.
+# The auto-generated R test only uses a path graph (P_3) which yields
+# all-2 trussness. We add a second case with a triangle for coverage.
+TRUSSNESS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "trussness_r_path3",
+        "origin": "R-igraph test-aaa-auto.R #162: path_graph_impl(n=3) — no triangles, all edges trussness 2",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (1, 2)],
+            directed=False,
+        ),
+        "algo": "trussness",
+        "params": {},
+        "expected": [2, 2],
+    },
+    {
+        "case": "trussness_r_triangle",
+        "origin": "R-igraph trussness_impl on triangle (K3) — all edges in one triangle, trussness 3",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (0, 2), (1, 2)],
+            directed=False,
+        ),
+        "algo": "trussness",
+        "params": {},
+        "expected": [3, 3, 3],
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -9007,6 +9038,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
     "adjacency": ADJACENCY_MANIFEST,
     "weighted_adjacency": WEIGHTED_ADJACENCY_MANIFEST,
+    "trussness": TRUSSNESS_MANIFEST,
 }
 
 

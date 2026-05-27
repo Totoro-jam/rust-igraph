@@ -1,0 +1,30 @@
+{
+  "source": "r",
+  "origin": "R-igraph trussness_impl on triangle (K3) \u2014 all edges in one triangle, trussness 3",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "trussness",
+  "params": {},
+  "expected": [
+    3,
+    3,
+    3
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "source": "py",
+  "origin": "hand-computed: two triangles (0-1-2) and (3-4-5) joined by bridge 2-3 \u2014 triangles trussness 3, bridge trussness 2",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "trussness",
+  "params": {},
+  "expected": [
+    3,
+    3,
+    3,
+    2,
+    3,
+    3,
+    3
+  ]
+}

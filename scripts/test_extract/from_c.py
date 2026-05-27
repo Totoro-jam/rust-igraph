@@ -11127,6 +11127,50 @@ PRUFER_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-PR-036: `igraph_trussness` — k-truss decomposition (per-edge trussness).
+# Reference test at references/igraph/tests/unit/igraph_trussness.c.
+# Expected values from igraph_trussness.out.
+TRUSSNESS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "trussness_c_simple_graph",
+        "origin": "igraph_trussness.out: simple 12-vertex graph (K5 core + K4 subcore + bridges)",
+        "graph_factory": lambda: ig.Graph(
+            n=12,
+            edges=[
+                (0, 1), (0, 2), (0, 3), (0, 4),
+                (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4),
+                (3, 6), (3, 11), (4, 5), (4, 6), (5, 6),
+                (5, 7), (5, 8), (5, 9), (6, 7), (6, 10), (6, 11),
+                (7, 8), (7, 9), (8, 9), (8, 10),
+            ],
+            directed=False,
+        ),
+        "algo": "trussness",
+        "params": {},
+        "expected": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 3, 3, 3, 3, 3, 4, 4, 4, 3, 2, 3, 4, 4, 4, 2],
+    },
+    {
+        "case": "trussness_c_graph_with_loops",
+        "origin": "igraph_trussness.out: same graph + 3 self-loops (0-0, 7-7, 5-5) — loops get trussness 2",
+        "graph_factory": lambda: ig.Graph(
+            n=12,
+            edges=[
+                (0, 1), (0, 2), (0, 3), (0, 4),
+                (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4),
+                (3, 6), (3, 11), (4, 5), (4, 6), (5, 6),
+                (5, 7), (5, 8), (5, 9), (6, 7), (6, 10), (6, 11),
+                (7, 8), (7, 9), (8, 9), (8, 10),
+                (0, 0), (7, 7), (5, 5),
+            ],
+            directed=False,
+        ),
+        "algo": "trussness",
+        "params": {},
+        "expected": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 3, 3, 3, 3, 3, 4, 4, 4, 3, 2, 3, 4, 4, 4, 2, 2, 2, 2],
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
@@ -11335,6 +11379,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "create": CREATE_MANIFEST,
     "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
     "hexagonal_lattice": HEXAGONAL_LATTICE_MANIFEST,
+    "trussness": TRUSSNESS_MANIFEST,
 }
 
 

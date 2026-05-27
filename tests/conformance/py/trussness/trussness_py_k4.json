@@ -1,0 +1,45 @@
+{
+  "source": "py",
+  "origin": "hand-computed: K4 (complete graph on 4 vertices) \u2014 every edge in 2 triangles, trussness 4",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "trussness",
+  "params": {},
+  "expected": [
+    4,
+    4,
+    4,
+    4,
+    4,
+    4
+  ]
+}
