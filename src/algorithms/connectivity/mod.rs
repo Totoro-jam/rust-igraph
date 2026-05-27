@@ -16,6 +16,7 @@ pub(crate) mod is_connected;
 pub(crate) mod percolation;
 pub(crate) mod reachability;
 pub(crate) mod reachability_matrix;
+pub(crate) mod separators;
 pub(crate) mod strong;
 pub(crate) mod subcomponent;
 pub(crate) mod transitive_closure;
@@ -32,6 +33,7 @@ pub use percolation::{
 };
 pub use reachability::count_reachable;
 pub use reachability_matrix::reachability_matrix;
+pub use separators::{is_minimal_separator, is_separator};
 pub use strong::strongly_connected_components;
 pub use subcomponent::{SubcomponentMode, subcomponent};
 pub use transitive_closure::transitive_closure;
