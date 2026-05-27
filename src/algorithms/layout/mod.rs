@@ -4,6 +4,7 @@
 //! ALGO-LO-003: Kamada-Kawai spring layout.
 //! ALGO-LO-004: Reingold-Tilford tree layout.
 
+pub(crate) mod bipartite;
 #[allow(
     clippy::similar_names,
     clippy::cast_precision_loss,
@@ -44,6 +45,7 @@ pub(crate) mod simple;
 )]
 pub(crate) mod sugiyama;
 
+pub use bipartite::layout_bipartite;
 pub use fruchterman_reingold::{
     FrBounds, FrBounds3d, FrGrid, FrParams, FrParams3d, layout_fruchterman_reingold,
     layout_fruchterman_reingold_3d,
