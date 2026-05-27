@@ -326,7 +326,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 > `todo` count, since they would otherwise distort the algorithm-progress
 > ratio.
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 193/198 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 198/198 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -404,10 +404,13 @@ PR-035 (`strength` + `strength_with_mode` + `diversity` + `StrengthMode` — wei
 CY-001 (`find_cycle` + `CycleMode` + `CycleResult` — iterative DFS cycle detection for directed and undirected graphs; `CycleMode` enum {Out, In, All} controls edge traversal direction; returns first cycle found as vertex + edge lists with first==last vertex; directed uses gray/black coloring, undirected tracks parent to avoid trivial back-edges; O(V+E); 11 unit tests + 1 doctest).
 MO-002 (`triad_census` + `TriadCensus` + `TriadType` — 16-class Davis-Leinhardt triad classification; enumerates all `n*(n-1)*(n-2)/6` vertex triples and classifies each into one of the 16 MAN isomorphism types using a flat `n×n` dyad matrix; undirected edges treated as mutual; O(n³); 23 unit tests + 1 doctest).
 CC-050 (`is_connected` + `ConnectednessMode` — connectivity predicate without full component computation; weak mode uses BFS over symmetric adjacency built from edge iteration; strong mode uses forward+reverse BFS from vertex 0; O(V+E); 12 unit tests + 1 doctest).
+CC-051 (`subcomponent` + `SubcomponentMode` — BFS reachability from a source vertex with direction control; Out/In/All modes; returns vertices in BFS discovery order; builds adjacency from edge iteration; O(V+E); 12 unit tests + 1 doctest).
+OP-020 (`to_undirected` + `ToUndirectedMode` — directed→undirected conversion; Each/Collapse/Mutual modes; O(E log E) for Collapse/Mutual due to canonical sorting; 13 unit tests + 1 doctest).
+OP-021 (`to_directed` + `ToDirectedMode` — undirected→directed conversion; Mutual/Arbitrary modes; O(E); 11 unit tests + 1 doctest).
+PR-036 (`degree_sequence` + `max_degree` + `min_degree` + `max_degree_vertex` + `DegreeMode` — batch degree computation with Out/In/All modes; handles self-loops per IGRAPH_LOOPS_TWICE convention; O(E); 15 unit tests + 4 doctests).
 
-Next options:
-PR-011c (PageRank ARPACK backend; may be redefined under self-roll guidance since PR-011 already converges via shifted power-iter parity to ARPACK),
-DS-V/M/S/SEL/ADJ catalog work,
-Phase 4 community detection continuation (Infomap remains).
+---
+
+**Phase 1 complete (198/198).** Next: Phase 2 (I/O formats for practical utility).
 
 > Update the counters after every PR merge.
