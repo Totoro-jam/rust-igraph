@@ -12,6 +12,7 @@ pub(crate) mod distances;
 pub(crate) mod eulerian;
 pub(crate) mod eulerian_construct;
 pub(crate) mod floyd_warshall;
+pub(crate) mod graph_center;
 pub(crate) mod histogram;
 pub(crate) mod johnson;
 pub(crate) mod radii;
@@ -31,6 +32,7 @@ pub use distances::distances;
 pub use eulerian::{EulerianClassification, is_eulerian};
 pub use eulerian_construct::eulerian_path;
 pub use floyd_warshall::floyd_warshall_distances;
+pub use graph_center::{PseudoDiameterResult, graph_center, pseudo_diameter};
 pub use histogram::{PathLengthHistResult, path_length_hist};
 pub use radii::{
     diameter, diameter_weighted, diameter_weighted_with_mode, eccentricity, eccentricity_weighted,
