@@ -1,0 +1,25 @@
+{
+  "algo": "ALGO-SP-031",
+  "name": "all_simple_paths",
+  "date": "2026-05-27",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "simple_paths/path",
+      "sizes": [10, 20, 50],
+      "note": "Path graph from vertex 0, all targets, no limit"
+    },
+    {
+      "group": "simple_paths/grid",
+      "sizes": ["3x3", "4x4", "5x5"],
+      "note": "Grid graph from vertex 0, max_results=1000"
+    },
+    {
+      "group": "simple_paths/complete",
+      "sizes": [6, 8, 10],
+      "note": "Complete graph from vertex 0, max_results=1000"
+    }
+  ],
+  "status": "baseline_created"
+}

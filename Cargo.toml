@@ -246,6 +246,10 @@ path = "examples/weighted_adjacency_demo.rs"
 name = "iea_game_demo"
 path = "examples/iea_game_demo.rs"
 
+[[example]]
+name = "simple_paths_demo"
+path = "examples/simple_paths_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -774,6 +778,11 @@ harness = false
 [[bench]]
 name = "bench_constraint"
 path = "benches/bench_constraint.rs"
+harness = false
+
+[[bench]]
+name = "bench_simple_paths"
+path = "benches/bench_simple_paths.rs"
 harness = false
 
 [lints.rust]
