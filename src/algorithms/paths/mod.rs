@@ -5,6 +5,7 @@
 
 // `pub(crate)` so the inner module names (`distances`, `eulerian`)
 // don't double-list with the function re-exports in rustdoc.
+pub(crate) mod all_shortest_paths;
 pub(crate) mod astar;
 pub(crate) mod bellman_ford;
 pub(crate) mod dijkstra;
@@ -23,6 +24,10 @@ pub(crate) mod simple_paths;
 pub(crate) mod voronoi;
 pub(crate) mod widest_path;
 
+pub use all_shortest_paths::{
+    AllShortestPaths, AllShortestPathsMode, get_all_shortest_paths,
+    get_all_shortest_paths_with_mode,
+};
 pub use astar::a_star_path;
 pub use dijkstra::{
     DijkstraAllPaths, DijkstraMode, DijkstraPaths, dijkstra_all_shortest_paths, dijkstra_distances,
