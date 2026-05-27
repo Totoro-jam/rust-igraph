@@ -190,6 +190,10 @@ pub use crate::algorithms::games::static_fitness::{static_fitness_game, static_p
 pub use crate::algorithms::games::tree::tree_game_lerw;
 pub use crate::algorithms::games::watts::watts_strogatz_game;
 pub use crate::algorithms::io::edgelist::read_edgelist;
+pub use crate::algorithms::layout::fruchterman_reingold::{
+    FrBounds, FrBounds3d, FrGrid, FrParams, FrParams3d, layout_fruchterman_reingold,
+    layout_fruchterman_reingold_3d,
+};
 pub use crate::algorithms::layout::simple::{
     layout_circle, layout_grid, layout_grid_3d, layout_random, layout_random_3d, layout_sphere,
     layout_star,
