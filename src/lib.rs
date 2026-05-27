@@ -221,6 +221,7 @@ pub use crate::algorithms::matching::{
     maximum_bipartite_matching_weighted,
 };
 pub use crate::algorithms::operators::complementer::complementer;
+pub use crate::algorithms::operators::compose::compose;
 pub use crate::algorithms::operators::connect_neighborhood::{connect_neighborhood, graph_power};
 pub use crate::algorithms::operators::contract_vertices::contract_vertices;
 pub use crate::algorithms::operators::difference::difference;
