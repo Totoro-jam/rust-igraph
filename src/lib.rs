@@ -267,6 +267,9 @@ pub use crate::algorithms::properties::eigenvector::{
     eigenvector_centrality_weighted,
 };
 pub use crate::algorithms::properties::girth::girth;
+pub use crate::algorithms::properties::graphicality::{
+    EdgeTypeFilter, is_bigraphical, is_graphical,
+};
 pub use crate::algorithms::properties::harmonic::harmonic_centrality;
 pub use crate::algorithms::properties::harmonic_weighted::harmonic_centrality_weighted;
 pub use crate::algorithms::properties::hits::{

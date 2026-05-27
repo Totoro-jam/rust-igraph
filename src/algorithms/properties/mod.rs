@@ -25,6 +25,7 @@ pub(crate) mod edge_betweenness_weighted;
 pub(crate) mod efficiency;
 pub(crate) mod eigenvector;
 pub(crate) mod girth;
+pub(crate) mod graphicality;
 pub(crate) mod harmonic;
 pub(crate) mod harmonic_weighted;
 pub(crate) mod hits;
@@ -71,6 +72,7 @@ pub use eigenvector::{
     eigenvector_centrality_weighted,
 };
 pub use girth::girth;
+pub use graphicality::{EdgeTypeFilter, is_bigraphical, is_graphical};
 pub use harmonic::harmonic_centrality;
 pub use harmonic_weighted::harmonic_centrality_weighted;
 pub use hits::{HitsScores, hub_and_authority_scores};

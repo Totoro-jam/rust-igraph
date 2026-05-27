@@ -1,0 +1,30 @@
+{
+  "algo": "ALGO-PR-034",
+  "name": "is_graphical + is_bigraphical",
+  "date": "2026-05-27",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "graphicality/simple_undirected",
+      "sizes": [100, 1000, 10000],
+      "note": "is_graphical, undirected, EdgeTypeFilter::Simple"
+    },
+    {
+      "group": "graphicality/loopy_simple_undirected",
+      "sizes": [100, 1000, 10000],
+      "note": "is_graphical, undirected, EdgeTypeFilter::LoopsSimple"
+    },
+    {
+      "group": "graphicality/simple_directed",
+      "sizes": [100, 1000, 10000],
+      "note": "is_graphical, directed, EdgeTypeFilter::Simple"
+    },
+    {
+      "group": "graphicality/bigraphical_simple",
+      "sizes": [100, 1000, 10000],
+      "note": "is_bigraphical, EdgeTypeFilter::Simple"
+    }
+  ],
+  "status": "baseline_created"
+}
