@@ -303,6 +303,7 @@ pub use crate::algorithms::properties::adjacency::{AdjacencyType, LoopHandling, 
 pub use crate::algorithms::properties::assortativity::{
     assortativity_degree, assortativity_degree_directed,
 };
+pub use crate::algorithms::properties::assortativity_nominal::assortativity_nominal;
 pub use crate::algorithms::properties::assortativity_weighted::{
     assortativity_degree_directed_weighted, assortativity_degree_weighted,
 };
