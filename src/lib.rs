@@ -241,6 +241,7 @@ pub use crate::algorithms::properties::betweenness::betweenness;
 pub use crate::algorithms::properties::betweenness_weighted::betweenness_weighted;
 pub use crate::algorithms::properties::closeness::closeness;
 pub use crate::algorithms::properties::closeness_weighted::closeness_weighted;
+pub use crate::algorithms::properties::constraint::constraint;
 pub use crate::algorithms::properties::convergence_degree::{
     convergence_degree, convergence_degree_full,
 };

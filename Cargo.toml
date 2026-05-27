@@ -771,6 +771,11 @@ name = "bench_create"
 path = "benches/bench_create.rs"
 harness = false
 
+[[bench]]
+name = "bench_constraint"
+path = "benches/bench_constraint.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

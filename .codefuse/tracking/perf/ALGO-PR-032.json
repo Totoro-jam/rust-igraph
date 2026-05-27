@@ -1,0 +1,12 @@
+{
+  "awu": "ALGO-PR-032",
+  "captured_at": "2026-05-27",
+  "git_commit": "pending",
+  "algorithms": [
+    "constraint"
+  ],
+  "test_count": 13,
+  "proptest_count": 3,
+  "py_baseline_ns": null,
+  "notes": "Burt's structural holes constraint. O(V + E + n*d^2) where d is max degree. Supports weighted edges, directed/undirected graphs. Reference: properties/constraint.c 288 lines."
+}
