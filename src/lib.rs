@@ -345,6 +345,7 @@ pub use crate::algorithms::properties::hits::{
 };
 pub use crate::algorithms::properties::is_acyclic::is_acyclic;
 pub use crate::algorithms::properties::is_bipartite::{BipartiteResult, is_bipartite};
+pub use crate::algorithms::properties::is_clique::{is_clique, is_independent_vertex_set};
 pub use crate::algorithms::properties::is_complete::is_complete;
 pub use crate::algorithms::properties::is_dag::is_dag;
 pub use crate::algorithms::properties::is_forest::is_forest;
