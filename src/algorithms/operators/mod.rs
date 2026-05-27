@@ -13,6 +13,12 @@ pub(crate) mod intersection;
 pub(crate) mod is_same_graph;
 pub(crate) mod permute_vertices;
 pub(crate) mod reverse;
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss
+)]
+pub(crate) mod rewire_edges;
 pub(crate) mod simplify;
 pub(crate) mod union;
 
@@ -26,5 +32,6 @@ pub use intersection::intersection;
 pub use is_same_graph::is_same_graph;
 pub use permute_vertices::permute_vertices;
 pub use reverse::reverse;
+pub use rewire_edges::rewire_edges;
 pub use simplify::simplify;
 pub use union::union;

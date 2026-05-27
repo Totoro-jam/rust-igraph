@@ -230,6 +230,7 @@ pub use crate::algorithms::operators::intersection::intersection;
 pub use crate::algorithms::operators::is_same_graph::is_same_graph;
 pub use crate::algorithms::operators::permute_vertices::permute_vertices;
 pub use crate::algorithms::operators::reverse::reverse;
+pub use crate::algorithms::operators::rewire_edges::rewire_edges;
 pub use crate::algorithms::operators::simplify::simplify;
 pub use crate::algorithms::operators::union::union;
 pub use crate::algorithms::paths::astar::a_star_path;
