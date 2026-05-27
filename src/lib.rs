@@ -87,6 +87,7 @@ pub use crate::algorithms::community::louvain::{
 pub use crate::algorithms::community::modularity::{
     modularity, modularity_directed, modularity_weighted, modularity_weighted_directed,
 };
+pub use crate::algorithms::community::modularity_matrix::modularity_matrix;
 pub use crate::algorithms::community::reindex_membership::{
     ReindexMembershipResult, reindex_membership,
 };
