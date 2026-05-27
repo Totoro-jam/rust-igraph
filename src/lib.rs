@@ -197,6 +197,9 @@ pub use crate::algorithms::layout::fruchterman_reingold::{
 pub use crate::algorithms::layout::kamada_kawai::{
     KkBounds, KkBounds3d, KkParams, KkParams3d, layout_kamada_kawai, layout_kamada_kawai_3d,
 };
+pub use crate::algorithms::layout::reingold_tilford::{
+    RtMode, layout_reingold_tilford, layout_reingold_tilford_circular,
+};
 pub use crate::algorithms::layout::simple::{
     layout_circle, layout_grid, layout_grid_3d, layout_random, layout_random_3d, layout_sphere,
     layout_star,

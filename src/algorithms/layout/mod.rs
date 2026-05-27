@@ -2,6 +2,7 @@
 //! deterministic layouts: circle, star, grid, sphere) and random layouts.
 //! ALGO-LO-002: Fruchterman-Reingold force-directed layout.
 //! ALGO-LO-003: Kamada-Kawai spring layout.
+//! ALGO-LO-004: Reingold-Tilford tree layout.
 
 #[allow(
     clippy::similar_names,
@@ -23,6 +24,15 @@ pub(crate) mod fruchterman_reingold;
     clippy::cast_possible_truncation
 )]
 pub(crate) mod kamada_kawai;
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
+    clippy::needless_range_loop,
+    clippy::unnecessary_wraps
+)]
+pub(crate) mod reingold_tilford;
 pub(crate) mod simple;
 
 pub use fruchterman_reingold::{
@@ -32,6 +42,7 @@ pub use fruchterman_reingold::{
 pub use kamada_kawai::{
     KkBounds, KkBounds3d, KkParams, KkParams3d, layout_kamada_kawai, layout_kamada_kawai_3d,
 };
+pub use reingold_tilford::{RtMode, layout_reingold_tilford, layout_reingold_tilford_circular};
 pub use simple::{
     layout_circle, layout_grid, layout_grid_3d, layout_random, layout_random_3d, layout_sphere,
     layout_star,
