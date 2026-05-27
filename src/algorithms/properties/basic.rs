@@ -108,6 +108,50 @@ pub fn mean_distance(graph: &Graph) -> IgraphResult<Option<f64>> {
     Ok(Some(mean))
 }
 
+/// Mean degree of the graph.
+///
+/// For directed graphs, returns `ecount / vcount` (the average out-degree,
+/// which equals the average in-degree). For undirected graphs, returns
+/// `2 * ecount / vcount`.
+///
+/// If `count_loops` is false, self-loop edges are excluded from the count.
+///
+/// Returns `None` for graphs with no vertices.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, mean_degree};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// // 3 edges, 4 vertices, undirected → mean = 2*3/4 = 1.5
+/// assert!((mean_degree(&g, true).unwrap().unwrap() - 1.5).abs() < 1e-10);
+/// ```
+pub fn mean_degree(graph: &Graph, count_loops: bool) -> IgraphResult<Option<f64>> {
+    let n = graph.vcount();
+    if n == 0 {
+        return Ok(None);
+    }
+
+    let mut ecount = graph.ecount();
+
+    if !count_loops {
+        let loop_count = crate::algorithms::properties::multiplicity::count_loops(graph)?;
+        ecount -= loop_count;
+    }
+
+    let directed = graph.is_directed();
+    let n_f = f64::from(n);
+    #[allow(clippy::cast_precision_loss)]
+    let m_f = ecount as f64;
+
+    let result = if directed { m_f / n_f } else { 2.0 * m_f / n_f };
+    Ok(Some(result))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -219,5 +263,67 @@ mod tests {
         g.add_edge(1, 2).unwrap();
         let four_thirds = 4.0_f64 / 3.0;
         assert_eq!(mean_distance(&g).unwrap(), Some(four_thirds));
+    }
+
+    #[test]
+    fn mean_degree_empty_graph() {
+        let g = Graph::with_vertices(0);
+        assert_eq!(mean_degree(&g, true).unwrap(), None);
+    }
+
+    #[test]
+    fn mean_degree_no_edges() {
+        let g = Graph::with_vertices(5);
+        let md = mean_degree(&g, true).unwrap().unwrap();
+        assert!((md - 0.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn mean_degree_undirected_path() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        // 3 edges, 4 vertices, undirected: 2*3/4 = 1.5
+        let md = mean_degree(&g, true).unwrap().unwrap();
+        assert!((md - 1.5).abs() < 1e-10);
+    }
+
+    #[test]
+    fn mean_degree_directed() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        // 3 edges, 3 vertices, directed: 3/3 = 1.0
+        let md = mean_degree(&g, true).unwrap().unwrap();
+        assert!((md - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn mean_degree_with_self_loops() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(0, 0).unwrap(); // self-loop
+        // With loops: 3 edges, undirected: 2*3/3 = 2.0
+        let md_with = mean_degree(&g, true).unwrap().unwrap();
+        assert!((md_with - 2.0).abs() < 1e-10);
+        // Without loops: 2 edges, undirected: 2*2/3 = 4/3
+        let md_without = mean_degree(&g, false).unwrap().unwrap();
+        assert!((md_without - 4.0 / 3.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn mean_degree_complete_undirected() {
+        // K4: 6 edges, 4 vertices: 2*6/4 = 3.0
+        let mut g = Graph::with_vertices(4);
+        for u in 0..4u32 {
+            for v in (u + 1)..4 {
+                g.add_edge(u, v).unwrap();
+            }
+        }
+        let md = mean_degree(&g, true).unwrap().unwrap();
+        assert!((md - 3.0).abs() < 1e-10);
     }
 }
