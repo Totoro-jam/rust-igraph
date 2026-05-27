@@ -198,6 +198,7 @@ pub use crate::algorithms::games::tree::tree_game_lerw;
 pub use crate::algorithms::games::watts::watts_strogatz_game;
 pub use crate::algorithms::io::edgelist::read_edgelist;
 pub use crate::algorithms::io::gml::{read_gml, write_gml};
+pub use crate::algorithms::io::ncol::{NcolGraph, read_ncol, write_ncol};
 pub use crate::algorithms::layout::bipartite::layout_bipartite;
 pub use crate::algorithms::layout::davidson_harel::{DhParams, layout_davidson_harel};
 pub use crate::algorithms::layout::drl::{DrlOptions, DrlTemplate, layout_drl};
