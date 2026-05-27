@@ -354,6 +354,7 @@ pub use crate::algorithms::properties::is_tree::is_tree;
 pub use crate::algorithms::properties::knn::{
     avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, knnk, knnk_weighted,
 };
+pub use crate::algorithms::properties::laplacian::{LaplacianNormalization, get_laplacian};
 pub use crate::algorithms::properties::multiplicity::{
     count_loops, count_multiple, has_loop, has_multiple, is_loop, is_multiple,
 };

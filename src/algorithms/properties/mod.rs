@@ -40,6 +40,7 @@ pub(crate) mod is_forest;
 pub(crate) mod is_simple;
 pub(crate) mod is_tree;
 pub(crate) mod knn;
+pub(crate) mod laplacian;
 pub(crate) mod multiplicity;
 pub(crate) mod mutual;
 pub(crate) mod neighborhood;
@@ -96,6 +97,7 @@ pub use is_forest::is_forest;
 pub use is_simple::{SimpleMode, is_simple, is_simple_with_mode};
 pub use is_tree::is_tree;
 pub use knn::avg_nearest_neighbor_degree;
+pub use laplacian::{LaplacianNormalization, get_laplacian};
 pub use multiplicity::{count_loops, count_multiple, has_loop, has_multiple, is_loop, is_multiple};
 pub use mutual::{count_mutual, has_mutual, is_mutual};
 pub use neighborhood::{
