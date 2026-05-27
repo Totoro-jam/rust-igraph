@@ -322,6 +322,7 @@ pub use crate::algorithms::properties::coreness::{CorenessMode, coreness, corene
 pub use crate::algorithms::properties::degree::{
     DegreeMode, degree_sequence, max_degree, max_degree_vertex, min_degree,
 };
+pub use crate::algorithms::properties::degree_correlation::degree_correlation_vector;
 pub use crate::algorithms::properties::ecc::ecc;
 pub use crate::algorithms::properties::edge_betweenness::edge_betweenness;
 pub use crate::algorithms::properties::edge_betweenness_weighted::edge_betweenness_weighted;
