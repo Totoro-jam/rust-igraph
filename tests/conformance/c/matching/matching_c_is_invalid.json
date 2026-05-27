@@ -1,0 +1,38 @@
+{
+  "source": "c",
+  "origin": "igraph matching.c: invalid matching (vertex 0 matched to 2 but vertex 2 not matched to 0)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "matching",
+  "params": {
+    "check": "is_matching",
+    "matching": [
+      2,
+      3,
+      1,
+      0
+    ]
+  },
+  "expected": false
+}

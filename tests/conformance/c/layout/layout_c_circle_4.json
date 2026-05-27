@@ -1,0 +1,45 @@
+{
+  "source": "c",
+  "origin": "igraph layout_circle on 4-vertex graph \u2014 vertices at angles 0, \u03c0/2, \u03c0, 3\u03c0/2",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "layout",
+  "params": {
+    "algorithm": "circle"
+  },
+  "expected": [
+    [
+      1.0,
+      0.0
+    ],
+    [
+      6.123233995736766e-17,
+      1.0
+    ],
+    [
+      -1.0,
+      1.2246467991473532e-16
+    ],
+    [
+      -1.8369701987210297e-16,
+      -1.0
+    ]
+  ]
+}

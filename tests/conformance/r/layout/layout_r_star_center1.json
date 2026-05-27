@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "hand-computed: layout_star on 3 vertices with center=1",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "layout",
+  "params": {
+    "algorithm": "star",
+    "center": 1
+  },
+  "expected": [
+    [
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0
+    ],
+    [
+      -1.0,
+      1.2246467991473532e-16
+    ]
+  ]
+}

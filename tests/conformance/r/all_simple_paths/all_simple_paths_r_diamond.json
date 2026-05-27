@@ -1,0 +1,66 @@
+{
+  "source": "r",
+  "origin": "hand-computed: diamond graph (K4 minus one edge), from=0 to=[3] \u2014 3 paths",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "all_simple_paths",
+  "params": {
+    "from": 0,
+    "to": [
+      3
+    ],
+    "mode": "all",
+    "min_len": -1,
+    "max_len": -1,
+    "max_results": -1
+  },
+  "expected": [
+    [
+      0,
+      1,
+      2,
+      3
+    ],
+    [
+      0,
+      1,
+      3
+    ],
+    [
+      0,
+      2,
+      1,
+      3
+    ],
+    [
+      0,
+      2,
+      3
+    ]
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "source": "c",
+  "origin": "igraph coloring.c: Petersen graph (\u03c7=3), CN heuristic \u2014 our impl achieves optimal 3 colors",
+  "graph": {
+    "n": 10,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        6,
+        9
+      ],
+      [
+        7,
+        9
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "coloring",
+  "params": {
+    "check": "greedy_valid",
+    "heuristic": "colored_neighbors"
+  },
+  "expected": {
+    "valid": true,
+    "max_colors": 3
+  }
+}

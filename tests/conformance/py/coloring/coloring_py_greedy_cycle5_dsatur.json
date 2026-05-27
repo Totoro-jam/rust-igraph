@@ -1,0 +1,40 @@
+{
+  "source": "py",
+  "origin": "hand-computed: odd cycle C_5 (\u03c7=3), DSATUR heuristic achieves 3 colors",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "coloring",
+  "params": {
+    "check": "greedy_valid",
+    "heuristic": "dsatur"
+  },
+  "expected": {
+    "valid": true,
+    "max_colors": 3
+  }
+}

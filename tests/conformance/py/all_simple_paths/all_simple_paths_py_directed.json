@@ -1,0 +1,42 @@
+{
+  "source": "py",
+  "origin": "hand-computed: directed 0\u21921\u21922\u21923, from=0 to=[3] mode=out \u2014 only [0,1,2,3]",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "all_simple_paths",
+  "params": {
+    "from": 0,
+    "to": [
+      3
+    ],
+    "mode": "out",
+    "min_len": -1,
+    "max_len": -1,
+    "max_results": -1
+  },
+  "expected": [
+    [
+      0,
+      1,
+      2,
+      3
+    ]
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "source": "r",
+  "origin": "hand-computed: layout_circle on 5-vertex graph \u2014 regular pentagon on unit circle",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "layout",
+  "params": {
+    "algorithm": "circle"
+  },
+  "expected": [
+    [
+      1.0,
+      0.0
+    ],
+    [
+      0.30901699437494745,
+      0.9510565162951535
+    ],
+    [
+      -0.8090169943749473,
+      0.5877852522924732
+    ],
+    [
+      -0.8090169943749475,
+      -0.587785252292473
+    ],
+    [
+      0.30901699437494723,
+      -0.9510565162951536
+    ]
+  ]
+}

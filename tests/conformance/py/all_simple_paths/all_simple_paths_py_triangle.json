@@ -1,0 +1,45 @@
+{
+  "source": "py",
+  "origin": "hand-computed: triangle 0-1-2, from=0 to=[2] \u2014 two paths: [0,1,2] and [0,2]",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "all_simple_paths",
+  "params": {
+    "from": 0,
+    "to": [
+      2
+    ],
+    "mode": "all",
+    "min_len": -1,
+    "max_len": -1,
+    "max_results": -1
+  },
+  "expected": [
+    [
+      0,
+      1,
+      2
+    ],
+    [
+      0,
+      2
+    ]
+  ]
+}

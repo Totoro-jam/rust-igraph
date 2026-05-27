@@ -1,0 +1,35 @@
+{
+  "source": "py",
+  "origin": "hand-computed: path 0-1-2-3 undirected \u2014 hist=[3,2,1], unconnected=0",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "path_length_hist",
+  "params": {
+    "directed": false
+  },
+  "expected": {
+    "hist": [
+      3.0,
+      2.0,
+      1.0
+    ],
+    "unconnected": 0.0
+  }
+}

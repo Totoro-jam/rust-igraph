@@ -11127,6 +11127,187 @@ PRUFER_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CL-001: vertex_coloring_greedy + is_vertex_coloring.
+# The greedy coloring is heuristic-dependent but we can verify:
+# 1. is_vertex_coloring on known valid/invalid colorings
+# 2. vertex_coloring_greedy on known chromatic number graphs
+COLORING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "coloring_c_is_valid_k3",
+        "origin": "igraph coloring.c: valid 3-coloring of K3",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False),
+        "algo": "coloring",
+        "params": {"check": "is_vertex_coloring", "colors": [0, 1, 2]},
+        "expected": True,
+    },
+    {
+        "case": "coloring_c_is_invalid_k3",
+        "origin": "igraph coloring.c: invalid coloring of K3 (two adjacent same color)",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (0, 2), (1, 2)], directed=False),
+        "algo": "coloring",
+        "params": {"check": "is_vertex_coloring", "colors": [0, 0, 1]},
+        "expected": False,
+    },
+    {
+        "case": "coloring_c_greedy_petersen_cn",
+        "origin": "igraph coloring.c: Petersen graph (χ=3), CN heuristic — our impl achieves optimal 3 colors",
+        "graph_factory": lambda: ig.Graph.Famous("petersen"),
+        "algo": "coloring",
+        "params": {"check": "greedy_valid", "heuristic": "colored_neighbors"},
+        "expected": {"valid": True, "max_colors": 3},
+    },
+]
+
+
+# ALGO-CL-002: maximum_cardinality_search + is_chordal.
+CHORDAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "chordal_c_path4",
+        "origin": "igraph is_chordal.c: path graph P_4 is chordal (no cycle of length >= 4)",
+        "graph_factory": lambda: ig.Graph(n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False),
+        "algo": "chordal",
+        "params": {"check": "is_chordal"},
+        "expected": {"chordal": True, "fill_in": []},
+    },
+    {
+        "case": "chordal_c_cycle4_not_chordal",
+        "origin": "igraph is_chordal.c: cycle C_4 is NOT chordal — missing chord",
+        "graph_factory": lambda: ig.Graph(n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=False),
+        "algo": "chordal",
+        "params": {"check": "is_chordal"},
+        "expected": {"chordal": False},
+    },
+]
+
+
+# ALGO-CL-003: maximum_bipartite_matching.
+MATCHING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "matching_c_is_valid",
+        "origin": "igraph matching.c: valid matching on K_{2,2}",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 2), (0, 3), (1, 2), (1, 3)], directed=False,
+        ),
+        "algo": "matching",
+        "params": {"check": "is_matching", "matching": [2, 3, 0, 1]},
+        "expected": True,
+    },
+    {
+        "case": "matching_c_is_invalid",
+        "origin": "igraph matching.c: invalid matching (vertex 0 matched to 2 but vertex 2 not matched to 0)",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 2), (0, 3), (1, 2), (1, 3)], directed=False,
+        ),
+        "algo": "matching",
+        "params": {"check": "is_matching", "matching": [2, 3, 1, 0]},
+        "expected": False,
+    },
+]
+
+
+# ALGO-LO-001: layout_circle + layout_star — deterministic layouts.
+# layout_circle places vertices evenly on a unit circle.
+# layout_star places one vertex at origin, rest on unit circle.
+import math
+
+LAYOUT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "layout_c_circle_4",
+        "origin": "igraph layout_circle on 4-vertex graph — vertices at angles 0, π/2, π, 3π/2",
+        "graph_factory": lambda: ig.Graph(n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False),
+        "algo": "layout",
+        "params": {"algorithm": "circle"},
+        "expected": [
+            [1.0, 0.0],
+            [math.cos(math.pi / 2), math.sin(math.pi / 2)],
+            [math.cos(math.pi), math.sin(math.pi)],
+            [math.cos(3 * math.pi / 2), math.sin(3 * math.pi / 2)],
+        ],
+    },
+    {
+        "case": "layout_c_star_center0",
+        "origin": "igraph layout_star on 4-vertex graph — center=0 at origin, rest on unit circle",
+        "graph_factory": lambda: ig.Graph(n=4, edges=[(0, 1), (0, 2), (0, 3)], directed=False),
+        "algo": "layout",
+        "params": {"algorithm": "star", "center": 0},
+        "expected": [
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [math.cos(2 * math.pi / 3), math.sin(2 * math.pi / 3)],
+            [math.cos(4 * math.pi / 3), math.sin(4 * math.pi / 3)],
+        ],
+    },
+]
+
+
+# ALGO-SP-031: `igraph_get_all_simple_paths` — enumerate all simple paths.
+# Reference test at references/igraph/tests/unit/igraph_get_all_simple_paths.c.
+ALL_SIMPLE_PATHS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "all_simple_paths_c_maxlen3",
+        "origin": "igraph_get_all_simple_paths.out: 6-vertex graph, from=0 to=5, maxlen=3",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 5), (0, 3), (3, 4), (4, 5), (3, 2), (3, 5)],
+            directed=False,
+        ),
+        "algo": "all_simple_paths",
+        "params": {"from": 0, "to": [5], "mode": "all", "min_len": -1, "max_len": 3, "max_results": -1},
+        "expected": [[0, 1, 2, 5], [0, 3, 2, 5], [0, 3, 4, 5], [0, 3, 5]],
+    },
+    {
+        "case": "all_simple_paths_c_minlen4",
+        "origin": "igraph_get_all_simple_paths.out: 6-vertex graph, from=0 to=5, minlen=4",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 5), (0, 3), (3, 4), (4, 5), (3, 2), (3, 5)],
+            directed=False,
+        ),
+        "algo": "all_simple_paths",
+        "params": {"from": 0, "to": [5], "mode": "all", "min_len": 4, "max_len": -1, "max_results": -1},
+        "expected": [[0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 5]],
+    },
+]
+
+
+# ALGO-SP-030: `igraph_path_length_hist` — all-pairs shortest-path length histogram.
+# Reference test at references/igraph/tests/unit/igraph_path_length_hist.c.
+PATH_LENGTH_HIST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "path_length_hist_c_two_connected",
+        "origin": "igraph_path_length_hist.out: two connected vertices undirected — hist=[1], unconnected=0",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[(0, 1)], directed=False),
+        "algo": "path_length_hist",
+        "params": {"directed": False},
+        "expected": {"hist": [1.0], "unconnected": 0.0},
+    },
+    {
+        "case": "path_length_hist_c_directed_graph_undirected_mode",
+        "origin": "igraph_path_length_hist.out: 6-vertex directed graph, directed=false — hist=[6,3,1], unconnected=5",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 1), (1, 2), (1, 3), (2, 0), (2, 3), (3, 4), (3, 4)],
+            directed=True,
+        ),
+        "algo": "path_length_hist",
+        "params": {"directed": False},
+        "expected": {"hist": [6.0, 3.0, 1.0], "unconnected": 5.0},
+    },
+    {
+        "case": "path_length_hist_c_directed_graph_directed_mode",
+        "origin": "igraph_path_length_hist.out: 6-vertex directed graph, directed=true — hist=[7,5,1], unconnected=17",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (0, 2), (1, 1), (1, 2), (1, 3), (2, 0), (2, 3), (3, 4), (3, 4)],
+            directed=True,
+        ),
+        "algo": "path_length_hist",
+        "params": {"directed": True},
+        "expected": {"hist": [7.0, 5.0, 1.0], "unconnected": 17.0},
+    },
+]
+
+
 # ALGO-PR-036: `igraph_trussness` — k-truss decomposition (per-edge trussness).
 # Reference test at references/igraph/tests/unit/igraph_trussness.c.
 # Expected values from igraph_trussness.out.
@@ -11380,6 +11561,12 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "triangular_lattice": TRIANGULAR_LATTICE_MANIFEST,
     "hexagonal_lattice": HEXAGONAL_LATTICE_MANIFEST,
     "trussness": TRUSSNESS_MANIFEST,
+    "path_length_hist": PATH_LENGTH_HIST_MANIFEST,
+    "all_simple_paths": ALL_SIMPLE_PATHS_MANIFEST,
+    "layout": LAYOUT_MANIFEST,
+    "coloring": COLORING_MANIFEST,
+    "chordal": CHORDAL_MANIFEST,
+    "matching": MATCHING_MANIFEST,
 }
 
 

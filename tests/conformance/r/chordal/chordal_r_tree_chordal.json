@@ -1,0 +1,35 @@
+{
+  "source": "r",
+  "origin": "hand-computed: any tree is chordal",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chordal",
+  "params": {
+    "check": "is_chordal"
+  },
+  "expected": {
+    "chordal": true,
+    "fill_in": []
+  }
+}

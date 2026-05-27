@@ -1,0 +1,34 @@
+{
+  "source": "py",
+  "origin": "hand-computed: valid 2-coloring of path P_4",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "coloring",
+  "params": {
+    "check": "is_vertex_coloring",
+    "colors": [
+      0,
+      1,
+      0,
+      1
+    ]
+  },
+  "expected": true
+}

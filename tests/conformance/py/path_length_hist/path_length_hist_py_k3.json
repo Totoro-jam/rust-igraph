@@ -1,0 +1,33 @@
+{
+  "source": "py",
+  "origin": "hand-computed: K3 undirected \u2014 all pairs at distance 1, hist=[3], unconnected=0",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "path_length_hist",
+  "params": {
+    "directed": false
+  },
+  "expected": {
+    "hist": [
+      3.0
+    ],
+    "unconnected": 0.0
+  }
+}

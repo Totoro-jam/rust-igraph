@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "hand-computed: two components {0-1} and {2-3} \u2014 hist=[2], unconnected=4",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "path_length_hist",
+  "params": {
+    "directed": false
+  },
+  "expected": {
+    "hist": [
+      2.0
+    ],
+    "unconnected": 4.0
+  }
+}

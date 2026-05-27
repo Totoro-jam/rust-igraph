@@ -17305,3 +17305,184 @@ fn trussness_three_source_conformance() {
         )
     });
 }
+
+#[test]
+fn path_length_hist_three_source_conformance() {
+    use rust_igraph::path_length_hist;
+    run_conformance("path_length_hist", |g, params| {
+        let directed = params
+            .get("directed")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        let result = path_length_hist(g, directed).expect("path_length_hist");
+        serde_json::json!({
+            "hist": result.hist,
+            "unconnected": result.unconnected,
+        })
+    });
+}
+
+#[test]
+fn all_simple_paths_three_source_conformance() {
+    use rust_igraph::{SimplePathMode, all_simple_paths};
+    run_conformance("all_simple_paths", |g, params| {
+        let from = u32::try_from(
+            params
+                .get("from")
+                .and_then(serde_json::Value::as_u64)
+                .expect("`from` param"),
+        )
+        .expect("from fits u32");
+        let to: Vec<u32> = params
+            .get("to")
+            .and_then(serde_json::Value::as_array)
+            .expect("`to` param")
+            .iter()
+            .map(|v| u32::try_from(v.as_u64().expect("to entry")).expect("to fits u32"))
+            .collect();
+        let mode = match params
+            .get("mode")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("all")
+        {
+            "out" => SimplePathMode::Out,
+            "in" => SimplePathMode::In,
+            _ => SimplePathMode::All,
+        };
+        let min_len = i32::try_from(
+            params
+                .get("min_len")
+                .and_then(serde_json::Value::as_i64)
+                .unwrap_or(-1),
+        )
+        .unwrap_or(-1);
+        let max_len = i32::try_from(
+            params
+                .get("max_len")
+                .and_then(serde_json::Value::as_i64)
+                .unwrap_or(-1),
+        )
+        .unwrap_or(-1);
+        let max_results = params
+            .get("max_results")
+            .and_then(serde_json::Value::as_i64)
+            .unwrap_or(-1);
+        let paths = all_simple_paths(g, from, Some(&to), mode, min_len, max_len, max_results)
+            .expect("all_simple_paths");
+        serde_json::json!(paths)
+    });
+}
+
+#[test]
+fn layout_three_source_conformance() {
+    use rust_igraph::{layout_circle, layout_star};
+    run_conformance("layout", |g, params| {
+        let algorithm = params
+            .get("algorithm")
+            .and_then(serde_json::Value::as_str)
+            .expect("`algorithm` param");
+        let coords: Vec<(f64, f64)> = match algorithm {
+            "circle" => layout_circle(g, None),
+            "star" => {
+                let center = u32::try_from(
+                    params
+                        .get("center")
+                        .and_then(serde_json::Value::as_u64)
+                        .expect("`center` param"),
+                )
+                .expect("center fits u32");
+                layout_star(g, center, None).expect("layout_star")
+            }
+            _ => panic!("unsupported layout algorithm: {algorithm}"),
+        };
+        serde_json::json!(coords.iter().map(|(x, y)| vec![*x, *y]).collect::<Vec<_>>())
+    });
+}
+
+#[test]
+fn coloring_three_source_conformance() {
+    use rust_igraph::{GreedyColoringHeuristic, is_vertex_coloring, vertex_coloring_greedy};
+    run_conformance("coloring", |g, params| {
+        let check = params
+            .get("check")
+            .and_then(serde_json::Value::as_str)
+            .expect("`check` param");
+        match check {
+            "is_vertex_coloring" => {
+                let colors: Vec<u32> = params
+                    .get("colors")
+                    .and_then(serde_json::Value::as_array)
+                    .expect("`colors` param")
+                    .iter()
+                    .map(|v| u32::try_from(v.as_u64().expect("color")).expect("color u32"))
+                    .collect();
+                let valid = is_vertex_coloring(g, &colors).expect("is_vertex_coloring");
+                serde_json::json!(valid)
+            }
+            "greedy_valid" => {
+                let heuristic = match params
+                    .get("heuristic")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("colored_neighbors")
+                {
+                    "dsatur" => GreedyColoringHeuristic::DSatur,
+                    _ => GreedyColoringHeuristic::ColoredNeighbors,
+                };
+                let colors = vertex_coloring_greedy(g, heuristic).expect("vertex_coloring_greedy");
+                let valid = is_vertex_coloring(g, &colors).expect("is_vertex_coloring");
+                let num_colors = colors.iter().copied().max().map_or(0, |m| m + 1);
+                serde_json::json!({"valid": valid, "max_colors": num_colors})
+            }
+            _ => panic!("unsupported coloring check: {check}"),
+        }
+    });
+}
+
+#[test]
+fn chordal_three_source_conformance() {
+    use rust_igraph::is_chordal;
+    run_conformance("chordal", |g, params| {
+        let check = params
+            .get("check")
+            .and_then(serde_json::Value::as_str)
+            .expect("`check` param");
+        assert_eq!(check, "is_chordal");
+        let result = is_chordal(g, None).expect("is_chordal");
+        if result.chordal {
+            serde_json::json!({"chordal": true, "fill_in": []})
+        } else {
+            serde_json::json!({"chordal": false})
+        }
+    });
+}
+
+#[test]
+fn matching_three_source_conformance() {
+    use rust_igraph::is_matching;
+    run_conformance("matching", |g, params| {
+        let check = params
+            .get("check")
+            .and_then(serde_json::Value::as_str)
+            .expect("`check` param");
+        assert_eq!(check, "is_matching");
+        let matching_raw: Vec<i64> = params
+            .get("matching")
+            .and_then(serde_json::Value::as_array)
+            .expect("`matching` param")
+            .iter()
+            .map(|v| v.as_i64().expect("matching entry"))
+            .collect();
+        let matching: Vec<Option<u32>> = matching_raw
+            .iter()
+            .map(|&v| {
+                if v < 0 {
+                    None
+                } else {
+                    Some(u32::try_from(v).expect("matching value fits u32"))
+                }
+            })
+            .collect();
+        let valid = is_matching(g, None, &matching).expect("is_matching");
+        serde_json::json!(valid)
+    });
+}

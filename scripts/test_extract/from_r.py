@@ -8800,6 +8800,157 @@ WEIGHTED_ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CL-001: coloring. R-igraph exposes `greedy_vertex_coloring`.
+COLORING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "coloring_r_is_valid_star",
+        "origin": "hand-computed: valid 2-coloring of star S_4 (center=0 color 0, leaves color 1)",
+        "graph_factory": lambda: ig.Graph(n=5, edges=[(0, 1), (0, 2), (0, 3), (0, 4)], directed=False),
+        "algo": "coloring",
+        "params": {"check": "is_vertex_coloring", "colors": [0, 1, 1, 1, 1]},
+        "expected": True,
+    },
+    {
+        "case": "coloring_r_greedy_k4_cn",
+        "origin": "hand-computed: K4 (χ=4), CN heuristic must use exactly 4 colors",
+        "graph_factory": lambda: ig.Graph(n=4, edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)], directed=False),
+        "algo": "coloring",
+        "params": {"check": "greedy_valid", "heuristic": "colored_neighbors"},
+        "expected": {"valid": True, "max_colors": 4},
+    },
+]
+
+
+# ALGO-CL-002: chordal. R-igraph exposes `is_chordal`.
+CHORDAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "chordal_r_tree_chordal",
+        "origin": "hand-computed: any tree is chordal",
+        "graph_factory": lambda: ig.Graph(n=5, edges=[(0, 1), (1, 2), (1, 3), (3, 4)], directed=False),
+        "algo": "chordal",
+        "params": {"check": "is_chordal"},
+        "expected": {"chordal": True, "fill_in": []},
+    },
+    {
+        "case": "chordal_r_cycle6_not_chordal",
+        "origin": "hand-computed: C_6 is NOT chordal",
+        "graph_factory": lambda: ig.Graph(n=6, edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0)], directed=False),
+        "algo": "chordal",
+        "params": {"check": "is_chordal"},
+        "expected": {"chordal": False},
+    },
+]
+
+
+# ALGO-CL-003: matching. R-igraph exposes matching functions.
+MATCHING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "matching_r_valid_k22",
+        "origin": "hand-computed: perfect matching on K_{2,2} (0↔2, 1↔3)",
+        "graph_factory": lambda: ig.Graph(n=4, edges=[(0, 2), (0, 3), (1, 2), (1, 3)], directed=False),
+        "algo": "matching",
+        "params": {"check": "is_matching", "matching": [2, 3, 0, 1]},
+        "expected": True,
+    },
+    {
+        "case": "matching_r_invalid_self",
+        "origin": "hand-computed: vertex 0 matched to itself is invalid",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "matching",
+        "params": {"check": "is_matching", "matching": [0, -1, -1]},
+        "expected": False,
+    },
+]
+
+
+# ALGO-LO-001: layout. R-igraph exposes `layout_in_circle()`, `layout_as_star()`.
+import math
+
+LAYOUT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "layout_r_circle_5",
+        "origin": "hand-computed: layout_circle on 5-vertex graph — regular pentagon on unit circle",
+        "graph_factory": lambda: ig.Graph(n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False),
+        "algo": "layout",
+        "params": {"algorithm": "circle"},
+        "expected": [
+            [math.cos(2 * math.pi * i / 5), math.sin(2 * math.pi * i / 5)]
+            for i in range(5)
+        ],
+    },
+    {
+        "case": "layout_r_star_center1",
+        "origin": "hand-computed: layout_star on 3 vertices with center=1",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "layout",
+        "params": {"algorithm": "star", "center": 1},
+        "expected": [
+            [1.0, 0.0],
+            [0.0, 0.0],
+            [math.cos(math.pi), math.sin(math.pi)],
+        ],
+    },
+]
+
+
+# ALGO-SP-031: all_simple_paths. R-igraph exposes `all_simple_paths`.
+ALL_SIMPLE_PATHS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "all_simple_paths_r_diamond",
+        "origin": "hand-computed: diamond graph (K4 minus one edge), from=0 to=[3] — 3 paths",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "algo": "all_simple_paths",
+        "params": {"from": 0, "to": [3], "mode": "all", "min_len": -1, "max_len": -1, "max_results": -1},
+        "expected": [[0, 1, 2, 3], [0, 1, 3], [0, 2, 1, 3], [0, 2, 3]],
+    },
+    {
+        "case": "all_simple_paths_r_maxlen2",
+        "origin": "hand-computed: diamond graph, from=0 to=[3], maxlen=2 — only length-2 paths",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)],
+            directed=False,
+        ),
+        "algo": "all_simple_paths",
+        "params": {"from": 0, "to": [3], "mode": "all", "min_len": -1, "max_len": 2, "max_results": -1},
+        "expected": [[0, 1, 3], [0, 2, 3]],
+    },
+]
+
+
+# ALGO-SP-030: path_length_hist. R-igraph exposes `path.length.hist`.
+PATH_LENGTH_HIST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "path_length_hist_r_star5",
+        "origin": "hand-computed: star graph with 5 vertices — center at distance 1 from all, leaves at distance 2 from each other",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (0, 2), (0, 3), (0, 4)],
+            directed=False,
+        ),
+        "algo": "path_length_hist",
+        "params": {"directed": False},
+        "expected": {"hist": [4.0, 6.0], "unconnected": 0.0},
+    },
+    {
+        "case": "path_length_hist_r_disconnected",
+        "origin": "hand-computed: two components {0-1} and {2-3} — hist=[2], unconnected=4",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (2, 3)],
+            directed=False,
+        ),
+        "algo": "path_length_hist",
+        "params": {"directed": False},
+        "expected": {"hist": [2.0], "unconnected": 4.0},
+    },
+]
+
+
 # ALGO-PR-036: trussness. R-igraph exposes `trussness_impl`.
 # The auto-generated R test only uses a path graph (P_3) which yields
 # all-2 trussness. We add a second case with a triangle for coverage.
@@ -9039,6 +9190,12 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "adjacency": ADJACENCY_MANIFEST,
     "weighted_adjacency": WEIGHTED_ADJACENCY_MANIFEST,
     "trussness": TRUSSNESS_MANIFEST,
+    "path_length_hist": PATH_LENGTH_HIST_MANIFEST,
+    "all_simple_paths": ALL_SIMPLE_PATHS_MANIFEST,
+    "layout": LAYOUT_MANIFEST,
+    "coloring": COLORING_MANIFEST,
+    "chordal": CHORDAL_MANIFEST,
+    "matching": MATCHING_MANIFEST,
 }
 
 

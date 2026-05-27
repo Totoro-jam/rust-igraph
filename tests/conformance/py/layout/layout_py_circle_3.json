@@ -1,0 +1,37 @@
+{
+  "source": "py",
+  "origin": "hand-computed: layout_circle on 3-vertex graph \u2014 equilateral triangle on unit circle",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "layout",
+  "params": {
+    "algorithm": "circle"
+  },
+  "expected": [
+    [
+      1.0,
+      0.0
+    ],
+    [
+      -0.49999999999999983,
+      0.8660254037844387
+    ],
+    [
+      -0.5000000000000004,
+      -0.8660254037844384
+    ]
+  ]
+}

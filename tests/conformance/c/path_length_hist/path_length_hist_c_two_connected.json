@@ -1,0 +1,25 @@
+{
+  "source": "c",
+  "origin": "igraph_path_length_hist.out: two connected vertices undirected \u2014 hist=[1], unconnected=0",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "path_length_hist",
+  "params": {
+    "directed": false
+  },
+  "expected": {
+    "hist": [
+      1.0
+    ],
+    "unconnected": 0.0
+  }
+}

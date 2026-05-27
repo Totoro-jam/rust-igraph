@@ -1,0 +1,46 @@
+{
+  "source": "py",
+  "origin": "hand-computed: layout_star on 4 vertices with center=2",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "layout",
+  "params": {
+    "algorithm": "star",
+    "center": 2
+  },
+  "expected": [
+    [
+      1.0,
+      0.0
+    ],
+    [
+      -0.49999999999999983,
+      0.8660254037844387
+    ],
+    [
+      0.0,
+      0.0
+    ],
+    [
+      -0.5000000000000004,
+      -0.8660254037844384
+    ]
+  ]
+}

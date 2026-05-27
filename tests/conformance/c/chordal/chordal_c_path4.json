@@ -1,0 +1,31 @@
+{
+  "source": "c",
+  "origin": "igraph is_chordal.c: path graph P_4 is chordal (no cycle of length >= 4)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chordal",
+  "params": {
+    "check": "is_chordal"
+  },
+  "expected": {
+    "chordal": true,
+    "fill_in": []
+  }
+}

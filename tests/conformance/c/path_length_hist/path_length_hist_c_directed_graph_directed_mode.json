@@ -1,0 +1,59 @@
+{
+  "source": "c",
+  "origin": "igraph_path_length_hist.out: 6-vertex directed graph, directed=true \u2014 hist=[7,5,1], unconnected=17",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "path_length_hist",
+  "params": {
+    "directed": true
+  },
+  "expected": {
+    "hist": [
+      7.0,
+      5.0,
+      1.0
+    ],
+    "unconnected": 17.0
+  }
+}

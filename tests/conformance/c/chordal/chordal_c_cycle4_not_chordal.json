@@ -1,0 +1,34 @@
+{
+  "source": "c",
+  "origin": "igraph is_chordal.c: cycle C_4 is NOT chordal \u2014 missing chord",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chordal",
+  "params": {
+    "check": "is_chordal"
+  },
+  "expected": {
+    "chordal": false
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "source": "c",
+  "origin": "igraph_get_all_simple_paths.out: 6-vertex graph, from=0 to=5, maxlen=3",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "all_simple_paths",
+  "params": {
+    "from": 0,
+    "to": [
+      5
+    ],
+    "mode": "all",
+    "min_len": -1,
+    "max_len": 3,
+    "max_results": -1
+  },
+  "expected": [
+    [
+      0,
+      1,
+      2,
+      5
+    ],
+    [
+      0,
+      3,
+      2,
+      5
+    ],
+    [
+      0,
+      3,
+      4,
+      5
+    ],
+    [
+      0,
+      3,
+      5
+    ]
+  ]
+}

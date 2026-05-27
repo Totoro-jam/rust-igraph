@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "hand-computed: star graph with 5 vertices \u2014 center at distance 1 from all, leaves at distance 2 from each other",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "path_length_hist",
+  "params": {
+    "directed": false
+  },
+  "expected": {
+    "hist": [
+      4.0,
+      6.0
+    ],
+    "unconnected": 0.0
+  }
+}

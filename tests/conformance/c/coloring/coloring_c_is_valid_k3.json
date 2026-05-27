@@ -1,0 +1,33 @@
+{
+  "source": "c",
+  "origin": "igraph coloring.c: valid 3-coloring of K3",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "coloring",
+  "params": {
+    "check": "is_vertex_coloring",
+    "colors": [
+      0,
+      1,
+      2
+    ]
+  },
+  "expected": true
+}

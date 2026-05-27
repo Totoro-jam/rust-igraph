@@ -1,0 +1,42 @@
+{
+  "source": "r",
+  "origin": "hand-computed: C_6 is NOT chordal",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "chordal",
+  "params": {
+    "check": "is_chordal"
+  },
+  "expected": {
+    "chordal": false
+  }
+}

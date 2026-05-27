@@ -8685,6 +8685,161 @@ WEIGHTED_ADJACENCY_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# ALGO-CL-001: coloring. python-igraph exposes vertex_coloring_greedy and validators.
+COLORING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "coloring_py_is_valid_bipartite",
+        "origin": "hand-computed: valid 2-coloring of path P_4",
+        "graph_factory": lambda: ig.Graph(n=4, edges=[(0, 1), (1, 2), (2, 3)], directed=False),
+        "algo": "coloring",
+        "params": {"check": "is_vertex_coloring", "colors": [0, 1, 0, 1]},
+        "expected": True,
+    },
+    {
+        "case": "coloring_py_greedy_cycle5_dsatur",
+        "origin": "hand-computed: odd cycle C_5 (χ=3), DSATUR heuristic achieves 3 colors",
+        "graph_factory": lambda: ig.Graph(n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)], directed=False),
+        "algo": "coloring",
+        "params": {"check": "greedy_valid", "heuristic": "dsatur"},
+        "expected": {"valid": True, "max_colors": 3},
+    },
+]
+
+
+# ALGO-CL-002: chordal. python-igraph exposes `Graph.is_chordal()`.
+CHORDAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "chordal_py_k4_chordal",
+        "origin": "hand-computed: K4 is chordal (every cycle has a chord)",
+        "graph_factory": lambda: ig.Graph(n=4, edges=[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)], directed=False),
+        "algo": "chordal",
+        "params": {"check": "is_chordal"},
+        "expected": {"chordal": True, "fill_in": []},
+    },
+    {
+        "case": "chordal_py_cycle5_not_chordal",
+        "origin": "hand-computed: C_5 is NOT chordal",
+        "graph_factory": lambda: ig.Graph(n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)], directed=False),
+        "algo": "chordal",
+        "params": {"check": "is_chordal"},
+        "expected": {"chordal": False},
+    },
+]
+
+
+# ALGO-CL-003: matching. python-igraph exposes matching validators.
+MATCHING_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "matching_py_valid_path",
+        "origin": "hand-computed: path P_3, matching {0-1} is valid",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "matching",
+        "params": {"check": "is_matching", "matching": [1, 0, -1]},
+        "expected": True,
+    },
+    {
+        "case": "matching_py_invalid_no_edge",
+        "origin": "hand-computed: path P_3, trying to match 0-2 (no edge) is invalid",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "matching",
+        "params": {"check": "is_matching", "matching": [2, -1, 0]},
+        "expected": False,
+    },
+]
+
+
+# ALGO-LO-001: layout. python-igraph exposes `Graph.layout_circle()` etc.
+import math
+
+LAYOUT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "layout_py_circle_3",
+        "origin": "hand-computed: layout_circle on 3-vertex graph — equilateral triangle on unit circle",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "layout",
+        "params": {"algorithm": "circle"},
+        "expected": [
+            [1.0, 0.0],
+            [math.cos(2 * math.pi / 3), math.sin(2 * math.pi / 3)],
+            [math.cos(4 * math.pi / 3), math.sin(4 * math.pi / 3)],
+        ],
+    },
+    {
+        "case": "layout_py_star_center2",
+        "origin": "hand-computed: layout_star on 4 vertices with center=2",
+        "graph_factory": lambda: ig.Graph(n=4, edges=[(0, 2), (1, 2), (2, 3)], directed=False),
+        "algo": "layout",
+        "params": {"algorithm": "star", "center": 2},
+        "expected": [
+            [1.0, 0.0],
+            [math.cos(2 * math.pi / 3), math.sin(2 * math.pi / 3)],
+            [0.0, 0.0],
+            [math.cos(4 * math.pi / 3), math.sin(4 * math.pi / 3)],
+        ],
+    },
+]
+
+
+# ALGO-SP-031: all_simple_paths. python-igraph exposes
+# `Graph.get_all_simple_paths()`.
+ALL_SIMPLE_PATHS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "all_simple_paths_py_triangle",
+        "origin": "hand-computed: triangle 0-1-2, from=0 to=[2] — two paths: [0,1,2] and [0,2]",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (0, 2), (1, 2)],
+            directed=False,
+        ),
+        "algo": "all_simple_paths",
+        "params": {"from": 0, "to": [2], "mode": "all", "min_len": -1, "max_len": -1, "max_results": -1},
+        "expected": [[0, 1, 2], [0, 2]],
+    },
+    {
+        "case": "all_simple_paths_py_directed",
+        "origin": "hand-computed: directed 0→1→2→3, from=0 to=[3] mode=out — only [0,1,2,3]",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3)],
+            directed=True,
+        ),
+        "algo": "all_simple_paths",
+        "params": {"from": 0, "to": [3], "mode": "out", "min_len": -1, "max_len": -1, "max_results": -1},
+        "expected": [[0, 1, 2, 3]],
+    },
+]
+
+
+# ALGO-SP-030: path_length_hist. python-igraph exposes
+# `Graph.path_length_hist()`. Hand-computed fixtures.
+PATH_LENGTH_HIST_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "path_length_hist_py_k3",
+        "origin": "hand-computed: K3 undirected — all pairs at distance 1, hist=[3], unconnected=0",
+        "graph_factory": lambda: ig.Graph(
+            n=3,
+            edges=[(0, 1), (0, 2), (1, 2)],
+            directed=False,
+        ),
+        "algo": "path_length_hist",
+        "params": {"directed": False},
+        "expected": {"hist": [3.0], "unconnected": 0.0},
+    },
+    {
+        "case": "path_length_hist_py_path4",
+        "origin": "hand-computed: path 0-1-2-3 undirected — hist=[3,2,1], unconnected=0",
+        "graph_factory": lambda: ig.Graph(
+            n=4,
+            edges=[(0, 1), (1, 2), (2, 3)],
+            directed=False,
+        ),
+        "algo": "path_length_hist",
+        "params": {"directed": False},
+        "expected": {"hist": [3.0, 2.0, 1.0], "unconnected": 0.0},
+    },
+]
+
+
 # ALGO-PR-036: trussness. python-igraph does NOT expose `trussness`
 # (as of 0.11.x). Fixtures are hand-computed from the k-truss
 # definition (edge trussness = max k such that edge is in a k-truss).
@@ -8919,6 +9074,12 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "adjacency": ADJACENCY_MANIFEST,
     "weighted_adjacency": WEIGHTED_ADJACENCY_MANIFEST,
     "trussness": TRUSSNESS_MANIFEST,
+    "path_length_hist": PATH_LENGTH_HIST_MANIFEST,
+    "all_simple_paths": ALL_SIMPLE_PATHS_MANIFEST,
+    "layout": LAYOUT_MANIFEST,
+    "coloring": COLORING_MANIFEST,
+    "chordal": CHORDAL_MANIFEST,
+    "matching": MATCHING_MANIFEST,
 }
 
 

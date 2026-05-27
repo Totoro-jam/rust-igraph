@@ -1,0 +1,46 @@
+{
+  "source": "c",
+  "origin": "igraph layout_star on 4-vertex graph \u2014 center=0 at origin, rest on unit circle",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "layout",
+  "params": {
+    "algorithm": "star",
+    "center": 0
+  },
+  "expected": [
+    [
+      0.0,
+      0.0
+    ],
+    [
+      1.0,
+      0.0
+    ],
+    [
+      -0.49999999999999983,
+      0.8660254037844387
+    ],
+    [
+      -0.5000000000000004,
+      -0.8660254037844384
+    ]
+  ]
+}

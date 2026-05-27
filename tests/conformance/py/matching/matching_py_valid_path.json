@@ -1,0 +1,29 @@
+{
+  "source": "py",
+  "origin": "hand-computed: path P_3, matching {0-1} is valid",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "matching",
+  "params": {
+    "check": "is_matching",
+    "matching": [
+      1,
+      0,
+      -1
+    ]
+  },
+  "expected": true
+}

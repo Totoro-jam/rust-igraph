@@ -1,0 +1,29 @@
+{
+  "source": "py",
+  "origin": "hand-computed: path P_3, trying to match 0-2 (no edge) is invalid",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "matching",
+  "params": {
+    "check": "is_matching",
+    "matching": [
+      2,
+      -1,
+      0
+    ]
+  },
+  "expected": false
+}

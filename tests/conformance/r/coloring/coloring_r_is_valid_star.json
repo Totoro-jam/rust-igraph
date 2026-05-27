@@ -1,0 +1,39 @@
+{
+  "source": "r",
+  "origin": "hand-computed: valid 2-coloring of star S_4 (center=0 color 0, leaves color 1)",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "coloring",
+  "params": {
+    "check": "is_vertex_coloring",
+    "colors": [
+      0,
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "expected": true
+}

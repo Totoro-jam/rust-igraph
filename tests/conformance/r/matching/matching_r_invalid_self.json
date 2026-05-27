@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "hand-computed: vertex 0 matched to itself is invalid",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "matching",
+  "params": {
+    "check": "is_matching",
+    "matching": [
+      0,
+      -1,
+      -1
+    ]
+  },
+  "expected": false
+}
