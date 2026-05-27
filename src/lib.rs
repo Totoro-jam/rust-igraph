@@ -201,7 +201,7 @@ pub use crate::algorithms::io::dimacs::{
 };
 pub use crate::algorithms::io::dl::{DlGraph, read_dl};
 pub use crate::algorithms::io::dot::write_dot;
-pub use crate::algorithms::io::edgelist::read_edgelist;
+pub use crate::algorithms::io::edgelist::{read_edgelist, write_edgelist};
 pub use crate::algorithms::io::gml::{read_gml, write_gml};
 pub use crate::algorithms::io::graphdb::read_graphdb;
 pub use crate::algorithms::io::leda::write_leda;

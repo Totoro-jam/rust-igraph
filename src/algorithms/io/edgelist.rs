@@ -4,11 +4,9 @@
 //! Lines starting with `#` and blank lines are ignored. The graph is sized to
 //! `max(u, v) + 1` vertices.
 //!
-//! Counterpart of `igraph_read_graph_edgelist()`. Phase 0 minimal port; the
-//! full reader (with vertex-count override and `read_weights` option) lands in
-//! the I/O AWU phase.
+//! Counterparts of `igraph_read_graph_edgelist` / `igraph_write_graph_edgelist`.
 
-use std::io::{BufRead, BufReader, Read};
+use std::io::{BufRead, BufReader, Read, Write};
 
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
@@ -62,6 +60,34 @@ fn parse_id(token: Option<&str>, line: usize) -> IgraphResult<VertexId> {
     })
 }
 
+/// Write a graph as an edge list.
+///
+/// Outputs one line per edge: `"source target\n"` using 0-based vertex
+/// IDs. Isolated vertices are not represented in the output.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, write_edgelist};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+///
+/// let mut buf = Vec::new();
+/// write_edgelist(&g, &mut buf).unwrap();
+/// let s = String::from_utf8(buf).unwrap();
+/// assert_eq!(s, "0 1\n1 2\n");
+/// ```
+pub fn write_edgelist<W: Write>(graph: &Graph, writer: &mut W) -> IgraphResult<()> {
+    for eid in 0..graph.ecount() {
+        #[allow(clippy::cast_possible_truncation)]
+        let (from, to) = graph.edge(eid as u32)?;
+        writeln!(writer, "{from} {to}")?;
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -89,5 +115,53 @@ mod tests {
             IgraphError::Parse { line, .. } => assert_eq!(line, 2),
             other => panic!("unexpected error: {other:?}"),
         }
+    }
+
+    #[test]
+    fn write_basic() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+
+        let mut buf = Vec::new();
+        write_edgelist(&g, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert_eq!(s, "0 1\n1 2\n");
+    }
+
+    #[test]
+    fn write_empty_graph() {
+        let g = Graph::with_vertices(5);
+        let mut buf = Vec::new();
+        write_edgelist(&g, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert_eq!(s, "");
+    }
+
+    #[test]
+    fn write_directed() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 0).unwrap();
+
+        let mut buf = Vec::new();
+        write_edgelist(&g, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert_eq!(s, "0 1\n2 0\n");
+    }
+
+    #[test]
+    fn round_trip() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(1, 3).unwrap();
+
+        let mut buf = Vec::new();
+        write_edgelist(&g, &mut buf).unwrap();
+
+        let g2 = read_edgelist(&buf[..]).unwrap();
+        assert_eq!(g2.vcount(), g.vcount());
+        assert_eq!(g2.ecount(), g.ecount());
     }
 }
