@@ -1,0 +1,35 @@
+{
+  "algo": "ALGO-PR-033",
+  "name": "centralization",
+  "date": "2026-05-27",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "centralization/score",
+      "sizes": [100, 1000, 10000],
+      "note": "centralization() with synthetic modular scores"
+    },
+    {
+      "group": "centralization/degree_tmax",
+      "sizes": [100, 1000, 10000],
+      "note": "centralization_degree_tmax, undirected, no loops"
+    },
+    {
+      "group": "centralization/betweenness_tmax",
+      "sizes": [100, 1000, 10000],
+      "note": "centralization_betweenness_tmax, undirected"
+    },
+    {
+      "group": "centralization/closeness_tmax",
+      "sizes": [100, 1000, 10000],
+      "note": "centralization_closeness_tmax, undirected"
+    },
+    {
+      "group": "centralization/eigenvector_tmax",
+      "sizes": [100, 1000, 10000],
+      "note": "centralization_eigenvector_tmax, undirected"
+    }
+  ],
+  "status": "baseline_created"
+}
