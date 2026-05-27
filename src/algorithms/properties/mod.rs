@@ -55,6 +55,7 @@ pub(crate) mod neighborhood;
 pub(crate) mod pagerank;
 pub(crate) mod pagerank_linsys;
 pub(crate) mod pagerank_weighted;
+pub(crate) mod personalized_pagerank;
 pub(crate) mod reciprocity;
 pub(crate) mod rich_club;
 pub(crate) mod similarity;
@@ -125,6 +126,7 @@ pub use neighborhood::{
 pub use pagerank::pagerank;
 pub use pagerank_linsys::pagerank_linsys;
 pub use pagerank_weighted::pagerank_weighted;
+pub use personalized_pagerank::{personalized_pagerank, personalized_pagerank_default};
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
 pub use rich_club::rich_club_sequence;
 pub use similarity::{
