@@ -49,6 +49,7 @@ pub(crate) mod strength;
 pub(crate) mod topological_sorting;
 pub(crate) mod triangles;
 pub(crate) mod trussness;
+pub(crate) mod unfold_tree;
 
 pub use assortativity::{assortativity_degree, assortativity_degree_directed};
 pub use assortativity_weighted::{
@@ -106,3 +107,4 @@ pub use triangles::{
     transitivity_undirected,
 };
 pub use trussness::trussness;
+pub use unfold_tree::{UnfoldTreeResult, unfold_tree};

@@ -374,6 +374,7 @@ pub use crate::algorithms::properties::triangles::{
     transitivity_undirected,
 };
 pub use crate::algorithms::properties::trussness::trussness;
+pub use crate::algorithms::properties::unfold_tree::{UnfoldTreeResult, unfold_tree};
 pub use crate::algorithms::spanning::mst::{MstAlgorithm, minimum_spanning_tree};
 pub use crate::algorithms::traversal::bfs::{BfsTree, bfs, bfs_tree};
 pub use crate::algorithms::traversal::dfs::dfs;
