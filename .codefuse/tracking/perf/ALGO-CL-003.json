@@ -1,0 +1,15 @@
+{
+  "awu": "ALGO-CL-003",
+  "captured_at": "2026-05-27",
+  "git_commit": "pending",
+  "algorithms": [
+    "is_matching",
+    "is_maximal_matching",
+    "maximum_bipartite_matching",
+    "maximum_bipartite_matching_weighted"
+  ],
+  "test_count": 25,
+  "proptest_count": 5,
+  "py_baseline_ns": null,
+  "notes": "Push-relabel for unweighted maximum cardinality bipartite matching with greedy init and global relabeling. Hungarian (Kuhn-Munkres) for weighted variant with phantom edges. is_matching and is_maximal_matching validators. Reference: matching.c 1013 lines."
+}

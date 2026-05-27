@@ -12,6 +12,7 @@ pub mod constructors;
 pub mod flow;
 pub mod games;
 pub mod io;
+pub mod matching;
 pub mod operators;
 pub mod paths;
 pub mod properties;

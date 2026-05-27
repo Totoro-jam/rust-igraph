@@ -190,6 +190,10 @@ pub use crate::algorithms::games::static_fitness::{static_fitness_game, static_p
 pub use crate::algorithms::games::tree::tree_game_lerw;
 pub use crate::algorithms::games::watts::watts_strogatz_game;
 pub use crate::algorithms::io::edgelist::read_edgelist;
+pub use crate::algorithms::matching::{
+    MatchingResult, is_matching, is_maximal_matching, maximum_bipartite_matching,
+    maximum_bipartite_matching_weighted,
+};
 pub use crate::algorithms::operators::complementer::complementer;
 pub use crate::algorithms::operators::difference::difference;
 pub use crate::algorithms::operators::disjoint_union::{disjoint_union, disjoint_union_many};
