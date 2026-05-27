@@ -192,6 +192,7 @@ pub use crate::algorithms::games::watts::watts_strogatz_game;
 pub use crate::algorithms::io::edgelist::read_edgelist;
 pub use crate::algorithms::layout::bipartite::layout_bipartite;
 pub use crate::algorithms::layout::davidson_harel::{DhParams, layout_davidson_harel};
+pub use crate::algorithms::layout::drl::{DrlOptions, DrlTemplate, layout_drl};
 pub use crate::algorithms::layout::fruchterman_reingold::{
     FrBounds, FrBounds3d, FrGrid, FrParams, FrParams3d, layout_fruchterman_reingold,
     layout_fruchterman_reingold_3d,

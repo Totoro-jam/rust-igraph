@@ -17,6 +17,19 @@ pub(crate) mod bipartite;
 )]
 pub(crate) mod davidson_harel;
 #[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
+    clippy::cast_lossless,
+    clippy::needless_range_loop,
+    clippy::similar_names,
+    clippy::too_many_lines,
+    clippy::too_many_arguments,
+    clippy::doc_markdown
+)]
+pub(crate) mod drl;
+#[allow(
     clippy::similar_names,
     clippy::cast_precision_loss,
     clippy::cast_lossless,
@@ -95,6 +108,7 @@ pub(crate) mod sugiyama;
 
 pub use bipartite::layout_bipartite;
 pub use davidson_harel::{DhParams, layout_davidson_harel};
+pub use drl::{DrlOptions, DrlTemplate, layout_drl};
 pub use fruchterman_reingold::{
     FrBounds, FrBounds3d, FrGrid, FrParams, FrParams3d, layout_fruchterman_reingold,
     layout_fruchterman_reingold_3d,
