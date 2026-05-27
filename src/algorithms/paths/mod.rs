@@ -9,6 +9,7 @@ pub(crate) mod astar;
 pub(crate) mod bellman_ford;
 pub(crate) mod dijkstra;
 pub(crate) mod distances;
+pub(crate) mod distances_all;
 pub(crate) mod eulerian;
 pub(crate) mod eulerian_construct;
 pub(crate) mod floyd_warshall;
@@ -30,6 +31,7 @@ pub use dijkstra::{
     dijkstra_path_to_with_mode, dijkstra_paths, dijkstra_paths_with_mode,
 };
 pub use distances::distances;
+pub use distances_all::{DistancesMode, distances_all, distances_all_with_mode};
 pub use eulerian::{EulerianClassification, is_eulerian};
 pub use eulerian_construct::eulerian_path;
 pub use floyd_warshall::floyd_warshall_distances;
