@@ -226,6 +226,7 @@ pub use crate::algorithms::operators::disjoint_union::{disjoint_union, disjoint_
 pub use crate::algorithms::operators::induced_subgraph::{InducedSubgraphResult, induced_subgraph};
 pub use crate::algorithms::operators::intersection::intersection;
 pub use crate::algorithms::operators::is_same_graph::is_same_graph;
+pub use crate::algorithms::operators::permute_vertices::permute_vertices;
 pub use crate::algorithms::operators::reverse::reverse;
 pub use crate::algorithms::operators::simplify::simplify;
 pub use crate::algorithms::operators::union::union;
