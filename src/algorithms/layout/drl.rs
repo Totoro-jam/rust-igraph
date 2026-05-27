@@ -422,11 +422,8 @@ pub fn layout_drl(
                         min_edges -= 0.2;
                     }
                 }
-                4 => {
-                    // Simmer: decay temperature
-                    if temperature > 50.0 {
-                        temperature -= 2.0;
-                    }
+                4 if temperature > 50.0 => {
+                    temperature -= 2.0;
                 }
                 _ => {}
             }

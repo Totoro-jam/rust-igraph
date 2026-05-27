@@ -204,6 +204,7 @@ pub use crate::algorithms::layout::kamada_kawai::{
 };
 pub use crate::algorithms::layout::lgl::{LglParams, layout_lgl};
 pub use crate::algorithms::layout::mds::layout_mds;
+pub use crate::algorithms::layout::merge_dla::layout_merge_dla;
 pub use crate::algorithms::layout::reingold_tilford::{
     RtMode, layout_reingold_tilford, layout_reingold_tilford_circular,
 };

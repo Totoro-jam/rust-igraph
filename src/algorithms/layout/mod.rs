@@ -92,6 +92,19 @@ pub(crate) mod mds;
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
+    clippy::cast_lossless,
+    clippy::needless_range_loop,
+    clippy::similar_names,
+    clippy::many_single_char_names,
+    clippy::manual_midpoint,
+    clippy::too_many_arguments
+)]
+pub(crate) mod merge_dla;
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
     clippy::needless_range_loop,
     clippy::unnecessary_wraps
 )]
@@ -134,6 +147,7 @@ pub use kamada_kawai::{
 };
 pub use lgl::{LglParams, layout_lgl};
 pub use mds::layout_mds;
+pub use merge_dla::layout_merge_dla;
 pub use reingold_tilford::{RtMode, layout_reingold_tilford, layout_reingold_tilford_circular};
 pub use simple::{
     layout_circle, layout_grid, layout_grid_3d, layout_random, layout_random_3d, layout_sphere,
