@@ -58,6 +58,16 @@ pub(crate) mod graphopt;
 pub(crate) mod kamada_kawai;
 #[allow(
     clippy::cast_precision_loss,
+    clippy::cast_lossless,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::needless_range_loop,
+    clippy::similar_names,
+    clippy::too_many_lines
+)]
+pub(crate) mod lgl;
+#[allow(
+    clippy::cast_precision_loss,
     clippy::needless_range_loop,
     clippy::unnecessary_wraps,
     clippy::float_cmp
@@ -94,6 +104,7 @@ pub use graphopt::{GraphoptParams, layout_graphopt};
 pub use kamada_kawai::{
     KkBounds, KkBounds3d, KkParams, KkParams3d, layout_kamada_kawai, layout_kamada_kawai_3d,
 };
+pub use lgl::{LglParams, layout_lgl};
 pub use mds::layout_mds;
 pub use reingold_tilford::{RtMode, layout_reingold_tilford, layout_reingold_tilford_circular};
 pub use simple::{

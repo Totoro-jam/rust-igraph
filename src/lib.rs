@@ -201,6 +201,7 @@ pub use crate::algorithms::layout::graphopt::{GraphoptParams, layout_graphopt};
 pub use crate::algorithms::layout::kamada_kawai::{
     KkBounds, KkBounds3d, KkParams, KkParams3d, layout_kamada_kawai, layout_kamada_kawai_3d,
 };
+pub use crate::algorithms::layout::lgl::{LglParams, layout_lgl};
 pub use crate::algorithms::layout::mds::layout_mds;
 pub use crate::algorithms::layout::reingold_tilford::{
     RtMode, layout_reingold_tilford, layout_reingold_tilford_circular,
