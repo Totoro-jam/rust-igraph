@@ -357,7 +357,7 @@ mod tests {
         let c = constraint(&g, None).expect("ok");
         let expected = 25.0 / 27.0;
         for (i, &val) in c.iter().enumerate() {
-            assert!(approx_eq(val, expected), "v{i}: {val} expected {expected}",);
+            assert!(approx_eq(val, expected), "v{i}: {val} expected {expected}");
         }
     }
 

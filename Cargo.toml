@@ -250,6 +250,10 @@ path = "examples/iea_game_demo.rs"
 name = "simple_paths_demo"
 path = "examples/simple_paths_demo.rs"
 
+[[example]]
+name = "layout_demo"
+path = "examples/layout_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -783,6 +787,11 @@ harness = false
 [[bench]]
 name = "bench_simple_paths"
 path = "benches/bench_simple_paths.rs"
+harness = false
+
+[[bench]]
+name = "bench_layout_simple"
+path = "benches/bench_layout_simple.rs"
 harness = false
 
 [lints.rust]

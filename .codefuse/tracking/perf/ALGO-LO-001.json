@@ -1,0 +1,45 @@
+{
+  "algo": "ALGO-LO-001",
+  "name": "layout_simple",
+  "date": "2026-05-27",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "layout_simple/random",
+      "sizes": [100, 500, 1000],
+      "note": "layout_random with seed=42"
+    },
+    {
+      "group": "layout_simple/random_3d",
+      "sizes": [100, 500, 1000],
+      "note": "layout_random_3d with seed=42"
+    },
+    {
+      "group": "layout_simple/circle",
+      "sizes": [100, 500, 1000],
+      "note": "layout_circle, natural order"
+    },
+    {
+      "group": "layout_simple/star",
+      "sizes": [100, 500, 1000],
+      "note": "layout_star, center=0"
+    },
+    {
+      "group": "layout_simple/grid",
+      "sizes": [100, 500, 1000],
+      "note": "layout_grid, auto width"
+    },
+    {
+      "group": "layout_simple/grid_3d",
+      "sizes": [100, 500, 1000],
+      "note": "layout_grid_3d, auto width/height"
+    },
+    {
+      "group": "layout_simple/sphere",
+      "sizes": [100, 500, 1000],
+      "note": "layout_sphere, Saff-Kuijlaars spiral"
+    }
+  ],
+  "status": "baseline_created"
+}
