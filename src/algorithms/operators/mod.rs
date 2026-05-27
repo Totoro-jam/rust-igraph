@@ -14,6 +14,7 @@ pub(crate) mod intersection;
 pub(crate) mod is_same_graph;
 pub(crate) mod join;
 pub(crate) mod permute_vertices;
+pub(crate) mod products;
 pub(crate) mod reverse;
 #[allow(
     clippy::cast_precision_loss,
@@ -35,6 +36,7 @@ pub use intersection::intersection;
 pub use is_same_graph::is_same_graph;
 pub use join::join;
 pub use permute_vertices::permute_vertices;
+pub use products::{cartesian_product, lexicographic_product, strong_product, tensor_product};
 pub use reverse::reverse;
 pub use rewire_edges::rewire_edges;
 pub use simplify::simplify;

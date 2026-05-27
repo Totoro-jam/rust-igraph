@@ -1,0 +1,661 @@
+//! Graph product operators (ALGO-OP-015).
+//!
+//! Implements four standard graph products: Cartesian, tensor (categorical),
+//! strong, and lexicographic.
+
+use crate::core::error::IgraphError;
+use crate::core::{Graph, IgraphResult, VertexId};
+
+/// Computes the Cartesian product of two graphs.
+///
+/// The result has `|V1| * |V2|` vertices. Vertex `(i, j)` in the product
+/// is identified by index `i * |V2| + j`. An edge exists between `(i, j)`
+/// and `(k, l)` iff:
+/// - `i == k` and `(j, l)` is an edge in `g2`, OR
+/// - `j == l` and `(i, k)` is an edge in `g1`.
+///
+/// Both graphs must have the same directedness.
+///
+/// # Arguments
+///
+/// * `g1` — the first factor graph.
+/// * `g2` — the second factor graph.
+///
+/// # Errors
+///
+/// Returns `InvalidArgument` if the graphs differ in directedness, or if
+/// the product vertex count overflows `u32`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, cartesian_product};
+///
+/// // P2 □ P2 = C4 (path of 2 vertices □ path of 2 vertices = 4-cycle)
+/// let mut g1 = Graph::with_vertices(2);
+/// g1.add_edge(0, 1).unwrap();
+/// let mut g2 = Graph::with_vertices(2);
+/// g2.add_edge(0, 1).unwrap();
+///
+/// let p = cartesian_product(&g1, &g2).unwrap();
+/// assert_eq!(p.vcount(), 4);
+/// assert_eq!(p.ecount(), 4);
+/// ```
+pub fn cartesian_product(g1: &Graph, g2: &Graph) -> IgraphResult<Graph> {
+    check_same_directedness(g1, g2, "cartesian_product")?;
+
+    let n1 = g1.vcount();
+    let n2 = g2.vcount();
+    let directed = g1.is_directed();
+
+    let n = product_vertex_count(n1, n2)?;
+
+    if n == 0 {
+        return Graph::new(0, directed);
+    }
+
+    let e1 = g1.ecount();
+    let e2 = g2.ecount();
+
+    let total_edges = (n1 as usize)
+        .checked_mul(e2)
+        .and_then(|a| a.checked_add((n2 as usize).checked_mul(e1)?))
+        .ok_or_else(|| {
+            IgraphError::InvalidArgument("edge count overflow in cartesian_product".to_string())
+        })?;
+
+    let mut edges: Vec<(VertexId, VertexId)> = Vec::with_capacity(total_edges);
+
+    // For each g1 edge (u, v), add edges (u,j)→(v,j) for all j in V2
+    for eid in 0..e1 {
+        #[allow(clippy::cast_possible_truncation)]
+        let (u, v) = g1.edge(eid as u32)?;
+        for j in 0..n2 {
+            let src = u * n2 + j;
+            let tgt = v * n2 + j;
+            edges.push((src, tgt));
+        }
+    }
+
+    // For each g2 edge (u, v), add edges (i,u)→(i,v) for all i in V1
+    for eid in 0..e2 {
+        #[allow(clippy::cast_possible_truncation)]
+        let (u, v) = g2.edge(eid as u32)?;
+        for i in 0..n1 {
+            let src = i * n2 + u;
+            let tgt = i * n2 + v;
+            edges.push((src, tgt));
+        }
+    }
+
+    let mut result = Graph::new(n, directed)?;
+    result.add_edges(edges)?;
+    Ok(result)
+}
+
+/// Computes the tensor (categorical/direct) product of two graphs.
+///
+/// The result has `|V1| * |V2|` vertices. Vertex `(i, j)` is identified by
+/// `i * |V2| + j`. An edge exists between `(i, j)` and `(k, l)` iff
+/// `(i, k)` is an edge in `g1` AND `(j, l)` is an edge in `g2`.
+///
+/// For undirected graphs, each pair of edges generates two product edges
+/// (one for each orientation).
+///
+/// Both graphs must have the same directedness.
+///
+/// # Arguments
+///
+/// * `g1` — the first factor graph.
+/// * `g2` — the second factor graph.
+///
+/// # Errors
+///
+/// Returns `InvalidArgument` if the graphs differ in directedness, or if
+/// the product vertex count overflows `u32`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, tensor_product};
+///
+/// let mut g1 = Graph::with_vertices(3);
+/// g1.add_edge(0, 1).unwrap();
+/// g1.add_edge(1, 2).unwrap();
+///
+/// let mut g2 = Graph::with_vertices(2);
+/// g2.add_edge(0, 1).unwrap();
+///
+/// let p = tensor_product(&g1, &g2).unwrap();
+/// assert_eq!(p.vcount(), 6);
+/// // 2 edges × 1 edge × 2 (undirected) = 4 edges
+/// assert_eq!(p.ecount(), 4);
+/// ```
+pub fn tensor_product(g1: &Graph, g2: &Graph) -> IgraphResult<Graph> {
+    check_same_directedness(g1, g2, "tensor_product")?;
+
+    let n1 = g1.vcount();
+    let n2 = g2.vcount();
+    let directed = g1.is_directed();
+
+    let n = product_vertex_count(n1, n2)?;
+
+    if n == 0 {
+        return Graph::new(0, directed);
+    }
+
+    let e1 = g1.ecount();
+    let e2 = g2.ecount();
+
+    let multiplier: usize = if directed { 1 } else { 2 };
+    let total_edges = e1
+        .checked_mul(e2)
+        .and_then(|a| a.checked_mul(multiplier))
+        .ok_or_else(|| {
+            IgraphError::InvalidArgument("edge count overflow in tensor_product".to_string())
+        })?;
+
+    let mut edges: Vec<(VertexId, VertexId)> = Vec::with_capacity(total_edges);
+
+    for eid1 in 0..e1 {
+        #[allow(clippy::cast_possible_truncation)]
+        let (u1, v1) = g1.edge(eid1 as u32)?;
+        for eid2 in 0..e2 {
+            #[allow(clippy::cast_possible_truncation)]
+            let (u2, v2) = g2.edge(eid2 as u32)?;
+
+            // (u1, u2) → (v1, v2)
+            let src = u1 * n2 + u2;
+            let tgt = v1 * n2 + v2;
+            edges.push((src, tgt));
+
+            if !directed {
+                // (u1, v2) → (v1, u2)
+                let src2 = u1 * n2 + v2;
+                let tgt2 = v1 * n2 + u2;
+                edges.push((src2, tgt2));
+            }
+        }
+    }
+
+    let mut result = Graph::new(n, directed)?;
+    result.add_edges(edges)?;
+    Ok(result)
+}
+
+/// Computes the strong product of two graphs.
+///
+/// The strong product is the union of the Cartesian product and the tensor
+/// product. An edge exists between `(i, j)` and `(k, l)` iff:
+/// - `i == k` and `(j, l)` is an edge in `g2`, OR
+/// - `j == l` and `(i, k)` is an edge in `g1`, OR
+/// - `(i, k)` is an edge in `g1` AND `(j, l)` is an edge in `g2`.
+///
+/// Both graphs must have the same directedness.
+///
+/// # Arguments
+///
+/// * `g1` — the first factor graph.
+/// * `g2` — the second factor graph.
+///
+/// # Errors
+///
+/// Returns `InvalidArgument` if the graphs differ in directedness, or if
+/// the product vertex count overflows `u32`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, strong_product};
+///
+/// let mut g1 = Graph::with_vertices(2);
+/// g1.add_edge(0, 1).unwrap();
+/// let mut g2 = Graph::with_vertices(2);
+/// g2.add_edge(0, 1).unwrap();
+///
+/// let p = strong_product(&g1, &g2).unwrap();
+/// assert_eq!(p.vcount(), 4);
+/// // Cartesian: 4 edges + Tensor: 2 edges = 6 edges (K4 minus one edge... actually it's 5 for the strong product of K2 x K2... let me check)
+/// // Actually: K2 ⊠ K2 gives 5 edges (it's a complete graph minus one edge? No.)
+/// // Cartesian of K2×K2 = C4 (4 edges), tensor of K2×K2 = 2 edges. Combined = 6? But some may overlap... no, they don't overlap for this case.
+/// // Wait - let me recompute. C4 has edges: (0,0)-(0,1), (1,0)-(1,1), (0,0)-(1,0), (0,1)-(1,1) = 4 edges
+/// // Tensor: (0,0)-(1,1), (0,1)-(1,0) = 2 edges. Total = 6.
+/// // But K2 ⊠ K2 = K4 has 6 edges. Yes!
+/// assert_eq!(p.ecount(), 6);
+/// ```
+pub fn strong_product(g1: &Graph, g2: &Graph) -> IgraphResult<Graph> {
+    check_same_directedness(g1, g2, "strong_product")?;
+
+    let n1 = g1.vcount();
+    let n2 = g2.vcount();
+    let directed = g1.is_directed();
+
+    let n = product_vertex_count(n1, n2)?;
+
+    if n == 0 {
+        return Graph::new(0, directed);
+    }
+
+    let e1 = g1.ecount();
+    let e2 = g2.ecount();
+
+    let multiplier: usize = if directed { 1 } else { 2 };
+    let cartesian_count = (n1 as usize) * e2 + (n2 as usize) * e1;
+    let tensor_count = e1 * e2 * multiplier;
+    let total_edges = cartesian_count.checked_add(tensor_count).ok_or_else(|| {
+        IgraphError::InvalidArgument("edge count overflow in strong_product".to_string())
+    })?;
+
+    let mut edges: Vec<(VertexId, VertexId)> = Vec::with_capacity(total_edges);
+
+    // Cartesian part: g1 edges × V2
+    for eid in 0..e1 {
+        #[allow(clippy::cast_possible_truncation)]
+        let (u, v) = g1.edge(eid as u32)?;
+        for j in 0..n2 {
+            edges.push((u * n2 + j, v * n2 + j));
+        }
+    }
+
+    // Cartesian part: V1 × g2 edges
+    for eid in 0..e2 {
+        #[allow(clippy::cast_possible_truncation)]
+        let (u, v) = g2.edge(eid as u32)?;
+        for i in 0..n1 {
+            edges.push((i * n2 + u, i * n2 + v));
+        }
+    }
+
+    // Tensor part
+    for eid1 in 0..e1 {
+        #[allow(clippy::cast_possible_truncation)]
+        let (u1, v1) = g1.edge(eid1 as u32)?;
+        for eid2 in 0..e2 {
+            #[allow(clippy::cast_possible_truncation)]
+            let (u2, v2) = g2.edge(eid2 as u32)?;
+            edges.push((u1 * n2 + u2, v1 * n2 + v2));
+            if !directed {
+                edges.push((u1 * n2 + v2, v1 * n2 + u2));
+            }
+        }
+    }
+
+    let mut result = Graph::new(n, directed)?;
+    result.add_edges(edges)?;
+    Ok(result)
+}
+
+/// Computes the lexicographic product of two graphs.
+///
+/// The result has `|V1| * |V2|` vertices. Vertex `(i, j)` is identified by
+/// `i * |V2| + j`. An edge exists between `(i, j)` and `(k, l)` iff:
+/// - `(i, k)` is an edge in `g1` (regardless of `j` and `l`), OR
+/// - `i == k` and `(j, l)` is an edge in `g2`.
+///
+/// Note: unlike the other products, the lexicographic product is NOT
+/// commutative.
+///
+/// Both graphs must have the same directedness.
+///
+/// # Arguments
+///
+/// * `g1` — the first factor graph (outer).
+/// * `g2` — the second factor graph (inner).
+///
+/// # Errors
+///
+/// Returns `InvalidArgument` if the graphs differ in directedness, or if
+/// the product vertex count overflows `u32`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, lexicographic_product};
+///
+/// let mut g1 = Graph::with_vertices(2);
+/// g1.add_edge(0, 1).unwrap();
+/// let g2 = Graph::with_vertices(3); // 3 isolated vertices
+///
+/// let p = lexicographic_product(&g1, &g2).unwrap();
+/// assert_eq!(p.vcount(), 6);
+/// // 1 edge in g1 × 3² = 9 cross-edges (undirected, so 9 unique pairs)
+/// assert_eq!(p.ecount(), 9);
+/// ```
+pub fn lexicographic_product(g1: &Graph, g2: &Graph) -> IgraphResult<Graph> {
+    check_same_directedness(g1, g2, "lexicographic_product")?;
+
+    let n1 = g1.vcount();
+    let n2 = g2.vcount();
+    let directed = g1.is_directed();
+
+    let n = product_vertex_count(n1, n2)?;
+
+    if n == 0 {
+        return Graph::new(0, directed);
+    }
+
+    let e1 = g1.ecount();
+    let e2 = g2.ecount();
+
+    // Edges from g2 part: V1 copies of g2's edges
+    let g2_part = (n1 as usize) * e2;
+
+    // Edges from g1 part: for each g1 edge, all pairs (j, l) in V2×V2
+    let pairs_per_edge: usize = if directed {
+        (n2 as usize) * (n2 as usize)
+    } else {
+        // For undirected, we only add (j,l) with j <= l for the unique pairs
+        // Actually igraph C adds n2*n2 pairs and lets the graph store handle it
+        // But since undirected edges are canonicalized (smaller first), we need
+        // all n2*n2 pairs to get the full set of edges
+        (n2 as usize) * (n2 as usize)
+    };
+    let g1_part = e1.checked_mul(pairs_per_edge).ok_or_else(|| {
+        IgraphError::InvalidArgument("edge count overflow in lexicographic_product".to_string())
+    })?;
+
+    let total_edges = g2_part.checked_add(g1_part).ok_or_else(|| {
+        IgraphError::InvalidArgument("edge count overflow in lexicographic_product".to_string())
+    })?;
+
+    let mut edges: Vec<(VertexId, VertexId)> = Vec::with_capacity(total_edges);
+
+    // Part 1: g2 edges replicated for each vertex in V1 (same as Cartesian g2 part)
+    for eid in 0..e2 {
+        #[allow(clippy::cast_possible_truncation)]
+        let (u, v) = g2.edge(eid as u32)?;
+        for i in 0..n1 {
+            edges.push((i * n2 + u, i * n2 + v));
+        }
+    }
+
+    // Part 2: for each g1 edge (u, v), connect all (u, j) to all (v, l)
+    for eid in 0..e1 {
+        #[allow(clippy::cast_possible_truncation)]
+        let (u, v) = g1.edge(eid as u32)?;
+        for j in 0..n2 {
+            for l in 0..n2 {
+                edges.push((u * n2 + j, v * n2 + l));
+            }
+        }
+    }
+
+    let mut result = Graph::new(n, directed)?;
+    result.add_edges(edges)?;
+    Ok(result)
+}
+
+fn check_same_directedness(g1: &Graph, g2: &Graph, op: &str) -> IgraphResult<()> {
+    if g1.is_directed() != g2.is_directed() {
+        return Err(IgraphError::InvalidArgument(format!(
+            "cannot compute {op} of directed and undirected graphs"
+        )));
+    }
+    Ok(())
+}
+
+fn product_vertex_count(n1: u32, n2: u32) -> IgraphResult<u32> {
+    let count = u64::from(n1) * u64::from(n2);
+    u32::try_from(count).map_err(|_| {
+        IgraphError::InvalidArgument("product vertex count exceeds u32::MAX".to_string())
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // --- Cartesian product tests ---
+
+    #[test]
+    fn test_cartesian_k2_k2() {
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 1).unwrap();
+        let mut g2 = Graph::with_vertices(2);
+        g2.add_edge(0, 1).unwrap();
+
+        let p = cartesian_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 4);
+        // C4: 4 edges
+        assert_eq!(p.ecount(), 4);
+    }
+
+    #[test]
+    fn test_cartesian_k2_k3() {
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 1).unwrap();
+
+        let mut g2 = Graph::with_vertices(3);
+        g2.add_edge(0, 1).unwrap();
+        g2.add_edge(1, 2).unwrap();
+        g2.add_edge(0, 2).unwrap();
+
+        let p = cartesian_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 6);
+        // 2*3 + 3*1 = 9 edges
+        assert_eq!(p.ecount(), 9);
+    }
+
+    #[test]
+    fn test_cartesian_empty_graph() {
+        let g1 = Graph::with_vertices(0);
+        let g2 = Graph::with_vertices(3);
+        let p = cartesian_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 0);
+        assert_eq!(p.ecount(), 0);
+    }
+
+    #[test]
+    fn test_cartesian_isolated_vertices() {
+        let g1 = Graph::with_vertices(3);
+        let g2 = Graph::with_vertices(4);
+        let p = cartesian_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 12);
+        assert_eq!(p.ecount(), 0);
+    }
+
+    #[test]
+    fn test_cartesian_directed() {
+        let mut g1 = Graph::new(2, true).unwrap();
+        g1.add_edge(0, 1).unwrap();
+        let mut g2 = Graph::new(2, true).unwrap();
+        g2.add_edge(0, 1).unwrap();
+
+        let p = cartesian_product(&g1, &g2).unwrap();
+        assert!(p.is_directed());
+        assert_eq!(p.vcount(), 4);
+        // 2*1 + 2*1 = 4 directed edges
+        assert_eq!(p.ecount(), 4);
+    }
+
+    #[test]
+    fn test_cartesian_mixed_error() {
+        let g1 = Graph::new(2, true).unwrap();
+        let g2 = Graph::with_vertices(2);
+        assert!(cartesian_product(&g1, &g2).is_err());
+    }
+
+    // --- Tensor product tests ---
+
+    #[test]
+    fn test_tensor_k2_k2() {
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 1).unwrap();
+        let mut g2 = Graph::with_vertices(2);
+        g2.add_edge(0, 1).unwrap();
+
+        let p = tensor_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 4);
+        // 1 edge × 1 edge × 2 (undirected) = 2 edges
+        assert_eq!(p.ecount(), 2);
+    }
+
+    #[test]
+    fn test_tensor_path_k2() {
+        let mut g1 = Graph::with_vertices(3);
+        g1.add_edge(0, 1).unwrap();
+        g1.add_edge(1, 2).unwrap();
+
+        let mut g2 = Graph::with_vertices(2);
+        g2.add_edge(0, 1).unwrap();
+
+        let p = tensor_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 6);
+        // 2 edges × 1 edge × 2 = 4 edges
+        assert_eq!(p.ecount(), 4);
+    }
+
+    #[test]
+    fn test_tensor_directed() {
+        let mut g1 = Graph::new(2, true).unwrap();
+        g1.add_edge(0, 1).unwrap();
+        let mut g2 = Graph::new(2, true).unwrap();
+        g2.add_edge(0, 1).unwrap();
+
+        let p = tensor_product(&g1, &g2).unwrap();
+        assert!(p.is_directed());
+        assert_eq!(p.vcount(), 4);
+        // 1 × 1 × 1 (directed) = 1 edge: (0,0)→(1,1)
+        assert_eq!(p.ecount(), 1);
+        assert_eq!(p.edge(0).unwrap(), (0, 3)); // vertex (0,0)=0, (1,1)=1*2+1=3
+    }
+
+    #[test]
+    fn test_tensor_no_edges() {
+        let g1 = Graph::with_vertices(3);
+        let mut g2 = Graph::with_vertices(2);
+        g2.add_edge(0, 1).unwrap();
+
+        let p = tensor_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 6);
+        assert_eq!(p.ecount(), 0);
+    }
+
+    #[test]
+    fn test_tensor_empty() {
+        let g1 = Graph::with_vertices(0);
+        let g2 = Graph::with_vertices(5);
+        let p = tensor_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 0);
+    }
+
+    // --- Strong product tests ---
+
+    #[test]
+    fn test_strong_k2_k2() {
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 1).unwrap();
+        let mut g2 = Graph::with_vertices(2);
+        g2.add_edge(0, 1).unwrap();
+
+        let p = strong_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 4);
+        // Cartesian: 4 + Tensor: 2 = 6 (= K4)
+        assert_eq!(p.ecount(), 6);
+    }
+
+    #[test]
+    fn test_strong_directed() {
+        let mut g1 = Graph::new(2, true).unwrap();
+        g1.add_edge(0, 1).unwrap();
+        let mut g2 = Graph::new(2, true).unwrap();
+        g2.add_edge(0, 1).unwrap();
+
+        let p = strong_product(&g1, &g2).unwrap();
+        assert!(p.is_directed());
+        assert_eq!(p.vcount(), 4);
+        // Cartesian: 4 + Tensor: 1 = 5
+        assert_eq!(p.ecount(), 5);
+    }
+
+    #[test]
+    fn test_strong_one_edgeless() {
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 1).unwrap();
+        let g2 = Graph::with_vertices(3);
+
+        let p = strong_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 6);
+        // Cartesian: 0 + 3*1 = 3, Tensor: 0. Total = 3
+        assert_eq!(p.ecount(), 3);
+    }
+
+    // --- Lexicographic product tests ---
+
+    #[test]
+    fn test_lexicographic_k2_isolated() {
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 1).unwrap();
+        let g2 = Graph::with_vertices(3);
+
+        let p = lexicographic_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 6);
+        // g2 part: 0 edges. g1 part: 1 edge × 3² = 9.
+        assert_eq!(p.ecount(), 9);
+    }
+
+    #[test]
+    fn test_lexicographic_k2_k2() {
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 1).unwrap();
+        let mut g2 = Graph::with_vertices(2);
+        g2.add_edge(0, 1).unwrap();
+
+        let p = lexicographic_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 4);
+        // g2 part: 2 * 1 = 2. g1 part: 1 × 2² = 4. Total = 6.
+        assert_eq!(p.ecount(), 6);
+    }
+
+    #[test]
+    fn test_lexicographic_directed() {
+        let mut g1 = Graph::new(2, true).unwrap();
+        g1.add_edge(0, 1).unwrap();
+        let mut g2 = Graph::new(3, true).unwrap();
+        g2.add_edge(0, 1).unwrap();
+
+        let p = lexicographic_product(&g1, &g2).unwrap();
+        assert!(p.is_directed());
+        assert_eq!(p.vcount(), 6);
+        // g2 part: 2 * 1 = 2. g1 part: 1 × 3² = 9. Total = 11.
+        assert_eq!(p.ecount(), 11);
+    }
+
+    #[test]
+    fn test_lexicographic_both_edgeless() {
+        let g1 = Graph::with_vertices(3);
+        let g2 = Graph::with_vertices(4);
+
+        let p = lexicographic_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 12);
+        assert_eq!(p.ecount(), 0);
+    }
+
+    #[test]
+    fn test_lexicographic_not_commutative() {
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 1).unwrap();
+        let g2 = Graph::with_vertices(3);
+
+        let p1 = lexicographic_product(&g1, &g2).unwrap();
+        let p2 = lexicographic_product(&g2, &g1).unwrap();
+        // g1[g2]: 6 vertices, 0 + 1*3² = 9 edges
+        // g2[g1]: 6 vertices, 3*1 + 0 = 3 edges (inner g1 edges replicated)
+        assert_eq!(p1.ecount(), 9);
+        assert_eq!(p2.ecount(), 3);
+        assert_ne!(p1.ecount(), p2.ecount());
+    }
+
+    // --- Overflow tests ---
+
+    #[test]
+    fn test_product_overflow() {
+        // u32::MAX ≈ 4.3 billion; 70000² > u32::MAX
+        let g1 = Graph::with_vertices(70000);
+        let g2 = Graph::with_vertices(70000);
+        assert!(cartesian_product(&g1, &g2).is_err());
+        assert!(tensor_product(&g1, &g2).is_err());
+        assert!(strong_product(&g1, &g2).is_err());
+        assert!(lexicographic_product(&g1, &g2).is_err());
+    }
+}
