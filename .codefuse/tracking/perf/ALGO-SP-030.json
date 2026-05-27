@@ -1,0 +1,12 @@
+{
+  "awu": "ALGO-SP-030",
+  "captured_at": "2026-05-27",
+  "git_commit": "pending",
+  "algorithms": [
+    "path_length_hist"
+  ],
+  "test_count": 14,
+  "proptest_count": 3,
+  "py_baseline_ns": null,
+  "notes": "All-pairs BFS shortest-path length histogram. O(V*(V+E)). Returns hist[d] = count of pairs at distance d+1 plus unconnected pair count. Supports directed/undirected mode. Reference: paths/histogram.c 141 lines."
+}

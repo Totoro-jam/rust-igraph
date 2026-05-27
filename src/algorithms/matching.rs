@@ -939,27 +939,22 @@ mod tests {
             max_b: u32,
         ) -> impl Strategy<Value = (Graph, Vec<bool>)> {
             (1..=max_a, 1..=max_b).prop_flat_map(move |(a, b)| {
-                let n = a + b;
-                let max_edges = a * b;
-                let edge_count = 0..=max_edges.min(20);
-                (Just(a), Just(b), edge_count)
-                    .prop_flat_map(move |(a, b, ne)| {
-                        let edge_indices =
-                            proptest::collection::hash_set(0..a * b, ne as usize..=ne as usize);
-                        (Just(a), Just(b), edge_indices)
-                    })
-                    .prop_map(|(a, b, indices)| {
-                        let n = a + b;
-                        let mut edges = Vec::new();
-                        for idx in indices {
-                            let u = idx / b;
-                            let v = a + idx % b;
+                let pool = (a as usize) * (b as usize);
+                let mask_len = pool.min(20);
+                proptest::collection::vec(proptest::bool::ANY, mask_len).prop_map(move |mask| {
+                    let n = a + b;
+                    let mut edges = Vec::new();
+                    for (idx, &present) in mask.iter().enumerate() {
+                        if present {
+                            let u = (idx as u32) / b;
+                            let v = a + (idx as u32) % b;
                             edges.push((u, v));
                         }
-                        let g = create(&edges, n, false).expect("bipartite graph");
-                        let types: Vec<bool> = (0..n).map(|i| i >= a).collect();
-                        (g, types)
-                    })
+                    }
+                    let g = create(&edges, n, false).expect("bipartite graph");
+                    let types: Vec<bool> = (0..n).map(|i| i >= a).collect();
+                    (g, types)
+                })
             })
         }
 

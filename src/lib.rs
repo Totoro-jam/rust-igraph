@@ -215,6 +215,7 @@ pub use crate::algorithms::paths::distances::distances;
 pub use crate::algorithms::paths::eulerian::{EulerianClassification, is_eulerian};
 pub use crate::algorithms::paths::eulerian_construct::eulerian_path;
 pub use crate::algorithms::paths::floyd_warshall::floyd_warshall_distances;
+pub use crate::algorithms::paths::histogram::{PathLengthHistResult, path_length_hist};
 pub use crate::algorithms::paths::johnson::johnson_distances;
 pub use crate::algorithms::paths::radii::{
     EccMode, diameter, diameter_weighted, diameter_weighted_with_mode, diameter_with_mode,
