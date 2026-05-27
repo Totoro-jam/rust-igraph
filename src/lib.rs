@@ -354,6 +354,7 @@ pub use crate::algorithms::properties::is_dag::is_dag;
 pub use crate::algorithms::properties::is_forest::is_forest;
 pub use crate::algorithms::properties::is_simple::{SimpleMode, is_simple, is_simple_with_mode};
 pub use crate::algorithms::properties::is_tree::is_tree;
+pub use crate::algorithms::properties::joint_degree_matrix::joint_degree_matrix;
 pub use crate::algorithms::properties::joint_type_distribution::joint_type_distribution;
 pub use crate::algorithms::properties::knn::{
     avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, knnk, knnk_weighted,
