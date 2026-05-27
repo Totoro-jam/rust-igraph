@@ -8,6 +8,7 @@
 // identical to the function they expose, e.g. `is_simple`,
 // `pagerank`) don't collide with the function re-exports in the
 // rendered rustdoc — see https://github.com/rust-lang/rust/issues/...
+pub(crate) mod adjacency;
 pub(crate) mod assortativity;
 pub(crate) mod assortativity_weighted;
 pub(crate) mod basic;
@@ -56,6 +57,7 @@ pub(crate) mod triangles;
 pub(crate) mod trussness;
 pub(crate) mod unfold_tree;
 
+pub use adjacency::{AdjacencyType, LoopHandling, get_adjacency};
 pub use assortativity::{assortativity_degree, assortativity_degree_directed};
 pub use assortativity_weighted::{
     assortativity_degree_directed_weighted, assortativity_degree_weighted,
