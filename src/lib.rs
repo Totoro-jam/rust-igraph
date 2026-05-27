@@ -355,6 +355,7 @@ pub use crate::algorithms::properties::knn::{
 pub use crate::algorithms::properties::multiplicity::{
     count_loops, count_multiple, has_loop, has_multiple, is_loop, is_multiple,
 };
+pub use crate::algorithms::properties::mutual::{count_mutual, has_mutual, is_mutual};
 pub use crate::algorithms::properties::neighborhood::{
     NeighborhoodMode, neighborhood, neighborhood_size, neighborhood_size_with_mode,
     neighborhood_with_mode,
