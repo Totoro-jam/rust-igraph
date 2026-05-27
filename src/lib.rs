@@ -221,6 +221,7 @@ pub use crate::algorithms::matching::{
     maximum_bipartite_matching_weighted,
 };
 pub use crate::algorithms::operators::complementer::complementer;
+pub use crate::algorithms::operators::contract_vertices::contract_vertices;
 pub use crate::algorithms::operators::difference::difference;
 pub use crate::algorithms::operators::disjoint_union::{disjoint_union, disjoint_union_many};
 pub use crate::algorithms::operators::induced_subgraph::{InducedSubgraphResult, induced_subgraph};

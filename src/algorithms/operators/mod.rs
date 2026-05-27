@@ -4,6 +4,7 @@
 // `pub(crate)` so the inner module names don't double-list with the
 // function re-exports in rustdoc.
 pub(crate) mod complementer;
+pub(crate) mod contract_vertices;
 pub(crate) mod difference;
 pub(crate) mod disjoint_union;
 pub(crate) mod induced_subgraph;
@@ -15,6 +16,7 @@ pub(crate) mod simplify;
 pub(crate) mod union;
 
 pub use complementer::complementer;
+pub use contract_vertices::contract_vertices;
 pub use difference::difference;
 pub use disjoint_union::{disjoint_union, disjoint_union_many};
 pub use induced_subgraph::{InducedSubgraphResult, induced_subgraph};

@@ -171,6 +171,10 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-OP-004 | Union of two graphs (`union`, max-multiplicity) | operators/union.c:69 | ~150 | adapt | CORE-001a | done | (next) | O((E1+E2) log(E1+E2)) BTreeMap merge | C:1 / py:1 / R:1 |
 | ALGO-OP-005 | Intersection of two graphs (`intersection`, min-multiplicity) | operators/intersection.c:71 | ~150 | adapt | CORE-001a | done | (next) | O((E1+E2) log(E1+E2)) BTreeMap lookup | C:1 / py:1 / R:1 |
 | ALGO-OP-006 | Difference of two graphs (`difference`, clamped multiset subtract) | operators/difference.c:54 | ~120 | adapt | CORE-001a | done | (next) | O((E1+E2) log(E1+E2)) BTreeMap lookup | C:1 / py:1 / R:1 |
+| ALGO-OP-007 | Induced subgraph (`induced_subgraph`, vertex subset) | operators/subgraph.c | ~120 | adapt | CORE-001a | done | (next) | O(V' + E) | C:1 / py:1 / R:1 |
+| ALGO-OP-007b | `is_same_graph` (structural equality predicate) | operators/misc.c | ~40 | adapt | CORE-001a | done | (next) | O(E) | C:1 / py:1 / R:1 |
+| ALGO-OP-008 | Reverse (`reverse`, flip directed edges) | operators/reverse.c | ~40 | adapt | CORE-001a | done | (next) | O(E) | C:1 / py:1 / R:1 |
+| ALGO-OP-009 | Permute vertices (`permute_vertices`, bijective remapping) | operators/permute_vertices.c | ~80 | adapt | CORE-001a | done | (next) | O(V + E) | C:1 / py:1 / R:1 |
 | ALGO-CO-001 | Modularity (`modularity`, undirected, unweighted, configurable γ) | community/modularity.c | ~150 | adapt | CORE-001a/d | done | (next) | O(V + E) | C:1 / py:1 / R:1 |
 | ALGO-PR-013 | `is_simple` predicate (no loops, no multi-edges) | properties/multiplicity.c | ~80 | adapt | CORE-001a | done | (next) | O(V + E) | C:1 / py:1 / R:1 |
 | ALGO-PR-013b | `is_simple_with_mode` (directed-as-undirected) | properties/multiplicity.c | ~80 | adapt | PR-013 | done | (next) | O(V+E) / O(E log E) | C:1 / py:1 / R:1 |
