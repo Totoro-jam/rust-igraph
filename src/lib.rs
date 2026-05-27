@@ -197,6 +197,7 @@ pub use crate::algorithms::layout::fruchterman_reingold::{
     layout_fruchterman_reingold_3d,
 };
 pub use crate::algorithms::layout::gem::{GemParams, layout_gem};
+pub use crate::algorithms::layout::graphopt::{GraphoptParams, layout_graphopt};
 pub use crate::algorithms::layout::kamada_kawai::{
     KkBounds, KkBounds3d, KkParams, KkParams3d, layout_kamada_kawai, layout_kamada_kawai_3d,
 };

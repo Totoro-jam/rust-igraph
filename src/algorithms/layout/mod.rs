@@ -37,6 +37,18 @@ pub(crate) mod fruchterman_reingold;
 )]
 pub(crate) mod gem;
 #[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::needless_range_loop,
+    clippy::similar_names,
+    clippy::doc_markdown,
+    clippy::too_many_lines,
+    clippy::items_after_statements,
+    clippy::explicit_iter_loop,
+    clippy::float_cmp
+)]
+pub(crate) mod graphopt;
+#[allow(
     clippy::similar_names,
     clippy::cast_precision_loss,
     clippy::cast_lossless,
@@ -71,6 +83,7 @@ pub use fruchterman_reingold::{
     layout_fruchterman_reingold_3d,
 };
 pub use gem::{GemParams, layout_gem};
+pub use graphopt::{GraphoptParams, layout_graphopt};
 pub use kamada_kawai::{
     KkBounds, KkBounds3d, KkParams, KkParams3d, layout_kamada_kawai, layout_kamada_kawai_3d,
 };
