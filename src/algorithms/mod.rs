@@ -10,6 +10,7 @@ pub mod coloring;
 pub mod community;
 pub mod connectivity;
 pub mod constructors;
+pub mod cycles;
 pub mod flow;
 pub mod games;
 pub mod io;
