@@ -1,0 +1,473 @@
+//! Vertex similarity measures (ALGO-PR-036).
+//!
+//! Cocitation, bibliographic coupling, Jaccard similarity, and Dice
+//! similarity for vertex pairs.
+
+use crate::core::{Graph, IgraphResult, VertexId};
+
+/// Computes the cocitation scores between all pairs of vertices.
+///
+/// Two vertices are cocited if there is a third vertex citing (having
+/// outgoing edges to) both. The cocitation score of vertices `u` and `v`
+/// is the number of vertices that have edges to both `u` and `v`.
+///
+/// For undirected graphs, this equals the number of common neighbors.
+///
+/// Returns a flat vector of length `n * n` in row-major order, where
+/// `result[u * n + v]` is the cocitation count for the pair `(u, v)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, cocitation};
+///
+/// // 2 → 0, 2 → 1 means vertices 0 and 1 are cocited by vertex 2
+/// let mut g = Graph::new(3, true).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// g.add_edge(2, 1).unwrap();
+///
+/// let scores = cocitation(&g).unwrap();
+/// assert_eq!(scores[0 * 3 + 1], 1); // cocitation(0,1) = 1
+/// assert_eq!(scores[1 * 3 + 0], 1); // symmetric
+/// ```
+pub fn cocitation(graph: &Graph) -> IgraphResult<Vec<u32>> {
+    cocitation_impl(graph, true)
+}
+
+/// Computes bibliographic coupling scores between all pairs of vertices.
+///
+/// Two vertices are bibliographically coupled if they both cite (have
+/// outgoing edges to) a common third vertex. The coupling score of `u`
+/// and `v` is the number of vertices that both `u` and `v` have edges to.
+///
+/// For undirected graphs, this equals the number of common neighbors
+/// (same as cocitation).
+///
+/// Returns a flat vector of length `n * n` in row-major order.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, bibcoupling};
+///
+/// // 0 → 2, 1 → 2 means vertices 0 and 1 both cite vertex 2
+/// let mut g = Graph::new(3, true).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(1, 2).unwrap();
+///
+/// let scores = bibcoupling(&g).unwrap();
+/// assert_eq!(scores[0 * 3 + 1], 1); // coupling(0,1) = 1
+/// assert_eq!(scores[1 * 3 + 0], 1); // symmetric
+/// ```
+pub fn bibcoupling(graph: &Graph) -> IgraphResult<Vec<u32>> {
+    cocitation_impl(graph, false)
+}
+
+/// Computes Jaccard similarity coefficients for given vertex pairs.
+///
+/// The Jaccard similarity of two vertices is:
+/// `|N(u) ∩ N(v)| / |N(u) ∪ N(v)|`
+///
+/// where `N(v)` is the neighbor set of `v`. If both vertices are isolated
+/// (no neighbors), the similarity is 0.
+///
+/// # Arguments
+///
+/// * `graph` — the input graph (treated as undirected for neighbor lookup).
+/// * `pairs` — slice of `(u, v)` vertex pairs to compute similarity for.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, similarity_jaccard_pairs};
+///
+/// let mut g = Graph::with_vertices(5);
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(0, 3).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(1, 3).unwrap();
+/// g.add_edge(1, 4).unwrap();
+///
+/// let sim = similarity_jaccard_pairs(&g, &[(0, 1)]).unwrap();
+/// // N(0) = {2,3}, N(1) = {2,3,4}, intersection = {2,3}, union = {2,3,4}
+/// // Jaccard = 2/3
+/// assert!((sim[0] - 2.0 / 3.0).abs() < 1e-10);
+/// ```
+pub fn similarity_jaccard_pairs(
+    graph: &Graph,
+    pairs: &[(VertexId, VertexId)],
+) -> IgraphResult<Vec<f64>> {
+    let n = graph.vcount();
+    let adj = build_sorted_adjacency(graph)?;
+    let mut result = Vec::with_capacity(pairs.len());
+
+    for &(u, v) in pairs {
+        if u >= n || v >= n {
+            return Err(crate::core::error::IgraphError::InvalidArgument(
+                "vertex ID out of range in similarity_jaccard_pairs".to_string(),
+            ));
+        }
+        if u == v {
+            result.push(1.0);
+            continue;
+        }
+        let (isect, union_size) =
+            sorted_intersection_union_size(&adj[u as usize], &adj[v as usize]);
+        if union_size == 0 {
+            result.push(0.0);
+        } else {
+            #[allow(clippy::cast_precision_loss)]
+            result.push(isect as f64 / union_size as f64);
+        }
+    }
+
+    Ok(result)
+}
+
+/// Computes Dice similarity coefficients for given vertex pairs.
+///
+/// The Dice similarity of two vertices is:
+/// `2 * |N(u) ∩ N(v)| / (|N(u)| + |N(v)|)`
+///
+/// This is related to Jaccard by: `Dice = 2*J / (1+J)`.
+///
+/// # Arguments
+///
+/// * `graph` — the input graph (treated as undirected for neighbor lookup).
+/// * `pairs` — slice of `(u, v)` vertex pairs to compute similarity for.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, similarity_dice_pairs};
+///
+/// let mut g = Graph::with_vertices(5);
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(0, 3).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(1, 3).unwrap();
+/// g.add_edge(1, 4).unwrap();
+///
+/// let sim = similarity_dice_pairs(&g, &[(0, 1)]).unwrap();
+/// // N(0)={2,3}, N(1)={2,3,4}, |intersection|=2, |N(0)|+|N(1)|=5
+/// // Dice = 2*2/5 = 0.8
+/// assert!((sim[0] - 0.8).abs() < 1e-10);
+/// ```
+pub fn similarity_dice_pairs(
+    graph: &Graph,
+    pairs: &[(VertexId, VertexId)],
+) -> IgraphResult<Vec<f64>> {
+    let n = graph.vcount();
+    let adj = build_sorted_adjacency(graph)?;
+    let mut result = Vec::with_capacity(pairs.len());
+
+    for &(u, v) in pairs {
+        if u >= n || v >= n {
+            return Err(crate::core::error::IgraphError::InvalidArgument(
+                "vertex ID out of range in similarity_dice_pairs".to_string(),
+            ));
+        }
+        if u == v {
+            result.push(1.0);
+            continue;
+        }
+        let deg_sum = adj[u as usize].len() + adj[v as usize].len();
+        if deg_sum == 0 {
+            result.push(0.0);
+        } else {
+            let (isect, _) = sorted_intersection_union_size(&adj[u as usize], &adj[v as usize]);
+            #[allow(clippy::cast_precision_loss)]
+            result.push(2.0 * isect as f64 / deg_sum as f64);
+        }
+    }
+
+    Ok(result)
+}
+
+/// Internal: cocitation (mode=OUT on neighbors → predecessors share successors)
+/// or bibcoupling (mode=IN → successors share predecessors).
+fn cocitation_impl(graph: &Graph, is_cocitation: bool) -> IgraphResult<Vec<u32>> {
+    let n = graph.vcount() as usize;
+    let mut result = vec![0u32; n * n];
+
+    if n == 0 {
+        return Ok(result);
+    }
+
+    let ecount = graph.ecount();
+    let directed = graph.is_directed();
+
+    // Build adjacency: for cocitation we need in-neighbors (who cites whom)
+    // For bibcoupling we need out-neighbors (whom does each vertex cite)
+    // Cocitation: for each vertex w, get its out-neighbors. Each pair of
+    //   out-neighbors (u,v) is cocited by w.
+    // Bibcoupling: for each vertex w, get its in-neighbors. Each pair of
+    //   in-neighbors (u,v) share w as a common citation target.
+
+    // Build the relevant adjacency list
+    let mut adj: Vec<Vec<VertexId>> = vec![Vec::new(); n];
+
+    for eid in 0..ecount {
+        #[allow(clippy::cast_possible_truncation)]
+        let (src, tgt) = graph.edge(eid as u32)?;
+
+        if directed {
+            if is_cocitation {
+                // We want: for vertex src, its out-neighbors are those it cites
+                // Cocitation counts common in-neighbors, so we collect out-adj
+                adj[src as usize].push(tgt);
+            } else {
+                // Bibcoupling: collect in-adj (who points to tgt)
+                adj[tgt as usize].push(src);
+            }
+        } else {
+            // Undirected: both directions
+            adj[src as usize].push(tgt);
+            if src != tgt {
+                adj[tgt as usize].push(src);
+            }
+        }
+    }
+
+    // For each vertex w, iterate over pairs of its neighbors
+    for neighbors in &adj {
+        for (i, &nei_u) in neighbors.iter().enumerate() {
+            let u = nei_u as usize;
+            for &nei_v in &neighbors[(i + 1)..] {
+                let v = nei_v as usize;
+                result[u * n + v] += 1;
+                result[v * n + u] += 1;
+            }
+        }
+    }
+
+    Ok(result)
+}
+
+fn build_sorted_adjacency(graph: &Graph) -> IgraphResult<Vec<Vec<VertexId>>> {
+    let n = graph.vcount() as usize;
+    let ecount = graph.ecount();
+    let mut adj: Vec<Vec<VertexId>> = vec![Vec::new(); n];
+
+    for eid in 0..ecount {
+        #[allow(clippy::cast_possible_truncation)]
+        let (src, tgt) = graph.edge(eid as u32)?;
+        adj[src as usize].push(tgt);
+        if src != tgt {
+            adj[tgt as usize].push(src);
+        }
+    }
+
+    for neighbors in &mut adj {
+        neighbors.sort_unstable();
+        neighbors.dedup();
+    }
+
+    Ok(adj)
+}
+
+fn sorted_intersection_union_size(a: &[VertexId], b: &[VertexId]) -> (usize, usize) {
+    let mut i = 0;
+    let mut j = 0;
+    let mut isect = 0usize;
+
+    while i < a.len() && j < b.len() {
+        match a[i].cmp(&b[j]) {
+            std::cmp::Ordering::Less => i += 1,
+            std::cmp::Ordering::Greater => j += 1,
+            std::cmp::Ordering::Equal => {
+                isect += 1;
+                i += 1;
+                j += 1;
+            }
+        }
+    }
+
+    let union_size = a.len() + b.len() - isect;
+    (isect, union_size)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cocitation_directed() {
+        // 2→0, 2→1 means 0 and 1 are cocited by 2
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(2, 0).unwrap();
+        g.add_edge(2, 1).unwrap();
+
+        let scores = cocitation(&g).unwrap();
+        // scores is 3×3 row-major; check (0,1) and (1,0)
+        assert_eq!(scores[1], 1); // row 0, col 1
+        assert_eq!(scores[3], 1); // row 1, col 0
+        assert_eq!(scores[0], 0); // row 0, col 0
+    }
+
+    #[test]
+    fn test_cocitation_multiple_citers() {
+        // 2→0, 2→1, 3→0, 3→1 → cocitation(0,1) = 2
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(2, 0).unwrap();
+        g.add_edge(2, 1).unwrap();
+        g.add_edge(3, 0).unwrap();
+        g.add_edge(3, 1).unwrap();
+
+        let scores = cocitation(&g).unwrap();
+        // 4×4 matrix: (0,1) = index 1, (1,0) = index 4
+        assert_eq!(scores[1], 2);
+        assert_eq!(scores[4], 2);
+    }
+
+    #[test]
+    fn test_bibcoupling_directed() {
+        // 0→2, 1→2 means 0 and 1 share citation target 2
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+
+        let scores = bibcoupling(&g).unwrap();
+        // 3×3 matrix: (0,1) = index 1, (1,0) = index 3
+        assert_eq!(scores[1], 1);
+        assert_eq!(scores[3], 1);
+    }
+
+    #[test]
+    fn test_cocitation_undirected() {
+        // Undirected: common neighbors
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        g.add_edge(1, 3).unwrap();
+
+        let scores = cocitation(&g).unwrap();
+        // 4×4 matrix: (0,1) = index 1, (1,0) = index 4
+        // 0 and 1 share neighbors 2 and 3
+        assert_eq!(scores[1], 2);
+        assert_eq!(scores[4], 2);
+    }
+
+    #[test]
+    fn test_cocitation_empty() {
+        let g = Graph::with_vertices(0);
+        let scores = cocitation(&g).unwrap();
+        assert!(scores.is_empty());
+    }
+
+    #[test]
+    fn test_cocitation_isolated() {
+        let g = Graph::with_vertices(3);
+        let scores = cocitation(&g).unwrap();
+        assert!(scores.iter().all(|&x| x == 0));
+    }
+
+    #[test]
+    fn test_jaccard_complete_overlap() {
+        // Triangle: N(0)={1,2}, N(1)={0,2} → intersection={2}, union={0,1,2}→Jaccard=1/3
+        // Wait: N(0)={1,2}, N(1)={0,2}, intersection={2}, union={0,1,2}
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(0, 2).unwrap();
+
+        let sim = similarity_jaccard_pairs(&g, &[(0, 1)]).unwrap();
+        // N(0)={1,2}, N(1)={0,2}, intersection={2}, union={0,1,2}, J=1/3
+        assert!((sim[0] - 1.0 / 3.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_jaccard_self() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        let sim = similarity_jaccard_pairs(&g, &[(0, 0)]).unwrap();
+        assert!((sim[0] - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_jaccard_isolated() {
+        let g = Graph::with_vertices(3);
+        let sim = similarity_jaccard_pairs(&g, &[(0, 1)]).unwrap();
+        assert!((sim[0]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_jaccard_no_overlap() {
+        // 0-1, 2-3: N(0)={1}, N(2)={3}, no overlap
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let sim = similarity_jaccard_pairs(&g, &[(0, 2)]).unwrap();
+        assert!((sim[0]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_jaccard_multiple_pairs() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+
+        let sim = similarity_jaccard_pairs(&g, &[(0, 1), (0, 2), (2, 3)]).unwrap();
+        // (0,1): N(0)={2,3}, N(1)={2,3} → J=1.0
+        assert!((sim[0] - 1.0).abs() < 1e-10);
+        // (0,2): N(0)={2,3}, N(2)={0,1} → intersection=empty, union={0,1,2,3}→J=0
+        assert!((sim[1]).abs() < 1e-10);
+        // (2,3): N(2)={0,1}, N(3)={0,1} → J=1.0
+        assert!((sim[2] - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_dice_basic() {
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(1, 4).unwrap();
+
+        let sim = similarity_dice_pairs(&g, &[(0, 1)]).unwrap();
+        // N(0)={2,3}, N(1)={2,3,4}, |intersect|=2, deg_sum=5
+        // Dice = 2*2/5 = 0.8
+        assert!((sim[0] - 0.8).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_dice_self() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        let sim = similarity_dice_pairs(&g, &[(0, 0)]).unwrap();
+        assert!((sim[0] - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_dice_isolated() {
+        let g = Graph::with_vertices(3);
+        let sim = similarity_dice_pairs(&g, &[(0, 1)]).unwrap();
+        assert!((sim[0]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_jaccard_dice_relationship() {
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(1, 4).unwrap();
+
+        let jac = similarity_jaccard_pairs(&g, &[(0, 1)]).unwrap();
+        let dice = similarity_dice_pairs(&g, &[(0, 1)]).unwrap();
+        // Dice = 2*J / (1+J)
+        let expected_dice = 2.0 * jac[0] / (1.0 + jac[0]);
+        assert!((dice[0] - expected_dice).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_jaccard_out_of_range() {
+        let g = Graph::with_vertices(3);
+        assert!(similarity_jaccard_pairs(&g, &[(0, 5)]).is_err());
+    }
+}

@@ -43,6 +43,7 @@ pub(crate) mod pagerank_linsys;
 pub(crate) mod pagerank_weighted;
 pub(crate) mod reciprocity;
 pub(crate) mod rich_club;
+pub(crate) mod similarity;
 pub(crate) mod strength;
 pub(crate) mod topological_sorting;
 pub(crate) mod triangles;
@@ -95,6 +96,7 @@ pub use pagerank_linsys::pagerank_linsys;
 pub use pagerank_weighted::pagerank_weighted;
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
 pub use rich_club::rich_club_sequence;
+pub use similarity::{bibcoupling, cocitation, similarity_dice_pairs, similarity_jaccard_pairs};
 pub use strength::{StrengthMode, diversity, strength, strength_with_mode};
 pub use topological_sorting::topological_sorting;
 pub use triangles::{
