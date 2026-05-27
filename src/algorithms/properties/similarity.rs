@@ -357,6 +357,157 @@ fn build_sorted_adjacency(graph: &Graph) -> IgraphResult<Vec<Vec<VertexId>>> {
     Ok(adj)
 }
 
+/// Compute the full Jaccard similarity matrix for all vertex pairs.
+///
+/// Returns a flat vector of length `n * n` in row-major order, where
+/// `result[u * n + v]` is the Jaccard similarity between vertices `u`
+/// and `v`. The diagonal is 1.0 (a vertex is perfectly similar to
+/// itself). For pairs of isolated vertices, the similarity is 0.0.
+///
+/// Counterpart of `igraph_similarity_jaccard(_, _, vss_all(), IGRAPH_ALL, loops=false)`
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, similarity_jaccard};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(0, 3).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(1, 3).unwrap();
+/// let sim = similarity_jaccard(&g).unwrap();
+/// // N(0)={2,3}, N(1)={2,3} → Jaccard(0,1)=1.0
+/// assert!((sim[0 * 4 + 1] - 1.0).abs() < 1e-10);
+/// // N(0)={2,3}, N(2)={0,1} → intersection empty, union={0,1,2,3}→0
+/// assert!(sim[0 * 4 + 2].abs() < 1e-10);
+/// ```
+pub fn similarity_jaccard(graph: &Graph) -> IgraphResult<Vec<f64>> {
+    let n = graph.vcount() as usize;
+    let adj = build_sorted_adjacency(graph)?;
+    let mut result = vec![0.0_f64; n * n];
+
+    for u in 0..n {
+        result[u * n + u] = 1.0;
+        for v in (u + 1)..n {
+            let (isect, union_size) = sorted_intersection_union_size(&adj[u], &adj[v]);
+            let sim = if union_size == 0 {
+                0.0
+            } else {
+                #[allow(clippy::cast_precision_loss)]
+                {
+                    isect as f64 / union_size as f64
+                }
+            };
+            result[u * n + v] = sim;
+            result[v * n + u] = sim;
+        }
+    }
+
+    Ok(result)
+}
+
+/// Compute the full Dice similarity matrix for all vertex pairs.
+///
+/// Returns a flat vector of length `n * n` in row-major order.
+/// `Dice(u, v) = 2 * |N(u) ∩ N(v)| / (|N(u)| + |N(v)|)`.
+/// The diagonal is 1.0. For pairs of isolated vertices, similarity is 0.0.
+///
+/// Counterpart of `igraph_similarity_dice(_, _, vss_all(), IGRAPH_ALL, loops=false)`
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, similarity_dice};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(0, 3).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(1, 3).unwrap();
+/// let sim = similarity_dice(&g).unwrap();
+/// // N(0)={2,3}, N(1)={2,3}, |intersect|=2, deg_sum=4 → Dice=4/4=1.0
+/// assert!((sim[0 * 4 + 1] - 1.0).abs() < 1e-10);
+/// ```
+pub fn similarity_dice(graph: &Graph) -> IgraphResult<Vec<f64>> {
+    let n = graph.vcount() as usize;
+    let adj = build_sorted_adjacency(graph)?;
+    let mut result = vec![0.0_f64; n * n];
+
+    for u in 0..n {
+        result[u * n + u] = 1.0;
+        for v in (u + 1)..n {
+            let deg_sum = adj[u].len() + adj[v].len();
+            let sim = if deg_sum == 0 {
+                0.0
+            } else {
+                let (isect, _) = sorted_intersection_union_size(&adj[u], &adj[v]);
+                #[allow(clippy::cast_precision_loss)]
+                {
+                    2.0 * isect as f64 / deg_sum as f64
+                }
+            };
+            result[u * n + v] = sim;
+            result[v * n + u] = sim;
+        }
+    }
+
+    Ok(result)
+}
+
+/// Compute the full inverse-log-weighted (Adamic-Adar) similarity matrix.
+///
+/// Returns a flat vector of length `n * n` in row-major order.
+/// The diagonal is 0.0 (matching igraph convention for self-pairs in
+/// inverse-log-weighted similarity).
+///
+/// Counterpart of `igraph_similarity_inverse_log_weighted(_, _, vss_all(), IGRAPH_ALL)`
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, similarity_inverse_log_weighted};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(0, 3).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(1, 3).unwrap();
+/// let sim = similarity_inverse_log_weighted(&g).unwrap();
+/// // Common neighbors of (0,1): 2 (deg=2), 3 (deg=2)
+/// // AA = 1/ln(2) + 1/ln(2) = 2/ln(2)
+/// assert!((sim[0 * 4 + 1] - 2.0 / 2.0_f64.ln()).abs() < 1e-10);
+/// ```
+pub fn similarity_inverse_log_weighted(graph: &Graph) -> IgraphResult<Vec<f64>> {
+    let n = graph.vcount() as usize;
+    let adj = build_sorted_adjacency(graph)?;
+
+    #[allow(clippy::cast_precision_loss)]
+    let weights: Vec<f64> = adj
+        .iter()
+        .map(|neighbors| {
+            let deg = neighbors.len();
+            if deg > 1 {
+                1.0 / (deg as f64).ln()
+            } else {
+                0.0
+            }
+        })
+        .collect();
+
+    let mut result = vec![0.0_f64; n * n];
+
+    for u in 0..n {
+        for v in (u + 1)..n {
+            let sim = sorted_intersection_weighted(&adj[u], &adj[v], &weights);
+            result[u * n + v] = sim;
+            result[v * n + u] = sim;
+        }
+    }
+
+    Ok(result)
+}
+
 fn sorted_intersection_union_size(a: &[VertexId], b: &[VertexId]) -> (usize, usize) {
     let mut i = 0;
     let mut j = 0;
@@ -629,5 +780,145 @@ mod tests {
     fn test_inverse_log_weighted_out_of_range() {
         let g = Graph::with_vertices(3);
         assert!(similarity_inverse_log_weighted_pairs(&g, &[(0, 5)]).is_err());
+    }
+
+    // --- Full matrix tests ---
+
+    #[test]
+    fn test_jaccard_matrix_empty() {
+        let g = Graph::with_vertices(0);
+        let sim = similarity_jaccard(&g).unwrap();
+        assert!(sim.is_empty());
+    }
+
+    #[test]
+    fn test_jaccard_matrix_isolated() {
+        let g = Graph::with_vertices(3);
+        let sim = similarity_jaccard(&g).unwrap();
+        // Diagonal is 1.0, off-diagonal is 0.0.
+        for u in 0..3 {
+            assert!((sim[u * 3 + u] - 1.0).abs() < 1e-10);
+            for v in 0..3 {
+                if u != v {
+                    assert!(sim[u * 3 + v].abs() < 1e-10);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_jaccard_matrix_agrees_with_pairs() {
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(1, 4).unwrap();
+
+        let n = 5;
+        let matrix = similarity_jaccard(&g).unwrap();
+        let pairs = similarity_jaccard_pairs(&g, &[(0, 1), (0, 2), (2, 3)]).unwrap();
+        assert!((matrix[1] - pairs[0]).abs() < 1e-10);
+        assert!((matrix[2] - pairs[1]).abs() < 1e-10);
+        assert!((matrix[2 * n + 3] - pairs[2]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_jaccard_matrix_symmetric() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let sim = similarity_jaccard(&g).unwrap();
+        for u in 0..4 {
+            for v in 0..4 {
+                assert!(
+                    (sim[u * 4 + v] - sim[v * 4 + u]).abs() < 1e-10,
+                    "not symmetric at ({u},{v})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_dice_matrix_agrees_with_pairs() {
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(1, 4).unwrap();
+
+        let n = 5;
+        let matrix = similarity_dice(&g).unwrap();
+        let pairs = similarity_dice_pairs(&g, &[(0, 1), (0, 2), (2, 3)]).unwrap();
+        assert!((matrix[1] - pairs[0]).abs() < 1e-10);
+        assert!((matrix[2] - pairs[1]).abs() < 1e-10);
+        assert!((matrix[2 * n + 3] - pairs[2]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_dice_matrix_diagonal() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let sim = similarity_dice(&g).unwrap();
+        for u in 0..3 {
+            assert!((sim[u * 3 + u] - 1.0).abs() < 1e-10);
+        }
+    }
+
+    #[test]
+    fn test_inverse_log_weighted_matrix_agrees_with_pairs() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+
+        let n = 4;
+        let matrix = similarity_inverse_log_weighted(&g).unwrap();
+        let pairs = similarity_inverse_log_weighted_pairs(&g, &[(0, 1), (0, 2), (2, 3)]).unwrap();
+        assert!((matrix[1] - pairs[0]).abs() < 1e-10);
+        assert!((matrix[2] - pairs[1]).abs() < 1e-10);
+        assert!((matrix[2 * n + 3] - pairs[2]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_inverse_log_weighted_matrix_diagonal_zero() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let sim = similarity_inverse_log_weighted(&g).unwrap();
+        for u in 0..3 {
+            assert!(sim[u * 3 + u].abs() < 1e-10);
+        }
+    }
+
+    #[test]
+    fn test_jaccard_dice_matrix_relationship() {
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(1, 4).unwrap();
+        g.add_edge(2, 4).unwrap();
+
+        let jac = similarity_jaccard(&g).unwrap();
+        let dice = similarity_dice(&g).unwrap();
+        for u in 0..5 {
+            for v in 0..5 {
+                if u != v {
+                    let j = jac[u * 5 + v];
+                    let d = dice[u * 5 + v];
+                    let expected_d = if j == 0.0 { 0.0 } else { 2.0 * j / (1.0 + j) };
+                    assert!(
+                        (d - expected_d).abs() < 1e-10,
+                        "Dice/Jaccard mismatch at ({u},{v}): d={d}, expected={expected_d}"
+                    );
+                }
+            }
+        }
     }
 }

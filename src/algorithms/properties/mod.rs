@@ -130,7 +130,8 @@ pub use personalized_pagerank::{personalized_pagerank, personalized_pagerank_def
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
 pub use rich_club::rich_club_sequence;
 pub use similarity::{
-    bibcoupling, cocitation, similarity_dice_pairs, similarity_inverse_log_weighted_pairs,
+    bibcoupling, cocitation, similarity_dice, similarity_dice_pairs,
+    similarity_inverse_log_weighted, similarity_inverse_log_weighted_pairs, similarity_jaccard,
     similarity_jaccard_pairs,
 };
 pub use sort_by_degree::{SortOrder, sort_vertices_by_degree};
