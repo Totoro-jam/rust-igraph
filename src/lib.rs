@@ -196,6 +196,9 @@ pub use crate::algorithms::games::sbm::sbm_game;
 pub use crate::algorithms::games::static_fitness::{static_fitness_game, static_power_law_game};
 pub use crate::algorithms::games::tree::tree_game_lerw;
 pub use crate::algorithms::games::watts::watts_strogatz_game;
+pub use crate::algorithms::io::dimacs::{
+    DimacsGraph, DimacsProblem, read_dimacs, write_dimacs_flow,
+};
 pub use crate::algorithms::io::edgelist::read_edgelist;
 pub use crate::algorithms::io::gml::{read_gml, write_gml};
 pub use crate::algorithms::io::lgl::{LglGraph, read_lgl, write_lgl};
