@@ -262,6 +262,10 @@ path = "examples/centralization_demo.rs"
 name = "graphicality_demo"
 path = "examples/graphicality_demo.rs"
 
+[[example]]
+name = "strength_demo"
+path = "examples/strength_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
@@ -810,6 +814,11 @@ harness = false
 [[bench]]
 name = "bench_graphicality"
 path = "benches/bench_graphicality.rs"
+harness = false
+
+[[bench]]
+name = "bench_strength"
+path = "benches/bench_strength.rs"
 harness = false
 
 [lints.rust]

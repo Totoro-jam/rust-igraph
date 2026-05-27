@@ -1,0 +1,25 @@
+{
+  "algo": "ALGO-PR-035",
+  "name": "strength + diversity",
+  "date": "2026-05-27",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "strength/undirected_all",
+      "sizes": [100, 1000, 10000],
+      "note": "strength, undirected, StrengthMode::All"
+    },
+    {
+      "group": "strength/directed_out",
+      "sizes": [100, 1000, 10000],
+      "note": "strength_with_mode, directed, StrengthMode::Out"
+    },
+    {
+      "group": "diversity/simple_undirected",
+      "sizes": [100, 1000, 10000],
+      "note": "diversity, undirected simple graph"
+    }
+  ],
+  "status": "baseline_created"
+}
