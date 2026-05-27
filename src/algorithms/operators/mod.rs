@@ -12,6 +12,7 @@ pub(crate) mod disjoint_union;
 pub(crate) mod induced_subgraph;
 pub(crate) mod intersection;
 pub(crate) mod is_same_graph;
+pub(crate) mod join;
 pub(crate) mod permute_vertices;
 pub(crate) mod reverse;
 #[allow(
@@ -32,6 +33,7 @@ pub use disjoint_union::{disjoint_union, disjoint_union_many};
 pub use induced_subgraph::{InducedSubgraphResult, induced_subgraph};
 pub use intersection::intersection;
 pub use is_same_graph::is_same_graph;
+pub use join::join;
 pub use permute_vertices::permute_vertices;
 pub use reverse::reverse;
 pub use rewire_edges::rewire_edges;
