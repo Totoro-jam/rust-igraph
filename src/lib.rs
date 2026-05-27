@@ -224,6 +224,7 @@ pub use crate::algorithms::matching::{
     MatchingResult, is_matching, is_maximal_matching, maximum_bipartite_matching,
     maximum_bipartite_matching_weighted,
 };
+pub use crate::algorithms::motifs::{DyadCensus, dyad_census};
 pub use crate::algorithms::operators::complementer::complementer;
 pub use crate::algorithms::operators::compose::compose;
 pub use crate::algorithms::operators::connect_neighborhood::{connect_neighborhood, graph_power};

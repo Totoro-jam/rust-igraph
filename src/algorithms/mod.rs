@@ -15,6 +15,7 @@ pub mod games;
 pub mod io;
 pub mod layout;
 pub mod matching;
+pub mod motifs;
 pub mod operators;
 pub mod paths;
 pub mod properties;
