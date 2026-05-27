@@ -381,8 +381,8 @@ pub use crate::algorithms::properties::strength::{
 };
 pub use crate::algorithms::properties::topological_sorting::topological_sorting;
 pub use crate::algorithms::properties::triangles::{
-    count_adjacent_triangles, count_triangles, transitivity_barrat, transitivity_local_undirected,
-    transitivity_undirected,
+    TransitivityMode, count_adjacent_triangles, count_triangles, transitivity_avglocal_undirected,
+    transitivity_barrat, transitivity_local_undirected, transitivity_undirected,
 };
 pub use crate::algorithms::properties::trussness::trussness;
 pub use crate::algorithms::properties::unfold_tree::{UnfoldTreeResult, unfold_tree};

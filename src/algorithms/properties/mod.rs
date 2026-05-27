@@ -119,8 +119,8 @@ pub use stochastic::get_stochastic;
 pub use strength::{StrengthMode, diversity, strength, strength_with_mode};
 pub use topological_sorting::topological_sorting;
 pub use triangles::{
-    count_adjacent_triangles, count_triangles, transitivity_local_undirected,
-    transitivity_undirected,
+    TransitivityMode, count_adjacent_triangles, count_triangles, transitivity_avglocal_undirected,
+    transitivity_local_undirected, transitivity_undirected,
 };
 pub use trussness::trussness;
 pub use unfold_tree::{UnfoldTreeResult, unfold_tree};

@@ -100,6 +100,7 @@ pub fn read_dimacs<R: Read>(input: R, directed: bool) -> IgraphResult<DimacsGrap
                         message: "problem line needs: p type nodes edges".into(),
                     });
                 }
+                let parts = parts.as_slice();
                 let ptype = match parts[1] {
                     "max" => DimacsProblem::Max,
                     "edge" | "col" => DimacsProblem::Edge,
@@ -145,6 +146,7 @@ pub fn read_dimacs<R: Read>(input: R, directed: bool) -> IgraphResult<DimacsGrap
                         message: "node line needs: n ID type_or_label".into(),
                     });
                 }
+                let parts = parts.as_slice();
                 let vid: u32 = parts[1].parse().map_err(|e| IgraphError::Parse {
                     line: line_idx.wrapping_add(1),
                     message: format!("invalid vertex id: {e}"),

@@ -172,6 +172,75 @@ pub fn transitivity_local_undirected(graph: &Graph) -> IgraphResult<Vec<Option<f
     Ok(out)
 }
 
+/// How to handle vertices with degree < 2 when averaging local transitivity.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TransitivityMode {
+    /// Exclude low-degree vertices from the average; return NaN if none qualify.
+    Nan,
+    /// Treat low-degree vertices as having transitivity 0.
+    Zero,
+}
+
+/// Average local transitivity (clustering coefficient).
+///
+/// Computes the local transitivity for each vertex and returns the mean.
+///
+/// - `mode`: how to handle vertices with degree < 2.
+///   - [`TransitivityMode::Nan`]: exclude them (result is NaN if no vertex qualifies).
+///   - [`TransitivityMode::Zero`]: include them with transitivity 0.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, transitivity_avglocal_undirected, TransitivityMode};
+///
+/// // Triangle: all vertices have local transitivity 1.0
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// let avg = transitivity_avglocal_undirected(&g, TransitivityMode::Nan).unwrap();
+/// assert!((avg - 1.0).abs() < 1e-10);
+/// ```
+pub fn transitivity_avglocal_undirected(
+    graph: &Graph,
+    mode: TransitivityMode,
+) -> IgraphResult<f64> {
+    let n = graph.vcount() as usize;
+    if n == 0 {
+        return Ok(if mode == TransitivityMode::Zero {
+            0.0
+        } else {
+            f64::NAN
+        });
+    }
+
+    let local = transitivity_local_undirected(graph)?;
+    let mut sum = 0.0_f64;
+    let mut count = 0_u64;
+
+    for val in &local {
+        match val {
+            Some(t) => {
+                sum += t;
+                count += 1;
+            }
+            None => {
+                if mode == TransitivityMode::Zero {
+                    count += 1;
+                }
+            }
+        }
+    }
+
+    if count == 0 {
+        Ok(f64::NAN)
+    } else {
+        #[allow(clippy::cast_precision_loss)]
+        Ok(sum / count as f64)
+    }
+}
+
 /// Adjacent-triangle count per vertex (length `vcount`) plus the simple
 /// degree (no loops, no multi) of each vertex.
 fn per_vertex_triangle_stats(graph: &Graph) -> IgraphResult<(Vec<u64>, Vec<u64>)> {
