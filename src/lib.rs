@@ -45,6 +45,7 @@ pub mod core;
 pub use crate::algorithms::chordality::{
     ChordalResult, McsResult, is_chordal, maximum_cardinality_search,
 };
+pub use crate::algorithms::cliques::{clique_number, largest_cliques, maximal_cliques};
 pub use crate::algorithms::coloring::{
     BipartiteColoringResult, BipartiteEdgeDirection, GreedyColoringHeuristic,
     is_bipartite_coloring, is_edge_coloring, is_vertex_coloring, vertex_coloring_greedy,

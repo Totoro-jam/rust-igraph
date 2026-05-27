@@ -5,6 +5,7 @@
 //! across Phases 1-10 (see `docs/plans/MASTER_PLAN.md`).
 
 pub mod chordality;
+pub mod cliques;
 pub mod coloring;
 pub mod community;
 pub mod connectivity;
