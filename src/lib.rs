@@ -235,6 +235,7 @@ pub use crate::algorithms::operators::products::{
     cartesian_product, lexicographic_product, strong_product, tensor_product,
 };
 pub use crate::algorithms::operators::reverse::reverse;
+pub use crate::algorithms::operators::rewire::rewire;
 pub use crate::algorithms::operators::rewire_edges::rewire_edges;
 pub use crate::algorithms::operators::simplify::simplify;
 pub use crate::algorithms::operators::union::union;

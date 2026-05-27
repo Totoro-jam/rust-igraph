@@ -16,6 +16,7 @@ pub(crate) mod join;
 pub(crate) mod permute_vertices;
 pub(crate) mod products;
 pub(crate) mod reverse;
+pub(crate) mod rewire;
 #[allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
@@ -38,6 +39,7 @@ pub use join::join;
 pub use permute_vertices::permute_vertices;
 pub use products::{cartesian_product, lexicographic_product, strong_product, tensor_product};
 pub use reverse::reverse;
+pub use rewire::rewire;
 pub use rewire_edges::rewire_edges;
 pub use simplify::simplify;
 pub use union::union;
