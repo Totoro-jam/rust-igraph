@@ -375,7 +375,8 @@ pub use crate::algorithms::properties::reciprocity::{
 };
 pub use crate::algorithms::properties::rich_club::rich_club_sequence;
 pub use crate::algorithms::properties::similarity::{
-    bibcoupling, cocitation, similarity_dice_pairs, similarity_jaccard_pairs,
+    bibcoupling, cocitation, similarity_dice_pairs, similarity_inverse_log_weighted_pairs,
+    similarity_jaccard_pairs,
 };
 pub use crate::algorithms::properties::stochastic::get_stochastic;
 pub use crate::algorithms::properties::strength::{

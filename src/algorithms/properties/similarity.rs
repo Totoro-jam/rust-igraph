@@ -184,6 +184,97 @@ pub fn similarity_dice_pairs(
     Ok(result)
 }
 
+/// Computes the inverse log-weighted (Adamic-Adar) similarity for given vertex pairs.
+///
+/// The Adamic-Adar index of two vertices u and v is:
+/// `sum_{w in N(u) ∩ N(v)} 1 / log(deg(w))`
+///
+/// where the sum runs over all common neighbors. High-degree common
+/// neighbors contribute less, reflecting that a shared low-degree
+/// neighbor is more informative. Isolated vertices have zero similarity
+/// to any other vertex.
+///
+/// # Arguments
+///
+/// * `graph` — the input graph (treated as undirected for neighbor lookup).
+/// * `pairs` — slice of `(u, v)` vertex pairs to compute similarity for.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, similarity_inverse_log_weighted_pairs};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(0, 3).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(1, 3).unwrap();
+///
+/// let sim = similarity_inverse_log_weighted_pairs(&g, &[(0, 1)]).unwrap();
+/// // Common neighbors: 2 (deg=2), 3 (deg=2)
+/// // AA = 1/ln(2) + 1/ln(2) = 2/ln(2)
+/// assert!((sim[0] - 2.0 / 2.0_f64.ln()).abs() < 1e-10);
+/// ```
+pub fn similarity_inverse_log_weighted_pairs(
+    graph: &Graph,
+    pairs: &[(VertexId, VertexId)],
+) -> IgraphResult<Vec<f64>> {
+    let n = graph.vcount();
+    let adj = build_sorted_adjacency(graph)?;
+
+    // Precompute degrees for weight calculation
+    #[allow(clippy::cast_precision_loss)]
+    let weights: Vec<f64> = adj
+        .iter()
+        .map(|neighbors| {
+            let deg = neighbors.len();
+            if deg > 1 {
+                1.0 / (deg as f64).ln()
+            } else {
+                0.0
+            }
+        })
+        .collect();
+
+    let mut result = Vec::with_capacity(pairs.len());
+
+    for &(u, v) in pairs {
+        if u >= n || v >= n {
+            return Err(crate::core::error::IgraphError::InvalidArgument(
+                "vertex ID out of range in similarity_inverse_log_weighted_pairs".to_string(),
+            ));
+        }
+        if u == v {
+            result.push(0.0);
+            continue;
+        }
+        let common = sorted_intersection_weighted(&adj[u as usize], &adj[v as usize], &weights);
+        result.push(common);
+    }
+
+    Ok(result)
+}
+
+fn sorted_intersection_weighted(a: &[VertexId], b: &[VertexId], weights: &[f64]) -> f64 {
+    let mut i = 0;
+    let mut j = 0;
+    let mut sum = 0.0_f64;
+
+    while i < a.len() && j < b.len() {
+        match a[i].cmp(&b[j]) {
+            std::cmp::Ordering::Less => i += 1,
+            std::cmp::Ordering::Greater => j += 1,
+            std::cmp::Ordering::Equal => {
+                sum += weights[a[i] as usize];
+                i += 1;
+                j += 1;
+            }
+        }
+    }
+
+    sum
+}
+
 /// Internal: cocitation (mode=OUT on neighbors → predecessors share successors)
 /// or bibcoupling (mode=IN → successors share predecessors).
 fn cocitation_impl(graph: &Graph, is_cocitation: bool) -> IgraphResult<Vec<u32>> {
@@ -469,5 +560,74 @@ mod tests {
     fn test_jaccard_out_of_range() {
         let g = Graph::with_vertices(3);
         assert!(similarity_jaccard_pairs(&g, &[(0, 5)]).is_err());
+    }
+
+    #[test]
+    fn test_inverse_log_weighted_basic() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+
+        let sim = similarity_inverse_log_weighted_pairs(&g, &[(0, 1)]).unwrap();
+        // Common neighbors: 2 (deg=2), 3 (deg=2)
+        // AA = 1/ln(2) + 1/ln(2) = 2/ln(2)
+        assert!((sim[0] - 2.0 / 2.0_f64.ln()).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_inverse_log_weighted_self() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        let sim = similarity_inverse_log_weighted_pairs(&g, &[(0, 0)]).unwrap();
+        assert!((sim[0]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_inverse_log_weighted_isolated() {
+        let g = Graph::with_vertices(3);
+        let sim = similarity_inverse_log_weighted_pairs(&g, &[(0, 1)]).unwrap();
+        assert!((sim[0]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_inverse_log_weighted_no_common() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let sim = similarity_inverse_log_weighted_pairs(&g, &[(0, 2)]).unwrap();
+        assert!((sim[0]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_inverse_log_weighted_high_degree() {
+        // Hub vertex 4 connected to all others
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 4).unwrap();
+        g.add_edge(1, 4).unwrap();
+        g.add_edge(2, 4).unwrap();
+        g.add_edge(3, 4).unwrap();
+
+        let sim = similarity_inverse_log_weighted_pairs(&g, &[(0, 1)]).unwrap();
+        // Common neighbor: 4 (deg=4)
+        // AA = 1/ln(4)
+        assert!((sim[0] - 1.0 / 4.0_f64.ln()).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_inverse_log_weighted_degree_one_neighbor() {
+        // Common neighbor with degree 1 contributes 0
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 2).unwrap();
+        // N(0)={2}, N(1)={} → no common neighbors
+        let sim = similarity_inverse_log_weighted_pairs(&g, &[(0, 1)]).unwrap();
+        assert!((sim[0]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_inverse_log_weighted_out_of_range() {
+        let g = Graph::with_vertices(3);
+        assert!(similarity_inverse_log_weighted_pairs(&g, &[(0, 5)]).is_err());
     }
 }
