@@ -285,25 +285,17 @@ fn parse_graph(tokens: &[Token]) -> IgraphResult<Graph> {
                             pos = skip_value(tokens, pos);
                         }
                     }
-                    "node" => {
-                        if pos < tokens.len() && tokens[pos] == Token::Open {
-                            pos += 1;
-                            let (node_id, new_pos) = parse_node(tokens, pos)?;
-                            node_ids.push(node_id);
-                            pos = new_pos;
-                        } else {
-                            pos = skip_value(tokens, pos);
-                        }
+                    "node" if pos < tokens.len() && tokens[pos] == Token::Open => {
+                        pos += 1;
+                        let (node_id, new_pos) = parse_node(tokens, pos)?;
+                        node_ids.push(node_id);
+                        pos = new_pos;
                     }
-                    "edge" => {
-                        if pos < tokens.len() && tokens[pos] == Token::Open {
-                            pos += 1;
-                            let (edge, new_pos) = parse_edge(tokens, pos)?;
-                            edges.push(edge);
-                            pos = new_pos;
-                        } else {
-                            pos = skip_value(tokens, pos);
-                        }
+                    "edge" if pos < tokens.len() && tokens[pos] == Token::Open => {
+                        pos += 1;
+                        let (edge, new_pos) = parse_edge(tokens, pos)?;
+                        edges.push(edge);
+                        pos = new_pos;
                     }
                     _ => {
                         pos = skip_value(tokens, pos);

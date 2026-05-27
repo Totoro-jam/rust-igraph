@@ -112,9 +112,9 @@ pub fn modularity_matrix(
         }
 
         let scaling = resolution / sw;
-        for j in 0..n_usize {
+        for (j, &k_in_j) in k_in.iter().enumerate().take(n_usize) {
             for i in 0..n_usize {
-                matrix[i][j] -= k_out[i] * k_in[j] * scaling;
+                matrix[i][j] -= k_out[i] * k_in_j * scaling;
             }
         }
     } else {
