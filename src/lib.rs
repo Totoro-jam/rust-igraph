@@ -105,6 +105,7 @@ pub use crate::algorithms::connectivity::bridges::bridges;
 pub use crate::algorithms::connectivity::components::{ConnectedComponents, connected_components};
 pub use crate::algorithms::connectivity::decompose::decompose;
 pub use crate::algorithms::connectivity::is_biconnected::is_biconnected;
+pub use crate::algorithms::connectivity::is_connected::{ConnectednessMode, is_connected};
 pub use crate::algorithms::connectivity::percolation::{
     EdgelistPercolation, SitePercolation, bond_percolation, edgelist_percolation, site_percolation,
 };

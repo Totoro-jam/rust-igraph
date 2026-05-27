@@ -12,6 +12,7 @@ pub(crate) mod bridges;
 pub(crate) mod components;
 pub(crate) mod decompose;
 pub(crate) mod is_biconnected;
+pub(crate) mod is_connected;
 pub(crate) mod percolation;
 pub(crate) mod reachability;
 pub(crate) mod reachability_matrix;
@@ -24,6 +25,7 @@ pub use bridges::bridges;
 pub use components::{ConnectedComponents, connected_components};
 pub use decompose::decompose;
 pub use is_biconnected::is_biconnected;
+pub use is_connected::{ConnectednessMode, is_connected};
 pub use percolation::{
     EdgelistPercolation, SitePercolation, bond_percolation, edgelist_percolation, site_percolation,
 };
