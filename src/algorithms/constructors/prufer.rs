@@ -114,6 +114,121 @@ pub fn from_prufer(prufer: &[u32]) -> IgraphResult<Graph> {
     Ok(g)
 }
 
+/// Encode a labelled tree into its unique Prüfer sequence.
+///
+/// The graph must be an undirected tree with at least 2 vertices.
+/// Returns a `Vec<u32>` of length `n - 2` where `n = graph.vcount()`.
+///
+/// The algorithm iteratively removes the smallest-labelled leaf and
+/// records its sole neighbour's label. Runs in `O(n)` time using the
+/// linear-time variant that avoids repeated linear scans.
+///
+/// # Errors
+///
+/// * [`IgraphError::InvalidArgument`] — graph is not a tree, or has
+///   fewer than 2 vertices.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{from_prufer, to_prufer};
+///
+/// // Round-trip: encode a known tree, decode it, verify same edges.
+/// let tree = from_prufer(&[2, 3, 2, 3]).unwrap();
+/// let seq = to_prufer(&tree).unwrap();
+/// assert_eq!(seq, vec![2, 3, 2, 3]);
+/// ```
+pub fn to_prufer(graph: &Graph) -> IgraphResult<Vec<u32>> {
+    let n = graph.vcount();
+
+    if n < 2 {
+        return Err(IgraphError::InvalidArgument(
+            "to_prufer: tree must have at least 2 vertices".into(),
+        ));
+    }
+
+    // Verify it's a tree: connected + ecount == n - 1
+    let ecount = graph.ecount();
+    if ecount != (n as usize) - 1 {
+        return Err(IgraphError::InvalidArgument(
+            "to_prufer: graph is not a tree (wrong edge count)".into(),
+        ));
+    }
+
+    // Build adjacency lists
+    let mut adj: Vec<Vec<VertexId>> = vec![Vec::new(); n as usize];
+    for eid in 0..ecount {
+        #[allow(clippy::cast_possible_truncation)]
+        let (from, to) = graph.edge(eid as u32)?;
+        if from == to {
+            return Err(IgraphError::InvalidArgument(
+                "to_prufer: graph contains a self-loop, not a tree".into(),
+            ));
+        }
+        adj[from as usize].push(to);
+        adj[to as usize].push(from);
+    }
+
+    // Compute degrees (safe: degree bounded by n which is u32)
+    #[allow(clippy::cast_possible_truncation)]
+    let mut degrees: Vec<u32> = adj.iter().map(|v| v.len() as u32).collect();
+
+    // Check connectivity via BFS
+    let mut bfs_visited = vec![false; n as usize];
+    let mut bfs_queue = std::collections::VecDeque::new();
+    bfs_queue.push_back(0u32);
+    bfs_visited[0] = true;
+    let mut visit_count: u32 = 1;
+    while let Some(v) = bfs_queue.pop_front() {
+        for &nbr in &adj[v as usize] {
+            if !bfs_visited[nbr as usize] {
+                bfs_visited[nbr as usize] = true;
+                visit_count += 1;
+                bfs_queue.push_back(nbr);
+            }
+        }
+    }
+    if visit_count != n {
+        return Err(IgraphError::InvalidArgument(
+            "to_prufer: graph is not connected, not a tree".into(),
+        ));
+    }
+
+    // Linear-time Prüfer encoding
+    let mut prufer: Vec<u32> = Vec::with_capacity((n - 2) as usize);
+    let mut prufer_idx: usize = 0;
+    let target_len = (n - 2) as usize;
+
+    for u in 0..n {
+        let mut leaf = u;
+        let mut deg = degrees[leaf as usize];
+
+        while deg == 1 && leaf <= u && prufer_idx < target_len {
+            degrees[leaf as usize] = 0;
+
+            // Find the unique remaining neighbor
+            let mut neighbor = 0u32;
+            for &nbr in &adj[leaf as usize] {
+                if degrees[nbr as usize] > 0 {
+                    neighbor = nbr;
+                    break;
+                }
+            }
+
+            degrees[neighbor as usize] -= 1;
+            deg = degrees[neighbor as usize];
+
+            if deg > 0 {
+                prufer.push(neighbor);
+                prufer_idx += 1;
+            }
+            leaf = neighbor;
+        }
+    }
+
+    Ok(prufer)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -267,6 +382,72 @@ mod tests {
             let canon = if a <= b { (a, b) } else { (b, a) };
             assert!(seen.insert(canon), "duplicate edge {canon:?}");
         }
+    }
+
+    // --- to_prufer tests ---
+
+    #[test]
+    fn to_prufer_roundtrip_2_3_2_3() {
+        let tree = from_prufer(&[2, 3, 2, 3]).expect("decode");
+        let seq = to_prufer(&tree).expect("encode");
+        assert_eq!(seq, vec![2, 3, 2, 3]);
+    }
+
+    #[test]
+    fn to_prufer_roundtrip_constant() {
+        // Star centered at 3: Prüfer = [3, 3, 3]
+        let tree = from_prufer(&[3, 3, 3]).expect("decode");
+        let seq = to_prufer(&tree).expect("encode");
+        assert_eq!(seq, vec![3, 3, 3]);
+    }
+
+    #[test]
+    fn to_prufer_roundtrip_path() {
+        // Path 0-1-2-3: Prüfer = [1, 2]
+        let tree = from_prufer(&[1, 2]).expect("decode");
+        let seq = to_prufer(&tree).expect("encode");
+        assert_eq!(seq, vec![1, 2]);
+    }
+
+    #[test]
+    fn to_prufer_p2() {
+        // P_2 has empty Prüfer sequence
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).expect("add edge");
+        let seq = to_prufer(&g).expect("encode");
+        assert!(seq.is_empty());
+    }
+
+    #[test]
+    fn to_prufer_not_a_tree_cycle() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).expect("ok");
+        g.add_edge(1, 2).expect("ok");
+        g.add_edge(2, 0).expect("ok");
+        assert!(to_prufer(&g).is_err());
+    }
+
+    #[test]
+    fn to_prufer_not_a_tree_disconnected() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).expect("ok");
+        g.add_edge(2, 3).expect("ok");
+        // 2 edges but needs 3 for a tree on 4 vertices
+        assert!(to_prufer(&g).is_err());
+    }
+
+    #[test]
+    fn to_prufer_single_vertex() {
+        let g = Graph::with_vertices(1);
+        assert!(to_prufer(&g).is_err());
+    }
+
+    #[test]
+    fn to_prufer_roundtrip_large() {
+        let seq = vec![0, 2, 4, 1, 1, 0];
+        let tree = from_prufer(&seq).expect("decode");
+        let result = to_prufer(&tree).expect("encode");
+        assert_eq!(result, seq);
     }
 }
 
