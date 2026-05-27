@@ -46,6 +46,7 @@ pub(crate) mod fruchterman_reingold;
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
     clippy::needless_range_loop,
+    clippy::similar_names,
     clippy::too_many_lines
 )]
 pub(crate) mod gem;
@@ -105,6 +106,19 @@ pub(crate) mod simple;
     clippy::too_many_arguments
 )]
 pub(crate) mod sugiyama;
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_lossless,
+    clippy::float_cmp,
+    clippy::needless_range_loop,
+    clippy::similar_names,
+    clippy::too_many_lines,
+    clippy::many_single_char_names,
+    clippy::doc_markdown,
+    clippy::used_underscore_binding
+)]
+pub(crate) mod umap;
 
 pub use bipartite::layout_bipartite;
 pub use davidson_harel::{DhParams, layout_davidson_harel};
@@ -126,3 +140,4 @@ pub use simple::{
     layout_star,
 };
 pub use sugiyama::{SugiyamaParams, SugiyamaResult, layout_sugiyama};
+pub use umap::{UmapParams, layout_umap, layout_umap_3d, umap_compute_weights};

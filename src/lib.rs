@@ -212,6 +212,9 @@ pub use crate::algorithms::layout::simple::{
     layout_star,
 };
 pub use crate::algorithms::layout::sugiyama::{SugiyamaParams, SugiyamaResult, layout_sugiyama};
+pub use crate::algorithms::layout::umap::{
+    UmapParams, layout_umap, layout_umap_3d, umap_compute_weights,
+};
 pub use crate::algorithms::matching::{
     MatchingResult, is_matching, is_maximal_matching, maximum_bipartite_matching,
     maximum_bipartite_matching_weighted,
