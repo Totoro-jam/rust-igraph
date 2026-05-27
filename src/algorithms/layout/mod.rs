@@ -18,6 +18,14 @@ pub(crate) mod bipartite;
 )]
 pub(crate) mod fruchterman_reingold;
 #[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::needless_range_loop,
+    clippy::too_many_lines
+)]
+pub(crate) mod gem;
+#[allow(
     clippy::similar_names,
     clippy::cast_precision_loss,
     clippy::cast_lossless,
@@ -50,6 +58,7 @@ pub use fruchterman_reingold::{
     FrBounds, FrBounds3d, FrGrid, FrParams, FrParams3d, layout_fruchterman_reingold,
     layout_fruchterman_reingold_3d,
 };
+pub use gem::{GemParams, layout_gem};
 pub use kamada_kawai::{
     KkBounds, KkBounds3d, KkParams, KkParams3d, layout_kamada_kawai, layout_kamada_kawai_3d,
 };
