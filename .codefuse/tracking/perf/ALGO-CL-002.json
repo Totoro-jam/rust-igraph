@@ -1,0 +1,13 @@
+{
+  "awu": "ALGO-CL-002",
+  "captured_at": "2026-05-27",
+  "git_commit": "pending",
+  "algorithms": [
+    "maximum_cardinality_search",
+    "is_chordal"
+  ],
+  "test_count": 20,
+  "proptest_count": 5,
+  "py_baseline_ns": null,
+  "notes": "MCS uses doubly-linked bucket lists (1-based pointers, O(V+E)). is_chordal uses path-compression forest for zero-fill-in test. build_simple_adj produces undirected simple adjacency for both directed and undirected input. Reference: chordality.c 477 lines."
+}
