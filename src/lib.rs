@@ -405,6 +405,7 @@ pub use crate::algorithms::properties::reciprocity::{
     ReciprocityMode, reciprocity, reciprocity_with_mode,
 };
 pub use crate::algorithms::properties::rich_club::rich_club_sequence;
+pub use crate::algorithms::properties::running_mean::{expand_path_to_pairs, running_mean};
 pub use crate::algorithms::properties::similarity::{
     bibcoupling, cocitation, similarity_dice, similarity_dice_pairs,
     similarity_inverse_log_weighted, similarity_inverse_log_weighted_pairs, similarity_jaccard,
