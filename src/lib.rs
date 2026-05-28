@@ -154,6 +154,9 @@ pub use crate::algorithms::constructors::tree_from_parent_vector::tree_from_pare
 pub use crate::algorithms::constructors::triangular_lattice::triangular_lattice;
 pub use crate::algorithms::constructors::turan::turan;
 pub use crate::algorithms::constructors::weighted_adjacency::weighted_adjacency;
+pub use crate::algorithms::constructors::weighted_biadjacency::{
+    WeightedBiadjacencyResult, weighted_biadjacency,
+};
 pub use crate::algorithms::constructors::wheel::{WheelMode, wheel_graph};
 pub use crate::algorithms::cycles::{CycleMode, CycleResult, find_cycle};
 pub use crate::algorithms::feedback_arc_set::{FasAlgorithm, feedback_arc_set};

@@ -40,4 +40,5 @@ pub mod tree_from_parent_vector;
 pub mod triangular_lattice;
 pub mod turan;
 pub mod weighted_adjacency;
+pub mod weighted_biadjacency;
 pub mod wheel;
