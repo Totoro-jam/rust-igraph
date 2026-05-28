@@ -270,6 +270,7 @@ pub use crate::algorithms::operators::connect_neighborhood::{connect_neighborhoo
 pub use crate::algorithms::operators::contract_vertices::contract_vertices;
 pub use crate::algorithms::operators::difference::difference;
 pub use crate::algorithms::operators::disjoint_union::{disjoint_union, disjoint_union_many};
+pub use crate::algorithms::operators::even_tarjan::{EvenTarjanResult, even_tarjan_reduction};
 pub use crate::algorithms::operators::induced_subgraph::{InducedSubgraphResult, induced_subgraph};
 pub use crate::algorithms::operators::induced_subgraph_edges::induced_subgraph_edges;
 pub use crate::algorithms::operators::intersection::{intersection, intersection_many};
