@@ -125,6 +125,87 @@ pub fn union(left: &Graph, right: &Graph) -> IgraphResult<Graph> {
     Ok(out)
 }
 
+/// Returns the union of multiple graphs.
+///
+/// Generalises [`union`] to an arbitrary number of inputs. The result
+/// has `max(g.vcount() for g in graphs)` vertices. For each endpoint
+/// pair `(u, v)`, the multiplicity in the result equals the maximum
+/// over all input graphs.
+///
+/// If `graphs` is empty, returns an empty directed graph (matching
+/// igraph C convention). All inputs must agree on directedness.
+///
+/// # Errors
+/// - [`IgraphError::InvalidArgument`] if directedness diverges.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, union_many};
+///
+/// let mut a = Graph::with_vertices(3);
+/// a.add_edge(0, 1).unwrap();
+/// let mut b = Graph::with_vertices(4);
+/// b.add_edge(1, 2).unwrap();
+/// let mut c = Graph::with_vertices(2);
+/// c.add_edge(0, 1).unwrap();
+///
+/// let u = union_many(&[&a, &b, &c]).unwrap();
+/// assert_eq!(u.vcount(), 4);
+/// assert_eq!(u.ecount(), 2); // (0,1) and (1,2)
+/// ```
+pub fn union_many(graphs: &[&Graph]) -> IgraphResult<Graph> {
+    if graphs.is_empty() {
+        return Graph::new(0, true);
+    }
+
+    let directed = graphs[0].is_directed();
+    for g in &graphs[1..] {
+        if g.is_directed() != directed {
+            return Err(IgraphError::InvalidArgument(
+                "union_many: cannot mix directed and undirected graphs".to_string(),
+            ));
+        }
+    }
+
+    let n = graphs.iter().map(|g| g.vcount()).max().unwrap_or(0);
+
+    let canon = |u: VertexId, v: VertexId| -> (VertexId, VertexId) {
+        if directed || u <= v { (u, v) } else { (v, u) }
+    };
+
+    // Collect per-pair maximum multiplicity across all graphs
+    let mut max_mult: BTreeMap<(VertexId, VertexId), u32> = BTreeMap::new();
+
+    for g in graphs {
+        let mut counts: BTreeMap<(VertexId, VertexId), u32> = BTreeMap::new();
+        let m = g.ecount();
+        for eid in 0..m {
+            #[allow(clippy::cast_possible_truncation)]
+            let eid_u32 = eid as u32;
+            let (u, v) = g.edge(eid_u32)?;
+            *counts.entry(canon(u, v)).or_insert(0) += 1;
+        }
+        for (pair, cnt) in counts {
+            let entry = max_mult.entry(pair).or_insert(0);
+            if cnt > *entry {
+                *entry = cnt;
+            }
+        }
+    }
+
+    let mut edges: Vec<(VertexId, VertexId)> = Vec::new();
+    for (pair, mult) in &max_mult {
+        for _ in 0..*mult {
+            edges.push(*pair);
+        }
+    }
+
+    let mut out = Graph::new(n, directed)?;
+    out.add_edges(edges)?;
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -308,5 +389,78 @@ mod tests {
         let u = union(&a, &b).unwrap();
         assert_eq!(u.vcount(), 5);
         assert_eq!(sorted_edges(&u), vec![(0, 1), (3, 4)]);
+    }
+
+    // --- union_many tests ---
+
+    #[test]
+    fn union_many_empty_list() {
+        let u = union_many(&[]).unwrap();
+        assert_eq!(u.vcount(), 0);
+        assert!(u.is_directed());
+    }
+
+    #[test]
+    fn union_many_single_graph() {
+        let mut a = Graph::with_vertices(3);
+        a.add_edge(0, 1).unwrap();
+        a.add_edge(1, 2).unwrap();
+        let u = union_many(&[&a]).unwrap();
+        assert_eq!(u.vcount(), 3);
+        assert_eq!(u.ecount(), 2);
+        assert_eq!(sorted_edges(&u), sorted_edges(&a));
+    }
+
+    #[test]
+    fn union_many_three_graphs() {
+        let mut a = Graph::with_vertices(3);
+        a.add_edge(0, 1).unwrap();
+        let mut b = Graph::with_vertices(4);
+        b.add_edge(1, 2).unwrap();
+        let mut c = Graph::with_vertices(5);
+        c.add_edge(3, 4).unwrap();
+
+        let u = union_many(&[&a, &b, &c]).unwrap();
+        assert_eq!(u.vcount(), 5);
+        assert_eq!(u.ecount(), 3);
+        assert_eq!(sorted_edges(&u), vec![(0, 1), (1, 2), (3, 4)]);
+    }
+
+    #[test]
+    fn union_many_max_multiplicity() {
+        let mut a = Graph::with_vertices(2);
+        a.add_edge(0, 1).unwrap();
+        a.add_edge(0, 1).unwrap();
+        let mut b = Graph::with_vertices(2);
+        b.add_edge(0, 1).unwrap();
+        b.add_edge(0, 1).unwrap();
+        b.add_edge(0, 1).unwrap();
+        let mut c = Graph::with_vertices(2);
+        c.add_edge(0, 1).unwrap();
+
+        let u = union_many(&[&a, &b, &c]).unwrap();
+        assert_eq!(u.ecount(), 3); // max(2, 3, 1) = 3
+    }
+
+    #[test]
+    fn union_many_mixed_directedness_fails() {
+        let a = Graph::with_vertices(2);
+        let b = Graph::new(2, true).unwrap();
+        assert!(union_many(&[&a, &b]).is_err());
+    }
+
+    #[test]
+    fn union_many_directed() {
+        let mut a = Graph::new(3, true).unwrap();
+        a.add_edge(0, 1).unwrap();
+        let mut b = Graph::new(3, true).unwrap();
+        b.add_edge(1, 0).unwrap();
+        let mut c = Graph::new(3, true).unwrap();
+        c.add_edge(1, 2).unwrap();
+
+        let u = union_many(&[&a, &b, &c]).unwrap();
+        assert!(u.is_directed());
+        assert_eq!(u.ecount(), 3);
+        assert_eq!(sorted_edges(&u), vec![(0, 1), (1, 0), (1, 2)]);
     }
 }

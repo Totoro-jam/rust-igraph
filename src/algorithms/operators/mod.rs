@@ -56,4 +56,4 @@ pub use simplify::simplify;
 pub use subgraph_from_edges::{SubgraphFromEdgesResult, subgraph_from_edges};
 pub use to_directed::{ToDirectedMode, to_directed};
 pub use to_undirected::{ToUndirectedMode, to_undirected};
-pub use union::union;
+pub use union::{union, union_many};
