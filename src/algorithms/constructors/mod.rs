@@ -26,6 +26,7 @@ pub mod lcf;
 pub mod linegraph;
 pub mod mycielskian;
 pub mod prufer;
+pub mod realize_degree_sequence;
 pub mod regular_tree;
 pub mod ring;
 pub mod square_lattice;

@@ -138,6 +138,9 @@ pub use crate::algorithms::constructors::lcf::lcf;
 pub use crate::algorithms::constructors::linegraph::linegraph;
 pub use crate::algorithms::constructors::mycielskian::{mycielski_graph, mycielskian};
 pub use crate::algorithms::constructors::prufer::{from_prufer, to_prufer};
+pub use crate::algorithms::constructors::realize_degree_sequence::{
+    RealizeDegseqMethod, realize_degree_sequence,
+};
 pub use crate::algorithms::constructors::regular_tree::regular_tree;
 pub use crate::algorithms::constructors::ring::{cycle_graph, path_graph, ring_graph};
 pub use crate::algorithms::constructors::square_lattice::square_lattice;
