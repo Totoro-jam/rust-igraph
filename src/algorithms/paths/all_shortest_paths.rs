@@ -145,7 +145,8 @@ fn get_all_shortest_paths_undirected(
         let neighbors = graph.neighbors(cur)?;
         for &nb in &neighbors {
             let nb_idx = nb as usize;
-            match dist[nb_idx] {
+            let nb_dist = dist[nb_idx];
+            match nb_dist {
                 None => {
                     dist[nb_idx] = Some(next_dist);
                     parents[nb_idx].push(cur);
@@ -195,7 +196,8 @@ fn get_all_shortest_paths_directed(
         let next_dist = cur_dist + 1;
         for &nb in &adj[cur as usize] {
             let nb_idx = nb as usize;
-            match dist[nb_idx] {
+            let nb_dist = dist[nb_idx];
+            match nb_dist {
                 None => {
                     dist[nb_idx] = Some(next_dist);
                     parents[nb_idx].push(cur);
