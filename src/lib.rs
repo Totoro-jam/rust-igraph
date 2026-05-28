@@ -375,6 +375,9 @@ pub use crate::algorithms::properties::eigenvector::{
     eigenvector_centrality_directed_weighted, eigenvector_centrality_full,
     eigenvector_centrality_weighted,
 };
+pub use crate::algorithms::properties::get_biadjacency::{
+    GetBiadjacencyResult, get_biadjacency_matrix,
+};
 pub use crate::algorithms::properties::girth::girth;
 pub use crate::algorithms::properties::graphicality::{
     EdgeTypeFilter, is_bigraphical, is_graphical,

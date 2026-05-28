@@ -30,6 +30,7 @@ pub(crate) mod edge_betweenness_weighted;
 pub(crate) mod edgelist;
 pub(crate) mod efficiency;
 pub(crate) mod eigenvector;
+pub(crate) mod get_biadjacency;
 pub(crate) mod girth;
 pub(crate) mod graphicality;
 pub(crate) mod harmonic;
@@ -102,6 +103,7 @@ pub use eigenvector::{
     eigenvector_centrality_directed_weighted, eigenvector_centrality_full,
     eigenvector_centrality_weighted,
 };
+pub use get_biadjacency::{GetBiadjacencyResult, get_biadjacency_matrix};
 pub use girth::girth;
 pub use graphicality::{EdgeTypeFilter, is_bigraphical, is_graphical};
 pub use harmonic::harmonic_centrality;
