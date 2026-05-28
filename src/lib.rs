@@ -389,6 +389,7 @@ pub use crate::algorithms::properties::knn::{
     avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, knnk, knnk_weighted,
 };
 pub use crate::algorithms::properties::laplacian::{LaplacianNormalization, get_laplacian};
+pub use crate::algorithms::properties::list_triangles::list_triangles;
 pub use crate::algorithms::properties::local_scan::local_scan_1;
 pub use crate::algorithms::properties::local_scan_k::local_scan_k;
 pub use crate::algorithms::properties::mean_distance_weighted::mean_distance_weighted;
