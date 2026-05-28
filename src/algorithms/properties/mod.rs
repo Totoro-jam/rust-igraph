@@ -37,6 +37,7 @@ pub(crate) mod get_biadjacency_weighted;
 pub(crate) mod girth;
 pub(crate) mod graphicality;
 pub(crate) mod harmonic;
+pub(crate) mod harmonic_cutoff;
 pub(crate) mod harmonic_weighted;
 pub(crate) mod hits;
 pub(crate) mod is_acyclic;
@@ -114,6 +115,7 @@ pub use get_biadjacency_weighted::{GetBiadjacencyWeightedResult, get_biadjacency
 pub use girth::girth;
 pub use graphicality::{EdgeTypeFilter, is_bigraphical, is_graphical};
 pub use harmonic::harmonic_centrality;
+pub use harmonic_cutoff::harmonic_centrality_cutoff;
 pub use harmonic_weighted::harmonic_centrality_weighted;
 pub use hits::{HitsScores, hub_and_authority_scores};
 pub use is_acyclic::is_acyclic;
