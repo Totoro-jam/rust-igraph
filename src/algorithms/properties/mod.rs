@@ -27,6 +27,7 @@ pub(crate) mod degree_distribution;
 pub(crate) mod ecc;
 pub(crate) mod edge_betweenness;
 pub(crate) mod edge_betweenness_weighted;
+pub(crate) mod edgelist;
 pub(crate) mod efficiency;
 pub(crate) mod eigenvector;
 pub(crate) mod girth;
@@ -94,6 +95,7 @@ pub use degree_distribution::degree_distribution;
 pub use ecc::ecc;
 pub use edge_betweenness::edge_betweenness;
 pub use edge_betweenness_weighted::edge_betweenness_weighted;
+pub use edgelist::get_edgelist;
 pub use efficiency::{average_local_efficiency, global_efficiency, local_efficiency};
 pub use eigenvector::{
     EigenvectorMode, EigenvectorScores, eigenvector_centrality, eigenvector_centrality_directed,

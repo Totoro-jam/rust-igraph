@@ -433,6 +433,8 @@ CN-036 (`create_bipartite` — validated bipartite graph constructor from type v
 
 CN-037 (`biadjacency` + `BiadjacencyResult` — bipartite graph from n1×n2 biadjacency matrix; supports multiple=true (integer multiplicities) and multiple=false (any non-zero → single edge); directed mode Out/In/All with mutual arcs; returns graph + types vector; O(n1*n2); 13 unit tests + 1 doctest).
 
+PR-042 (`get_edgelist` — returns all edges as Vec<(VertexId, VertexId)> in edge-ID order; O(E); 6 unit tests + 1 doctest).
+
 ---
 
 **Phase 1 complete (198/198).** Next: Phase 2 (I/O formats for practical utility).
