@@ -94,8 +94,11 @@ pub use betweenness_cutoff::betweenness_cutoff;
 pub use betweenness_subset::betweenness_subset;
 pub use betweenness_weighted::betweenness_weighted;
 pub use centralization::{
-    CentralizationMode, LoopMode, centralization, centralization_betweenness_tmax,
-    centralization_closeness_tmax, centralization_degree_tmax, centralization_eigenvector_tmax,
+    CentralizationMode, CentralizationResult, LoopMode, centralization,
+    centralization_betweenness_tmax, centralization_betweenness_wrapper,
+    centralization_closeness_tmax, centralization_closeness_wrapper, centralization_degree_tmax,
+    centralization_degree_wrapper, centralization_eigenvector_tmax,
+    centralization_eigenvector_wrapper,
 };
 pub use closeness::closeness;
 pub use closeness_cutoff::{ClosenessCutoffResult, closeness_cutoff};

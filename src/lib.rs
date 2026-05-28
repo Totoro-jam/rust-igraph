@@ -368,8 +368,11 @@ pub use crate::algorithms::properties::betweenness_cutoff::betweenness_cutoff;
 pub use crate::algorithms::properties::betweenness_subset::betweenness_subset;
 pub use crate::algorithms::properties::betweenness_weighted::betweenness_weighted;
 pub use crate::algorithms::properties::centralization::{
-    CentralizationMode, LoopMode, centralization, centralization_betweenness_tmax,
-    centralization_closeness_tmax, centralization_degree_tmax, centralization_eigenvector_tmax,
+    CentralizationMode, CentralizationResult, LoopMode, centralization,
+    centralization_betweenness_tmax, centralization_betweenness_wrapper,
+    centralization_closeness_tmax, centralization_closeness_wrapper, centralization_degree_tmax,
+    centralization_degree_wrapper, centralization_eigenvector_tmax,
+    centralization_eigenvector_wrapper,
 };
 pub use crate::algorithms::properties::closeness::closeness;
 pub use crate::algorithms::properties::closeness_cutoff::{
