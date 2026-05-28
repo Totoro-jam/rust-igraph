@@ -3,8 +3,10 @@
 //! - Dyad census (ALGO-MO-001): counts mutual, asymmetric, and null dyads.
 //! - Triad census (ALGO-MO-002): classifies all vertex triples into 16 types.
 
+pub mod graph_count;
 pub mod triad_census;
 
+pub use graph_count::graph_count;
 pub use triad_census::{TriadCensus, TriadType, triad_census};
 
 use crate::core::{Graph, IgraphResult, VertexId};
