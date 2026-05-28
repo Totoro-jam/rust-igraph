@@ -4,35 +4,36 @@
 
 #![allow(clippy::unreadable_literal)]
 
-pub(super) const ISOCLASS_3_IDX: [u32; 9] = [0, 4, 16, 1, 0, 32, 2, 8, 0];
+pub(in crate::algorithms::motifs) const ISOCLASS_3_IDX: [u32; 9] = [0, 4, 16, 1, 0, 32, 2, 8, 0];
 
-pub(super) const ISOCLASS_4_IDX: [u32; 16] = [
+pub(in crate::algorithms::motifs) const ISOCLASS_4_IDX: [u32; 16] = [
     0, 8, 64, 512, 1, 0, 128, 1024, 2, 16, 0, 2048, 4, 32, 256, 0,
 ];
 
-pub(super) const ISOCLASS_3U_IDX: [u32; 9] = [0, 1, 2, 1, 0, 4, 2, 4, 0];
+pub(in crate::algorithms::motifs) const ISOCLASS_3U_IDX: [u32; 9] = [0, 1, 2, 1, 0, 4, 2, 4, 0];
 
-pub(super) const ISOCLASS_4U_IDX: [u32; 16] = [0, 1, 2, 8, 1, 0, 4, 16, 2, 4, 0, 32, 8, 16, 32, 0];
+pub(in crate::algorithms::motifs) const ISOCLASS_4U_IDX: [u32; 16] =
+    [0, 1, 2, 8, 1, 0, 4, 16, 2, 4, 0, 32, 8, 16, 32, 0];
 
-pub(super) const ISOCLASS_5U_IDX: [u32; 25] = [
+pub(in crate::algorithms::motifs) const ISOCLASS_5U_IDX: [u32; 25] = [
     0, 1, 2, 8, 64, 1, 0, 4, 16, 128, 2, 4, 0, 32, 256, 8, 16, 32, 0, 512, 64, 128, 256, 512, 0,
 ];
 
-pub(super) const ISOCLASS2_3: [u8; 64] = [
+pub(in crate::algorithms::motifs) const ISOCLASS2_3: [u8; 64] = [
     0, 1, 1, 2, 1, 3, 4, 5, 1, 4, 6, 7, 2, 5, 7, 8, 1, 4, 3, 5, 6, 9, 9, 10, 4, 11, 9, 12, 7, 12,
     13, 14, 1, 6, 4, 7, 4, 9, 11, 12, 3, 9, 9, 13, 5, 10, 12, 14, 2, 7, 5, 8, 7, 13, 12, 14, 5, 12,
     10, 14, 8, 14, 14, 15,
 ];
 
-pub(super) const ISOCLASS2_3U: [u8; 8] = [0, 1, 1, 2, 1, 2, 2, 3];
+pub(in crate::algorithms::motifs) const ISOCLASS2_3U: [u8; 8] = [0, 1, 1, 2, 1, 2, 2, 3];
 
-pub(super) const ISOCLASS2_4U: [u8; 64] = [
+pub(in crate::algorithms::motifs) const ISOCLASS2_4U: [u8; 64] = [
     0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 4, 5, 6, 6, 7, 1, 2, 5, 6, 2, 4, 6, 7, 2, 3, 6, 7, 6, 7, 8, 9,
     1, 5, 2, 6, 2, 6, 4, 7, 2, 6, 3, 7, 6, 8, 7, 9, 2, 6, 6, 8, 3, 7, 7, 9, 4, 7, 7, 9, 7, 9, 9,
     10,
 ];
 
-pub(super) const ISOCLASS2_5U: [u8; 1024] = [
+pub(in crate::algorithms::motifs) const ISOCLASS2_5U: [u8; 1024] = [
     0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 4, 5, 6, 6, 7, 1, 2, 5, 6, 2, 4, 6, 7, 2, 3, 6, 7, 6, 7, 8, 9,
     1, 5, 2, 6, 2, 6, 4, 7, 2, 6, 3, 7, 6, 8, 7, 9, 2, 6, 6, 8, 3, 7, 7, 9, 4, 7, 7, 9, 7, 9, 9,
     10, 1, 2, 2, 4, 5, 6, 6, 7, 2, 4, 4, 11, 12, 13, 13, 14, 5, 6, 12, 13, 12, 13, 15, 16, 6, 7,
@@ -76,7 +77,7 @@ pub(super) const ISOCLASS2_5U: [u8; 1024] = [
     32, 18, 28, 28, 31, 22, 30, 30, 32, 24, 30, 30, 32, 30, 32, 32, 33,
 ];
 
-pub(super) const ISOCLASS2_4: [u8; 4096] = [
+pub(in crate::algorithms::motifs) const ISOCLASS2_4: [u8; 4096] = [
     0, 1, 1, 2, 1, 2, 2, 3, 1, 4, 5, 6, 5, 6, 7, 8, 1, 5, 9, 10, 11, 12, 13, 14, 2, 6, 10, 15, 12,
     16, 17, 18, 1, 5, 11, 12, 9, 10, 13, 14, 2, 6, 12, 16, 10, 15, 17, 18, 2, 7, 13, 17, 13, 17,
     19, 20, 3, 8, 14, 18, 14, 18, 20, 21, 1, 5, 4, 6, 5, 7, 6, 8, 9, 22, 22, 23, 24, 25, 25, 26, 5,
@@ -277,19 +278,20 @@ pub(super) const ISOCLASS2_4: [u8; 4096] = [
     198, 216, 198, 216, 216, 217,
 ];
 
-pub(super) const ISOGRAPHS_3: [u32; 16] =
+pub(in crate::algorithms::motifs) const ISOGRAPHS_3: [u32; 16] =
     [0, 1, 3, 5, 6, 7, 10, 11, 15, 21, 23, 25, 27, 30, 31, 63];
 
-pub(super) const ISOGRAPHS_3U: [u32; 4] = [0, 1, 3, 7];
+pub(in crate::algorithms::motifs) const ISOGRAPHS_3U: [u32; 4] = [0, 1, 3, 7];
 
-pub(super) const ISOGRAPHS_4U: [u32; 11] = [0, 1, 3, 7, 11, 12, 13, 15, 30, 31, 63];
+pub(in crate::algorithms::motifs) const ISOGRAPHS_4U: [u32; 11] =
+    [0, 1, 3, 7, 11, 12, 13, 15, 30, 31, 63];
 
-pub(super) const ISOGRAPHS_5U: [u32; 34] = [
+pub(in crate::algorithms::motifs) const ISOGRAPHS_5U: [u32; 34] = [
     0, 1, 3, 7, 11, 12, 13, 15, 30, 31, 63, 75, 76, 77, 79, 86, 87, 94, 95, 116, 117, 119, 127,
     222, 223, 235, 236, 237, 239, 254, 255, 507, 511, 1023,
 ];
 
-pub(super) const ISOGRAPHS_4: [u32; 218] = [
+pub(in crate::algorithms::motifs) const ISOGRAPHS_4: [u32; 218] = [
     0, 1, 3, 7, 9, 10, 11, 14, 15, 18, 19, 20, 21, 22, 23, 27, 29, 30, 31, 54, 55, 63, 73, 75, 76,
     77, 79, 81, 83, 84, 85, 86, 87, 90, 91, 92, 93, 94, 95, 98, 99, 100, 101, 102, 103, 106, 107,
     108, 109, 110, 111, 115, 116, 117, 118, 119, 122, 123, 124, 125, 126, 127, 219, 220, 221, 223,
@@ -304,15 +306,17 @@ pub(super) const ISOGRAPHS_4: [u32; 218] = [
     2031, 2039, 2047, 4095,
 ];
 
-pub(super) const CLASSEDGES_3: [u8; 12] = [1, 2, 0, 2, 2, 1, 0, 1, 2, 0, 1, 0];
+pub(in crate::algorithms::motifs) const CLASSEDGES_3: [u8; 12] =
+    [1, 2, 0, 2, 2, 1, 0, 1, 2, 0, 1, 0];
 
-pub(super) const CLASSEDGES_3U: [u8; 6] = [1, 2, 0, 2, 0, 1];
+pub(in crate::algorithms::motifs) const CLASSEDGES_3U: [u8; 6] = [1, 2, 0, 2, 0, 1];
 
-pub(super) const CLASSEDGES_4: [u8; 24] = [
+pub(in crate::algorithms::motifs) const CLASSEDGES_4: [u8; 24] = [
     2, 3, 1, 3, 0, 3, 3, 2, 1, 2, 0, 2, 3, 1, 2, 1, 0, 1, 3, 0, 2, 0, 1, 0,
 ];
 
-pub(super) const CLASSEDGES_4U: [u8; 12] = [2, 3, 1, 3, 0, 3, 1, 2, 0, 2, 0, 1];
+pub(in crate::algorithms::motifs) const CLASSEDGES_4U: [u8; 12] =
+    [2, 3, 1, 3, 0, 3, 1, 2, 0, 2, 0, 1];
 
-pub(super) const CLASSEDGES_5U: [u8; 20] =
+pub(in crate::algorithms::motifs) const CLASSEDGES_5U: [u8; 20] =
     [3, 4, 2, 4, 1, 4, 0, 4, 2, 3, 1, 3, 0, 3, 1, 2, 0, 2, 0, 1];

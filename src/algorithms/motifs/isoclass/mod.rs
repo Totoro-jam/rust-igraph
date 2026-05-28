@@ -12,7 +12,7 @@
 
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
-mod tables;
+pub(in crate::algorithms::motifs) mod tables;
 
 /// Determines the isomorphism class of a graph.
 ///
