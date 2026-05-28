@@ -24,6 +24,7 @@ pub(crate) mod radii;
 pub(crate) mod random_walk;
 pub(crate) mod shortest_paths;
 pub(crate) mod simple_paths;
+pub(crate) mod spanner;
 pub(crate) mod voronoi;
 pub(crate) mod widest_path;
 
@@ -55,4 +56,5 @@ pub use radii::{
 pub use random_walk::random_walk;
 pub use shortest_paths::{ShortestPathMode, get_shortest_paths, get_shortest_paths_with_mode};
 pub use simple_paths::{SimplePathMode, all_simple_paths};
+pub use spanner::spanner;
 pub use voronoi::{VoronoiPartition, VoronoiTiebreaker, voronoi};

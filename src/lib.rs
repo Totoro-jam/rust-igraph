@@ -342,6 +342,7 @@ pub use crate::algorithms::paths::shortest_paths::{
     ShortestPathMode, get_shortest_paths, get_shortest_paths_with_mode,
 };
 pub use crate::algorithms::paths::simple_paths::{SimplePathMode, all_simple_paths};
+pub use crate::algorithms::paths::spanner::spanner;
 pub use crate::algorithms::paths::voronoi::{VoronoiPartition, VoronoiTiebreaker, voronoi};
 pub use crate::algorithms::paths::widest_path::{
     WidestPathResult, WidestPaths, widest_path, widest_path_widths,
