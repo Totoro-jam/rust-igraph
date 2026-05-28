@@ -24,4 +24,5 @@ pub mod operators;
 pub mod paths;
 pub mod properties;
 pub mod spanning;
+pub mod spatial;
 pub mod traversal;

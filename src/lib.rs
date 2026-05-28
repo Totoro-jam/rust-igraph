@@ -420,6 +420,7 @@ pub use crate::algorithms::properties::triangles::{
 pub use crate::algorithms::properties::trussness::trussness;
 pub use crate::algorithms::properties::unfold_tree::{UnfoldTreeResult, unfold_tree};
 pub use crate::algorithms::spanning::mst::{MstAlgorithm, minimum_spanning_tree};
+pub use crate::algorithms::spatial::convex_hull::{ConvexHullResult, convex_hull_2d};
 pub use crate::algorithms::traversal::bfs::{BfsTree, bfs, bfs_tree};
 pub use crate::algorithms::traversal::dfs::{DfsTree, dfs, dfs_tree};
 pub use crate::core::error::{IgraphError, IgraphResult};
