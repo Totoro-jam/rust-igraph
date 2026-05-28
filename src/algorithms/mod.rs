@@ -23,6 +23,7 @@ pub mod motifs;
 pub mod operators;
 pub mod paths;
 pub mod properties;
+pub mod simple_cycles;
 pub mod spanning;
 pub mod spatial;
 pub mod traversal;
