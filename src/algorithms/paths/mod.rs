@@ -19,6 +19,7 @@ pub(crate) mod floyd_warshall;
 pub(crate) mod graph_center;
 pub(crate) mod histogram;
 pub(crate) mod johnson;
+pub(crate) mod k_shortest_paths;
 pub(crate) mod radii;
 pub(crate) mod random_walk;
 pub(crate) mod shortest_paths;
@@ -46,6 +47,7 @@ pub use eulerian_construct::eulerian_path;
 pub use floyd_warshall::floyd_warshall_distances;
 pub use graph_center::{PseudoDiameterResult, graph_center, pseudo_diameter};
 pub use histogram::{PathLengthHistResult, path_length_hist};
+pub use k_shortest_paths::{KShortestPath, k_shortest_paths};
 pub use radii::{
     diameter, diameter_weighted, diameter_weighted_with_mode, eccentricity, eccentricity_weighted,
     eccentricity_weighted_with_mode, radius, radius_weighted, radius_weighted_with_mode,

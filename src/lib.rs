@@ -323,6 +323,7 @@ pub use crate::algorithms::paths::graph_center::{
 };
 pub use crate::algorithms::paths::histogram::{PathLengthHistResult, path_length_hist};
 pub use crate::algorithms::paths::johnson::johnson_distances;
+pub use crate::algorithms::paths::k_shortest_paths::{KShortestPath, k_shortest_paths};
 pub use crate::algorithms::paths::radii::{
     EccMode, diameter, diameter_weighted, diameter_weighted_with_mode, diameter_with_mode,
     eccentricity, eccentricity_weighted, eccentricity_weighted_with_mode, eccentricity_with_mode,
