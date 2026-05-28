@@ -9,7 +9,11 @@
 //! Currently hosts:
 //! - `mst` (`ALGO-MST-001`): [`minimum_spanning_tree`] — Prim / Kruskal /
 //!   Unweighted / Automatic with a `Vec<EdgeId>` return type.
+//! - `random_spanning_tree` (`ALGO-RST-001`): [`random_spanning_tree`] —
+//!   uniform spanning tree/forest via loop-erased random walk.
 
 pub(crate) mod mst;
+pub(crate) mod random_spanning_tree;
 
 pub use mst::{MstAlgorithm, minimum_spanning_tree};
+pub use random_spanning_tree::random_spanning_tree;
