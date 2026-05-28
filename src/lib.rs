@@ -124,6 +124,7 @@ pub use crate::algorithms::constructors::de_bruijn::de_bruijn;
 pub use crate::algorithms::constructors::extended_chordal_ring::extended_chordal_ring;
 pub use crate::algorithms::constructors::famous::{famous, famous_names};
 pub use crate::algorithms::constructors::full::full_graph;
+pub use crate::algorithms::constructors::full_bipartite::{FullBipartite, full_bipartite};
 pub use crate::algorithms::constructors::full_citation::full_citation;
 pub use crate::algorithms::constructors::full_multipartite::{
     FullMultipartite, MultipartiteMode, full_multipartite,

@@ -427,6 +427,8 @@ OP-020 (`to_undirected` + `ToUndirectedMode` — directed→undirected conversio
 OP-021 (`to_directed` + `ToDirectedMode` — undirected→directed conversion; Mutual/Arbitrary modes; O(E); 11 unit tests + 1 doctest).
 PR-036 (`degree_sequence` + `max_degree` + `min_degree` + `max_degree_vertex` + `DegreeMode` — batch degree computation with Out/In/All modes; handles self-loops per IGRAPH_LOOPS_TWICE convention; O(E); 15 unit tests + 4 doctests).
 
+CN-035 (`full_bipartite` + `FullBipartite` — complete bipartite graph K_{n1,n2} constructor; reuses `BipartiteMode` from games::bipartite (Out/In/All); returns graph + per-vertex bool type vector; supports undirected, directed-out, directed-in, and directed-mutual; O(n1*n2) edge emission; 12 unit tests + 1 doctest).
+
 ---
 
 **Phase 1 complete (198/198).** Next: Phase 2 (I/O formats for practical utility).

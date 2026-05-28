@@ -14,6 +14,7 @@ pub mod de_bruijn;
 pub mod extended_chordal_ring;
 pub mod famous;
 pub mod full;
+pub mod full_bipartite;
 pub mod full_citation;
 pub mod full_multipartite;
 pub mod generalized_petersen;
