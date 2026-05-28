@@ -125,8 +125,8 @@ pub use mean_distance_weighted::mean_distance_weighted;
 pub use multiplicity::{count_loops, count_multiple, has_loop, has_multiple, is_loop, is_multiple};
 pub use mutual::{count_mutual, has_mutual, is_mutual};
 pub use neighborhood::{
-    NeighborhoodMode, neighborhood, neighborhood_size, neighborhood_size_with_mode,
-    neighborhood_with_mode,
+    NeighborhoodMode, neighborhood, neighborhood_graphs, neighborhood_graphs_with_mode,
+    neighborhood_size, neighborhood_size_with_mode, neighborhood_with_mode,
 };
 pub use pagerank::pagerank;
 pub use pagerank_linsys::pagerank_linsys;

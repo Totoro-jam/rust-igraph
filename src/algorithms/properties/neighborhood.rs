@@ -337,6 +337,100 @@ pub fn neighborhood_with_mode(
     Ok(result)
 }
 
+/// Per-vertex induced subgraphs of k-hop neighbourhoods (`mode = All`, `mindist = 0`).
+///
+/// For each vertex `v`, computes its `order`-hop neighbourhood (the set
+/// of vertices within distance `order` of `v`, including `v` itself) and
+/// returns the induced subgraph on that vertex set. The result is a
+/// `Vec<Graph>` of length `graph.vcount()`.
+///
+/// Counterpart of `igraph_neighborhood_graphs(graph, _, igraph_vss_all(),
+/// order, IGRAPH_ALL, /*mindist=*/0)`.
+///
+/// # Errors
+/// - [`IgraphError::InvalidArgument`] if `order >= 0` and internal
+///   constraints are violated (same as [`neighborhood_with_mode`]).
+///
+/// # Examples
+/// ```
+/// use rust_igraph::{Graph, neighborhood_graphs};
+///
+/// // Path graph: 0 - 1 - 2 - 3
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+///
+/// let gs = neighborhood_graphs(&g, 1).unwrap();
+/// assert_eq!(gs.len(), 4);
+/// // Vertex 0's 1-hop neighborhood: {0, 1}, induced subgraph has 1 edge
+/// assert_eq!(gs[0].vcount(), 2);
+/// assert_eq!(gs[0].ecount(), 1);
+/// // Vertex 1's 1-hop neighborhood: {0, 1, 2}, induced subgraph has 2 edges
+/// assert_eq!(gs[1].vcount(), 3);
+/// assert_eq!(gs[1].ecount(), 2);
+/// ```
+pub fn neighborhood_graphs(graph: &Graph, order: i32) -> IgraphResult<Vec<Graph>> {
+    neighborhood_graphs_with_mode(graph, order, NeighborhoodMode::All, 0)
+}
+
+/// Per-vertex induced subgraphs of k-hop neighbourhoods with full mode control.
+///
+/// Generalises [`neighborhood_graphs`] with direction `mode` and
+/// `mindist` filter (minimum distance to include a vertex in the
+/// neighbourhood).
+///
+/// For each source `v`, collects the set of vertices `w` with
+/// `mindist <= dist(v, w) <= order`, then builds the induced subgraph
+/// on that set. Negative `order` means infinity.
+///
+/// Counterpart of `igraph_neighborhood_graphs(graph, _, igraph_vss_all(),
+/// order, mode, mindist)`.
+///
+/// # Errors
+/// - [`IgraphError::InvalidArgument`] if `mindist < 0`.
+/// - [`IgraphError::InvalidArgument`] if `order >= 0` and `mindist > order`.
+///
+/// # Examples
+/// ```
+/// use rust_igraph::{Graph, neighborhood_graphs_with_mode, NeighborhoodMode};
+///
+/// // Directed star: 0->1, 0->2, 0->3
+/// let mut g = Graph::new(4, true).unwrap();
+/// for v in [1, 2, 3] { g.add_edge(0, v).unwrap(); }
+///
+/// let gs = neighborhood_graphs_with_mode(&g, 1, NeighborhoodMode::Out, 0).unwrap();
+/// // Vertex 0's out-1-hop: {0, 1, 2, 3}, induced subgraph has 3 edges
+/// assert_eq!(gs[0].vcount(), 4);
+/// assert_eq!(gs[0].ecount(), 3);
+/// // Vertex 1's out-1-hop: {1} only (no outgoing edges)
+/// assert_eq!(gs[1].vcount(), 1);
+/// assert_eq!(gs[1].ecount(), 0);
+/// ```
+pub fn neighborhood_graphs_with_mode(
+    graph: &Graph,
+    order: i32,
+    mode: NeighborhoodMode,
+    mindist: i32,
+) -> IgraphResult<Vec<Graph>> {
+    use crate::algorithms::operators::induced_subgraph::induced_subgraph;
+
+    let neighborhoods = neighborhood_with_mode(graph, order, mode, mindist)?;
+    let n = graph.vcount();
+    let mut result: Vec<Graph> = Vec::with_capacity(n as usize);
+
+    for vids in &neighborhoods {
+        if vids.len() == n as usize {
+            result.push(graph.clone());
+        } else {
+            let sub = induced_subgraph(graph, vids)?;
+            result.push(sub.graph);
+        }
+    }
+
+    Ok(result)
+}
+
 /// Direction-aware neighbour list. Undirected graphs use
 /// `Graph::neighbors` regardless of `mode` (matches C semantics).
 fn neighbours_for(
@@ -903,6 +997,168 @@ mod tests {
                     assert!(!list.contains(&i_u32), "mindist=1 should exclude self");
                 }
             }
+        }
+    }
+
+    // ---- neighborhood_graphs tests ----
+
+    #[test]
+    fn neighborhood_graphs_empty_graph() {
+        let g = Graph::with_vertices(0);
+        let gs = neighborhood_graphs(&g, 1).unwrap();
+        assert!(gs.is_empty());
+    }
+
+    #[test]
+    fn neighborhood_graphs_isolated_vertices() {
+        let g = Graph::with_vertices(3);
+        let gs = neighborhood_graphs(&g, 1).unwrap();
+        assert_eq!(gs.len(), 3);
+        for sub in &gs {
+            assert_eq!(sub.vcount(), 1);
+            assert_eq!(sub.ecount(), 0);
+        }
+    }
+
+    #[test]
+    fn neighborhood_graphs_path_order_1() {
+        // Path: 0-1-2-3
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+
+        let gs = neighborhood_graphs(&g, 1).unwrap();
+        assert_eq!(gs.len(), 4);
+        // v=0: {0,1} → 1 edge
+        assert_eq!(gs[0].vcount(), 2);
+        assert_eq!(gs[0].ecount(), 1);
+        // v=1: {0,1,2} → 2 edges (0-1, 1-2)
+        assert_eq!(gs[1].vcount(), 3);
+        assert_eq!(gs[1].ecount(), 2);
+        // v=2: {1,2,3} → 2 edges
+        assert_eq!(gs[2].vcount(), 3);
+        assert_eq!(gs[2].ecount(), 2);
+        // v=3: {2,3} → 1 edge
+        assert_eq!(gs[3].vcount(), 2);
+        assert_eq!(gs[3].ecount(), 1);
+    }
+
+    #[test]
+    fn neighborhood_graphs_order_0_is_singletons() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+
+        let gs = neighborhood_graphs(&g, 0).unwrap();
+        assert_eq!(gs.len(), 3);
+        for sub in &gs {
+            assert_eq!(sub.vcount(), 1);
+            assert_eq!(sub.ecount(), 0);
+        }
+    }
+
+    #[test]
+    fn neighborhood_graphs_complete_graph_order_1() {
+        // K4: all vertices within 1 hop of each other
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(2, 3).unwrap();
+
+        let gs = neighborhood_graphs(&g, 1).unwrap();
+        assert_eq!(gs.len(), 4);
+        for sub in &gs {
+            // Every vertex's 1-hop neighbourhood is the whole graph
+            assert_eq!(sub.vcount(), 4);
+            assert_eq!(sub.ecount(), 6);
+        }
+    }
+
+    #[test]
+    fn neighborhood_graphs_directed_out_mode() {
+        // Star: 0->1, 0->2, 0->3
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+
+        let gs = neighborhood_graphs_with_mode(&g, 1, NeighborhoodMode::Out, 0).unwrap();
+        assert_eq!(gs.len(), 4);
+        // v=0 out-1-hop: {0,1,2,3}, induced subgraph has all 3 edges
+        assert_eq!(gs[0].vcount(), 4);
+        assert_eq!(gs[0].ecount(), 3);
+        // v=1 out-1-hop: {1} only
+        assert_eq!(gs[1].vcount(), 1);
+        assert_eq!(gs[1].ecount(), 0);
+    }
+
+    #[test]
+    fn neighborhood_graphs_directed_in_mode() {
+        // Star: 0->1, 0->2, 0->3
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+
+        let gs = neighborhood_graphs_with_mode(&g, 1, NeighborhoodMode::In, 0).unwrap();
+        // v=0 in-1-hop: {0} only (no in-edges)
+        assert_eq!(gs[0].vcount(), 1);
+        assert_eq!(gs[0].ecount(), 0);
+        // v=1 in-1-hop: {0,1} (0->1 edge exists)
+        assert_eq!(gs[1].vcount(), 2);
+        assert_eq!(gs[1].ecount(), 1);
+    }
+
+    #[test]
+    fn neighborhood_graphs_mindist_excludes_close_vertices() {
+        // Path: 0-1-2-3
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+
+        // mindist=1, order=2: exclude self, include dist 1 and 2
+        let gs = neighborhood_graphs_with_mode(&g, 2, NeighborhoodMode::All, 1).unwrap();
+        // v=0: mindist=1, order=2 → {1, 2}; induced subgraph has edge 1-2
+        assert_eq!(gs[0].vcount(), 2);
+        assert_eq!(gs[0].ecount(), 1);
+        // v=1: mindist=1, order=2 → {0, 2, 3}; edges: 2-3 (0-1 and 1-2 don't survive without 1)
+        // Wait — vertex 1 is excluded (mindist=1), so {0, 2, 3}
+        // Edges between {0,2,3}: only 2-3
+        assert_eq!(gs[1].vcount(), 3);
+        assert_eq!(gs[1].ecount(), 1);
+    }
+
+    #[test]
+    fn neighborhood_graphs_infinite_order_returns_full_component() {
+        // Two components: {0,1,2}, {3,4}
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(3, 4).unwrap();
+
+        let gs = neighborhood_graphs(&g, -1).unwrap();
+        // v=0: reachable {0,1,2}, 2 edges
+        assert_eq!(gs[0].vcount(), 3);
+        assert_eq!(gs[0].ecount(), 2);
+        // v=3: reachable {3,4}, 1 edge
+        assert_eq!(gs[3].vcount(), 2);
+        assert_eq!(gs[3].ecount(), 1);
+    }
+
+    #[test]
+    fn neighborhood_graphs_preserves_directedness() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+
+        let gs = neighborhood_graphs_with_mode(&g, 1, NeighborhoodMode::All, 0).unwrap();
+        for sub in &gs {
+            assert!(sub.is_directed());
         }
     }
 }
