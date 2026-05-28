@@ -18,6 +18,7 @@ pub(crate) mod betweenness;
 pub(crate) mod betweenness_weighted;
 pub(crate) mod centralization;
 pub(crate) mod closeness;
+pub(crate) mod closeness_cutoff;
 pub(crate) mod closeness_weighted;
 pub(crate) mod constraint;
 pub(crate) mod convergence_degree;
@@ -90,6 +91,7 @@ pub use centralization::{
     centralization_closeness_tmax, centralization_degree_tmax, centralization_eigenvector_tmax,
 };
 pub use closeness::closeness;
+pub use closeness_cutoff::{ClosenessCutoffResult, closeness_cutoff};
 pub use closeness_weighted::closeness_weighted;
 pub use constraint::constraint;
 pub use convergence_degree::{convergence_degree, convergence_degree_full};

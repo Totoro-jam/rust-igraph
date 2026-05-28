@@ -356,6 +356,9 @@ pub use crate::algorithms::properties::centralization::{
     centralization_closeness_tmax, centralization_degree_tmax, centralization_eigenvector_tmax,
 };
 pub use crate::algorithms::properties::closeness::closeness;
+pub use crate::algorithms::properties::closeness_cutoff::{
+    ClosenessCutoffResult, closeness_cutoff,
+};
 pub use crate::algorithms::properties::closeness_weighted::closeness_weighted;
 pub use crate::algorithms::properties::constraint::constraint;
 pub use crate::algorithms::properties::convergence_degree::{
