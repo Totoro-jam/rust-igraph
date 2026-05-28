@@ -118,6 +118,7 @@ pub use crate::algorithms::connectivity::subcomponent::{SubcomponentMode, subcom
 pub use crate::algorithms::connectivity::transitive_closure::transitive_closure;
 pub use crate::algorithms::constructors::adjacency::{AdjacencyMode, LoopsMode, adjacency};
 pub use crate::algorithms::constructors::atlas::{ATLAS_SIZE, atlas};
+pub use crate::algorithms::constructors::biadjacency::{BiadjacencyResult, biadjacency};
 pub use crate::algorithms::constructors::circulant::circulant;
 pub use crate::algorithms::constructors::create::create;
 pub use crate::algorithms::constructors::create_bipartite::create_bipartite;

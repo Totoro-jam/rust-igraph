@@ -431,6 +431,8 @@ CN-035 (`full_bipartite` + `FullBipartite` — complete bipartite graph K_{n1,n2
 
 CN-036 (`create_bipartite` — validated bipartite graph constructor from type vector + edge list; verifies every edge crosses partition boundary; rejects same-type edges and out-of-range vertex IDs; O(V+E); 11 unit tests + 1 doctest).
 
+CN-037 (`biadjacency` + `BiadjacencyResult` — bipartite graph from n1×n2 biadjacency matrix; supports multiple=true (integer multiplicities) and multiple=false (any non-zero → single edge); directed mode Out/In/All with mutual arcs; returns graph + types vector; O(n1*n2); 13 unit tests + 1 doctest).
+
 ---
 
 **Phase 1 complete (198/198).** Next: Phase 2 (I/O formats for practical utility).

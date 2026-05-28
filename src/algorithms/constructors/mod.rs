@@ -8,6 +8,7 @@
 pub mod adjacency;
 pub mod atlas;
 pub mod atlas_edges;
+pub mod biadjacency;
 pub mod circulant;
 pub mod create;
 pub mod create_bipartite;
