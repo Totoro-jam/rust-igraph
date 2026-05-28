@@ -9,6 +9,7 @@
 // `pagerank`) don't collide with the function re-exports in the
 // rendered rustdoc — see https://github.com/rust-lang/rust/issues/...
 pub(crate) mod adjacency;
+pub(crate) mod are_adjacent;
 pub(crate) mod assortativity;
 pub(crate) mod assortativity_nominal;
 pub(crate) mod assortativity_weighted;
@@ -73,6 +74,7 @@ pub(crate) mod trussness;
 pub(crate) mod unfold_tree;
 
 pub use adjacency::{AdjacencyType, LoopHandling, get_adjacency};
+pub use are_adjacent::are_adjacent;
 pub use assortativity::{assortativity_degree, assortativity_degree_directed};
 pub use assortativity_nominal::assortativity_nominal;
 pub use assortativity_weighted::{
