@@ -435,8 +435,10 @@ CN-037 (`biadjacency` + `BiadjacencyResult` — bipartite graph from n1×n2 biad
 
 PR-042 (`get_edgelist` — returns all edges as Vec<(VertexId, VertexId)> in edge-ID order; O(E); 6 unit tests + 1 doctest).
 
+PR-043 (`get_biadjacency_matrix` + `GetBiadjacencyResult` — extract biadjacency matrix from bipartite graph given types vector; returns n1×n2 matrix + row_ids + col_ids; silently ignores same-partition edges; O(V+E); 13 unit tests + 1 doctest).
+
 ---
 
-**Phase 1 complete (198/198).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (199/199).** Next: Phase 2 (I/O formats for practical utility).
 
 > Update the counters after every PR merge.
