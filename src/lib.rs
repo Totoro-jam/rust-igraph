@@ -283,7 +283,8 @@ pub use crate::algorithms::operators::is_same_graph::is_same_graph;
 pub use crate::algorithms::operators::join::join;
 pub use crate::algorithms::operators::permute_vertices::permute_vertices;
 pub use crate::algorithms::operators::products::{
-    cartesian_product, lexicographic_product, rooted_product, strong_product, tensor_product,
+    GraphProductType, cartesian_product, graph_product, lexicographic_product, modular_product,
+    rooted_product, strong_product, tensor_product,
 };
 pub use crate::algorithms::operators::residual_graph::{
     ResidualGraphResult, residual_graph, reverse_residual_graph,

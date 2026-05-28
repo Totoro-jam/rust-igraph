@@ -1,10 +1,73 @@
-//! Graph product operators (ALGO-OP-015, ALGO-OP-027).
+//! Graph product operators (ALGO-OP-015, ALGO-OP-027, ALGO-OP-029).
 //!
-//! Implements five graph products: Cartesian, tensor (categorical),
-//! strong, lexicographic, and rooted.
+//! Implements six graph products: Cartesian, tensor (categorical),
+//! strong, lexicographic, rooted, and modular. Also provides a unified
+//! `graph_product` dispatcher (`igraph_product`).
 
 use crate::core::error::IgraphError;
 use crate::core::{Graph, IgraphResult, VertexId};
+
+/// Selects which graph product type to compute.
+///
+/// Passed to [`graph_product`] to select the product type.
+/// See each variant's documentation for the adjacency condition.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GraphProductType {
+    /// Cartesian product: `(u1,v1) ~ (u2,v2)` iff
+    /// `u1=u2, v1~v2` or `u1~u2, v1=v2`.
+    Cartesian,
+    /// Lexicographic product: `(u1,v1) ~ (u2,v2)` iff
+    /// `u1~u2` or (`u1=u2` and `v1~v2`). Not commutative.
+    Lexicographic,
+    /// Strong product (normal product): union of Cartesian and tensor.
+    Strong,
+    /// Tensor (categorical/direct) product: `(u1,v1) ~ (u2,v2)` iff
+    /// `u1~u2` and `v1~v2`.
+    Tensor,
+    /// Modular product: `(u1,v1) ~ (u2,v2)` iff
+    /// (`u1~u2` and `v1~v2`) or (`u1≁u2` and `v1≁v2`),
+    /// where `u1≠u2` and `v1≠v2`. Requires simple inputs.
+    Modular,
+}
+
+/// Computes a graph product selected by `product_type`.
+///
+/// Unified dispatcher for all five non-rooted graph product types,
+/// matching the C `igraph_product()` function. The rooted product
+/// requires an extra `root` parameter and is available separately
+/// via [`rooted_product`].
+///
+/// Both graphs must have the same directedness. The result has
+/// `|V1| * |V2|` vertices where vertex `(i, j)` is identified by
+/// `i * |V2| + j`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, graph_product, GraphProductType};
+///
+/// let mut g1 = Graph::with_vertices(2);
+/// g1.add_edge(0, 1).unwrap();
+/// let mut g2 = Graph::with_vertices(2);
+/// g2.add_edge(0, 1).unwrap();
+///
+/// let p = graph_product(&g1, &g2, GraphProductType::Cartesian).unwrap();
+/// assert_eq!(p.vcount(), 4);
+/// assert_eq!(p.ecount(), 4);
+/// ```
+pub fn graph_product(
+    g1: &Graph,
+    g2: &Graph,
+    product_type: GraphProductType,
+) -> IgraphResult<Graph> {
+    match product_type {
+        GraphProductType::Cartesian => cartesian_product(g1, g2),
+        GraphProductType::Lexicographic => lexicographic_product(g1, g2),
+        GraphProductType::Strong => strong_product(g1, g2),
+        GraphProductType::Tensor => tensor_product(g1, g2),
+        GraphProductType::Modular => modular_product(g1, g2),
+    }
+}
 
 /// Computes the Cartesian product of two graphs.
 ///
@@ -489,6 +552,79 @@ pub fn rooted_product(g1: &Graph, g2: &Graph, root: u32) -> IgraphResult<Graph> 
     Ok(result)
 }
 
+/// Computes the modular product of two graphs.
+///
+/// The result has `|V1| * |V2|` vertices. Vertex `(i, j)` is identified by
+/// `i * |V2| + j`. An edge exists between `(i1, j1)` and `(i2, j2)` iff:
+/// - `(i1, i2)` is an edge in `g1` AND `(j1, j2)` is an edge in `g2`, OR
+/// - `(i1, i2)` is NOT an edge in `g1` AND `(j1, j2)` is NOT an edge in `g2`
+///   (with `i1 ≠ i2` and `j1 ≠ j2`).
+///
+/// Both graphs must be simple (no self-loops, no multi-edges) and have the
+/// same directedness.
+///
+/// Computed as `tensor(g1, g2) ∪ tensor(complement(g1), complement(g2))`.
+///
+/// # Arguments
+///
+/// * `g1` — the first factor graph.
+/// * `g2` — the second factor graph.
+///
+/// # Errors
+///
+/// Returns `InvalidArgument` if:
+/// - the graphs differ in directedness,
+/// - either graph is not simple,
+/// - the product vertex count overflows `u32`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, modular_product};
+///
+/// // P3 modular P3: modular product of two paths on 3 vertices
+/// let mut g1 = Graph::with_vertices(3);
+/// g1.add_edge(0, 1).unwrap();
+/// g1.add_edge(1, 2).unwrap();
+/// let mut g2 = Graph::with_vertices(3);
+/// g2.add_edge(0, 1).unwrap();
+/// g2.add_edge(1, 2).unwrap();
+///
+/// let p = modular_product(&g1, &g2).unwrap();
+/// assert_eq!(p.vcount(), 9);
+/// ```
+pub fn modular_product(g1: &Graph, g2: &Graph) -> IgraphResult<Graph> {
+    use crate::algorithms::operators::complementer::complementer;
+    use crate::algorithms::operators::union::union;
+    use crate::algorithms::properties::is_simple::is_simple;
+
+    check_same_directedness(g1, g2, "modular_product")?;
+
+    let simple1 = is_simple(g1)?;
+    let simple2 = is_simple(g2)?;
+    if !simple1 || !simple2 {
+        return Err(IgraphError::InvalidArgument(
+            "modular product requires simple graphs as input".to_string(),
+        ));
+    }
+
+    let n1 = g1.vcount();
+    let n2 = g2.vcount();
+
+    if n1 == 0 || n2 == 0 {
+        let directed = g1.is_directed();
+        return Graph::new(0, directed);
+    }
+
+    let g1_compl = complementer(g1, false)?;
+    let g2_compl = complementer(g2, false)?;
+
+    let tp_orig = tensor_product(g1, g2)?;
+    let tp_compl = tensor_product(&g1_compl, &g2_compl)?;
+
+    union(&tp_orig, &tp_compl)
+}
+
 fn check_same_directedness(g1: &Graph, g2: &Graph, op: &str) -> IgraphResult<()> {
     if g1.is_directed() != g2.is_directed() {
         return Err(IgraphError::InvalidArgument(format!(
@@ -864,6 +1000,162 @@ mod tests {
         let g2 = Graph::with_vertices(0);
 
         assert!(rooted_product(&g1, &g2, 0).is_err());
+    }
+
+    // --- Modular product tests ---
+
+    #[test]
+    fn test_modular_k2_k2() {
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 1).unwrap();
+        let mut g2 = Graph::with_vertices(2);
+        g2.add_edge(0, 1).unwrap();
+
+        let p = modular_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 4);
+        // tensor(K2, K2) has 2 edges: (0,0)-(1,1), (0,1)-(1,0)
+        // complement of K2 is edgeless → tensor of complements = 0 edges
+        // union = 2 edges
+        assert_eq!(p.ecount(), 2);
+    }
+
+    #[test]
+    fn test_modular_p3_p3() {
+        // P3 = 0-1-2
+        let mut g1 = Graph::with_vertices(3);
+        g1.add_edge(0, 1).unwrap();
+        g1.add_edge(1, 2).unwrap();
+        let mut g2 = Graph::with_vertices(3);
+        g2.add_edge(0, 1).unwrap();
+        g2.add_edge(1, 2).unwrap();
+
+        let p = modular_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 9);
+        // P3 tensor P3 has 2*2*2 = 8 edges (undirected, each pair generates 2)
+        // complement(P3) = single edge (0,2), so tensor of complements
+        // has 1*1*2 = 2 edges
+        // Union of 8 + 2 = 10 edges
+        assert_eq!(p.ecount(), 10);
+    }
+
+    #[test]
+    fn test_modular_empty_graphs() {
+        let g1 = Graph::with_vertices(0);
+        let g2 = Graph::with_vertices(3);
+        let p = modular_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 0);
+        assert_eq!(p.ecount(), 0);
+    }
+
+    #[test]
+    fn test_modular_edgeless() {
+        // Two edgeless graphs: complement is complete, so
+        // tensor of complements generates all cross-edges
+        let g1 = Graph::with_vertices(3);
+        let g2 = Graph::with_vertices(3);
+
+        let p = modular_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 9);
+        // tensor(edgeless, edgeless) = 0 edges
+        // tensor(K3, K3) = 3*3*2 = 18 edges
+        // union = 18 edges
+        assert_eq!(p.ecount(), 18);
+    }
+
+    #[test]
+    fn test_modular_complete_graphs() {
+        // K3 modular K3: tensor of originals + tensor of edgeless complements
+        let mut g1 = Graph::with_vertices(3);
+        for i in 0..3u32 {
+            for j in (i + 1)..3 {
+                g1.add_edge(i, j).unwrap();
+            }
+        }
+        let mut g2 = Graph::with_vertices(3);
+        for i in 0..3u32 {
+            for j in (i + 1)..3 {
+                g2.add_edge(i, j).unwrap();
+            }
+        }
+
+        let p = modular_product(&g1, &g2).unwrap();
+        assert_eq!(p.vcount(), 9);
+        // tensor(K3, K3) = 3*3*2 = 18 edges
+        // complement(K3) = edgeless → tensor = 0
+        // union = 18 edges
+        assert_eq!(p.ecount(), 18);
+    }
+
+    #[test]
+    fn test_modular_directed() {
+        let mut g1 = Graph::new(2, true).unwrap();
+        g1.add_edge(0, 1).unwrap();
+        let mut g2 = Graph::new(2, true).unwrap();
+        g2.add_edge(0, 1).unwrap();
+
+        let p = modular_product(&g1, &g2).unwrap();
+        assert!(p.is_directed());
+        assert_eq!(p.vcount(), 4);
+        // tensor(g1, g2) directed: 1 edge (0,0)→(1,1)
+        // complement(g1) = 1→0, complement(g2) = 1→0
+        // tensor of complements: 1 edge (1,1)→(0,0)
+        // union: 2 edges
+        assert_eq!(p.ecount(), 2);
+    }
+
+    #[test]
+    fn test_modular_not_simple_error() {
+        // Multi-edge graph
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 1).unwrap();
+        g1.add_edge(0, 1).unwrap();
+        let g2 = Graph::with_vertices(2);
+
+        assert!(modular_product(&g1, &g2).is_err());
+    }
+
+    #[test]
+    fn test_modular_self_loop_error() {
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 0).unwrap();
+        let g2 = Graph::with_vertices(2);
+
+        assert!(modular_product(&g1, &g2).is_err());
+    }
+
+    #[test]
+    fn test_modular_mixed_error() {
+        let g1 = Graph::new(2, true).unwrap();
+        let g2 = Graph::with_vertices(2);
+        assert!(modular_product(&g1, &g2).is_err());
+    }
+
+    // --- graph_product dispatcher tests ---
+
+    #[test]
+    fn test_graph_product_dispatcher() {
+        let mut g1 = Graph::with_vertices(2);
+        g1.add_edge(0, 1).unwrap();
+        let mut g2 = Graph::with_vertices(2);
+        g2.add_edge(0, 1).unwrap();
+
+        let p_c = graph_product(&g1, &g2, GraphProductType::Cartesian).unwrap();
+        assert_eq!(p_c.ecount(), cartesian_product(&g1, &g2).unwrap().ecount());
+
+        let p_t = graph_product(&g1, &g2, GraphProductType::Tensor).unwrap();
+        assert_eq!(p_t.ecount(), tensor_product(&g1, &g2).unwrap().ecount());
+
+        let p_s = graph_product(&g1, &g2, GraphProductType::Strong).unwrap();
+        assert_eq!(p_s.ecount(), strong_product(&g1, &g2).unwrap().ecount());
+
+        let p_l = graph_product(&g1, &g2, GraphProductType::Lexicographic).unwrap();
+        assert_eq!(
+            p_l.ecount(),
+            lexicographic_product(&g1, &g2).unwrap().ecount()
+        );
+
+        let p_m = graph_product(&g1, &g2, GraphProductType::Modular).unwrap();
+        assert_eq!(p_m.ecount(), modular_product(&g1, &g2).unwrap().ecount());
     }
 
     // --- Overflow tests ---

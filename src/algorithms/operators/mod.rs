@@ -50,7 +50,8 @@ pub use is_same_graph::is_same_graph;
 pub use join::join;
 pub use permute_vertices::permute_vertices;
 pub use products::{
-    cartesian_product, lexicographic_product, rooted_product, strong_product, tensor_product,
+    GraphProductType, cartesian_product, graph_product, lexicographic_product, modular_product,
+    rooted_product, strong_product, tensor_product,
 };
 pub use residual_graph::{ResidualGraphResult, residual_graph, reverse_residual_graph};
 pub use reverse::{reverse, reverse_edges};
