@@ -3,6 +3,7 @@
 
 // `pub(crate)` so the inner module names don't double-list with the
 // function re-exports in rustdoc.
+pub(crate) mod bipartite_projection;
 pub(crate) mod complementer;
 pub(crate) mod compose;
 pub(crate) mod connect_neighborhood;
@@ -28,6 +29,7 @@ pub(crate) mod to_directed;
 pub(crate) mod to_undirected;
 pub(crate) mod union;
 
+pub use bipartite_projection::{BipartiteProjection, bipartite_projection};
 pub use complementer::complementer;
 pub use compose::compose;
 pub use connect_neighborhood::{connect_neighborhood, graph_power};

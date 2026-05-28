@@ -247,6 +247,9 @@ pub use crate::algorithms::minimum_cycle_basis::minimum_cycle_basis;
 pub use crate::algorithms::motifs::{
     DyadCensus, TriadCensus, TriadType, dyad_census, triad_census,
 };
+pub use crate::algorithms::operators::bipartite_projection::{
+    BipartiteProjection, bipartite_projection,
+};
 pub use crate::algorithms::operators::complementer::complementer;
 pub use crate::algorithms::operators::compose::compose;
 pub use crate::algorithms::operators::connect_neighborhood::{connect_neighborhood, graph_power};
