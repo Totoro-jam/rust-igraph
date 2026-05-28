@@ -10,6 +10,7 @@ pub mod atlas;
 pub mod atlas_edges;
 pub mod circulant;
 pub mod create;
+pub mod create_bipartite;
 pub mod de_bruijn;
 pub mod extended_chordal_ring;
 pub mod famous;

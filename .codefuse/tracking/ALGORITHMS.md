@@ -429,6 +429,8 @@ PR-036 (`degree_sequence` + `max_degree` + `min_degree` + `max_degree_vertex` + 
 
 CN-035 (`full_bipartite` + `FullBipartite` — complete bipartite graph K_{n1,n2} constructor; reuses `BipartiteMode` from games::bipartite (Out/In/All); returns graph + per-vertex bool type vector; supports undirected, directed-out, directed-in, and directed-mutual; O(n1*n2) edge emission; 12 unit tests + 1 doctest).
 
+CN-036 (`create_bipartite` — validated bipartite graph constructor from type vector + edge list; verifies every edge crosses partition boundary; rejects same-type edges and out-of-range vertex IDs; O(V+E); 11 unit tests + 1 doctest).
+
 ---
 
 **Phase 1 complete (198/198).** Next: Phase 2 (I/O formats for practical utility).
