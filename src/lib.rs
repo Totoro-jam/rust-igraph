@@ -297,7 +297,8 @@ pub use crate::algorithms::paths::all_shortest_paths::{
 };
 pub use crate::algorithms::paths::astar::a_star_path;
 pub use crate::algorithms::paths::bellman_ford::{
-    bellman_ford_distances, bellman_ford_distances_with_mode,
+    bellman_ford_distances, bellman_ford_distances_with_mode, bellman_ford_path_to,
+    bellman_ford_path_to_with_mode,
 };
 pub use crate::algorithms::paths::dijkstra::{
     DijkstraAllPaths, DijkstraMode, DijkstraPaths, dijkstra_all_shortest_paths, dijkstra_distances,

@@ -183,6 +183,148 @@ pub fn bellman_ford_distances_with_mode(
         .collect())
 }
 
+/// Returns the shortest path from `source` to `target` using
+/// Bellman-Ford, following out-edges on directed graphs.
+///
+/// Returns `Some((vertices, edges))` if a finite-weight path exists,
+/// `None` if `target` is unreachable. When `source == target`, returns
+/// `Some((vec![source], vec![]))`.
+///
+/// Supports negative edge weights; detects negative cycles reachable
+/// from the source.
+///
+/// Counterpart of `igraph_get_shortest_path_bellman_ford(_, vertices,
+/// edges, from, to, weights, IGRAPH_OUT)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, bellman_ford_path_to};
+///
+/// let mut g = Graph::new(4, true).unwrap();
+/// g.add_edge(0, 1).unwrap(); // edge 0, weight 3
+/// g.add_edge(1, 2).unwrap(); // edge 1, weight -1
+/// g.add_edge(0, 2).unwrap(); // edge 2, weight 5
+/// g.add_edge(2, 3).unwrap(); // edge 3, weight 1
+/// let (vs, es) = bellman_ford_path_to(&g, 0, 3, &[3.0, -1.0, 5.0, 1.0])
+///     .unwrap()
+///     .unwrap();
+/// assert_eq!(vs, vec![0, 1, 2, 3]);
+/// assert_eq!(es, vec![0, 1, 3]);
+/// ```
+pub fn bellman_ford_path_to(
+    graph: &Graph,
+    source: VertexId,
+    target: VertexId,
+    weights: &[f64],
+) -> IgraphResult<Option<(Vec<VertexId>, Vec<EdgeId>)>> {
+    bellman_ford_path_to_with_mode(graph, source, target, weights, DijkstraMode::Out)
+}
+
+/// Returns the shortest path from `source` to `target` using
+/// Bellman-Ford with directed-mode selection.
+///
+/// `mode` selects how directed edges are followed:
+/// - [`DijkstraMode::Out`] follows out-edges,
+/// - [`DijkstraMode::In`] follows in-edges,
+/// - [`DijkstraMode::All`] ignores edge direction.
+///
+/// Returns `Some((vertices, edges))` if a finite-weight path exists,
+/// `None` if `target` is unreachable.
+pub fn bellman_ford_path_to_with_mode(
+    graph: &Graph,
+    source: VertexId,
+    target: VertexId,
+    weights: &[f64],
+    mode: DijkstraMode,
+) -> IgraphResult<Option<(Vec<VertexId>, Vec<EdgeId>)>> {
+    let n = graph.vcount();
+    if source >= n {
+        return Err(IgraphError::VertexOutOfRange { id: source, n });
+    }
+    if target >= n {
+        return Err(IgraphError::VertexOutOfRange { id: target, n });
+    }
+    validate_weights(graph, weights)?;
+
+    if source == target {
+        return Ok(Some((vec![source], vec![])));
+    }
+
+    let n_usize = n as usize;
+    let mut dist: Vec<f64> = vec![f64::INFINITY; n_usize];
+    dist[source as usize] = 0.0;
+
+    // Parent edge for reconstructing the path.
+    let mut parent_edge: Vec<Option<EdgeId>> = vec![None; n_usize];
+
+    let mut queue: VecDeque<VertexId> = VecDeque::with_capacity(n_usize);
+    let mut in_queue: Vec<bool> = vec![true; n_usize];
+    let mut num_queued: Vec<u32> = vec![0; n_usize];
+    for v in 0..n {
+        queue.push_back(v);
+    }
+
+    while let Some(j) = queue.pop_front() {
+        let j_idx = j as usize;
+        in_queue[j_idx] = false;
+        num_queued[j_idx] = num_queued[j_idx]
+            .checked_add(1)
+            .ok_or(IgraphError::Internal("num_queued overflow"))?;
+        if num_queued[j_idx] > n {
+            return Err(IgraphError::InvalidArgument(
+                "negative cycle reachable from source while running Bellman-Ford".to_string(),
+            ));
+        }
+
+        if !dist[j_idx].is_finite() {
+            continue;
+        }
+
+        let incidents = incident_for_mode(graph, j, mode)?;
+        for eid in incidents {
+            let w = weights[eid as usize];
+            if w == f64::INFINITY {
+                continue;
+            }
+            let neighbor = graph.edge_other(eid, j)?;
+            let neighbor_idx = neighbor as usize;
+            let altdist = dist[j_idx] + w;
+            if altdist < dist[neighbor_idx] {
+                dist[neighbor_idx] = altdist;
+                parent_edge[neighbor_idx] = Some(eid);
+                if !in_queue[neighbor_idx] {
+                    in_queue[neighbor_idx] = true;
+                    queue.push_back(neighbor);
+                }
+            }
+        }
+    }
+
+    // If target is unreachable, return None.
+    if !dist[target as usize].is_finite() {
+        return Ok(None);
+    }
+
+    // Reconstruct path from target back to source.
+    let mut edges_rev: Vec<EdgeId> = Vec::new();
+    let mut vertices_rev: Vec<VertexId> = Vec::new();
+    let mut cur = target;
+    vertices_rev.push(cur);
+    while cur != source {
+        let eid = parent_edge[cur as usize].ok_or(IgraphError::Internal(
+            "bellman_ford_path_to: missing parent edge in path reconstruction",
+        ))?;
+        edges_rev.push(eid);
+        cur = graph.edge_other(eid, cur)?;
+        vertices_rev.push(cur);
+    }
+
+    vertices_rev.reverse();
+    edges_rev.reverse();
+    Ok(Some((vertices_rev, edges_rev)))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -309,5 +451,101 @@ mod tests {
         g.add_edge(0, 2).unwrap();
         let d = bellman_ford_distances(&g, 0, &[1.0, f64::INFINITY]).unwrap();
         assert_eq!(d, vec![Some(0.0), Some(1.0), None]);
+    }
+
+    // --- bellman_ford_path_to tests ---
+
+    #[test]
+    fn path_to_simple_directed() {
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap(); // 0
+        g.add_edge(1, 2).unwrap(); // 1
+        g.add_edge(0, 2).unwrap(); // 2, w=5
+        g.add_edge(2, 3).unwrap(); // 3
+        let w = [3.0, -1.0, 5.0, 1.0];
+        let (vs, es) = bellman_ford_path_to(&g, 0, 3, &w).unwrap().unwrap();
+        assert_eq!(vs, vec![0, 1, 2, 3]);
+        assert_eq!(es, vec![0, 1, 3]);
+    }
+
+    #[test]
+    fn path_to_source_equals_target() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        let (vs, es) = bellman_ford_path_to(&g, 0, 0, &[1.0]).unwrap().unwrap();
+        assert_eq!(vs, vec![0]);
+        assert!(es.is_empty());
+    }
+
+    #[test]
+    fn path_to_unreachable() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        let result = bellman_ford_path_to(&g, 0, 2, &[1.0]).unwrap();
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn path_to_negative_cycle_errors() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        let err = bellman_ford_path_to(&g, 0, 2, &[1.0, 1.0, -3.0]).unwrap_err();
+        assert!(matches!(err, IgraphError::InvalidArgument(_)));
+    }
+
+    #[test]
+    fn path_to_prefers_negative_shortcut() {
+        // 0→1→2 (w=1,1) and 0→2 (w=5); via negative: 0→1→2 is 2 < 5
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap(); // 0, w=1
+        g.add_edge(1, 2).unwrap(); // 1, w=-1
+        g.add_edge(0, 2).unwrap(); // 2, w=5
+        let (vs, es) = bellman_ford_path_to(&g, 0, 2, &[1.0, -1.0, 5.0])
+            .unwrap()
+            .unwrap();
+        assert_eq!(vs, vec![0, 1, 2]);
+        assert_eq!(es, vec![0, 1]);
+    }
+
+    #[test]
+    fn path_to_with_in_mode() {
+        // Directed 0→1→2; from 2 in IN mode finds path 2←1←0
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap(); // 0
+        g.add_edge(1, 2).unwrap(); // 1
+        let (vs, es) = bellman_ford_path_to_with_mode(&g, 2, 0, &[3.0, -1.0], DijkstraMode::In)
+            .unwrap()
+            .unwrap();
+        assert_eq!(vs, vec![2, 1, 0]);
+        assert_eq!(es, vec![1, 0]);
+    }
+
+    #[test]
+    fn path_to_undirected_negative_cycle() {
+        // Undirected graph with a negative edge creates a negative cycle
+        // (traverse edge back-and-forth indefinitely), so BF reports it.
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap(); // 0, w=2
+        g.add_edge(1, 2).unwrap(); // 1, w=-1
+        g.add_edge(0, 2).unwrap(); // 2, w=5
+        let err = bellman_ford_path_to(&g, 0, 2, &[2.0, -1.0, 5.0]).unwrap_err();
+        assert!(matches!(err, IgraphError::InvalidArgument(_)));
+    }
+
+    #[test]
+    fn path_to_multiple_hops() {
+        // 0→1→2→3 all weight 1, direct 0→3 weight 10
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap(); // 0
+        g.add_edge(1, 2).unwrap(); // 1
+        g.add_edge(2, 3).unwrap(); // 2
+        g.add_edge(0, 3).unwrap(); // 3, w=10
+        let (vs, es) = bellman_ford_path_to(&g, 0, 3, &[1.0, 1.0, 1.0, 10.0])
+            .unwrap()
+            .unwrap();
+        assert_eq!(vs, vec![0, 1, 2, 3]);
+        assert_eq!(es, vec![0, 1, 2]);
     }
 }
