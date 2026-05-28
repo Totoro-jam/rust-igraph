@@ -42,7 +42,7 @@ pub use difference::difference;
 pub use disjoint_union::{disjoint_union, disjoint_union_many};
 pub use induced_subgraph::{InducedSubgraphResult, induced_subgraph};
 pub use induced_subgraph_edges::induced_subgraph_edges;
-pub use intersection::intersection;
+pub use intersection::{intersection, intersection_many};
 pub use is_same_graph::is_same_graph;
 pub use join::join;
 pub use permute_vertices::permute_vertices;

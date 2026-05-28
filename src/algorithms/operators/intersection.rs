@@ -116,6 +116,103 @@ pub fn intersection(left: &Graph, right: &Graph) -> IgraphResult<Graph> {
     Ok(out)
 }
 
+/// Returns the intersection of multiple graphs.
+///
+/// Generalises [`intersection`] to an arbitrary number of inputs. The
+/// result has `max(g.vcount() for g in graphs)` vertices. For each
+/// endpoint pair `(u, v)`, the multiplicity in the result is the
+/// minimum over all input graphs (a pair only survives if it appears
+/// in *every* input).
+///
+/// If `graphs` is empty, returns an empty directed graph (matching
+/// igraph C convention). All inputs must agree on directedness.
+///
+/// # Errors
+/// - [`IgraphError::InvalidArgument`] if directedness diverges.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, intersection_many};
+///
+/// let mut a = Graph::with_vertices(3);
+/// a.add_edge(0, 1).unwrap();
+/// a.add_edge(1, 2).unwrap();
+/// let mut b = Graph::with_vertices(3);
+/// b.add_edge(0, 1).unwrap();
+/// b.add_edge(2, 0).unwrap();
+/// let mut c = Graph::with_vertices(3);
+/// c.add_edge(0, 1).unwrap();
+/// c.add_edge(1, 2).unwrap();
+/// c.add_edge(2, 0).unwrap();
+///
+/// let i = intersection_many(&[&a, &b, &c]).unwrap();
+/// assert_eq!(i.ecount(), 1); // only (0,1) is in all three
+/// ```
+pub fn intersection_many(graphs: &[&Graph]) -> IgraphResult<Graph> {
+    if graphs.is_empty() {
+        return Graph::new(0, true);
+    }
+
+    let directed = graphs[0].is_directed();
+    for g in &graphs[1..] {
+        if g.is_directed() != directed {
+            return Err(IgraphError::InvalidArgument(
+                "intersection_many: cannot mix directed and undirected graphs".to_string(),
+            ));
+        }
+    }
+
+    let n = graphs.iter().map(|g| g.vcount()).max().unwrap_or(0);
+
+    let canon = |u: VertexId, v: VertexId| -> (VertexId, VertexId) {
+        if directed || u <= v { (u, v) } else { (v, u) }
+    };
+
+    // Build edge counts for the first graph
+    let mut result_counts: BTreeMap<(VertexId, VertexId), u32> = BTreeMap::new();
+    let m = graphs[0].ecount();
+    for eid in 0..m {
+        #[allow(clippy::cast_possible_truncation)]
+        let eid_u32 = eid as u32;
+        let (u, v) = graphs[0].edge(eid_u32)?;
+        *result_counts.entry(canon(u, v)).or_insert(0) += 1;
+    }
+
+    // For each subsequent graph, take the per-pair minimum
+    for g in &graphs[1..] {
+        let mut counts: BTreeMap<(VertexId, VertexId), u32> = BTreeMap::new();
+        let gm = g.ecount();
+        for eid in 0..gm {
+            #[allow(clippy::cast_possible_truncation)]
+            let eid_u32 = eid as u32;
+            let (u, v) = g.edge(eid_u32)?;
+            *counts.entry(canon(u, v)).or_insert(0) += 1;
+        }
+
+        // Intersect: keep only pairs present in both, with min multiplicity
+        result_counts.retain(|pair, mult| {
+            if let Some(&cnt) = counts.get(pair) {
+                *mult = std::cmp::min(*mult, cnt);
+                true
+            } else {
+                false
+            }
+        });
+    }
+
+    let mut edges: Vec<(VertexId, VertexId)> = Vec::new();
+    for (pair, mult) in &result_counts {
+        for _ in 0..*mult {
+            edges.push(*pair);
+        }
+    }
+
+    let mut out = Graph::new(n, directed)?;
+    out.add_edges(edges)?;
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -314,5 +411,98 @@ mod tests {
         let ab = intersection(&a, &b).unwrap();
         let ba = intersection(&b, &a).unwrap();
         assert_eq!(sorted_edges(&ab), sorted_edges(&ba));
+    }
+
+    // --- intersection_many tests ---
+
+    #[test]
+    fn intersection_many_empty_list() {
+        let i = intersection_many(&[]).unwrap();
+        assert_eq!(i.vcount(), 0);
+        assert!(i.is_directed());
+    }
+
+    #[test]
+    fn intersection_many_single_graph() {
+        let mut a = Graph::with_vertices(3);
+        a.add_edge(0, 1).unwrap();
+        a.add_edge(1, 2).unwrap();
+        let i = intersection_many(&[&a]).unwrap();
+        assert_eq!(i.vcount(), 3);
+        assert_eq!(i.ecount(), 2);
+        assert_eq!(sorted_edges(&i), sorted_edges(&a));
+    }
+
+    #[test]
+    fn intersection_many_three_graphs() {
+        let mut a = Graph::with_vertices(3);
+        a.add_edge(0, 1).unwrap();
+        a.add_edge(1, 2).unwrap();
+        let mut b = Graph::with_vertices(3);
+        b.add_edge(0, 1).unwrap();
+        b.add_edge(2, 0).unwrap();
+        let mut c = Graph::with_vertices(3);
+        c.add_edge(0, 1).unwrap();
+        c.add_edge(1, 2).unwrap();
+        c.add_edge(2, 0).unwrap();
+
+        let i = intersection_many(&[&a, &b, &c]).unwrap();
+        assert_eq!(i.vcount(), 3);
+        assert_eq!(i.ecount(), 1); // only (0,1) present in all
+        assert_eq!(sorted_edges(&i), vec![(0, 1)]);
+    }
+
+    #[test]
+    fn intersection_many_min_multiplicity() {
+        let mut a = Graph::with_vertices(2);
+        a.add_edge(0, 1).unwrap();
+        a.add_edge(0, 1).unwrap();
+        a.add_edge(0, 1).unwrap();
+        let mut b = Graph::with_vertices(2);
+        b.add_edge(0, 1).unwrap();
+        b.add_edge(0, 1).unwrap();
+        let mut c = Graph::with_vertices(2);
+        c.add_edge(0, 1).unwrap();
+        c.add_edge(0, 1).unwrap();
+        c.add_edge(0, 1).unwrap();
+        c.add_edge(0, 1).unwrap();
+
+        let i = intersection_many(&[&a, &b, &c]).unwrap();
+        assert_eq!(i.ecount(), 2); // min(3, 2, 4) = 2
+    }
+
+    #[test]
+    fn intersection_many_no_common_edge() {
+        let mut a = Graph::with_vertices(3);
+        a.add_edge(0, 1).unwrap();
+        let mut b = Graph::with_vertices(3);
+        b.add_edge(1, 2).unwrap();
+        let mut c = Graph::with_vertices(3);
+        c.add_edge(2, 0).unwrap();
+
+        let i = intersection_many(&[&a, &b, &c]).unwrap();
+        assert_eq!(i.ecount(), 0);
+    }
+
+    #[test]
+    fn intersection_many_mixed_directedness_fails() {
+        let a = Graph::with_vertices(2);
+        let b = Graph::new(2, true).unwrap();
+        assert!(intersection_many(&[&a, &b]).is_err());
+    }
+
+    #[test]
+    fn intersection_many_directed() {
+        let mut a = Graph::new(3, true).unwrap();
+        a.add_edge(0, 1).unwrap();
+        a.add_edge(1, 2).unwrap();
+        let mut b = Graph::new(3, true).unwrap();
+        b.add_edge(0, 1).unwrap();
+        b.add_edge(2, 1).unwrap();
+
+        let i = intersection_many(&[&a, &b]).unwrap();
+        assert!(i.is_directed());
+        assert_eq!(i.ecount(), 1); // only (0,1) common
+        assert_eq!(sorted_edges(&i), vec![(0, 1)]);
     }
 }
