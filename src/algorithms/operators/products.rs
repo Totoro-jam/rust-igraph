@@ -1,7 +1,7 @@
-//! Graph product operators (ALGO-OP-015).
+//! Graph product operators (ALGO-OP-015, ALGO-OP-027).
 //!
-//! Implements four standard graph products: Cartesian, tensor (categorical),
-//! strong, and lexicographic.
+//! Implements five graph products: Cartesian, tensor (categorical),
+//! strong, lexicographic, and rooted.
 
 use crate::core::error::IgraphError;
 use crate::core::{Graph, IgraphResult, VertexId};
@@ -385,6 +385,110 @@ pub fn lexicographic_product(g1: &Graph, g2: &Graph) -> IgraphResult<Graph> {
     Ok(result)
 }
 
+/// Computes the rooted product of two graphs.
+///
+/// The result has `|V1| * |V2|` vertices. Vertex `(i, j)` is identified by
+/// `i * |V2| + j`. An edge exists between `(i1, j1)` and `(i2, j2)` iff:
+/// - `i1 == i2` and `(j1, j2)` is an edge in `g2`, OR
+/// - `j1 == j2 == root` and `(i1, i2)` is an edge in `g1`.
+///
+/// Intuitively, this replaces each vertex of `g1` with a copy of `g2`,
+/// connecting the copies through their `root` vertices according to the
+/// edges of `g1`.
+///
+/// The number of edges in the product is `|V1| * |E2| + |E1|`.
+///
+/// Both graphs must have the same directedness.
+///
+/// # Arguments
+///
+/// * `g1` — the first factor graph (whose vertices are "replaced").
+/// * `g2` — the second factor graph (the "replacement" graph).
+/// * `root` — a vertex in `g2` used as the connection point.
+///
+/// # Errors
+///
+/// Returns `InvalidArgument` if the graphs differ in directedness, if the
+/// product vertex count overflows `u32`, or if `root >= g2.vcount()`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, rooted_product};
+///
+/// // P3 with K2 rooted at vertex 0
+/// let mut g1 = Graph::with_vertices(3);
+/// g1.add_edge(0, 1).unwrap();
+/// g1.add_edge(1, 2).unwrap();
+///
+/// let mut g2 = Graph::with_vertices(2);
+/// g2.add_edge(0, 1).unwrap();
+///
+/// let p = rooted_product(&g1, &g2, 0).unwrap();
+/// assert_eq!(p.vcount(), 6); // 3 * 2
+/// assert_eq!(p.ecount(), 5); // 3 * 1 + 2
+/// ```
+pub fn rooted_product(g1: &Graph, g2: &Graph, root: u32) -> IgraphResult<Graph> {
+    check_same_directedness(g1, g2, "rooted_product")?;
+
+    let n1 = g1.vcount();
+    let n2 = g2.vcount();
+
+    if n2 == 0 || root >= n2 {
+        return Err(IgraphError::InvalidArgument(
+            "root vertex is not present in the second graph".to_string(),
+        ));
+    }
+
+    let directed = g1.is_directed();
+    let n = product_vertex_count(n1, n2)?;
+
+    if n == 0 {
+        return Graph::new(0, directed);
+    }
+
+    let e1 = g1.ecount();
+    let e2 = g2.ecount();
+
+    // Total edges: |V1| * |E2| + |E1|
+    let total_edges = (n1 as usize)
+        .checked_mul(e2)
+        .and_then(|v| v.checked_add(e1))
+        .ok_or_else(|| {
+            IgraphError::InvalidArgument("edge count overflow in rooted_product".to_string())
+        })?;
+
+    let mut edges: Vec<(VertexId, VertexId)> = Vec::with_capacity(total_edges);
+
+    // Edges from g1: connect root copies.
+    // Edge (u, v) in g1 becomes ((u, root), (v, root)) in the product.
+    for eid_usize in 0..e1 {
+        #[allow(clippy::cast_possible_truncation)]
+        let eid = eid_usize as u32;
+        let (from, to) = g1.edge(eid)?;
+        let new_from = from * n2 + root;
+        let new_to = to * n2 + root;
+        edges.push((new_from, new_to));
+    }
+
+    // Edges from g2: for each vertex j in g1, copy all g2 edges.
+    // Edge (a, b) in g2 becomes ((j, a), (j, b)) for each j.
+    for eid_usize in 0..e2 {
+        #[allow(clippy::cast_possible_truncation)]
+        let eid = eid_usize as u32;
+        let (from, to) = g2.edge(eid)?;
+        for j in 0..n1 {
+            let new_from = j * n2 + from;
+            let new_to = j * n2 + to;
+            edges.push((new_from, new_to));
+        }
+    }
+
+    let mut result = Graph::new(n, directed)?;
+    result.add_edges(edges)?;
+    Ok(result)
+}
+
 fn check_same_directedness(g1: &Graph, g2: &Graph, op: &str) -> IgraphResult<()> {
     if g1.is_directed() != g2.is_directed() {
         return Err(IgraphError::InvalidArgument(format!(
@@ -646,6 +750,122 @@ mod tests {
         assert_ne!(p1.ecount(), p2.ecount());
     }
 
+    // --- Rooted product tests ---
+
+    #[test]
+    fn test_rooted_p3_k2() {
+        // P3 (0-1-2) with K2 (0-1) rooted at 0
+        let mut g1 = Graph::with_vertices(3);
+        g1.add_edge(0, 1).unwrap();
+        g1.add_edge(1, 2).unwrap();
+
+        let mut g2 = Graph::with_vertices(2);
+        g2.add_edge(0, 1).unwrap();
+
+        let p = rooted_product(&g1, &g2, 0).unwrap();
+        assert_eq!(p.vcount(), 6); // 3 * 2
+        // |V1|*|E2| + |E1| = 3*1 + 2 = 5
+        assert_eq!(p.ecount(), 5);
+    }
+
+    #[test]
+    fn test_rooted_k3_p3() {
+        // K3 (triangle) with P3 (0-1-2) rooted at vertex 1
+        let mut g1 = Graph::with_vertices(3);
+        g1.add_edge(0, 1).unwrap();
+        g1.add_edge(1, 2).unwrap();
+        g1.add_edge(0, 2).unwrap();
+
+        let mut g2 = Graph::with_vertices(3);
+        g2.add_edge(0, 1).unwrap();
+        g2.add_edge(1, 2).unwrap();
+
+        let p = rooted_product(&g1, &g2, 1).unwrap();
+        assert_eq!(p.vcount(), 9); // 3 * 3
+        // |V1|*|E2| + |E1| = 3*2 + 3 = 9
+        assert_eq!(p.ecount(), 9);
+    }
+
+    #[test]
+    fn test_rooted_single_vertex_g1() {
+        // Single vertex * K2 rooted at 0
+        let g1 = Graph::with_vertices(1);
+        let mut g2 = Graph::with_vertices(2);
+        g2.add_edge(0, 1).unwrap();
+
+        let p = rooted_product(&g1, &g2, 0).unwrap();
+        assert_eq!(p.vcount(), 2); // 1 * 2
+        assert_eq!(p.ecount(), 1); // 1*1 + 0
+    }
+
+    #[test]
+    fn test_rooted_no_edges_g2() {
+        // P3 with 2 isolated vertices rooted at 0
+        let mut g1 = Graph::with_vertices(3);
+        g1.add_edge(0, 1).unwrap();
+        g1.add_edge(1, 2).unwrap();
+
+        let g2 = Graph::with_vertices(2);
+
+        let p = rooted_product(&g1, &g2, 0).unwrap();
+        assert_eq!(p.vcount(), 6);
+        // 3*0 + 2 = 2
+        assert_eq!(p.ecount(), 2);
+    }
+
+    #[test]
+    fn test_rooted_no_edges_g1() {
+        // 3 isolated vertices with K2 rooted at 0
+        let g1 = Graph::with_vertices(3);
+        let mut g2 = Graph::with_vertices(2);
+        g2.add_edge(0, 1).unwrap();
+
+        let p = rooted_product(&g1, &g2, 0).unwrap();
+        assert_eq!(p.vcount(), 6);
+        // 3*1 + 0 = 3
+        assert_eq!(p.ecount(), 3);
+    }
+
+    #[test]
+    fn test_rooted_directed() {
+        let mut g1 = Graph::new(2, true).unwrap();
+        g1.add_edge(0, 1).unwrap();
+
+        let mut g2 = Graph::new(2, true).unwrap();
+        g2.add_edge(0, 1).unwrap();
+
+        let p = rooted_product(&g1, &g2, 0).unwrap();
+        assert!(p.is_directed());
+        assert_eq!(p.vcount(), 4);
+        // 2*1 + 1 = 3
+        assert_eq!(p.ecount(), 3);
+    }
+
+    #[test]
+    fn test_rooted_invalid_root() {
+        let g1 = Graph::with_vertices(2);
+        let g2 = Graph::with_vertices(3);
+
+        assert!(rooted_product(&g1, &g2, 3).is_err());
+        assert!(rooted_product(&g1, &g2, 5).is_err());
+    }
+
+    #[test]
+    fn test_rooted_directedness_mismatch() {
+        let g1 = Graph::with_vertices(2);
+        let g2 = Graph::new(2, true).unwrap();
+
+        assert!(rooted_product(&g1, &g2, 0).is_err());
+    }
+
+    #[test]
+    fn test_rooted_empty_g2() {
+        let g1 = Graph::with_vertices(2);
+        let g2 = Graph::with_vertices(0);
+
+        assert!(rooted_product(&g1, &g2, 0).is_err());
+    }
+
     // --- Overflow tests ---
 
     #[test]
@@ -657,5 +877,6 @@ mod tests {
         assert!(tensor_product(&g1, &g2).is_err());
         assert!(strong_product(&g1, &g2).is_err());
         assert!(lexicographic_product(&g1, &g2).is_err());
+        assert!(rooted_product(&g1, &g2, 0).is_err());
     }
 }

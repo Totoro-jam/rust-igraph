@@ -46,7 +46,9 @@ pub use intersection::intersection;
 pub use is_same_graph::is_same_graph;
 pub use join::join;
 pub use permute_vertices::permute_vertices;
-pub use products::{cartesian_product, lexicographic_product, strong_product, tensor_product};
+pub use products::{
+    cartesian_product, lexicographic_product, rooted_product, strong_product, tensor_product,
+};
 pub use reverse::{reverse, reverse_edges};
 pub use rewire::rewire;
 pub use rewire_edges::rewire_edges;

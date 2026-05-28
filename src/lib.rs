@@ -266,7 +266,7 @@ pub use crate::algorithms::operators::is_same_graph::is_same_graph;
 pub use crate::algorithms::operators::join::join;
 pub use crate::algorithms::operators::permute_vertices::permute_vertices;
 pub use crate::algorithms::operators::products::{
-    cartesian_product, lexicographic_product, strong_product, tensor_product,
+    cartesian_product, lexicographic_product, rooted_product, strong_product, tensor_product,
 };
 pub use crate::algorithms::operators::reverse::{reverse, reverse_edges};
 pub use crate::algorithms::operators::rewire::rewire;
