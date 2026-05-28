@@ -19,6 +19,7 @@ pub(crate) mod is_same_graph;
 pub(crate) mod join;
 pub(crate) mod permute_vertices;
 pub(crate) mod products;
+pub(crate) mod residual_graph;
 pub(crate) mod reverse;
 pub(crate) mod rewire;
 #[allow(
@@ -51,6 +52,7 @@ pub use permute_vertices::permute_vertices;
 pub use products::{
     cartesian_product, lexicographic_product, rooted_product, strong_product, tensor_product,
 };
+pub use residual_graph::{ResidualGraphResult, residual_graph, reverse_residual_graph};
 pub use reverse::{reverse, reverse_edges};
 pub use rewire::rewire;
 pub use rewire_edges::{RewireDirectedMode, rewire_directed_edges, rewire_edges};
