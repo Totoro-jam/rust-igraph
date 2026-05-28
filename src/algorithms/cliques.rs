@@ -428,6 +428,216 @@ fn bron_kerbosch_all(
     }
 }
 
+/// Counts the number of maximal cliques without storing them.
+///
+/// More memory-efficient than [`maximal_cliques`] when only the count
+/// is needed.
+///
+/// Edge directions are ignored for directed graphs.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, maximal_cliques_count};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// // Path graph: 3 maximal cliques (each edge) + 0 isolated
+/// assert_eq!(maximal_cliques_count(&g).unwrap(), 3);
+/// ```
+pub fn maximal_cliques_count(graph: &Graph) -> IgraphResult<u64> {
+    let n = graph.vcount();
+    if n == 0 {
+        return Ok(0);
+    }
+
+    let adj = build_neighbor_set(graph)?;
+    let mut count: u64 = 0;
+
+    let all_vertices: Vec<VertexId> = (0..n).collect();
+    bron_kerbosch_count(
+        &adj,
+        &mut Vec::new(),
+        &mut all_vertices.clone(),
+        &mut Vec::new(),
+        &mut count,
+    );
+
+    // Include isolated vertices as cliques of size 1
+    for v in 0..n {
+        if adj[v as usize].is_empty() {
+            count = count.saturating_add(1);
+        }
+    }
+
+    Ok(count)
+}
+
+/// Returns a histogram of clique sizes.
+///
+/// The result is a vector where index `k` contains the number of
+/// maximal cliques of size `k`. Index 0 is always 0 (no cliques of
+/// size 0 exist). The vector length is `clique_number + 1`.
+///
+/// Edge directions are ignored for directed graphs.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, clique_size_hist};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// let hist = clique_size_hist(&g).unwrap();
+/// // hist[2] = 1 (edge {2,3}), hist[3] = 1 (triangle {0,1,2})
+/// assert_eq!(hist, vec![0, 0, 1, 1]);
+/// ```
+pub fn clique_size_hist(graph: &Graph) -> IgraphResult<Vec<u64>> {
+    let n = graph.vcount();
+    if n == 0 {
+        return Ok(Vec::new());
+    }
+
+    let adj = build_neighbor_set(graph)?;
+    let mut hist: Vec<u64> = Vec::new();
+
+    let all_vertices: Vec<VertexId> = (0..n).collect();
+    bron_kerbosch_hist(
+        &adj,
+        &mut Vec::new(),
+        &mut all_vertices.clone(),
+        &mut Vec::new(),
+        &mut hist,
+    );
+
+    // Include isolated vertices as cliques of size 1
+    for v in 0..n {
+        if adj[v as usize].is_empty() {
+            if hist.len() < 2 {
+                hist.resize(2, 0);
+            }
+            hist[1] = hist[1].saturating_add(1);
+        }
+    }
+
+    Ok(hist)
+}
+
+/// Bron-Kerbosch with pivot — count-only variant.
+fn bron_kerbosch_count(
+    adj: &[Vec<VertexId>],
+    r_clique: &mut Vec<VertexId>,
+    p_candidates: &mut Vec<VertexId>,
+    x_excluded: &mut Vec<VertexId>,
+    count: &mut u64,
+) {
+    if p_candidates.is_empty() && x_excluded.is_empty() {
+        if r_clique.len() >= 2 {
+            *count = count.saturating_add(1);
+        }
+        return;
+    }
+
+    if p_candidates.is_empty() {
+        return;
+    }
+
+    let pivot = choose_pivot(adj, p_candidates, x_excluded);
+    let pivot_neighbors = &adj[pivot as usize];
+
+    let candidates: Vec<VertexId> = p_candidates
+        .iter()
+        .filter(|&&v| !pivot_neighbors.contains(&v))
+        .copied()
+        .collect();
+
+    for v in candidates {
+        let v_neighbors = &adj[v as usize];
+
+        r_clique.push(v);
+
+        let mut new_p: Vec<VertexId> = p_candidates
+            .iter()
+            .filter(|&&u| v_neighbors.contains(&u))
+            .copied()
+            .collect();
+        let mut new_x: Vec<VertexId> = x_excluded
+            .iter()
+            .filter(|&&u| v_neighbors.contains(&u))
+            .copied()
+            .collect();
+
+        bron_kerbosch_count(adj, r_clique, &mut new_p, &mut new_x, count);
+
+        r_clique.pop();
+
+        p_candidates.retain(|&u| u != v);
+        x_excluded.push(v);
+    }
+}
+
+/// Bron-Kerbosch with pivot — histogram variant.
+fn bron_kerbosch_hist(
+    adj: &[Vec<VertexId>],
+    r_clique: &mut Vec<VertexId>,
+    p_candidates: &mut Vec<VertexId>,
+    x_excluded: &mut Vec<VertexId>,
+    hist: &mut Vec<u64>,
+) {
+    if p_candidates.is_empty() && x_excluded.is_empty() {
+        let size = r_clique.len();
+        if size >= 2 {
+            if hist.len() <= size {
+                hist.resize(size + 1, 0);
+            }
+            hist[size] = hist[size].saturating_add(1);
+        }
+        return;
+    }
+
+    if p_candidates.is_empty() {
+        return;
+    }
+
+    let pivot = choose_pivot(adj, p_candidates, x_excluded);
+    let pivot_neighbors = &adj[pivot as usize];
+
+    let candidates: Vec<VertexId> = p_candidates
+        .iter()
+        .filter(|&&v| !pivot_neighbors.contains(&v))
+        .copied()
+        .collect();
+
+    for v in candidates {
+        let v_neighbors = &adj[v as usize];
+
+        r_clique.push(v);
+
+        let mut new_p: Vec<VertexId> = p_candidates
+            .iter()
+            .filter(|&&u| v_neighbors.contains(&u))
+            .copied()
+            .collect();
+        let mut new_x: Vec<VertexId> = x_excluded
+            .iter()
+            .filter(|&&u| v_neighbors.contains(&u))
+            .copied()
+            .collect();
+
+        bron_kerbosch_hist(adj, r_clique, &mut new_p, &mut new_x, hist);
+
+        r_clique.pop();
+
+        p_candidates.retain(|&u| u != v);
+        x_excluded.push(v);
+    }
+}
+
 /// Choose pivot vertex with maximum connections to P.
 fn choose_pivot(
     adj: &[Vec<VertexId>],
@@ -764,5 +974,105 @@ mod tests {
         g.add_edge(1, 2).unwrap();
         g.add_edge(2, 0).unwrap();
         assert_eq!(independence_number(&g).unwrap(), 1);
+    }
+
+    // --- maximal_cliques_count tests ---
+
+    #[test]
+    fn test_count_empty() {
+        let g = Graph::with_vertices(0);
+        assert_eq!(maximal_cliques_count(&g).unwrap(), 0);
+    }
+
+    #[test]
+    fn test_count_isolated() {
+        let g = Graph::with_vertices(3);
+        // 3 isolated vertices → 3 cliques of size 1
+        assert_eq!(maximal_cliques_count(&g).unwrap(), 3);
+    }
+
+    #[test]
+    fn test_count_path() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        // Path: 3 maximal cliques (each edge)
+        assert_eq!(maximal_cliques_count(&g).unwrap(), 3);
+    }
+
+    #[test]
+    fn test_count_triangle_plus_edge() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        // Triangle {0,1,2} + edge {2,3} = 2 maximal cliques
+        assert_eq!(maximal_cliques_count(&g).unwrap(), 2);
+    }
+
+    #[test]
+    fn test_count_matches_enum() {
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 4).unwrap();
+        let enumerated = maximal_cliques(&g).unwrap();
+        assert_eq!(maximal_cliques_count(&g).unwrap(), enumerated.len() as u64);
+    }
+
+    // --- clique_size_hist tests ---
+
+    #[test]
+    fn test_hist_empty() {
+        let g = Graph::with_vertices(0);
+        assert!(clique_size_hist(&g).unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_hist_isolated() {
+        let g = Graph::with_vertices(3);
+        let hist = clique_size_hist(&g).unwrap();
+        // 3 cliques of size 1
+        assert_eq!(hist, vec![0, 3]);
+    }
+
+    #[test]
+    fn test_hist_triangle_plus_edge() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let hist = clique_size_hist(&g).unwrap();
+        // 1 clique size 2, 1 clique size 3
+        assert_eq!(hist, vec![0, 0, 1, 1]);
+    }
+
+    #[test]
+    fn test_hist_complete_4() {
+        let mut g = Graph::with_vertices(4);
+        for i in 0..4u32 {
+            for j in (i + 1)..4 {
+                g.add_edge(i, j).unwrap();
+            }
+        }
+        let hist = clique_size_hist(&g).unwrap();
+        // K4: single clique of size 4
+        assert_eq!(hist, vec![0, 0, 0, 0, 1]);
+    }
+
+    #[test]
+    fn test_hist_path() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let hist = clique_size_hist(&g).unwrap();
+        // 3 cliques of size 2
+        assert_eq!(hist, vec![0, 0, 3]);
     }
 }

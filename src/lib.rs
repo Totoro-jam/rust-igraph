@@ -46,8 +46,9 @@ pub use crate::algorithms::chordality::{
     ChordalResult, McsResult, is_chordal, maximum_cardinality_search,
 };
 pub use crate::algorithms::cliques::{
-    clique_number, independence_number, largest_cliques, largest_independent_vertex_sets,
-    maximal_cliques, maximal_independent_vertex_sets,
+    clique_number, clique_size_hist, independence_number, largest_cliques,
+    largest_independent_vertex_sets, maximal_cliques, maximal_cliques_count,
+    maximal_independent_vertex_sets,
 };
 pub use crate::algorithms::coloring::{
     BipartiteColoringResult, BipartiteEdgeDirection, GreedyColoringHeuristic,
