@@ -437,8 +437,14 @@ PR-042 (`get_edgelist` — returns all edges as Vec<(VertexId, VertexId)> in edg
 
 PR-043 (`get_biadjacency_matrix` + `GetBiadjacencyResult` — extract biadjacency matrix from bipartite graph given types vector; returns n1×n2 matrix + row_ids + col_ids; silently ignores same-partition edges; O(V+E); 13 unit tests + 1 doctest).
 
+PR-044 (`are_adjacent` — check if two vertices share at least one edge; delegates to Graph::find_eid; O(deg(min)); 8 unit tests + 1 doctest).
+
+PR-045 (`joint_degree_distribution` — joint degree distribution matrix P_ij; configurable from/to degree modes, directed_neighbors flag, optional normalization, max degree clipping; O(E); 11 unit tests + 1 doctest).
+
+PR-046 (`get_biadjacency_weighted` + `GetBiadjacencyWeightedResult` — weighted biadjacency matrix extraction; sums edge weights per (row,col) pair; O(V+E); 9 unit tests + 1 doctest).
+
 ---
 
-**Phase 1 complete (199/199).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (202/202).** Next: Phase 2 (I/O formats for practical utility).
 
 > Update the counters after every PR merge.
