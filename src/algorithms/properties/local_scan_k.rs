@@ -8,7 +8,8 @@
 
 use std::collections::VecDeque;
 
-use crate::core::{Graph, IgraphError, IgraphResult};
+use crate::algorithms::properties::degree::DegreeMode;
+use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
 /// For each vertex, count edges within its closed k-neighborhood.
 ///
@@ -116,6 +117,205 @@ pub fn local_scan_k(graph: &Graph, k: u32, weights: Option<&[f64]>) -> IgraphRes
         }
 
         result[v as usize] = count;
+    }
+
+    Ok(result)
+}
+
+/// Collect incident edge IDs for a vertex respecting mode.
+fn incident_with_mode(graph: &Graph, v: VertexId, mode: DegreeMode) -> IgraphResult<Vec<u32>> {
+    if !graph.is_directed() {
+        return graph.incident(v);
+    }
+    match mode {
+        DegreeMode::Out => graph.incident(v),
+        DegreeMode::In => graph.incident_in(v),
+        DegreeMode::All => {
+            let mut out = graph.incident(v)?;
+            let in_edges = graph.incident_in(v)?;
+            out.extend(in_edges);
+            Ok(out)
+        }
+    }
+}
+
+/// Mode-aware local scan-k edge count / weight sum.
+///
+/// For each vertex, counts edges (or sums edge weights) whose both
+/// endpoints lie within the k-neighbourhood. Supports directed modes.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, local_scan_k_ecount, DegreeMode};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// let res = local_scan_k_ecount(&g, 2, None, DegreeMode::All).unwrap();
+/// assert!((res[0] - 2.0).abs() < 1e-10);
+/// assert!((res[1] - 3.0).abs() < 1e-10);
+/// ```
+pub fn local_scan_k_ecount(
+    graph: &Graph,
+    k: u32,
+    weights: Option<&[f64]>,
+    mode: DegreeMode,
+) -> IgraphResult<Vec<f64>> {
+    if let Some(w) = weights {
+        if w.len() != graph.ecount() {
+            return Err(IgraphError::InvalidArgument(format!(
+                "local_scan_k_ecount: weights length ({}) != edge count ({})",
+                w.len(),
+                graph.ecount()
+            )));
+        }
+    }
+
+    let n = graph.vcount();
+    let n_usize = n as usize;
+    let ecount = graph.ecount();
+    let mut result = vec![0.0_f64; n_usize];
+
+    if n == 0 || ecount == 0 {
+        return Ok(result);
+    }
+
+    let undirected_or_all = mode == DegreeMode::All || !graph.is_directed();
+    let mut marker: Vec<i64> = vec![-1; n_usize];
+    let mut queue: VecDeque<(VertexId, u32)> = VecDeque::new();
+
+    for node in 0..n {
+        let node_i = i64::from(node);
+        queue.clear();
+        queue.push_back((node, 0));
+        marker[node as usize] = node_i;
+
+        while let Some((act, dist)) = queue.pop_front() {
+            let next_dist = dist
+                .checked_add(1)
+                .ok_or(IgraphError::Internal("k-scan distance overflow"))?;
+            let edges = incident_with_mode(graph, act, mode)?;
+
+            for &e in &edges {
+                let nei = graph.edge_other(e, act)?;
+                let w = weights.map_or(1.0, |ws| ws[e as usize]);
+
+                if next_dist <= k || marker[nei as usize] == node_i {
+                    result[node as usize] += w;
+                }
+
+                if next_dist <= k && marker[nei as usize] != node_i {
+                    queue.push_back((nei, next_dist));
+                    marker[nei as usize] = node_i;
+                }
+            }
+        }
+
+        if undirected_or_all {
+            result[node as usize] /= 2.0;
+        }
+    }
+
+    Ok(result)
+}
+
+/// Mode-aware local scan-k on two graphs.
+///
+/// Counts edges from `them` whose both endpoints lie within the
+/// k-neighbourhood defined by BFS in `us`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, local_scan_k_ecount_them, DegreeMode};
+///
+/// let mut us = Graph::with_vertices(3);
+/// us.add_edge(0, 1).unwrap();
+/// us.add_edge(1, 2).unwrap();
+/// let mut them = Graph::with_vertices(3);
+/// them.add_edge(0, 1).unwrap();
+/// them.add_edge(1, 2).unwrap();
+/// them.add_edge(0, 2).unwrap();
+/// let res = local_scan_k_ecount_them(&us, &them, 2, None, DegreeMode::All).unwrap();
+/// assert!((res[0] - 3.0).abs() < 1e-10);
+/// ```
+pub fn local_scan_k_ecount_them(
+    us: &Graph,
+    them: &Graph,
+    k: u32,
+    weights_them: Option<&[f64]>,
+    mode: DegreeMode,
+) -> IgraphResult<Vec<f64>> {
+    if us.vcount() != them.vcount() {
+        return Err(IgraphError::InvalidArgument(
+            "local_scan_k_ecount_them: vertex count mismatch".to_string(),
+        ));
+    }
+    if us.is_directed() != them.is_directed() {
+        return Err(IgraphError::InvalidArgument(
+            "local_scan_k_ecount_them: directedness mismatch".to_string(),
+        ));
+    }
+    if let Some(w) = weights_them {
+        if w.len() != them.ecount() {
+            return Err(IgraphError::InvalidArgument(format!(
+                "local_scan_k_ecount_them: weight vector length {} != them edge count {}",
+                w.len(),
+                them.ecount()
+            )));
+        }
+    }
+
+    let n = us.vcount();
+    let n_usize = n as usize;
+    let mut result = vec![0.0_f64; n_usize];
+    let mut marker: Vec<i64> = vec![-1; n_usize];
+    let undirected_or_all = mode == DegreeMode::All || !us.is_directed();
+
+    let mut queue: VecDeque<(VertexId, u32)> = VecDeque::new();
+    let mut marked_vertices: Vec<VertexId> = Vec::new();
+
+    for node in 0..n {
+        let node_i = i64::from(node);
+        queue.clear();
+        marked_vertices.clear();
+
+        queue.push_back((node, 0));
+        marker[node as usize] = node_i;
+        marked_vertices.push(node);
+
+        while let Some((act, dist)) = queue.pop_front() {
+            let next_dist = dist
+                .checked_add(1)
+                .ok_or(IgraphError::Internal("k-scan distance overflow"))?;
+            let edges = incident_with_mode(us, act, mode)?;
+
+            for &e in &edges {
+                let nei = us.edge_other(e, act)?;
+                if next_dist <= k && marker[nei as usize] != node_i {
+                    queue.push_back((nei, next_dist));
+                    marker[nei as usize] = node_i;
+                    marked_vertices.push(nei);
+                }
+            }
+        }
+
+        for &mv in &marked_vertices {
+            let them_edges = incident_with_mode(them, mv, mode)?;
+            for &e in &them_edges {
+                let nei = them.edge_other(e, mv)?;
+                if marker[nei as usize] == node_i {
+                    let w = weights_them.map_or(1.0, |ws| ws[e as usize]);
+                    result[node as usize] += w;
+                }
+            }
+        }
+
+        if undirected_or_all {
+            result[node as usize] /= 2.0;
+        }
     }
 
     Ok(result)

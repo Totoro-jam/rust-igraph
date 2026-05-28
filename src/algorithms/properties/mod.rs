@@ -141,8 +141,11 @@ pub use joint_type_distribution::joint_type_distribution;
 pub use knn::avg_nearest_neighbor_degree;
 pub use laplacian::{LaplacianNormalization, get_laplacian};
 pub use list_triangles::list_triangles;
-pub use local_scan::local_scan_1;
-pub use local_scan_k::local_scan_k;
+pub use local_scan::{
+    local_scan_0, local_scan_0_them, local_scan_1, local_scan_1_ecount, local_scan_1_ecount_them,
+    local_scan_subset_ecount,
+};
+pub use local_scan_k::{local_scan_k, local_scan_k_ecount, local_scan_k_ecount_them};
 pub use mean_distance_weighted::mean_distance_weighted;
 pub use multiplicity::{count_loops, count_multiple, has_loop, has_multiple, is_loop, is_multiple};
 pub use mutual::{count_mutual, has_mutual, is_mutual};
