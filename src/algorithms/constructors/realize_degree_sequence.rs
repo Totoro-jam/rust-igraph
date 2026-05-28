@@ -115,7 +115,7 @@ pub fn realize_degree_sequence(
         vd.swap_remove(hub_pos);
 
         // Sort remaining by degree descending to find top-d neighbors
-        vd.sort_unstable_by(|a, b| b.1.cmp(&a.1));
+        vd.sort_unstable_by_key(|x| std::cmp::Reverse(x.1));
 
         let d = hub_degree as usize;
         if d > vd.len() {

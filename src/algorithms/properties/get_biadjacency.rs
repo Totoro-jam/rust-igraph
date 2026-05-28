@@ -8,7 +8,7 @@
 
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
-/// Result of [`get_biadjacency`].
+/// Result of [`get_biadjacency_matrix`].
 #[derive(Debug, Clone)]
 pub struct GetBiadjacencyResult {
     /// Row-major `n1 × n2` biadjacency matrix.

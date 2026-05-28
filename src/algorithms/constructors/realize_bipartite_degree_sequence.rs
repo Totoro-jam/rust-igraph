@@ -129,8 +129,8 @@ fn realize_largest_or_smallest(
 ) -> IgraphResult<()> {
     while !vd1.is_empty() && !vd2.is_empty() {
         // Sort both partitions by degree descending
-        vd1.sort_unstable_by(|a, b| b.1.cmp(&a.1));
-        vd2.sort_unstable_by(|a, b| b.1.cmp(&a.1));
+        vd1.sort_unstable_by_key(|x| std::cmp::Reverse(x.1));
+        vd2.sort_unstable_by_key(|x| std::cmp::Reverse(x.1));
 
         // Select the hub: from the partition that has the largest (or smallest) degree vertex
         let (src_vs, dest_vs) = if largest {
@@ -208,7 +208,7 @@ fn realize_index(
     // highest-degree vertices in partition 2.
     while !vd1.is_empty() && !vd2.is_empty() {
         // Sort partition 2 by degree descending
-        vd2.sort_unstable_by(|a, b| b.1.cmp(&a.1));
+        vd2.sort_unstable_by_key(|x| std::cmp::Reverse(x.1));
 
         let hub = vd1.remove(0);
 
