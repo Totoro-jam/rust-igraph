@@ -51,7 +51,7 @@ pub use products::{
 };
 pub use reverse::{reverse, reverse_edges};
 pub use rewire::rewire;
-pub use rewire_edges::rewire_edges;
+pub use rewire_edges::{RewireDirectedMode, rewire_directed_edges, rewire_edges};
 pub use simplify::simplify;
 pub use subgraph_from_edges::{SubgraphFromEdgesResult, subgraph_from_edges};
 pub use to_directed::{ToDirectedMode, to_directed};

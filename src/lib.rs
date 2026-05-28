@@ -270,7 +270,9 @@ pub use crate::algorithms::operators::products::{
 };
 pub use crate::algorithms::operators::reverse::{reverse, reverse_edges};
 pub use crate::algorithms::operators::rewire::rewire;
-pub use crate::algorithms::operators::rewire_edges::rewire_edges;
+pub use crate::algorithms::operators::rewire_edges::{
+    RewireDirectedMode, rewire_directed_edges, rewire_edges,
+};
 pub use crate::algorithms::operators::simplify::simplify;
 pub use crate::algorithms::operators::subgraph_from_edges::{
     SubgraphFromEdgesResult, subgraph_from_edges,
