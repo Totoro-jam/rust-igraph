@@ -260,6 +260,7 @@ pub use crate::algorithms::operators::contract_vertices::contract_vertices;
 pub use crate::algorithms::operators::difference::difference;
 pub use crate::algorithms::operators::disjoint_union::{disjoint_union, disjoint_union_many};
 pub use crate::algorithms::operators::induced_subgraph::{InducedSubgraphResult, induced_subgraph};
+pub use crate::algorithms::operators::induced_subgraph_edges::induced_subgraph_edges;
 pub use crate::algorithms::operators::intersection::intersection;
 pub use crate::algorithms::operators::is_same_graph::is_same_graph;
 pub use crate::algorithms::operators::join::join;
