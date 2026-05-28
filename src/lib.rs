@@ -327,7 +327,7 @@ pub use crate::algorithms::paths::edge_path_to_vertex_path::{
     WalkMode, vertex_path_from_edge_path,
 };
 pub use crate::algorithms::paths::eulerian::{EulerianClassification, is_eulerian};
-pub use crate::algorithms::paths::eulerian_construct::eulerian_path;
+pub use crate::algorithms::paths::eulerian_construct::{eulerian_cycle, eulerian_path};
 pub use crate::algorithms::paths::floyd_warshall::floyd_warshall_distances;
 pub use crate::algorithms::paths::graph_center::{
     PseudoDiameterResult, graph_center, pseudo_diameter,

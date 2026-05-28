@@ -13,6 +13,58 @@ use crate::algorithms::paths::eulerian::is_eulerian;
 use crate::core::graph::EdgeId;
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
+/// Build an Eulerian cycle if one exists, or return an error.
+///
+/// Unlike [`eulerian_path`], this function requires that every vertex
+/// with nonzero degree has even degree (undirected) or equal in-/out-degree
+/// (directed). Returns `Err` if no Eulerian cycle exists.
+///
+/// Counterpart of `igraph_eulerian_cycle()` from
+/// `references/igraph/src/paths/eulerian.c:594`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, eulerian_cycle};
+///
+/// // Triangle 0-1-2-0: every vertex has even degree → cycle exists.
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// let cycle = eulerian_cycle(&g).unwrap();
+/// assert_eq!(cycle.len(), 3);
+///
+/// // Path 0-1-2: has Euler path but no Euler cycle → error.
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// assert!(eulerian_cycle(&g).is_err());
+/// ```
+pub fn eulerian_cycle(graph: &Graph) -> IgraphResult<Vec<EdgeId>> {
+    let cls = is_eulerian(graph)?;
+    if !cls.has_cycle {
+        return Err(IgraphError::InvalidArgument(
+            "the graph does not have an Eulerian cycle".to_string(),
+        ));
+    }
+
+    let m = graph.ecount();
+    if m == 0 {
+        return Ok(Vec::new());
+    }
+
+    // Delegate to the Hierholzer implementation in eulerian_path.
+    // Since has_cycle is true, eulerian_path will also succeed and
+    // produce a cycle (the walk starts and ends at the same vertex).
+    match eulerian_path(graph)? {
+        Some(edges) => Ok(edges),
+        None => Err(IgraphError::Internal(
+            "has_cycle is true but eulerian_path returned None",
+        )),
+    }
+}
+
 /// Build an Eulerian path or cycle for `graph` if one exists.
 /// Returns `Some(edge_ids)` (the walk visits each edge exactly once)
 /// or `None` if no Eulerian walk exists.
@@ -338,6 +390,84 @@ mod tests {
         g.add_edge(1, 2).unwrap();
         g.add_edge(0, 2).unwrap();
         assert_eq!(eulerian_path(&g).unwrap(), None);
+    }
+
+    // ---- eulerian_cycle tests ----
+
+    #[test]
+    fn cycle_triangle() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        let cycle = eulerian_cycle(&g).unwrap();
+        assert_eq!(cycle.len(), 3);
+        assert!(walk_validates(&g, &cycle));
+    }
+
+    #[test]
+    fn cycle_ring5() {
+        let mut g = Graph::with_vertices(5);
+        for i in 0..5u32 {
+            g.add_edge(i, (i + 1) % 5).unwrap();
+        }
+        let cycle = eulerian_cycle(&g).unwrap();
+        assert_eq!(cycle.len(), 5);
+        assert!(walk_validates(&g, &cycle));
+    }
+
+    #[test]
+    fn cycle_empty_graph() {
+        let g = Graph::with_vertices(0);
+        let cycle = eulerian_cycle(&g).unwrap();
+        assert!(cycle.is_empty());
+    }
+
+    #[test]
+    fn cycle_isolated_vertices() {
+        let g = Graph::with_vertices(4);
+        let cycle = eulerian_cycle(&g).unwrap();
+        assert!(cycle.is_empty());
+    }
+
+    #[test]
+    fn cycle_path_graph_errors() {
+        // Path 0-1-2 has Euler path but no cycle.
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        assert!(eulerian_cycle(&g).is_err());
+    }
+
+    #[test]
+    fn cycle_k4_errors() {
+        // K4: 4 odd-degree vertices → no Euler path or cycle.
+        let mut g = Graph::with_vertices(4);
+        for u in 0..4u32 {
+            for v in (u + 1)..4 {
+                g.add_edge(u, v).unwrap();
+            }
+        }
+        assert!(eulerian_cycle(&g).is_err());
+    }
+
+    #[test]
+    fn cycle_directed_3cycle() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        let cycle = eulerian_cycle(&g).unwrap();
+        assert_eq!(cycle.len(), 3);
+    }
+
+    #[test]
+    fn cycle_directed_path_errors() {
+        // 0->1->2: directed Euler path but no cycle.
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        assert!(eulerian_cycle(&g).is_err());
     }
 
     #[test]

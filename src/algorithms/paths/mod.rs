@@ -44,7 +44,7 @@ pub use distances_all::{DistancesMode, distances_all, distances_all_with_mode};
 pub use distances_from::{DistancesFromMode, distances_from, distances_from_with_mode};
 pub use edge_path_to_vertex_path::{WalkMode, vertex_path_from_edge_path};
 pub use eulerian::{EulerianClassification, is_eulerian};
-pub use eulerian_construct::eulerian_path;
+pub use eulerian_construct::{eulerian_cycle, eulerian_path};
 pub use floyd_warshall::floyd_warshall_distances;
 pub use graph_center::{PseudoDiameterResult, graph_center, pseudo_diameter};
 pub use histogram::{PathLengthHistResult, path_length_hist};
