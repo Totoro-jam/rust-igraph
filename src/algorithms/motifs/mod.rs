@@ -2,11 +2,15 @@
 //!
 //! - Dyad census (ALGO-MO-001): counts mutual, asymmetric, and null dyads.
 //! - Triad census (ALGO-MO-002): classifies all vertex triples into 16 types.
+//! - Graph count (ALGO-MO-003): number of non-isomorphic graphs.
+//! - Isoclass (ALGO-MO-004): isomorphism class classification for small graphs.
 
 pub mod graph_count;
+pub mod isoclass;
 pub mod triad_census;
 
 pub use graph_count::graph_count;
+pub use isoclass::{isoclass, isoclass_create, isoclass_subgraph};
 pub use triad_census::{TriadCensus, TriadType, triad_census};
 
 use crate::core::{Graph, IgraphResult, VertexId};

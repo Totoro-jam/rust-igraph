@@ -260,7 +260,8 @@ pub use crate::algorithms::matching::{
 pub use crate::algorithms::matching_lsap::solve_lsap;
 pub use crate::algorithms::minimum_cycle_basis::minimum_cycle_basis;
 pub use crate::algorithms::motifs::{
-    DyadCensus, TriadCensus, TriadType, dyad_census, graph_count, triad_census,
+    DyadCensus, TriadCensus, TriadType, dyad_census, graph_count, isoclass, isoclass_create,
+    isoclass_subgraph, triad_census,
 };
 pub use crate::algorithms::operators::bipartite_projection::{
     BipartiteProjection, bipartite_projection,
