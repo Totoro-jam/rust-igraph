@@ -661,6 +661,144 @@ fn choose_pivot(
     best
 }
 
+/// Finds all cliques (complete subgraphs) in the graph within a size range.
+///
+/// Returns all cliques of size `min_size..=max_size`. Unlike
+/// [`maximal_cliques`], this includes non-maximal cliques (subsets of
+/// larger cliques). If `max_results` is `Some(n)`, at most `n` cliques
+/// are returned.
+///
+/// Edge directions are ignored for directed graphs.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, cliques};
+///
+/// // Triangle 0-1-2: contains 3 edges (cliques of size 2) + 1 triangle (size 3)
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// let all = cliques(&g, 2, 3, None).unwrap();
+/// assert_eq!(all.len(), 4); // 3 edges + 1 triangle
+/// ```
+pub fn cliques(
+    graph: &Graph,
+    min_size: u32,
+    max_size: u32,
+    max_results: Option<usize>,
+) -> IgraphResult<Vec<Vec<VertexId>>> {
+    let n = graph.vcount();
+    if n == 0 || min_size > n || max_size == 0 {
+        return Ok(Vec::new());
+    }
+
+    let min_sz = if min_size == 0 { 1 } else { min_size } as usize;
+    let max_sz = max_size as usize;
+    let limit = max_results.unwrap_or(usize::MAX);
+
+    let adj = build_neighbor_set(graph)?;
+    let mut result: Vec<Vec<VertexId>> = Vec::new();
+
+    // Enumerate all cliques using backtracking: for each vertex v (in
+    // order), extend the current clique with v if v is adjacent to all
+    // vertices already in the clique.
+    let mut current: Vec<VertexId> = Vec::new();
+    enumerate_cliques(&adj, &mut current, 0, n, min_sz, max_sz, limit, &mut result);
+
+    Ok(result)
+}
+
+/// Finds all independent vertex sets within a size range.
+///
+/// An independent set is a set of vertices with no edges between them.
+/// Returns all independent sets of size `min_size..=max_size`.
+/// If `max_results` is `Some(n)`, at most `n` sets are returned.
+///
+/// Edge directions are ignored for directed graphs.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, independent_vertex_sets};
+///
+/// // Path 0-1-2: independent sets of size 2 are {0,2}
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let sets = independent_vertex_sets(&g, 2, 3, None).unwrap();
+/// assert_eq!(sets.len(), 1);
+/// assert_eq!(sets[0], vec![0, 2]);
+/// ```
+pub fn independent_vertex_sets(
+    graph: &Graph,
+    min_size: u32,
+    max_size: u32,
+    max_results: Option<usize>,
+) -> IgraphResult<Vec<Vec<VertexId>>> {
+    let n = graph.vcount();
+    if n == 0 || min_size > n || max_size == 0 {
+        return Ok(Vec::new());
+    }
+
+    let min_sz = if min_size == 0 { 1 } else { min_size } as usize;
+    let max_sz = max_size as usize;
+    let limit = max_results.unwrap_or(usize::MAX);
+
+    let adj = build_complement_neighbor_set(graph)?;
+    let mut result: Vec<Vec<VertexId>> = Vec::new();
+
+    let mut current: Vec<VertexId> = Vec::new();
+    enumerate_cliques(&adj, &mut current, 0, n, min_sz, max_sz, limit, &mut result);
+
+    Ok(result)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn enumerate_cliques(
+    adj: &[Vec<VertexId>],
+    current: &mut Vec<VertexId>,
+    start: u32,
+    n: u32,
+    min_sz: usize,
+    max_sz: usize,
+    limit: usize,
+    result: &mut Vec<Vec<VertexId>>,
+) {
+    let cur_len = current.len();
+
+    if cur_len >= min_sz {
+        let mut clique = current.clone();
+        clique.sort_unstable();
+        result.push(clique);
+        if result.len() >= limit {
+            return;
+        }
+    }
+
+    if cur_len >= max_sz {
+        return;
+    }
+
+    for v in start..n {
+        // v must be adjacent to all vertices in current.
+        let v_adj = &adj[v as usize];
+        let all_connected = current.iter().all(|&u| v_adj.contains(&u));
+        if !all_connected {
+            continue;
+        }
+
+        current.push(v);
+        enumerate_cliques(adj, current, v + 1, n, min_sz, max_sz, limit, result);
+        current.pop();
+
+        if result.len() >= limit {
+            return;
+        }
+    }
+}
+
 /// Build undirected neighbor lists (ignoring edge direction).
 fn build_neighbor_set(graph: &Graph) -> IgraphResult<Vec<Vec<VertexId>>> {
     let n = graph.vcount() as usize;
@@ -1074,5 +1212,109 @@ mod tests {
         let hist = clique_size_hist(&g).unwrap();
         // 3 cliques of size 2
         assert_eq!(hist, vec![0, 0, 3]);
+    }
+
+    // --- cliques (all) tests ---
+
+    #[test]
+    fn test_cliques_triangle() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(0, 2).unwrap();
+        let all = cliques(&g, 1, 3, None).unwrap();
+        // 3 singles + 3 edges + 1 triangle = 7
+        assert_eq!(all.len(), 7);
+    }
+
+    #[test]
+    fn test_cliques_size_filter() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(0, 2).unwrap();
+        // Only size 2
+        let edges = cliques(&g, 2, 2, None).unwrap();
+        assert_eq!(edges.len(), 3);
+        for c in &edges {
+            assert_eq!(c.len(), 2);
+        }
+    }
+
+    #[test]
+    fn test_cliques_max_results() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(0, 2).unwrap();
+        let limited = cliques(&g, 1, 3, Some(4)).unwrap();
+        assert_eq!(limited.len(), 4);
+    }
+
+    #[test]
+    fn test_cliques_k4_size_3() {
+        let mut g = Graph::with_vertices(4);
+        for i in 0..4u32 {
+            for j in (i + 1)..4 {
+                g.add_edge(i, j).unwrap();
+            }
+        }
+        // C(4,3) = 4 triangles in K4
+        let tri = cliques(&g, 3, 3, None).unwrap();
+        assert_eq!(tri.len(), 4);
+    }
+
+    #[test]
+    fn test_cliques_empty_graph() {
+        let g = Graph::with_vertices(0);
+        assert!(cliques(&g, 1, 5, None).unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_cliques_no_edges_min_2() {
+        let g = Graph::with_vertices(5);
+        let result = cliques(&g, 2, 5, None).unwrap();
+        assert!(result.is_empty());
+    }
+
+    // --- independent_vertex_sets tests ---
+
+    #[test]
+    fn test_ivs_path_size_2() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        // Independent sets of size 2: {0,2}
+        let sets = independent_vertex_sets(&g, 2, 3, None).unwrap();
+        assert_eq!(sets.len(), 1);
+        assert_eq!(sets[0], vec![0, 2]);
+    }
+
+    #[test]
+    fn test_ivs_complete_graph() {
+        let mut g = Graph::with_vertices(4);
+        for i in 0..4u32 {
+            for j in (i + 1)..4 {
+                g.add_edge(i, j).unwrap();
+            }
+        }
+        // In K4, only size-1 independent sets exist
+        let sets = independent_vertex_sets(&g, 2, 4, None).unwrap();
+        assert!(sets.is_empty());
+    }
+
+    #[test]
+    fn test_ivs_no_edges() {
+        let g = Graph::with_vertices(4);
+        // All subsets of size 2 are independent: C(4,2) = 6
+        let sets = independent_vertex_sets(&g, 2, 2, None).unwrap();
+        assert_eq!(sets.len(), 6);
+    }
+
+    #[test]
+    fn test_ivs_max_results() {
+        let g = Graph::with_vertices(5);
+        let sets = independent_vertex_sets(&g, 1, 5, Some(10)).unwrap();
+        assert_eq!(sets.len(), 10);
     }
 }
