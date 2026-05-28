@@ -434,7 +434,7 @@ pub use crate::algorithms::properties::pagerank::pagerank;
 pub use crate::algorithms::properties::pagerank_linsys::pagerank_linsys;
 pub use crate::algorithms::properties::pagerank_weighted::pagerank_weighted;
 pub use crate::algorithms::properties::personalized_pagerank::{
-    personalized_pagerank, personalized_pagerank_default,
+    personalized_pagerank, personalized_pagerank_default, personalized_pagerank_vs,
 };
 pub use crate::algorithms::properties::reciprocity::{
     ReciprocityMode, reciprocity, reciprocity_with_mode,

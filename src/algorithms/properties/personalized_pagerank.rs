@@ -207,6 +207,66 @@ pub fn personalized_pagerank_default(graph: &Graph, reset: &[f64]) -> IgraphResu
     personalized_pagerank(graph, reset, DEFAULT_DAMPING)
 }
 
+/// Personalized `PageRank` with a vertex-set reset distribution.
+///
+/// Convenience wrapper around [`personalized_pagerank`] that constructs
+/// a uniform reset vector over the specified `reset_vids`. Teleportation
+/// probability is distributed equally among the given vertices.
+///
+/// Counterpart of `igraph_personalized_pagerank_vs()`.
+///
+/// # Errors
+///
+/// - `InvalidArgument` if `reset_vids` is empty.
+/// - `InvalidArgument` if any vertex in `reset_vids` is out of range.
+/// - `InvalidArgument` if `damping` is not in (0, 1).
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, personalized_pagerank_vs};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// g.add_edge(3, 0).unwrap();
+/// // Teleport only to vertices 0 and 1
+/// let pr = personalized_pagerank_vs(&g, &[0, 1], 0.85).unwrap();
+/// let sum: f64 = pr.iter().sum();
+/// assert!((sum - 1.0).abs() < 1e-9);
+/// // Vertices 0 and 1 should get more rank than 2 and 3
+/// assert!(pr[0] + pr[1] > pr[2] + pr[3]);
+/// ```
+pub fn personalized_pagerank_vs(
+    graph: &Graph,
+    reset_vids: &[u32],
+    damping: f64,
+) -> IgraphResult<Vec<f64>> {
+    let n = graph.vcount();
+    let n_us = n as usize;
+
+    if reset_vids.is_empty() {
+        return Err(IgraphError::InvalidArgument(
+            "reset_vids must not be empty".into(),
+        ));
+    }
+
+    let mut reset = vec![0.0_f64; n_us];
+    #[allow(clippy::cast_precision_loss)]
+    let weight = 1.0 / reset_vids.len() as f64;
+    for &v in reset_vids {
+        if v >= n {
+            return Err(IgraphError::InvalidArgument(format!(
+                "reset vertex {v} out of range (vcount = {n})"
+            )));
+        }
+        reset[v as usize] += weight;
+    }
+
+    personalized_pagerank(graph, &reset, damping)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -418,5 +478,45 @@ mod tests {
             0.193_068_809_6,
         ];
         close(&pr, &expected, 1e-6);
+    }
+
+    #[test]
+    fn vs_matches_manual_reset() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 0).unwrap();
+
+        let pr_vs = personalized_pagerank_vs(&g, &[0, 1], 0.85).unwrap();
+        let reset = vec![0.5, 0.5, 0.0, 0.0];
+        let pr_manual = personalized_pagerank(&g, &reset, 0.85).unwrap();
+        close(&pr_vs, &pr_manual, 1e-12);
+    }
+
+    #[test]
+    fn vs_single_vertex() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+
+        let pr = personalized_pagerank_vs(&g, &[2], 0.85).unwrap();
+        let sum: f64 = pr.iter().sum();
+        assert!((sum - 1.0).abs() < 1e-9);
+        assert!(pr[2] > pr[0]);
+        assert!(pr[2] > pr[1]);
+    }
+
+    #[test]
+    fn vs_empty_errors() {
+        let g = Graph::with_vertices(3);
+        assert!(personalized_pagerank_vs(&g, &[], 0.85).is_err());
+    }
+
+    #[test]
+    fn vs_out_of_range_errors() {
+        let g = Graph::with_vertices(3);
+        assert!(personalized_pagerank_vs(&g, &[5], 0.85).is_err());
     }
 }

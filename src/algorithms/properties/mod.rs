@@ -153,7 +153,9 @@ pub use neighborhood::{
 pub use pagerank::pagerank;
 pub use pagerank_linsys::pagerank_linsys;
 pub use pagerank_weighted::pagerank_weighted;
-pub use personalized_pagerank::{personalized_pagerank, personalized_pagerank_default};
+pub use personalized_pagerank::{
+    personalized_pagerank, personalized_pagerank_default, personalized_pagerank_vs,
+};
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
 pub use rich_club::rich_club_sequence;
 pub use running_mean::{expand_path_to_pairs, running_mean};
