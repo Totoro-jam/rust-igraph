@@ -350,6 +350,7 @@ pub use crate::algorithms::properties::assortativity_weighted::{
 };
 pub use crate::algorithms::properties::basic::{density, mean_degree, mean_distance};
 pub use crate::algorithms::properties::betweenness::betweenness;
+pub use crate::algorithms::properties::betweenness_cutoff::betweenness_cutoff;
 pub use crate::algorithms::properties::betweenness_weighted::betweenness_weighted;
 pub use crate::algorithms::properties::centralization::{
     CentralizationMode, LoopMode, centralization, centralization_betweenness_tmax,

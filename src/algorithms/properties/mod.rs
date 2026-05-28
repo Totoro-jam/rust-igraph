@@ -15,6 +15,7 @@ pub(crate) mod assortativity_nominal;
 pub(crate) mod assortativity_weighted;
 pub(crate) mod basic;
 pub(crate) mod betweenness;
+pub(crate) mod betweenness_cutoff;
 pub(crate) mod betweenness_weighted;
 pub(crate) mod centralization;
 pub(crate) mod closeness;
@@ -86,6 +87,7 @@ pub use assortativity_weighted::{
 };
 pub use basic::{density, mean_degree, mean_distance};
 pub use betweenness::betweenness;
+pub use betweenness_cutoff::betweenness_cutoff;
 pub use betweenness_weighted::betweenness_weighted;
 pub use centralization::{
     CentralizationMode, LoopMode, centralization, centralization_betweenness_tmax,
