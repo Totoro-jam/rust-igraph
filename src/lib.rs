@@ -113,7 +113,9 @@ pub use crate::algorithms::connectivity::percolation::{
 };
 pub use crate::algorithms::connectivity::reachability::count_reachable;
 pub use crate::algorithms::connectivity::reachability_matrix::reachability_matrix;
-pub use crate::algorithms::connectivity::separators::{is_minimal_separator, is_separator};
+pub use crate::algorithms::connectivity::separators::{
+    all_minimal_st_separators, is_minimal_separator, is_separator,
+};
 pub use crate::algorithms::connectivity::strong::strongly_connected_components;
 pub use crate::algorithms::connectivity::subcomponent::{SubcomponentMode, subcomponent};
 pub use crate::algorithms::connectivity::transitive_closure::transitive_closure;

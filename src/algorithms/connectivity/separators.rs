@@ -188,6 +188,201 @@ fn bfs_count(graph: &Graph, start: u32, removed: &[bool]) -> IgraphResult<usize>
     Ok(count)
 }
 
+/// List all vertex sets that are minimal (s,t) separators for some s and t.
+///
+/// A vertex set S is a *minimal (s,t) separator* if removing S disconnects
+/// s from t, and no proper subset of S does the same for that pair.
+///
+/// This function enumerates ALL such sets (for all possible pairs s,t).
+/// Note that a returned separator may not be minimal with respect to
+/// *disconnecting the graph* — see the igraph docs for details.
+///
+/// Based on Berry, Bordat & Cogis (1999): "Generating All the Minimal
+/// Separators of a Graph".
+///
+/// Edge directions are ignored (the graph is treated as undirected).
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, all_minimal_st_separators};
+///
+/// // Path 0-1-2-3-4-1 (pentagon with chord):
+/// // edges: 0-1, 1-2, 2-3, 3-4, 4-1
+/// let mut g = Graph::with_vertices(5);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// g.add_edge(3, 4).unwrap();
+/// g.add_edge(4, 1).unwrap();
+/// let seps = all_minimal_st_separators(&g).unwrap();
+/// // Should contain {1}, {2,4}, {1,3}
+/// assert!(seps.iter().any(|s| s == &[1]));
+/// assert!(seps.iter().any(|s| s == &[2, 4]));
+/// assert!(seps.iter().any(|s| s == &[1, 3]));
+/// ```
+pub fn all_minimal_st_separators(graph: &Graph) -> IgraphResult<Vec<Vec<VertexId>>> {
+    let n = graph.vcount() as usize;
+    if n == 0 {
+        return Ok(Vec::new());
+    }
+
+    let adj = build_adj_undirected(graph)?;
+
+    let mut separators: Vec<Vec<VertexId>> = Vec::new();
+    let mut mark: Vec<u32> = vec![0; n];
+    let mut stamp: u32 = 1;
+
+    // Phase 1 (Initialization): For each vertex v, mark N[v] as removed,
+    // find components in remaining graph, compute N(C) for each component.
+    for v in 0..n {
+        advance_stamp(&mut mark, &mut stamp, n);
+        mark[v] = stamp;
+        for &nb in &adj[v] {
+            mark[nb as usize] = stamp;
+        }
+
+        let components = find_components_leaveout(&adj, &mark, stamp, n);
+        store_separators(&adj, &components, &mut mark, &mut separators, &mut stamp, n);
+    }
+
+    // Phase 2 (Generation): Use found separators as basis to find more.
+    let mut try_next = 0;
+    while try_next < separators.len() {
+        let basis = separators[try_next].clone();
+        for &x in &basis {
+            advance_stamp(&mut mark, &mut stamp, n);
+            for &sv in &basis {
+                mark[sv as usize] = stamp;
+            }
+            for &nb in &adj[x as usize] {
+                mark[nb as usize] = stamp;
+            }
+
+            let components = find_components_leaveout(&adj, &mark, stamp, n);
+            store_separators(&adj, &components, &mut mark, &mut separators, &mut stamp, n);
+        }
+        try_next += 1;
+    }
+
+    Ok(separators)
+}
+
+fn build_adj_undirected(graph: &Graph) -> IgraphResult<Vec<Vec<VertexId>>> {
+    let n = graph.vcount() as usize;
+    let mut adj: Vec<Vec<VertexId>> = vec![Vec::new(); n];
+    let m = graph.ecount();
+    for eid in 0..m {
+        let eid32 = u32::try_from(eid).map_err(|_| {
+            IgraphError::InvalidArgument("all_minimal_st_separators: edge id overflow".into())
+        })?;
+        let (from, to) = graph.edge(eid32)?;
+        adj[from as usize].push(to);
+        if from != to {
+            adj[to as usize].push(from);
+        }
+    }
+    Ok(adj)
+}
+
+/// Find connected components among vertices not marked with `stamp`.
+/// Returns a list of components; each component is a Vec of vertex ids.
+fn find_components_leaveout(
+    adj: &[Vec<VertexId>],
+    mark: &[u32],
+    stamp: u32,
+    n: usize,
+) -> Vec<Vec<VertexId>> {
+    let mut visited = vec![false; n];
+    let mut components: Vec<Vec<VertexId>> = Vec::new();
+    let mut queue: VecDeque<VertexId> = VecDeque::new();
+
+    for i in 0..n {
+        if mark[i] == stamp || visited[i] {
+            continue;
+        }
+
+        let mut comp: Vec<VertexId> = Vec::new();
+        #[allow(clippy::cast_possible_truncation)]
+        let i_v = i as VertexId;
+        visited[i] = true;
+        queue.push_back(i_v);
+        comp.push(i_v);
+
+        while let Some(cur) = queue.pop_front() {
+            for &nb in &adj[cur as usize] {
+                let nb_us = nb as usize;
+                if mark[nb_us] == stamp || visited[nb_us] {
+                    continue;
+                }
+                visited[nb_us] = true;
+                queue.push_back(nb);
+                comp.push(nb);
+            }
+        }
+
+        components.push(comp);
+    }
+
+    components
+}
+
+/// For each component C, compute N(C) = vertices adjacent to C but not in C.
+/// Since C is a connected component of G - S, N(C) ⊆ S. Store as a new
+/// separator if not already seen. Advances `cur_stamp` afterward.
+fn store_separators(
+    adj: &[Vec<VertexId>],
+    components: &[Vec<VertexId>],
+    mark: &mut [u32],
+    separators: &mut Vec<Vec<VertexId>>,
+    cur_stamp: &mut u32,
+    n: usize,
+) {
+    for comp in components {
+        advance_stamp(mark, cur_stamp, n);
+        let comp_stamp = *cur_stamp;
+
+        // Mark component vertices
+        for &v in comp {
+            mark[v as usize] = comp_stamp;
+        }
+
+        // Collect neighbors not in C (they must be in the separator S)
+        let mut neighborhood: Vec<VertexId> = Vec::new();
+        for &v in comp {
+            for &nb in &adj[v as usize] {
+                let nb_us = nb as usize;
+                if mark[nb_us] != comp_stamp {
+                    mark[nb_us] = comp_stamp;
+                    neighborhood.push(nb);
+                }
+            }
+        }
+
+        if neighborhood.is_empty() {
+            continue;
+        }
+
+        neighborhood.sort_unstable();
+
+        if !separators.contains(&neighborhood) {
+            separators.push(neighborhood);
+        }
+    }
+
+    advance_stamp(mark, cur_stamp, n);
+}
+
+fn advance_stamp(mark: &mut [u32], stamp: &mut u32, _n: usize) {
+    *stamp = stamp.wrapping_add(1);
+    if *stamp == 0 {
+        for m in mark.iter_mut() {
+            *m = 0;
+        }
+        *stamp = 1;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -373,5 +568,133 @@ mod tests {
         g.add_edge(3, 4).unwrap();
         g.add_edge(4, 2).unwrap();
         assert!(is_minimal_separator(&g, &[2]).unwrap());
+    }
+
+    // --- all_minimal_st_separators tests ---
+
+    #[test]
+    fn all_min_sep_empty_graph() {
+        let g = Graph::with_vertices(0);
+        let seps = all_minimal_st_separators(&g).unwrap();
+        assert!(seps.is_empty());
+    }
+
+    #[test]
+    fn all_min_sep_single_vertex() {
+        let g = Graph::with_vertices(1);
+        let seps = all_minimal_st_separators(&g).unwrap();
+        assert!(seps.is_empty());
+    }
+
+    #[test]
+    fn all_min_sep_single_edge() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        let seps = all_minimal_st_separators(&g).unwrap();
+        // Complete graph K2 has no separators
+        assert!(seps.is_empty());
+    }
+
+    #[test]
+    fn all_min_sep_path_3() {
+        // Path 0-1-2: {1} is the only minimal (s,t) separator
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let seps = all_minimal_st_separators(&g).unwrap();
+        assert_eq!(seps.len(), 1);
+        assert_eq!(seps[0], vec![1]);
+    }
+
+    #[test]
+    fn all_min_sep_path_5() {
+        // Path 0-1-2-3-4: separators {1}, {2}, {3}
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 4).unwrap();
+        let seps = all_minimal_st_separators(&g).unwrap();
+        assert_eq!(seps.len(), 3);
+        assert!(seps.contains(&vec![1]));
+        assert!(seps.contains(&vec![2]));
+        assert!(seps.contains(&vec![3]));
+    }
+
+    #[test]
+    fn all_min_sep_cycle_4() {
+        // C4: 0-1-2-3-0. Minimal separators: {0,2} and {1,3}
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 0).unwrap();
+        let seps = all_minimal_st_separators(&g).unwrap();
+        assert_eq!(seps.len(), 2);
+        assert!(seps.contains(&vec![0, 2]));
+        assert!(seps.contains(&vec![1, 3]));
+    }
+
+    #[test]
+    fn all_min_sep_pentagon_with_chord() {
+        // 0-1, 1-2, 2-3, 3-4, 4-1 (pentagon where vertex 1 connects to 0 and 4)
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 4).unwrap();
+        g.add_edge(4, 1).unwrap();
+        let seps = all_minimal_st_separators(&g).unwrap();
+        // Should contain {1}, {2,4}, {1,3}
+        assert_eq!(seps.len(), 3);
+        assert!(seps.contains(&vec![1]));
+        assert!(seps.contains(&vec![2, 4]));
+        assert!(seps.contains(&vec![1, 3]));
+    }
+
+    #[test]
+    fn all_min_sep_bowtie() {
+        // Bowtie: triangles {0,1,2} and {2,3,4} sharing vertex 2
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 4).unwrap();
+        g.add_edge(4, 2).unwrap();
+        let seps = all_minimal_st_separators(&g).unwrap();
+        // Only separator is {2}
+        assert_eq!(seps.len(), 1);
+        assert_eq!(seps[0], vec![2]);
+    }
+
+    #[test]
+    fn all_min_sep_complete_graph() {
+        // K4: no vertex set can be a minimal separator
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let seps = all_minimal_st_separators(&g).unwrap();
+        assert!(seps.is_empty());
+    }
+
+    #[test]
+    fn all_min_sep_disconnected() {
+        // Two disconnected edges: 0-1, 2-3
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let seps = all_minimal_st_separators(&g).unwrap();
+        // Empty set separates. Also {0}, {1}, {2}, {3} separate.
+        // But the algorithm finds minimal (s,t) separators which can include
+        // empty set — however igraph convention skips empty separators.
+        // Just check we don't crash and all returned are non-empty.
+        for s in &seps {
+            assert!(!s.is_empty());
+        }
     }
 }
