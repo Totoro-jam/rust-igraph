@@ -453,8 +453,18 @@ PR-049 (`betweenness_cutoff` — range-limited vertex betweenness via depth-boun
 
 PR-050 (`edge_betweenness_cutoff` — range-limited edge betweenness centrality via depth-bounded Brandes; pred stores (VertexId, EdgeId) tuples; uses incident()+edge_other(); undirected results halved; O(V*(V+E)); 9 unit tests + 1 doctest).
 
+PR-051 (`betweenness_subset` — subset-limited vertex betweenness centrality; modified Brandes where only target vertices seed +1 in back-propagation; supports directed/undirected; handles directed-graph-as-undirected via combined out+in neighbors; undirected results halved; O(|S|*(V+E)); 12 unit tests + 1 doctest).
+
+PR-052 (`edge_betweenness_subset` — subset-limited edge betweenness centrality; Brandes with target-only seeding; pred stores (VertexId, EdgeId) tuples; directed-graph-as-undirected via combined incident+incident_in; O(|S|*(V+E)); 10 unit tests + 1 doctest).
+
+PR-053 (`personalized_pagerank_vs` — vertex-set convenience wrapper for personalized PageRank; constructs uniform reset vector over specified vertices then delegates to personalized_pagerank; O(V+E) per iteration; 4 unit tests + 1 doctest).
+
+CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal cliques without full enumeration and histogram of clique sizes; Bron-Kerbosch variants that increment counters instead of storing cliques; O(3^(n/3)) worst case; 10 unit tests + 2 doctests).
+
 ---
 
-**Phase 1 complete (207/207).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (211/211).** Next: Phase 2 (I/O formats for practical utility).
+
+> Update the counters after every PR merge.
 
 > Update the counters after every PR merge.

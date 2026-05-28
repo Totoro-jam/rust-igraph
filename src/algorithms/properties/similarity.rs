@@ -529,6 +529,78 @@ fn sorted_intersection_union_size(a: &[VertexId], b: &[VertexId]) -> (usize, usi
     (isect, union_size)
 }
 
+/// Computes Jaccard similarity coefficients for pairs of vertices
+/// connected by the given edges.
+///
+/// For each edge ID in `eids`, this retrieves the endpoint pair `(u, v)`
+/// and computes the Jaccard similarity between `u` and `v`.
+///
+/// Counterpart of `igraph_similarity_jaccard_es()`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, similarity_jaccard_es};
+///
+/// let mut g = Graph::with_vertices(5);
+/// g.add_edge(0, 2).unwrap(); // edge 0
+/// g.add_edge(0, 3).unwrap(); // edge 1
+/// g.add_edge(1, 2).unwrap(); // edge 2
+/// g.add_edge(1, 3).unwrap(); // edge 3
+/// g.add_edge(1, 4).unwrap(); // edge 4
+/// g.add_edge(0, 1).unwrap(); // edge 5
+///
+/// // Jaccard of edge 5 endpoints (0,1):
+/// // N(0)={1,2,3}, N(1)={0,2,3,4}, intersection={2,3}, union={0,1,2,3,4}
+/// // Jaccard = 2/5 = 0.4
+/// let sim = similarity_jaccard_es(&g, &[5]).unwrap();
+/// assert!((sim[0] - 0.4).abs() < 1e-10);
+/// ```
+pub fn similarity_jaccard_es(graph: &Graph, eids: &[u32]) -> IgraphResult<Vec<f64>> {
+    let pairs: Vec<(VertexId, VertexId)> = eids
+        .iter()
+        .map(|&e| graph.edge(e))
+        .collect::<IgraphResult<Vec<_>>>()?;
+    similarity_jaccard_pairs(graph, &pairs)
+}
+
+/// Computes Dice similarity coefficients for pairs of vertices
+/// connected by the given edges.
+///
+/// For each edge ID in `eids`, this retrieves the endpoint pair `(u, v)`
+/// and computes the Dice similarity between `u` and `v`.
+///
+/// The Dice similarity is related to Jaccard by: `Dice = 2*J / (1+J)`.
+///
+/// Counterpart of `igraph_similarity_dice_es()`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, similarity_dice_es};
+///
+/// let mut g = Graph::with_vertices(5);
+/// g.add_edge(0, 2).unwrap(); // edge 0
+/// g.add_edge(0, 3).unwrap(); // edge 1
+/// g.add_edge(1, 2).unwrap(); // edge 2
+/// g.add_edge(1, 3).unwrap(); // edge 3
+/// g.add_edge(1, 4).unwrap(); // edge 4
+/// g.add_edge(0, 1).unwrap(); // edge 5
+///
+/// // Dice of edge 5 endpoints (0,1):
+/// // N(0)={1,2,3}, N(1)={0,2,3,4}, |intersection|=2, |N(0)|+|N(1)|=7
+/// // Dice = 2*2/7 ≈ 0.5714
+/// let sim = similarity_dice_es(&g, &[5]).unwrap();
+/// assert!((sim[0] - 4.0 / 7.0).abs() < 1e-10);
+/// ```
+pub fn similarity_dice_es(graph: &Graph, eids: &[u32]) -> IgraphResult<Vec<f64>> {
+    let pairs: Vec<(VertexId, VertexId)> = eids
+        .iter()
+        .map(|&e| graph.edge(e))
+        .collect::<IgraphResult<Vec<_>>>()?;
+    similarity_dice_pairs(graph, &pairs)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -919,6 +991,107 @@ mod tests {
                     );
                 }
             }
+        }
+    }
+
+    // --- similarity_jaccard_es / similarity_dice_es tests ---
+
+    #[test]
+    fn test_jaccard_es_matches_pairs() {
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 2).unwrap(); // edge 0
+        g.add_edge(0, 3).unwrap(); // edge 1
+        g.add_edge(1, 2).unwrap(); // edge 2
+        g.add_edge(1, 3).unwrap(); // edge 3
+        g.add_edge(1, 4).unwrap(); // edge 4
+        g.add_edge(0, 1).unwrap(); // edge 5
+
+        let es_result = similarity_jaccard_es(&g, &[0, 5]).unwrap();
+        let pairs_result = similarity_jaccard_pairs(&g, &[(0, 2), (0, 1)]).unwrap();
+        assert!((es_result[0] - pairs_result[0]).abs() < 1e-12);
+        assert!((es_result[1] - pairs_result[1]).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_jaccard_es_empty() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        let result = similarity_jaccard_es(&g, &[]).unwrap();
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_jaccard_es_self_loop() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 0).unwrap(); // self-loop, edge 0
+        g.add_edge(0, 1).unwrap(); // edge 1
+        let result = similarity_jaccard_es(&g, &[0]).unwrap();
+        // self-loop → endpoints are (0,0), Jaccard(0,0) = 1.0
+        assert!((result[0] - 1.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_jaccard_es_invalid_edge_id() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        assert!(similarity_jaccard_es(&g, &[99]).is_err());
+    }
+
+    #[test]
+    fn test_dice_es_matches_pairs() {
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 2).unwrap(); // edge 0
+        g.add_edge(0, 3).unwrap(); // edge 1
+        g.add_edge(1, 2).unwrap(); // edge 2
+        g.add_edge(1, 3).unwrap(); // edge 3
+        g.add_edge(1, 4).unwrap(); // edge 4
+        g.add_edge(0, 1).unwrap(); // edge 5
+
+        let es_result = similarity_dice_es(&g, &[0, 5]).unwrap();
+        let pairs_result = similarity_dice_pairs(&g, &[(0, 2), (0, 1)]).unwrap();
+        assert!((es_result[0] - pairs_result[0]).abs() < 1e-12);
+        assert!((es_result[1] - pairs_result[1]).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_dice_es_empty() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        let result = similarity_dice_es(&g, &[]).unwrap();
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_dice_es_jaccard_relationship() {
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 2).unwrap(); // edge 0
+        g.add_edge(0, 3).unwrap(); // edge 1
+        g.add_edge(1, 2).unwrap(); // edge 2
+        g.add_edge(1, 3).unwrap(); // edge 3
+        g.add_edge(1, 4).unwrap(); // edge 4
+        g.add_edge(0, 1).unwrap(); // edge 5
+
+        let jac = similarity_jaccard_es(&g, &[5]).unwrap();
+        let dice = similarity_dice_es(&g, &[5]).unwrap();
+        let j = jac[0];
+        let expected_d = 2.0 * j / (1.0 + j);
+        assert!((dice[0] - expected_d).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_jaccard_es_all_edges() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap(); // edge 0
+        g.add_edge(1, 2).unwrap(); // edge 1
+        g.add_edge(2, 3).unwrap(); // edge 2
+        g.add_edge(0, 3).unwrap(); // edge 3
+
+        let eids: Vec<u32> = (0..4).collect();
+        let es_result = similarity_jaccard_es(&g, &eids).unwrap();
+        let pairs = [(0u32, 1u32), (1, 2), (2, 3), (0, 3)];
+        let pairs_result = similarity_jaccard_pairs(&g, &pairs).unwrap();
+        for i in 0..4 {
+            assert!((es_result[i] - pairs_result[i]).abs() < 1e-12);
         }
     }
 }
