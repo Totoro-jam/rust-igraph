@@ -12,6 +12,7 @@ pub(crate) mod dijkstra;
 pub(crate) mod distances;
 pub(crate) mod distances_all;
 pub(crate) mod distances_from;
+pub(crate) mod edge_path_to_vertex_path;
 pub(crate) mod eulerian;
 pub(crate) mod eulerian_construct;
 pub(crate) mod floyd_warshall;
@@ -39,6 +40,7 @@ pub use dijkstra::{
 pub use distances::distances;
 pub use distances_all::{DistancesMode, distances_all, distances_all_with_mode};
 pub use distances_from::{DistancesFromMode, distances_from, distances_from_with_mode};
+pub use edge_path_to_vertex_path::{WalkMode, vertex_path_from_edge_path};
 pub use eulerian::{EulerianClassification, is_eulerian};
 pub use eulerian_construct::eulerian_path;
 pub use floyd_warshall::floyd_warshall_distances;

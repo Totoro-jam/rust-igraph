@@ -295,6 +295,9 @@ pub use crate::algorithms::paths::distances_all::{
 pub use crate::algorithms::paths::distances_from::{
     DistancesFromMode, distances_from, distances_from_with_mode,
 };
+pub use crate::algorithms::paths::edge_path_to_vertex_path::{
+    WalkMode, vertex_path_from_edge_path,
+};
 pub use crate::algorithms::paths::eulerian::{EulerianClassification, is_eulerian};
 pub use crate::algorithms::paths::eulerian_construct::eulerian_path;
 pub use crate::algorithms::paths::floyd_warshall::floyd_warshall_distances;
