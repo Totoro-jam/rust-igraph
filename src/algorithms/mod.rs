@@ -18,6 +18,7 @@ pub mod games;
 pub mod io;
 pub mod layout;
 pub mod matching;
+pub mod matching_lsap;
 pub mod minimum_cycle_basis;
 pub mod motifs;
 pub mod operators;
