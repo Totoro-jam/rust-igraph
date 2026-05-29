@@ -414,6 +414,7 @@ pub use crate::algorithms::properties::get_biadjacency::{
 pub use crate::algorithms::properties::get_biadjacency_weighted::{
     GetBiadjacencyWeightedResult, get_biadjacency_weighted,
 };
+pub use crate::algorithms::properties::get_eids::get_eids;
 pub use crate::algorithms::properties::girth::girth;
 pub use crate::algorithms::properties::graphicality::{
     EdgeTypeFilter, is_bigraphical, is_graphical,
