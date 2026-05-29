@@ -4074,3 +4074,70 @@ proptest! {
         }
     }
 }
+
+// ALGO-CN-032: cohesive_blocks (Moody-White) invariants on arbitrary small
+// undirected simple graphs. The result must be internally consistent (all
+// four members index-aligned, root = whole graph, tree shape), each block's
+// reported cohesion must equal the vertex connectivity of its induced
+// subgraph, and every non-root block must be a strict subset of its parent
+// with strictly higher cohesion.
+#[cfg(feature = "proptest-harness")]
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(48))]
+
+    #[test]
+    fn cohesive_blocks_consistent_and_nested(g in arb_graph(7)) {
+        // cohesive_blocks requires a simple graph; collapse multi-edges and
+        // drop self-loops from the arbitrary instance first.
+        let g = rust_igraph::simplify(&g, true, true).unwrap();
+        let n = g.vcount();
+
+        let cb = rust_igraph::cohesive_blocks(&g).unwrap();
+        let nb = cb.blocks.len();
+
+        // Index-aligned members and a well-formed directed block tree.
+        prop_assert_eq!(cb.cohesion.len(), nb);
+        prop_assert_eq!(cb.parent.len(), nb);
+        prop_assert_eq!(cb.block_tree.vcount() as usize, nb);
+        prop_assert!(cb.block_tree.is_directed());
+        let non_root = cb.parent.iter().filter(|&&p| p >= 0).count();
+        prop_assert_eq!(cb.block_tree.ecount() as usize, non_root);
+
+        // Root block 0 is the whole graph, and only the root is parentless.
+        prop_assert_eq!(&cb.blocks[0], &(0..n).collect::<Vec<u32>>());
+        prop_assert_eq!(cb.parent[0], -1);
+        prop_assert_eq!(non_root, nb - 1);
+
+        for i in 0..nb {
+            // Each block is a canonical (sorted, unique) vertex set drawn
+            // from the graph, and its cohesion matches the connectivity of
+            // the induced subgraph.
+            let block = &cb.blocks[i];
+            for w in block.windows(2) {
+                prop_assert!(w[0] < w[1], "block not strictly ascending: {:?}", block);
+            }
+            prop_assert!(block.iter().all(|&v| v < n), "block vertex out of range");
+
+            let sub = rust_igraph::induced_subgraph(&g, block).unwrap();
+            let conn = rust_igraph::vertex_connectivity(&sub.graph, true).unwrap();
+            prop_assert_eq!(cb.cohesion[i], conn,
+                "block {:?} cohesion {} != induced connectivity {}",
+                block, cb.cohesion[i], conn);
+
+            if i == 0 {
+                continue;
+            }
+            // Non-root: parent index valid, child ⊂ parent, child strictly
+            // more cohesive than its parent.
+            let p = cb.parent[i];
+            prop_assert!(p >= 0 && (p as usize) < nb, "bad parent index {}", p);
+            let parent_block = &cb.blocks[p as usize];
+            let pset: std::collections::HashSet<u32> = parent_block.iter().copied().collect();
+            prop_assert!(block.iter().all(|v| pset.contains(v)),
+                "block {:?} not a subset of parent {:?}", block, parent_block);
+            prop_assert!(cb.cohesion[i] > cb.cohesion[p as usize],
+                "block cohesion {} not greater than parent {}",
+                cb.cohesion[i], cb.cohesion[p as usize]);
+        }
+    }
+}

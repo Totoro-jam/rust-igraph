@@ -16955,6 +16955,33 @@ fn minimum_size_separators_three_source_conformance() {
 }
 
 #[test]
+fn cohesive_blocks_three_source_conformance() {
+    // ALGO-CN-032: hierarchical cohesive blocking (Moody-White 2003).
+    // The block enumeration order is implementation-defined, so each
+    // fixture's `expected` carries the canonical set of (sorted block,
+    // cohesion) pairs sorted by (block, cohesion). The runner produces
+    // the same canonical form from the Rust result and compares for
+    // exact equality.
+    run_conformance("cohesive_blocks", |g, _params| {
+        let cb = rust_igraph::cohesive_blocks(g).expect("cohesive_blocks");
+        let mut pairs: Vec<(Vec<u32>, i64)> = cb
+            .blocks
+            .iter()
+            .zip(&cb.cohesion)
+            .map(|(b, &c)| {
+                let mut bb = b.clone();
+                bb.sort_unstable();
+                (bb, c)
+            })
+            .collect();
+        pairs.sort();
+        let blocks: Vec<Vec<u32>> = pairs.iter().map(|(b, _)| b.clone()).collect();
+        let cohesion: Vec<i64> = pairs.iter().map(|(_, c)| *c).collect();
+        serde_json::json!({ "blocks": blocks, "cohesion": cohesion })
+    });
+}
+
+#[test]
 #[allow(clippy::too_many_lines)] // three-source dispatch + Gomory-Hu property check
 fn gomory_hu_tree_three_source_conformance() {
     // ALGO-FL-020: Gomory-Hu cut tree. The tree is not unique (Gusfield

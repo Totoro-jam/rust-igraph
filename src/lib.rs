@@ -105,6 +105,7 @@ pub use crate::algorithms::connectivity::biconnected::{
     BiconnectedComponents, biconnected_components,
 };
 pub use crate::algorithms::connectivity::bridges::bridges;
+pub use crate::algorithms::connectivity::cohesive_blocks::{CohesiveBlocks, cohesive_blocks};
 pub use crate::algorithms::connectivity::components::{ConnectedComponents, connected_components};
 pub use crate::algorithms::connectivity::decompose::decompose;
 pub use crate::algorithms::connectivity::is_biconnected::is_biconnected;

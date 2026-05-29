@@ -859,6 +859,11 @@ name = "bench_subiso"
 path = "benches/bench_subiso.rs"
 harness = false
 
+[[bench]]
+name = "bench_cohesive_blocks"
+path = "benches/bench_cohesive_blocks.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

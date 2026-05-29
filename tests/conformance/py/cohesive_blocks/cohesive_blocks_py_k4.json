@@ -1,0 +1,50 @@
+{
+  "source": "py",
+  "origin": "Graph.Full(4). The complete graph K_4 is a single cohesive block (the whole graph) with cohesion 3.",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "cohesive_blocks",
+  "params": {},
+  "expected": {
+    "blocks": [
+      [
+        0,
+        1,
+        2,
+        3
+      ]
+    ],
+    "cohesion": [
+      3
+    ]
+  }
+}

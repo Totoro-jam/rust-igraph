@@ -4290,6 +4290,91 @@ MINIMUM_SIZE_SEPARATORS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+
+# ALGO-CN-032: cohesive_blocks (Moody-White 2003). R-igraph exposes
+# `cohesive_blocks(graph)` returning a `cohesiveBlocks` object; the
+# documented examples in `R/cohesive.blocks.R` use the Moody-White paper
+# graph and the science-camp social network. The block enumeration order
+# is implementation-defined, so the payload is compared as a canonical
+# set of (sorted block, cohesion) pairs. The expected value is computed
+# here by the oracle itself, so it is authentic by construction. Vertex
+# ids are 0-based here; R reports them 1-based.
+def _cohesive_blocks_expected(g: "ig.Graph") -> Dict[str, Any]:
+    cb = g.cohesive_blocks()
+    pairs = sorted(
+        (sorted(int(v) for v in block), int(c))
+        for block, c in zip(list(cb), cb.cohesions())
+    )
+    return {
+        "blocks": [p[0] for p in pairs],
+        "cohesion": [p[1] for p in pairs],
+    }
+
+
+_CB_MOODY_WHITE = ig.Graph(
+    23,
+    [
+        (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 2), (1, 3), (1, 4),
+        (1, 6), (2, 3), (2, 5), (2, 6), (3, 4), (3, 5), (3, 6), (4, 5),
+        (4, 6), (4, 20), (5, 6), (6, 7), (6, 10), (6, 13), (6, 18),
+        (7, 8), (7, 10), (7, 13), (8, 9), (9, 11), (9, 12), (10, 11),
+        (10, 13), (11, 15), (12, 15), (13, 14), (14, 15), (16, 17),
+        (16, 18), (16, 19), (17, 19), (17, 20), (18, 19), (18, 21),
+        (18, 22), (19, 20), (20, 21), (20, 22), (21, 22),
+    ],
+    directed=False,
+)
+_CB_SCIENCE_CAMP = ig.Graph(
+    18,
+    [
+        (0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (1, 16), (1, 17), (2, 3),
+        (3, 17), (4, 5), (4, 6), (4, 7), (4, 8), (5, 6), (5, 7), (6, 7),
+        (6, 8), (7, 8), (7, 16), (8, 9), (8, 10), (9, 11), (9, 12),
+        (9, 13), (9, 14), (10, 11), (10, 12), (10, 13), (11, 14),
+        (12, 13), (12, 14), (12, 15), (15, 16), (15, 17), (16, 17),
+    ],
+    directed=False,
+)
+COHESIVE_BLOCKS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "cohesive_blocks_r_moody_white",
+        "origin": "R/cohesive.blocks.R @examples — the Moody-White (2003) "
+        "paper graph (23 vertices). Five blocks with cohesions "
+        "{1,2,2,3,5}.",
+        "graph_factory": lambda: _CB_MOODY_WHITE.copy(),
+        "algo": "cohesive_blocks",
+        "params": {},
+        "expected": _cohesive_blocks_expected(_CB_MOODY_WHITE),
+    },
+    {
+        "case": "cohesive_blocks_r_science_camp",
+        "origin": "R/cohesive.blocks.R @examples — the science-camp social "
+        "network (18 vertices). Four blocks with cohesions {2,3,3,3}.",
+        "graph_factory": lambda: _CB_SCIENCE_CAMP.copy(),
+        "algo": "cohesive_blocks",
+        "params": {},
+        "expected": _cohesive_blocks_expected(_CB_SCIENCE_CAMP),
+    },
+    {
+        "case": "cohesive_blocks_r_bull",
+        "origin": "make_graph('bull') — triangle {0,1,2} with horns 0-3 "
+        "and 1-4. The triangle is a cohesion-2 block inside the whole "
+        "cohesion-1 graph.",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (0, 2), (1, 2), (0, 3), (1, 4)],
+            directed=False,
+        ),
+        "algo": "cohesive_blocks",
+        "params": {},
+        "expected": _cohesive_blocks_expected(
+            ig.Graph(
+                n=5, edges=[(0, 1), (0, 2), (1, 2), (0, 3), (1, 4)],
+                directed=False,
+            )
+        ),
+    },
+]
+
 # ALGO-FL-020: gomory_hu_tree. R-igraph exposes
 # `gomory_hu_tree(graph, capacity = NULL)` which returns the cut tree
 # as a Graph with edge attribute "flow" carrying min-cut weights.
@@ -9325,6 +9410,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "all_st_cuts": ALL_ST_CUTS_MANIFEST,
     "all_st_mincuts": ALL_ST_MINCUTS_MANIFEST,
     "minimum_size_separators": MINIMUM_SIZE_SEPARATORS_MANIFEST,
+    "cohesive_blocks": COHESIVE_BLOCKS_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,

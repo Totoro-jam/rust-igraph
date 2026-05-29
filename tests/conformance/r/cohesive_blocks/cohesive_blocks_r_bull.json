@@ -1,0 +1,53 @@
+{
+  "source": "r",
+  "origin": "make_graph('bull') \u2014 triangle {0,1,2} with horns 0-3 and 1-4. The triangle is a cohesion-2 block inside the whole cohesion-1 graph.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "cohesive_blocks",
+  "params": {},
+  "expected": {
+    "blocks": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    ],
+    "cohesion": [
+      2,
+      1
+    ]
+  }
+}

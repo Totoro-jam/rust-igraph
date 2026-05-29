@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-CN-032",
+  "name": "cohesive_blocks (hierarchical cohesive blocking, Moody-White 2003)",
+  "date": "2026-05-30",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "cohesive_blocks/clique_path",
+      "sizes": [12, 20, 32],
+      "median_ns": [4967300, 50255000, 279290000],
+      "note": "p chained K_4 cliques (p = 3/5/8) joined by single bridge edges. Each clique is a cohesion-3 block inside the cohesion-1 whole, so the block count grows linearly in p; every queue entry pays a vertex_connectivity plus a full minimum_size_separators (Kanevsky) call. Cost is dominated by the per-block max-flow / min-cut enumeration multiplied by the number of blocks discovered (~10x per step here)"
+    },
+    {
+      "group": "cohesive_blocks/grid",
+      "sizes": [9, 16, 25],
+      "median_ns": [1323900, 19544000, 147640000],
+      "note": "m x m square lattice (m = 3/4/5), connectivity 2 with a clustered flow structure; stresses the separator + reduction pipeline on each block. Super-linear growth driven by the per-block Kanevsky minimum_size_separators enumeration on a denser interior (degree-4 vertices)"
+    }
+  ],
+  "status": "baseline_created"
+}

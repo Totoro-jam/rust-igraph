@@ -9,6 +9,7 @@
 pub(crate) mod articulation;
 pub(crate) mod biconnected;
 pub(crate) mod bridges;
+pub(crate) mod cohesive_blocks;
 pub(crate) mod components;
 pub(crate) mod decompose;
 pub(crate) mod is_biconnected;
@@ -24,6 +25,7 @@ pub(crate) mod transitive_closure;
 pub use articulation::articulation_points;
 pub use biconnected::{BiconnectedComponents, biconnected_components};
 pub use bridges::bridges;
+pub use cohesive_blocks::{CohesiveBlocks, cohesive_blocks};
 pub use components::{ConnectedComponents, connected_components};
 pub use decompose::decompose;
 pub use is_biconnected::is_biconnected;
