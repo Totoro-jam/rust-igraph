@@ -150,7 +150,9 @@ pub use local_scan::{
 };
 pub use local_scan_k::{local_scan_k, local_scan_k_ecount, local_scan_k_ecount_them};
 pub use mean_distance_weighted::mean_distance_weighted;
-pub use multiplicity::{count_loops, count_multiple, has_loop, has_multiple, is_loop, is_multiple};
+pub use multiplicity::{
+    count_loops, count_multiple, count_multiple_1, has_loop, has_multiple, is_loop, is_multiple,
+};
 pub use mutual::{count_mutual, has_mutual, is_mutual};
 pub use neighborhood::{
     NeighborhoodMode, neighborhood, neighborhood_graphs, neighborhood_graphs_with_mode,

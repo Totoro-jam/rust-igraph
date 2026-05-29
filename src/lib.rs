@@ -449,7 +449,7 @@ pub use crate::algorithms::properties::local_scan_k::{
 };
 pub use crate::algorithms::properties::mean_distance_weighted::mean_distance_weighted;
 pub use crate::algorithms::properties::multiplicity::{
-    count_loops, count_multiple, has_loop, has_multiple, is_loop, is_multiple,
+    count_loops, count_multiple, count_multiple_1, has_loop, has_multiple, is_loop, is_multiple,
 };
 pub use crate::algorithms::properties::mutual::{count_mutual, has_mutual, is_mutual};
 pub use crate::algorithms::properties::neighborhood::{

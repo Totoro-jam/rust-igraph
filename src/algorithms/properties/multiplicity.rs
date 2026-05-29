@@ -274,6 +274,44 @@ pub fn count_multiple(graph: &Graph) -> IgraphResult<Vec<usize>> {
     Ok(out)
 }
 
+/// Multiplicity of a single edge: how many edges share the same
+/// endpoint pair as edge `eid`.
+///
+/// Counterpart of `igraph_count_multiple_1()` from
+/// `references/igraph/src/properties/multiplicity.c`.
+///
+/// O(deg(from)) — scans the neighbors of the edge's source vertex.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, count_multiple_1};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// assert_eq!(count_multiple_1(&g, 0).unwrap(), 2);
+/// assert_eq!(count_multiple_1(&g, 2).unwrap(), 1);
+/// ```
+pub fn count_multiple_1(graph: &Graph, eid: EdgeId) -> IgraphResult<usize> {
+    let m = graph.ecount();
+    if (eid as usize) >= m {
+        return Err(crate::IgraphError::InvalidArgument(format!(
+            "count_multiple_1: edge id {eid} out of range (ecount={m})"
+        )));
+    }
+    let (from, to) = graph.edge(eid)?;
+    let neighbors = graph.neighbors(from)?;
+    let mut count = neighbors.iter().filter(|&&nb| nb == to).count();
+    // Undirected self-loops: neighbors() returns the loop vertex twice
+    // per self-loop edge (LOOPS_TWICE), so halve the raw count.
+    if !graph.is_directed() && from == to {
+        count /= 2;
+    }
+    Ok(count)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -557,5 +595,62 @@ mod tests {
         let n_loops = count_loops(&g).unwrap();
         let is_l = is_loop(&g).unwrap();
         assert_eq!(n_loops, is_l.iter().filter(|&&b| b).count());
+    }
+
+    // ---- count_multiple_1 ----
+
+    #[test]
+    fn count_multiple_1_simple() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        assert_eq!(count_multiple_1(&g, 0).unwrap(), 1);
+        assert_eq!(count_multiple_1(&g, 1).unwrap(), 1);
+    }
+
+    #[test]
+    fn count_multiple_1_parallel() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 1).unwrap();
+        assert_eq!(count_multiple_1(&g, 0).unwrap(), 3);
+        assert_eq!(count_multiple_1(&g, 1).unwrap(), 3);
+        assert_eq!(count_multiple_1(&g, 2).unwrap(), 3);
+    }
+
+    #[test]
+    fn count_multiple_1_self_loop() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 0).unwrap();
+        g.add_edge(0, 0).unwrap();
+        g.add_edge(0, 1).unwrap();
+        // Two self-loops at vertex 0 → multiplicity 2.
+        assert_eq!(count_multiple_1(&g, 0).unwrap(), 2);
+        assert_eq!(count_multiple_1(&g, 1).unwrap(), 2);
+        assert_eq!(count_multiple_1(&g, 2).unwrap(), 1);
+    }
+
+    #[test]
+    fn count_multiple_1_out_of_range() {
+        let g = Graph::with_vertices(3);
+        assert!(count_multiple_1(&g, 5).is_err());
+    }
+
+    #[test]
+    fn count_multiple_1_consistent_with_count_multiple() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(3, 3).unwrap();
+        let all = count_multiple(&g).unwrap();
+        for eid in 0..g.ecount() as u32 {
+            assert_eq!(
+                count_multiple_1(&g, eid).unwrap(),
+                all[eid as usize],
+                "mismatch at edge {eid}"
+            );
+        }
     }
 }
