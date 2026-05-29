@@ -475,11 +475,19 @@ pub fn maximal_cliques_count(graph: &Graph) -> IgraphResult<u64> {
     Ok(count)
 }
 
-/// Returns a histogram of clique sizes.
+/// Returns a histogram of clique sizes, counting **all** cliques.
 ///
-/// The result is a vector where index `k` contains the number of
-/// maximal cliques of size `k`. Index 0 is always 0 (no cliques of
-/// size 0 exist). The vector length is `clique_number + 1`.
+/// A clique is any complete subgraph (not necessarily maximal). The result
+/// is a vector where index `k` holds the number of cliques of size `k`,
+/// including every single vertex (size 1) and every edge (size 2). Index 0
+/// is always 0 (no cliques of size 0 exist). The vector length is
+/// `clique_number + 1`.
+///
+/// This is the counterpart of igraph's `igraph_clique_size_hist`. Note that
+/// igraph stores the size-1 count in element 0; here index equals the clique
+/// size with element 0 left as a zero placeholder, matching the convention
+/// of the rest of this crate. For maximal cliques only, see
+/// [`maximal_cliques_hist`].
 ///
 /// Edge directions are ignored for directed graphs.
 ///
@@ -494,10 +502,53 @@ pub fn maximal_cliques_count(graph: &Graph) -> IgraphResult<u64> {
 /// g.add_edge(1, 2).unwrap();
 /// g.add_edge(2, 3).unwrap();
 /// let hist = clique_size_hist(&g).unwrap();
-/// // hist[2] = 1 (edge {2,3}), hist[3] = 1 (triangle {0,1,2})
-/// assert_eq!(hist, vec![0, 0, 1, 1]);
+/// // 4 vertices, 4 edges, 1 triangle {0,1,2}
+/// assert_eq!(hist, vec![0, 4, 4, 1]);
 /// ```
 pub fn clique_size_hist(graph: &Graph) -> IgraphResult<Vec<u64>> {
+    let n = graph.vcount();
+    if n == 0 {
+        return Ok(Vec::new());
+    }
+
+    let adj = build_neighbor_set(graph)?;
+    let mut hist: Vec<u64> = Vec::new();
+
+    let mut current: Vec<VertexId> = Vec::new();
+    count_cliques_by_size(&adj, &mut current, 0, n, &mut hist);
+
+    Ok(hist)
+}
+
+/// Returns a histogram of **maximal** clique sizes.
+///
+/// A maximal clique cannot be extended by adding an adjacent vertex. The
+/// result is a vector where index `k` holds the number of maximal cliques of
+/// size `k`. Maximal cliques of size 1 are exactly the isolated vertices.
+/// Index 0 is always 0. The vector length is `clique_number + 1`.
+///
+/// This is the counterpart of igraph's `igraph_maximal_cliques_hist`. As with
+/// [`clique_size_hist`], index equals the clique size (element 0 is a zero
+/// placeholder), whereas igraph stores the size-1 count in element 0. To count
+/// all cliques (not just maximal ones), use [`clique_size_hist`].
+///
+/// Edge directions are ignored for directed graphs.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, maximal_cliques_hist};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// let hist = maximal_cliques_hist(&g).unwrap();
+/// // maximal cliques: edge {2,3} (size 2), triangle {0,1,2} (size 3)
+/// assert_eq!(hist, vec![0, 0, 1, 1]);
+/// ```
+pub fn maximal_cliques_hist(graph: &Graph) -> IgraphResult<Vec<u64>> {
     let n = graph.vcount();
     if n == 0 {
         return Ok(Vec::new());
@@ -515,7 +566,7 @@ pub fn clique_size_hist(graph: &Graph) -> IgraphResult<Vec<u64>> {
         &mut hist,
     );
 
-    // Include isolated vertices as cliques of size 1
+    // A size-1 maximal clique is exactly an isolated vertex.
     for v in 0..n {
         if adj[v as usize].is_empty() {
             if hist.len() < 2 {
@@ -526,6 +577,32 @@ pub fn clique_size_hist(graph: &Graph) -> IgraphResult<Vec<u64>> {
     }
 
     Ok(hist)
+}
+
+/// Tally every clique (complete subgraph) by size into `hist[size]`.
+fn count_cliques_by_size(
+    adj: &[Vec<VertexId>],
+    current: &mut Vec<VertexId>,
+    start: u32,
+    n: u32,
+    hist: &mut Vec<u64>,
+) {
+    let len = current.len();
+    if len >= 1 {
+        if hist.len() <= len {
+            hist.resize(len + 1, 0);
+        }
+        hist[len] = hist[len].saturating_add(1);
+    }
+
+    for v in start..n {
+        let v_adj = &adj[v as usize];
+        if current.iter().all(|&u| v_adj.contains(&u)) {
+            current.push(v);
+            count_cliques_by_size(adj, current, v + 1, n, hist);
+            current.pop();
+        }
+    }
 }
 
 /// Bron-Kerbosch with pivot — count-only variant.
@@ -1186,8 +1263,8 @@ mod tests {
         g.add_edge(1, 2).unwrap();
         g.add_edge(2, 3).unwrap();
         let hist = clique_size_hist(&g).unwrap();
-        // 1 clique size 2, 1 clique size 3
-        assert_eq!(hist, vec![0, 0, 1, 1]);
+        // all cliques: 4 vertices, 4 edges, 1 triangle
+        assert_eq!(hist, vec![0, 4, 4, 1]);
     }
 
     #[test]
@@ -1199,8 +1276,8 @@ mod tests {
             }
         }
         let hist = clique_size_hist(&g).unwrap();
-        // K4: single clique of size 4
-        assert_eq!(hist, vec![0, 0, 0, 0, 1]);
+        // K4: C(4,1)=4, C(4,2)=6, C(4,3)=4, C(4,4)=1
+        assert_eq!(hist, vec![0, 4, 6, 4, 1]);
     }
 
     #[test]
@@ -1210,8 +1287,87 @@ mod tests {
         g.add_edge(1, 2).unwrap();
         g.add_edge(2, 3).unwrap();
         let hist = clique_size_hist(&g).unwrap();
-        // 3 cliques of size 2
+        // 4 vertices, 3 edges, no triangles
+        assert_eq!(hist, vec![0, 4, 3]);
+    }
+
+    #[test]
+    fn test_hist_matches_cliques_enumeration() {
+        let mut g = Graph::with_vertices(6);
+        for &(a, b) in &[(0, 1), (0, 2), (1, 2), (2, 3), (3, 4), (3, 5), (4, 5)] {
+            g.add_edge(a, b).unwrap();
+        }
+        let hist = clique_size_hist(&g).unwrap();
+        // Cross-check against the all-cliques enumerator.
+        let all = cliques(&g, 1, g.vcount(), None).unwrap();
+        let mut expected = vec![0u64; hist.len()];
+        for c in &all {
+            expected[c.len()] += 1;
+        }
+        assert_eq!(hist, expected);
+    }
+
+    // --- maximal_cliques_hist tests ---
+
+    #[test]
+    fn test_max_hist_empty() {
+        let g = Graph::with_vertices(0);
+        assert!(maximal_cliques_hist(&g).unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_max_hist_isolated() {
+        let g = Graph::with_vertices(3);
+        let hist = maximal_cliques_hist(&g).unwrap();
+        // 3 size-1 maximal cliques (isolated vertices)
+        assert_eq!(hist, vec![0, 3]);
+    }
+
+    #[test]
+    fn test_max_hist_triangle_plus_edge() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let hist = maximal_cliques_hist(&g).unwrap();
+        // maximal: edge {2,3} (size 2), triangle {0,1,2} (size 3)
+        assert_eq!(hist, vec![0, 0, 1, 1]);
+    }
+
+    #[test]
+    fn test_max_hist_complete_4() {
+        let mut g = Graph::with_vertices(4);
+        for i in 0..4u32 {
+            for j in (i + 1)..4 {
+                g.add_edge(i, j).unwrap();
+            }
+        }
+        let hist = maximal_cliques_hist(&g).unwrap();
+        // K4: single maximal clique of size 4
+        assert_eq!(hist, vec![0, 0, 0, 0, 1]);
+    }
+
+    #[test]
+    fn test_max_hist_path() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let hist = maximal_cliques_hist(&g).unwrap();
+        // 3 maximal cliques, each an edge
         assert_eq!(hist, vec![0, 0, 3]);
+    }
+
+    #[test]
+    fn test_max_hist_total_matches_count() {
+        let mut g = Graph::with_vertices(6);
+        for &(a, b) in &[(0, 1), (0, 2), (1, 2), (2, 3), (3, 4), (3, 5), (4, 5)] {
+            g.add_edge(a, b).unwrap();
+        }
+        let hist = maximal_cliques_hist(&g).unwrap();
+        let total: u64 = hist.iter().sum();
+        assert_eq!(total, maximal_cliques_count(&g).unwrap());
     }
 
     // --- cliques (all) tests ---
