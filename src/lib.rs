@@ -182,7 +182,7 @@ pub use crate::algorithms::games::barabasi_psumtree::{
     barabasi_game_psumtree, barabasi_game_psumtree_multiple,
 };
 pub use crate::algorithms::games::bipartite::{
-    BipartiteGraph, BipartiteMode, bipartite_game_gnm, bipartite_game_gnp,
+    BipartiteGraph, BipartiteMode, bipartite_game_gnm, bipartite_game_gnp, bipartite_iea_game,
 };
 pub use crate::algorithms::games::callaway_traits::callaway_traits_game;
 pub use crate::algorithms::games::chung_lu::{ChungLuVariant, chung_lu_game};

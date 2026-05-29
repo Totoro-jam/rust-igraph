@@ -42,11 +42,12 @@
 //!
 //! ## Scope
 //!
-//! MVP scope ports the most-used path: **simple bipartite graphs**.
-//! Upstream's `IGRAPH_MULTI_SW` (multigraphs), `IGRAPH_EDGE_LABELED`
-//! (IEA over ordered edge lists), and the `gnp_bipartite_large`
-//! overflow path for `n1·n2 > 2^53` are out of scope for this AWU —
-//! they will land as follow-up AWUs if real users ask for them.
+//! `gnp` / `gnm` port the most-used path: **simple bipartite graphs**.
+//! [`bipartite_iea_game`] covers the `IGRAPH_MULTI_SW` multigraph model
+//! via independent edge assignment (edges drawn *with replacement*).
+//! Upstream's `IGRAPH_EDGE_LABELED` variant and the `gnp_bipartite_large`
+//! overflow path for `n1·n2 > 2^53` remain out of scope — they will land
+//! as follow-up AWUs if real users ask for them.
 //!
 //! ## References
 //!
@@ -413,6 +414,86 @@ pub fn bipartite_game_gnm(
     finalize(n1, n2, directed, edges)
 }
 
+/// Generate a random bipartite **multigraph** through independent edge
+/// assignment (IEA).
+///
+/// Counterpart of `igraph_bipartite_iea_game()` from
+/// `references/igraph/src/misc/bipartite.c:1476`. Each of the `m` edges is
+/// assigned, independently and uniformly at random, to one of the
+/// `max_edges(n1, n2, directed, mode)` possible cross-partition vertex
+/// pairs. Because draws are *with replacement*, the result may contain
+/// parallel edges — unlike [`bipartite_game_gnm`], which samples `m`
+/// distinct edges.
+///
+/// This model does **not** sample multigraphs uniformly: a multigraph is
+/// produced with probability proportional to `(prod A_ij!)^(-1)`, so all
+/// simple graphs share one probability while non-simple ones are
+/// down-weighted by their edge multiplicities. See [`bipartite_game_gnm`]
+/// for uniform sampling of simple bipartite graphs.
+///
+/// * `n1`, `n2`, `directed`, `mode`, `seed` — see [`bipartite_game_gnp`].
+/// * `m` — exact edge count (no upper bound beyond `u64`; multi-edges are
+///   allowed, so `m` may exceed `max_edges`).
+///
+/// # Errors
+///
+/// Returns [`IgraphError::InvalidArgument`] if `n1 + n2` overflows `u32`,
+/// or if `m > 0` while the pair space is empty (`n1 == 0` or `n2 == 0`).
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{bipartite_iea_game, BipartiteMode};
+/// let bg = bipartite_iea_game(3, 4, 20, false, BipartiteMode::All, 11).unwrap();
+/// assert_eq!(bg.graph.vcount(), 7);
+/// assert_eq!(bg.graph.ecount(), 20); // multi-edges allowed → exactly m edges
+/// // Every edge crosses the partition.
+/// for eid in 0..bg.graph.ecount() {
+///     let (u, v) = bg.graph.edge(eid as u32).unwrap();
+///     assert_ne!(bg.types[u as usize], bg.types[v as usize]);
+/// }
+/// ```
+pub fn bipartite_iea_game(
+    n1: u32,
+    n2: u32,
+    m: u64,
+    directed: bool,
+    mode: BipartiteMode,
+    seed: u64,
+) -> IgraphResult<BipartiteGraph> {
+    let n_total = u32::try_from(u64::from(n1) + u64::from(n2)).map_err(|_| {
+        IgraphError::InvalidArgument(format!("n1 + n2 overflows u32 (n1={n1}, n2={n2})"))
+    })?;
+
+    if m == 0 {
+        let g = Graph::new(n_total, directed)?;
+        return Ok(BipartiteGraph {
+            graph: g,
+            types: types_vector(n1, n2),
+        });
+    }
+
+    let cap = max_edges(n1, n2, directed, mode);
+    if cap == 0 {
+        return Err(IgraphError::InvalidArgument(format!(
+            "bipartite IEA requested {m} edges but n1={n1} or n2={n2} is zero"
+        )));
+    }
+
+    let cap_usize = usize::try_from(cap)
+        .map_err(|_| IgraphError::Internal("bipartite IEA pair space exceeds usize"))?;
+    let m_usize = usize::try_from(m)
+        .map_err(|_| IgraphError::Internal("bipartite IEA edge count exceeds usize"))?;
+
+    let mut rng = SplitMix64::new(seed);
+    let mut edges: Vec<(VertexId, VertexId)> = Vec::with_capacity(m_usize);
+    for _ in 0..m {
+        let idx = rng.gen_index(cap_usize) as u64;
+        edges.push(decode_pair(idx, n1, n2, directed, mode));
+    }
+    finalize(n1, n2, directed, edges)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -737,6 +818,88 @@ mod tests {
         }
         assert_eq!(bottom_to_top, 6);
         assert_eq!(top_to_bottom, 6);
+    }
+
+    // ------- bipartite_iea_game -------
+
+    #[test]
+    fn iea_m_zero_is_empty() {
+        let bg = bipartite_iea_game(3, 4, 0, false, BipartiteMode::All, 1).unwrap();
+        assert_eq!(bg.graph.vcount(), 7);
+        assert_eq!(bg.graph.ecount(), 0);
+    }
+
+    #[test]
+    fn iea_exact_edge_count_with_multiplicity() {
+        // m may exceed max_edges because parallel edges are allowed.
+        let cap = max_edges(2, 2, false, BipartiteMode::All); // = 4
+        let m = cap + 10;
+        let bg = bipartite_iea_game(2, 2, m, false, BipartiteMode::All, 9).unwrap();
+        assert_eq!(bg.graph.ecount() as u64, m);
+    }
+
+    #[test]
+    fn iea_zero_partition_with_m_positive_is_error() {
+        assert!(bipartite_iea_game(0, 5, 3, false, BipartiteMode::All, 0).is_err());
+        assert!(bipartite_iea_game(5, 0, 3, false, BipartiteMode::Out, 0).is_err());
+    }
+
+    #[test]
+    fn iea_all_edges_cross_partition() {
+        let bg = bipartite_iea_game(4, 3, 30, false, BipartiteMode::All, 42).unwrap();
+        assert_eq!(bg.graph.ecount(), 30);
+        for e in 0..bg.graph.ecount() {
+            let (u, v) = bg.graph.edge(e as u32).unwrap();
+            assert_ne!(bg.types[u as usize], bg.types[v as usize]);
+        }
+    }
+
+    #[test]
+    fn iea_deterministic_with_seed() {
+        let a = bipartite_iea_game(5, 6, 25, true, BipartiteMode::Out, 7).unwrap();
+        let b = bipartite_iea_game(5, 6, 25, true, BipartiteMode::Out, 7).unwrap();
+        assert_eq!(a.graph.ecount(), b.graph.ecount());
+        for e in 0..a.graph.ecount() {
+            assert_eq!(
+                a.graph.edge(e as u32).unwrap(),
+                b.graph.edge(e as u32).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn iea_directed_out_arcs_bottom_to_top() {
+        let bg = bipartite_iea_game(3, 3, 40, true, BipartiteMode::Out, 3).unwrap();
+        for e in 0..bg.graph.ecount() {
+            let (u, v) = bg.graph.edge(e as u32).unwrap();
+            assert!(u < 3 && v >= 3, "arc {u}->{v} is not bottom→top");
+        }
+    }
+
+    #[test]
+    fn iea_directed_in_arcs_top_to_bottom() {
+        let bg = bipartite_iea_game(3, 3, 40, true, BipartiteMode::In, 3).unwrap();
+        for e in 0..bg.graph.ecount() {
+            let (u, v) = bg.graph.edge(e as u32).unwrap();
+            assert!(u >= 3 && v < 3, "arc {u}->{v} is not top→bottom");
+        }
+    }
+
+    #[test]
+    fn iea_likely_produces_multi_edge() {
+        // With m far exceeding capacity, a parallel edge is essentially
+        // certain; verify at least one repeats.
+        let bg = bipartite_iea_game(2, 2, 50, false, BipartiteMode::All, 5).unwrap();
+        let mut seen: HashSet<(u32, u32)> = HashSet::new();
+        let mut found_dup = false;
+        for e in 0..bg.graph.ecount() {
+            let (u, v) = bg.graph.edge(e as u32).unwrap();
+            let key = if u <= v { (u, v) } else { (v, u) };
+            if !seen.insert(key) {
+                found_dup = true;
+            }
+        }
+        assert!(found_dup, "expected a parallel edge with m=50 over 4 pairs");
     }
 
     // ------- proptest harness (gated; runs under `cargo test --features proptest-harness`) -------
