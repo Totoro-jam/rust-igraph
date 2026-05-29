@@ -105,6 +105,30 @@ VF2_COUNT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# VF2 subgraph self-count: count_subgraph_isomorphisms(g, g) in R igraph
+# equals the automorphism count. Values are graph invariants verified with
+# python-igraph 0.11.9. Simple, loopless graphs.
+SUBISO_COUNT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_subisomorphisms_vf2_R_ring4_undirected",
+        "origin": "R igraph count_subgraph_isomorphisms(make_ring(4), make_ring(4)) == 8 (4 rotations x 2 reflections)",
+        "graph_factory": lambda: _ring(4),
+        "algo": "count_subisomorphisms_vf2",
+        "params": {},
+        "expected": 8,
+    },
+    {
+        "case": "count_subisomorphisms_vf2_R_path3",
+        "origin": "R igraph count_subgraph_isomorphisms path 0-1-2 into itself == 2 (identity + endpoint swap)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "count_subisomorphisms_vf2",
+        "params": {},
+        "expected": 2,
+    },
+]
+
 CC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "two_K5_components",
@@ -9011,6 +9035,7 @@ TRUSSNESS_MANIFEST: List[Dict[str, Any]] = [
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
+    "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,

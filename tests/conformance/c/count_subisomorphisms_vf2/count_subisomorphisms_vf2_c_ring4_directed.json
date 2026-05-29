@@ -1,0 +1,30 @@
+{
+  "source": "c",
+  "origin": "igraph_subisomorphic_vf2.c: directed ring self-embeds via rotations only; directed ring(4) -> 4",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "count_subisomorphisms_vf2",
+  "params": {},
+  "expected": 4
+}

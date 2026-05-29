@@ -1,0 +1,30 @@
+{
+  "source": "r",
+  "origin": "R igraph count_subgraph_isomorphisms(make_ring(4), make_ring(4)) == 8 (4 rotations x 2 reflections)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_subisomorphisms_vf2",
+  "params": {},
+  "expected": 8
+}

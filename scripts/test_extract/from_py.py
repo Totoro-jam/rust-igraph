@@ -67,6 +67,28 @@ VF2_COUNT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# VF2 subgraph-isomorphism self-count via python-igraph's
+# Graph.count_subisomorphisms_vf2(g): embedding g into itself counts the
+# automorphisms. Verified against python-igraph 0.11.9. Simple, loopless.
+SUBISO_COUNT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_subisomorphisms_vf2_py_triangle",
+        "origin": "python-igraph Graph.Full(3).count_subisomorphisms_vf2(self) == 6 (3! self-embeddings of K3)",
+        "graph_factory": lambda: ig.Graph.Full(n=3, directed=False),
+        "algo": "count_subisomorphisms_vf2",
+        "params": {},
+        "expected": 6,
+    },
+    {
+        "case": "count_subisomorphisms_vf2_py_single_edge",
+        "origin": "python-igraph Graph(n=2, edges=[(0,1)]).count_subisomorphisms_vf2(self) == 2 (identity + swap)",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[(0, 1)], directed=False),
+        "algo": "count_subisomorphisms_vf2",
+        "params": {},
+        "expected": 2,
+    },
+]
+
 DFS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "test_iterators_testDFS_tree10_2",
@@ -8896,6 +8918,7 @@ TRUSSNESS_MANIFEST: List[Dict[str, Any]] = [
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
+    "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,

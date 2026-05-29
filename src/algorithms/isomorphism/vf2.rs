@@ -64,7 +64,7 @@ pub struct Vf2Isomorphism {
 /// `incoming = false` yields out-neighbours, `incoming = true` yields
 /// in-neighbours. On undirected graphs both directions return the full
 /// neighbour set (every edge is bidirectional), matching upstream.
-fn adjacency(graph: &Graph, incoming: bool) -> IgraphResult<Vec<Vec<u32>>> {
+pub(crate) fn adjacency(graph: &Graph, incoming: bool) -> IgraphResult<Vec<Vec<u32>>> {
     let n = graph.vcount();
     let mut adj: Vec<Vec<u32>> = Vec::with_capacity(n as usize);
     for v in 0..n {
@@ -92,7 +92,7 @@ fn adjacency(graph: &Graph, incoming: bool) -> IgraphResult<Vec<Vec<u32>>> {
 
 /// Out-degree (counting edge multiplicity, loops would count but are
 /// rejected up front), matching `igraph_degree(_, OUT, LOOPS)`.
-fn out_degree(graph: &Graph, v: u32) -> IgraphResult<i64> {
+pub(crate) fn out_degree(graph: &Graph, v: u32) -> IgraphResult<i64> {
     if graph.is_directed() {
         Ok(graph.incident(v)?.len() as i64)
     } else {
@@ -101,7 +101,7 @@ fn out_degree(graph: &Graph, v: u32) -> IgraphResult<i64> {
 }
 
 /// In-degree counterpart of [`out_degree`].
-fn in_degree(graph: &Graph, v: u32) -> IgraphResult<i64> {
+pub(crate) fn in_degree(graph: &Graph, v: u32) -> IgraphResult<i64> {
     if graph.is_directed() {
         Ok(graph.incident_in(v)?.len() as i64)
     } else {
@@ -110,7 +110,7 @@ fn in_degree(graph: &Graph, v: u32) -> IgraphResult<i64> {
 }
 
 /// Whether a sorted slice contains `x` (binary search).
-fn contains_sorted(slice: &[u32], x: u32) -> bool {
+pub(crate) fn contains_sorted(slice: &[u32], x: u32) -> bool {
     slice.binary_search(&x).is_ok()
 }
 
@@ -125,14 +125,14 @@ fn same_color_distribution(a: &[u32], b: &[u32]) -> bool {
 }
 
 /// Action returned by the per-isomorphism callback of [`vf2_engine`].
-enum Flow {
+pub(crate) enum Flow {
     /// Keep searching for further isomorphisms.
     Continue,
     /// Stop the search immediately (a result has been captured).
     Stop,
 }
 
-fn perform_pre_checks(graph1: &Graph, graph2: &Graph) -> IgraphResult<()> {
+pub(crate) fn perform_pre_checks(graph1: &Graph, graph2: &Graph) -> IgraphResult<()> {
     if graph1.is_directed() != graph2.is_directed() {
         return Err(IgraphError::InvalidArgument(
             "cannot compare directed and undirected graphs".into(),

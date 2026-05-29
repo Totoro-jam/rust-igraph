@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-ISO-002",
+  "name": "vf2 subgraph (subisomorphic / count_subisomorphisms / get_subisomorphisms)",
+  "date": "2026-05-29",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "subiso/count_edge_into_ring",
+      "sizes": [50, 100, 200],
+      "median_ns": [11170, 25998, 61636],
+      "note": "single-edge pattern into ring(n); count == 2n embeddings, exercises full enumeration"
+    },
+    {
+      "group": "subiso/first_path_into_ring",
+      "sizes": [100, 1000, 5000],
+      "median_ns": [6708, 61227, 299530],
+      "note": "P3 pattern into ring(n); first-embedding (subisomorphic_vf2) path"
+    }
+  ],
+  "status": "baseline_created"
+}

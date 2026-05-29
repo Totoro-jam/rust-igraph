@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "R igraph count_subgraph_isomorphisms path 0-1-2 into itself == 2 (identity + endpoint swap)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_subisomorphisms_vf2",
+  "params": {},
+  "expected": 2
+}

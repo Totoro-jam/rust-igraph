@@ -1,0 +1,26 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph.Full(3).count_subisomorphisms_vf2(self) == 6 (3! self-embeddings of K3)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_subisomorphisms_vf2",
+  "params": {},
+  "expected": 6
+}

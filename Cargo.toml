@@ -835,6 +835,11 @@ name = "bench_vf2"
 path = "benches/bench_vf2.rs"
 harness = false
 
+[[bench]]
+name = "bench_subiso"
+path = "benches/bench_subiso.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

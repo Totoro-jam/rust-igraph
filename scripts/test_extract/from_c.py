@@ -2504,6 +2504,35 @@ VF2_COUNT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# igraph_count_subisomorphisms_vf2(g, g, ...) — the self-comparison subgraph
+# count equals the graph's automorphism count (every embedding of g into g is
+# an automorphism). Reuses the VF2 self-comparison values verified against
+# python-igraph 0.11.9. Graphs must be simple and loopless.
+SUBISO_COUNT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_subisomorphisms_vf2_c_ring6_undirected",
+        "origin": "igraph_subisomorphic_vf2.c: count_subisomorphisms_vf2(ring, ring); self-embedding count == automorphisms, undirected ring(6) -> 12",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0)],
+            directed=False,
+        ),
+        "algo": "count_subisomorphisms_vf2",
+        "params": {},
+        "expected": 12,
+    },
+    {
+        "case": "count_subisomorphisms_vf2_c_ring4_directed",
+        "origin": "igraph_subisomorphic_vf2.c: directed ring self-embeds via rotations only; directed ring(4) -> 4",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=True
+        ),
+        "algo": "count_subisomorphisms_vf2",
+        "params": {},
+        "expected": 4,
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_c_directed_path3",
@@ -11418,6 +11447,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
     "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
+    "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "louvain": LOUVAIN_MANIFEST,
     "leiden": LEIDEN_MANIFEST,
     "label_propagation": LPA_MANIFEST,
