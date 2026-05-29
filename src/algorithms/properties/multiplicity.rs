@@ -645,7 +645,9 @@ mod tests {
         g.add_edge(1, 2).unwrap();
         g.add_edge(3, 3).unwrap();
         let all = count_multiple(&g).unwrap();
-        for eid in 0..g.ecount() as u32 {
+        #[allow(clippy::cast_possible_truncation)]
+        let ecount = g.ecount() as u32;
+        for eid in 0..ecount {
             assert_eq!(
                 count_multiple_1(&g, eid).unwrap(),
                 all[eid as usize],

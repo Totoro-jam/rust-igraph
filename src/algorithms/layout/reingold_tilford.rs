@@ -801,7 +801,7 @@ mod tests {
         let roots = roots_for_tree_layout(&g, RtMode::All, RootChoice::Degree).unwrap();
         assert_eq!(roots.len(), 2);
         let mut sorted = roots.clone();
-        sorted.sort();
+        sorted.sort_unstable();
         // One root from {0,1}, one from {2,3,4}
         assert!(sorted[0] <= 1);
         assert!(sorted[1] >= 2 && sorted[1] <= 4);
@@ -842,7 +842,7 @@ mod tests {
         let roots = roots_for_tree_layout(&g, RtMode::Out, RootChoice::Degree).unwrap();
         assert_eq!(roots.len(), 2);
         let mut sorted = roots.clone();
-        sorted.sort();
+        sorted.sort_unstable();
         assert_eq!(sorted, vec![0, 1]);
     }
 
