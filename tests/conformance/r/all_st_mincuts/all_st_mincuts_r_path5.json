@@ -1,0 +1,69 @@
+{
+  "source": "r",
+  "origin": "rigraph all_st_mincuts on the directed path make_graph(c(1,2,2,3,3,4,4,5), directed=TRUE) with source=1 target=5 \u21d2 4 minimum cuts of value 1, one per edge. Stored 0-based: edges (0,1)(1,2)(2,3)(3,4), source=0 target=4.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "all_st_mincuts",
+  "params": {
+    "source": 0,
+    "target": 4
+  },
+  "expected": {
+    "value": 1.0,
+    "partition1s": [
+      [
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        0,
+        1,
+        2,
+        3
+      ]
+    ],
+    "cuts": [
+      [
+        0
+      ],
+      [
+        1
+      ],
+      [
+        2
+      ],
+      [
+        3
+      ]
+    ]
+  }
+}

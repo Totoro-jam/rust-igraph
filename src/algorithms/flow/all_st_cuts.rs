@@ -32,6 +32,7 @@
 )]
 
 use crate::algorithms::flow::dominator_tree::{DominatorMode, DominatorTree, dominator_tree};
+use crate::algorithms::flow::provan_shier::{EStack, MarkedQueue, Pivot, provan_shier_list};
 use crate::algorithms::operators::induced_subgraph::{InducedSubgraphResult, induced_subgraph};
 use crate::core::graph::EdgeId;
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
@@ -49,98 +50,6 @@ pub struct StCuts {
     pub cuts: Vec<Vec<EdgeId>>,
     /// Source-side vertex set generating each cut, sorted ascending.
     pub partition1s: Vec<Vec<VertexId>>,
-}
-
-/// A batch stack with O(1) membership test (`igraph_marked_queue_int_t`).
-///
-/// Elements are pushed individually but removed a whole batch at a time.
-/// `start_batch` records a batch boundary; `pop_back_batch` rewinds to the
-/// most recent boundary, clearing membership for everything popped.
-struct MarkedQueue {
-    queue: Vec<i64>,
-    member: Vec<bool>,
-    size: usize,
-}
-
-impl MarkedQueue {
-    fn new(n: usize) -> Self {
-        Self {
-            queue: Vec::new(),
-            member: vec![false; n],
-            size: 0,
-        }
-    }
-
-    fn iselement(&self, e: VertexId) -> bool {
-        self.member[e as usize]
-    }
-
-    fn size(&self) -> usize {
-        self.size
-    }
-
-    fn push(&mut self, e: VertexId) {
-        if !self.member[e as usize] {
-            self.queue.push(i64::from(e));
-            self.member[e as usize] = true;
-            self.size += 1;
-        }
-    }
-
-    fn start_batch(&mut self) {
-        self.queue.push(-1);
-    }
-
-    fn pop_back_batch(&mut self) {
-        while let Some(top) = self.queue.pop() {
-            if top == -1 {
-                break;
-            }
-            self.member[top as usize] = false;
-            self.size -= 1;
-        }
-    }
-
-    /// Snapshot of the live elements in insertion order (markers skipped).
-    fn as_vector(&self) -> Vec<VertexId> {
-        self.queue
-            .iter()
-            .filter(|&&e| e != -1)
-            .map(|&e| e as VertexId)
-            .collect()
-    }
-}
-
-/// A stack with O(1) membership test (`igraph_estack_t`).
-struct EStack {
-    stack: Vec<VertexId>,
-    isin: Vec<bool>,
-}
-
-impl EStack {
-    fn new(n: usize) -> Self {
-        Self {
-            stack: Vec::new(),
-            isin: vec![false; n],
-        }
-    }
-
-    fn iselement(&self, e: VertexId) -> bool {
-        self.isin[e as usize]
-    }
-
-    fn push(&mut self, e: VertexId) {
-        if !self.isin[e as usize] {
-            self.stack.push(e);
-            self.isin[e as usize] = true;
-        }
-    }
-
-    fn pop(&mut self) {
-        if let Some(e) = self.stack.pop() {
-            self.isin[e as usize] = false;
-        }
-    }
 }
 
 /// List all (s,t) edge cuts of a directed graph (Provan-Shier).
@@ -197,17 +106,11 @@ pub fn all_st_cuts(graph: &Graph, source: VertexId, target: VertexId) -> IgraphR
     }
 
     let n_us = n as usize;
-    let mut s = MarkedQueue::new(n_us);
-    let mut t = EStack::new(n_us);
-    let mut partitions: Vec<Vec<VertexId>> = Vec::new();
+    let mut pivot_fn = AllCutsPivot { graph };
+    let mut partitions = provan_shier_list(n_us, source, target, &mut pivot_fn)?;
 
-    provan_shier(graph, &mut s, &mut t, source, target, &mut partitions)?;
-
-    // The recursion appends partitions leaf-first; igraph reverses to keep
-    // the historical ordering. We canonicalise each partition (sorted) and
-    // derive the matching edge cut.
-    partitions.reverse();
-
+    // `provan_shier_list` already applies igraph's post-reversal. We
+    // canonicalise each partition (sorted) and derive the matching edge cut.
     let mut cuts: Vec<Vec<EdgeId>> = Vec::with_capacity(partitions.len());
     let mut in_s = vec![false; n_us];
     for part in &mut partitions {
@@ -235,41 +138,22 @@ pub fn all_st_cuts(graph: &Graph, source: VertexId, target: VertexId) -> IgraphR
     })
 }
 
-/// The recursive Provan-Shier enumeration
-/// (`igraph_i_provan_shier_list_recursive`).
-fn provan_shier(
-    graph: &Graph,
-    s: &mut MarkedQueue,
-    t: &mut EStack,
-    source: VertexId,
-    target: VertexId,
-    result: &mut Vec<Vec<VertexId>>,
-) -> IgraphResult<()> {
-    let n = graph.vcount() as usize;
-    let (v, isv) = pivot(graph, s, t, source, target)?;
+/// Pivot strategy for listing **all** (s,t) cuts: dominator-tree based,
+/// stateless apart from the input graph (`igraph_i_all_st_cuts_pivot`).
+struct AllCutsPivot<'a> {
+    graph: &'a Graph,
+}
 
-    if isv.is_empty() {
-        let sz = s.size();
-        if sz != 0 && sz != n {
-            result.push(s.as_vector());
-        }
-        return Ok(());
+impl Pivot for AllCutsPivot<'_> {
+    fn pivot(
+        &mut self,
+        s: &MarkedQueue,
+        t: &EStack,
+        source: VertexId,
+        target: VertexId,
+    ) -> IgraphResult<(VertexId, Vec<VertexId>)> {
+        pivot(self.graph, s, t, source, target)
     }
-
-    // Down-right: add I(S,v) to S.
-    s.start_batch();
-    for &x in &isv {
-        s.push(x);
-    }
-    provan_shier(graph, s, t, source, target, result)?;
-    s.pop_back_batch();
-
-    // Down-left: forbid v.
-    t.push(v);
-    provan_shier(graph, s, t, source, target, result)?;
-    t.pop();
-
-    Ok(())
 }
 
 /// The pivot function (`igraph_i_all_st_cuts_pivot`).

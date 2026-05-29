@@ -16831,6 +16831,112 @@ fn all_st_cuts_three_source_conformance() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)] // three-source dispatch + value + set comparison
+fn all_st_mincuts_three_source_conformance() {
+    // ALGO-FL-032: enumerate every *minimum* (s,t) edge cut of a directed
+    // graph (Provan-Shier with a max-flow / active-set pivot). The set of
+    // minimum cuts is unique, so `expected` carries the full canonical
+    // collection (`partition1s` aligned with `cuts`) plus the scalar
+    // `value`. The runner compares the (partition, cut) pairs as SETS and
+    // checks the min-cut value to tolerance.
+    let mut seen = std::collections::HashSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("all_st_mincuts");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "all_st_mincuts");
+            assert_eq!(case.source, src);
+
+            let g = build_graph(&case.graph);
+            let source = u32::try_from(
+                case.params
+                    .get("source")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`source` param required"),
+            )
+            .expect("source fits in u32");
+            let target = u32::try_from(
+                case.params
+                    .get("target")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`target` param required"),
+            )
+            .expect("target fits in u32");
+
+            let result =
+                rust_igraph::all_st_mincuts(&g, source, target, None).expect("all_st_mincuts");
+            let actual = all_st_cuts_canonicalise(&result.partition1s, &result.cuts);
+
+            let expected_obj = case
+                .expected
+                .as_object()
+                .expect("expected must be an object");
+            let exp_value = expected_obj
+                .get("value")
+                .and_then(serde_json::Value::as_f64)
+                .expect("expected.value required");
+            assert!(
+                (result.value - exp_value).abs() < 1e-9,
+                "all_st_mincuts value mismatch\n  fixture: {}\n  origin:  {}\n  got {} want {}",
+                path.display(),
+                case.origin,
+                result.value,
+                exp_value,
+            );
+
+            let exp_parts = all_st_cuts_as_u32_lists(
+                expected_obj
+                    .get("partition1s")
+                    .expect("expected.partition1s required"),
+            );
+            let exp_cuts =
+                all_st_cuts_as_u32_lists(expected_obj.get("cuts").expect("expected.cuts required"));
+            assert_eq!(
+                exp_parts.len(),
+                exp_cuts.len(),
+                "expected partition1s / cuts length mismatch in {}",
+                path.display()
+            );
+            let expected = all_st_cuts_canonicalise(&exp_parts, &exp_cuts);
+
+            assert_eq!(
+                actual,
+                expected,
+                "all_st_mincuts mismatch\n  fixture: {}\n  origin:  {}",
+                path.display(),
+                case.origin,
+            );
+
+            seen.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen.contains(src),
+            "no all_st_mincuts fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
 #[allow(clippy::too_many_lines)] // three-source dispatch + Gomory-Hu property check
 fn gomory_hu_tree_three_source_conformance() {
     // ALGO-FL-020: Gomory-Hu cut tree. The tree is not unique (Gusfield

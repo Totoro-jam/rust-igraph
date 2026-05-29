@@ -3860,6 +3860,65 @@ ALL_ST_CUTS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-032: all_st_mincuts. python-igraph exposes
+# `Graph.all_st_mincuts(source, target, capacity=None)` returning a list of
+# Cut objects; `cut.partition[0]` is the source-side vertex set, `cut.value`
+# the (shared) min-cut value, and `cut.es.indices` the cut edge ids. The set
+# of minimum cuts is unique, so `expected` carries the canonical collection
+# (`value`, `partition1s` aligned with `cuts`, sorted by (partition, cut))
+# and the Rust runner compares as a set. Values computed via
+# python-igraph 0.11.9.
+ALL_ST_MINCUTS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "all_st_mincuts_py_diamond",
+        "origin": "Graph(n=6, edges=[(0,1),(1,2),(1,3),(2,4),(3,4),(4,5)], "
+        "directed=True). Graph.all_st_mincuts(0, 5) ⇒ 2 minimum cuts of "
+        "value 1 (the bottleneck source and sink edges).",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (1, 3), (2, 4), (3, 4), (4, 5)],
+            directed=True,
+        ),
+        "algo": "all_st_mincuts",
+        "params": {"source": 0, "target": 5},
+        "expected": {
+            "value": 1.0,
+            "partition1s": [[0], [0, 1, 2, 3, 4]],
+            "cuts": [[0], [5]],
+        },
+    },
+    {
+        "case": "all_st_mincuts_py_single_edge",
+        "origin": "Graph(n=2, edges=[(0,1)], directed=True). "
+        "Graph.all_st_mincuts(0, 1) ⇒ a single minimum cut of value 1: "
+        "partition[0]={0}, es.indices=[0].",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[(0, 1)], directed=True),
+        "algo": "all_st_mincuts",
+        "params": {"source": 0, "target": 1},
+        "expected": {
+            "value": 1.0,
+            "partition1s": [[0]],
+            "cuts": [[0]],
+        },
+    },
+    {
+        "case": "all_st_mincuts_py_directed_k4",
+        "origin": "Graph.Full(4, directed=True, loops=False). "
+        "Graph.all_st_mincuts(0, 3) on directed K_4 ⇒ 2 minimum cuts of "
+        "value 3 (isolate the source, or the source plus its two "
+        "non-target out-neighbours). Edge ids follow K_4 insertion order "
+        "(0,1)(0,2)(0,3)(1,0)(1,2)(1,3)(2,0)(2,1)(2,3)(3,0)(3,1)(3,2).",
+        "graph_factory": lambda: ig.Graph.Full(4, directed=True, loops=False),
+        "algo": "all_st_mincuts",
+        "params": {"source": 0, "target": 3},
+        "expected": {
+            "value": 3.0,
+            "partition1s": [[0], [0, 1, 2]],
+            "cuts": [[0, 1, 2], [2, 5, 8]],
+        },
+    },
+]
+
 # ALGO-FL-020: gomory_hu_tree. python-igraph exposes
 # `Graph.gomory_hu_tree(capacity=None, flow="flow")` which returns a
 # tree Graph with edge attribute "flow" holding the per-edge min-cut
@@ -9089,6 +9148,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "all_st_cuts": ALL_ST_CUTS_MANIFEST,
+    "all_st_mincuts": ALL_ST_MINCUTS_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,

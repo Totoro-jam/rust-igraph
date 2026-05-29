@@ -166,6 +166,7 @@ pub use crate::algorithms::cycles::{CycleMode, CycleResult, find_cycle};
 pub use crate::algorithms::epidemics::{Sir, sir};
 pub use crate::algorithms::feedback_arc_set::{FasAlgorithm, feedback_arc_set};
 pub use crate::algorithms::flow::all_st_cuts::{StCuts, all_st_cuts};
+pub use crate::algorithms::flow::all_st_mincuts::{StMinCuts, all_st_mincuts};
 pub use crate::algorithms::flow::dominator_tree::{DominatorMode, DominatorTree, dominator_tree};
 pub use crate::algorithms::flow::edge_connectivity::{adhesion, edge_connectivity};
 pub use crate::algorithms::flow::edge_disjoint_paths::edge_disjoint_paths;

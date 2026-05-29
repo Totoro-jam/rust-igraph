@@ -1,0 +1,69 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_all_st_mincuts.c graph 1 \u2014 5-vertex directed path edges (0,1)(1,2)(2,3)(3,4), source=0 target=4. Four minimum cuts of value 1, one per edge.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "all_st_mincuts",
+  "params": {
+    "source": 0,
+    "target": 4
+  },
+  "expected": {
+    "value": 1.0,
+    "partition1s": [
+      [
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        0,
+        1,
+        2,
+        3
+      ]
+    ],
+    "cuts": [
+      [
+        0
+      ],
+      [
+        1
+      ],
+      [
+        2
+      ],
+      [
+        3
+      ]
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-FL-032",
+  "name": "all_st_mincuts (enumerate every minimum (s,t) edge cut of a directed graph)",
+  "date": "2026-05-29",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "all_st_mincuts/linear_path",
+      "sizes": [50, 100, 200],
+      "median_ns": [176863, 567306, 1772656],
+      "note": "directed path 0->1->...->n; value 1, exactly n minimum cuts (one per edge). Cost dominated by the max-flow + residual contraction/relabel pipeline, which grows super-linearly in n"
+    },
+    {
+      "group": "all_st_mincuts/parallel_bundle",
+      "sizes": [4, 6, 8],
+      "median_ns": [24380, 72140, 277417],
+      "note": "k vertex-disjoint length-2 paths 0->mid_i->t; value k, 2^k minimum cuts (16/64/256). k kept tiny; exercises the Provan-Shier enumeration over a wide flat residual (~4x per step)"
+    }
+  ],
+  "status": "baseline_created"
+}

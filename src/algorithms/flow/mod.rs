@@ -11,6 +11,7 @@
 //! ones.
 
 pub(crate) mod all_st_cuts;
+pub(crate) mod all_st_mincuts;
 pub(crate) mod dominator_tree;
 pub(crate) mod edge_connectivity;
 pub(crate) mod edge_disjoint_paths;
@@ -18,6 +19,7 @@ pub(crate) mod gomory_hu_tree;
 pub(crate) mod max_flow;
 pub(crate) mod mincut;
 pub(crate) mod mincut_value;
+pub(crate) mod provan_shier;
 pub(crate) mod st_edge_connectivity;
 pub(crate) mod st_mincut;
 pub(crate) mod st_vertex_connectivity;
@@ -25,6 +27,7 @@ pub(crate) mod vertex_connectivity;
 pub(crate) mod vertex_disjoint_paths;
 
 pub use all_st_cuts::{StCuts, all_st_cuts};
+pub use all_st_mincuts::{StMinCuts, all_st_mincuts};
 pub use dominator_tree::{DominatorMode, DominatorTree, dominator_tree};
 pub use edge_connectivity::{adhesion, edge_connectivity};
 pub use edge_disjoint_paths::edge_disjoint_paths;

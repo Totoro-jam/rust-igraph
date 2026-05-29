@@ -1,0 +1,63 @@
+{
+  "source": "py",
+  "origin": "Graph(n=6, edges=[(0,1),(1,2),(1,3),(2,4),(3,4),(4,5)], directed=True). Graph.all_st_mincuts(0, 5) \u21d2 2 minimum cuts of value 1 (the bottleneck source and sink edges).",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "all_st_mincuts",
+  "params": {
+    "source": 0,
+    "target": 5
+  },
+  "expected": {
+    "value": 1.0,
+    "partition1s": [
+      [
+        0
+      ],
+      [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    ],
+    "cuts": [
+      [
+        0
+      ],
+      [
+        5
+      ]
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "source": "py",
+  "origin": "Graph(n=2, edges=[(0,1)], directed=True). Graph.all_st_mincuts(0, 1) \u21d2 a single minimum cut of value 1: partition[0]={0}, es.indices=[0].",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "all_st_mincuts",
+  "params": {
+    "source": 0,
+    "target": 1
+  },
+  "expected": {
+    "value": 1.0,
+    "partition1s": [
+      [
+        0
+      ]
+    ],
+    "cuts": [
+      [
+        0
+      ]
+    ]
+  }
+}

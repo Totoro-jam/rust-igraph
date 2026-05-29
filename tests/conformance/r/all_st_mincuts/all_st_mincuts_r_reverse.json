@@ -1,0 +1,54 @@
+{
+  "source": "r",
+  "origin": "rigraph all_st_mincuts on the reversed 4-vertex graph make_graph(c(2,1,3,1,3,2,4,3), directed=TRUE) with source=3 target=1 \u21d2 2 minimum cuts of value 2. Stored 0-based: edges (1,0)(2,0)(2,1)(3,2), source=2 target=0.",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        3,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "all_st_mincuts",
+  "params": {
+    "source": 2,
+    "target": 0
+  },
+  "expected": {
+    "value": 2.0,
+    "partition1s": [
+      [
+        1,
+        2
+      ],
+      [
+        2
+      ]
+    ],
+    "cuts": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  }
+}

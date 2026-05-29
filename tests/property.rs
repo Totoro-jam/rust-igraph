@@ -3913,3 +3913,111 @@ proptest! {
         }
     }
 }
+
+// ALGO-FL-032: all_st_mincuts (Provan-Shier) invariants on arbitrary small
+// directed graphs. Every enumerated cut must be a genuine, complete (s,t)
+// edge cut of *minimum* total capacity: its source side is a sorted, unique
+// set containing the source and excluding the target; the cut equals exactly
+// the edges leaving that side; the unit-capacity weight of each cut equals the
+// reported value, which in turn equals the maximum source→target flow; and
+// deleting the cut disconnects the target from the source.
+#[cfg(feature = "proptest-harness")]
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(64))]
+
+    #[test]
+    fn all_st_mincuts_are_valid_minimum_and_disconnecting(
+        g in arb_directed_graph(7),
+        target in 1u32..7,
+    ) {
+        let n = g.vcount();
+        let source = 0u32;
+        if n < 2 || target >= n {
+            return Ok(());
+        }
+        let res = rust_igraph::all_st_mincuts(&g, source, target, None).unwrap();
+        prop_assert_eq!(res.cuts.len(), res.partition1s.len());
+
+        // The reported value must equal the maximum flow.
+        let mf = rust_igraph::max_flow_value(&g, source, target, None).unwrap();
+        prop_assert!((res.value - mf).abs() < 1e-9,
+                     "value {} != max flow {}", res.value, mf);
+
+        // At least one minimum cut must exist whenever the source can reach
+        // the target (value > 0). An unreachable target yields the empty list.
+        let m = u32::try_from(g.ecount()).expect("ecount fits in u32 for proptest");
+        let edges: Vec<(u32, u32)> = (0..m).map(|e| g.edge(e).unwrap()).collect();
+
+        let mut seen_partitions: std::collections::HashSet<Vec<u32>> =
+            std::collections::HashSet::new();
+
+        for (part, cut) in res.partition1s.iter().zip(res.cuts.iter()) {
+            // Sortedness (strictly ascending).
+            for w in part.windows(2) {
+                prop_assert!(w[0] < w[1], "partition not strictly ascending: {:?}", part);
+            }
+            for w in cut.windows(2) {
+                prop_assert!(w[0] < w[1], "cut not strictly ascending: {:?}", cut);
+            }
+
+            // Source/target membership.
+            prop_assert!(part.contains(&source), "source missing from {:?}", part);
+            prop_assert!(!part.contains(&target), "target present in {:?}", part);
+
+            // Uniqueness of source-side sets.
+            prop_assert!(seen_partitions.insert(part.clone()),
+                         "duplicate partition {:?}", part);
+
+            let mut in_s = vec![false; n as usize];
+            for &v in part {
+                in_s[v as usize] = true;
+            }
+
+            // Validity + completeness: the cut equals exactly the set of
+            // edges leaving the source side (in a minimum cut every crossing
+            // edge is saturated, so it carries positive flow).
+            let mut crossing: Vec<u32> = Vec::new();
+            for (e, &(from, to)) in edges.iter().enumerate() {
+                if in_s[from as usize] && !in_s[to as usize] {
+                    crossing.push(u32::try_from(e).expect("edge id fits in u32"));
+                }
+            }
+            crossing.sort_unstable();
+            prop_assert_eq!(cut, &crossing,
+                            "cut != crossing-out edges of partition {:?}", part);
+
+            // Minimality: the unit-capacity weight of the cut equals the value.
+            prop_assert!((cut.len() as f64 - res.value).abs() < 1e-9,
+                         "cut weight {} != value {}", cut.len(), res.value);
+
+            // Removing the cut edges must disconnect target from source.
+            let removed: std::collections::HashSet<u32> = cut.iter().copied().collect();
+            let mut adj: Vec<Vec<u32>> = vec![Vec::new(); n as usize];
+            for (e, &(from, to)) in edges.iter().enumerate() {
+                let eid = u32::try_from(e).expect("edge id fits in u32");
+                if removed.contains(&eid) {
+                    continue;
+                }
+                adj[from as usize].push(to);
+            }
+            let mut visited = vec![false; n as usize];
+            let mut stack = vec![source];
+            visited[source as usize] = true;
+            let mut reached_target = false;
+            while let Some(u) = stack.pop() {
+                if u == target {
+                    reached_target = true;
+                    break;
+                }
+                for &w in &adj[u as usize] {
+                    if !visited[w as usize] {
+                        visited[w as usize] = true;
+                        stack.push(w);
+                    }
+                }
+            }
+            prop_assert!(!reached_target,
+                         "target {} still reachable after removing cut {:?}", target, cut);
+        }
+    }
+}

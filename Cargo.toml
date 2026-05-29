@@ -500,6 +500,11 @@ path = "benches/bench_all_st_cuts.rs"
 harness = false
 
 [[bench]]
+name = "bench_all_st_mincuts"
+path = "benches/bench_all_st_mincuts.rs"
+harness = false
+
+[[bench]]
 name = "bench_st_edge_connectivity"
 path = "benches/bench_st_edge_connectivity.rs"
 harness = false

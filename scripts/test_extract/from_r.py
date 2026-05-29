@@ -4178,6 +4178,71 @@ ALL_ST_CUTS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-032: all_st_mincuts. R-igraph exposes
+# `all_st_mincuts(graph, source, target, capacity = NULL)` returning a
+# list of `igraph.mincut`-style objects with `$partition1` (source side)
+# and `$cut` (edge ids). The set of minimum (s,t) cuts is unique, so the
+# Rust runner compares partitions+cuts as a set and also checks `value`.
+# All expected vectors are stored 0-based (R reports 1-based).
+ALL_ST_MINCUTS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "all_st_mincuts_r_reverse",
+        "origin": "rigraph all_st_mincuts on the reversed 4-vertex graph "
+        "make_graph(c(2,1,3,1,3,2,4,3), directed=TRUE) with source=3 "
+        "target=1 ⇒ 2 minimum cuts of value 2. Stored 0-based: "
+        "edges (1,0)(2,0)(2,1)(3,2), source=2 target=0.",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(1, 0), (2, 0), (2, 1), (3, 2)], directed=True
+        ),
+        "algo": "all_st_mincuts",
+        "params": {"source": 2, "target": 0},
+        "expected": {
+            "value": 2.0,
+            "partition1s": [[1, 2], [2]],
+            "cuts": [[0, 1], [1, 2]],
+        },
+    },
+    {
+        "case": "all_st_mincuts_r_diamond_to_sink",
+        "origin": "rigraph all_st_mincuts on the diamond "
+        "make_graph(c(1,2,1,3,2,4,3,4,4,5), directed=TRUE) with "
+        "source=1 target=5 ⇒ a single minimum cut of value 1 (the "
+        "bottleneck edge into the sink). Stored 0-based: edges "
+        "(0,1)(0,2)(1,3)(2,3)(3,4), source=0 target=4.",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (0, 2), (1, 3), (2, 3), (3, 4)],
+            directed=True,
+        ),
+        "algo": "all_st_mincuts",
+        "params": {"source": 0, "target": 4},
+        "expected": {
+            "value": 1.0,
+            "partition1s": [[0, 1, 2, 3]],
+            "cuts": [[4]],
+        },
+    },
+    {
+        "case": "all_st_mincuts_r_path5",
+        "origin": "rigraph all_st_mincuts on the directed path "
+        "make_graph(c(1,2,2,3,3,4,4,5), directed=TRUE) with source=1 "
+        "target=5 ⇒ 4 minimum cuts of value 1, one per edge. Stored "
+        "0-based: edges (0,1)(1,2)(2,3)(3,4), source=0 target=4.",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4)],
+            directed=True,
+        ),
+        "algo": "all_st_mincuts",
+        "params": {"source": 0, "target": 4},
+        "expected": {
+            "value": 1.0,
+            "partition1s": [[0], [0, 1], [0, 1, 2], [0, 1, 2, 3]],
+            "cuts": [[0], [1], [2], [3]],
+        },
+    },
+]
+
 # ALGO-FL-020: gomory_hu_tree. R-igraph exposes
 # `gomory_hu_tree(graph, capacity = NULL)` which returns the cut tree
 # as a Graph with edge attribute "flow" carrying min-cut weights.
@@ -9211,6 +9276,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "all_st_cuts": ALL_ST_CUTS_MANIFEST,
+    "all_st_mincuts": ALL_ST_MINCUTS_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,

@@ -4713,6 +4713,86 @@ ALL_ST_CUTS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-032: all_st_mincuts (enumerate every *minimum* s-t edge cut,
+# Provan-Shier). Mirrors `igraph_all_st_mincuts` and the C unit fixtures in
+# `references/igraph/tests/unit/igraph_all_st_mincuts.c` (graphs 1, 4, 7).
+# `expected` is the full canonical result: `value` (the min-cut/max-flow
+# value), `partition1s` (source-side vertex sets) aligned with `cuts` (edge
+# ids leaving each set), all sorted canonically by (partition, cut). The set
+# of minimum cuts is unique, so the Rust runner compares as sets. Values
+# computed with python-igraph 0.11.9 (the shared igraph-C oracle) and
+# cross-checked against the C `.out` ground truth.
+ALL_ST_MINCUTS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # tests/unit/igraph_all_st_mincuts.c graph 1 — directed path.
+        "case": "all_st_mincuts_c_path5",
+        "origin": "tests/unit/igraph_all_st_mincuts.c graph 1 — 5-vertex "
+        "directed path edges (0,1)(1,2)(2,3)(3,4), source=0 target=4. "
+        "Four minimum cuts of value 1, one per edge.",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=True
+        ),
+        "algo": "all_st_mincuts",
+        "params": {"source": 0, "target": 4},
+        "expected": {
+            "value": 1.0,
+            "partition1s": [[0], [0, 1], [0, 1, 2], [0, 1, 2, 3]],
+            "cuts": [[0], [1], [2], [3]],
+        },
+    },
+    {
+        # tests/unit/igraph_all_st_mincuts.c graph 4 — parallel middle layer.
+        "case": "all_st_mincuts_c_parallel_middle",
+        "origin": "tests/unit/igraph_all_st_mincuts.c graph 4 — 9-vertex "
+        "directed graph edges (0,1)(0,2)(1,3)(2,3)(1,4)(4,2)(1,5)(5,2)(1,6)"
+        "(6,2)(1,7)(7,2)(1,8)(8,2), source=0 target=3. Three minimum cuts "
+        "of value 2.",
+        "graph_factory": lambda: ig.Graph(
+            n=9,
+            edges=[
+                (0, 1), (0, 2), (1, 3), (2, 3), (1, 4), (4, 2), (1, 5),
+                (5, 2), (1, 6), (6, 2), (1, 7), (7, 2), (1, 8), (8, 2),
+            ],
+            directed=True,
+        ),
+        "algo": "all_st_mincuts",
+        "params": {"source": 0, "target": 3},
+        "expected": {
+            "value": 2.0,
+            "partition1s": [[0], [0, 1, 2, 4, 5, 6, 7, 8], [0, 2]],
+            "cuts": [[0, 1], [2, 3], [0, 3]],
+        },
+    },
+    {
+        # tests/unit/igraph_all_st_mincuts.c graph 7 — branching chain.
+        "case": "all_st_mincuts_c_chain9",
+        "origin": "tests/unit/igraph_all_st_mincuts.c graph 7 — 9-vertex "
+        "directed graph edges (0,4)(0,7)(1,6)(2,1)(3,8)(4,0)(4,2)(4,5)(5,0)"
+        "(5,3)(6,7)(7,8), source=0 target=8. Five minimum cuts of value 2.",
+        "graph_factory": lambda: ig.Graph(
+            n=9,
+            edges=[
+                (0, 4), (0, 7), (1, 6), (2, 1), (3, 8), (4, 0), (4, 2),
+                (4, 5), (5, 0), (5, 3), (6, 7), (7, 8),
+            ],
+            directed=True,
+        ),
+        "algo": "all_st_mincuts",
+        "params": {"source": 0, "target": 8},
+        "expected": {
+            "value": 2.0,
+            "partition1s": [
+                [0],
+                [0, 1, 2, 3, 4, 5, 6, 7],
+                [0, 1, 2, 4, 5, 6, 7],
+                [0, 1, 2, 4, 6, 7],
+                [0, 7],
+            ],
+            "cuts": [[0, 1], [4, 11], [9, 11], [7, 11], [0, 11]],
+        },
+    },
+]
+
 # ALGO-FL-020: gomory_hu_tree. Mirrors `igraph_gomory_hu_tree` at
 # `references/igraph/src/flow/flow.c:2479-2616` and the C unit fixtures
 # in `references/igraph/tests/unit/igraph_gomory_hu_tree.c`. The tree
@@ -11617,6 +11697,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "all_st_cuts": ALL_ST_CUTS_MANIFEST,
+    "all_st_mincuts": ALL_ST_MINCUTS_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
