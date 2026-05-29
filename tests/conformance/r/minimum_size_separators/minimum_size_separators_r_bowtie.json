@@ -1,0 +1,44 @@
+{
+  "source": "r",
+  "origin": "rigraph make_graph('bull')-style bowtie: two triangles {0,1,2} and {2,3,4} sharing vertex 2. Connectivity 1; the unique minimum separator is the shared vertex {2}.",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "minimum_size_separators",
+  "params": {},
+  "expected": {
+    "separators": [
+      [
+        2
+      ]
+    ]
+  }
+}

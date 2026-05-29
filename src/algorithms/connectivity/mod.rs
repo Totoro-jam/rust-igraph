@@ -33,7 +33,9 @@ pub use percolation::{
 };
 pub use reachability::count_reachable;
 pub use reachability_matrix::reachability_matrix;
-pub use separators::{all_minimal_st_separators, is_minimal_separator, is_separator};
+pub use separators::{
+    all_minimal_st_separators, is_minimal_separator, is_separator, minimum_size_separators,
+};
 pub use strong::strongly_connected_components;
 pub use subcomponent::{SubcomponentMode, subcomponent};
 pub use transitive_closure::transitive_closure;

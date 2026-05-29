@@ -4021,3 +4021,56 @@ proptest! {
         }
     }
 }
+
+// ALGO-CN-031: minimum_size_separators (Kanevsky) invariants on arbitrary
+// small undirected graphs. Every enumerated set must be canonical (sorted,
+// unique), all sets must share a single cardinality equal to the graph's
+// vertex connectivity, a disconnected graph yields none, and — except for
+// the complete-graph special case, whose (n-1)-subsets leave a lone vertex
+// that `is_separator` does not count as disconnecting — every set must
+// genuinely separate the graph.
+#[cfg(feature = "proptest-harness")]
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(64))]
+
+    #[test]
+    fn minimum_size_separators_valid_and_uniform(g in arb_graph(7)) {
+        let n = g.vcount();
+        if n < 2 {
+            return Ok(());
+        }
+        let seps = rust_igraph::minimum_size_separators(&g).unwrap();
+        let conn = rust_igraph::vertex_connectivity(&g, true).unwrap();
+
+        if conn == 0 {
+            prop_assert!(seps.is_empty(),
+                         "disconnected graph must yield no separators");
+            return Ok(());
+        }
+
+        let k = usize::try_from(conn).expect("connectivity fits in usize");
+        let complete = conn == i64::from(n) - 1;
+        let mut seen: std::collections::HashSet<Vec<u32>> =
+            std::collections::HashSet::new();
+
+        for s in &seps {
+            for w in s.windows(2) {
+                prop_assert!(w[0] < w[1], "separator not strictly ascending: {:?}", s);
+            }
+            prop_assert_eq!(s.len(), k,
+                            "all minimum separators share size = connectivity");
+            prop_assert!(seen.insert(s.clone()), "duplicate separator {:?}", s);
+            if !complete {
+                prop_assert!(rust_igraph::is_separator(&g, s).unwrap(),
+                             "{:?} must separate the graph", s);
+            }
+        }
+
+        // A connected, non-complete graph always has at least one minimum
+        // separator.
+        if !complete {
+            prop_assert!(!seps.is_empty(),
+                         "connected non-complete graph must have a separator");
+        }
+    }
+}

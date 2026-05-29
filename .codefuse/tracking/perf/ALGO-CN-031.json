@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-CN-031",
+  "name": "minimum_size_separators (every minimum-size vertex separator, Kanevsky 1993)",
+  "date": "2026-05-29",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "minimum_size_separators/cycle",
+      "sizes": [20, 40, 80],
+      "median_ns": [24447000, 321670000, 4800100000],
+      "note": "undirected cycle C_n, connectivity 2; every non-adjacent vertex pair is a minimum separator so the output grows ~n^2/2 while the Kanevsky loop runs O(k.n) max-flows on the Even-Tarjan reduction plus an all_st_mincuts enumeration per non-neighbour. Cost is dominated by the per-pair min-cut enumeration, which grows super-linearly (~13x per doubling of n)"
+    },
+    {
+      "group": "minimum_size_separators/grid",
+      "sizes": [4, 6, 8],
+      "median_ns": [13182000, 387400000, 4405200000],
+      "note": "m x m square lattice (16/36/64 vertices), connectivity 2 with a denser, more clustered flow structure than the cycle; stresses the reduction + relabel + all_st_mincuts pipeline on a graph where each interior vertex has degree 4. Similar super-linear growth driven by the per-non-neighbour max-flow / mincut enumeration"
+    }
+  ],
+  "status": "baseline_created"
+}

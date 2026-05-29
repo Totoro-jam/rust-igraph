@@ -4243,6 +4243,53 @@ ALL_ST_MINCUTS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CN-031: minimum_size_separators (Kanevsky 1993). R-igraph
+# exposes `minimum_size_separators(graph)` returning a list of vertex
+# sets of minimum size whose removal disconnects the graph. The
+# collection is unique and complete, compared as a canonical set.
+# Expected values verified against python-igraph 0.11.9 (igraph C
+# 0.10.16). Vertex ids are 0-based here; R reports them 1-based.
+MINIMUM_SIZE_SEPARATORS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "minimum_size_separators_r_bowtie",
+        "origin": "rigraph make_graph('bull')-style bowtie: two "
+        "triangles {0,1,2} and {2,3,4} sharing vertex 2. Connectivity "
+        "1; the unique minimum separator is the shared vertex {2}.",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (0, 2), (1, 2), (2, 3), (2, 4), (3, 4)],
+            directed=False,
+        ),
+        "algo": "minimum_size_separators",
+        "params": {},
+        "expected": {"separators": [[2]]},
+    },
+    {
+        "case": "minimum_size_separators_r_grid3x3",
+        "origin": "rigraph make_lattice(c(3,3)) — 3x3 grid. "
+        "Connectivity 2; the minimum separators are the four "
+        "corner-cutting pairs around the centre {1,3},{1,5},{3,7},{5,7}.",
+        "graph_factory": lambda: ig.Graph.Lattice([3, 3], circular=False),
+        "algo": "minimum_size_separators",
+        "params": {},
+        "expected": {
+            "separators": [[1, 3], [1, 5], [3, 7], [5, 7]],
+        },
+    },
+    {
+        "case": "minimum_size_separators_r_k23_side01",
+        "origin": "rigraph K_{2,3}-style graph: 5 vertices, edges "
+        "(2,0)(3,0)(4,0)(2,1)(3,1)(4,1). Connectivity 2; the unique "
+        "minimum separator is the degree-3 side {0,1}.",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(2, 0), (3, 0), (4, 0), (2, 1), (3, 1), (4, 1)],
+            directed=False,
+        ),
+        "algo": "minimum_size_separators",
+        "params": {},
+        "expected": {"separators": [[0, 1]]},
+    },
+]
+
 # ALGO-FL-020: gomory_hu_tree. R-igraph exposes
 # `gomory_hu_tree(graph, capacity = NULL)` which returns the cut tree
 # as a Graph with edge attribute "flow" carrying min-cut weights.
@@ -9277,6 +9324,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "all_st_cuts": ALL_ST_CUTS_MANIFEST,
     "all_st_mincuts": ALL_ST_MINCUTS_MANIFEST,
+    "minimum_size_separators": MINIMUM_SIZE_SEPARATORS_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,

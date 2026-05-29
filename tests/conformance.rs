@@ -16937,6 +16937,24 @@ fn all_st_mincuts_three_source_conformance() {
 }
 
 #[test]
+fn minimum_size_separators_three_source_conformance() {
+    // ALGO-CN-031: every vertex set of minimum size whose removal
+    // disconnects the graph (Kanevsky 1993). The collection is unique
+    // and complete, so `expected.separators` carries the full canonical
+    // set: each separator sorted ascending, the list of separators
+    // sorted. The runner canonicalises the Rust result identically and
+    // compares for exact equality.
+    run_conformance("minimum_size_separators", |g, _params| {
+        let mut seps = rust_igraph::minimum_size_separators(g).expect("minimum_size_separators");
+        for s in &mut seps {
+            s.sort_unstable();
+        }
+        seps.sort();
+        serde_json::json!({ "separators": seps })
+    });
+}
+
+#[test]
 #[allow(clippy::too_many_lines)] // three-source dispatch + Gomory-Hu property check
 fn gomory_hu_tree_three_source_conformance() {
     // ALGO-FL-020: Gomory-Hu cut tree. The tree is not unique (Gusfield

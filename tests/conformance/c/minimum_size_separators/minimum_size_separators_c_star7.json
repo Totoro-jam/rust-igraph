@@ -1,0 +1,44 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_minimum_size_separators.c \u2014 star with 7 vertices (centre 0, leaves 1..6). Connectivity 1; the unique minimum separator is the centre {0}.",
+  "graph": {
+    "n": 7,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        0,
+        6
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "minimum_size_separators",
+  "params": {},
+  "expected": {
+    "separators": [
+      [
+        0
+      ]
+    ]
+  }
+}

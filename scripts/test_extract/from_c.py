@@ -4793,6 +4793,61 @@ ALL_ST_MINCUTS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CN-031: minimum_size_separators (Kanevsky 1993). Mirrors
+# `igraph_minimum_size_separators` and the C unit fixtures in
+# `tests/unit/igraph_minimum_size_separators.c` (igraph C 0.10.16, the
+# version bundled by the python-igraph 0.11.9 oracle). Returns every
+# vertex set of minimum size whose removal disconnects the graph (or
+# leaves a singleton); the collection is unique and complete, compared
+# as a canonical set. Expected values verified against python-igraph.
+MINIMUM_SIZE_SEPARATORS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "minimum_size_separators_c_star7",
+        "origin": "tests/unit/igraph_minimum_size_separators.c — star "
+        "with 7 vertices (centre 0, leaves 1..6). Connectivity 1; the "
+        "unique minimum separator is the centre {0}.",
+        "graph_factory": lambda: ig.Graph.Star(7, mode="undirected", center=0),
+        "algo": "minimum_size_separators",
+        "params": {},
+        "expected": {"separators": [[0]]},
+    },
+    {
+        "case": "minimum_size_separators_c_k23",
+        "origin": "tests/unit/igraph_minimum_size_separators.c — "
+        "K_{2,3}-style graph: 5 vertices, edges (0,3)(1,3)(2,3)(0,4)(1,4)"
+        "(2,4). Connectivity 2; the unique minimum separator is the "
+        "degree-3 side {3,4}.",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 3), (1, 3), (2, 3), (0, 4), (1, 4), (2, 4)],
+            directed=False,
+        ),
+        "algo": "minimum_size_separators",
+        "params": {},
+        "expected": {"separators": [[3, 4]]},
+    },
+    {
+        "case": "minimum_size_separators_c_ten",
+        "origin": "tests/unit/igraph_minimum_size_separators.c — "
+        "10-vertex graph edges (0,2)(0,3)(1,2)(1,3)(5,2)(5,3)(6,2)(6,3)"
+        "(7,2)(7,3)(8,2)(8,3)(9,2)(9,3)(2,4)(4,3). Vertices 2 and 3 are "
+        "the hubs; connectivity 2 and the unique minimum separator is "
+        "{2,3}.",
+        "graph_factory": lambda: ig.Graph(
+            n=10,
+            edges=[
+                (0, 2), (0, 3), (1, 2), (1, 3), (5, 2), (5, 3), (6, 2),
+                (6, 3), (7, 2), (7, 3), (8, 2), (8, 3), (9, 2), (9, 3),
+                (2, 4), (4, 3),
+            ],
+            directed=False,
+        ),
+        "algo": "minimum_size_separators",
+        "params": {},
+        "expected": {"separators": [[2, 3]]},
+    },
+]
+
 # ALGO-FL-020: gomory_hu_tree. Mirrors `igraph_gomory_hu_tree` at
 # `references/igraph/src/flow/flow.c:2479-2616` and the C unit fixtures
 # in `references/igraph/tests/unit/igraph_gomory_hu_tree.c`. The tree
@@ -11698,6 +11753,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "all_st_cuts": ALL_ST_CUTS_MANIFEST,
     "all_st_mincuts": ALL_ST_MINCUTS_MANIFEST,
+    "minimum_size_separators": MINIMUM_SIZE_SEPARATORS_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,

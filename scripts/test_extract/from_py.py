@@ -3919,6 +3919,50 @@ ALL_ST_MINCUTS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-CN-031: minimum_size_separators (Kanevsky 1993). python-igraph
+# exposes `Graph.minimum_size_separators()` returning every vertex set
+# of minimum size whose removal disconnects the graph (or reduces it to
+# a singleton). The collection is unique and complete, so the runner
+# compares it as a canonical set: each separator sorted ascending, the
+# list of separators sorted. Expected values verified against
+# python-igraph 0.11.9 (which bundles igraph C 0.10.16).
+MINIMUM_SIZE_SEPARATORS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "minimum_size_separators_py_path3",
+        "origin": "Graph(n=3, edges=[(0,1),(1,2)]). The path 0-1-2 has "
+        "connectivity 1; the unique minimum separator is the middle "
+        "vertex {1}.",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)]),
+        "algo": "minimum_size_separators",
+        "params": {},
+        "expected": {"separators": [[1]]},
+    },
+    {
+        "case": "minimum_size_separators_py_cycle5",
+        "origin": "Graph.Ring(5). The 5-cycle has connectivity 2; the "
+        "minimum separators are the five pairs of non-adjacent "
+        "vertices.",
+        "graph_factory": lambda: ig.Graph.Ring(5),
+        "algo": "minimum_size_separators",
+        "params": {},
+        "expected": {
+            "separators": [[0, 2], [0, 3], [1, 3], [1, 4], [2, 4]],
+        },
+    },
+    {
+        "case": "minimum_size_separators_py_k4",
+        "origin": "Graph.Full(4). The complete graph K_4 has "
+        "connectivity 3 (= n-1); every (n-1)-subset is a minimum "
+        "separator that reduces the graph to a single vertex.",
+        "graph_factory": lambda: ig.Graph.Full(4),
+        "algo": "minimum_size_separators",
+        "params": {},
+        "expected": {
+            "separators": [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 3]],
+        },
+    },
+]
+
 # ALGO-FL-020: gomory_hu_tree. python-igraph exposes
 # `Graph.gomory_hu_tree(capacity=None, flow="flow")` which returns a
 # tree Graph with edge attribute "flow" holding the per-edge min-cut
@@ -9149,6 +9193,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
     "all_st_cuts": ALL_ST_CUTS_MANIFEST,
     "all_st_mincuts": ALL_ST_MINCUTS_MANIFEST,
+    "minimum_size_separators": MINIMUM_SIZE_SEPARATORS_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,
