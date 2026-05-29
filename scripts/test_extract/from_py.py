@@ -3822,6 +3822,44 @@ ST_MINCUT_PARTITION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-031: all_st_cuts. python-igraph exposes
+# `Graph.all_st_cuts(source, target)` which returns a list of Cut
+# objects; `cut.partition[0]` is the source-side vertex set and
+# `cut.es.indices` lists the cut edge ids. `expected` is the canonical
+# collection: `partition1s` aligned with `cuts`, sorted by
+# (partition, cut) so the order is stable. Values computed via
+# python-igraph 0.11.9.
+ALL_ST_CUTS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "all_st_cuts_py_diamond_two_paths",
+        "origin": "Graph(n=4, edges=[(0,1),(1,3),(0,2),(2,3)], "
+        "directed=True). Graph.all_st_cuts(0, 3) returns 4 Cut objects; "
+        "cut.partition[0] = source side, cut.es.indices = cut edge ids.",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 3), (0, 2), (2, 3)], directed=True
+        ),
+        "algo": "all_st_cuts",
+        "params": {"source": 0, "target": 3},
+        "expected": {
+            "partition1s": [[0], [0, 1], [0, 1, 2], [0, 2]],
+            "cuts": [[0, 2], [1, 2], [1, 3], [0, 3]],
+        },
+    },
+    {
+        "case": "all_st_cuts_py_single_edge",
+        "origin": "Graph(n=2, edges=[(0,1)], directed=True). "
+        "Graph.all_st_cuts(0, 1) returns a single Cut: partition[0]={0}, "
+        "es.indices=[0] — the lone edge is the only cut.",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[(0, 1)], directed=True),
+        "algo": "all_st_cuts",
+        "params": {"source": 0, "target": 1},
+        "expected": {
+            "partition1s": [[0]],
+            "cuts": [[0]],
+        },
+    },
+]
+
 # ALGO-FL-020: gomory_hu_tree. python-igraph exposes
 # `Graph.gomory_hu_tree(capacity=None, flow="flow")` which returns a
 # tree Graph with edge attribute "flow" holding the per-edge min-cut
@@ -9050,6 +9088,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
+    "all_st_cuts": ALL_ST_CUTS_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,

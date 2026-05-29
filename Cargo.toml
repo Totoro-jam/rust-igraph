@@ -83,6 +83,10 @@ name = "dominator_tree_demo"
 path = "examples/dominator_tree_demo.rs"
 
 [[example]]
+name = "all_st_cuts_demo"
+path = "examples/all_st_cuts_demo.rs"
+
+[[example]]
 name = "hsbm_demo"
 path = "examples/hsbm_demo.rs"
 
@@ -488,6 +492,11 @@ harness = false
 [[bench]]
 name = "bench_dominator_tree"
 path = "benches/bench_dominator_tree.rs"
+harness = false
+
+[[bench]]
+name = "bench_all_st_cuts"
+path = "benches/bench_all_st_cuts.rs"
 harness = false
 
 [[bench]]

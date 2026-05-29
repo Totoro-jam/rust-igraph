@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-FL-031",
+  "name": "all_st_cuts (enumerate every (s,t) edge cut of a directed graph)",
+  "date": "2026-05-29",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "all_st_cuts/linear_path",
+      "sizes": [50, 100, 200],
+      "median_ns": [2351400, 12044000, 72494000],
+      "note": "directed path 0->1->...->n; exactly n cuts (one per edge), linear cut-count scaling"
+    },
+    {
+      "group": "all_st_cuts/diamond_series",
+      "sizes": [1, 2, 3],
+      "median_ns": [17325, 47453, 94987],
+      "note": "k chained diamond blocks; 4^k cuts (4/16/64), heavier pivot/dominator work per cut"
+    }
+  ],
+  "status": "baseline_created"
+}

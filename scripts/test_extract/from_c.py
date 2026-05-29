@@ -4648,6 +4648,71 @@ ST_MINCUT_PARTITION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-031: all_st_cuts (enumerate every s-t edge cut, Provan-Shier).
+# Mirrors `igraph_all_st_cuts` and the C unit fixtures in
+# `references/igraph/tests/unit/igraph_all_st_cuts.c`. `expected` is the
+# full canonical result: `partition1s` (source-side vertex sets) aligned
+# with `cuts` (edge ids leaving each set). The whole collection is sorted
+# canonically by (partition, cut) so the order is stable across
+# implementations — the Rust runner compares the two collections as sets.
+ALL_ST_CUTS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        # tests/unit/igraph_all_st_cuts.c — the canonical 6-node directed
+        # graph; source=0 target=4 yields 9 distinct cuts.
+        "case": "all_st_cuts_c_6node_canonical",
+        "origin": "tests/unit/igraph_all_st_cuts.c — 6-vertex directed graph "
+        "edges (0,1)(1,2)(1,3)(2,4)(3,4)(1,5)(5,4), source=0 target=4. "
+        "igraph_all_st_cuts enumerates 9 distinct (s,t) edge cuts.",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (1, 3), (2, 4), (3, 4), (1, 5), (5, 4)],
+            directed=True,
+        ),
+        "algo": "all_st_cuts",
+        "params": {"source": 0, "target": 4},
+        "expected": {
+            "partition1s": [
+                [0],
+                [0, 1],
+                [0, 1, 2],
+                [0, 1, 2, 3],
+                [0, 1, 2, 3, 5],
+                [0, 1, 2, 5],
+                [0, 1, 3],
+                [0, 1, 3, 5],
+                [0, 1, 5],
+            ],
+            "cuts": [
+                [0],
+                [1, 2, 5],
+                [2, 3, 5],
+                [3, 4, 5],
+                [3, 4, 6],
+                [2, 3, 6],
+                [1, 4, 5],
+                [1, 4, 6],
+                [1, 2, 6],
+            ],
+        },
+    },
+    {
+        # Diamond: two parallel directed paths 0->1->3 and 0->2->3.
+        "case": "all_st_cuts_c_diamond_two_paths",
+        "origin": "Diamond DAG modelled on igraph_all_st_cuts.c style: "
+        "4-vertex directed graph edges (0,1)(1,3)(0,2)(2,3), source=0 "
+        "target=3. Four distinct (s,t) edge cuts.",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 3), (0, 2), (2, 3)], directed=True
+        ),
+        "algo": "all_st_cuts",
+        "params": {"source": 0, "target": 3},
+        "expected": {
+            "partition1s": [[0], [0, 1], [0, 1, 2], [0, 2]],
+            "cuts": [[0, 2], [1, 2], [1, 3], [0, 3]],
+        },
+    },
+]
+
 # ALGO-FL-020: gomory_hu_tree. Mirrors `igraph_gomory_hu_tree` at
 # `references/igraph/src/flow/flow.c:2479-2616` and the C unit fixtures
 # in `references/igraph/tests/unit/igraph_gomory_hu_tree.c`. The tree
@@ -11551,6 +11616,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
+    "all_st_cuts": ALL_ST_CUTS_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,

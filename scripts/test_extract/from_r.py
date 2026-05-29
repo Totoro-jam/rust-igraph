@@ -4139,6 +4139,45 @@ ST_MINCUT_PARTITION_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-FL-031: all_st_cuts. rigraph exposes
+# `all_st_cuts(graph, source, target)` returning a list of cut
+# structures. NOTE rigraph's API is 1-based for vertex / edge ids, but
+# our stored `expected` values are the 0-based igraph-core ids the Rust
+# port uses; values here are computed with python-igraph 0.11.9 (the
+# shared oracle) which is already 0-based. `expected` is the canonical
+# collection: `partition1s` aligned with `cuts`, sorted by
+# (partition, cut) so the order is stable.
+ALL_ST_CUTS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "all_st_cuts_r_single_directed_edge",
+        "origin": "rigraph all_st_cuts(make_graph(c(1,2), directed=TRUE), "
+        "source=1, target=2) ⇒ a single cut. Stored 0-based: "
+        "partition1=[0], cut edge=[0] (R reports source=1, edge=1).",
+        "graph_factory": lambda: ig.Graph(n=2, edges=[(0, 1)], directed=True),
+        "algo": "all_st_cuts",
+        "params": {"source": 0, "target": 1},
+        "expected": {
+            "partition1s": [[0]],
+            "cuts": [[0]],
+        },
+    },
+    {
+        "case": "all_st_cuts_r_directed_k4",
+        "origin": "rigraph all_st_cuts(make_full_graph(4, directed=TRUE), "
+        "source=1, target=4) on directed K_4 ⇒ 4 cuts. Stored 0-based "
+        "(R uses 1-based source=1 target=4); edge ids follow the K_4 "
+        "insertion order (0,1)(0,2)(0,3)(1,0)(1,2)(1,3)(2,0)(2,1)(2,3)"
+        "(3,0)(3,1)(3,2).",
+        "graph_factory": lambda: ig.Graph.Full(4, directed=True, loops=False),
+        "algo": "all_st_cuts",
+        "params": {"source": 0, "target": 3},
+        "expected": {
+            "partition1s": [[0], [0, 1], [0, 1, 2], [0, 2]],
+            "cuts": [[0, 1, 2], [1, 2, 4, 5], [2, 5, 8], [0, 2, 7, 8]],
+        },
+    },
+]
+
 # ALGO-FL-020: gomory_hu_tree. R-igraph exposes
 # `gomory_hu_tree(graph, capacity = NULL)` which returns the cut tree
 # as a Graph with edge attribute "flow" carrying min-cut weights.
@@ -9171,6 +9210,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "edge_connectivity": ECONN_GLOBAL_MANIFEST,
     "mincut_value": MINCUT_VALUE_MANIFEST,
     "st_mincut": ST_MINCUT_PARTITION_MANIFEST,
+    "all_st_cuts": ALL_ST_CUTS_MANIFEST,
     "gomory_hu_tree": GOMORY_HU_MANIFEST,
     "dominator_tree": DOMINATOR_TREE_MANIFEST,
     "erdos_renyi_gnp": ERDOS_RENYI_GNP_MANIFEST,

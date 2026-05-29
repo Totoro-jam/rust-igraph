@@ -1,0 +1,70 @@
+{
+  "source": "c",
+  "origin": "Diamond DAG modelled on igraph_all_st_cuts.c style: 4-vertex directed graph edges (0,1)(1,3)(0,2)(2,3), source=0 target=3. Four distinct (s,t) edge cuts.",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "all_st_cuts",
+  "params": {
+    "source": 0,
+    "target": 3
+  },
+  "expected": {
+    "partition1s": [
+      [
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "cuts": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ]
+  }
+}

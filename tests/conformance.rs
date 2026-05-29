@@ -16698,6 +16698,132 @@ fn st_mincut_three_source_conformance() {
 }
 
 #[test]
+fn all_st_cuts_three_source_conformance() {
+    // ALGO-FL-031: enumerate every (s,t) edge cut of a directed graph
+    // (Provan-Shier). `expected` carries the full canonical collection:
+    // `partition1s` (source-side vertex sets) aligned with `cuts` (edge
+    // ids leaving each set). igraph enumerates each cut exactly once, so
+    // the collection is canonical — only the ORDER of the outer list can
+    // vary between implementations. The runner therefore compares both
+    // the actual `StCuts` and the expected collection as SETS of
+    // (partition, cut) pairs (sorted before comparison).
+    fn canonicalise(partitions: &[Vec<u32>], cuts: &[Vec<u32>]) -> Vec<(Vec<u32>, Vec<u32>)> {
+        let mut pairs: Vec<(Vec<u32>, Vec<u32>)> = partitions
+            .iter()
+            .zip(cuts.iter())
+            .map(|(p, c)| {
+                let mut p = p.clone();
+                let mut c = c.clone();
+                p.sort_unstable();
+                c.sort_unstable();
+                (p, c)
+            })
+            .collect();
+        pairs.sort();
+        pairs
+    }
+
+    fn as_u32_lists(v: &serde_json::Value) -> Vec<Vec<u32>> {
+        v.as_array()
+            .expect("expected nested array")
+            .iter()
+            .map(|inner| {
+                inner
+                    .as_array()
+                    .expect("expected inner array")
+                    .iter()
+                    .map(|x| {
+                        u32::try_from(x.as_u64().expect("entry must be u64"))
+                            .expect("entry fits in u32")
+                    })
+                    .collect()
+            })
+            .collect()
+    }
+
+    let mut seen = std::collections::HashSet::<&'static str>::new();
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("all_st_cuts");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            assert_eq!(case.algo, "all_st_cuts");
+            assert_eq!(case.source, src);
+
+            let g = build_graph(&case.graph);
+            let source = u32::try_from(
+                case.params
+                    .get("source")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`source` param required"),
+            )
+            .expect("source fits in u32");
+            let target = u32::try_from(
+                case.params
+                    .get("target")
+                    .and_then(serde_json::Value::as_u64)
+                    .expect("`target` param required"),
+            )
+            .expect("target fits in u32");
+
+            let result = rust_igraph::all_st_cuts(&g, source, target).expect("all_st_cuts");
+            let actual = canonicalise(&result.partition1s, &result.cuts);
+
+            let expected_obj = case
+                .expected
+                .as_object()
+                .expect("expected must be an object");
+            let exp_parts = as_u32_lists(
+                expected_obj
+                    .get("partition1s")
+                    .expect("expected.partition1s required"),
+            );
+            let exp_cuts = as_u32_lists(expected_obj.get("cuts").expect("expected.cuts required"));
+            assert_eq!(
+                exp_parts.len(),
+                exp_cuts.len(),
+                "expected partition1s / cuts length mismatch in {}",
+                path.display()
+            );
+            let expected = canonicalise(&exp_parts, &exp_cuts);
+
+            assert_eq!(
+                actual,
+                expected,
+                "all_st_cuts mismatch\n  fixture: {}\n  origin:  {}",
+                path.display(),
+                case.origin,
+            );
+
+            seen.insert(match src {
+                "c" => "c",
+                "py" => "py",
+                "r" => "r",
+                _ => unreachable!(),
+            });
+        }
+    }
+    for src in ["c", "py", "r"] {
+        assert!(
+            seen.contains(src),
+            "no all_st_cuts fixtures from source {src}"
+        );
+    }
+}
+
+#[test]
 #[allow(clippy::too_many_lines)] // three-source dispatch + Gomory-Hu property check
 fn gomory_hu_tree_three_source_conformance() {
     // ALGO-FL-020: Gomory-Hu cut tree. The tree is not unique (Gusfield

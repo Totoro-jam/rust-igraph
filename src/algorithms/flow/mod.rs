@@ -10,6 +10,7 @@
 //! unit-capacity fixtures and within numerical tolerance on weighted
 //! ones.
 
+pub(crate) mod all_st_cuts;
 pub(crate) mod dominator_tree;
 pub(crate) mod edge_connectivity;
 pub(crate) mod edge_disjoint_paths;
@@ -23,6 +24,7 @@ pub(crate) mod st_vertex_connectivity;
 pub(crate) mod vertex_connectivity;
 pub(crate) mod vertex_disjoint_paths;
 
+pub use all_st_cuts::{StCuts, all_st_cuts};
 pub use dominator_tree::{DominatorMode, DominatorTree, dominator_tree};
 pub use edge_connectivity::{adhesion, edge_connectivity};
 pub use edge_disjoint_paths::edge_disjoint_paths;

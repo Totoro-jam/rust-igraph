@@ -3816,3 +3816,100 @@ proptest! {
         }
     }
 }
+
+// ALGO-FL-031: all_st_cuts (Provan-Shier) invariants on arbitrary small
+// directed graphs. Each enumerated cut must be a genuine, complete (s,t)
+// edge cut whose source side is a sorted, unique set containing the source
+// and excluding the target; deleting the cut must disconnect the target
+// from the source.
+#[cfg(feature = "proptest-harness")]
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(64))]
+
+    #[test]
+    fn all_st_cuts_are_valid_complete_and_disconnecting(
+        g in arb_directed_graph(7),
+        target in 1u32..7,
+    ) {
+        let n = g.vcount();
+        let source = 0u32;
+        // Need at least two vertices and an in-range target distinct from
+        // the source.
+        if n < 2 || target >= n {
+            return Ok(());
+        }
+        let res = rust_igraph::all_st_cuts(&g, source, target).unwrap();
+        prop_assert_eq!(res.cuts.len(), res.partition1s.len());
+
+        // Resolve the edge list once for cross-checks.
+        let m = u32::try_from(g.ecount()).expect("ecount fits in u32 for proptest");
+        let edges: Vec<(u32, u32)> = (0..m).map(|e| g.edge(e).unwrap()).collect();
+
+        let mut seen_partitions: std::collections::HashSet<Vec<u32>> =
+            std::collections::HashSet::new();
+
+        for (part, cut) in res.partition1s.iter().zip(res.cuts.iter()) {
+            // Sortedness (strictly ascending).
+            for w in part.windows(2) {
+                prop_assert!(w[0] < w[1], "partition not strictly ascending: {:?}", part);
+            }
+            for w in cut.windows(2) {
+                prop_assert!(w[0] < w[1], "cut not strictly ascending: {:?}", cut);
+            }
+
+            // Source/target membership.
+            prop_assert!(part.contains(&source), "source missing from {:?}", part);
+            prop_assert!(!part.contains(&target), "target present in {:?}", part);
+
+            // Uniqueness of source-side sets.
+            prop_assert!(seen_partitions.insert(part.clone()),
+                         "duplicate partition {:?}", part);
+
+            let mut in_s = vec![false; n as usize];
+            for &v in part {
+                in_s[v as usize] = true;
+            }
+
+            // Validity + completeness: the cut equals exactly the set of
+            // edges leaving the source side.
+            let mut crossing: Vec<u32> = Vec::new();
+            for (e, &(from, to)) in edges.iter().enumerate() {
+                if in_s[from as usize] && !in_s[to as usize] {
+                    crossing.push(u32::try_from(e).expect("edge id fits in u32"));
+                }
+            }
+            crossing.sort_unstable();
+            prop_assert_eq!(cut, &crossing,
+                            "cut != crossing-out edges of partition {:?}", part);
+
+            // Removing the cut edges must disconnect target from source.
+            let removed: std::collections::HashSet<u32> = cut.iter().copied().collect();
+            let mut adj: Vec<Vec<u32>> = vec![Vec::new(); n as usize];
+            for (e, &(from, to)) in edges.iter().enumerate() {
+                let eid = u32::try_from(e).expect("edge id fits in u32");
+                if removed.contains(&eid) {
+                    continue;
+                }
+                adj[from as usize].push(to);
+            }
+            let mut visited = vec![false; n as usize];
+            let mut stack = vec![source];
+            visited[source as usize] = true;
+            let mut reached_target = false;
+            while let Some(u) = stack.pop() {
+                if u == target {
+                    reached_target = true;
+                    break;
+                }
+                for &w in &adj[u as usize] {
+                    if !visited[w as usize] {
+                        visited[w as usize] = true;
+                        stack.push(w);
+                    }
+                }
+            }
+            prop_assert!(!reached_target,
+                         "target {} still reachable after removing cut {:?}", target, cut);
+        }
+    }
+}

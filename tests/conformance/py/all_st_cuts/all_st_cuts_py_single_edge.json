@@ -1,0 +1,32 @@
+{
+  "source": "py",
+  "origin": "Graph(n=2, edges=[(0,1)], directed=True). Graph.all_st_cuts(0, 1) returns a single Cut: partition[0]={0}, es.indices=[0] \u2014 the lone edge is the only cut.",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "all_st_cuts",
+  "params": {
+    "source": 0,
+    "target": 1
+  },
+  "expected": {
+    "partition1s": [
+      [
+        0
+      ]
+    ],
+    "cuts": [
+      [
+        0
+      ]
+    ]
+  }
+}
