@@ -48,7 +48,7 @@ pub use induced_subgraph_edges::induced_subgraph_edges;
 pub use intersection::{intersection, intersection_many};
 pub use is_same_graph::is_same_graph;
 pub use join::join;
-pub use permute_vertices::permute_vertices;
+pub use permute_vertices::{invert_permutation, permute_vertices};
 pub use products::{
     GraphProductType, cartesian_product, graph_product, lexicographic_product, modular_product,
     rooted_product, strong_product, tensor_product,

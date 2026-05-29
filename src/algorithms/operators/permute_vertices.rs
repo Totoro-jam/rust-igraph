@@ -1,9 +1,67 @@
-//! Vertex permutation operator (ALGO-OP-009).
+//! Vertex permutation operators (ALGO-OP-009).
 //!
 //! Creates a new graph by remapping vertex IDs according to a permutation.
+//! Also provides [`invert_permutation`] for computing the inverse of a
+//! permutation vector.
 
 use crate::core::error::IgraphError;
 use crate::core::{Graph, IgraphResult, VertexId};
+
+/// Invert a permutation vector.
+///
+/// Given a permutation `p` of `[0, n)`, returns the inverse permutation
+/// `inv` such that `inv[p[i]] == i` for all `i`. The function also
+/// validates that `p` is a proper permutation (no out-of-range values,
+/// no duplicates).
+///
+/// Counterpart of `igraph_invert_permutation` from
+/// `references/igraph/src/operators/permute.c:39-58`.
+///
+/// # Errors
+///
+/// * [`IgraphError::InvalidArgument`] — some entry is out of range
+///   `[0, n)`, or the vector contains duplicate entries.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::invert_permutation;
+///
+/// let perm = [2, 0, 1];
+/// let inv = invert_permutation(&perm).unwrap();
+/// assert_eq!(inv, vec![1, 2, 0]);
+/// // Verify: inv[perm[i]] == i
+/// for i in 0..3 {
+///     assert_eq!(inv[perm[i] as usize], i as u32);
+/// }
+/// ```
+pub fn invert_permutation(permutation: &[VertexId]) -> IgraphResult<Vec<VertexId>> {
+    let n = permutation.len();
+    let n_u32 = u32::try_from(n).map_err(|_| {
+        IgraphError::InvalidArgument("invert_permutation: length overflows u32".to_string())
+    })?;
+
+    let mut inverse = vec![u32::MAX; n];
+
+    for (i, &j) in permutation.iter().enumerate() {
+        if j >= n_u32 {
+            return Err(IgraphError::InvalidArgument(format!(
+                "invert_permutation: invalid index {j} in permutation (must be < {n_u32})"
+            )));
+        }
+        if inverse[j as usize] != u32::MAX {
+            return Err(IgraphError::InvalidArgument(format!(
+                "invert_permutation: duplicate entry {j} in permutation"
+            )));
+        }
+        #[allow(clippy::cast_possible_truncation)]
+        {
+            inverse[j as usize] = i as u32;
+        }
+    }
+
+    Ok(inverse)
+}
 
 /// Creates a new graph with vertices permuted according to the given mapping.
 ///
@@ -193,5 +251,57 @@ mod tests {
         assert_eq!(pg.edge(0).unwrap(), (0, 3));
         // Edge (1,2) → (0, 1) → stored as (0, 1)
         assert_eq!(pg.edge(1).unwrap(), (0, 1));
+    }
+
+    // ── invert_permutation tests ────────────────────────────────────
+
+    #[test]
+    fn invert_identity() {
+        let inv = invert_permutation(&[0, 1, 2, 3]).unwrap();
+        assert_eq!(inv, vec![0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn invert_reverse() {
+        let inv = invert_permutation(&[2, 1, 0]).unwrap();
+        assert_eq!(inv, vec![2, 1, 0]);
+    }
+
+    #[test]
+    fn invert_cycle() {
+        let inv = invert_permutation(&[1, 2, 0]).unwrap();
+        assert_eq!(inv, vec![2, 0, 1]);
+    }
+
+    #[test]
+    fn invert_empty() {
+        let inv = invert_permutation(&[]).unwrap();
+        assert!(inv.is_empty());
+    }
+
+    #[test]
+    fn invert_single() {
+        let inv = invert_permutation(&[0]).unwrap();
+        assert_eq!(inv, vec![0]);
+    }
+
+    #[test]
+    fn invert_roundtrip() {
+        let perm = [3, 0, 2, 1];
+        let inv = invert_permutation(&perm).unwrap();
+        let inv2 = invert_permutation(&inv).unwrap();
+        assert_eq!(inv2, perm.to_vec());
+    }
+
+    #[test]
+    fn invert_out_of_range() {
+        let err = invert_permutation(&[0, 5, 1]).unwrap_err();
+        assert!(matches!(err, IgraphError::InvalidArgument(_)));
+    }
+
+    #[test]
+    fn invert_duplicate() {
+        let err = invert_permutation(&[0, 1, 1]).unwrap_err();
+        assert!(matches!(err, IgraphError::InvalidArgument(_)));
     }
 }
