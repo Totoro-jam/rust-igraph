@@ -6,7 +6,7 @@
 //! * **LERW** ([`tree_game_lerw`]) — Wilson's loop-erased random walk on
 //!   `K_n`. Supports both directed (out-rooted) and undirected trees.
 //! * **Prüfer** ([`tree_game_prufer`]) — samples a random Prüfer sequence,
-//!   then decodes it via [`from_prufer`](crate::from_prufer). Undirected
+//!   then decodes it via [`from_prufer`]. Undirected
 //!   only, matching the C upstream restriction.
 //!
 //! Both methods produce each labelled tree with equal probability.
@@ -39,7 +39,7 @@
 //!
 //! Generate `n - 2` uniform random values in `[0, n)`, forming a Prüfer
 //! sequence, then decode it with the linear-time algorithm from
-//! [`from_prufer`](crate::from_prufer). The result is always an undirected
+//! [`from_prufer`]. The result is always an undirected
 //! labelled tree.
 
 #![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
