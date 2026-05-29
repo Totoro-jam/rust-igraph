@@ -104,10 +104,192 @@ pub fn max_flow_value(
     max_flow_with_residual(graph, source, target, capacity).map(|(v, _)| v)
 }
 
+/// Full maximum-flow computation: value, per-edge flow, cut edges,
+/// and source-side / sink-side vertex partitions.
+///
+/// Counterpart of `igraph_maxflow` in
+/// `references/igraph/src/flow/flow.c` (igraph C uses Goldberg-Tarjan
+/// push-relabel; this implementation uses Dinic's algorithm). The
+/// scalar max-flow value is unique by the max-flow / min-cut theorem;
+/// the flow decomposition and partition may differ between algorithms,
+/// but the invariants are the same.
+///
+/// # Arguments
+///
+/// * `graph` — input graph (directed or undirected).
+/// * `source` — source vertex id (`0 ≤ source < vcount()`).
+/// * `target` — sink vertex id (`0 ≤ target < vcount()`, `target != source`).
+/// * `capacity` — optional per-edge capacity in the graph's edge-id
+///   order. When `None`, each edge contributes unit capacity. When
+///   `Some(c)`, `c.len()` must equal `graph.ecount()`, and every entry
+///   must be finite and `≥ 0`.
+///
+/// # Returns
+///
+/// A [`MaxFlow`] containing:
+///
+/// * `value` — the maximum total flow from `source` to `target`.
+/// * `flow` — per-edge flow values (`flow.len() == ecount()`). For
+///   directed graphs the flow on each edge is non-negative and respects
+///   the capacity constraint. For undirected graphs the flow may be
+///   negative (indicating flow in the reverse direction of the edge's
+///   stored orientation).
+/// * `cut` — edge ids of the minimum cut (saturated edges crossing the
+///   source-side / sink-side partition boundary).
+/// * `partition` — source-side vertex ids (sorted ascending).
+/// * `partition2` — sink-side vertex ids (sorted ascending).
+///
+/// # Errors
+///
+/// * [`IgraphError::VertexOutOfRange`] if `source` or `target` is
+///   outside `[0, vcount())`.
+/// * [`IgraphError::InvalidArgument`] if `source == target`, the
+///   capacity slice length differs from `ecount()`, or any capacity is
+///   negative / non-finite.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, max_flow};
+///
+/// // Two parallel paths of capacity 1 each → max flow = 2.
+/// let mut g = Graph::new(4, true).unwrap();
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 3).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// let cap = vec![1.0, 1.0, 1.0, 1.0];
+/// let result = max_flow(&g, 0, 3, Some(&cap)).unwrap();
+/// assert!((result.value - 2.0).abs() < 1e-12);
+/// assert_eq!(result.flow.len(), 4);
+/// ```
+pub fn max_flow(
+    graph: &Graph,
+    source: VertexId,
+    target: VertexId,
+    capacity: Option<&[f64]>,
+) -> IgraphResult<MaxFlow> {
+    let m = graph.ecount();
+    let directed = graph.is_directed();
+    let (value, net) = max_flow_with_residual(graph, source, target, capacity)?;
+
+    // Extract per-edge flow from the residual network.
+    // For each original edge e, the forward arc is at index 2*e and
+    // the paired reverse arc at 2*e+1.
+    //
+    // Directed: flow[e] = cap_initial[e] - residual[2*e], always ≥ 0.
+    //   The reverse arc started at 0 capacity, so only forward matters.
+    //
+    // Undirected: both arcs started at cap_initial. When Dinic pushes
+    //   flow f on the forward arc, residual[fwd] decreases by f and
+    //   residual[rev] increases by f (XOR pairing). So:
+    //     residual[rev] - residual[fwd] = 2*f
+    //   The net flow on the original edge is f, so we halve the
+    //   difference. This matches igraph C's approach of computing
+    //   flow_fwd - flow_rev where each is extracted from the directed
+    //   doubled graph.
+    let mut flow_vec: Vec<f64> = Vec::with_capacity(m);
+    for e in 0..m {
+        let fwd = 2 * e;
+        let rev = fwd + 1;
+        if directed {
+            let initial = capacity.map_or(1.0, |c| c[e]);
+            flow_vec.push(initial - net.cap[fwd]);
+        } else {
+            flow_vec.push((net.cap[rev] - net.cap[fwd]) / 2.0);
+        }
+    }
+
+    // BFS from source in the residual to find the source-side partition.
+    let n = net.n;
+    let mut in_source = vec![false; n];
+    in_source[source as usize] = true;
+    let mut queue: Vec<u32> = Vec::with_capacity(n);
+    queue.push(source);
+    let mut head_ptr = 0_usize;
+    while head_ptr < queue.len() {
+        let v = queue[head_ptr] as usize;
+        head_ptr += 1;
+        for &arc in &net.arcs_out[v] {
+            let arc_us = arc as usize;
+            if net.cap[arc_us] <= 0.0 {
+                continue;
+            }
+            let w = net.head[arc_us] as usize;
+            if !in_source[w] {
+                in_source[w] = true;
+                queue.push(w as u32);
+            }
+        }
+    }
+
+    let mut partition: Vec<u32> = Vec::with_capacity(queue.len());
+    let mut partition2: Vec<u32> = Vec::with_capacity(n.saturating_sub(queue.len()));
+    for (v, &is_src) in in_source.iter().enumerate() {
+        if is_src {
+            partition.push(v as u32);
+        } else {
+            partition2.push(v as u32);
+        }
+    }
+
+    // Cut edges: crossing the partition boundary.
+    let edge_count = u32::try_from(m).map_err(|_| IgraphError::Internal("ecount overflows u32"))?;
+    let mut cut: Vec<u32> = Vec::new();
+    for eid in 0..edge_count {
+        let (u, v) = graph.edge(eid)?;
+        let u_in = in_source[u as usize];
+        let v_in = in_source[v as usize];
+        let crosses = if directed {
+            u_in && !v_in
+        } else {
+            u_in != v_in
+        };
+        if crosses {
+            cut.push(eid);
+        }
+    }
+
+    Ok(MaxFlow {
+        value,
+        flow: flow_vec,
+        cut,
+        partition,
+        partition2,
+    })
+}
+
+/// Output of [`max_flow`]: scalar value, per-edge flow vector, cut
+/// edge ids, and source-side / sink-side vertex partitions.
+///
+/// Mirrors the output parameters of `igraph_maxflow` in
+/// `references/igraph/src/flow/flow.c` (`value`, `flow`, `cut`,
+/// `partition`, `partition2`).
+#[derive(Debug, Clone)]
+pub struct MaxFlow {
+    /// The maximum total flow from source to target.
+    pub value: f64,
+    /// Per-edge flow values in edge-id order (`flow.len() == ecount()`).
+    /// For directed graphs each entry is non-negative. For undirected
+    /// graphs the sign indicates direction: positive means flow in the
+    /// stored edge direction (source → target), negative means reverse.
+    pub flow: Vec<f64>,
+    /// Edge ids of the minimum cut (saturated edges crossing the
+    /// source/sink partition boundary).
+    pub cut: Vec<u32>,
+    /// Source-side partition (vertices reachable from `source` in the
+    /// residual network). Contains `source`. Sorted ascending.
+    pub partition: Vec<u32>,
+    /// Sink-side partition (complement of `partition`). Contains
+    /// `target`. Sorted ascending.
+    pub partition2: Vec<u32>,
+}
+
 /// Internal entry point: runs Dinic and returns both the scalar flow
 /// value AND the post-augmentation residual network. Crate-private —
-/// the public API exposes [`max_flow_value`] (value only) and FL-018's
-/// `st_mincut` (which uses the residual to extract a min-cut partition).
+/// the public API exposes [`max_flow_value`] (value only), [`max_flow`]
+/// (full result), and FL-018's `st_mincut` (which uses the residual to
+/// extract a min-cut partition).
 ///
 /// Same validation contract as [`max_flow_value`].
 pub(crate) fn max_flow_with_residual(
@@ -510,6 +692,186 @@ mod tests {
         let cap = vec![0.5, 0.5, 0.25, 0.25];
         let f = max_flow_value(&g, 0, 3, Some(&cap)).unwrap();
         assert_close(f, 0.75, 1e-12);
+    }
+
+    // ---- max_flow (full result) tests ----
+
+    fn validate_flow(graph: &Graph, result: &MaxFlow, capacity: Option<&[f64]>) {
+        let m = graph.ecount();
+        let n = graph.vcount();
+        let directed = graph.is_directed();
+
+        // flow vector has correct length
+        assert_eq!(result.flow.len(), m, "flow.len() must equal ecount()");
+
+        // capacity constraints: |flow[e]| <= capacity[e]
+        for e in 0..m {
+            let cap_e = capacity.map_or(1.0, |c| c[e]);
+            assert!(
+                result.flow[e].abs() <= cap_e + 1e-12,
+                "flow[{e}] = {} exceeds capacity {cap_e}",
+                result.flow[e]
+            );
+            if directed {
+                assert!(
+                    result.flow[e] >= -1e-12,
+                    "directed flow[{e}] = {} must be non-negative",
+                    result.flow[e]
+                );
+            }
+        }
+
+        // flow conservation: for every vertex != source, target,
+        // sum of incoming flow == sum of outgoing flow.
+        // We'll skip this for undirected (harder to define direction).
+        if directed {
+            for v in 0..n {
+                if v == result.partition[0]
+                    || !result.partition2.is_empty()
+                        && v == *result.partition2.last().unwrap_or(&u32::MAX)
+                {
+                    continue;
+                }
+                let mut net = 0.0_f64;
+                for e in 0..m {
+                    let (src, dst) = graph.edge(e as u32).unwrap();
+                    if dst == v {
+                        net += result.flow[e];
+                    }
+                    if src == v {
+                        net -= result.flow[e];
+                    }
+                }
+                assert!(
+                    net.abs() < 1e-9,
+                    "flow conservation violated at vertex {v}: net = {net}"
+                );
+            }
+        }
+
+        // partitions well-formed
+        assert_eq!(result.partition.len() + result.partition2.len(), n as usize);
+        assert!(result.partition.windows(2).all(|w| w[0] < w[1]));
+        assert!(result.partition2.windows(2).all(|w| w[0] < w[1]));
+
+        // cut capacity sum equals value
+        let cut_sum: f64 = result
+            .cut
+            .iter()
+            .map(|&e| capacity.map_or(1.0, |c| c[e as usize]))
+            .sum();
+        assert_close(cut_sum, result.value, 1e-9 * result.value.abs().max(1.0));
+
+        // cut edges cross the partition boundary
+        let mut in_source = vec![false; n as usize];
+        for &v in &result.partition {
+            in_source[v as usize] = true;
+        }
+        for &eid in &result.cut {
+            let (u, v) = graph.edge(eid).unwrap();
+            if directed {
+                assert!(
+                    in_source[u as usize] && !in_source[v as usize],
+                    "directed cut edge {eid} must go S→V\\S"
+                );
+            } else {
+                assert_ne!(
+                    in_source[u as usize], in_source[v as usize],
+                    "cut edge {eid} must cross partition"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn max_flow_two_parallel_paths() {
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let cap = vec![1.0, 1.0, 1.0, 1.0];
+        let r = max_flow(&g, 0, 3, Some(&cap)).unwrap();
+        assert_close(r.value, 2.0, 1e-12);
+        validate_flow(&g, &r, Some(&cap));
+    }
+
+    #[test]
+    fn max_flow_bottleneck() {
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let cap = vec![5.0, 2.0, 7.0];
+        let r = max_flow(&g, 0, 3, Some(&cap)).unwrap();
+        assert_close(r.value, 2.0, 1e-12);
+        assert_close(r.flow[0], 2.0, 1e-12);
+        assert_close(r.flow[1], 2.0, 1e-12);
+        assert_close(r.flow[2], 2.0, 1e-12);
+        validate_flow(&g, &r, Some(&cap));
+    }
+
+    #[test]
+    fn max_flow_classic_textbook() {
+        let mut g = Graph::new(6, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(2, 1).unwrap();
+        g.add_edge(2, 4).unwrap();
+        g.add_edge(3, 2).unwrap();
+        g.add_edge(3, 5).unwrap();
+        g.add_edge(4, 3).unwrap();
+        g.add_edge(4, 5).unwrap();
+        let cap = vec![16.0, 13.0, 12.0, 4.0, 14.0, 9.0, 20.0, 7.0, 4.0];
+        let r = max_flow(&g, 0, 5, Some(&cap)).unwrap();
+        assert_close(r.value, 23.0, 1e-12);
+        validate_flow(&g, &r, Some(&cap));
+    }
+
+    #[test]
+    fn max_flow_isolated_endpoints() {
+        let g = Graph::with_vertices(4);
+        let r = max_flow(&g, 0, 3, None).unwrap();
+        assert_close(r.value, 0.0, 1e-12);
+        assert!(r.flow.iter().all(|&f| f.abs() < 1e-12));
+        assert!(r.cut.is_empty());
+    }
+
+    #[test]
+    fn max_flow_single_edge() {
+        let mut g = Graph::new(2, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        let r = max_flow(&g, 0, 1, None).unwrap();
+        assert_close(r.value, 1.0, 1e-12);
+        assert_close(r.flow[0], 1.0, 1e-12);
+        validate_flow(&g, &r, None);
+    }
+
+    #[test]
+    fn max_flow_undirected() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let r = max_flow(&g, 0, 3, None).unwrap();
+        assert_close(r.value, 2.0, 1e-12);
+        assert_eq!(r.flow.len(), 4);
+        validate_flow(&g, &r, None);
+    }
+
+    #[test]
+    fn max_flow_value_matches_full() {
+        let mut g = Graph::new(5, true).unwrap();
+        for (s, t) in [(0u32, 1u32), (0, 2), (1, 3), (2, 3), (3, 4), (1, 4)] {
+            g.add_edge(s, t).unwrap();
+        }
+        let caps = [3.0, 5.0, 2.0, 4.0, 6.0, 1.0];
+        let scalar = max_flow_value(&g, 0, 4, Some(&caps)).unwrap();
+        let full = max_flow(&g, 0, 4, Some(&caps)).unwrap();
+        assert_close(scalar, full.value, 1e-12);
+        validate_flow(&g, &full, Some(&caps));
     }
 }
 
