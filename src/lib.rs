@@ -229,6 +229,9 @@ pub use crate::algorithms::io::leda::write_leda;
 pub use crate::algorithms::io::lgl::{LglGraph, read_lgl, write_lgl};
 pub use crate::algorithms::io::ncol::{NcolGraph, read_ncol, write_ncol};
 pub use crate::algorithms::io::pajek::{PajekGraph, read_pajek, write_pajek};
+pub use crate::algorithms::isomorphism::simplify_and_colorize::{
+    SimplifyAndColorize, simplify_and_colorize,
+};
 pub use crate::algorithms::layout::bipartite::layout_bipartite;
 pub use crate::algorithms::layout::davidson_harel::{DhParams, layout_davidson_harel};
 pub use crate::algorithms::layout::drl::{DrlOptions, DrlTemplate, layout_drl};

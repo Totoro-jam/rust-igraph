@@ -17,6 +17,7 @@ pub mod flow;
 pub mod fundamental_cycles;
 pub mod games;
 pub mod io;
+pub mod isomorphism;
 pub mod layout;
 pub mod matching;
 pub mod matching_lsap;
