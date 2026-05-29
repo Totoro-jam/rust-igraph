@@ -325,6 +325,164 @@ pub fn bellman_ford_path_to_with_mode(
     Ok(Some((vertices_rev, edges_rev)))
 }
 
+/// One entry in the result of [`bellman_ford_paths`]: `Some((vertices,
+/// edges))` if the target is reachable, `None` otherwise.
+pub type BellmanFordPathEntry = Option<(Vec<VertexId>, Vec<EdgeId>)>;
+
+/// Shortest paths from `source` to each vertex in `targets` using
+/// Bellman-Ford (handles negative edge weights).
+///
+/// Counterpart of `igraph_get_shortest_paths_bellman_ford` in
+/// `references/igraph/src/paths/bellman_ford.c:296`. Runs the
+/// SSSP computation once and reconstructs a path for each target.
+///
+/// Returns a `Vec` with one entry per target. Each entry is
+/// `Some((vertices, edges))` if the target is reachable from `source`,
+/// or `None` if it is not.
+///
+/// # Errors
+///
+/// * [`IgraphError::VertexOutOfRange`] if `source` or any target is
+///   outside `[0, vcount())`.
+/// * [`IgraphError::InvalidArgument`] if a negative cycle is reachable
+///   from `source`, or `weights.len() != ecount()`, or any weight is NaN.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, bellman_ford_paths};
+///
+/// let mut g = Graph::new(4, true).unwrap();
+/// g.add_edge(0, 1).unwrap(); // edge 0, weight 3
+/// g.add_edge(1, 2).unwrap(); // edge 1, weight -1
+/// g.add_edge(0, 2).unwrap(); // edge 2, weight 5
+/// g.add_edge(2, 3).unwrap(); // edge 3, weight 1
+/// let results = bellman_ford_paths(&g, 0, &[2, 3], &[3.0, -1.0, 5.0, 1.0]).unwrap();
+/// // Path to vertex 2: 0→1→2 (cost 2, via negative edge)
+/// let (vs, es) = results[0].as_ref().unwrap();
+/// assert_eq!(*vs, vec![0, 1, 2]);
+/// assert_eq!(*es, vec![0, 1]);
+/// // Path to vertex 3: 0→1→2→3 (cost 3)
+/// let (vs, es) = results[1].as_ref().unwrap();
+/// assert_eq!(*vs, vec![0, 1, 2, 3]);
+/// assert_eq!(*es, vec![0, 1, 3]);
+/// ```
+pub fn bellman_ford_paths(
+    graph: &Graph,
+    source: VertexId,
+    targets: &[VertexId],
+    weights: &[f64],
+) -> IgraphResult<Vec<BellmanFordPathEntry>> {
+    bellman_ford_paths_with_mode(graph, source, targets, weights, DijkstraMode::Out)
+}
+
+/// Multi-target Bellman-Ford shortest paths with directed-mode selection.
+///
+/// Like [`bellman_ford_paths`] but allows choosing how directed edges
+/// are followed:
+/// - [`DijkstraMode::Out`] follows out-edges (default),
+/// - [`DijkstraMode::In`] follows in-edges,
+/// - [`DijkstraMode::All`] ignores edge direction.
+pub fn bellman_ford_paths_with_mode(
+    graph: &Graph,
+    source: VertexId,
+    targets: &[VertexId],
+    weights: &[f64],
+    mode: DijkstraMode,
+) -> IgraphResult<Vec<BellmanFordPathEntry>> {
+    let n = graph.vcount();
+    if source >= n {
+        return Err(IgraphError::VertexOutOfRange { id: source, n });
+    }
+    for &t in targets {
+        if t >= n {
+            return Err(IgraphError::VertexOutOfRange { id: t, n });
+        }
+    }
+    validate_weights(graph, weights)?;
+
+    let n_usize = n as usize;
+
+    // Run SSSP once from source.
+    let mut dist: Vec<f64> = vec![f64::INFINITY; n_usize];
+    dist[source as usize] = 0.0;
+
+    let mut parent_edge: Vec<Option<EdgeId>> = vec![None; n_usize];
+
+    let mut queue: VecDeque<VertexId> = VecDeque::with_capacity(n_usize);
+    let mut in_queue: Vec<bool> = vec![true; n_usize];
+    let mut num_queued: Vec<u32> = vec![0; n_usize];
+    for v in 0..n {
+        queue.push_back(v);
+    }
+
+    while let Some(j) = queue.pop_front() {
+        let j_idx = j as usize;
+        in_queue[j_idx] = false;
+        num_queued[j_idx] = num_queued[j_idx]
+            .checked_add(1)
+            .ok_or(IgraphError::Internal("num_queued overflow"))?;
+        if num_queued[j_idx] > n {
+            return Err(IgraphError::InvalidArgument(
+                "negative cycle reachable from source while running Bellman-Ford".to_string(),
+            ));
+        }
+
+        if !dist[j_idx].is_finite() {
+            continue;
+        }
+
+        let incidents = incident_for_mode(graph, j, mode)?;
+        for eid in incidents {
+            let w = weights[eid as usize];
+            if w == f64::INFINITY {
+                continue;
+            }
+            let neighbor = graph.edge_other(eid, j)?;
+            let neighbor_idx = neighbor as usize;
+            let altdist = dist[j_idx] + w;
+            if altdist < dist[neighbor_idx] {
+                dist[neighbor_idx] = altdist;
+                parent_edge[neighbor_idx] = Some(eid);
+                if !in_queue[neighbor_idx] {
+                    in_queue[neighbor_idx] = true;
+                    queue.push_back(neighbor);
+                }
+            }
+        }
+    }
+
+    // Reconstruct paths for each target.
+    let mut results: Vec<Option<(Vec<VertexId>, Vec<EdgeId>)>> = Vec::with_capacity(targets.len());
+    for &target in targets {
+        if target == source {
+            results.push(Some((vec![source], vec![])));
+            continue;
+        }
+        if !dist[target as usize].is_finite() {
+            results.push(None);
+            continue;
+        }
+        let mut edges_rev: Vec<EdgeId> = Vec::new();
+        let mut vertices_rev: Vec<VertexId> = Vec::new();
+        let mut cur = target;
+        vertices_rev.push(cur);
+        while cur != source {
+            let eid = parent_edge[cur as usize].ok_or(IgraphError::Internal(
+                "bellman_ford_paths: missing parent edge in path reconstruction",
+            ))?;
+            edges_rev.push(eid);
+            cur = graph.edge_other(eid, cur)?;
+            vertices_rev.push(cur);
+        }
+        vertices_rev.reverse();
+        edges_rev.reverse();
+        results.push(Some((vertices_rev, edges_rev)));
+    }
+
+    Ok(results)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -547,5 +705,128 @@ mod tests {
             .unwrap();
         assert_eq!(vs, vec![0, 1, 2, 3]);
         assert_eq!(es, vec![0, 1, 2]);
+    }
+
+    // --- bellman_ford_paths (multi-target) tests ---
+
+    #[test]
+    fn paths_multi_target_directed() {
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap(); // 0, w=3
+        g.add_edge(1, 2).unwrap(); // 1, w=-1
+        g.add_edge(0, 2).unwrap(); // 2, w=5
+        g.add_edge(2, 3).unwrap(); // 3, w=1
+        let w = [3.0, -1.0, 5.0, 1.0];
+        let results = bellman_ford_paths(&g, 0, &[1, 2, 3], &w).unwrap();
+        assert_eq!(results.len(), 3);
+        // path to 1: 0→1
+        let (vs, es) = results[0].as_ref().unwrap();
+        assert_eq!(*vs, vec![0, 1]);
+        assert_eq!(*es, vec![0]);
+        // path to 2: 0→1→2 (cost 2) < 0→2 (cost 5)
+        let (vs, es) = results[1].as_ref().unwrap();
+        assert_eq!(*vs, vec![0, 1, 2]);
+        assert_eq!(*es, vec![0, 1]);
+        // path to 3: 0→1→2→3 (cost 3)
+        let (vs, es) = results[2].as_ref().unwrap();
+        assert_eq!(*vs, vec![0, 1, 2, 3]);
+        assert_eq!(*es, vec![0, 1, 3]);
+    }
+
+    #[test]
+    fn paths_source_in_targets() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let results = bellman_ford_paths(&g, 0, &[0, 2], &[1.0, 1.0]).unwrap();
+        // source to self
+        let (vs, es) = results[0].as_ref().unwrap();
+        assert_eq!(*vs, vec![0]);
+        assert!(es.is_empty());
+        // source to 2
+        let (vs, es) = results[1].as_ref().unwrap();
+        assert_eq!(*vs, vec![0, 1, 2]);
+        assert_eq!(*es, vec![0, 1]);
+    }
+
+    #[test]
+    fn paths_unreachable_target() {
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        // vertex 2 and 3 unreachable from 0
+        let results = bellman_ford_paths(&g, 0, &[1, 2, 3], &[1.0]).unwrap();
+        assert!(results[0].is_some());
+        assert!(results[1].is_none());
+        assert!(results[2].is_none());
+    }
+
+    #[test]
+    fn paths_empty_targets() {
+        let g = Graph::with_vertices(3);
+        let results = bellman_ford_paths(&g, 0, &[], &[]).unwrap();
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn paths_negative_cycle_errors() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        let err = bellman_ford_paths(&g, 0, &[2], &[1.0, 1.0, -3.0]).unwrap_err();
+        assert!(matches!(err, IgraphError::InvalidArgument(_)));
+    }
+
+    #[test]
+    fn paths_duplicate_target() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let results = bellman_ford_paths(&g, 0, &[2, 2], &[1.0, 1.0]).unwrap();
+        assert_eq!(results.len(), 2);
+        assert_eq!(results[0], results[1]);
+    }
+
+    #[test]
+    fn paths_with_in_mode() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap(); // 0
+        g.add_edge(1, 2).unwrap(); // 1
+        let results =
+            bellman_ford_paths_with_mode(&g, 2, &[0, 1], &[3.0, -1.0], DijkstraMode::In).unwrap();
+        // 2←1: edge 1
+        let (vs, es) = results[1].as_ref().unwrap();
+        assert_eq!(*vs, vec![2, 1]);
+        assert_eq!(*es, vec![1]);
+        // 2←1←0: edges 1, 0
+        let (vs, es) = results[0].as_ref().unwrap();
+        assert_eq!(*vs, vec![2, 1, 0]);
+        assert_eq!(*es, vec![1, 0]);
+    }
+
+    #[test]
+    fn paths_agrees_with_path_to() {
+        let mut g = Graph::new(5, true).unwrap();
+        g.add_edge(0, 1).unwrap(); // 0
+        g.add_edge(1, 2).unwrap(); // 1
+        g.add_edge(0, 3).unwrap(); // 2
+        g.add_edge(3, 4).unwrap(); // 3
+        g.add_edge(2, 4).unwrap(); // 4
+        let w = [2.0, -1.0, 3.0, 1.0, 1.0];
+        let multi = bellman_ford_paths(&g, 0, &[1, 2, 3, 4], &w).unwrap();
+        for (i, &target) in [1u32, 2, 3, 4].iter().enumerate() {
+            let single = bellman_ford_path_to(&g, 0, target, &w).unwrap();
+            assert_eq!(multi[i], single, "mismatch for target {target}");
+        }
+    }
+
+    #[test]
+    fn paths_target_out_of_range() {
+        let g = Graph::with_vertices(3);
+        let err = bellman_ford_paths(&g, 0, &[99], &[]).unwrap_err();
+        assert!(matches!(
+            err,
+            IgraphError::VertexOutOfRange { id: 99, n: 3 }
+        ));
     }
 }
