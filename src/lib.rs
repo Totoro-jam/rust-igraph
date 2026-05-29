@@ -212,7 +212,7 @@ pub use crate::algorithms::games::recent_degree::recent_degree_game;
 pub use crate::algorithms::games::recent_degree_aging::recent_degree_aging_game;
 pub use crate::algorithms::games::sbm::sbm_game;
 pub use crate::algorithms::games::static_fitness::{static_fitness_game, static_power_law_game};
-pub use crate::algorithms::games::tree::tree_game_lerw;
+pub use crate::algorithms::games::tree::{tree_game_lerw, tree_game_prufer};
 pub use crate::algorithms::games::watts::watts_strogatz_game;
 pub use crate::algorithms::io::dimacs::{
     DimacsGraph, DimacsProblem, read_dimacs, write_dimacs_flow,

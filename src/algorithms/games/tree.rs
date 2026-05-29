@@ -1,14 +1,17 @@
-//! Uniform random labelled tree generator — Wilson's loop-erased random
-//! walk variant (ALGO-GN-004).
+//! Uniform random labelled tree generators (ALGO-GN-004).
 //!
-//! Counterpart of `igraph_tree_game()` (LERW method) in
-//! `references/igraph/src/games/tree.c:72-139`. The Prüfer method
-//! (`IGRAPH_RANDOM_TREE_PRUFER`) is **not** exposed here — it depends on
-//! `igraph_from_prufer`, which is not yet ported. A future AWU will land
-//! the Prüfer variant and unify both behind a single `tree_game` entry
-//! point.
+//! Counterpart of `igraph_tree_game()` in
+//! `references/igraph/src/games/tree.c`. Two methods are available:
 //!
-//! ## Algorithm
+//! * **LERW** ([`tree_game_lerw`]) — Wilson's loop-erased random walk on
+//!   `K_n`. Supports both directed (out-rooted) and undirected trees.
+//! * **Prüfer** ([`tree_game_prufer`]) — samples a random Prüfer sequence,
+//!   then decodes it via [`from_prufer`](crate::from_prufer). Undirected
+//!   only, matching the C upstream restriction.
+//!
+//! Both methods produce each labelled tree with equal probability.
+//!
+//! ## LERW algorithm
 //!
 //! Wilson's loop-erased random walk on the complete graph `K_n` uniformly
 //! samples spanning trees. The igraph implementation collapses the naive
@@ -32,24 +35,18 @@
 //! edges. Runtime is `O(n)` walk steps amortised — there is no rejection
 //! loop because step 3a covers the "already visited" branch in one shot.
 //!
-//! ## Directed mode
+//! ## Prüfer algorithm
 //!
-//! Edges are emitted in walk order, so they naturally point from the
-//! parent in the walk to the freshly added vertex. Setting
-//! `directed = true` therefore yields an out-rooted tree at the random
-//! initial vertex.
-//!
-//! ## Scope
-//!
-//! The full upstream signature is `(graph, n, directed, method)`. We omit
-//! the `method` parameter and inline the LERW path because the Prüfer
-//! path is unavailable. Adding a `method` enum without a working
-//! alternative would be a misleading API shape.
+//! Generate `n - 2` uniform random values in `[0, n)`, forming a Prüfer
+//! sequence, then decode it with the linear-time algorithm from
+//! [`from_prufer`](crate::from_prufer). The result is always an undirected
+//! labelled tree.
 
 #![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 
+use crate::algorithms::constructors::prufer::from_prufer;
 use crate::core::rng::SplitMix64;
-use crate::core::{Graph, IgraphResult, VertexId};
+use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
 /// Generate a uniformly random labelled tree on `n` vertices using
 /// Wilson's loop-erased random walk.
@@ -117,6 +114,60 @@ pub fn tree_game_lerw(n: u32, directed: bool, seed: u64) -> IgraphResult<Graph> 
     let mut g = Graph::new(n, directed)?;
     g.add_edges(edges)?;
     Ok(g)
+}
+
+/// Generate a uniformly random labelled tree on `n` vertices using the
+/// Prüfer sequence method.
+///
+/// Samples a random Prüfer sequence of length `n - 2` (each entry
+/// uniform in `[0, n)`), then decodes it with [`from_prufer`] to
+/// produce an undirected labelled tree.
+///
+/// * `n` — vertex count. `n = 0` returns an empty graph, `n = 1`
+///   returns a single isolated vertex.
+/// * `seed` — initialises an internal [`SplitMix64`] PRNG. Same
+///   `(n, seed)` always yields the same tree.
+///
+/// The output has exactly `max(0, n - 1)` edges, is acyclic, has no
+/// self-loops, and is connected.
+///
+/// Counterpart of the `IGRAPH_RANDOM_TREE_PRUFER` branch of
+/// `igraph_tree_game()` in `references/igraph/src/games/tree.c:37-56`.
+///
+/// # Errors
+///
+/// * [`IgraphError::InvalidArgument`] — `n` overflows internal
+///   allocation limits.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::tree_game_prufer;
+///
+/// let g = tree_game_prufer(30, 0xC0FF_EE00).unwrap();
+/// assert_eq!(g.vcount(), 30);
+/// assert_eq!(g.ecount(), 29);
+/// assert!(!g.is_directed());
+/// ```
+pub fn tree_game_prufer(n: u32, seed: u64) -> IgraphResult<Graph> {
+    if n < 2 {
+        return Graph::new(n, false);
+    }
+
+    let seq_len = (n - 2) as usize;
+    let mut rng = SplitMix64::new(seed);
+    let n_usize = n as usize;
+
+    let mut prufer: Vec<u32> = Vec::with_capacity(seq_len);
+    for _ in 0..seq_len {
+        let val = rng.gen_index(n_usize);
+        let val_u32 = u32::try_from(val).map_err(|_| {
+            IgraphError::InvalidArgument("tree_game_prufer: vertex index overflow".to_string())
+        })?;
+        prufer.push(val_u32);
+    }
+
+    from_prufer(&prufer)
 }
 
 #[cfg(test)]
@@ -293,6 +344,101 @@ mod tests {
     fn all_vertices_appear_in_some_edge_for_n_ge_2() {
         // A spanning tree touches every vertex.
         let g = tree_game_lerw(40, false, 0x5EED).unwrap();
+        let mut seen = vec![false; g.vcount() as usize];
+        for (a, b) in collect_edges(&g) {
+            seen[a as usize] = true;
+            seen[b as usize] = true;
+        }
+        for (v, &s) in seen.iter().enumerate() {
+            assert!(s, "vertex {v} missing from spanning tree");
+        }
+    }
+
+    // ── tree_game_prufer tests ──────────────────────────────────────
+
+    #[test]
+    fn prufer_n_zero() {
+        let g = tree_game_prufer(0, 1).unwrap();
+        assert_eq!(g.vcount(), 0);
+        assert_eq!(g.ecount(), 0);
+    }
+
+    #[test]
+    fn prufer_n_one() {
+        let g = tree_game_prufer(1, 1).unwrap();
+        assert_eq!(g.vcount(), 1);
+        assert_eq!(g.ecount(), 0);
+    }
+
+    #[test]
+    fn prufer_n_two() {
+        let g = tree_game_prufer(2, 0xBEEF).unwrap();
+        assert_eq!(g.vcount(), 2);
+        assert_eq!(g.ecount(), 1);
+        assert!(!g.is_directed());
+    }
+
+    #[test]
+    fn prufer_always_undirected() {
+        let g = tree_game_prufer(50, 0xFACE).unwrap();
+        assert!(!g.is_directed());
+    }
+
+    #[test]
+    fn prufer_exact_edge_count() {
+        for &n in &[5u32, 10, 50, 200, 1000] {
+            let g = tree_game_prufer(n, 0xC0DE + u64::from(n)).unwrap();
+            assert_eq!(g.vcount(), n);
+            assert_eq!(g.ecount() as u32, n - 1);
+        }
+    }
+
+    #[test]
+    fn prufer_no_self_loops() {
+        let g = tree_game_prufer(150, 0xFACE).unwrap();
+        for (a, b) in collect_edges(&g) {
+            assert_ne!(a, b, "Prüfer tree must not emit self-loops");
+        }
+    }
+
+    #[test]
+    fn prufer_is_acyclic_and_connected() {
+        let g = tree_game_prufer(200, 0xCAFE).unwrap();
+        let n = g.vcount() as usize;
+        let mut uf = UnionFind::new(n);
+        for (a, b) in collect_edges(&g) {
+            assert!(
+                uf.union(a, b),
+                "edge ({a}, {b}) closed a cycle — not a tree"
+            );
+        }
+        let root = uf.find(0);
+        for v in 1..n as u32 {
+            assert_eq!(uf.find(v), root, "vertex {v} in disconnected component");
+        }
+    }
+
+    #[test]
+    fn prufer_deterministic_with_seed() {
+        let a = tree_game_prufer(80, 0xABCD).unwrap();
+        let b = tree_game_prufer(80, 0xABCD).unwrap();
+        assert_eq!(collect_edges(&a), collect_edges(&b));
+    }
+
+    #[test]
+    fn prufer_different_seeds_yield_different_trees() {
+        let a = tree_game_prufer(60, 1).unwrap();
+        let b = tree_game_prufer(60, 2).unwrap();
+        assert_ne!(
+            collect_edges(&a),
+            collect_edges(&b),
+            "different seeds must produce different trees"
+        );
+    }
+
+    #[test]
+    fn prufer_all_vertices_touched() {
+        let g = tree_game_prufer(40, 0x5EED).unwrap();
         let mut seen = vec![false; g.vcount() as usize];
         for (a, b) in collect_edges(&g) {
             seen[a as usize] = true;
