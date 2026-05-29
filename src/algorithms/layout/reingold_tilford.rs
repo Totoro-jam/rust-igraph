@@ -6,6 +6,7 @@
 //! Also provides a circular variant that maps the tree layout to
 //! polar coordinates.
 
+use crate::core::graph::EdgeId;
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 use std::collections::VecDeque;
 
@@ -417,6 +418,188 @@ fn calc_coords(vdata: &[RtVertex], pos: &mut [[f64; 2]], node: usize, n: usize, 
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// Root selection heuristic
+// ═══════════════════════════════════════════════════════════════════
+
+/// Heuristic for selecting tree-layout roots when multiple candidates
+/// exist within a component.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RootChoice {
+    /// Pick the vertex with the highest degree (out- or in-degree for
+    /// directed graphs). Fast — O(n) after sorting.
+    Degree,
+    /// Pick the vertex with the lowest eccentricity ("most central").
+    /// Produces wide, shallow layouts. Slow — O(n²) eccentricity BFS.
+    Eccentricity,
+}
+
+/// Choose "nice" roots for a tree layout.
+///
+/// Returns one root per reachable component so that every vertex is
+/// reachable from at least one root.
+///
+/// - **Undirected** (or `mode == RtMode::All`): one root per weak
+///   connected component — the vertex with the highest degree (or
+///   lowest eccentricity).
+/// - **Directed**: strongly connected components with no incoming
+///   (when `mode == RtMode::Out`) or no outgoing (when `mode ==
+///   RtMode::In`) edges get one root each. Components that *do*
+///   have such edges are omitted — they are reachable from some
+///   root component.
+///
+/// Counterpart of `igraph_roots_for_tree_layout()` from
+/// `references/igraph/src/layout/reingold_tilford.c:536–660`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, roots_for_tree_layout, RtMode, RootChoice};
+///
+/// // Simple undirected tree: 0-1-2-3-4
+/// let mut g = Graph::with_vertices(5);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// g.add_edge(3, 4).unwrap();
+///
+/// let roots = roots_for_tree_layout(&g, RtMode::All, RootChoice::Degree).unwrap();
+/// // One root, should be vertex 1 or 2 or 3 (degree 2 — the hubs of a path)
+/// assert_eq!(roots.len(), 1);
+/// assert!([1, 2, 3].contains(&roots[0]));
+///
+/// // Disconnected: two components
+/// let mut g2 = Graph::with_vertices(4);
+/// g2.add_edge(0, 1).unwrap();
+/// g2.add_edge(2, 3).unwrap();
+/// let roots2 = roots_for_tree_layout(&g2, RtMode::All, RootChoice::Degree).unwrap();
+/// assert_eq!(roots2.len(), 2);
+/// ```
+pub fn roots_for_tree_layout(
+    graph: &Graph,
+    mode: RtMode,
+    heuristic: RootChoice,
+) -> IgraphResult<Vec<VertexId>> {
+    let n = graph.vcount();
+    if n == 0 {
+        return Ok(Vec::new());
+    }
+
+    let effective_mode = if graph.is_directed() {
+        mode
+    } else {
+        RtMode::All
+    };
+
+    let order = build_vertex_order(graph, effective_mode, heuristic)?;
+
+    if effective_mode == RtMode::All {
+        roots_undirected(graph, &order)
+    } else {
+        roots_directed(graph, effective_mode, &order)
+    }
+}
+
+fn build_vertex_order(
+    graph: &Graph,
+    mode: RtMode,
+    heuristic: RootChoice,
+) -> IgraphResult<Vec<VertexId>> {
+    let n = graph.vcount() as usize;
+    match heuristic {
+        RootChoice::Eccentricity => {
+            let ecc_mode = match mode {
+                RtMode::Out => crate::algorithms::paths::radii::EccMode::Out,
+                RtMode::In => crate::algorithms::paths::radii::EccMode::In,
+                RtMode::All => crate::algorithms::paths::radii::EccMode::All,
+            };
+            let ecc = crate::algorithms::paths::radii::eccentricity_with_mode(graph, ecc_mode)?;
+            let mut indices: Vec<VertexId> = (0..n as VertexId).collect();
+            indices.sort_by(|&a, &b| ecc[a as usize].cmp(&ecc[b as usize]));
+            Ok(indices)
+        }
+        RootChoice::Degree => {
+            let deg_mode = match mode {
+                RtMode::Out => crate::algorithms::properties::degree::DegreeMode::Out,
+                RtMode::In => crate::algorithms::properties::degree::DegreeMode::In,
+                RtMode::All => crate::algorithms::properties::degree::DegreeMode::All,
+            };
+            Ok(
+                crate::algorithms::properties::sort_by_degree::sort_vertices_by_degree(
+                    graph,
+                    deg_mode,
+                    crate::algorithms::properties::sort_by_degree::SortOrder::Descending,
+                )?,
+            )
+        }
+    }
+}
+
+fn roots_undirected(graph: &Graph, order: &[VertexId]) -> IgraphResult<Vec<VertexId>> {
+    let comps = crate::algorithms::connectivity::components::connected_components(graph)?;
+    let no_comps = comps.count as usize;
+
+    let mut roots = vec![u32::MAX; no_comps];
+    let mut seen = 0usize;
+
+    for &v in order {
+        let cl = comps.membership[v as usize] as usize;
+        if roots[cl] == u32::MAX {
+            roots[cl] = v;
+            seen += 1;
+            if seen == no_comps {
+                break;
+            }
+        }
+    }
+
+    Ok(roots)
+}
+
+fn roots_directed(graph: &Graph, mode: RtMode, order: &[VertexId]) -> IgraphResult<Vec<VertexId>> {
+    let comps = crate::algorithms::connectivity::strong::strongly_connected_components(graph)?;
+    let no_comps = comps.count as usize;
+
+    let cluster_incoming = cluster_cross_degrees(graph, &comps.membership, no_comps, mode)?;
+
+    let mut roots: Vec<Option<VertexId>> = vec![None; no_comps];
+
+    for &v in order {
+        let cl = comps.membership[v as usize] as usize;
+        if cluster_incoming[cl] == 0 && roots[cl].is_none() {
+            roots[cl] = Some(v);
+        }
+    }
+
+    Ok(roots.into_iter().flatten().collect())
+}
+
+/// For each SCC, count edges arriving from *other* SCCs in the
+/// reverse direction — i.e. if `mode == Out`, count incoming
+/// cross-component edges; if `mode == In`, count outgoing ones.
+fn cluster_cross_degrees(
+    graph: &Graph,
+    membership: &[u32],
+    no_comps: usize,
+    mode: RtMode,
+) -> IgraphResult<Vec<u32>> {
+    let mut degrees = vec![0u32; no_comps];
+    let m = graph.ecount();
+
+    for eid in 0..m as EdgeId {
+        let (from, to) = graph.edge(eid)?;
+        let from_cl = membership[from as usize];
+        let to_cl = membership[to as usize];
+
+        if from_cl != to_cl {
+            let cl = if mode == RtMode::Out { to_cl } else { from_cl };
+            degrees[cl as usize] = degrees[cl as usize].saturating_add(1);
+        }
+    }
+
+    Ok(degrees)
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // Tests
 // ═══════════════════════════════════════════════════════════════════
 
@@ -572,5 +755,128 @@ mod tests {
         let g = Graph::with_vertices(3);
         let result = layout_reingold_tilford(&g, Some(99), RtMode::All);
         assert!(result.is_err());
+    }
+
+    // ---- roots_for_tree_layout ----
+
+    #[test]
+    fn roots_empty_graph() {
+        let g = Graph::with_vertices(0);
+        let roots = roots_for_tree_layout(&g, RtMode::All, RootChoice::Degree).unwrap();
+        assert!(roots.is_empty());
+    }
+
+    #[test]
+    fn roots_single_vertex() {
+        let g = Graph::with_vertices(1);
+        let roots = roots_for_tree_layout(&g, RtMode::All, RootChoice::Degree).unwrap();
+        assert_eq!(roots, vec![0]);
+    }
+
+    #[test]
+    fn roots_undirected_single_component() {
+        // Path: 0-1-2-3-4 → highest degree is 1,2,3 (degree 2)
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 4).unwrap();
+        let roots = roots_for_tree_layout(&g, RtMode::All, RootChoice::Degree).unwrap();
+        assert_eq!(roots.len(), 1);
+        // Root should have degree 2 (not a leaf)
+        assert!(
+            [1, 2, 3].contains(&roots[0]),
+            "expected interior vertex, got {}",
+            roots[0]
+        );
+    }
+
+    #[test]
+    fn roots_undirected_two_components() {
+        // Component 0: 0-1, Component 1: 2-3-4
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 4).unwrap();
+        let roots = roots_for_tree_layout(&g, RtMode::All, RootChoice::Degree).unwrap();
+        assert_eq!(roots.len(), 2);
+        let mut sorted = roots.clone();
+        sorted.sort();
+        // One root from {0,1}, one from {2,3,4}
+        assert!(sorted[0] <= 1);
+        assert!(sorted[1] >= 2 && sorted[1] <= 4);
+    }
+
+    #[test]
+    fn roots_eccentricity_path() {
+        // Path 0-1-2-3-4: eccentricity centre is vertex 2
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 4).unwrap();
+        let roots = roots_for_tree_layout(&g, RtMode::All, RootChoice::Eccentricity).unwrap();
+        assert_eq!(roots.len(), 1);
+        assert_eq!(roots[0], 2, "eccentricity centre of P5 is vertex 2");
+    }
+
+    #[test]
+    fn roots_directed_dag() {
+        // DAG: 0→1→3, 0→2→3
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let roots = roots_for_tree_layout(&g, RtMode::Out, RootChoice::Degree).unwrap();
+        // Vertex 0 is the only source — no incoming edges
+        assert_eq!(roots, vec![0]);
+    }
+
+    #[test]
+    fn roots_directed_two_sources() {
+        // 0→2, 1→2  — two source SCCs (0 and 1), one sink (2)
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let roots = roots_for_tree_layout(&g, RtMode::Out, RootChoice::Degree).unwrap();
+        assert_eq!(roots.len(), 2);
+        let mut sorted = roots.clone();
+        sorted.sort();
+        assert_eq!(sorted, vec![0, 1]);
+    }
+
+    #[test]
+    fn roots_directed_in_mode() {
+        // 0→1→2  — with In mode, the "sink" (2) should be root
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let roots = roots_for_tree_layout(&g, RtMode::In, RootChoice::Degree).unwrap();
+        assert_eq!(roots, vec![2]);
+    }
+
+    #[test]
+    fn roots_directed_cycle_scc() {
+        // Cycle 0→1→2→0 plus 3→0 — the cycle SCC {0,1,2} has incoming
+        // from SCC {3}. SCC {3} has no incoming → it's the root.
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        g.add_edge(3, 0).unwrap();
+        let roots = roots_for_tree_layout(&g, RtMode::Out, RootChoice::Degree).unwrap();
+        assert_eq!(roots, vec![3]);
+    }
+
+    #[test]
+    fn roots_undirected_ignores_mode() {
+        // Even if we pass Out mode, undirected should use All (weak comps)
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let roots_out = roots_for_tree_layout(&g, RtMode::Out, RootChoice::Degree).unwrap();
+        let roots_all = roots_for_tree_layout(&g, RtMode::All, RootChoice::Degree).unwrap();
+        assert_eq!(roots_out, roots_all);
     }
 }

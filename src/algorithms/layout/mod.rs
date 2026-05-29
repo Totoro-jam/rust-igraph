@@ -149,7 +149,10 @@ pub use kamada_kawai::{
 pub use lgl::{LglParams, layout_lgl};
 pub use mds::layout_mds;
 pub use merge_dla::layout_merge_dla;
-pub use reingold_tilford::{RtMode, layout_reingold_tilford, layout_reingold_tilford_circular};
+pub use reingold_tilford::{
+    RootChoice, RtMode, layout_reingold_tilford, layout_reingold_tilford_circular,
+    roots_for_tree_layout,
+};
 pub use simple::{
     layout_circle, layout_grid, layout_grid_3d, layout_random, layout_random_3d, layout_sphere,
     layout_star,

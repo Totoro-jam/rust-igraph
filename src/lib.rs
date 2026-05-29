@@ -243,7 +243,8 @@ pub use crate::algorithms::layout::lgl::{LglParams, layout_lgl};
 pub use crate::algorithms::layout::mds::layout_mds;
 pub use crate::algorithms::layout::merge_dla::layout_merge_dla;
 pub use crate::algorithms::layout::reingold_tilford::{
-    RtMode, layout_reingold_tilford, layout_reingold_tilford_circular,
+    RootChoice, RtMode, layout_reingold_tilford, layout_reingold_tilford_circular,
+    roots_for_tree_layout,
 };
 pub use crate::algorithms::layout::simple::{
     layout_circle, layout_grid, layout_grid_3d, layout_random, layout_random_3d, layout_sphere,
