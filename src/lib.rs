@@ -321,6 +321,9 @@ pub use crate::algorithms::paths::distances::distances;
 pub use crate::algorithms::paths::distances_all::{
     DistancesMode, distances_all, distances_all_with_mode,
 };
+pub use crate::algorithms::paths::distances_cutoff::{
+    DistancesCutoffMode, distances_cutoff, distances_cutoff_multi, distances_cutoff_with_mode,
+};
 pub use crate::algorithms::paths::distances_from::{
     DistancesFromMode, distances_from, distances_from_with_mode,
 };

@@ -4,7 +4,7 @@
 //! `references/igraph/src/internal/lsap.c:664`.
 //!
 //! Solves the balanced assignment problem: given an n×n cost matrix,
-//! find a permutation p such that Σ C[i][p[i]] is minimized.
+//! find a permutation p such that Σ C\[i\]\[p\[i\]\] is minimized.
 //!
 //! ## Algorithm
 //!
@@ -157,6 +157,7 @@ fn preprocess(c: &mut [Vec<f64>], n: usize) {
     }
 }
 
+#[allow(clippy::needless_range_loop)]
 fn preassign(c: &[Vec<f64>], n: usize, s: &mut [usize], f: &mut [usize], na: &mut usize) {
     *na = 0;
     let mut row_assigned = vec![false; n + 1];
@@ -292,6 +293,7 @@ fn cover(
     true
 }
 
+#[allow(clippy::needless_range_loop)]
 fn reduce(c: &mut [Vec<f64>], n: usize, ri: &[bool], ci: &[bool]) {
     // Find minimum uncovered element
     let mut min = f64::MAX;

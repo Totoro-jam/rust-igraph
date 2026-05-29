@@ -11,6 +11,7 @@ pub(crate) mod bellman_ford;
 pub(crate) mod dijkstra;
 pub(crate) mod distances;
 pub(crate) mod distances_all;
+pub(crate) mod distances_cutoff;
 pub(crate) mod distances_from;
 pub(crate) mod edge_path_to_vertex_path;
 pub(crate) mod eulerian;
@@ -41,6 +42,9 @@ pub use dijkstra::{
 };
 pub use distances::distances;
 pub use distances_all::{DistancesMode, distances_all, distances_all_with_mode};
+pub use distances_cutoff::{
+    DistancesCutoffMode, distances_cutoff, distances_cutoff_multi, distances_cutoff_with_mode,
+};
 pub use distances_from::{DistancesFromMode, distances_from, distances_from_with_mode};
 pub use edge_path_to_vertex_path::{WalkMode, vertex_path_from_edge_path};
 pub use eulerian::{EulerianClassification, is_eulerian};
