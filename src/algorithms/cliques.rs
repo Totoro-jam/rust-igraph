@@ -3,7 +3,7 @@
 //! Bron-Kerbosch algorithm with pivot for enumerating maximal cliques,
 //! plus convenience functions for clique number and largest cliques.
 
-use crate::core::{Graph, IgraphResult, VertexId};
+use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
 /// Returns the clique number of the graph (size of the largest clique).
 ///
@@ -787,6 +787,238 @@ pub fn cliques(
     Ok(result)
 }
 
+/// Returns the weight of the maximum-weight clique.
+///
+/// The weight of a clique is the sum of its vertex weights. Only positive
+/// integer vertex weights are supported; following igraph, each weight is
+/// truncated to its integer part. Because every weight is positive, the
+/// maximum-weight clique is always maximal, so the search ranges over
+/// maximal cliques.
+///
+/// `vertex_weights` must have one entry per vertex. For an empty graph the
+/// weight is `0.0`. This is the counterpart of igraph's
+/// `igraph_weighted_clique_number`.
+///
+/// Edge directions are ignored for directed graphs.
+///
+/// # Errors
+///
+/// Returns [`IgraphError::InvalidArgument`] if `vertex_weights` has the wrong
+/// length or any (truncated) weight is not a positive integer.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, weighted_clique_number};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// // {2,3} has weight 1 + 5 = 6, beating the triangle's weight 3.
+/// let w = weighted_clique_number(&g, &[1.0, 1.0, 1.0, 5.0]).unwrap();
+/// assert!((w - 6.0).abs() < 1e-9);
+/// ```
+// Weights are truncated positive integers; igraph returns the result as a
+// double, so the i64 -> f64 widening is intentional.
+#[allow(clippy::cast_precision_loss)]
+pub fn weighted_clique_number(graph: &Graph, vertex_weights: &[f64]) -> IgraphResult<f64> {
+    let n = graph.vcount();
+    let weights = validate_clique_weights(vertex_weights, n)?;
+    if n == 0 {
+        return Ok(0.0);
+    }
+
+    let mut best: i64 = 0;
+    for clique in maximal_cliques(graph)? {
+        let w = clique_weight(&weights, &clique)?;
+        if w > best {
+            best = w;
+        }
+    }
+    Ok(best as f64)
+}
+
+/// Returns every clique of maximum total weight.
+///
+/// The weight of a clique is the sum of its vertex weights (positive integer
+/// weights, truncated to their integer parts). There may be several cliques
+/// tying for the largest weight; all of them are returned, each sorted
+/// ascending, and the list itself is sorted lexicographically. Because all
+/// weights are positive, every maximum-weight clique is maximal.
+///
+/// This is the counterpart of igraph's `igraph_largest_weighted_cliques`.
+///
+/// Edge directions are ignored for directed graphs.
+///
+/// # Errors
+///
+/// Returns [`IgraphError::InvalidArgument`] if `vertex_weights` has the wrong
+/// length or any (truncated) weight is not a positive integer.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, largest_weighted_cliques};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// let cs = largest_weighted_cliques(&g, &[1.0, 1.0, 1.0, 5.0]).unwrap();
+/// assert_eq!(cs, vec![vec![2, 3]]);
+/// ```
+pub fn largest_weighted_cliques(
+    graph: &Graph,
+    vertex_weights: &[f64],
+) -> IgraphResult<Vec<Vec<VertexId>>> {
+    let n = graph.vcount();
+    let weights = validate_clique_weights(vertex_weights, n)?;
+    if n == 0 {
+        return Ok(Vec::new());
+    }
+
+    let mut best: i64 = 0;
+    let mut weighted: Vec<(i64, Vec<VertexId>)> = Vec::new();
+    for mut clique in maximal_cliques(graph)? {
+        clique.sort_unstable();
+        let w = clique_weight(&weights, &clique)?;
+        if w > best {
+            best = w;
+        }
+        weighted.push((w, clique));
+    }
+
+    let mut result: Vec<Vec<VertexId>> = weighted
+        .into_iter()
+        .filter(|(w, _)| *w == best)
+        .map(|(_, clique)| clique)
+        .collect();
+    result.sort_unstable();
+    Ok(result)
+}
+
+/// Finds all cliques whose total weight lies in a given range.
+///
+/// The weight of a clique is the sum of its vertex weights (positive integer
+/// weights, truncated to their integer parts). When `maximal` is `true`, only
+/// maximal cliques are considered; otherwise every clique is. A clique is
+/// kept when its weight is `>= min_weight` (unless `min_weight <= 0`, meaning
+/// no lower bound) and `<= max_weight` (unless `max_weight <= 0`, meaning no
+/// upper bound). If `max_results` is `Some(n)`, at most `n` cliques are
+/// returned. Results are sorted for determinism.
+///
+/// This is the counterpart of igraph's `igraph_weighted_cliques`.
+///
+/// Edge directions are ignored for directed graphs.
+///
+/// # Errors
+///
+/// Returns [`IgraphError::InvalidArgument`] if `vertex_weights` has the wrong
+/// length or any (truncated) weight is not a positive integer.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, weighted_cliques};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// // All maximal cliques, unbounded weight range.
+/// let cs = weighted_cliques(&g, &[1.0, 1.0, 1.0, 1.0], true, 0.0, 0.0, None).unwrap();
+/// assert_eq!(cs, vec![vec![0, 1, 2], vec![2, 3]]);
+/// ```
+// Clique weight (truncated positive integers) is compared against the f64
+// weight bounds; the i64 -> f64 widening is intentional.
+#[allow(clippy::cast_precision_loss)]
+pub fn weighted_cliques(
+    graph: &Graph,
+    vertex_weights: &[f64],
+    maximal: bool,
+    min_weight: f64,
+    max_weight: f64,
+    max_results: Option<usize>,
+) -> IgraphResult<Vec<Vec<VertexId>>> {
+    let n = graph.vcount();
+    let weights = validate_clique_weights(vertex_weights, n)?;
+    if n == 0 {
+        return Ok(Vec::new());
+    }
+
+    let mut candidates = if maximal {
+        let mut cs = maximal_cliques(graph)?;
+        for clique in &mut cs {
+            clique.sort_unstable();
+        }
+        cs
+    } else {
+        cliques(graph, 1, n, None)?
+    };
+    candidates.sort_unstable();
+
+    let has_min = min_weight > 0.0;
+    let has_max = max_weight > 0.0;
+    let limit = max_results.unwrap_or(usize::MAX);
+
+    let mut result: Vec<Vec<VertexId>> = Vec::new();
+    for clique in candidates {
+        let w = clique_weight(&weights, &clique)? as f64;
+        if (has_min && w < min_weight) || (has_max && w > max_weight) {
+            continue;
+        }
+        result.push(clique);
+        if result.len() >= limit {
+            break;
+        }
+    }
+    Ok(result)
+}
+
+/// Validate vertex-weight slice and truncate to positive integer weights.
+// The f64 -> i64 conversion is range-guarded (1 <= w <= i64::MAX), and the
+// i64::MAX -> f64 bound check is the standard idiom for that guard.
+#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+fn validate_clique_weights(vertex_weights: &[f64], n: u32) -> IgraphResult<Vec<i64>> {
+    if vertex_weights.len() != n as usize {
+        return Err(IgraphError::InvalidArgument(format!(
+            "vertex_weights length {} does not match vertex count {n}",
+            vertex_weights.len()
+        )));
+    }
+    let mut weights = Vec::with_capacity(vertex_weights.len());
+    for (v, &w) in vertex_weights.iter().enumerate() {
+        let truncated = w.trunc();
+        if !truncated.is_finite() || truncated < 1.0 {
+            return Err(IgraphError::InvalidArgument(format!(
+                "weighted cliques require positive integer vertex weights; vertex {v} has weight {w}"
+            )));
+        }
+        if truncated > i64::MAX as f64 {
+            return Err(IgraphError::InvalidArgument(format!(
+                "vertex weight for vertex {v} is too large"
+            )));
+        }
+        weights.push(truncated as i64);
+    }
+    Ok(weights)
+}
+
+/// Sum vertex weights over a clique with overflow checking.
+fn clique_weight(weights: &[i64], clique: &[VertexId]) -> IgraphResult<i64> {
+    let mut total: i64 = 0;
+    for &v in clique {
+        total = total
+            .checked_add(weights[v as usize])
+            .ok_or(IgraphError::Internal("clique weight sum overflows i64"))?;
+    }
+    Ok(total)
+}
+
 /// Finds all independent vertex sets within a size range.
 ///
 /// An independent set is a set of vertices with no edges between them.
@@ -1368,6 +1600,135 @@ mod tests {
         let hist = maximal_cliques_hist(&g).unwrap();
         let total: u64 = hist.iter().sum();
         assert_eq!(total, maximal_cliques_count(&g).unwrap());
+    }
+
+    // --- weighted clique tests ---
+
+    fn triangle_plus_pendant() -> Graph {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g
+    }
+
+    #[test]
+    fn test_weighted_clique_number_pendant_wins() {
+        let g = triangle_plus_pendant();
+        let w = weighted_clique_number(&g, &[1.0, 1.0, 1.0, 5.0]).unwrap();
+        assert!((w - 6.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_weighted_clique_number_triangle_wins() {
+        let g = triangle_plus_pendant();
+        // Heavy triangle vertices outweigh the pendant edge.
+        let w = weighted_clique_number(&g, &[3.0, 3.0, 3.0, 1.0]).unwrap();
+        assert!((w - 9.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_weighted_clique_number_unit_weights_equals_clique_number() {
+        let g = triangle_plus_pendant();
+        let w = weighted_clique_number(&g, &[1.0, 1.0, 1.0, 1.0]).unwrap();
+        assert!((w - f64::from(clique_number(&g).unwrap())).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_weighted_clique_number_truncates() {
+        let g = triangle_plus_pendant();
+        // 2.9 truncates to 2, so {2,3} weighs 2 + 2 = 4 < triangle's 6.
+        let w = weighted_clique_number(&g, &[2.9, 2.9, 2.9, 2.9]).unwrap();
+        assert!((w - 6.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_weighted_clique_number_empty_graph() {
+        let g = Graph::with_vertices(0);
+        assert!(weighted_clique_number(&g, &[]).unwrap().abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_weighted_clique_number_isolated_vertices() {
+        let g = Graph::with_vertices(3);
+        let w = weighted_clique_number(&g, &[2.0, 7.0, 3.0]).unwrap();
+        assert!((w - 7.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_largest_weighted_cliques_single_winner() {
+        let g = triangle_plus_pendant();
+        let cs = largest_weighted_cliques(&g, &[1.0, 1.0, 1.0, 5.0]).unwrap();
+        assert_eq!(cs, vec![vec![2, 3]]);
+    }
+
+    #[test]
+    fn test_largest_weighted_cliques_tie() {
+        // Two disjoint edges with equal weight tie for the maximum.
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 3).unwrap();
+        let cs = largest_weighted_cliques(&g, &[1.0, 1.0, 1.0, 1.0]).unwrap();
+        assert_eq!(cs, vec![vec![0, 1], vec![2, 3]]);
+    }
+
+    #[test]
+    fn test_weighted_cliques_all_maximal() {
+        let g = triangle_plus_pendant();
+        let cs = weighted_cliques(&g, &[1.0, 1.0, 1.0, 1.0], true, 0.0, 0.0, None).unwrap();
+        assert_eq!(cs, vec![vec![0, 1, 2], vec![2, 3]]);
+    }
+
+    #[test]
+    fn test_weighted_cliques_min_weight_filter() {
+        let g = triangle_plus_pendant();
+        // Only cliques with weight >= 3 among all (non-maximal) cliques.
+        let cs = weighted_cliques(&g, &[1.0, 1.0, 1.0, 5.0], false, 3.0, 0.0, None).unwrap();
+        // Cliques of weight >= 3: {2,3}(6), {0,1,2}(3); edges {0,2},{1,2}=2, etc. excluded.
+        assert!(cs.contains(&vec![2, 3]));
+        assert!(cs.contains(&vec![0, 1, 2]));
+        for c in &cs {
+            let total: f64 = c.iter().map(|&v| [1.0, 1.0, 1.0, 5.0][v as usize]).sum();
+            assert!(total >= 3.0);
+        }
+    }
+
+    #[test]
+    fn test_weighted_cliques_max_weight_filter() {
+        let g = triangle_plus_pendant();
+        // All cliques of weight <= 2 with unit weights: singles (1) and edges (2).
+        let cs = weighted_cliques(&g, &[1.0, 1.0, 1.0, 1.0], false, 0.0, 2.0, None).unwrap();
+        for c in &cs {
+            assert!(c.len() <= 2);
+        }
+        assert!(cs.contains(&vec![0]));
+        assert!(cs.contains(&vec![0, 1]));
+        assert!(!cs.contains(&vec![0, 1, 2]));
+    }
+
+    #[test]
+    fn test_weighted_cliques_max_results() {
+        let g = triangle_plus_pendant();
+        let cs = weighted_cliques(&g, &[1.0, 1.0, 1.0, 1.0], false, 0.0, 0.0, Some(2)).unwrap();
+        assert_eq!(cs.len(), 2);
+    }
+
+    #[test]
+    fn test_weighted_cliques_wrong_weight_length_errors() {
+        let g = triangle_plus_pendant();
+        assert!(weighted_clique_number(&g, &[1.0, 1.0]).is_err());
+        assert!(largest_weighted_cliques(&g, &[1.0, 1.0]).is_err());
+        assert!(weighted_cliques(&g, &[1.0, 1.0], true, 0.0, 0.0, None).is_err());
+    }
+
+    #[test]
+    fn test_weighted_cliques_non_positive_weight_errors() {
+        let g = triangle_plus_pendant();
+        assert!(weighted_clique_number(&g, &[1.0, 0.0, 1.0, 1.0]).is_err());
+        assert!(weighted_clique_number(&g, &[1.0, -2.0, 1.0, 1.0]).is_err());
+        // 0.5 truncates to 0, which is not a positive integer.
+        assert!(weighted_clique_number(&g, &[0.5, 1.0, 1.0, 1.0]).is_err());
     }
 
     // --- cliques (all) tests ---
