@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-ISO-001",
+  "name": "vf2 (isomorphic / count / get)",
+  "date": "2026-05-29",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "vf2/count_automorphisms_ring",
+      "sizes": [50, 100, 200],
+      "median_ns": [679790, 3888800, 26141000],
+      "note": "undirected ring(n) self-comparison; count == 2n automorphisms, exercises full backtracking"
+    },
+    {
+      "group": "vf2/isomorphic_synthetic",
+      "sizes": [100, 1000, 5000],
+      "median_ns": [33948, 1391500, 31527000],
+      "note": "sparse ER (avg degree ~4) self-comparison; first-mapping path"
+    }
+  ],
+  "status": "baseline_created"
+}

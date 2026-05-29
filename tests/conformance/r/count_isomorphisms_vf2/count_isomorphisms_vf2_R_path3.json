@@ -1,0 +1,22 @@
+{
+  "source": "r",
+  "origin": "R igraph count_automorphisms(make_lattice(c(3))) path 0-1-2 == 2 (identity + endpoint swap)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_isomorphisms_vf2",
+  "params": {},
+  "expected": 2
+}

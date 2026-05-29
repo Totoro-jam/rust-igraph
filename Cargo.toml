@@ -830,6 +830,11 @@ name = "bench_trussness"
 path = "benches/bench_trussness.rs"
 harness = false
 
+[[bench]]
+name = "bench_vf2"
+path = "benches/bench_vf2.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

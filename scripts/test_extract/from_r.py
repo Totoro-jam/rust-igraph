@@ -79,6 +79,32 @@ DFS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# VF2 automorphism counts. R igraph exposes count_automorphisms(graph) (and
+# the older graph.count.isomorphisms.vf2). The undirected ring(n) has 2n
+# automorphisms and a path on 3 vertices has 2. Values are mathematical
+# invariants identical across implementations and verified with
+# python-igraph 0.11.9. Graphs are simple and loopless (VF2 requires it).
+VF2_COUNT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_isomorphisms_vf2_R_ring4_undirected",
+        "origin": "R igraph count_automorphisms(make_ring(4)) == 8 (4 rotations x 2 reflections)",
+        "graph_factory": lambda: _ring(4),
+        "algo": "count_isomorphisms_vf2",
+        "params": {},
+        "expected": 8,
+    },
+    {
+        "case": "count_isomorphisms_vf2_R_path3",
+        "origin": "R igraph count_automorphisms(make_lattice(c(3))) path 0-1-2 == 2 (identity + endpoint swap)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "count_isomorphisms_vf2",
+        "params": {},
+        "expected": 2,
+    },
+]
+
 CC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "two_K5_components",
@@ -8984,6 +9010,7 @@ TRUSSNESS_MANIFEST: List[Dict[str, Any]] = [
 
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
+    "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,

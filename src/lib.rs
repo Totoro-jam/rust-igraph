@@ -232,6 +232,9 @@ pub use crate::algorithms::io::pajek::{PajekGraph, read_pajek, write_pajek};
 pub use crate::algorithms::isomorphism::simplify_and_colorize::{
     SimplifyAndColorize, simplify_and_colorize,
 };
+pub use crate::algorithms::isomorphism::vf2::{
+    Vf2Isomorphism, count_isomorphisms_vf2, get_isomorphisms_vf2, isomorphic_vf2,
+};
 pub use crate::algorithms::layout::bipartite::layout_bipartite;
 pub use crate::algorithms::layout::davidson_harel::{DhParams, layout_davidson_harel};
 pub use crate::algorithms::layout::drl::{DrlOptions, DrlTemplate, layout_drl};

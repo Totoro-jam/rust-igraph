@@ -1,0 +1,38 @@
+{
+  "source": "c",
+  "origin": "igraph_isomorphic_vf2.c: count_isomorphisms_vf2(ring, ring); undirected ring(n) has 2n automorphisms, n=6 -> 12",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_isomorphisms_vf2",
+  "params": {},
+  "expected": 12
+}

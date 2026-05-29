@@ -2473,6 +2473,37 @@ SIMPLIFY_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# VF2 automorphism counts (self-comparison). Mirrors the upstream VF2 unit
+# test references/igraph/tests/unit/igraph_isomorphic_vf2.c, which checks
+# igraph_count_isomorphisms_vf2(ring, ring, ...) — the undirected ring(n)
+# has 2n automorphisms (n rotations x 2 reflections) and a directed ring
+# has n (rotations only). Graphs must be simple and loopless (VF2 rejects
+# self-loops).
+VF2_COUNT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_isomorphisms_vf2_c_ring6_undirected",
+        "origin": "igraph_isomorphic_vf2.c: count_isomorphisms_vf2(ring, ring); undirected ring(n) has 2n automorphisms, n=6 -> 12",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0)],
+            directed=False,
+        ),
+        "algo": "count_isomorphisms_vf2",
+        "params": {},
+        "expected": 12,
+    },
+    {
+        "case": "count_isomorphisms_vf2_c_ring4_directed",
+        "origin": "igraph_isomorphic_vf2.c: directed ring has only rotations; directed ring(4) -> 4",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=True
+        ),
+        "algo": "count_isomorphisms_vf2",
+        "params": {},
+        "expected": 4,
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_c_directed_path3",
@@ -11386,6 +11417,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "reachability_matrix": REACH_MATRIX_MANIFEST,
     "transitive_closure": TC_MANIFEST,
     "simplify": SIMPLIFY_MANIFEST,
+    "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
     "louvain": LOUVAIN_MANIFEST,
     "leiden": LEIDEN_MANIFEST,
     "label_propagation": LPA_MANIFEST,

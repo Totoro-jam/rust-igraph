@@ -5,5 +5,7 @@
 //! graph, the form consumed by isomorphism backends such as VF2.
 
 pub(crate) mod simplify_and_colorize;
+pub(crate) mod vf2;
 
 pub use simplify_and_colorize::{SimplifyAndColorize, simplify_and_colorize};
+pub use vf2::{Vf2Isomorphism, count_isomorphisms_vf2, get_isomorphisms_vf2, isomorphic_vf2};

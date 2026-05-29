@@ -1,0 +1,18 @@
+{
+  "source": "py",
+  "origin": "python-igraph Graph(n=2, edges=[(0,1)]).count_automorphisms_vf2() == 2 (identity + swap)",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_isomorphisms_vf2",
+  "params": {},
+  "expected": 2
+}

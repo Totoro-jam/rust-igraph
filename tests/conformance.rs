@@ -4361,6 +4361,18 @@ fn simplify_three_source_conformance() {
 }
 
 #[test]
+fn count_isomorphisms_vf2_three_source_conformance() {
+    // VF2 self-comparison counts a graph's automorphisms — a single-graph
+    // scalar that fits the standard harness. Fixtures carry known
+    // automorphism counts (e.g. the undirected ring(n) has 2n).
+    run_conformance("count_isomorphisms_vf2", |g, _params| {
+        let c = rust_igraph::count_isomorphisms_vf2(g, g, None, None, None, None)
+            .expect("count_isomorphisms_vf2");
+        serde_json::json!(c)
+    });
+}
+
+#[test]
 fn assortativity_degree_three_source_conformance() {
     run_conformance("assortativity_degree", |g, _params| {
         let r = rust_igraph::assortativity_degree(g).expect("assortativity");
