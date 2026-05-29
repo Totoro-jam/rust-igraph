@@ -493,6 +493,8 @@ pub use crate::algorithms::spatial::edge_lengths::{DistanceMetric, spatial_edge_
 pub use crate::algorithms::traversal::bfs::{
     BfsMode, BfsSimple, BfsTree, bfs, bfs_simple, bfs_tree,
 };
-pub use crate::algorithms::traversal::dfs::{DfsTree, dfs, dfs_tree};
+pub use crate::algorithms::traversal::dfs::{
+    DfsMode, DfsSimple, DfsTree, dfs, dfs_simple, dfs_tree,
+};
 pub use crate::core::error::{IgraphError, IgraphResult};
 pub use crate::core::graph::{Graph, VertexId};

@@ -5,6 +5,7 @@
 //! - ALGO-TR-002: simplest variant [`dfs`], returns pre-order visit list.
 //! - ALGO-TR-003: multi-output variant [`dfs_tree`], returns parents,
 //!   discovery/finish timestamps, and pre/post-order.
+//! - [`dfs_simple`]: mode-aware DFS with direction control.
 
 use std::collections::VecDeque;
 
@@ -197,6 +198,137 @@ pub fn dfs(graph: &Graph, root: VertexId) -> IgraphResult<Vec<VertexId>> {
     Ok(order)
 }
 
+/// Direction mode for [`dfs_simple`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DfsMode {
+    /// Follow outgoing edges (default for directed graphs).
+    Out,
+    /// Follow incoming edges.
+    In,
+    /// Ignore edge direction (always used for undirected graphs).
+    All,
+}
+
+/// Result of [`dfs_simple`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DfsSimple {
+    /// Vertices visited during the traversal, in DFS pre-order.
+    pub order: Vec<VertexId>,
+    /// Vertices in DFS post-order (finish order).
+    pub order_out: Vec<VertexId>,
+    /// `parents[v] == Some(p)` if vertex `v` was discovered via `p`;
+    /// `None` for root and unreachable vertices.
+    pub parents: Vec<Option<VertexId>>,
+    /// `dist[v] == Some(d)` if `v` is reachable at DFS-tree depth `d`;
+    /// `None` if unreachable.
+    pub dist: Vec<Option<u32>>,
+}
+
+/// Mode-aware DFS from a single root, returning pre/post-order,
+/// parents, and DFS-tree depth.
+///
+/// Counterpart of `igraph_dfs` from
+/// `references/igraph/src/graph/visitors.c`.
+///
+/// For undirected graphs the `mode` parameter is ignored. For directed
+/// graphs, [`DfsMode::Out`] follows outgoing edges, [`DfsMode::In`]
+/// follows incoming edges, and [`DfsMode::All`] ignores direction.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, DfsMode, dfs_simple};
+///
+/// let mut g = Graph::new(4, true).unwrap();
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(0, 3).unwrap();
+///
+/// let r = dfs_simple(&g, 0, DfsMode::Out).unwrap();
+/// assert_eq!(r.order[0], 0);
+/// assert_eq!(r.parents[1], Some(0));
+/// assert_eq!(r.dist[2], Some(2));
+/// ```
+pub fn dfs_simple(graph: &Graph, root: VertexId, mode: DfsMode) -> IgraphResult<DfsSimple> {
+    graph.neighbors(root)?; // validate root
+
+    let n = graph.vcount();
+    let n_us = n as usize;
+    let use_mode = if graph.is_directed() {
+        mode
+    } else {
+        DfsMode::All
+    };
+
+    let mut visited = vec![false; n_us];
+    let mut order: Vec<VertexId> = Vec::with_capacity(n_us);
+    let mut order_out: Vec<VertexId> = Vec::with_capacity(n_us);
+    let mut parents: Vec<Option<VertexId>> = vec![None; n_us];
+    let mut dist: Vec<Option<u32>> = vec![None; n_us];
+
+    let neighbors = |v: VertexId| -> IgraphResult<Vec<VertexId>> {
+        match use_mode {
+            DfsMode::Out => graph.out_neighbors_vec(v),
+            DfsMode::In => graph.in_neighbors_vec(v),
+            DfsMode::All => {
+                if graph.is_directed() {
+                    let mut combined = graph.out_neighbors_vec(v)?;
+                    combined.extend(graph.in_neighbors_vec(v)?);
+                    Ok(combined)
+                } else {
+                    graph.neighbors(v)
+                }
+            }
+        }
+    };
+
+    let mut stack: VecDeque<(VertexId, usize, Vec<VertexId>)> = VecDeque::new();
+
+    visited[root as usize] = true;
+    order.push(root);
+    dist[root as usize] = Some(0);
+    let mut root_neis = neighbors(root)?;
+    root_neis.reverse();
+    stack.push_back((root, 0, root_neis));
+
+    while let Some(&(cur, cursor, ref neis)) = stack.back() {
+        let mut next_cursor = cursor;
+        let mut found: Option<VertexId> = None;
+        while next_cursor < neis.len() {
+            let nei = neis[next_cursor];
+            next_cursor += 1;
+            if !visited[nei as usize] {
+                found = Some(nei);
+                break;
+            }
+        }
+
+        if let Some(nei) = found {
+            let last = stack.len() - 1;
+            stack[last].1 = next_cursor;
+            visited[nei as usize] = true;
+            order.push(nei);
+            parents[nei as usize] = Some(cur);
+            #[allow(clippy::cast_possible_truncation)]
+            let depth = stack.len() as u32;
+            dist[nei as usize] = Some(depth);
+            let mut nei_neis = neighbors(nei)?;
+            nei_neis.reverse();
+            stack.push_back((nei, 0, nei_neis));
+        } else {
+            order_out.push(cur);
+            stack.pop_back();
+        }
+    }
+
+    Ok(DfsSimple {
+        order,
+        order_out,
+        parents,
+        dist,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -371,5 +503,114 @@ mod tests {
     fn dfs_tree_invalid_root() {
         let g = Graph::with_vertices(2);
         assert!(dfs_tree(&g, 5).is_err());
+    }
+
+    // ── dfs_simple tests ────────────────────────────────────────────
+
+    #[test]
+    fn dfs_simple_undirected_tree() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 3).unwrap();
+
+        let r = dfs_simple(&g, 0, DfsMode::Out).unwrap();
+        assert_eq!(r.order[0], 0);
+        assert_eq!(r.order.len(), 4);
+        assert_eq!(r.parents[0], None);
+        assert_eq!(r.dist[0], Some(0));
+        assert_eq!(*r.order_out.last().unwrap(), 0);
+    }
+
+    #[test]
+    fn dfs_simple_single_vertex() {
+        let g = Graph::with_vertices(1);
+        let r = dfs_simple(&g, 0, DfsMode::All).unwrap();
+        assert_eq!(r.order, vec![0]);
+        assert_eq!(r.order_out, vec![0]);
+        assert_eq!(r.dist, vec![Some(0)]);
+    }
+
+    #[test]
+    fn dfs_simple_invalid_root() {
+        let g = Graph::with_vertices(2);
+        assert!(dfs_simple(&g, 5, DfsMode::Out).is_err());
+    }
+
+    #[test]
+    fn dfs_simple_directed_out() {
+        // 0 -> 1 -> 2, 0 -> 3
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(0, 3).unwrap();
+
+        let r = dfs_simple(&g, 0, DfsMode::Out).unwrap();
+        assert_eq!(r.order[0], 0);
+        assert_eq!(r.order.len(), 4);
+        assert_eq!(r.parents[1], Some(0));
+        assert_eq!(r.parents[2], Some(1));
+        assert_eq!(r.dist[2], Some(2));
+    }
+
+    #[test]
+    fn dfs_simple_directed_in() {
+        // 1 -> 0, 2 -> 1, 3 -> 0
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(1, 0).unwrap();
+        g.add_edge(2, 1).unwrap();
+        g.add_edge(3, 0).unwrap();
+
+        let r = dfs_simple(&g, 0, DfsMode::In).unwrap();
+        assert_eq!(r.order[0], 0);
+        assert_eq!(r.order.len(), 4);
+        assert_eq!(r.parents[1], Some(0));
+        assert_eq!(r.parents[2], Some(1));
+        assert_eq!(r.parents[3], Some(0));
+    }
+
+    #[test]
+    fn dfs_simple_directed_all() {
+        // 0 -> 1, 2 -> 0
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 0).unwrap();
+
+        let r = dfs_simple(&g, 0, DfsMode::All).unwrap();
+        assert_eq!(r.order.len(), 3);
+        assert_eq!(r.order[0], 0);
+    }
+
+    #[test]
+    fn dfs_simple_unreachable() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        let r = dfs_simple(&g, 0, DfsMode::All).unwrap();
+        assert_eq!(r.order.len(), 2);
+        assert_eq!(r.order_out.len(), 2);
+        assert_eq!(r.parents[2], None);
+        assert_eq!(r.dist[2], None);
+    }
+
+    #[test]
+    fn dfs_simple_mode_ignored_for_undirected() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        let r = dfs_simple(&g, 0, DfsMode::In).unwrap();
+        assert_eq!(r.order.len(), 3);
+    }
+
+    #[test]
+    fn dfs_simple_directed_out_no_reach() {
+        // 0 -> 1, 2 -> 0: from 0 following Out, only 0 and 1 reachable
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(2, 0).unwrap();
+        let r = dfs_simple(&g, 0, DfsMode::Out).unwrap();
+        assert_eq!(r.order.len(), 2);
+        assert!(r.order.contains(&0));
+        assert!(r.order.contains(&1));
+        assert_eq!(r.dist[2], None);
     }
 }

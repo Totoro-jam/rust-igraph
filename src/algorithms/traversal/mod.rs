@@ -7,4 +7,4 @@ pub(crate) mod bfs;
 pub(crate) mod dfs;
 
 pub use bfs::{BfsMode, BfsSimple, BfsTree, bfs, bfs_simple, bfs_tree};
-pub use dfs::{DfsTree, dfs, dfs_tree};
+pub use dfs::{DfsMode, DfsSimple, DfsTree, dfs, dfs_simple, dfs_tree};
