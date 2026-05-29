@@ -16697,6 +16697,46 @@ fn st_mincut_three_source_conformance() {
     }
 }
 
+// ALGO-FL-031 helper: sort each (partition, cut) pair and the outer list so
+// two enumerations of the same cut collection compare equal as sets.
+fn all_st_cuts_canonicalise(
+    partitions: &[Vec<u32>],
+    cuts: &[Vec<u32>],
+) -> Vec<(Vec<u32>, Vec<u32>)> {
+    let mut pairs: Vec<(Vec<u32>, Vec<u32>)> = partitions
+        .iter()
+        .zip(cuts.iter())
+        .map(|(p, c)| {
+            let mut p = p.clone();
+            let mut c = c.clone();
+            p.sort_unstable();
+            c.sort_unstable();
+            (p, c)
+        })
+        .collect();
+    pairs.sort();
+    pairs
+}
+
+// ALGO-FL-031 helper: parse a JSON nested array into `Vec<Vec<u32>>`.
+fn all_st_cuts_as_u32_lists(v: &serde_json::Value) -> Vec<Vec<u32>> {
+    v.as_array()
+        .expect("expected nested array")
+        .iter()
+        .map(|inner| {
+            inner
+                .as_array()
+                .expect("expected inner array")
+                .iter()
+                .map(|x| {
+                    u32::try_from(x.as_u64().expect("entry must be u64"))
+                        .expect("entry fits in u32")
+                })
+                .collect()
+        })
+        .collect()
+}
+
 #[test]
 fn all_st_cuts_three_source_conformance() {
     // ALGO-FL-031: enumerate every (s,t) edge cut of a directed graph
@@ -16707,40 +16747,6 @@ fn all_st_cuts_three_source_conformance() {
     // vary between implementations. The runner therefore compares both
     // the actual `StCuts` and the expected collection as SETS of
     // (partition, cut) pairs (sorted before comparison).
-    fn canonicalise(partitions: &[Vec<u32>], cuts: &[Vec<u32>]) -> Vec<(Vec<u32>, Vec<u32>)> {
-        let mut pairs: Vec<(Vec<u32>, Vec<u32>)> = partitions
-            .iter()
-            .zip(cuts.iter())
-            .map(|(p, c)| {
-                let mut p = p.clone();
-                let mut c = c.clone();
-                p.sort_unstable();
-                c.sort_unstable();
-                (p, c)
-            })
-            .collect();
-        pairs.sort();
-        pairs
-    }
-
-    fn as_u32_lists(v: &serde_json::Value) -> Vec<Vec<u32>> {
-        v.as_array()
-            .expect("expected nested array")
-            .iter()
-            .map(|inner| {
-                inner
-                    .as_array()
-                    .expect("expected inner array")
-                    .iter()
-                    .map(|x| {
-                        u32::try_from(x.as_u64().expect("entry must be u64"))
-                            .expect("entry fits in u32")
-                    })
-                    .collect()
-            })
-            .collect()
-    }
-
     let mut seen = std::collections::HashSet::<&'static str>::new();
     for src in ["c", "py", "r"] {
         let dir = workspace_root()
@@ -16779,25 +16785,26 @@ fn all_st_cuts_three_source_conformance() {
             .expect("target fits in u32");
 
             let result = rust_igraph::all_st_cuts(&g, source, target).expect("all_st_cuts");
-            let actual = canonicalise(&result.partition1s, &result.cuts);
+            let actual = all_st_cuts_canonicalise(&result.partition1s, &result.cuts);
 
             let expected_obj = case
                 .expected
                 .as_object()
                 .expect("expected must be an object");
-            let exp_parts = as_u32_lists(
+            let exp_parts = all_st_cuts_as_u32_lists(
                 expected_obj
                     .get("partition1s")
                     .expect("expected.partition1s required"),
             );
-            let exp_cuts = as_u32_lists(expected_obj.get("cuts").expect("expected.cuts required"));
+            let exp_cuts =
+                all_st_cuts_as_u32_lists(expected_obj.get("cuts").expect("expected.cuts required"));
             assert_eq!(
                 exp_parts.len(),
                 exp_cuts.len(),
                 "expected partition1s / cuts length mismatch in {}",
                 path.display()
             );
-            let expected = canonicalise(&exp_parts, &exp_cuts);
+            let expected = all_st_cuts_canonicalise(&exp_parts, &exp_cuts);
 
             assert_eq!(
                 actual,
