@@ -11,6 +11,10 @@
 //! traverses the requested `steps` from the bottom up, assigning a
 //! cluster id to every leaf reachable from each top-level surviving
 //! dendrogram node; leaves never touched stay as singleton clusters.
+//!
+//! Also provides [`le_community_to_membership`], the generalized form
+//! whose dendrogram leaves are arbitrary initial clusters rather than
+//! individual vertices (mirrors `igraph_le_community_to_membership`).
 
 use crate::core::error::{IgraphError, IgraphResult};
 
@@ -155,6 +159,107 @@ pub fn community_to_membership(
     }
 
     Ok(CommunityToMembershipResult { membership, csize })
+}
+
+/// Cut an incomplete dendrogram after `steps` merges, starting from an
+/// initial (non-singleton) cluster assignment.
+///
+/// This is the more general form of [`community_to_membership`]: instead
+/// of assuming each dendrogram leaf is a single vertex, the leaves are
+/// the `m` contiguous clusters described by `membership` (so
+/// `membership[v] ∈ [0, m)`). The `merges` matrix then merges those
+/// clusters, and `steps` of those merges are applied. The output
+/// `membership` reassigns every vertex to its surviving cluster, and
+/// `csize` gives the vertex count of each.
+///
+/// This dendrogram shape is produced by divisive detectors that stop
+/// before splitting the graph down to individual vertices, such as
+/// igraph's leading-eigenvector method.
+///
+/// Mirrors `igraph_le_community_to_membership` from
+/// `references/igraph/src/community/leading_eigenvector.c`.
+///
+/// # Errors
+/// - `InvalidArgument` if `membership` is empty, or `steps >= m` where
+///   `m` is the number of initial clusters.
+/// - `InvalidArgument` if `membership` is not a contiguous `0..m`
+///   labelling (some cluster index in that range is unused).
+/// - Any error propagated from [`community_to_membership`] when applying
+///   the merges to the `m` initial clusters.
+///
+/// # Examples
+/// ```
+/// use rust_igraph::le_community_to_membership;
+///
+/// // Six vertices in three initial clusters: {0,1}=0, {2,3}=1, {4,5}=2.
+/// // One merge combines clusters 0 and 1.
+/// let membership = [0, 0, 1, 1, 2, 2];
+/// let r = le_community_to_membership(&[[0, 1]], 1, &membership).unwrap();
+/// // Clusters 0 and 1 fuse; cluster 2 stays separate.
+/// assert_eq!(r.membership, vec![0, 0, 0, 0, 1, 1]);
+/// assert_eq!(r.csize, vec![4, 2]);
+/// ```
+pub fn le_community_to_membership(
+    merges: &[[u32; 2]],
+    steps: u32,
+    membership: &[u32],
+) -> IgraphResult<CommunityToMembershipResult> {
+    let no_of_nodes = membership.len();
+
+    if no_of_nodes == 0 {
+        return Err(IgraphError::InvalidArgument(
+            "le_community_to_membership: membership vector must not be empty.".into(),
+        ));
+    }
+
+    let components = membership
+        .iter()
+        .copied()
+        .max()
+        .map_or(0u32, |m| m.saturating_add(1));
+
+    if components as usize > no_of_nodes {
+        return Err(IgraphError::InvalidArgument(format!(
+            "Invalid membership vector: number of components ({components}) must not be \
+             greater than the number of nodes ({no_of_nodes})."
+        )));
+    }
+
+    if steps >= components {
+        return Err(IgraphError::InvalidArgument(format!(
+            "Number of steps ({steps}) must be smaller than number of components ({components})."
+        )));
+    }
+
+    // Verify the initial assignment uses every cluster id in `0..components`
+    // (no empty cluster), mirroring the C reference's validation.
+    let mut seen = vec![false; components as usize];
+    for &c in membership {
+        seen[c as usize] = true;
+    }
+    if let Some(empty) = seen.iter().position(|&s| !s) {
+        return Err(IgraphError::InvalidArgument(format!(
+            "Invalid membership vector, empty cluster found at id {empty}."
+        )));
+    }
+
+    // Merge the `components` initial clusters as if they were leaves.
+    let comp = community_to_membership(merges, components, steps)?;
+
+    // Remap each vertex from its old cluster to its new merged cluster.
+    let new_cluster_count = comp.csize.len();
+    let mut new_membership = vec![0u32; no_of_nodes];
+    let mut csize = vec![0u32; new_cluster_count];
+    for (i, &old_cluster) in membership.iter().enumerate() {
+        let new_cluster = comp.membership[old_cluster as usize];
+        new_membership[i] = new_cluster;
+        csize[new_cluster as usize] += 1;
+    }
+
+    Ok(CommunityToMembershipResult {
+        membership: new_membership,
+        csize,
+    })
 }
 
 #[cfg(test)]
@@ -307,6 +412,91 @@ mod tests {
         assert_ne!(cut.membership[0], cut.membership[7]);
         assert_eq!(cut.csize.iter().sum::<u32>(), 8);
         assert_eq!(cut.csize.len(), 2);
+    }
+
+    // ── le_community_to_membership tests ────────────────────────────
+
+    #[test]
+    fn le_zero_steps_keeps_initial_clusters() {
+        // Three initial clusters, no merges applied.
+        let membership = [0u32, 0, 1, 1, 2, 2];
+        let r = le_community_to_membership(&[], 0, &membership).unwrap();
+        assert_eq!(r.membership, vec![0, 0, 1, 1, 2, 2]);
+        assert_eq!(r.csize, vec![2, 2, 2]);
+    }
+
+    #[test]
+    fn le_one_merge_fuses_two_clusters() {
+        // {0,1}=0, {2,3}=1, {4,5}=2; merge clusters 0 and 1.
+        let membership = [0u32, 0, 1, 1, 2, 2];
+        let r = le_community_to_membership(&[[0, 1]], 1, &membership).unwrap();
+        assert_eq!(r.membership, vec![0, 0, 0, 0, 1, 1]);
+        assert_eq!(r.csize, vec![4, 2]);
+    }
+
+    #[test]
+    fn le_full_collapse() {
+        // Three clusters, two merges: ((0,1)->3, (3,2)->4) -> all one.
+        let membership = [0u32, 0, 1, 2, 2, 2];
+        let merges = [[0u32, 1], [3, 2]];
+        let r = le_community_to_membership(&merges, 2, &membership).unwrap();
+        assert_eq!(r.membership, vec![0, 0, 0, 0, 0, 0]);
+        assert_eq!(r.csize, vec![6]);
+    }
+
+    #[test]
+    fn le_csize_sums_to_node_count() {
+        let membership = [0u32, 1, 2, 3, 0, 1, 2, 3];
+        // Merge clusters 0,1 -> 4; leave 2 and 3 alone (1 step).
+        let r = le_community_to_membership(&[[0, 1]], 1, &membership).unwrap();
+        assert_eq!(r.csize.iter().sum::<u32>(), 8);
+        assert_eq!(r.csize.len(), 3); // 4 components - 1 step
+        for &c in &r.membership {
+            assert!((c as usize) < r.csize.len());
+        }
+    }
+
+    #[test]
+    fn le_err_empty_membership() {
+        let err = le_community_to_membership(&[], 0, &[]).unwrap_err();
+        match err {
+            IgraphError::InvalidArgument(m) => assert!(m.contains("must not be empty")),
+            other => panic!("unexpected error: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn le_err_steps_not_smaller_than_components() {
+        // Two components, asking for 2 steps is invalid.
+        let membership = [0u32, 0, 1, 1];
+        let err = le_community_to_membership(&[[0, 1]], 2, &membership).unwrap_err();
+        match err {
+            IgraphError::InvalidArgument(m) => assert!(m.contains("must be smaller")),
+            other => panic!("unexpected error: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn le_err_empty_cluster() {
+        // Cluster id 1 is skipped: ids present are {0, 2}.
+        let membership = [0u32, 0, 2, 2];
+        let err = le_community_to_membership(&[[0, 1]], 1, &membership).unwrap_err();
+        match err {
+            IgraphError::InvalidArgument(m) => assert!(m.contains("empty cluster")),
+            other => panic!("unexpected error: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn le_matches_singleton_case() {
+        // When every initial cluster is a singleton, the result must
+        // equal community_to_membership on the same dendrogram.
+        let membership = [0u32, 1, 2, 3];
+        let merges = [[0u32, 1], [2, 3]];
+        let le = le_community_to_membership(&merges, 2, &membership).unwrap();
+        let plain = community_to_membership(&merges, 4, 2).unwrap();
+        assert_eq!(le.membership, plain.membership);
+        assert_eq!(le.csize, plain.csize);
     }
 
     #[cfg(all(test, feature = "proptest-harness"))]

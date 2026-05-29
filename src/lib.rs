@@ -55,7 +55,7 @@ pub use crate::algorithms::coloring::{
     is_bipartite_coloring, is_edge_coloring, is_vertex_coloring, vertex_coloring_greedy,
 };
 pub use crate::algorithms::community::community_to_membership::{
-    CommunityToMembershipResult, community_to_membership,
+    CommunityToMembershipResult, community_to_membership, le_community_to_membership,
 };
 pub use crate::algorithms::community::community_voronoi::{
     CommunityVoronoiResult, community_voronoi,
