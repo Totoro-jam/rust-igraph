@@ -12,7 +12,9 @@ pub mod triad_census;
 
 pub use graph_count::graph_count;
 pub use isoclass::{isoclass, isoclass_create, isoclass_subgraph};
-pub use motifs_randesu::{motifs_randesu, motifs_randesu_callback, motifs_randesu_no};
+pub use motifs_randesu::{
+    motifs_randesu, motifs_randesu_callback, motifs_randesu_estimate, motifs_randesu_no,
+};
 pub use triad_census::{TriadCensus, TriadType, triad_census};
 
 use crate::core::{Graph, IgraphResult, VertexId};
