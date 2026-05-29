@@ -163,6 +163,7 @@ pub use crate::algorithms::constructors::weighted_biadjacency::{
 };
 pub use crate::algorithms::constructors::wheel::{WheelMode, wheel_graph};
 pub use crate::algorithms::cycles::{CycleMode, CycleResult, find_cycle};
+pub use crate::algorithms::epidemics::{Sir, sir};
 pub use crate::algorithms::feedback_arc_set::{FasAlgorithm, feedback_arc_set};
 pub use crate::algorithms::flow::dominator_tree::{DominatorMode, DominatorTree, dominator_tree};
 pub use crate::algorithms::flow::edge_connectivity::{adhesion, edge_connectivity};
