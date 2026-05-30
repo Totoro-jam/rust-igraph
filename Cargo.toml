@@ -909,6 +909,11 @@ name = "bench_lune_beta_skeleton"
 path = "benches/bench_lune_beta_skeleton.rs"
 harness = false
 
+[[bench]]
+name = "bench_circle_beta_skeleton"
+path = "benches/bench_circle_beta_skeleton.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

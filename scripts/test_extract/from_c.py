@@ -12524,6 +12524,54 @@ LUNE_BETA_SKELETON_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# Authentic golden edge lists for `igraph_circle_beta_skeleton`, transcribed
+# from igraph's `beta_skeletons.out`. The circle-based variant is 2-D only and
+# differs from the lune skeleton for β ≥ 1 (perpendicular circle centres with a
+# union-empty test). The upstream test exercises β = 1.1 on the same 25-point
+# set plus a 2-point degenerate case.
+CIRCLE_BETA_SKELETON_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "c_beta11_circle_25_2d",
+        "origin": "beta_skeletons.out 'Beta = 1.1, Circle based 25 points'",
+        "beta": 1.1,
+        "points": [
+            [0.474217, 0.0314797], [0.208089, 0.439308], [0.967367, 0.530466],
+            [0.177005, 0.426713], [0.568462, 0.57507], [0.441834, 0.284514],
+            [0.479224, 0.817988], [0.720209, 0.225744], [0.204941, 0.44297],
+            [0.285318, 0.912984], [0.831097, 0.0176603], [0.827154, 0.472702],
+            [0.173059, 0.561858], [0.156276, 0.88019], [0.65935, 0.538207],
+            [0.570379, 0.518081], [0.900553, 0.656416], [0.726631, 0.863709],
+            [0.380264, 0.287159], [0.31098, 0.230773], [0.243089, 0.164584],
+            [0.967974, 0.524992], [0.726605, 0.0724703], [0.739752, 0.447069],
+            [0.0443581, 0.444839],
+        ],
+        "expected": {
+            "n": 25,
+            "edges": [
+                [0, 22], [1, 8], [2, 16], [2, 21], [3, 24], [4, 6], [4, 15],
+                [5, 7], [5, 15], [5, 18], [6, 9], [6, 17], [7, 22], [7, 23],
+                [8, 12], [9, 13], [10, 22], [11, 23], [12, 13], [14, 23],
+                [16, 17], [18, 19], [19, 20],
+            ],
+        },
+    },
+    {
+        "case": "c_beta11_circle_2_2d",
+        "origin": "beta_skeletons.out 'Beta = 1.1, Circle based 2 points'",
+        "beta": 1.1,
+        "points": [
+            [0.474217, 0.0314797], [0.208089, 0.439308],
+        ],
+        "expected": {
+            "n": 2,
+            "edges": [
+                [0, 1],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "power_law_fit": POWER_LAW_FIT_MANIFEST,
@@ -12531,6 +12579,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "relative_neighborhood_graph": RELATIVE_NEIGHBORHOOD_GRAPH_MANIFEST,
     "nearest_neighbor_graph": NEAREST_NEIGHBOR_GRAPH_MANIFEST,
     "lune_beta_skeleton": LUNE_BETA_SKELETON_MANIFEST,
+    "circle_beta_skeleton": CIRCLE_BETA_SKELETON_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
@@ -12830,6 +12879,19 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
         elif algo == "lune_beta_skeleton":
             # Spatial point-set input with a `beta` shape parameter; output is
             # an undirected graph. C-only API, so the expected edge list is
+            # transcribed from igraph's golden `beta_skeletons.out`.
+            points = [[float(x) for x in row] for row in entry["points"]]
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": {"n": 1, "edges": [], "directed": False, "weights": None},
+                "algo": algo,
+                "params": {"points": points, "beta": float(entry["beta"])},
+                "expected": entry["expected"],
+            }
+        elif algo == "circle_beta_skeleton":
+            # 2-D spatial point set with a `beta` shape parameter; output is an
+            # undirected graph. C-only API, so the expected edge list is
             # transcribed from igraph's golden `beta_skeletons.out`.
             points = [[float(x) for x in row] for row in entry["points"]]
             payload = {

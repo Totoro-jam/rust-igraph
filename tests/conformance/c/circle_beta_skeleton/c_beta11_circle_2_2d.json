@@ -1,0 +1,33 @@
+{
+  "source": "c",
+  "origin": "beta_skeletons.out 'Beta = 1.1, Circle based 2 points'",
+  "graph": {
+    "n": 1,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "circle_beta_skeleton",
+  "params": {
+    "points": [
+      [
+        0.474217,
+        0.0314797
+      ],
+      [
+        0.208089,
+        0.439308
+      ]
+    ],
+    "beta": 1.1
+  },
+  "expected": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        1
+      ]
+    ]
+  }
+}

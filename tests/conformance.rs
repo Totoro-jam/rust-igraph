@@ -18769,3 +18769,104 @@ fn lune_beta_skeleton_c_conformance() {
 
     assert!(seen_c > 0, "no lune_beta_skeleton fixtures from source c");
 }
+
+/// `igraph_circle_beta_skeleton` three-source (C) conformance.
+///
+/// The circle-based β-skeleton is 2-D only and, for β ≥ 1, uses two
+/// perpendicular circle centres with a union-empty test. Fixtures come from
+/// igraph's own `beta_skeletons.out`: the 25-point random 2-D set at β = 1.1
+/// plus a 2-point degenerate case. The result edge set is canonical and
+/// compared exactly.
+#[test]
+fn circle_beta_skeleton_c_conformance() {
+    use rust_igraph::circle_beta_skeleton;
+
+    let cases = load_all("circle_beta_skeleton");
+    assert!(
+        !cases.is_empty(),
+        "no circle_beta_skeleton conformance fixtures found — did you run \
+         `.venv/bin/python -m scripts.test_extract.from_c --algo circle_beta_skeleton`?"
+    );
+
+    let mut seen_c = 0usize;
+    for (path, case) in cases {
+        assert_eq!(case.algo, "circle_beta_skeleton");
+        assert_eq!(
+            case.source,
+            "c",
+            "unexpected non-C circle_beta_skeleton fixture {}",
+            path.display()
+        );
+
+        let points: Vec<Vec<f64>> = case
+            .params
+            .get("points")
+            .and_then(serde_json::Value::as_array)
+            .expect("`points` param")
+            .iter()
+            .map(|row| {
+                row.as_array()
+                    .expect("point row is an array")
+                    .iter()
+                    .map(|v| v.as_f64().expect("coordinate is a number"))
+                    .collect()
+            })
+            .collect();
+
+        let beta = case
+            .params
+            .get("beta")
+            .and_then(serde_json::Value::as_f64)
+            .expect("`beta` param");
+
+        let exp = case.expected.as_object().expect("expected is an object");
+        let exp_n = u32::try_from(
+            exp.get("n")
+                .and_then(serde_json::Value::as_u64)
+                .expect("expected.n"),
+        )
+        .expect("expected.n fits in u32");
+        let mut exp_edges: Vec<(u32, u32)> = exp
+            .get("edges")
+            .and_then(serde_json::Value::as_array)
+            .expect("expected.edges")
+            .iter()
+            .map(|e| {
+                let pair = e.as_array().expect("edge is a pair");
+                let u = u32::try_from(pair[0].as_u64().expect("edge endpoint")).expect("u fits");
+                let v = u32::try_from(pair[1].as_u64().expect("edge endpoint")).expect("v fits");
+                (u.min(v), u.max(v))
+            })
+            .collect();
+        exp_edges.sort_unstable();
+
+        let g = circle_beta_skeleton(&points, beta).expect("circle_beta_skeleton");
+        assert_eq!(
+            g.vcount(),
+            exp_n,
+            "circle_beta_skeleton vertex-count mismatch\n  fixture: {}\n  origin:  {}",
+            path.display(),
+            case.origin,
+        );
+        let mut actual_edges: Vec<(u32, u32)> = (0..g.ecount())
+            .map(|e| {
+                let (u, v) = g
+                    .edge(u32::try_from(e).expect("edge id fits in u32"))
+                    .expect("edge");
+                (u.min(v), u.max(v))
+            })
+            .collect();
+        actual_edges.sort_unstable();
+
+        assert_eq!(
+            actual_edges,
+            exp_edges,
+            "circle_beta_skeleton edge-set mismatch\n  fixture: {}\n  origin:  {}",
+            path.display(),
+            case.origin,
+        );
+        seen_c += 1;
+    }
+
+    assert!(seen_c > 0, "no circle_beta_skeleton fixtures from source c");
+}

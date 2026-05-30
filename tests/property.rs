@@ -4829,3 +4829,62 @@ proptest! {
         }
     }
 }
+
+proptest! {
+    /// Permutation invariance: the circle β-skeleton predicate is a symmetric,
+    /// tie-free closed test, so reordering the input points permutes the
+    /// result's vertices identically. The β range spans both regimes — the
+    /// β < 1 intersection-empty test and the β ≥ 1 union-empty test.
+    #[test]
+    fn circle_beta_skeleton_is_permutation_invariant(
+        (points, perm, beta) in arb_points_2d(8).prop_flat_map(|pts| {
+            let n = pts.len();
+            let perm = Just((0..n as u32).collect::<Vec<u32>>()).prop_shuffle();
+            (Just(pts), perm, 0.5f64..4.0)
+        }),
+    ) {
+        let base = rust_igraph::circle_beta_skeleton(&points, beta).expect("circle base");
+
+        let n = points.len();
+        let mut permuted = vec![Vec::new(); n];
+        for (i, row) in points.iter().enumerate() {
+            permuted[perm[i] as usize] = row.clone();
+        }
+        let permed = rust_igraph::circle_beta_skeleton(&permuted, beta).expect("circle permuted");
+
+        let mut mapped: Vec<(u32, u32)> = undirected_edge_set(&base)
+            .into_iter()
+            .map(|(u, v)| {
+                let (pu, pv) = (perm[u as usize], perm[v as usize]);
+                (pu.min(pv), pu.max(pv))
+            })
+            .collect();
+        mapped.sort_unstable();
+
+        prop_assert_eq!(mapped, undirected_edge_set(&permed));
+    }
+
+    /// At β = 1 both perpendicular circle centres collapse onto the edge
+    /// midpoint and the union of the two identical circles is the Gabriel
+    /// diametral ball, so the circle skeleton is exactly the Gabriel graph.
+    #[test]
+    fn circle_beta1_equals_gabriel(points in arb_points_2d(8)) {
+        let circle = rust_igraph::circle_beta_skeleton(&points, 1.0).expect("circle");
+        let gab = rust_igraph::gabriel_graph(&points).expect("gabriel");
+        prop_assert_eq!(undirected_edge_set(&circle), undirected_edge_set(&gab));
+    }
+
+    /// β-skeleton nesting for the circle variant: for 1 ≤ β ≤ β′ the union
+    /// empty-region grows with β, so the β′-skeleton is a subgraph of the
+    /// β-skeleton. Every β = 2 edge must also be a β = 1 (Gabriel) edge.
+    #[test]
+    fn circle_larger_beta_is_subgraph(points in arb_points_2d(8)) {
+        let coarse = rust_igraph::circle_beta_skeleton(&points, 2.0).expect("circle b2");
+        let fine = rust_igraph::circle_beta_skeleton(&points, 1.0).expect("circle b1");
+        let fine_edges: std::collections::HashSet<(u32, u32)> =
+            undirected_edge_set(&fine).into_iter().collect();
+        for e in undirected_edge_set(&coarse) {
+            prop_assert!(fine_edges.contains(&e), "β=2 edge {:?} absent from β=1 skeleton", e);
+        }
+    }
+}

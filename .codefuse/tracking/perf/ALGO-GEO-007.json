@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-GEO-007",
+  "name": "circle_beta_skeleton (circle-based beta-skeleton of a 2-D spatial point set)",
+  "date": "2026-05-31",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "circle_beta_skeleton/point_count",
+      "sizes": [50, 200, 400],
+      "median_ns": [9982, 300410, 1335500],
+      "note": "deterministic LCG scatter in the unit square, fixed beta=2 (union-empty regime). The kernel is an O(n^2) candidate enumeration with an O(n) two-circle empty-region test per pair (2-D only), with an early break on the first blocking point. 50->200 (4x points) is ~30x time and 200->400 (2x points) is ~4.4x time, tracking the quadratic candidate count plus the growing per-pair scan"
+    },
+    {
+      "group": "circle_beta_skeleton/beta",
+      "sizes": [0.5, 1.0, 2.0],
+      "median_ns": [55910000, 5522600, 667910],
+      "note": "fixed 300-point LCG scatter, varying beta. Larger beta enlarges the union empty-region and yields a sparser graph, so most candidate pairs are non-edges whose empty-test scan early-breaks on the first blocker (beta=2 -> 0.67ms). Smaller beta (beta=0.5, the intersection-empty construction identical to the lune skeleton) yields a near-complete dense graph: most pairs are edges whose empty-test scan runs to completion with no early break, so cost balloons to ~56ms"
+    }
+  ],
+  "status": "baseline_created"
+}
