@@ -41,6 +41,53 @@ fn arb_directed_graph(max_n: u32) -> impl Strategy<Value = Graph> {
         })
 }
 
+/// Build a *simple* graph (deduplicated edges, self-loops dropped) plus a
+/// random vertex relabeling. Used to check canonical-labeling invariance.
+fn arb_simple_graph_with_perm(
+    max_n: u32,
+    directed: bool,
+) -> impl Strategy<Value = (Graph, Vec<u32>)> {
+    (1u32..=max_n)
+        .prop_flat_map(move |n| {
+            let edges = proptest::collection::vec((0u32..n, 0u32..n), 0..=(n as usize * 2));
+            let perm = Just((0..n).collect::<Vec<u32>>()).prop_shuffle();
+            (Just(n), edges, perm)
+        })
+        .prop_map(move |(n, edges, perm)| {
+            let mut g = Graph::new(n, directed).expect("graph init");
+            let mut seen = std::collections::HashSet::new();
+            for (u, v) in edges {
+                if u == v {
+                    continue; // keep it simple & loopless for these invariants
+                }
+                let key = if directed || u <= v { (u, v) } else { (v, u) };
+                if seen.insert(key) {
+                    g.add_edge(u, v).expect("indices in range");
+                }
+            }
+            (g, perm)
+        })
+}
+
+/// Sorted, direction-aware canonical edge list induced by a vertex → position
+/// `labeling`: the edge multiset of the canonical form of `g`.
+fn canon_form_edges(g: &Graph, labeling: &[u32]) -> Vec<(u32, u32)> {
+    let directed = g.is_directed();
+    let mut edges: Vec<(u32, u32)> = (0..g.ecount())
+        .map(|e| {
+            let (u, v) = g.edge(e as u32).expect("edge in range");
+            let (cu, cv) = (labeling[u as usize], labeling[v as usize]);
+            if directed || cu <= cv {
+                (cu, cv)
+            } else {
+                (cv, cu)
+            }
+        })
+        .collect();
+    edges.sort_unstable();
+    edges
+}
+
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(64))]
 
@@ -4139,5 +4186,33 @@ proptest! {
                 "block cohesion {} not greater than parent {}",
                 cb.cohesion[i], cb.cohesion[p as usize]);
         }
+    }
+
+    /// ALGO-ISO-003: the canonical form is a complete isomorphism invariant.
+    /// Relabeling an undirected graph and re-canonicalizing must yield an
+    /// identical canonical edge set.
+    #[test]
+    fn canonical_permutation_invariant_undirected((g, perm) in arb_simple_graph_with_perm(8, false)) {
+        let h = rust_igraph::permute_vertices(&g, &perm).expect("permute");
+        let pg = rust_igraph::canonical_permutation(&g, None).expect("canon g");
+        let ph = rust_igraph::canonical_permutation(&h, None).expect("canon h");
+
+        // Each labeling is a permutation of 0..n.
+        let mut sg = pg.clone();
+        sg.sort_unstable();
+        prop_assert_eq!(sg, (0..g.vcount()).collect::<Vec<_>>());
+
+        prop_assert_eq!(canon_form_edges(&g, &pg), canon_form_edges(&h, &ph),
+            "canonical form changed under relabeling");
+    }
+
+    /// ALGO-ISO-003, directed counterpart of the invariance property.
+    #[test]
+    fn canonical_permutation_invariant_directed((g, perm) in arb_simple_graph_with_perm(8, true)) {
+        let h = rust_igraph::permute_vertices(&g, &perm).expect("permute");
+        let pg = rust_igraph::canonical_permutation(&g, None).expect("canon g");
+        let ph = rust_igraph::canonical_permutation(&h, None).expect("canon h");
+        prop_assert_eq!(canon_form_edges(&g, &pg), canon_form_edges(&h, &ph),
+            "directed canonical form changed under relabeling");
     }
 }

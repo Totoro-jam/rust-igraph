@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-ISO-003",
+  "name": "canonical_permutation (hand-rolled individualization-refinement engine)",
+  "date": "2026-05-30",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "canonical_permutation/cycle",
+      "sizes": [8, 16, 32],
+      "median_ns": [54515, 363340, 3202400],
+      "note": "C_n has dihedral symmetry 2n; refinement collapses slowly so the I-R tree branches at the first cell — stresses the symmetric case"
+    },
+    {
+      "group": "canonical_permutation/path",
+      "sizes": [16, 32, 64],
+      "median_ns": [29005, 105830, 476480],
+      "note": "P_n is nearly rigid (only the end-swap automorphism); degree refinement discretizes fast so the tree is shallow — the common low-symmetry case"
+    }
+  ],
+  "status": "baseline_created"
+}

@@ -4,10 +4,12 @@
 //! with self-loops and multi-edges into a vertex/edge colored simple
 //! graph, the form consumed by isomorphism backends such as VF2.
 
+pub(crate) mod canonical;
 pub(crate) mod simplify_and_colorize;
 pub(crate) mod subiso;
 pub(crate) mod vf2;
 
+pub use canonical::canonical_permutation::canonical_permutation;
 pub use simplify_and_colorize::{SimplifyAndColorize, simplify_and_colorize};
 pub use subiso::{
     Vf2Subisomorphism, count_subisomorphisms_vf2, get_subisomorphisms_vf2, subisomorphic_vf2,
