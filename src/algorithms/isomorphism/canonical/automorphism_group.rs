@@ -91,6 +91,7 @@ mod tests {
 
     /// Build a dense adjacency matrix for verifying that a permutation
     /// preserves adjacency.
+    #[allow(clippy::many_single_char_names)]
     fn matrix(g: &Graph) -> Vec<Vec<bool>> {
         let n = g.vcount() as usize;
         let mut m = vec![vec![false; n]; n];

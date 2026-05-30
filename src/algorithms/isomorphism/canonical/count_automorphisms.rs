@@ -95,46 +95,39 @@ mod tests {
     fn complete_graph_is_factorial() {
         let fact = [1u64, 1, 2, 6, 24, 120, 720];
         for n in 1u32..=6 {
-            assert_eq!(
-                count_automorphisms(&complete(n), None).expect("count"),
-                fact[n as usize] as f64
-            );
+            let got = count_automorphisms(&complete(n), None).expect("count");
+            assert!((got - fact[n as usize] as f64).abs() < 0.5, "K_{n}");
         }
     }
 
     #[test]
     fn cycle_is_dihedral() {
         for n in 3u32..=8 {
-            assert_eq!(
-                count_automorphisms(&cycle(n, false), None).expect("count"),
-                f64::from(2 * n)
-            );
+            let got = count_automorphisms(&cycle(n, false), None).expect("count");
+            assert!((got - f64::from(2 * n)).abs() < 0.5, "C_{n}");
         }
     }
 
     #[test]
     fn path_is_two() {
         for n in 2u32..=8 {
-            assert_eq!(count_automorphisms(&path(n), None).expect("count"), 2.0);
+            let got = count_automorphisms(&path(n), None).expect("count");
+            assert!((got - 2.0).abs() < 0.5, "path_{n}");
         }
     }
 
     #[test]
     fn petersen_is_120() {
-        assert_eq!(
-            count_automorphisms(&petersen(), None).expect("count"),
-            120.0
-        );
+        let got = count_automorphisms(&petersen(), None).expect("count");
+        assert!((got - 120.0).abs() < 0.5);
     }
 
     #[test]
     fn directed_cycle_is_n() {
         // A directed cycle has only its n rotations as automorphisms.
         for n in 3u32..=8 {
-            assert_eq!(
-                count_automorphisms(&cycle(n, true), None).expect("count"),
-                f64::from(n)
-            );
+            let got = count_automorphisms(&cycle(n, true), None).expect("count");
+            assert!((got - f64::from(n)).abs() < 0.5, "directed C_{n}");
         }
     }
 
@@ -142,13 +135,15 @@ mod tests {
     fn empty_graph_is_factorial() {
         // No edges: every permutation is an automorphism, so |Aut| = n!.
         let g = Graph::new(4, false).expect("graph");
-        assert_eq!(count_automorphisms(&g, None).expect("count"), 24.0);
+        let got = count_automorphisms(&g, None).expect("count");
+        assert!((got - 24.0).abs() < 0.5);
     }
 
     #[test]
     fn null_graph_is_one() {
         let g = Graph::new(0, false).expect("graph");
-        assert_eq!(count_automorphisms(&g, None).expect("count"), 1.0);
+        let got = count_automorphisms(&g, None).expect("count");
+        assert!((got - 1.0).abs() < 0.5);
     }
 
     #[test]
@@ -157,7 +152,8 @@ mod tests {
         // leaving S_3 on the other three -> |Aut| = 6.
         let g = complete(4);
         let colors = [1u32, 0, 0, 0];
-        assert_eq!(count_automorphisms(&g, Some(&colors)).expect("count"), 6.0);
+        let got = count_automorphisms(&g, Some(&colors)).expect("count");
+        assert!((got - 6.0).abs() < 0.5);
     }
 
     #[test]

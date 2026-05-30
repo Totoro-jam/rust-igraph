@@ -160,6 +160,7 @@ mod tests {
     }
 
     /// Assert `map12` is a genuine edge-preserving bijection from `a` to `b`.
+    #[allow(clippy::many_single_char_names)]
     fn assert_valid_map(a: &Graph, b: &Graph, r: &Vf2Isomorphism) {
         let n = a.vcount() as usize;
         assert_eq!(r.map12.len(), n);
