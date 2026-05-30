@@ -64,6 +64,7 @@ use crate::core::{Graph, IgraphError, IgraphResult};
 pub(crate) mod automorphism_group;
 pub(crate) mod canonical_permutation;
 pub(crate) mod count_automorphisms;
+pub(crate) mod isomorphic_bliss;
 
 /// Full result of one canonicalization run.
 pub(crate) struct Canonicalization {
@@ -77,6 +78,12 @@ pub(crate) struct Canonicalization {
     /// `|Aut(G)|` as `f64` (exact for groups up to `2^53`).
     /// Consumed by the `count_automorphisms` wrapper (ALGO-ISO-004).
     pub group_order: f64,
+    /// The canonical certificate: the relabeled adjacency matrix (under the
+    /// canonical labeling) packed row-major into 64-bit words. Two graphs of
+    /// equal order and directedness are isomorphic iff their certificates are
+    /// equal. Empty for the null graph. Consumed by the `isomorphic_bliss`
+    /// wrapper (ALGO-ISO-006).
+    pub certificate: Vec<u64>,
 }
 
 /// Adjacency representation used by the engine.
@@ -348,10 +355,12 @@ pub(crate) fn canonicalize(
             labeling: Vec::new(),
             generators: Vec::new(),
             group_order: 1.0,
+            certificate: Vec::new(),
         });
     }
 
     let canon = &search.best_labs[0];
+    let canon_certificate = search.best_cert.clone().unwrap_or_default();
     // labeling[vertex] = canonical position.
     let mut labeling = vec![0u32; n];
     for (pos, &v) in canon.iter().enumerate() {
@@ -391,6 +400,7 @@ pub(crate) fn canonicalize(
         labeling,
         generators,
         group_order,
+        certificate: canon_certificate,
     })
 }
 

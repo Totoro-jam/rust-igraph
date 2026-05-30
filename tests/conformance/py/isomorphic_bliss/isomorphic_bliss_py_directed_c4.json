@@ -1,0 +1,53 @@
+{
+  "source": "py",
+  "origin": "python-igraph 0.11.9: directed C4.isomorphic_bliss(rotated directed C4) == True",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "isomorphic_bliss",
+  "params": {
+    "other": {
+      "n": 4,
+      "edges": [
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "directed": true
+    }
+  },
+  "expected": true
+}

@@ -14,7 +14,9 @@
 //!     the common low-symmetry case.
 
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use rust_igraph::{Graph, automorphism_group, canonical_permutation, count_automorphisms};
+use rust_igraph::{
+    Graph, automorphism_group, canonical_permutation, count_automorphisms, isomorphic_bliss,
+};
 
 fn cycle(n: u32) -> Graph {
     let mut g = Graph::new(n, false).expect("graph init");
@@ -80,11 +82,26 @@ fn bench_automorphism_group(c: &mut Criterion) {
     group.finish();
 }
 
+fn bench_isomorphic_bliss(c: &mut Criterion) {
+    // Self-isomorphism of a cycle: both sides are canonicalized, so cost is
+    // two I-R searches plus a certificate compare — the symmetric worst case.
+    let mut group = c.benchmark_group("isomorphic_bliss/cycle");
+    for n in [8u32, 16, 32] {
+        let g = cycle(n);
+        group.throughput(Throughput::Elements(u64::from(n)));
+        group.bench_with_input(BenchmarkId::from_parameter(n), &g, |b, g| {
+            b.iter(|| isomorphic_bliss(g, g, None, None).expect("isomorphic_bliss"));
+        });
+    }
+    group.finish();
+}
+
 criterion_group!(
     benches,
     bench_cycle,
     bench_path,
     bench_count_automorphisms,
-    bench_automorphism_group
+    bench_automorphism_group,
+    bench_isomorphic_bliss
 );
 criterion_main!(benches);

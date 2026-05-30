@@ -151,6 +151,112 @@ AUTOMORPHISM_GROUP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# BLISS isomorphism yes/no verdict via python-igraph's Graph.isomorphic_bliss().
+# The second graph is supplied as a GraphPayload in params.other; optional
+# vertex colours as params.colors1 / params.colors2. Every verdict below was
+# evaluated directly against python-igraph 0.11.9 Graph.isomorphic_bliss(...).
+ISOMORPHIC_BLISS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "isomorphic_bliss_py_triangle_relabel",
+        "origin": "python-igraph 0.11.9: triangle.isomorphic_bliss(relabelled triangle) == True",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {"n": 3, "edges": [[0, 2], [2, 1], [1, 0]], "directed": False}
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_bliss_py_triangle_vs_path",
+        "origin": "python-igraph 0.11.9: triangle.isomorphic_bliss(P3) == False",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {"n": 3, "edges": [[0, 1], [1, 2]], "directed": False}
+        },
+        "expected": False,
+    },
+    {
+        "case": "isomorphic_bliss_py_k4",
+        "origin": "python-igraph 0.11.9: Graph.Full(4).isomorphic_bliss(Graph.Full(4)) == True",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 4,
+                "edges": [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_bliss_py_different_size",
+        "origin": "python-igraph 0.11.9: Graph.Full(4).isomorphic_bliss(Graph.Full(5)) == False",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 5,
+                "edges": [
+                    [0, 1], [0, 2], [0, 3], [0, 4], [1, 2],
+                    [1, 3], [1, 4], [2, 3], [2, 4], [3, 4],
+                ],
+                "directed": False,
+            }
+        },
+        "expected": False,
+    },
+    {
+        "case": "isomorphic_bliss_py_directed_c4",
+        "origin": "python-igraph 0.11.9: directed C4.isomorphic_bliss(rotated directed C4) == True",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=True
+        ),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 4,
+                "edges": [[1, 2], [2, 3], [3, 0], [0, 1]],
+                "directed": True,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_bliss_py_colored_match",
+        "origin": "python-igraph 0.11.9: P3.isomorphic_bliss(P3, color1=[0,1,0], color2=[0,1,0]) == True",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {"n": 3, "edges": [[0, 1], [1, 2]], "directed": False},
+            "colors1": [0, 1, 0],
+            "colors2": [0, 1, 0],
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_bliss_py_colored_disjoint_values",
+        "origin": "python-igraph 0.11.9: P3.isomorphic_bliss(P3, color1=[5,6,5], color2=[7,8,7]) == False (BLISS matches colours by raw value, not class shape)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {"n": 3, "edges": [[0, 1], [1, 2]], "directed": False},
+            "colors1": [5, 6, 5],
+            "colors2": [7, 8, 7],
+        },
+        "expected": False,
+    },
+]
+
 DFS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "test_iterators_testDFS_tree10_2",
@@ -9197,6 +9303,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
     "automorphism_group": AUTOMORPHISM_GROUP_MANIFEST,
+    "isomorphic_bliss": ISOMORPHIC_BLISS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,

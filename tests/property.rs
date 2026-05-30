@@ -4264,4 +4264,43 @@ proptest! {
         prop_assert!((order - set.len() as f64).abs() < 0.5,
             "closure order {} != count_automorphisms {} (n={})", set.len(), order, n);
     }
+
+    /// ALGO-ISO-006: a graph relabeled by a random permutation is always
+    /// detected as isomorphic to itself, and the returned map is a genuine
+    /// edge-preserving bijection.
+    #[test]
+    fn isomorphic_bliss_detects_relabeling((g, perm) in arb_simple_graph_with_perm(8, false)) {
+        let h = rust_igraph::permute_vertices(&g, &perm).expect("permute");
+        let r = rust_igraph::isomorphic_bliss(&g, &h, None, None).expect("bliss");
+        prop_assert!(r.iso, "relabeled graph not detected as isomorphic");
+        // map12 is a permutation and edge-preserving.
+        let n = g.vcount() as usize;
+        prop_assert_eq!(r.map12.len(), n);
+        let mut sorted = r.map12.clone();
+        sorted.sort_unstable();
+        prop_assert_eq!(sorted, (0..g.vcount()).collect::<Vec<_>>(), "map12 not a permutation");
+        let h_edges: std::collections::HashSet<(u32, u32)> = (0..h.ecount())
+            .map(|e| h.edge(e as u32).expect("edge"))
+            .map(|(u, v)| if u <= v { (u, v) } else { (v, u) })
+            .collect();
+        for e in 0..g.ecount() {
+            let (u, v) = g.edge(e as u32).expect("edge");
+            let (iu, iv) = (r.map12[u as usize], r.map12[v as usize]);
+            let key = if iu <= iv { (iu, iv) } else { (iv, iu) };
+            prop_assert!(h_edges.contains(&key), "map12 maps an edge off the edge set");
+        }
+    }
+
+    /// ALGO-ISO-006: the BLISS yes/no verdict agrees with the independent VF2
+    /// backend on arbitrary pairs of (loopless simple) graphs.
+    #[test]
+    fn isomorphic_bliss_agrees_with_vf2(
+        (g1, _) in arb_simple_graph_with_perm(7, false),
+        (g2, _) in arb_simple_graph_with_perm(7, false),
+    ) {
+        let bliss = rust_igraph::isomorphic_bliss(&g1, &g2, None, None).expect("bliss");
+        let vf2 = rust_igraph::isomorphic_vf2(&g1, &g2, None, None, None, None).expect("vf2");
+        prop_assert_eq!(bliss.iso, vf2.iso,
+            "bliss/vf2 disagree on isomorphism verdict");
+    }
 }

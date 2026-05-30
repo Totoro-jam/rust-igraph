@@ -1,0 +1,47 @@
+{
+  "source": "py",
+  "origin": "python-igraph 0.11.9: P3.isomorphic_bliss(P3, color1=[0,1,0], color2=[0,1,0]) == True",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic_bliss",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "directed": false
+    },
+    "colors1": [
+      0,
+      1,
+      0
+    ],
+    "colors2": [
+      0,
+      1,
+      0
+    ]
+  },
+  "expected": true
+}

@@ -1,0 +1,16 @@
+{
+  "algo": "ALGO-ISO-006",
+  "name": "isomorphic_bliss (canonical-form isomorphism test via the shared I-R engine)",
+  "date": "2026-05-30",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "isomorphic_bliss/cycle",
+      "sizes": [8, 16, 32],
+      "median_ns": [109660, 731340, 6452100],
+      "note": "Self-isomorphism of C_n: the verdict canonicalizes both graphs (two independent I-R searches) then compares certificates, so cost is ~2x the single-graph canonical_permutation/count_automorphisms baseline on the same symmetric C_n tree, plus an O(n^2/64) certificate compare"
+    }
+  ],
+  "status": "baseline_created"
+}

@@ -1,0 +1,69 @@
+{
+  "source": "c",
+  "origin": "igraph_isomorphic_bliss.c/.out: 'Without vertex colors: YES' \u2014 a ring is isomorphic to its relabeling (reproduced on C6)",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic_bliss",
+  "params": {
+    "other": {
+      "n": 6,
+      "edges": [
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": true
+}

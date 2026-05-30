@@ -1,0 +1,65 @@
+{
+  "source": "r",
+  "origin": "R igraph isomorphic(make_ring(6), make_lattice(c(6)), method=\"bliss\") == FALSE (cycle vs path)",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic_bliss",
+  "params": {
+    "other": {
+      "n": 6,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": false
+}

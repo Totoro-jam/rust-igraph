@@ -1,0 +1,85 @@
+{
+  "source": "c",
+  "origin": "igraph_isomorphic_bliss.c/.out: 'Non-matching colors 1: NO' \u2014 one differently-coloured vertex breaks the colour distribution (reproduced on C6)",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic_bliss",
+  "params": {
+    "other": {
+      "n": 6,
+      "edges": [
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "directed": false
+    },
+    "colors1": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "colors2": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "expected": false
+}

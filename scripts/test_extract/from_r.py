@@ -194,6 +194,92 @@ AUTOMORPHISM_GROUP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# BLISS isomorphism yes/no. R igraph exposes isomorphic(g1, g2, method="bliss")
+# and the colour-aware path via canonical_permutation(..., colors=). The verdict
+# is a graph invariant (relabel-/implementation-independent); each expected
+# value was verified against python-igraph 0.11.9 (= igraph C 0.10.16, the same
+# engine rigraph links). R colours c(1,2,1,2) are colour classes encoded 0-based
+# as [0,1,0,1].
+ISOMORPHIC_BLISS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "isomorphic_bliss_R_ring6_relabel",
+        "origin": "R igraph isomorphic(make_ring(6), relabelled make_ring(6), method=\"bliss\") == TRUE",
+        "graph_factory": lambda: _ring(6),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 6,
+                "edges": [[0, 2], [2, 4], [4, 1], [1, 3], [3, 5], [5, 0]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_bliss_R_ring6_vs_path6",
+        "origin": "R igraph isomorphic(make_ring(6), make_lattice(c(6)), method=\"bliss\") == FALSE (cycle vs path)",
+        "graph_factory": lambda: _ring(6),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 6,
+                "edges": [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]],
+                "directed": False,
+            }
+        },
+        "expected": False,
+    },
+    {
+        "case": "isomorphic_bliss_R_full4",
+        "origin": "R igraph isomorphic(make_full_graph(4), make_full_graph(4), method=\"bliss\") == TRUE",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 4,
+                "edges": [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_bliss_R_full4_colored_match",
+        "origin": "R igraph BLISS colour-aware: make_full_graph(4) with colours c(1,2,1,2) vs same == TRUE",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 4,
+                "edges": [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]],
+                "directed": False,
+            },
+            "colors1": [0, 1, 0, 1],
+            "colors2": [0, 1, 0, 1],
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_bliss_R_ring10_color_mismatch",
+        "origin": "R igraph BLISS colour-aware: make_ring(10) colour distributions {1x1,9x0} vs {10x0} == FALSE",
+        "graph_factory": lambda: _ring(10),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 10,
+                "edges": [
+                    [0, 1], [1, 2], [2, 3], [3, 4], [4, 5],
+                    [5, 6], [6, 7], [7, 8], [8, 9], [9, 0],
+                ],
+                "directed": False,
+            },
+            "colors1": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "colors2": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+        "expected": False,
+    },
+]
+
 CC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "two_K5_components",
@@ -9339,6 +9425,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
     "automorphism_group": AUTOMORPHISM_GROUP_MANIFEST,
+    "isomorphic_bliss": ISOMORPHIC_BLISS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,

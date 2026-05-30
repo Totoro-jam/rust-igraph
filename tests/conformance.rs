@@ -4437,6 +4437,68 @@ fn automorphism_group_three_source_conformance() {
 }
 
 #[test]
+fn isomorphic_bliss_three_source_conformance() {
+    // `isomorphic_bliss` is a two-graph yes/no verdict. The first graph is the
+    // fixture's `graph`, the second arrives as a GraphPayload in `params.other`
+    // (mirroring `is_same_graph`). Optional vertex colours arrive as
+    // `params.colors1` / `params.colors2`. Expected verdicts are verified
+    // against C `igraph_isomorphic_bliss`, python-igraph 0.11.9
+    // `Graph.isomorphic_bliss`, and rigraph `isomorphic(g1, g2, method="bliss")`.
+    fn read_colors(params: &serde_json::Value, key: &str) -> Option<Vec<u32>> {
+        params.get(key).and_then(|c| c.as_array()).map(|arr| {
+            arr.iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("color is a non-negative integer"))
+                        .expect("color fits in u32")
+                })
+                .collect()
+        })
+    }
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("isomorphic_bliss");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g1 = build_graph(&case.graph);
+            let other_value = case
+                .params
+                .get("other")
+                .expect("other graph payload missing");
+            let other_payload: GraphPayload =
+                serde_json::from_value(other_value.clone()).expect("decode other graph");
+            let g2 = build_graph(&other_payload);
+            let colors1 = read_colors(&case.params, "colors1");
+            let colors2 = read_colors(&case.params, "colors2");
+            let r = rust_igraph::isomorphic_bliss(&g1, &g2, colors1.as_deref(), colors2.as_deref())
+                .expect("isomorphic_bliss");
+            let rust_json = serde_json::Value::Bool(r.iso);
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "isomorphic_bliss");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
 fn count_subisomorphisms_vf2_three_source_conformance() {
     // VF2 subgraph self-comparison counts a graph's automorphisms (every
     // embedding of g into g is an automorphism), a single-graph scalar that

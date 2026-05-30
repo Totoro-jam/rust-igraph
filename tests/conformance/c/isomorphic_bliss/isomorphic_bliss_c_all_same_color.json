@@ -1,0 +1,85 @@
+{
+  "source": "c",
+  "origin": "igraph_isomorphic_bliss.c/.out: 'All vertices having the same color: YES' (reproduced on C6)",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic_bliss",
+  "params": {
+    "other": {
+      "n": 6,
+      "edges": [
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "directed": false
+    },
+    "colors1": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "colors2": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "expected": true
+}

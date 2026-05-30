@@ -1,0 +1,81 @@
+{
+  "source": "r",
+  "origin": "R igraph BLISS colour-aware: make_full_graph(4) with colours c(1,2,1,2) vs same == TRUE",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic_bliss",
+  "params": {
+    "other": {
+      "n": 4,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "directed": false
+    },
+    "colors1": [
+      0,
+      1,
+      0,
+      1
+    ],
+    "colors2": [
+      0,
+      1,
+      0,
+      1
+    ]
+  },
+  "expected": true
+}

@@ -235,6 +235,7 @@ pub use crate::algorithms::io::pajek::{PajekGraph, read_pajek, write_pajek};
 pub use crate::algorithms::isomorphism::canonical::automorphism_group::automorphism_group;
 pub use crate::algorithms::isomorphism::canonical::canonical_permutation::canonical_permutation;
 pub use crate::algorithms::isomorphism::canonical::count_automorphisms::count_automorphisms;
+pub use crate::algorithms::isomorphism::canonical::isomorphic_bliss::isomorphic_bliss;
 pub use crate::algorithms::isomorphism::simplify_and_colorize::{
     SimplifyAndColorize, simplify_and_colorize,
 };

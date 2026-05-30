@@ -1,0 +1,47 @@
+{
+  "source": "py",
+  "origin": "python-igraph 0.11.9: P3.isomorphic_bliss(P3, color1=[5,6,5], color2=[7,8,7]) == False (BLISS matches colours by raw value, not class shape)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic_bliss",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "directed": false
+    },
+    "colors1": [
+      5,
+      6,
+      5
+    ],
+    "colors2": [
+      7,
+      8,
+      7
+    ]
+  },
+  "expected": false
+}

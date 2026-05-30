@@ -1,0 +1,41 @@
+{
+  "source": "py",
+  "origin": "python-igraph 0.11.9: triangle.isomorphic_bliss(P3) == False",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic_bliss",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": false
+}

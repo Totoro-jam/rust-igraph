@@ -2613,6 +2613,102 @@ AUTOMORPHISM_GROUP_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# igraph_isomorphic_bliss(g1, g2, colors1, colors2, ...) yes/no verdict. The
+# second graph is supplied as a GraphPayload in params.other; optional vertex
+# colours as params.colors1 / params.colors2. Cases mirror the upstream
+# igraph_isomorphic_bliss.c / .out test. The 8-vertex directed colored pair is
+# verbatim from that test (the deterministic "Isomorphic colored graphs: YES"
+# case); the ring cases reproduce the test's colour semantics on a small cycle
+# (the random 100-cycle shuffle in the C source is RNG-seeded and not portably
+# reproducible, but the verdict is invariant under relabeling). All verdicts
+# re-verified against igraph C 0.10.16 (bundled in python-igraph 0.11.9).
+ISOMORPHIC_BLISS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "isomorphic_bliss_c_8v_directed_colored",
+        "origin": "igraph_isomorphic_bliss.c/.out: 'Isomorphic colored graphs: YES' — two 8-vertex directed graphs with 4+4 colour split",
+        "graph_factory": lambda: ig.Graph(
+            n=8,
+            edges=[
+                (0, 4), (0, 5), (0, 6), (1, 4), (1, 5), (1, 7),
+                (2, 4), (2, 6), (2, 7), (3, 5), (3, 6), (3, 7),
+            ],
+            directed=True,
+        ),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 8,
+                "edges": [
+                    [0, 1], [0, 3], [0, 4], [2, 3], [2, 1], [2, 6],
+                    [5, 1], [5, 4], [5, 6], [7, 3], [7, 6], [7, 4],
+                ],
+                "directed": True,
+            },
+            "colors1": [0, 1, 0, 1, 0, 1, 0, 1],
+            "colors2": [0, 0, 1, 1, 0, 0, 1, 1],
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_bliss_c_ring_uncolored",
+        "origin": "igraph_isomorphic_bliss.c/.out: 'Without vertex colors: YES' — a ring is isomorphic to its relabeling (reproduced on C6)",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0)],
+            directed=False,
+        ),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 6,
+                "edges": [[1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [0, 1]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_bliss_c_all_same_color",
+        "origin": "igraph_isomorphic_bliss.c/.out: 'All vertices having the same color: YES' (reproduced on C6)",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0)],
+            directed=False,
+        ),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 6,
+                "edges": [[1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [0, 1]],
+                "directed": False,
+            },
+            "colors1": [1, 1, 1, 1, 1, 1],
+            "colors2": [1, 1, 1, 1, 1, 1],
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_bliss_c_nonmatching_color_distribution",
+        "origin": "igraph_isomorphic_bliss.c/.out: 'Non-matching colors 1: NO' — one differently-coloured vertex breaks the colour distribution (reproduced on C6)",
+        "graph_factory": lambda: ig.Graph(
+            n=6,
+            edges=[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0)],
+            directed=False,
+        ),
+        "algo": "isomorphic_bliss",
+        "params": {
+            "other": {
+                "n": 6,
+                "edges": [[1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [0, 1]],
+                "directed": False,
+            },
+            "colors1": [1, 0, 0, 0, 0, 0],
+            "colors2": [0, 0, 0, 0, 0, 0],
+        },
+        "expected": False,
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_c_directed_path3",
@@ -11817,6 +11913,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
     "automorphism_group": AUTOMORPHISM_GROUP_MANIFEST,
+    "isomorphic_bliss": ISOMORPHIC_BLISS_MANIFEST,
     "louvain": LOUVAIN_MANIFEST,
     "leiden": LEIDEN_MANIFEST,
     "label_propagation": LPA_MANIFEST,
