@@ -71,6 +71,7 @@ pub(crate) mod pagerank_linsys;
 pub(crate) mod pagerank_weighted;
 pub(crate) mod perfect;
 pub(crate) mod personalized_pagerank;
+pub(crate) mod power_law_fit;
 pub(crate) mod reciprocity;
 pub(crate) mod rich_club;
 pub(crate) mod running_mean;
@@ -168,6 +169,7 @@ pub use perfect::is_perfect;
 pub use personalized_pagerank::{
     personalized_pagerank, personalized_pagerank_default, personalized_pagerank_vs,
 };
+pub use power_law_fit::{PowerLawFitResult, power_law_fit};
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
 pub use rich_club::rich_club_sequence;
 pub use running_mean::{expand_path_to_pairs, running_mean};

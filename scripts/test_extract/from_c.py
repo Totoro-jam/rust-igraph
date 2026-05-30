@@ -27,6 +27,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 C_TESTS_DIR = REPO_ROOT / "references/igraph/tests/unit"
 OUT_DIR = REPO_ROOT / "tests/conformance/c"
 
+# Shared `power_law_fit` datasets (the two built-in vectors from the igraph C
+# unit test). See `_plfit_data.json`.
+_PLFIT_DATA = json.loads((Path(__file__).parent / "_plfit_data.json").read_text())
+
 
 def _ring(n: int, circular: bool = True) -> ig.Graph:
     """Wrap igraph's Ring; `circular=False` produces a path (matches C's circular=0)."""
@@ -12161,8 +12165,60 @@ TRUSSNESS_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# `power_law_fit` expected values are taken verbatim from the igraph C unit
+# test's golden output `igraph_power_law_fit.out` (printf "%.5f"), so they are
+# authoritative-by-construction. The conformance harness matches these to their
+# published 5-decimal precision. The data vectors are the same two built-in
+# vectors the C test fits (see `_plfit_data.json`).
+POWER_LAW_FIT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "c_continuous_auto",
+        "origin": "igraph_power_law_fit.out block 1 (continuous data, xmin=-1, force_continuous=0)",
+        "dataset": "continuous",
+        "xmin": -1,
+        "force_continuous": False,
+        "expected": {
+            "continuous": True,
+            "alpha": 2.81976,
+            "xmin": 1.00979,
+            "L": -946.14703,
+            "D": 0.01454,
+        },
+    },
+    {
+        "case": "c_discrete_auto",
+        "origin": "igraph_power_law_fit.out block 3 (discrete data, xmin=-1, force_continuous=0)",
+        "dataset": "discrete",
+        "xmin": -1,
+        "force_continuous": False,
+        "expected": {
+            "continuous": False,
+            "alpha": 3.11405,
+            "xmin": 1.00000,
+            "L": -622.60933,
+            "D": 0.00941,
+        },
+    },
+    {
+        "case": "c_force_continuous_auto",
+        "origin": "igraph_power_law_fit.out block 5 (discrete data, xmin=-1, force_continuous=1)",
+        "dataset": "discrete",
+        "xmin": -1,
+        "force_continuous": True,
+        "expected": {
+            "continuous": True,
+            "alpha": 3.77550,
+            "xmin": 11.00000,
+            "L": -13.68681,
+            "D": 0.15260,
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
+    "power_law_fit": POWER_LAW_FIT_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
@@ -12411,7 +12467,21 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
         # (merges matrix + leaf count + cut steps) and has no graph input.
         # The manifest entry carries the dendrogram directly; the graph block
         # is stubbed (only `n` matters, to carry the leaf count).
-        if algo == "community_to_membership":
+        if algo == "power_law_fit":
+            data = list(_PLFIT_DATA[entry["dataset"]])
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": {"n": 1, "edges": [], "directed": False, "weights": None},
+                "algo": algo,
+                "params": {
+                    "data": data,
+                    "xmin": entry["xmin"],
+                    "force_continuous": bool(entry["force_continuous"]),
+                },
+                "expected": entry["expected"],
+            }
+        elif algo == "community_to_membership":
             nodes = int(entry["nodes"])
             payload = {
                 "source": "c",

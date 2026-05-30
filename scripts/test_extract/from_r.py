@@ -27,6 +27,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 R_TESTS_DIR = REPO_ROOT / "references/rigraph/tests/testthat"
 OUT_DIR = REPO_ROOT / "tests/conformance/r"
 
+# Shared `power_law_fit` datasets (the two built-in vectors from the igraph C
+# unit test). See `_plfit_data.json`.
+_PLFIT_DATA = json.loads((Path(__file__).parent / "_plfit_data.json").read_text())
+
 
 def _ring(n: int) -> ig.Graph:
     return ig.Graph.Ring(n=n, directed=False, mutual=False, circular=True)
@@ -9625,8 +9629,49 @@ TRUSSNESS_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# `power_law_fit` ≙ rigraph `fit_power_law`, which wraps the same igraph C core
+# (0.10.16) as python-igraph. R is not installed in this environment, so the
+# expected values are the authoritative igraph C golden output
+# (`igraph_power_law_fit.out`, printf "%.5f") that rigraph reproduces verbatim
+# via the shared core. Matched to that published 5-decimal precision. The two
+# fixed-xmin cases here complement the auto-xmin cases harvested from from_c.
+POWER_LAW_FIT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "r_continuous_fixed_xmin2",
+        "origin": "rigraph fit_power_law (igraph C 0.10.16); igraph_power_law_fit.out block 2 "
+        "(continuous data, xmin=2, force_continuous=0)",
+        "dataset": "continuous",
+        "xmin": 2,
+        "force_continuous": False,
+        "expected": {
+            "continuous": True,
+            "alpha": 2.81157,
+            "xmin": 2.00000,
+            "L": -463.92064,
+            "D": 0.05091,
+        },
+    },
+    {
+        "case": "r_discrete_fixed_xmin2",
+        "origin": "rigraph fit_power_law (igraph C 0.10.16); igraph_power_law_fit.out block 4 "
+        "(discrete data, xmin=2, force_continuous=0)",
+        "dataset": "discrete",
+        "xmin": 2,
+        "force_continuous": False,
+        "expected": {
+            "continuous": False,
+            "alpha": 3.27157,
+            "xmin": 2.00000,
+            "L": -185.83215,
+            "D": 0.04504,
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
+    "power_law_fit": POWER_LAW_FIT_MANIFEST,
     "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
     "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
@@ -9872,7 +9917,21 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
     for entry in manifest:
         # `community_to_membership` is a pure dendrogram helper —
         # bypass graph_factory.
-        if algo == "community_to_membership":
+        if algo == "power_law_fit":
+            data = list(_PLFIT_DATA[entry["dataset"]])
+            payload = {
+                "source": "r",
+                "origin": entry["origin"],
+                "graph": {"n": 1, "edges": [], "directed": False, "weights": None},
+                "algo": algo,
+                "params": {
+                    "data": data,
+                    "xmin": entry["xmin"],
+                    "force_continuous": bool(entry["force_continuous"]),
+                },
+                "expected": entry["expected"],
+            }
+        elif algo == "community_to_membership":
             nodes = int(entry["nodes"])
             payload = {
                 "source": "r",

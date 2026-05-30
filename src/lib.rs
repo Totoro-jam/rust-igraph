@@ -489,6 +489,7 @@ pub use crate::algorithms::properties::perfect::is_perfect;
 pub use crate::algorithms::properties::personalized_pagerank::{
     personalized_pagerank, personalized_pagerank_default, personalized_pagerank_vs,
 };
+pub use crate::algorithms::properties::power_law_fit::{PowerLawFitResult, power_law_fit};
 pub use crate::algorithms::properties::reciprocity::{
     ReciprocityMode, reciprocity, reciprocity_with_mode,
 };

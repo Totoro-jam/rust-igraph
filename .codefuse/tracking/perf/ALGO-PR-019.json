@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-PR-019",
+  "name": "power_law_fit (Clauset-Shalizi-Newman / plfit MLE)",
+  "date": "2026-05-30",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "power_law_fit/continuous_auto",
+      "sizes": [200, 1000, 5000],
+      "median_ns": [54327, 766600, 15660000],
+      "note": "continuous fit with automatic xmin. alpha is closed-form per candidate xmin, but the xmin scan visits the distinct data values; for continuous Pareto draws nearly every value is unique, so the scan is ~O(num_uniques) closed-form evaluations each O(n) over the kept tail → roughly quadratic in n (the 5000 point is ~20x the 1000 point). This mirrors upstream igraph_plfit_continuous's xmin loop"
+    },
+    {
+      "group": "power_law_fit/discrete_auto",
+      "sizes": [200, 1000, 5000],
+      "median_ns": [162330, 417820, 854420],
+      "note": "discrete fit with automatic xmin. Each candidate xmin runs a golden-section maximisation whose objective evaluates a Hurwitz-zeta (Euler-Maclaurin) term — heavier per candidate than the continuous closed form — but the integer-valued data collapses to a small number of distinct candidate xmins, so the total candidate count barely grows with n and runtime scales sub-linearly. At n=200 the fixed golden-section + zeta cost dominates, making small-n discrete slower than small-n continuous"
+    }
+  ],
+  "status": "baseline_created"
+}

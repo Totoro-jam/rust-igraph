@@ -25,6 +25,11 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 PY_TESTS_DIR = REPO_ROOT / "references/python-igraph/tests"
 OUT_DIR = REPO_ROOT / "tests/conformance/py"
 
+# Shared `power_law_fit` datasets (the two built-in vectors from the igraph C
+# unit test); used verbatim by from_c / from_py / from_r so the three sources
+# fit the *same* data. See `_plfit_data.json` for provenance.
+_PLFIT_DATA = json.loads((Path(__file__).parent / "_plfit_data.json").read_text())
+
 
 def _tree(n: int, children: int) -> ig.Graph:
     return ig.Graph.Tree(n=n, children=children, mode="undirected")
@@ -9548,8 +9553,58 @@ TRUSSNESS_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# `power_law_fit` is a data-vector algorithm (no graph). Expected values are
+# captured live from `igraph.power_law_fit` (python-igraph 0.11.9, igraph C
+# core 0.10.16) in the emit() branch below — full f64 precision. The six cases
+# mirror the igraph C unit test `igraph_power_law_fit.c`.
+POWER_LAW_FIT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "py_continuous_auto",
+        "origin": "igraph_power_law_fit.c case 1: continuous data, xmin=-1, force_continuous=0",
+        "dataset": "continuous",
+        "xmin": -1,
+        "force_continuous": False,
+    },
+    {
+        "case": "py_continuous_fixed_xmin2",
+        "origin": "igraph_power_law_fit.c case 2: continuous data, xmin=2, force_continuous=0",
+        "dataset": "continuous",
+        "xmin": 2,
+        "force_continuous": False,
+    },
+    {
+        "case": "py_discrete_auto",
+        "origin": "igraph_power_law_fit.c case 3: discrete data, xmin=-1, force_continuous=0",
+        "dataset": "discrete",
+        "xmin": -1,
+        "force_continuous": False,
+    },
+    {
+        "case": "py_discrete_fixed_xmin2",
+        "origin": "igraph_power_law_fit.c case 4: discrete data, xmin=2, force_continuous=0",
+        "dataset": "discrete",
+        "xmin": 2,
+        "force_continuous": False,
+    },
+    {
+        "case": "py_force_continuous_auto",
+        "origin": "igraph_power_law_fit.c case 5: discrete data, xmin=-1, force_continuous=1",
+        "dataset": "discrete",
+        "xmin": -1,
+        "force_continuous": True,
+    },
+    {
+        "case": "py_force_continuous_fixed_xmin2",
+        "origin": "igraph_power_law_fit.c case 6: discrete data, xmin=2, force_continuous=1",
+        "dataset": "discrete",
+        "xmin": 2,
+        "force_continuous": True,
+    },
+]
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
+    "power_law_fit": POWER_LAW_FIT_MANIFEST,
     "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
     "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
@@ -9789,7 +9844,34 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
     for entry in manifest:
         # `community_to_membership` is a dendrogram helper, not a
         # graph algorithm — bypass the graph_factory flow.
-        if algo == "community_to_membership":
+        if algo == "power_law_fit":
+            data = list(_PLFIT_DATA[entry["dataset"]])
+            xmin = entry["xmin"]
+            fc = bool(entry["force_continuous"])
+            # python-igraph maps force_continuous -> method, xmin=-1 -> None.
+            method = "continuous" if fc else "auto"
+            xm = None if xmin == -1 else xmin
+            r = ig.power_law_fit(data, xmin=xm, method=method)
+            payload = {
+                "source": "py",
+                "origin": entry["origin"]
+                + " — live python-igraph 0.11.9 igraph.power_law_fit",
+                "graph": {"n": 1, "edges": [], "directed": False, "weights": None},
+                "algo": algo,
+                "params": {
+                    "data": data,
+                    "xmin": xmin,
+                    "force_continuous": fc,
+                },
+                "expected": {
+                    "continuous": bool(r.continuous),
+                    "alpha": r.alpha,
+                    "xmin": r.xmin,
+                    "L": r.L,
+                    "D": r.D,
+                },
+            }
+        elif algo == "community_to_membership":
             nodes = int(entry["nodes"])
             payload = {
                 "source": "py",

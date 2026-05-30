@@ -4413,3 +4413,67 @@ proptest! {
         }
     }
 }
+
+// ALGO-PR-019: structural invariants of the power-law fit. These hold for any
+// fit regardless of the (implementation-defined) xmin search, so they pin the
+// engine without re-deriving its exact output.
+#[cfg(feature = "proptest-harness")]
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(64))]
+
+    /// Continuous fit with a fixed cutoff: every output field is well-formed.
+    #[test]
+    fn power_law_continuous_fixed_well_formed(
+        raw in proptest::collection::vec(1.0f64..1000.0, 30..120)
+    ) {
+        let fit = rust_igraph::power_law_fit(&raw, 1.0, true).expect("fit");
+        prop_assert!(fit.continuous);
+        prop_assert_eq!(fit.xmin, 1.0);
+        prop_assert!(fit.alpha.is_finite() && fit.alpha > 1.0);
+        prop_assert!(fit.log_likelihood.is_finite());
+        prop_assert!((0.0..=1.0).contains(&fit.ks_statistic));
+    }
+
+    /// The continuous closed-form MLE is exactly reproducible from the cut.
+    #[test]
+    fn power_law_continuous_alpha_matches_closed_form(
+        raw in proptest::collection::vec(1.0f64..1000.0, 60..150)
+    ) {
+        let xmin = 1.0;
+        let cut: Vec<f64> = raw.iter().copied().filter(|&x| x >= xmin).collect();
+        prop_assume!(!cut.is_empty());
+        let logsum: f64 = cut.iter().map(|&x| (x / xmin).ln()).sum();
+        prop_assume!(logsum > 0.0);
+        // n >= 50 here, so no finite-size correction is applied.
+        let expected = 1.0 + (cut.len() as f64) / logsum;
+        let fit = rust_igraph::power_law_fit(&raw, xmin, true).expect("fit");
+        prop_assert!((fit.alpha - expected).abs() < 1e-9);
+    }
+
+    /// force_continuous always yields a continuous model, even for integer data.
+    #[test]
+    fn power_law_force_continuous_on_integers(
+        ints in proptest::collection::vec(1u32..50, 30..100)
+    ) {
+        let data: Vec<f64> = ints.iter().map(|&x| f64::from(x)).collect();
+        let fit = rust_igraph::power_law_fit(&data, -1.0, true).expect("fit");
+        prop_assert!(fit.continuous);
+        prop_assert!(fit.alpha > 1.0);
+        prop_assert!(fit.xmin >= 1.0);
+    }
+
+    /// Integer-valued data without force_continuous fits a discrete model; the
+    /// chosen xmin is one of the sample values.
+    #[test]
+    fn power_law_discrete_detected(
+        ints in proptest::collection::vec(1u32..40, 40..120)
+    ) {
+        let data: Vec<f64> = ints.iter().map(|&x| f64::from(x)).collect();
+        let fit = rust_igraph::power_law_fit(&data, -1.0, false).expect("fit");
+        prop_assert!(!fit.continuous);
+        prop_assert!(fit.alpha.is_finite() && fit.alpha > 1.0);
+        prop_assert!(data.iter().any(|&x| (x - fit.xmin).abs() < 1e-12),
+            "discrete xmin {} is not a sample value", fit.xmin);
+        prop_assert!((0.0..=1.0).contains(&fit.ks_statistic));
+    }
+}

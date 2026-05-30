@@ -18168,3 +18168,121 @@ fn matching_three_source_conformance() {
         serde_json::json!(valid)
     });
 }
+
+/// `power_law_fit` (ALGO-PR-019) is a data-vector algorithm, not a graph
+/// algorithm, and the discrete fit uses a different optimiser (golden-section)
+/// than upstream igraph (L-BFGS). On the flat MLE ridge of the discrete
+/// log-likelihood the two optimisers land ~1e-8 apart in `alpha`/`D`, while the
+/// maximised log-likelihood `L` itself still agrees to ~1e-13. The fixed
+/// `json_approx_eq` (relative 1e-12) used by [`run_conformance`] cannot express
+/// that, so this AWU uses a bespoke, source-aware comparator:
+///
+/// * `c` / `r` — values are the igraph C golden output printed at `%.5f`
+///   (`igraph_power_law_fit.out`); matched to that published 5-decimal
+///   precision (absolute/relative 1e-5).
+/// * `py` — full-precision live oracle from python-igraph 0.11.9. Continuous
+///   fits (closed-form MLE) match to ~1e-12; discrete `alpha`/`D` come from the
+///   different optimiser and are matched to 1e-6, while `L` and `xmin` are held
+///   to 1e-9. A genuine algorithmic divergence would exceed all of these by
+///   orders of magnitude.
+#[test]
+fn power_law_fit_three_source_conformance() {
+    use rust_igraph::power_law_fit;
+
+    // Per-field tolerance keyed by source + whether the field is one of the
+    // optimiser-sensitive discrete outputs. Returns the relative tolerance
+    // (applied against `max(|a|, |b|, 1.0)`).
+    fn tol(source: &str, key: &str, continuous: bool) -> f64 {
+        match source {
+            "c" | "r" => 1e-5,
+            // python-igraph live oracle, full f64 precision.
+            _ => {
+                if !continuous && (key == "alpha" || key == "D") {
+                    1e-6
+                } else {
+                    1e-9
+                }
+            }
+        }
+    }
+
+    let cases = load_all("power_law_fit");
+    assert!(
+        !cases.is_empty(),
+        "no power_law_fit conformance fixtures found — did you run \
+         `.venv/bin/python -m scripts.test_extract.from_c --algo power_law_fit` \
+         (and from_py / from_r)?"
+    );
+
+    let mut counts = std::collections::HashMap::<&'static str, usize>::new();
+    for (path, case) in cases {
+        assert_eq!(case.algo, "power_law_fit");
+        let p = &case.params;
+        let data: Vec<f64> = p
+            .get("data")
+            .and_then(serde_json::Value::as_array)
+            .expect("`data` param")
+            .iter()
+            .map(|v| v.as_f64().expect("data entry is a number"))
+            .collect();
+        let xmin = p
+            .get("xmin")
+            .and_then(serde_json::Value::as_f64)
+            .expect("`xmin` param");
+        let force_continuous = p
+            .get("force_continuous")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+
+        let fit = power_law_fit(&data, xmin, force_continuous).expect("power_law_fit");
+        let exp = case.expected.as_object().expect("expected is an object");
+
+        let exp_continuous = exp
+            .get("continuous")
+            .and_then(serde_json::Value::as_bool)
+            .expect("expected.continuous");
+        assert_eq!(
+            fit.continuous,
+            exp_continuous,
+            "power_law_fit `continuous` mismatch\n  fixture: {}\n  source:  {}",
+            path.display(),
+            case.source,
+        );
+
+        for (key, actual) in [
+            ("alpha", fit.alpha),
+            ("xmin", fit.xmin),
+            ("L", fit.log_likelihood),
+            ("D", fit.ks_statistic),
+        ] {
+            let expected = exp
+                .get(key)
+                .and_then(serde_json::Value::as_f64)
+                .unwrap_or_else(|| panic!("expected.{key} missing in {}", path.display()));
+            let t = tol(&case.source, key, fit.continuous);
+            let scale = actual.abs().max(expected.abs()).max(1.0);
+            assert!(
+                (actual - expected).abs() <= t * scale,
+                "power_law_fit `{key}` mismatch (tol {t:e})\n  fixture: {}\n  source:  {}\n  origin:  {}\n  actual:   {actual}\n  expected: {expected}",
+                path.display(),
+                case.source,
+                case.origin,
+            );
+        }
+
+        let key: &'static str = match case.source.as_str() {
+            "c" => "c",
+            "py" => "py",
+            "r" => "r",
+            _ => panic!("unknown source {} in {}", case.source, path.display()),
+        };
+        *counts.entry(key).or_default() += 1;
+    }
+
+    for source in ["c", "py", "r"] {
+        assert!(
+            counts.get(source).copied().unwrap_or(0) > 0,
+            "no power_law_fit fixtures from source {source}"
+        );
+    }
+}
