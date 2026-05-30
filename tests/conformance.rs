@@ -4498,6 +4498,74 @@ fn isomorphic_bliss_three_source_conformance() {
     }
 }
 
+/// Run a two-graph yes/no conformance test over `tests/conformance/{c,py,r}/<algo>/`.
+/// The first graph is the fixture's `graph`; the second arrives as a
+/// `GraphPayload` in `params.other`. `verdict` produces the Rust Boolean to
+/// compare against the fixture's `expected`.
+fn run_two_graph_bool_conformance(
+    algo: &str,
+    verdict: impl Fn(&rust_igraph::Graph, &rust_igraph::Graph) -> bool,
+) {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join(algo);
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let g1 = build_graph(&case.graph);
+            let other_value = case
+                .params
+                .get("other")
+                .expect("other graph payload missing");
+            let other_payload: GraphPayload =
+                serde_json::from_value(other_value.clone()).expect("decode other graph");
+            let g2 = build_graph(&other_payload);
+            let rust_json = serde_json::Value::Bool(verdict(&g1, &g2));
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, algo);
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
+fn isomorphic_three_source_conformance() {
+    // Generic `isomorphic` dispatcher: two-graph yes/no. Verdicts verified
+    // against C `igraph_isomorphic`, python-igraph 0.11.9 `Graph.isomorphic`,
+    // and rigraph `isomorphic(g1, g2)`.
+    run_two_graph_bool_conformance("isomorphic", |g1, g2| {
+        rust_igraph::isomorphic(g1, g2).expect("isomorphic")
+    });
+}
+
+#[test]
+fn subisomorphic_three_source_conformance() {
+    // Generic `subisomorphic` dispatcher: is g2 isomorphic to a subgraph of
+    // g1? Verdicts verified against C `igraph_subisomorphic`, python-igraph
+    // 0.11.9 `Graph.subisomorphic_vf2`, and rigraph `subgraph_isomorphic`.
+    run_two_graph_bool_conformance("subisomorphic", |g1, g2| {
+        rust_igraph::subisomorphic(g1, g2).expect("subisomorphic")
+    });
+}
+
 #[test]
 fn count_subisomorphisms_vf2_three_source_conformance() {
     // VF2 subgraph self-comparison counts a graph's automorphisms (every

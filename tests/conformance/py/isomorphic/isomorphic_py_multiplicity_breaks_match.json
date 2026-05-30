@@ -1,0 +1,45 @@
+{
+  "source": "py",
+  "origin": "python-igraph 0.11.9: double-edge(0,1)+pendant vs simple triangle == False (edge multiplicity colour differs)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": false
+}

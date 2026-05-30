@@ -1,0 +1,45 @@
+{
+  "source": "py",
+  "origin": "python-igraph 0.11.9: Ring(4).subisomorphic_vf2(P3) == True",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "subisomorphic",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": true
+}

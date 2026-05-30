@@ -2709,6 +2709,134 @@ ISOMORPHIC_BLISS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Generic igraph_isomorphic dispatcher. Cases + verdicts verbatim from
+# tests/unit/igraph_isomorphic.c / .out (all undirected multigraphs, exercising
+# the simplify_and_colorize + colour-aware VF2 path, including self-loops).
+ISOMORPHIC_GENERIC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "isomorphic_c_two_multigraphs",
+        "origin": "igraph_isomorphic.c/.out: 'Two multigraphs: 1' — {0-1,0-1} vs {1-2,1-2}",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 1)], directed=False
+        ),
+        "algo": "isomorphic",
+        "params": {
+            "other": {"n": 3, "edges": [[1, 2], [1, 2]], "directed": False}
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_c_only_second_multigraph",
+        "origin": "igraph_isomorphic.c/.out: 'Only second graph is multigraph: 0' — {0-1} vs {1-2,1-2}",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1)], directed=False),
+        "algo": "isomorphic",
+        "params": {
+            "other": {"n": 3, "edges": [[1, 2], [1, 2]], "directed": False}
+        },
+        "expected": False,
+    },
+    {
+        "case": "isomorphic_c_only_first_multigraph",
+        "origin": "igraph_isomorphic.c/.out: 'Only first graph is multigraph: 0' — {0-1,0-1} vs {1-2}",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 1)], directed=False
+        ),
+        "algo": "isomorphic",
+        "params": {"other": {"n": 3, "edges": [[1, 2]], "directed": False}},
+        "expected": False,
+    },
+    {
+        "case": "isomorphic_c_first_has_loop",
+        "origin": "igraph_isomorphic.c/.out: 'Two multigraphs, first has loop: 0' — {0-0,0-1,0-1} vs {1-2,1-2}",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 0), (0, 1), (0, 1)], directed=False
+        ),
+        "algo": "isomorphic",
+        "params": {
+            "other": {"n": 3, "edges": [[1, 2], [1, 2]], "directed": False}
+        },
+        "expected": False,
+    },
+    {
+        "case": "isomorphic_c_both_have_loops",
+        "origin": "igraph_isomorphic.c/.out: 'Two multigraphs, both have loops: 1' — {0-0,0-1,0-1} vs {1-1,1-2,1-2}",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 0), (0, 1), (0, 1)], directed=False
+        ),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 3,
+                "edges": [[1, 1], [1, 2], [1, 2]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_c_only_loops",
+        "origin": "igraph_isomorphic.c/.out: 'Two multigraphs, only loops: 1' — {0-0,0-0,1-1} vs {1-1,2-2,2-2}",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 0), (0, 0), (1, 1)], directed=False
+        ),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 3,
+                "edges": [[1, 1], [2, 2], [2, 2]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+]
+
+# Generic igraph_subisomorphic dispatcher (delegates to subisomorphic_vf2).
+# Cases + verdicts verbatim from tests/unit/igraph_subisomorphic.c. graph1 is
+# the larger target, graph2 the smaller pattern.
+SUBISOMORPHIC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "subisomorphic_c_positive_undirected",
+        "origin": "igraph_subisomorphic.c: 'Basic positive example, undirected' — triangle embeds into a 4-vertex graph",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (3, 2), (3, 1)], directed=False
+        ),
+        "algo": "subisomorphic",
+        "params": {
+            "other": {
+                "n": 3,
+                "edges": [[0, 1], [1, 2], [2, 0]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "subisomorphic_c_negative_directed",
+        "origin": "igraph_subisomorphic.c: 'Basic negative example, directed' — directed 3-cycle does not embed",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (3, 2), (3, 1)], directed=True
+        ),
+        "algo": "subisomorphic",
+        "params": {
+            "other": {
+                "n": 3,
+                "edges": [[0, 1], [1, 2], [2, 0]],
+                "directed": True,
+            }
+        },
+        "expected": False,
+    },
+    {
+        "case": "subisomorphic_c_empty",
+        "origin": "igraph_subisomorphic.c: 'No vertices' — empty pattern embeds into empty target",
+        "graph_factory": lambda: ig.Graph(n=0, edges=[], directed=False),
+        "algo": "subisomorphic",
+        "params": {"other": {"n": 0, "edges": [], "directed": False}},
+        "expected": True,
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_c_directed_path3",
@@ -11914,6 +12042,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
     "automorphism_group": AUTOMORPHISM_GROUP_MANIFEST,
     "isomorphic_bliss": ISOMORPHIC_BLISS_MANIFEST,
+    "isomorphic": ISOMORPHIC_GENERIC_MANIFEST,
+    "subisomorphic": SUBISOMORPHIC_MANIFEST,
     "louvain": LOUVAIN_MANIFEST,
     "leiden": LEIDEN_MANIFEST,
     "label_propagation": LPA_MANIFEST,

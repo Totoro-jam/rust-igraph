@@ -1,0 +1,41 @@
+{
+  "source": "r",
+  "origin": "R igraph subgraph_isomorphic(make_ring(3), make_lattice(c(3))) == FALSE (path has no 3-clique)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "subisomorphic",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": false
+}

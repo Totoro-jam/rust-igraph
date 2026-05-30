@@ -1,0 +1,41 @@
+{
+  "source": "py",
+  "origin": "python-igraph 0.11.9: P3.subisomorphic_vf2(triangle) == False (path has no 3-clique)",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "subisomorphic",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": false
+}

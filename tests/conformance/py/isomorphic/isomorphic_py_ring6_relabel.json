@@ -1,0 +1,69 @@
+{
+  "source": "py",
+  "origin": "python-igraph 0.11.9: Ring(6).isomorphic(relabelled Ring(6)) == True",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic",
+  "params": {
+    "other": {
+      "n": 6,
+      "edges": [
+        [
+          0,
+          2
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          3,
+          5
+        ],
+        [
+          5,
+          0
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": true
+}

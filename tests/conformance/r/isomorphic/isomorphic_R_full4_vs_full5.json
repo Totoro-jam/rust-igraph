@@ -1,0 +1,85 @@
+{
+  "source": "r",
+  "origin": "R igraph isomorphic(make_full_graph(4), make_full_graph(5)) == FALSE (vcount differs)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic",
+  "params": {
+    "other": {
+      "n": 5,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          4
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": false
+}

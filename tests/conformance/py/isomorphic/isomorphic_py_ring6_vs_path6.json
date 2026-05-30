@@ -1,0 +1,65 @@
+{
+  "source": "py",
+  "origin": "python-igraph 0.11.9: Ring(6).isomorphic(P6) == False (cycle vs path)",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic",
+  "params": {
+    "other": {
+      "n": 6,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": false
+}

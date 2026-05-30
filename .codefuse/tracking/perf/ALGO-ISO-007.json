@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-ISO-007",
+  "name": "isomorphic + subisomorphic (generic dispatchers over VF2 / BLISS / simplify_and_colorize)",
+  "date": "2026-05-30",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "isomorphic/cycle",
+      "sizes": [8, 16, 32],
+      "median_ns": [110160, 736350, 6506400],
+      "note": "Simple-graph C_n self-comparison passes the vcount/ecount guard and routes to the BLISS canonical-form test, so timing tracks bench_isomorphic_bliss (two I-R searches + certificate compare); the dispatch overhead (directedness + has_multiple + count checks) is negligible"
+    },
+    {
+      "group": "subisomorphic/cycle_target",
+      "sizes": [8, 16, 32],
+      "median_ns": [2870, 5050, 10139],
+      "note": "Embedding a fixed triangle pattern into a C_n target via the VF2 subgraph backend; near-linear in target size because the cycle admits no triangle subgraph and VF2 prunes early"
+    }
+  ],
+  "status": "baseline_created"
+}

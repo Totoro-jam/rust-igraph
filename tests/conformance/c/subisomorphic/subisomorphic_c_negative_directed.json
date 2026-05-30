@@ -1,0 +1,49 @@
+{
+  "source": "c",
+  "origin": "igraph_subisomorphic.c: 'Basic negative example, directed' \u2014 directed 3-cycle does not embed",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "subisomorphic",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "directed": true
+    }
+  },
+  "expected": false
+}

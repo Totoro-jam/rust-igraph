@@ -1,0 +1,41 @@
+{
+  "source": "c",
+  "origin": "igraph_isomorphic.c/.out: 'Two multigraphs, first has loop: 0' \u2014 {0-0,0-1,0-1} vs {1-2,1-2}",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "isomorphic",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": false
+}

@@ -280,6 +280,107 @@ ISOMORPHIC_BLISS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Generic isomorphic(g1, g2) dispatcher (R auto-selects a method).
+ISOMORPHIC_GENERIC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "isomorphic_R_ring6_relabel",
+        "origin": "R igraph isomorphic(make_ring(6), relabelled make_ring(6)) == TRUE",
+        "graph_factory": lambda: _ring(6),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 6,
+                "edges": [[0, 2], [2, 4], [4, 1], [1, 3], [3, 5], [5, 0]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_R_ring6_vs_path6",
+        "origin": "R igraph isomorphic(make_ring(6), make_lattice(c(6))) == FALSE (cycle vs path)",
+        "graph_factory": lambda: _ring(6),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 6,
+                "edges": [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]],
+                "directed": False,
+            }
+        },
+        "expected": False,
+    },
+    {
+        "case": "isomorphic_R_full4_vs_full5",
+        "origin": "R igraph isomorphic(make_full_graph(4), make_full_graph(5)) == FALSE (vcount differs)",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 5,
+                "edges": [
+                    [0, 1], [0, 2], [0, 3], [0, 4], [1, 2],
+                    [1, 3], [1, 4], [2, 3], [2, 4], [3, 4],
+                ],
+                "directed": False,
+            }
+        },
+        "expected": False,
+    },
+    {
+        "case": "isomorphic_R_directed_ring4",
+        "origin": "R igraph isomorphic(make_ring(4, directed=TRUE), rotated copy) == TRUE",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=True
+        ),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 4,
+                "edges": [[1, 2], [2, 3], [3, 0], [0, 1]],
+                "directed": True,
+            }
+        },
+        "expected": True,
+    },
+]
+
+# Generic subgraph_isomorphic(pattern, target). The conformance harness stores
+# the target as `graph` and the pattern as `params.other` (subisomorphic's
+# graph1=target, graph2=pattern convention).
+SUBISOMORPHIC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "subisomorphic_R_triangle_in_full4",
+        "origin": "R igraph subgraph_isomorphic(make_ring(3), make_full_graph(4)) == TRUE (triangle embeds in K4)",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "subisomorphic",
+        "params": {
+            "other": {
+                "n": 3,
+                "edges": [[0, 1], [1, 2], [2, 0]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "subisomorphic_R_triangle_in_path3",
+        "origin": "R igraph subgraph_isomorphic(make_ring(3), make_lattice(c(3))) == FALSE (path has no 3-clique)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "subisomorphic",
+        "params": {
+            "other": {
+                "n": 3,
+                "edges": [[0, 1], [1, 2], [2, 0]],
+                "directed": False,
+            }
+        },
+        "expected": False,
+    },
+]
+
 CC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "two_K5_components",
@@ -9426,6 +9527,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
     "automorphism_group": AUTOMORPHISM_GROUP_MANIFEST,
     "isomorphic_bliss": ISOMORPHIC_BLISS_MANIFEST,
+    "isomorphic": ISOMORPHIC_GENERIC_MANIFEST,
+    "subisomorphic": SUBISOMORPHIC_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,

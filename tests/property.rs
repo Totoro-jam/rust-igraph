@@ -4303,4 +4303,38 @@ proptest! {
         prop_assert_eq!(bliss.iso, vf2.iso,
             "bliss/vf2 disagree on isomorphism verdict");
     }
+
+    /// ALGO-ISO-007: the generic `isomorphic` dispatcher always reports a
+    /// random relabelling of a graph as isomorphic to the original.
+    #[test]
+    fn isomorphic_detects_relabeling((g, perm) in arb_simple_graph_with_perm(8, false)) {
+        let h = rust_igraph::permute_vertices(&g, &perm).expect("permute");
+        prop_assert!(rust_igraph::isomorphic(&g, &h).expect("isomorphic"),
+            "relabeled graph not reported isomorphic by dispatcher");
+    }
+
+    /// ALGO-ISO-007: the generic `isomorphic` verdict agrees with the explicit
+    /// VF2 backend on arbitrary pairs of (loopless simple) graphs — the
+    /// dispatcher's backend choice must not change the answer.
+    #[test]
+    fn isomorphic_agrees_with_vf2(
+        (g1, _) in arb_simple_graph_with_perm(7, false),
+        (g2, _) in arb_simple_graph_with_perm(7, false),
+    ) {
+        let generic = rust_igraph::isomorphic(&g1, &g2).expect("isomorphic");
+        let vf2 = rust_igraph::isomorphic_vf2(&g1, &g2, None, None, None, None).expect("vf2");
+        prop_assert_eq!(generic, vf2.iso, "generic/vf2 disagree on isomorphism verdict");
+    }
+
+    /// ALGO-ISO-007: the generic `subisomorphic` verdict agrees with the
+    /// explicit VF2 subgraph backend it delegates to.
+    #[test]
+    fn subisomorphic_agrees_with_vf2(
+        (g1, _) in arb_simple_graph_with_perm(7, false),
+        (g2, _) in arb_simple_graph_with_perm(5, false),
+    ) {
+        let generic = rust_igraph::subisomorphic(&g1, &g2).expect("subisomorphic");
+        let vf2 = rust_igraph::subisomorphic_vf2(&g1, &g2, None, None, None, None).expect("vf2");
+        prop_assert_eq!(generic, vf2.iso, "generic/vf2 disagree on subisomorphism verdict");
+    }
 }

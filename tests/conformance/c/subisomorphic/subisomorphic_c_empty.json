@@ -1,0 +1,19 @@
+{
+  "source": "c",
+  "origin": "igraph_subisomorphic.c: 'No vertices' \u2014 empty pattern embeds into empty target",
+  "graph": {
+    "n": 0,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "subisomorphic",
+  "params": {
+    "other": {
+      "n": 0,
+      "edges": [],
+      "directed": false
+    }
+  },
+  "expected": true
+}

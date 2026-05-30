@@ -257,6 +257,153 @@ ISOMORPHIC_BLISS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# Generic isomorphism dispatcher Graph.isomorphic(other). Picks a backend
+# automatically; only the yes/no verdict is observable. Every expected value
+# verified against python-igraph 0.11.9 (bundles igraph C 0.10.16).
+ISOMORPHIC_GENERIC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "isomorphic_py_ring6_relabel",
+        "origin": "python-igraph 0.11.9: Ring(6).isomorphic(relabelled Ring(6)) == True",
+        "graph_factory": lambda: ig.Graph.Ring(6, directed=False),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 6,
+                "edges": [[0, 2], [2, 4], [4, 1], [1, 3], [3, 5], [5, 0]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_py_ring6_vs_path6",
+        "origin": "python-igraph 0.11.9: Ring(6).isomorphic(P6) == False (cycle vs path)",
+        "graph_factory": lambda: ig.Graph.Ring(6, directed=False),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 6,
+                "edges": [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]],
+                "directed": False,
+            }
+        },
+        "expected": False,
+    },
+    {
+        "case": "isomorphic_py_different_size",
+        "origin": "python-igraph 0.11.9: Full(4).isomorphic(Full(5)) == False (vcount/ecount differ)",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 5,
+                "edges": [
+                    [0, 1], [0, 2], [0, 3], [0, 4], [1, 2],
+                    [1, 3], [1, 4], [2, 3], [2, 4], [3, 4],
+                ],
+                "directed": False,
+            }
+        },
+        "expected": False,
+    },
+    {
+        "case": "isomorphic_py_multigraph_relabel",
+        "origin": "python-igraph 0.11.9: double-edge(0,1)+pendant vs relabelled copy == True (multi-edge path: simplify_and_colorize + VF2)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 1), (1, 2)], directed=False
+        ),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 3,
+                "edges": [[2, 1], [2, 1], [1, 0]],
+                "directed": False,
+            }
+        },
+        "expected": True,
+    },
+    {
+        "case": "isomorphic_py_multiplicity_breaks_match",
+        "origin": "python-igraph 0.11.9: double-edge(0,1)+pendant vs simple triangle == False (edge multiplicity colour differs)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (0, 1), (1, 2)], directed=False
+        ),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 3,
+                "edges": [[0, 1], [1, 2], [2, 0]],
+                "directed": False,
+            }
+        },
+        "expected": False,
+    },
+    {
+        "case": "isomorphic_py_directed_c4",
+        "origin": "python-igraph 0.11.9: directed C4.isomorphic(rotated directed C4) == True",
+        "graph_factory": lambda: ig.Graph(
+            n=4, edges=[(0, 1), (1, 2), (2, 3), (3, 0)], directed=True
+        ),
+        "algo": "isomorphic",
+        "params": {
+            "other": {
+                "n": 4,
+                "edges": [[1, 2], [2, 3], [3, 0], [0, 1]],
+                "directed": True,
+            }
+        },
+        "expected": True,
+    },
+]
+
+# Generic subgraph-isomorphism dispatcher Graph.subisomorphic_vf2(other): is
+# `other` (the smaller pattern) isomorphic to a subgraph of self (the larger
+# target)? Verified against python-igraph 0.11.9 (= igraph C 0.10.16).
+SUBISOMORPHIC_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "subisomorphic_py_edge_in_triangle",
+        "origin": "python-igraph 0.11.9: triangle.subisomorphic_vf2(single edge) == True",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False
+        ),
+        "algo": "subisomorphic",
+        "params": {"other": {"n": 2, "edges": [[0, 1]], "directed": False}},
+        "expected": True,
+    },
+    {
+        "case": "subisomorphic_py_triangle_in_path",
+        "origin": "python-igraph 0.11.9: P3.subisomorphic_vf2(triangle) == False (path has no 3-clique)",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "algo": "subisomorphic",
+        "params": {
+            "other": {"n": 3, "edges": [[0, 1], [1, 2], [2, 0]], "directed": False}
+        },
+        "expected": False,
+    },
+    {
+        "case": "subisomorphic_py_triangle_in_k4",
+        "origin": "python-igraph 0.11.9: Full(4).subisomorphic_vf2(triangle) == True",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "subisomorphic",
+        "params": {
+            "other": {"n": 3, "edges": [[0, 1], [1, 2], [2, 0]], "directed": False}
+        },
+        "expected": True,
+    },
+    {
+        "case": "subisomorphic_py_path3_in_ring4",
+        "origin": "python-igraph 0.11.9: Ring(4).subisomorphic_vf2(P3) == True",
+        "graph_factory": lambda: ig.Graph.Ring(4, directed=False),
+        "algo": "subisomorphic",
+        "params": {
+            "other": {"n": 3, "edges": [[0, 1], [1, 2]], "directed": False}
+        },
+        "expected": True,
+    },
+]
+
 DFS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "test_iterators_testDFS_tree10_2",
@@ -9304,6 +9451,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
     "automorphism_group": AUTOMORPHISM_GROUP_MANIFEST,
     "isomorphic_bliss": ISOMORPHIC_BLISS_MANIFEST,
+    "isomorphic": ISOMORPHIC_GENERIC_MANIFEST,
+    "subisomorphic": SUBISOMORPHIC_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,

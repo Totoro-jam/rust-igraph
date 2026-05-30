@@ -1,0 +1,49 @@
+{
+  "source": "c",
+  "origin": "igraph_subisomorphic.c: 'Basic positive example, undirected' \u2014 triangle embeds into a 4-vertex graph",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "subisomorphic",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "directed": false
+    }
+  },
+  "expected": true
+}
