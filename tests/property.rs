@@ -4768,3 +4768,64 @@ proptest! {
         prop_assert_eq!(collapsed, undirected_edge_set(&undir));
     }
 }
+
+proptest! {
+    /// Permutation invariance: the lune β-skeleton predicate is a symmetric,
+    /// tie-free closed test, so reordering the input points permutes the
+    /// result's vertices identically. Holds for any β (all inputs are 2-D, so
+    /// the β < 1 perpendicular construction is also exercised).
+    #[test]
+    fn lune_beta_skeleton_is_permutation_invariant(
+        (points, perm, beta) in arb_points_2d(8).prop_flat_map(|pts| {
+            let n = pts.len();
+            let perm = Just((0..n as u32).collect::<Vec<u32>>()).prop_shuffle();
+            (Just(pts), perm, 0.5f64..4.0)
+        }),
+    ) {
+        let base = rust_igraph::lune_beta_skeleton(&points, beta).expect("lune base");
+
+        let n = points.len();
+        let mut permuted = vec![Vec::new(); n];
+        for (i, row) in points.iter().enumerate() {
+            permuted[perm[i] as usize] = row.clone();
+        }
+        let permed = rust_igraph::lune_beta_skeleton(&permuted, beta).expect("lune permuted");
+
+        let mut mapped: Vec<(u32, u32)> = undirected_edge_set(&base)
+            .into_iter()
+            .map(|(u, v)| {
+                let (pu, pv) = (perm[u as usize], perm[v as usize]);
+                (pu.min(pv), pu.max(pv))
+            })
+            .collect();
+        mapped.sort_unstable();
+
+        prop_assert_eq!(mapped, undirected_edge_set(&permed));
+    }
+
+    /// At β = 1 both lune ball centres collapse onto the edge midpoint, so the
+    /// skeleton is exactly the Gabriel graph. Cross-check against the dedicated
+    /// `gabriel_graph` implementation on identical points.
+    #[test]
+    fn lune_beta1_equals_gabriel(points in arb_points_2d(8)) {
+        let lune = rust_igraph::lune_beta_skeleton(&points, 1.0).expect("lune");
+        let gab = rust_igraph::gabriel_graph(&points).expect("gabriel");
+        prop_assert_eq!(undirected_edge_set(&lune), undirected_edge_set(&gab));
+    }
+
+    /// β-skeleton nesting (Kirkpatrick–Radke): for 1 ≤ β ≤ β′ the β′-lune
+    /// contains the β-lune, so the β′-skeleton is a subgraph of the β-skeleton.
+    /// Here every β = 2 edge must also be a β = 1 (Gabriel) edge. The closed
+    /// boundary preserves the inclusion, so this holds even for coincident
+    /// points.
+    #[test]
+    fn lune_larger_beta_is_subgraph(points in arb_points_2d(8)) {
+        let coarse = rust_igraph::lune_beta_skeleton(&points, 2.0).expect("lune b2");
+        let fine = rust_igraph::lune_beta_skeleton(&points, 1.0).expect("lune b1");
+        let fine_edges: std::collections::HashSet<(u32, u32)> =
+            undirected_edge_set(&fine).into_iter().collect();
+        for e in undirected_edge_set(&coarse) {
+            prop_assert!(fine_edges.contains(&e), "β=2 edge {:?} absent from β=1 skeleton", e);
+        }
+    }
+}

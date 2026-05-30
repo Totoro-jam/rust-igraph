@@ -12396,12 +12396,141 @@ NEAREST_NEIGHBOR_GRAPH_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# --- igraph_lune_beta_skeleton ---------------------------------------------
+# Authentic anchors transcribed from igraph's own test
+# `tests/unit/beta_skeletons.c` (point arrays) and its golden output
+# `beta_skeletons.out` (canonical edge lists, parsed verbatim). The lune
+# β-skeleton always uses the CLOSED boundary (`is_closed = true`), so β = 1 is
+# exactly the Gabriel graph and β = 2 is NOT the relative-neighborhood graph
+# (which is the OPEN β = 2 lune). `igraph_lune_beta_skeleton` is C-only (no
+# python-igraph / rigraph binding), so these are the authoritative anchors.
+# The four cases exercise both filter paths: β ≥ 1 (lune centres, any
+# dimension — the 2D random set at β = 2 and β = 1, plus a 3D set at β = 2)
+# and β < 1 (perpendicular centres, 2D only — the random set at β = 0.5).
+LUNE_BETA_SKELETON_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "c_beta2_random_25_2d",
+        "origin": "beta_skeletons.out 'Lune beta skeleton beta = 2, 25 points'",
+        "beta": 2.0,
+        "points": [
+            [0.474217, 0.0314797], [0.208089, 0.439308], [0.967367, 0.530466],
+            [0.177005, 0.426713], [0.568462, 0.57507], [0.441834, 0.284514],
+            [0.479224, 0.817988], [0.720209, 0.225744], [0.204941, 0.44297],
+            [0.285318, 0.912984], [0.831097, 0.0176603], [0.827154, 0.472702],
+            [0.173059, 0.561858], [0.156276, 0.88019], [0.65935, 0.538207],
+            [0.570379, 0.518081], [0.900553, 0.656416], [0.726631, 0.863709],
+            [0.380264, 0.287159], [0.31098, 0.230773], [0.243089, 0.164584],
+            [0.967974, 0.524992], [0.726605, 0.0724703], [0.739752, 0.447069],
+            [0.0443581, 0.444839],
+        ],
+        "expected": {
+            "n": 25,
+            "edges": [
+                [0, 5], [0, 22], [1, 8], [1, 18], [2, 16], [2, 21], [3, 8],
+                [3, 24], [4, 6], [4, 15], [5, 7], [5, 15], [5, 18], [6, 9],
+                [6, 17], [7, 22], [7, 23], [8, 12], [9, 13], [10, 22], [11, 21],
+                [11, 23], [12, 13], [14, 15], [14, 23], [16, 17], [18, 19],
+                [19, 20],
+            ],
+        },
+    },
+    {
+        "case": "c_beta1_gabriel_random_25_2d",
+        "origin": "beta_skeletons.out 'Gabriel graph, 25 points' (igraph_lune_beta_skeleton beta=1)",
+        "beta": 1.0,
+        "points": [
+            [0.474217, 0.0314797], [0.208089, 0.439308], [0.967367, 0.530466],
+            [0.177005, 0.426713], [0.568462, 0.57507], [0.441834, 0.284514],
+            [0.479224, 0.817988], [0.720209, 0.225744], [0.204941, 0.44297],
+            [0.285318, 0.912984], [0.831097, 0.0176603], [0.827154, 0.472702],
+            [0.173059, 0.561858], [0.156276, 0.88019], [0.65935, 0.538207],
+            [0.570379, 0.518081], [0.900553, 0.656416], [0.726631, 0.863709],
+            [0.380264, 0.287159], [0.31098, 0.230773], [0.243089, 0.164584],
+            [0.967974, 0.524992], [0.726605, 0.0724703], [0.739752, 0.447069],
+            [0.0443581, 0.444839],
+        ],
+        "expected": {
+            "n": 25,
+            "edges": [
+                [0, 5], [0, 19], [0, 20], [0, 22], [1, 8], [1, 15], [1, 18],
+                [1, 19], [2, 16], [2, 21], [3, 8], [3, 24], [4, 6], [4, 12],
+                [4, 14], [4, 15], [4, 17], [5, 7], [5, 15], [5, 18], [6, 9],
+                [6, 12], [6, 17], [7, 22], [7, 23], [8, 12], [9, 13], [10, 22],
+                [11, 16], [11, 21], [11, 23], [12, 13], [12, 24], [14, 15],
+                [14, 17], [14, 23], [16, 17], [18, 19], [19, 20],
+            ],
+        },
+    },
+    {
+        "case": "c_beta05_random_25_2d",
+        "origin": "beta_skeletons.out 'Beta = 0.5, 25 points' (perpendicular-centre path)",
+        "beta": 0.5,
+        "points": [
+            [0.474217, 0.0314797], [0.208089, 0.439308], [0.967367, 0.530466],
+            [0.177005, 0.426713], [0.568462, 0.57507], [0.441834, 0.284514],
+            [0.479224, 0.817988], [0.720209, 0.225744], [0.204941, 0.44297],
+            [0.285318, 0.912984], [0.831097, 0.0176603], [0.827154, 0.472702],
+            [0.173059, 0.561858], [0.156276, 0.88019], [0.65935, 0.538207],
+            [0.570379, 0.518081], [0.900553, 0.656416], [0.726631, 0.863709],
+            [0.380264, 0.287159], [0.31098, 0.230773], [0.243089, 0.164584],
+            [0.967974, 0.524992], [0.726605, 0.0724703], [0.739752, 0.447069],
+            [0.0443581, 0.444839],
+        ],
+        "expected": {
+            "n": 25,
+            "edges": [
+                [0, 5], [0, 7], [0, 10], [0, 14], [0, 15], [0, 18], [0, 19],
+                [0, 20], [0, 22], [0, 23], [1, 3], [1, 4], [1, 5], [1, 6],
+                [1, 8], [1, 9], [1, 15], [1, 17], [1, 18], [1, 19], [1, 20],
+                [1, 23], [2, 6], [2, 7], [2, 11], [2, 14], [2, 16], [2, 21],
+                [2, 22], [3, 5], [3, 8], [3, 12], [3, 18], [3, 19], [3, 20],
+                [3, 24], [4, 5], [4, 6], [4, 8], [4, 9], [4, 12], [4, 13],
+                [4, 14], [4, 15], [4, 16], [4, 17], [4, 18], [5, 6], [5, 7],
+                [5, 9], [5, 12], [5, 13], [5, 14], [5, 15], [5, 18], [5, 19],
+                [5, 22], [5, 23], [6, 8], [6, 9], [6, 11], [6, 12], [6, 13],
+                [6, 14], [6, 16], [6, 17], [6, 18], [6, 19], [6, 21], [7, 10],
+                [7, 11], [7, 12], [7, 14], [7, 15], [7, 19], [7, 20], [7, 21],
+                [7, 22], [7, 23], [8, 9], [8, 12], [8, 15], [8, 17], [8, 20],
+                [8, 23], [8, 24], [9, 12], [9, 13], [9, 15], [9, 17], [9, 18],
+                [9, 19], [10, 11], [10, 21], [10, 22], [10, 23], [11, 14],
+                [11, 15], [11, 16], [11, 17], [11, 21], [11, 23], [12, 13],
+                [12, 15], [12, 18], [12, 24], [13, 15], [13, 18], [13, 24],
+                [14, 15], [14, 16], [14, 17], [14, 18], [14, 21], [14, 23],
+                [15, 17], [15, 18], [15, 23], [16, 17], [16, 23], [17, 23],
+                [18, 19], [18, 22], [18, 23], [19, 20], [19, 22], [19, 24],
+                [20, 22], [20, 24], [21, 22],
+            ],
+        },
+    },
+    {
+        "case": "c_beta2_random_10_3d",
+        "origin": "beta_skeletons.out 'Relative neighborhood graph, 10 points 3d' (igraph_lune_beta_skeleton beta=2, 3D)",
+        "beta": 2.0,
+        "points": [
+            [0.474217, 0.0314797, 0.208089], [0.439308, 0.967367, 0.530466],
+            [0.177005, 0.426713, 0.568462], [0.57507, 0.441834, 0.284514],
+            [0.479224, 0.817988, 0.720209], [0.225744, 0.204941, 0.44297],
+            [0.285318, 0.912984, 0.831097], [0.0176603, 0.827154, 0.472702],
+            [0.173059, 0.561858, 0.156276], [0.88019, 0.65935, 0.538207],
+        ],
+        "expected": {
+            "n": 10,
+            "edges": [
+                [0, 3], [0, 5], [1, 4], [1, 7], [2, 4], [2, 5], [2, 8],
+                [3, 8], [3, 9], [4, 6], [4, 9], [7, 8],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "power_law_fit": POWER_LAW_FIT_MANIFEST,
     "gabriel_graph": GABRIEL_GRAPH_MANIFEST,
     "relative_neighborhood_graph": RELATIVE_NEIGHBORHOOD_GRAPH_MANIFEST,
     "nearest_neighbor_graph": NEAREST_NEIGHBOR_GRAPH_MANIFEST,
+    "lune_beta_skeleton": LUNE_BETA_SKELETON_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
@@ -12696,6 +12825,19 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "cutoff": float(entry["cutoff"]),
                     "directed": bool(entry["directed"]),
                 },
+                "expected": entry["expected"],
+            }
+        elif algo == "lune_beta_skeleton":
+            # Spatial point-set input with a `beta` shape parameter; output is
+            # an undirected graph. C-only API, so the expected edge list is
+            # transcribed from igraph's golden `beta_skeletons.out`.
+            points = [[float(x) for x in row] for row in entry["points"]]
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": {"n": 1, "edges": [], "directed": False, "weights": None},
+                "algo": algo,
+                "params": {"points": points, "beta": float(entry["beta"])},
                 "expected": entry["expected"],
             }
         elif algo == "community_to_membership":

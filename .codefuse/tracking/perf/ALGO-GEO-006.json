@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-GEO-006",
+  "name": "lune_beta_skeleton (lune-based beta-skeleton of a spatial point set)",
+  "date": "2026-05-31",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "lune_beta_skeleton/point_count",
+      "sizes": [50, 200, 400],
+      "median_ns": [83612, 1553700, 6375900],
+      "note": "deterministic LCG scatter in the unit square, fixed beta=2. The kernel is an O(n^2) candidate enumeration with an O(n*d) empty-lune test per pair (O(n^3*d) worst case, but the empty test early-breaks on the first blocking point). 50->200 (4x points) is ~18.6x time and 200->400 (2x points) is ~4.1x time, tracking the quadratic candidate count plus the growing per-pair scan"
+    },
+    {
+      "group": "lune_beta_skeleton/beta",
+      "sizes": [0.5, 1.0, 2.0],
+      "median_ns": [57407000, 6167900, 3607600],
+      "note": "fixed 300-point LCG scatter, varying beta. Larger beta enlarges the empty lune and yields a sparser graph, so most candidate pairs are non-edges whose empty-test scan early-breaks on the first blocker (beta=2 -> 3.6ms). Smaller beta (beta=0.5, the 2D perpendicular construction) yields a near-complete dense graph: most pairs are edges whose empty-test scan runs to completion with no early break, so cost balloons to ~57ms"
+    }
+  ],
+  "status": "baseline_created"
+}
