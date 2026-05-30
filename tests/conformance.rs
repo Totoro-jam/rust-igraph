@@ -18345,3 +18345,100 @@ fn dim_select_r_conformance() {
 
     assert!(seen_r > 0, "no dim_select fixtures from source r");
 }
+
+/// `gabriel_graph` (ALGO-GEO-003) is a point-set algorithm (build the Gabriel
+/// proximity graph of N points in d-space), not a graph→graph transform.
+/// python-igraph 0.11.9 and rigraph do NOT expose `igraph_gabriel_graph`, so
+/// the only upstream conformance source is igraph C. The fixtures encode the
+/// authentic golden output published in igraph's own `beta_skeletons.out`
+/// (point arrays transcribed from `beta_skeletons.c`): a 25-point random set
+/// and the boundary-sensitive rotated square lattice. The result edge set is
+/// canonical and compared exactly.
+#[test]
+fn gabriel_graph_c_conformance() {
+    use rust_igraph::gabriel_graph;
+
+    let cases = load_all("gabriel_graph");
+    assert!(
+        !cases.is_empty(),
+        "no gabriel_graph conformance fixtures found — did you run \
+         `.venv/bin/python -m scripts.test_extract.from_c --algo gabriel_graph`?"
+    );
+
+    let mut seen_c = 0usize;
+    for (path, case) in cases {
+        assert_eq!(case.algo, "gabriel_graph");
+        // C is the sole upstream source for this function.
+        assert_eq!(
+            case.source,
+            "c",
+            "unexpected non-C gabriel_graph fixture {}",
+            path.display()
+        );
+
+        let points: Vec<Vec<f64>> = case
+            .params
+            .get("points")
+            .and_then(serde_json::Value::as_array)
+            .expect("`points` param")
+            .iter()
+            .map(|row| {
+                row.as_array()
+                    .expect("point row is an array")
+                    .iter()
+                    .map(|v| v.as_f64().expect("coordinate is a number"))
+                    .collect()
+            })
+            .collect();
+
+        let exp = case.expected.as_object().expect("expected is an object");
+        let exp_n = u32::try_from(
+            exp.get("n")
+                .and_then(serde_json::Value::as_u64)
+                .expect("expected.n"),
+        )
+        .expect("expected.n fits in u32");
+        let mut exp_edges: Vec<(u32, u32)> = exp
+            .get("edges")
+            .and_then(serde_json::Value::as_array)
+            .expect("expected.edges")
+            .iter()
+            .map(|e| {
+                let pair = e.as_array().expect("edge is a pair");
+                let u = u32::try_from(pair[0].as_u64().expect("edge endpoint")).expect("u fits");
+                let v = u32::try_from(pair[1].as_u64().expect("edge endpoint")).expect("v fits");
+                (u.min(v), u.max(v))
+            })
+            .collect();
+        exp_edges.sort_unstable();
+
+        let g = gabriel_graph(&points).expect("gabriel_graph");
+        assert_eq!(
+            g.vcount(),
+            exp_n,
+            "gabriel_graph vertex-count mismatch\n  fixture: {}\n  origin:  {}",
+            path.display(),
+            case.origin,
+        );
+        let mut actual_edges: Vec<(u32, u32)> = (0..g.ecount())
+            .map(|e| {
+                let (u, v) = g
+                    .edge(u32::try_from(e).expect("edge id fits in u32"))
+                    .expect("edge");
+                (u.min(v), u.max(v))
+            })
+            .collect();
+        actual_edges.sort_unstable();
+
+        assert_eq!(
+            actual_edges,
+            exp_edges,
+            "gabriel_graph edge-set mismatch\n  fixture: {}\n  origin:  {}",
+            path.display(),
+            case.origin,
+        );
+        seen_c += 1;
+    }
+
+    assert!(seen_c > 0, "no gabriel_graph fixtures from source c");
+}

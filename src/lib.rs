@@ -518,6 +518,7 @@ pub use crate::algorithms::spanning::mst::{MstAlgorithm, minimum_spanning_tree};
 pub use crate::algorithms::spanning::random_spanning_tree::random_spanning_tree;
 pub use crate::algorithms::spatial::convex_hull::{ConvexHullResult, convex_hull_2d};
 pub use crate::algorithms::spatial::edge_lengths::{DistanceMetric, spatial_edge_lengths};
+pub use crate::algorithms::spatial::gabriel_graph::gabriel_graph;
 pub use crate::algorithms::traversal::bfs::{
     BfsMode, BfsSimple, BfsTree, bfs, bfs_simple, bfs_tree,
 };

@@ -4525,3 +4525,84 @@ proptest! {
         prop_assert!((1..=n).contains(&d));
     }
 }
+
+/// Sorted undirected edge set of a graph as `(min, max)` pairs.
+fn undirected_edge_set(g: &Graph) -> Vec<(u32, u32)> {
+    let mut edges: Vec<(u32, u32)> = (0..g.ecount())
+        .map(|e| {
+            let (u, v) = g.edge(e as u32).expect("edge in range");
+            (u.min(v), u.max(v))
+        })
+        .collect();
+    edges.sort_unstable();
+    edges
+}
+
+/// Arbitrary 2-D point set on a small integer grid. Integer coordinates
+/// deliberately admit co-circular degeneracies so the closed-ball boundary
+/// rule is exercised. Coincident points are allowed (Gabriel-legal).
+fn arb_points_2d(max_n: usize) -> impl Strategy<Value = Vec<Vec<f64>>> {
+    proptest::collection::vec(
+        (-4i32..=4, -4i32..=4).prop_map(|(x, y)| vec![f64::from(x), f64::from(y)]),
+        1..=max_n,
+    )
+}
+
+/// Like [`arb_points_2d`] but deduplicates coincident points. The
+/// EMST-subgraph (hence connectivity) guarantee only holds for *distinct*
+/// points: two coincident points mutually block each other's edges to a
+/// third point, which can disconnect it.
+fn arb_distinct_points_2d(max_n: usize) -> impl Strategy<Value = Vec<Vec<f64>>> {
+    arb_points_2d(max_n).prop_map(|pts| {
+        let mut seen = std::collections::HashSet::new();
+        pts.into_iter()
+            .filter(|row| seen.insert((row[0].to_bits(), row[1].to_bits())))
+            .collect()
+    })
+}
+
+proptest! {
+    /// Permutation invariance: reordering the input points permutes the Gabriel
+    /// graph's vertices identically. Relabeling the result of the original run
+    /// by the inverse permutation must reproduce the result of the permuted run.
+    #[test]
+    fn gabriel_graph_is_permutation_invariant(
+        (points, perm) in arb_points_2d(8).prop_flat_map(|pts| {
+            let n = pts.len();
+            let perm = Just((0..n as u32).collect::<Vec<u32>>()).prop_shuffle();
+            (Just(pts), perm)
+        }),
+    ) {
+        let base = rust_igraph::gabriel_graph(&points).expect("gabriel_graph base");
+
+        // Apply the permutation to the point rows: new position `perm[i]` holds
+        // the point originally at `i`.
+        let n = points.len();
+        let mut permuted = vec![Vec::new(); n];
+        for (i, row) in points.iter().enumerate() {
+            permuted[perm[i] as usize] = row.clone();
+        }
+        let permed = rust_igraph::gabriel_graph(&permuted).expect("gabriel_graph permuted");
+
+        // Map base edges through `perm` and compare against the permuted run.
+        let mut mapped: Vec<(u32, u32)> = undirected_edge_set(&base)
+            .into_iter()
+            .map(|(u, v)| {
+                let (pu, pv) = (perm[u as usize], perm[v as usize]);
+                (pu.min(pv), pu.max(pv))
+            })
+            .collect();
+        mapped.sort_unstable();
+
+        prop_assert_eq!(mapped, undirected_edge_set(&permed));
+    }
+
+    /// The Gabriel graph contains the Euclidean minimum spanning tree, so it is
+    /// always connected for a non-empty point set.
+    #[test]
+    fn gabriel_graph_is_connected(points in arb_distinct_points_2d(8)) {
+        use rust_igraph::{is_connected, ConnectednessMode};
+        let g = rust_igraph::gabriel_graph(&points).expect("gabriel_graph");
+        prop_assert!(is_connected(&g, ConnectednessMode::Weak).expect("is_connected"));
+    }
+}

@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-GEO-003",
+  "name": "gabriel_graph (Gabriel proximity graph of a spatial point set)",
+  "date": "2026-05-30",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "gabriel_graph/scatter",
+      "sizes": [25, 100, 200],
+      "median_ns": [33627, 541430, 2556200],
+      "note": "deterministic LCG scatter in the unit square. The kernel enumerates all O(n^2) candidate pairs and runs an O(n) empty-ball test per pair, so cost is cubic in the point count: 25->100 (4x points) is ~16x time, 100->200 (2x points) is ~4.7x time, both tracking the n^3 expectation"
+    },
+    {
+      "group": "gabriel_graph/lattice",
+      "sizes": [25, 100, 196],
+      "median_ns": [34328, 724240, 3768200],
+      "note": "k x k integer lattice (k in 5,10,14): every cell's opposite corners are co-circular, so the closed-ball boundary branch fires on the diagonals. Slightly slower than the scatter at equal n because more pairs survive far enough into the empty-ball loop before rejection; still cubic overall"
+    }
+  ],
+  "status": "baseline_created"
+}

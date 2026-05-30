@@ -889,6 +889,11 @@ name = "bench_dim_select"
 path = "benches/bench_dim_select.rs"
 harness = false
 
+[[bench]]
+name = "bench_gabriel_graph"
+path = "benches/bench_gabriel_graph.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 
