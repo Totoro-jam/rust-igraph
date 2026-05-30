@@ -381,6 +381,68 @@ SUBISOMORPHIC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# LAD subgraph isomorphism. rigraph exposes this as
+# `subgraph_isomorphic(pattern, target, method = "lad", induced=, domains=)`
+# and `graph.get.subisomorphisms.vf2`-style map listing via
+# `subisomorphic_lad` internals; both run the shared igraph C 0.10.16
+# library, so the verdicts/maps are identical to the C example oracle
+# (examples/simple/igraph_subisomorphic_lad.out: 20/4/1). Map lists sorted
+# to compare as sets.
+_LAD_R_TARGET_FACTORY = lambda: ig.Graph(
+    n=9,
+    edges=[
+        (0, 1), (0, 4), (0, 6),
+        (1, 4), (1, 2),
+        (2, 3),
+        (3, 4), (3, 5), (3, 7), (3, 8),
+        (4, 5), (4, 6),
+        (5, 6), (5, 8),
+        (7, 8),
+    ],
+    directed=False,
+)
+_LAD_R_PATTERN = {
+    "n": 5,
+    "edges": [[0, 1], [0, 4], [1, 4], [1, 2], [2, 3], [3, 4]],
+    "directed": False,
+}
+
+SUBISOMORPHIC_LAD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "subisomorphic_lad_R_example_mono",
+        "origin": "R igraph subgraph_isomorphic(pattern, target, method='lad') == TRUE (example graphs, monomorphism)",
+        "graph_factory": _LAD_R_TARGET_FACTORY,
+        "algo": "subisomorphic_lad",
+        "params": {"other": _LAD_R_PATTERN, "induced": False, "domains": None},
+        "expected": True,
+    },
+    {
+        "case": "subisomorphic_lad_R_triangle_in_path3",
+        "origin": "R igraph subgraph_isomorphic(make_ring(3), make_lattice(c(3)), method='lad') == FALSE (path has no 3-clique)",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "subisomorphic_lad",
+        "params": {
+            "other": {"n": 3, "edges": [[0, 1], [1, 2], [2, 0]], "directed": False},
+            "induced": False,
+            "domains": None,
+        },
+        "expected": False,
+    },
+]
+
+GET_SUBISOMORPHISMS_LAD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "get_subisomorphisms_lad_R_example_induced",
+        "origin": "R igraph subisomorphic_lad(induced=TRUE) — 4 induced embeddings (example graphs, shared C 0.10.16, sorted)",
+        "graph_factory": _LAD_R_TARGET_FACTORY,
+        "algo": "get_subisomorphisms_lad",
+        "params": {"other": _LAD_R_PATTERN, "induced": True, "domains": None},
+        "expected": [
+            [0, 1, 2, 3, 4], [0, 4, 3, 2, 1], [5, 3, 2, 1, 4], [5, 4, 1, 2, 3],
+        ],
+    },
+]
+
 CC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "two_K5_components",
@@ -9529,6 +9591,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "isomorphic_bliss": ISOMORPHIC_BLISS_MANIFEST,
     "isomorphic": ISOMORPHIC_GENERIC_MANIFEST,
     "subisomorphic": SUBISOMORPHIC_MANIFEST,
+    "subisomorphic_lad": SUBISOMORPHIC_LAD_MANIFEST,
+    "get_subisomorphisms_lad": GET_SUBISOMORPHISMS_LAD_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,

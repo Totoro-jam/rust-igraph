@@ -1,0 +1,43 @@
+{
+  "source": "c",
+  "origin": "constructed: a triangle has no monomorphism into the 3-vertex path P3 \u2014 iso == false",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "subisomorphic_lad",
+  "params": {
+    "other": {
+      "n": 3,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "directed": false
+    },
+    "induced": false,
+    "domains": null
+  },
+  "expected": false
+}

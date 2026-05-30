@@ -869,6 +869,11 @@ name = "bench_canonical"
 path = "benches/bench_canonical.rs"
 harness = false
 
+[[bench]]
+name = "bench_lad"
+path = "benches/bench_lad.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

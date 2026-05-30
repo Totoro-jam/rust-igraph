@@ -4566,6 +4566,147 @@ fn subisomorphic_three_source_conformance() {
     });
 }
 
+/// Decode `params.domains` (a list of per-pattern-vertex candidate lists, or
+/// JSON null) into the `Option<Vec<Vec<u32>>>` the LAD API expects.
+fn read_lad_domains(params: &serde_json::Value) -> Option<Vec<Vec<u32>>> {
+    params
+        .get("domains")
+        .and_then(|d| d.as_array())
+        .map(|outer| {
+            outer
+                .iter()
+                .map(|inner| {
+                    inner
+                        .as_array()
+                        .expect("domain is a list")
+                        .iter()
+                        .map(|v| {
+                            u32::try_from(v.as_u64().expect("domain vertex non-negative"))
+                                .expect("domain vertex fits u32")
+                        })
+                        .collect()
+                })
+                .collect()
+        })
+}
+
+#[test]
+fn subisomorphic_lad_three_source_conformance() {
+    // LAD subgraph isomorphism yes/no. The fixture's `graph` is the target,
+    // `params.other` the pattern (LAD's `subisomorphic_lad(pattern, target)`
+    // signature), with `params.induced` and optional `params.domains`. Verdicts
+    // verified against C `igraph_subisomorphic_lad` (example oracle 20/4/1),
+    // python-igraph 0.11.9 `Graph.subisomorphic_lad`, and rigraph
+    // `subgraph_isomorphic(method="lad")`.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("subisomorphic_lad");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let target = build_graph(&case.graph);
+            let other_value = case
+                .params
+                .get("other")
+                .expect("other graph payload missing");
+            let other_payload: GraphPayload =
+                serde_json::from_value(other_value.clone()).expect("decode other graph");
+            let pattern = build_graph(&other_payload);
+            let induced = case
+                .params
+                .get("induced")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false);
+            let domains = read_lad_domains(&case.params);
+            let r = rust_igraph::subisomorphic_lad(&pattern, &target, domains.as_deref(), induced)
+                .expect("subisomorphic_lad");
+            let rust_json = serde_json::Value::Bool(r.iso);
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "subisomorphic_lad");
+            let _ = case.origin;
+        }
+    }
+}
+
+#[test]
+fn get_subisomorphisms_lad_three_source_conformance() {
+    // LAD enumeration of every embedding. Enumeration order is
+    // implementation-defined, so both sides are sorted and compared as sets.
+    // Map lists verified against the C example oracle (20 monomorphisms,
+    // 4 induced, 1 domain-restricted), python-igraph 0.11.9
+    // `Graph.get_subisomorphisms_lad`, and rigraph LAD enumeration.
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("get_subisomorphisms_lad");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read fixture dir") {
+            let entry = entry.expect("dir entry");
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read fixture file");
+            let case: Conformance =
+                serde_json::from_slice(&bytes).expect("parse conformance fixture JSON");
+            let target = build_graph(&case.graph);
+            let other_value = case
+                .params
+                .get("other")
+                .expect("other graph payload missing");
+            let other_payload: GraphPayload =
+                serde_json::from_value(other_value.clone()).expect("decode other graph");
+            let pattern = build_graph(&other_payload);
+            let induced = case
+                .params
+                .get("induced")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false);
+            let domains = read_lad_domains(&case.params);
+            let mut maps = rust_igraph::get_subisomorphisms_lad(
+                &pattern,
+                &target,
+                domains.as_deref(),
+                induced,
+            )
+            .expect("get_subisomorphisms_lad");
+            maps.sort();
+            let rust_json = serde_json::json!(maps);
+            assert!(
+                json_approx_eq(&rust_json, &case.expected),
+                "{}: expected {} got {}",
+                path.display(),
+                case.expected,
+                rust_json,
+            );
+            assert_eq!(case.source, src);
+            assert_eq!(case.algo, "get_subisomorphisms_lad");
+            let _ = case.origin;
+        }
+    }
+}
+
 #[test]
 fn count_subisomorphisms_vf2_three_source_conformance() {
     // VF2 subgraph self-comparison counts a graph's automorphisms (every

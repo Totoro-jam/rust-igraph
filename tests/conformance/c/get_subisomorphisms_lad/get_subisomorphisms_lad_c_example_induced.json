@@ -1,0 +1,136 @@
+{
+  "source": "c",
+  "origin": "igraph_subisomorphic_lad.out: 4 induced embeddings of the example pattern into the example target (sorted)",
+  "graph": {
+    "n": 9,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        7,
+        8
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "get_subisomorphisms_lad",
+  "params": {
+    "other": {
+      "n": 5,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          4
+        ]
+      ],
+      "directed": false
+    },
+    "induced": true,
+    "domains": null
+  },
+  "expected": [
+    [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    [
+      0,
+      4,
+      3,
+      2,
+      1
+    ],
+    [
+      5,
+      3,
+      2,
+      1,
+      4
+    ],
+    [
+      5,
+      4,
+      1,
+      2,
+      3
+    ]
+  ]
+}

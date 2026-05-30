@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-ISO-020",
+  "name": "lad subgraph isomorphism (subisomorphic_lad / get_subisomorphisms_lad)",
+  "date": "2026-05-30",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "lad/enumerate_edge_into_ring",
+      "sizes": [50, 100, 200],
+      "median_ns": [190890, 468390, 1383900],
+      "note": "single-edge pattern into ring(n); get_subisomorphisms_lad enumerates 2n embeddings, exercising the full AllDifferent (Hopcroft-Karp matching + GAC) propagation and forward-checking. ~13-22x slower than the VF2 enumeration baseline (ALGO-ISO-002 subiso/count_edge_into_ring) — LAD's per-node CSP filtering buys stronger pruning on hard pattern instances but costs more on these trivially-satisfiable ones"
+    },
+    {
+      "group": "lad/first_path_into_ring",
+      "sizes": [100, 1000, 5000],
+      "median_ns": [156410, 4916700, 99206000],
+      "note": "P3 pattern into ring(n); first-match (subisomorphic_lad) decision. Super-linear: each filter() pass rebuilds per-vertex domains over the whole target (O(V) domain init + matching) before the first complete assignment is found, so cost grows faster than VF2's incremental backtracking on these sparse rings"
+    }
+  ],
+  "status": "baseline_created"
+}

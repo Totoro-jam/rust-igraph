@@ -4337,4 +4337,57 @@ proptest! {
         let vf2 = rust_igraph::subisomorphic_vf2(&g1, &g2, None, None, None, None).expect("vf2");
         prop_assert_eq!(generic, vf2.iso, "generic/vf2 disagree on subisomorphism verdict");
     }
+
+    /// ALGO-ISO-020: non-induced LAD (a subgraph monomorphism of `pattern`
+    /// into `target`) must agree on the yes/no verdict with the VF2 subgraph
+    /// backend. `subisomorphic_lad(pattern, target)` mirrors
+    /// `subisomorphic_vf2(target, pattern)` — both ask whether the smaller
+    /// pattern embeds into the larger target.
+    #[test]
+    fn subisomorphic_lad_agrees_with_vf2(
+        (target, _) in arb_simple_graph_with_perm(7, false),
+        (pattern, _) in arb_simple_graph_with_perm(5, false),
+    ) {
+        let lad = rust_igraph::subisomorphic_lad(&pattern, &target, None, false)
+            .expect("subisomorphic_lad");
+        let vf2 = rust_igraph::subisomorphic_vf2(&target, &pattern, None, None, None, None)
+            .expect("vf2");
+        prop_assert_eq!(lad.iso, vf2.iso, "lad/vf2 disagree on subisomorphism verdict");
+    }
+
+    /// ALGO-ISO-020: every map LAD enumerates is a genuine non-induced
+    /// embedding — an injection of pattern vertices into target vertices that
+    /// carries every pattern edge to a target edge.
+    #[test]
+    fn lad_maps_are_valid_embeddings(
+        (target, _) in arb_simple_graph_with_perm(6, false),
+        (pattern, _) in arb_simple_graph_with_perm(4, false),
+    ) {
+        let maps = rust_igraph::get_subisomorphisms_lad(&pattern, &target, None, false)
+            .expect("get_subisomorphisms_lad");
+        let pat_edges: Vec<(u32, u32)> = (0..pattern.ecount())
+            .map(|e| pattern.edge(e as u32).expect("pattern edge"))
+            .collect();
+        for map in &maps {
+            prop_assert_eq!(
+                map.len(),
+                pattern.vcount() as usize,
+                "map covers every pattern vertex"
+            );
+            // Injection: no two pattern vertices map to the same target vertex.
+            let mut seen = std::collections::HashSet::new();
+            for &t in map {
+                prop_assert!(t < target.vcount(), "image vertex in range");
+                prop_assert!(seen.insert(t), "map is injective");
+            }
+            // Edge preservation: each pattern edge maps to a target edge.
+            for &(u, v) in &pat_edges {
+                let (tu, tv) = (map[u as usize], map[v as usize]);
+                prop_assert!(
+                    target.find_eid(tu, tv).expect("find_eid").is_some(),
+                    "pattern edge not preserved by embedding"
+                );
+            }
+        }
+    }
 }

@@ -236,6 +236,9 @@ pub use crate::algorithms::isomorphism::canonical::automorphism_group::automorph
 pub use crate::algorithms::isomorphism::canonical::canonical_permutation::canonical_permutation;
 pub use crate::algorithms::isomorphism::canonical::count_automorphisms::count_automorphisms;
 pub use crate::algorithms::isomorphism::canonical::isomorphic_bliss::isomorphic_bliss;
+pub use crate::algorithms::isomorphism::lad::{
+    LadSubisomorphism, get_subisomorphisms_lad, subisomorphic_lad,
+};
 pub use crate::algorithms::isomorphism::queries::{isomorphic, subisomorphic};
 pub use crate::algorithms::isomorphism::simplify_and_colorize::{
     SimplifyAndColorize, simplify_and_colorize,

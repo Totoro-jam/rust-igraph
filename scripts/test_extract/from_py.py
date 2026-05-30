@@ -404,6 +404,110 @@ SUBISOMORPHIC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# LAD subgraph isomorphism. python-igraph exposes it as
+# `target.subisomorphic_lad(pattern, domains=None, induced=False)` (bool) and
+# `target.get_subisomorphisms_lad(pattern, domains=None, induced=False)`
+# (list of pattern->target maps). The `expected` field is computed LIVE from
+# python-igraph 0.11.9 in `emit()` (see the `subisomorphic_lad` /
+# `get_subisomorphisms_lad` branch) so it can never drift from upstream. The
+# `graph` payload is the target; `params.other` is the pattern.
+
+# Shared example from references/igraph/examples/simple/igraph_subisomorphic_lad.c
+def _lad_example_target() -> ig.Graph:
+    return ig.Graph(
+        n=9,
+        edges=[
+            (0, 1), (0, 4), (0, 6), (1, 4), (1, 2), (2, 3), (3, 4), (3, 5),
+            (3, 7), (3, 8), (4, 5), (4, 6), (5, 6), (5, 8), (7, 8),
+        ],
+        directed=False,
+    )
+
+
+_LAD_EXAMPLE_PATTERN = {
+    "n": 5,
+    "edges": [[0, 1], [0, 4], [1, 4], [1, 2], [2, 3], [3, 4]],
+    "directed": False,
+}
+
+GET_SUBISOMORPHISMS_LAD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "get_subisomorphisms_lad_py_example_mono",
+        "origin": "python-igraph 0.11.9: example graphs, get_subisomorphisms_lad(induced=False) — 20 monomorphisms",
+        "graph_factory": _lad_example_target,
+        "algo": "get_subisomorphisms_lad",
+        "params": {"other": _LAD_EXAMPLE_PATTERN, "induced": False, "domains": None},
+    },
+    {
+        "case": "get_subisomorphisms_lad_py_example_induced",
+        "origin": "python-igraph 0.11.9: example graphs, get_subisomorphisms_lad(induced=True) — 4 induced embeddings",
+        "graph_factory": _lad_example_target,
+        "algo": "get_subisomorphisms_lad",
+        "params": {"other": _LAD_EXAMPLE_PATTERN, "induced": True, "domains": None},
+    },
+    {
+        "case": "get_subisomorphisms_lad_py_example_domains",
+        "origin": "python-igraph 0.11.9: example graphs, get_subisomorphisms_lad(domains=...) — single domain-restricted embedding",
+        "graph_factory": _lad_example_target,
+        "algo": "get_subisomorphisms_lad",
+        "params": {
+            "other": _LAD_EXAMPLE_PATTERN,
+            "induced": False,
+            "domains": [[0, 2, 8], [4, 5, 6, 7], [1, 3, 5, 6, 7, 8], [0, 2, 8], [1, 3, 7, 8]],
+        },
+    },
+    {
+        "case": "get_subisomorphisms_lad_py_edge_in_triangle",
+        "origin": "python-igraph 0.11.9: triangle.get_subisomorphisms_lad(single edge) — 6 ordered maps",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2), (2, 0)], directed=False),
+        "algo": "get_subisomorphisms_lad",
+        "params": {
+            "other": {"n": 2, "edges": [[0, 1]], "directed": False},
+            "induced": False,
+            "domains": None,
+        },
+    },
+]
+
+SUBISOMORPHIC_LAD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "subisomorphic_lad_py_triangle_in_k4",
+        "origin": "python-igraph 0.11.9: Full(4).subisomorphic_lad(triangle) == True",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "subisomorphic_lad",
+        "params": {
+            "other": {"n": 3, "edges": [[0, 1], [1, 2], [2, 0]], "directed": False},
+            "induced": False,
+            "domains": None,
+        },
+    },
+    {
+        "case": "subisomorphic_lad_py_triangle_in_path3",
+        "origin": "python-igraph 0.11.9: P3.subisomorphic_lad(triangle) == False (no 3-clique)",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "subisomorphic_lad",
+        "params": {
+            "other": {"n": 3, "edges": [[0, 1], [1, 2], [2, 0]], "directed": False},
+            "induced": False,
+            "domains": None,
+        },
+    },
+    {
+        "case": "subisomorphic_lad_py_example",
+        "origin": "python-igraph 0.11.9: example target.subisomorphic_lad(example pattern) == True",
+        "graph_factory": _lad_example_target,
+        "algo": "subisomorphic_lad",
+        "params": {"other": _LAD_EXAMPLE_PATTERN, "induced": False, "domains": None},
+    },
+    {
+        "case": "subisomorphic_lad_py_example_induced",
+        "origin": "python-igraph 0.11.9: example target.subisomorphic_lad(example pattern, induced=True) == True",
+        "graph_factory": _lad_example_target,
+        "algo": "subisomorphic_lad",
+        "params": {"other": _LAD_EXAMPLE_PATTERN, "induced": True, "domains": None},
+    },
+]
+
 DFS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "test_iterators_testDFS_tree10_2",
@@ -9453,6 +9557,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "isomorphic_bliss": ISOMORPHIC_BLISS_MANIFEST,
     "isomorphic": ISOMORPHIC_GENERIC_MANIFEST,
     "subisomorphic": SUBISOMORPHIC_MANIFEST,
+    "subisomorphic_lad": SUBISOMORPHIC_LAD_MANIFEST,
+    "get_subisomorphisms_lad": GET_SUBISOMORPHISMS_LAD_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
@@ -9894,6 +10000,43 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "membership": membership,
                     "distances": distances,
                 },
+            }
+        elif algo in ("subisomorphic_lad", "get_subisomorphisms_lad"):
+            # LAD: `graph` is the target, `params.other` the pattern. Expected
+            # is computed live from python-igraph 0.11.9 so it is authentic by
+            # construction (target.<method>(pattern, domains, induced)).
+            target = entry["graph_factory"]()
+            graph_payload = graph_to_payload(target)
+            pat = entry["params"]["other"]
+            pattern = ig.Graph(
+                n=int(pat["n"]),
+                edges=[tuple(e) for e in pat["edges"]],
+                directed=bool(pat["directed"]),
+            )
+            induced = bool(entry["params"].get("induced", False))
+            domains = entry["params"].get("domains")
+            if algo == "subisomorphic_lad":
+                expected: Any = bool(
+                    target.subisomorphic_lad(pattern, domains=domains, induced=induced)
+                )
+            else:
+                maps = target.get_subisomorphisms_lad(
+                    pattern, domains=domains, induced=induced
+                )
+                # Compare as a sorted set of maps (enumeration order is not
+                # part of the contract across implementations).
+                expected = sorted([int(x) for x in m] for m in maps)
+            payload = {
+                "source": "py",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": {
+                    "other": pat,
+                    "induced": induced,
+                    "domains": domains,
+                },
+                "expected": expected,
             }
         else:
             g: ig.Graph = entry["graph_factory"]()

@@ -2837,6 +2837,97 @@ SUBISOMORPHIC_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# LAD subgraph isomorphism — graphs + expected verbatim from upstream
+# example examples/simple/igraph_subisomorphic_lad.{c,out}: a 9-vertex
+# target, 5-vertex pattern; the .out lists 20 monomorphisms, 4 induced
+# embeddings, and 1 domain-restricted embedding. Map lists are sorted to
+# compare as sets (enumeration order is implementation-defined).
+_LAD_TARGET_FACTORY = lambda: ig.Graph(
+    n=9,
+    edges=[
+        (0, 1), (0, 4), (0, 6),
+        (1, 4), (1, 2),
+        (2, 3),
+        (3, 4), (3, 5), (3, 7), (3, 8),
+        (4, 5), (4, 6),
+        (5, 6), (5, 8),
+        (7, 8),
+    ],
+    directed=False,
+)
+_LAD_PATTERN = {
+    "n": 5,
+    "edges": [[0, 1], [0, 4], [1, 4], [1, 2], [2, 3], [3, 4]],
+    "directed": False,
+}
+_LAD_DOMAINS = [[0, 2, 8], [4, 5, 6, 7], [1, 3, 5, 6, 7, 8], [0, 2, 8], [1, 3, 7, 8]]
+
+SUBISOMORPHIC_LAD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "subisomorphic_lad_c_example_mono",
+        "origin": "igraph_subisomorphic_lad.c: example pattern embeds (monomorphism) into example target — iso == true",
+        "graph_factory": _LAD_TARGET_FACTORY,
+        "algo": "subisomorphic_lad",
+        "params": {"other": _LAD_PATTERN, "induced": False, "domains": None},
+        "expected": True,
+    },
+    {
+        "case": "subisomorphic_lad_c_example_induced",
+        "origin": "igraph_subisomorphic_lad.c: example pattern embeds as induced subgraph — iso == true",
+        "graph_factory": _LAD_TARGET_FACTORY,
+        "algo": "subisomorphic_lad",
+        "params": {"other": _LAD_PATTERN, "induced": True, "domains": None},
+        "expected": True,
+    },
+    {
+        "case": "subisomorphic_lad_c_triangle_in_path3",
+        "origin": "constructed: a triangle has no monomorphism into the 3-vertex path P3 — iso == false",
+        "graph_factory": lambda: ig.Graph(n=3, edges=[(0, 1), (1, 2)], directed=False),
+        "algo": "subisomorphic_lad",
+        "params": {
+            "other": {"n": 3, "edges": [[0, 1], [1, 2], [2, 0]], "directed": False},
+            "induced": False,
+            "domains": None,
+        },
+        "expected": False,
+    },
+]
+
+GET_SUBISOMORPHISMS_LAD_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "get_subisomorphisms_lad_c_example_mono",
+        "origin": "igraph_subisomorphic_lad.out: 20 monomorphisms of the example pattern into the example target (sorted)",
+        "graph_factory": _LAD_TARGET_FACTORY,
+        "algo": "get_subisomorphisms_lad",
+        "params": {"other": _LAD_PATTERN, "induced": False, "domains": None},
+        "expected": [
+            [0, 1, 2, 3, 4], [0, 4, 3, 2, 1], [0, 4, 3, 5, 6], [0, 6, 5, 3, 4],
+            [1, 0, 6, 5, 4], [1, 4, 5, 6, 0], [3, 4, 0, 6, 5], [3, 5, 6, 0, 4],
+            [4, 3, 7, 8, 5], [4, 5, 8, 7, 3], [5, 3, 2, 1, 4], [5, 4, 1, 0, 6],
+            [5, 4, 1, 2, 3], [5, 6, 0, 1, 4], [6, 4, 3, 8, 5], [6, 5, 8, 3, 4],
+            [7, 3, 4, 5, 8], [7, 8, 5, 4, 3], [8, 3, 4, 6, 5], [8, 5, 6, 4, 3],
+        ],
+    },
+    {
+        "case": "get_subisomorphisms_lad_c_example_induced",
+        "origin": "igraph_subisomorphic_lad.out: 4 induced embeddings of the example pattern into the example target (sorted)",
+        "graph_factory": _LAD_TARGET_FACTORY,
+        "algo": "get_subisomorphisms_lad",
+        "params": {"other": _LAD_PATTERN, "induced": True, "domains": None},
+        "expected": [
+            [0, 1, 2, 3, 4], [0, 4, 3, 2, 1], [5, 3, 2, 1, 4], [5, 4, 1, 2, 3],
+        ],
+    },
+    {
+        "case": "get_subisomorphisms_lad_c_example_domains",
+        "origin": "igraph_subisomorphic_lad.out: single domain-restricted embedding of the example pattern into the example target",
+        "graph_factory": _LAD_TARGET_FACTORY,
+        "algo": "get_subisomorphisms_lad",
+        "params": {"other": _LAD_PATTERN, "induced": False, "domains": _LAD_DOMAINS},
+        "expected": [[0, 4, 3, 2, 1]],
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_c_directed_path3",
@@ -12044,6 +12135,8 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "isomorphic_bliss": ISOMORPHIC_BLISS_MANIFEST,
     "isomorphic": ISOMORPHIC_GENERIC_MANIFEST,
     "subisomorphic": SUBISOMORPHIC_MANIFEST,
+    "subisomorphic_lad": SUBISOMORPHIC_LAD_MANIFEST,
+    "get_subisomorphisms_lad": GET_SUBISOMORPHISMS_LAD_MANIFEST,
     "louvain": LOUVAIN_MANIFEST,
     "leiden": LEIDEN_MANIFEST,
     "label_propagation": LPA_MANIFEST,

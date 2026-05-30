@@ -1,0 +1,64 @@
+{
+  "source": "py",
+  "origin": "python-igraph 0.11.9: triangle.get_subisomorphisms_lad(single edge) \u2014 6 ordered maps",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "get_subisomorphisms_lad",
+  "params": {
+    "other": {
+      "n": 2,
+      "edges": [
+        [
+          0,
+          1
+        ]
+      ],
+      "directed": false
+    },
+    "induced": false,
+    "domains": null
+  },
+  "expected": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ]
+  ]
+}
