@@ -4477,3 +4477,51 @@ proptest! {
         prop_assert!((0.0..=1.0).contains(&fit.ks_statistic));
     }
 }
+
+// ---- dim_select (ALGO-EM-001) ------------------------------------------
+
+#[cfg(feature = "proptest-harness")]
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(128))]
+
+    /// The selected dimension is always a count in `1..=n`.
+    #[test]
+    fn dim_select_within_bounds(
+        sv in proptest::collection::vec(0.001f64..1000.0, 1..50)
+    ) {
+        let d = rust_igraph::dim_select(&sv).expect("dim_select");
+        prop_assert!((1..=sv.len()).contains(&d));
+    }
+
+    /// A clean two-level gap (a leading block far above a trailing block) is
+    /// detected exactly at the block boundary.
+    #[test]
+    fn dim_select_detects_two_block_gap(
+        head_len in 2usize..8,
+        tail_len in 2usize..8,
+    ) {
+        // Leading block clustered near 1000, trailing block near 1, with a
+        // large separating gap so the elbow is unambiguous.
+        let mut sv = Vec::with_capacity(head_len + tail_len);
+        for i in 0..head_len {
+            sv.push(1000.0 - i as f64);
+        }
+        for i in 0..tail_len {
+            sv.push(1.0 - 0.01 * i as f64);
+        }
+        let d = rust_igraph::dim_select(&sv).expect("dim_select");
+        prop_assert_eq!(d, head_len);
+    }
+
+    /// A perfectly constant sequence has no elbow; the result is still a valid
+    /// in-range count (the all-in-one-group fallback).
+    #[test]
+    fn dim_select_constant_is_well_formed(
+        n in 1usize..40,
+        v in 0.5f64..50.0,
+    ) {
+        let sv = vec![v; n];
+        let d = rust_igraph::dim_select(&sv).expect("dim_select");
+        prop_assert!((1..=n).contains(&d));
+    }
+}

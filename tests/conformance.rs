@@ -18286,3 +18286,62 @@ fn power_law_fit_three_source_conformance() {
         );
     }
 }
+
+/// `dim_select` (ALGO-EM-001) is a data-vector algorithm (Zhu & Ghodsi 2006
+/// profile-likelihood elbow), not a graph algorithm. python-igraph 0.11.9 does
+/// NOT expose this function and igraph C has no dedicated golden `.out`, so the
+/// only upstream conformance source is rigraph, whose `dim_select` wraps the
+/// same igraph C core. The fixtures encode rigraph's deterministic anchor
+/// (`test-embedding.R`: `dim_select(1:100) == 50`) plus the matching `1:10 == 5`
+/// midpoint case. The returned dimension is an exact integer, compared exactly.
+#[test]
+fn dim_select_r_conformance() {
+    use rust_igraph::dim_select;
+
+    let cases = load_all("dim_select");
+    assert!(
+        !cases.is_empty(),
+        "no dim_select conformance fixtures found — did you run \
+         `.venv/bin/python -m scripts.test_extract.from_r --algo dim_select`?"
+    );
+
+    let mut seen_r = 0usize;
+    for (path, case) in cases {
+        assert_eq!(case.algo, "dim_select");
+        // R is the sole upstream source for this function.
+        assert_eq!(
+            case.source,
+            "r",
+            "unexpected non-R dim_select fixture {}",
+            path.display()
+        );
+
+        let sv: Vec<f64> = case
+            .params
+            .get("sv")
+            .and_then(serde_json::Value::as_array)
+            .expect("`sv` param")
+            .iter()
+            .map(|v| v.as_f64().expect("sv entry is a number"))
+            .collect();
+
+        let expected = usize::try_from(
+            case.expected
+                .as_u64()
+                .expect("expected is a non-negative integer"),
+        )
+        .expect("expected fits in usize");
+
+        let actual = dim_select(&sv).expect("dim_select");
+        assert_eq!(
+            actual,
+            expected,
+            "dim_select mismatch\n  fixture: {}\n  origin:  {}\n  actual:   {actual}\n  expected: {expected}",
+            path.display(),
+            case.origin,
+        );
+        seen_r += 1;
+    }
+
+    assert!(seen_r > 0, "no dim_select fixtures from source r");
+}

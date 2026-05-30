@@ -11,6 +11,7 @@ pub mod community;
 pub mod connectivity;
 pub mod constructors;
 pub mod cycles;
+pub mod embedding;
 pub mod epidemics;
 pub mod feedback_arc_set;
 pub mod flow;

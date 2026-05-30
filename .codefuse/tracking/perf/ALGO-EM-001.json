@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-EM-001",
+  "name": "dim_select (Zhu-Ghodsi profile-likelihood dimensionality selection)",
+  "date": "2026-05-30",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "dim_select/ramp",
+      "sizes": [100, 1000, 10000],
+      "median_ns": [1130, 11184, 115690],
+      "note": "ascending ramp 1..=n (elbow at the midpoint). A single O(n) running-sum scan over the ordered importance values: each candidate split is an O(1) incremental update of the two-group sufficient statistics. Runtime is strictly linear in the input length (the 10000 point is ~10x the 1000 point)"
+    },
+    {
+      "group": "dim_select/two_block",
+      "sizes": [100, 1000, 10000],
+      "median_ns": [1117, 11329, 112520],
+      "note": "two-block step (first half high, second half low — a sharp gap). Same O(n) single-pass cost as the ramp regardless of where the elbow lands; the scan always visits every split point, so the data shape does not change the asymptotics"
+    }
+  ],
+  "status": "baseline_created"
+}

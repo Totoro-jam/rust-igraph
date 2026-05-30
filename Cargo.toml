@@ -884,6 +884,11 @@ name = "bench_power_law_fit"
 path = "benches/bench_power_law_fit.rs"
 harness = false
 
+[[bench]]
+name = "bench_dim_select"
+path = "benches/bench_dim_select.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

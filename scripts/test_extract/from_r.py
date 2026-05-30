@@ -9669,9 +9669,35 @@ POWER_LAW_FIT_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# `dim_select` ≙ rigraph's `dim_select` (Zhu & Ghodsi 2006 profile-likelihood
+# elbow). The R wrapper calls the same igraph C core as python-igraph (which
+# does NOT expose this function). The anchor is rigraph's own deterministic
+# test (`test-embedding.R`): `dim_select(1:100) == 50` — the symmetric ramp's
+# elbow sits at the midpoint. Input is a plain numeric vector (not a graph),
+# so the emit branch builds params from `sv` with a placeholder graph payload
+# (mirrors the `power_law_fit` data-vector pattern).
+DIM_SELECT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "r_ramp_100",
+        "origin": "rigraph test-embedding.R: dim_select(1:100) == 50 "
+        "(equal-variance two-Gaussian profile-likelihood elbow at the midpoint)",
+        "sv": [float(i) for i in range(1, 101)],
+        "expected": 50,
+    },
+    {
+        "case": "r_ramp_10",
+        "origin": "rigraph dim_select(1:10) == 5 (symmetric ramp, midpoint elbow); "
+        "same igraph C core as test-embedding.R",
+        "sv": [float(i) for i in range(1, 11)],
+        "expected": 5,
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "power_law_fit": POWER_LAW_FIT_MANIFEST,
+    "dim_select": DIM_SELECT_MANIFEST,
     "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
     "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
@@ -9929,6 +9955,16 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "xmin": entry["xmin"],
                     "force_continuous": bool(entry["force_continuous"]),
                 },
+                "expected": entry["expected"],
+            }
+        elif algo == "dim_select":
+            sv = [float(x) for x in entry["sv"]]
+            payload = {
+                "source": "r",
+                "origin": entry["origin"],
+                "graph": {"n": 1, "edges": [], "directed": False, "weights": None},
+                "algo": algo,
+                "params": {"sv": sv},
                 "expected": entry["expected"],
             }
         elif algo == "community_to_membership":
