@@ -899,6 +899,11 @@ name = "bench_relative_neighborhood_graph"
 path = "benches/bench_relative_neighborhood_graph.rs"
 harness = false
 
+[[bench]]
+name = "bench_nearest_neighbor_graph"
+path = "benches/bench_nearest_neighbor_graph.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

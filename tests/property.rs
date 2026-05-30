@@ -4665,3 +4665,106 @@ proptest! {
         prop_assert!(is_connected(&g, ConnectednessMode::Weak).expect("is_connected"));
     }
 }
+
+/// Sorted directed arc set of a graph as `(from, to)` pairs.
+fn directed_arc_set(g: &Graph) -> Vec<(u32, u32)> {
+    let mut edges: Vec<(u32, u32)> = (0..g.ecount())
+        .map(|e| g.edge(e as u32).expect("edge in range"))
+        .collect();
+    edges.sort_unstable();
+    edges
+}
+
+proptest! {
+    /// With no neighbour limit (`k < 0`) the arc set is exactly the strict
+    /// cutoff predicate `dist(i, j) < cutoff`, which is symmetric and free of
+    /// any tie-break, so it is permutation invariant: reordering the input
+    /// points permutes the directed result identically. (The general
+    /// `k`-limited graph is *not* permutation invariant, because k-boundary
+    /// distance ties are resolved by point index.)
+    #[test]
+    fn nng_unlimited_is_permutation_invariant(
+        (points, perm, cutoff) in arb_points_2d(8).prop_flat_map(|pts| {
+            let n = pts.len();
+            let perm = Just((0..n as u32).collect::<Vec<u32>>()).prop_shuffle();
+            (Just(pts), perm, 0.5f64..12.0)
+        }),
+    ) {
+        use rust_igraph::{nearest_neighbor_graph, DistanceMetric};
+        let base = nearest_neighbor_graph(&points, DistanceMetric::Euclidean, -1, cutoff, true)
+            .expect("nng base");
+
+        let n = points.len();
+        let mut permuted = vec![Vec::new(); n];
+        for (i, row) in points.iter().enumerate() {
+            permuted[perm[i] as usize] = row.clone();
+        }
+        let permed = nearest_neighbor_graph(&permuted, DistanceMetric::Euclidean, -1, cutoff, true)
+            .expect("nng permuted");
+
+        let mut mapped: Vec<(u32, u32)> = directed_arc_set(&base)
+            .into_iter()
+            .map(|(u, v)| (perm[u as usize], perm[v as usize]))
+            .collect();
+        mapped.sort_unstable();
+
+        prop_assert_eq!(mapped, directed_arc_set(&permed));
+    }
+
+    /// Every arc obeys the contract regardless of ties: no self-loops, the
+    /// squared/absolute distance is strictly under the cutoff threshold, and
+    /// each vertex's out-degree never exceeds `k`.
+    #[test]
+    fn nng_respects_cutoff_and_degree_bound(
+        points in arb_points_2d(8),
+        k in 0i64..=4,
+        cutoff in 0.5f64..12.0,
+        use_l1 in proptest::bool::ANY,
+    ) {
+        use rust_igraph::{nearest_neighbor_graph, DistanceMetric};
+        let metric = if use_l1 { DistanceMetric::Manhattan } else { DistanceMetric::Euclidean };
+        let threshold = if use_l1 { cutoff } else { cutoff * cutoff };
+        let g = nearest_neighbor_graph(&points, metric, k, cutoff, true).expect("nng");
+
+        let n = points.len();
+        let mut out_deg = vec![0u32; n];
+        for (u, v) in directed_arc_set(&g) {
+            prop_assert_ne!(u, v, "self-loop produced");
+            let (a, b) = (&points[u as usize], &points[v as usize]);
+            let dist: f64 = if use_l1 {
+                a.iter().zip(b).map(|(&x, &y)| (x - y).abs()).sum()
+            } else {
+                a.iter().zip(b).map(|(&x, &y)| (x - y) * (x - y)).sum()
+            };
+            prop_assert!(dist < threshold, "arc {:?} distance {} not strictly under {}", (u, v), dist, threshold);
+            out_deg[u as usize] += 1;
+        }
+        for d in out_deg {
+            prop_assert!(i64::from(d) <= k, "out-degree {} exceeds k = {}", d, k);
+        }
+    }
+
+    /// The undirected (`directed = false`) graph is exactly the COLLAPSE of the
+    /// directed graph: its edge set equals the deduplicated `(min, max)` arcs.
+    #[test]
+    fn nng_undirected_is_collapse_of_directed(
+        points in arb_points_2d(8),
+        k in -1i64..=4,
+        cutoff in 0.5f64..12.0,
+    ) {
+        use rust_igraph::{nearest_neighbor_graph, DistanceMetric};
+        let dir = nearest_neighbor_graph(&points, DistanceMetric::Euclidean, k, cutoff, true)
+            .expect("nng directed");
+        let undir = nearest_neighbor_graph(&points, DistanceMetric::Euclidean, k, cutoff, false)
+            .expect("nng undirected");
+
+        let mut collapsed: Vec<(u32, u32)> = directed_arc_set(&dir)
+            .into_iter()
+            .map(|(u, v)| (u.min(v), u.max(v)))
+            .collect();
+        collapsed.sort_unstable();
+        collapsed.dedup();
+
+        prop_assert_eq!(collapsed, undirected_edge_set(&undir));
+    }
+}

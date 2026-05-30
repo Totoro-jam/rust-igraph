@@ -18542,3 +18542,127 @@ fn relative_neighborhood_graph_c_conformance() {
         "no relative_neighborhood_graph fixtures from source c"
     );
 }
+
+/// `nearest_neighbor_graph` (ALGO-GEO-005). `igraph_nearest_neighbor_graph` is
+/// C-only (no python-igraph / rigraph binding), so the anchors are transcribed
+/// from igraph's own golden output `igraph_nearest_neighbor_graph.out`. Only
+/// tie-free configurations are used: the reference resolves k-boundary distance
+/// ties by k-d tree visit order (an explicitly unspecified order), so a case
+/// with ties would have no deterministic golden edge list. The result is a
+/// directed graph, so directed arcs are compared exactly.
+#[test]
+#[allow(clippy::too_many_lines)]
+fn nearest_neighbor_graph_c_conformance() {
+    use rust_igraph::{DistanceMetric, nearest_neighbor_graph};
+
+    let cases = load_all("nearest_neighbor_graph");
+    assert!(
+        !cases.is_empty(),
+        "no nearest_neighbor_graph conformance fixtures found — did you run \
+         `.venv/bin/python -m scripts.test_extract.from_c --algo nearest_neighbor_graph`?"
+    );
+
+    let mut seen_c = 0usize;
+    for (path, case) in cases {
+        assert_eq!(case.algo, "nearest_neighbor_graph");
+        assert_eq!(
+            case.source,
+            "c",
+            "unexpected non-C nearest_neighbor_graph fixture {}",
+            path.display()
+        );
+
+        let points: Vec<Vec<f64>> = case
+            .params
+            .get("points")
+            .and_then(serde_json::Value::as_array)
+            .expect("`points` param")
+            .iter()
+            .map(|row| {
+                row.as_array()
+                    .expect("point row is an array")
+                    .iter()
+                    .map(|v| v.as_f64().expect("coordinate is a number"))
+                    .collect()
+            })
+            .collect();
+
+        let metric = match case
+            .params
+            .get("metric")
+            .and_then(serde_json::Value::as_str)
+            .expect("`metric` param")
+        {
+            "L2" => DistanceMetric::Euclidean,
+            "L1" => DistanceMetric::Manhattan,
+            other => panic!("unknown metric {other} in {}", path.display()),
+        };
+        let k = case
+            .params
+            .get("k")
+            .and_then(serde_json::Value::as_i64)
+            .expect("`k` param");
+        let cutoff = case
+            .params
+            .get("cutoff")
+            .and_then(serde_json::Value::as_f64)
+            .expect("`cutoff` param");
+        let directed = case
+            .params
+            .get("directed")
+            .and_then(serde_json::Value::as_bool)
+            .expect("`directed` param");
+
+        let exp = case.expected.as_object().expect("expected is an object");
+        let exp_n = u32::try_from(
+            exp.get("n")
+                .and_then(serde_json::Value::as_u64)
+                .expect("expected.n"),
+        )
+        .expect("expected.n fits in u32");
+        let mut exp_edges: Vec<(u32, u32)> = exp
+            .get("edges")
+            .and_then(serde_json::Value::as_array)
+            .expect("expected.edges")
+            .iter()
+            .map(|e| {
+                let pair = e.as_array().expect("edge is a pair");
+                let u = u32::try_from(pair[0].as_u64().expect("edge endpoint")).expect("u fits");
+                let v = u32::try_from(pair[1].as_u64().expect("edge endpoint")).expect("v fits");
+                (u, v)
+            })
+            .collect();
+        exp_edges.sort_unstable();
+
+        let g = nearest_neighbor_graph(&points, metric, k, cutoff, directed)
+            .expect("nearest_neighbor_graph");
+        assert_eq!(
+            g.vcount(),
+            exp_n,
+            "nearest_neighbor_graph vertex-count mismatch\n  fixture: {}\n  origin:  {}",
+            path.display(),
+            case.origin,
+        );
+        let mut actual_edges: Vec<(u32, u32)> = (0..g.ecount())
+            .map(|e| {
+                g.edge(u32::try_from(e).expect("edge id fits in u32"))
+                    .expect("edge")
+            })
+            .collect();
+        actual_edges.sort_unstable();
+
+        assert_eq!(
+            actual_edges,
+            exp_edges,
+            "nearest_neighbor_graph edge-set mismatch\n  fixture: {}\n  origin:  {}",
+            path.display(),
+            case.origin,
+        );
+        seen_c += 1;
+    }
+
+    assert!(
+        seen_c > 0,
+        "no nearest_neighbor_graph fixtures from source c"
+    );
+}

@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-GEO-005",
+  "name": "nearest_neighbor_graph (k-nearest-neighbor graph of a spatial point set)",
+  "date": "2026-05-31",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "nearest_neighbor_graph/point_count",
+      "sizes": [50, 200, 400],
+      "median_ns": [38230, 659480, 2963600],
+      "note": "deterministic LCG scatter in the unit square, fixed k=3, Euclidean, directed, no cutoff. The kernel is an O(n^2 * d) all-pairs scan plus a per-source partial sort of in-cutoff candidates, so cost is quadratic in the point count: 50->200 (4x points) is ~17x time, 200->400 (2x points) is ~4.5x time, both tracking the n^2 expectation (the >4x and >16x factors come from the candidate-sort term growing with neighbor count per source)"
+    },
+    {
+      "group": "nearest_neighbor_graph/k",
+      "sizes": [1, 5, 20],
+      "median_ns": [1563600, 1615200, 1829700],
+      "note": "fixed 300-point LCG scatter, Euclidean, directed, no cutoff, varying k. The dominant cost is the O(n^2) all-pairs distance scan, which is independent of k; k only affects the partial-selection and edge-emission term, so k=1->20 grows just ~17% (1.56ms->1.83ms) rather than linearly in k"
+    }
+  ],
+  "status": "baseline_created"
+}

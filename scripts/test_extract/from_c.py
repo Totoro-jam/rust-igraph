@@ -12334,11 +12334,74 @@ RELATIVE_NEIGHBORHOOD_GRAPH_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# --- igraph_nearest_neighbor_graph -----------------------------------------
+# Authentic anchors transcribed from igraph's own test
+# `tests/unit/igraph_nearest_neighbor_graph.c` and its golden output
+# `igraph_nearest_neighbor_graph.out`. `igraph_nearest_neighbor_graph` is only
+# exposed by the C core (no python-igraph / rigraph binding), so these are the
+# authoritative anchors. Only tie-free configurations are included: the
+# reference resolves k-boundary distance ties by k-d tree visit order (an
+# explicitly unspecified order — see the NANOFLANN_FIRST_MATCH TODO), so a case
+# with ties would not have a deterministic golden edge list. Every directed arc
+# i -> j means "j is one of i's k nearest neighbours strictly within cutoff".
+NEAREST_NEIGHBOR_GRAPH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "c_2d_k2_cutoff5_l2",
+        "origin": "igraph_nearest_neighbor_graph.out '2d 2 neighbors, cutoff 5' (L2)",
+        "points": [[12, 8], [8, 6], [5, 12], [10, 1], [12, 2]],
+        "metric": "L2",
+        "k": 2,
+        "cutoff": 5.0,
+        "directed": True,
+        "expected": {"n": 5, "edges": [[0, 1], [1, 0], [3, 4], [4, 3]]},
+    },
+    {
+        "case": "c_3d_k2_cutoff_inf_l2",
+        "origin": "igraph_nearest_neighbor_graph.out '3d, 2 neighbors, cutoff INFINITY' (L2)",
+        "points": [[1, 6, 4], [6, 2, 3], [3, 6, 6], [3, 2, 2], [2, 3, 3]],
+        "metric": "L2",
+        "k": 2,
+        "cutoff": -1.0,
+        "directed": True,
+        "expected": {
+            "n": 5,
+            "edges": [
+                [0, 2], [0, 4], [1, 3], [1, 4], [2, 0],
+                [2, 4], [3, 1], [3, 4], [4, 0], [4, 3],
+            ],
+        },
+    },
+    {
+        "case": "c_4d_k1_cutoff_inf_l2",
+        "origin": "igraph_nearest_neighbor_graph.out '4d 1 neighbors, cutoff INFINITY' (L2)",
+        "points": [
+            [1, 6, 4, 4], [6, 2, 3, 3], [3, 6, 6, 5], [3, 2, 2, 3], [2, 3, 3, 4],
+        ],
+        "metric": "L2",
+        "k": 1,
+        "cutoff": -1.0,
+        "directed": True,
+        "expected": {"n": 5, "edges": [[0, 2], [1, 3], [2, 0], [3, 4], [4, 3]]},
+    },
+    {
+        "case": "c_2d_k2_cutoff5_l1",
+        "origin": "igraph_nearest_neighbor_graph.out '2d 2 neighbors, cutoff 5' (L1)",
+        "points": [[12, 8], [8, 6], [5, 12], [10, 1], [12, 2]],
+        "metric": "L1",
+        "k": 2,
+        "cutoff": 5.0,
+        "directed": True,
+        "expected": {"n": 5, "edges": [[3, 4], [4, 3]]},
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "power_law_fit": POWER_LAW_FIT_MANIFEST,
     "gabriel_graph": GABRIEL_GRAPH_MANIFEST,
     "relative_neighborhood_graph": RELATIVE_NEIGHBORHOOD_GRAPH_MANIFEST,
+    "nearest_neighbor_graph": NEAREST_NEIGHBOR_GRAPH_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
@@ -12613,6 +12676,26 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 "graph": {"n": 1, "edges": [], "directed": False, "weights": None},
                 "algo": algo,
                 "params": {"points": points},
+                "expected": entry["expected"],
+            }
+        elif algo == "nearest_neighbor_graph":
+            # Spatial point-set input with metric / k / cutoff / directed
+            # parameters; output is a directed graph. C-only API, so the
+            # expected directed edge list is transcribed from igraph's golden
+            # `igraph_nearest_neighbor_graph.out`.
+            points = [[float(x) for x in row] for row in entry["points"]]
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": {"n": 1, "edges": [], "directed": False, "weights": None},
+                "algo": algo,
+                "params": {
+                    "points": points,
+                    "metric": entry["metric"],
+                    "k": int(entry["k"]),
+                    "cutoff": float(entry["cutoff"]),
+                    "directed": bool(entry["directed"]),
+                },
                 "expected": entry["expected"],
             }
         elif algo == "community_to_membership":

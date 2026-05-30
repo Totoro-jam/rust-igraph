@@ -1,0 +1,52 @@
+{
+  "source": "c",
+  "origin": "igraph_nearest_neighbor_graph.out '2d 2 neighbors, cutoff 5' (L1)",
+  "graph": {
+    "n": 1,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "nearest_neighbor_graph",
+  "params": {
+    "points": [
+      [
+        12.0,
+        8.0
+      ],
+      [
+        8.0,
+        6.0
+      ],
+      [
+        5.0,
+        12.0
+      ],
+      [
+        10.0,
+        1.0
+      ],
+      [
+        12.0,
+        2.0
+      ]
+    ],
+    "metric": "L1",
+    "k": 2,
+    "cutoff": 5.0,
+    "directed": true
+  },
+  "expected": {
+    "n": 5,
+    "edges": [
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        3
+      ]
+    ]
+  }
+}
