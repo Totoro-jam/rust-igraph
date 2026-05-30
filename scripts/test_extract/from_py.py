@@ -120,6 +120,37 @@ COUNT_AUTOMORPHISMS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# BLISS automorphism generators via python-igraph's Graph.automorphism_group().
+# Generators are not unique, so conformance derives the group order (closure
+# size) from them. Orders verified against python-igraph 0.11.9: the closure of
+# automorphism_group() generators has the same order as count_automorphisms().
+AUTOMORPHISM_GROUP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "automorphism_group_py_k4",
+        "origin": "python-igraph 0.11.9: closure of Graph.Full(4).automorphism_group() has order 24 (S4)",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "automorphism_group",
+        "params": {},
+        "expected": 24,
+    },
+    {
+        "case": "automorphism_group_py_petersen",
+        "origin": "python-igraph 0.11.9: closure of Graph.Famous('petersen').automorphism_group() has order 120",
+        "graph_factory": lambda: ig.Graph.Famous("petersen"),
+        "algo": "automorphism_group",
+        "params": {},
+        "expected": 120,
+    },
+    {
+        "case": "automorphism_group_py_k4_colored",
+        "origin": "python-igraph 0.11.9: closure of Graph.Full(4).automorphism_group(color=[0,1,0,1]) has order 4",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "automorphism_group",
+        "params": {"colors": [0, 1, 0, 1]},
+        "expected": 4,
+    },
+]
+
 DFS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "test_iterators_testDFS_tree10_2",
@@ -9165,6 +9196,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
     "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
+    "automorphism_group": AUTOMORPHISM_GROUP_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,

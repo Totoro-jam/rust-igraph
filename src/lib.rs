@@ -232,6 +232,7 @@ pub use crate::algorithms::io::leda::write_leda;
 pub use crate::algorithms::io::lgl::{LglGraph, read_lgl, write_lgl};
 pub use crate::algorithms::io::ncol::{NcolGraph, read_ncol, write_ncol};
 pub use crate::algorithms::io::pajek::{PajekGraph, read_pajek, write_pajek};
+pub use crate::algorithms::isomorphism::canonical::automorphism_group::automorphism_group;
 pub use crate::algorithms::isomorphism::canonical::canonical_permutation::canonical_permutation;
 pub use crate::algorithms::isomorphism::canonical::count_automorphisms::count_automorphisms;
 pub use crate::algorithms::isomorphism::simplify_and_colorize::{

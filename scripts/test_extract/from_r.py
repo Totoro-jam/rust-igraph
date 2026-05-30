@@ -161,6 +161,39 @@ COUNT_AUTOMORPHISMS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# BLISS automorphism generators. test-topology.R checks the (non-unique)
+# generator lists directly; here we derive the group order (closure size) from
+# the generators, which is the implementation-independent invariant. The
+# generating sets in test-topology.R close to: make_ring(10) -> 20 (2 gens:
+# reflection + rotation), make_full_graph(4) -> 24 (3 gens), coloured
+# make_full_graph(4) c(1,2,1,2) -> 4 (2 gens).
+AUTOMORPHISM_GROUP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "automorphism_group_R_ring10",
+        "origin": "test-topology.R: automorphism_group(make_ring(10)) = {reflection, rotation}; closure order 20",
+        "graph_factory": lambda: _ring(10),
+        "algo": "automorphism_group",
+        "params": {},
+        "expected": 20,
+    },
+    {
+        "case": "automorphism_group_R_full4",
+        "origin": "test-topology.R: automorphism_group(make_full_graph(4)) generators close to S4, order 24",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "automorphism_group",
+        "params": {},
+        "expected": 24,
+    },
+    {
+        "case": "automorphism_group_R_full4_colored",
+        "origin": "test-topology.R: automorphism_group(make_full_graph(4), colors=c(1,2,1,2)) closure order 4",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "automorphism_group",
+        "params": {"colors": [0, 1, 0, 1]},
+        "expected": 4,
+    },
+]
+
 CC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "two_K5_components",
@@ -9305,6 +9338,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
     "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
+    "automorphism_group": AUTOMORPHISM_GROUP_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,

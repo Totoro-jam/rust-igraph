@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "test-topology.R: automorphism_group(make_full_graph(4)) generators close to S4, order 24",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "automorphism_group",
+  "params": {},
+  "expected": 24
+}

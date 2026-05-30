@@ -4395,6 +4395,48 @@ fn count_automorphisms_three_source_conformance() {
 }
 
 #[test]
+fn automorphism_group_three_source_conformance() {
+    // `automorphism_group` returns generators, which are implementation-defined
+    // (different correct backends, including igraph's bliss, return different
+    // sets). The invariant all three sources agree on is the *order* of the
+    // group the generators generate, so the runner closes the generating set
+    // and compares the resulting order against the upstream value. Optional
+    // vertex colours arrive in `params.colors`.
+    fn compose(a: &[u32], b: &[u32]) -> Vec<u32> {
+        b.iter().map(|&bv| a[bv as usize]).collect()
+    }
+    fn closure_order(gens: &[Vec<u32>], n: usize) -> u64 {
+        let id: Vec<u32> = (0..u32::try_from(n).expect("n fits u32")).collect();
+        let mut set = std::collections::HashSet::new();
+        set.insert(id.clone());
+        let mut frontier = vec![id];
+        while let Some(p) = frontier.pop() {
+            for g in gens {
+                let q = compose(g, &p);
+                if set.insert(q.clone()) {
+                    frontier.push(q);
+                }
+            }
+        }
+        set.len() as u64
+    }
+    run_conformance("automorphism_group", |g, params| {
+        let colors: Option<Vec<u32>> = params.get("colors").and_then(|c| c.as_array()).map(|arr| {
+            arr.iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("color is a non-negative integer"))
+                        .expect("color fits in u32")
+                })
+                .collect()
+        });
+        let gens =
+            rust_igraph::automorphism_group(g, colors.as_deref()).expect("automorphism_group");
+        let n = g.vcount() as usize;
+        serde_json::json!(closure_order(&gens, n))
+    });
+}
+
+#[test]
 fn count_subisomorphisms_vf2_three_source_conformance() {
     // VF2 subgraph self-comparison counts a graph's automorphisms (every
     // embedding of g into g is an automorphism), a single-graph scalar that

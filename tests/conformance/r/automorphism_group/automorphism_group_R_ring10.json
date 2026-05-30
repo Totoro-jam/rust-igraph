@@ -1,0 +1,54 @@
+{
+  "source": "r",
+  "origin": "test-topology.R: automorphism_group(make_ring(10)) = {reflection, rotation}; closure order 20",
+  "graph": {
+    "n": 10,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        0,
+        9
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "automorphism_group",
+  "params": {},
+  "expected": 20
+}

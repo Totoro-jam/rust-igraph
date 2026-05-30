@@ -4215,4 +4215,53 @@ proptest! {
         prop_assert_eq!(canon_form_edges(&g, &pg), canon_form_edges(&h, &ph),
             "directed canonical form changed under relabeling");
     }
+
+    /// ALGO-ISO-005: every returned generator is a genuine automorphism — a
+    /// vertex permutation that preserves the (direction-aware) edge set.
+    #[test]
+    fn automorphism_group_generators_are_automorphisms(g in arb_simple_graph_with_perm(7, false).prop_map(|(g, _)| g)) {
+        let n = g.vcount() as usize;
+        let gens = rust_igraph::automorphism_group(&g, None).expect("automorphism_group");
+        let edges: std::collections::HashSet<(u32, u32)> = (0..g.ecount())
+            .map(|e| g.edge(e as u32).expect("edge"))
+            .map(|(u, v)| if u <= v { (u, v) } else { (v, u) })
+            .collect();
+        for aut in &gens {
+            // A permutation of 0..n.
+            prop_assert_eq!(aut.len(), n, "generator has wrong length");
+            let mut sorted = aut.clone();
+            sorted.sort_unstable();
+            prop_assert_eq!(sorted, (0..g.vcount()).collect::<Vec<_>>(), "generator is not a permutation");
+            // Image of every edge is an edge.
+            for &(u, v) in &edges {
+                let (iu, iv) = (aut[u as usize], aut[v as usize]);
+                let key = if iu <= iv { (iu, iv) } else { (iv, iu) };
+                prop_assert!(edges.contains(&key), "generator maps an edge off the edge set");
+            }
+        }
+    }
+
+    /// ALGO-ISO-005: the generators generate a group whose order equals
+    /// `count_automorphisms` — i.e. the generating set is complete.
+    #[test]
+    fn automorphism_group_order_matches_count(g in arb_simple_graph_with_perm(6, false).prop_map(|(g, _)| g)) {
+        let n = g.vcount() as usize;
+        let gens = rust_igraph::automorphism_group(&g, None).expect("automorphism_group");
+        // Close the generating set.
+        let id: Vec<u32> = (0..g.vcount()).collect();
+        let mut set = std::collections::HashSet::new();
+        set.insert(id.clone());
+        let mut frontier = vec![id];
+        while let Some(p) = frontier.pop() {
+            for aut in &gens {
+                let q: Vec<u32> = p.iter().map(|&pv| aut[pv as usize]).collect();
+                if set.insert(q.clone()) {
+                    frontier.push(q);
+                }
+            }
+        }
+        let order = rust_igraph::count_automorphisms(&g, None).expect("count_automorphisms");
+        prop_assert!((order - set.len() as f64).abs() < 0.5,
+            "closure order {} != count_automorphisms {} (n={})", set.len(), order, n);
+    }
 }

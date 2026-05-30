@@ -2572,6 +2572,47 @@ COUNT_AUTOMORPHISMS_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# igraph_automorphism_group(g, colors) via BLISS. The generating set is
+# implementation-defined (isomorphism_test.c only checks the generator *count*
+# and that the set is valid), so conformance derives the group order from the
+# generators and compares it to the authentic order. Orders are taken from
+# bliss_automorphisms.out: Frucht = 1 (asymmetric, empty generating set),
+# Petersen = 120.
+AUTOMORPHISM_GROUP_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "automorphism_group_c_frucht",
+        "origin": "bliss_automorphisms.out: Frucht graph is asymmetric, |Aut| = 1 (empty generating set)",
+        "graph_factory": lambda: ig.Graph(
+            n=12,
+            edges=[
+                (0, 1), (0, 2), (0, 11), (1, 3), (1, 6), (2, 5), (2, 10),
+                (3, 4), (3, 6), (4, 8), (4, 11), (5, 9), (5, 10), (6, 7),
+                (7, 8), (7, 9), (8, 9), (10, 11),
+            ],
+            directed=False,
+        ),
+        "algo": "automorphism_group",
+        "params": {},
+        "expected": 1,
+    },
+    {
+        "case": "automorphism_group_c_petersen",
+        "origin": "bliss_automorphisms.out: Petersen graph |Aut| = 120 (generators close to order 120)",
+        "graph_factory": lambda: ig.Graph(
+            n=10,
+            edges=[
+                (0, 1), (1, 2), (2, 3), (3, 4), (4, 0),
+                (5, 7), (7, 9), (9, 6), (6, 8), (8, 5),
+                (0, 5), (1, 6), (2, 7), (3, 8), (4, 9),
+            ],
+            directed=False,
+        ),
+        "algo": "automorphism_group",
+        "params": {},
+        "expected": 120,
+    },
+]
+
 TC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "transitive_closure_c_directed_path3",
@@ -11775,6 +11816,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
     "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
     "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
+    "automorphism_group": AUTOMORPHISM_GROUP_MANIFEST,
     "louvain": LOUVAIN_MANIFEST,
     "leiden": LEIDEN_MANIFEST,
     "label_propagation": LPA_MANIFEST,

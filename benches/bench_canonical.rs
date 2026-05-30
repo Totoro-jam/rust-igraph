@@ -14,7 +14,7 @@
 //!     the common low-symmetry case.
 
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use rust_igraph::{Graph, canonical_permutation, count_automorphisms};
+use rust_igraph::{Graph, automorphism_group, canonical_permutation, count_automorphisms};
 
 fn cycle(n: u32) -> Graph {
     let mut g = Graph::new(n, false).expect("graph init");
@@ -68,5 +68,23 @@ fn bench_count_automorphisms(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, bench_cycle, bench_path, bench_count_automorphisms);
+fn bench_automorphism_group(c: &mut Criterion) {
+    let mut group = c.benchmark_group("automorphism_group/cycle");
+    for n in [8u32, 16, 32] {
+        let g = cycle(n);
+        group.throughput(Throughput::Elements(u64::from(n)));
+        group.bench_with_input(BenchmarkId::from_parameter(n), &g, |b, g| {
+            b.iter(|| automorphism_group(g, None).expect("automorphism_group"));
+        });
+    }
+    group.finish();
+}
+
+criterion_group!(
+    benches,
+    bench_cycle,
+    bench_path,
+    bench_count_automorphisms,
+    bench_automorphism_group
+);
 criterion_main!(benches);
