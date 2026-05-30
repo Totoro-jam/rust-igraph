@@ -12298,10 +12298,47 @@ GABRIEL_GRAPH_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# Relative neighborhood graph fixtures, transcribed from igraph's own unit
+# test `tests/unit/beta_skeletons.c` (`trig_lattice_points`) and its golden
+# output `beta_skeletons.out`. `igraph_relative_neighborhood_graph` is only
+# exposed by the C core (no python-igraph / rigraph binding), so this is the
+# authoritative anchor for this AWU. The triangular lattice is the canonical
+# RNG witness: every edge has a third lattice point exactly equidistant (on
+# the open-lune boundary), so only the OPEN lune (β = 2, is_closed = false)
+# retains them — the closed β = 2 lune skeleton on the same points is empty.
+RELATIVE_NEIGHBORHOOD_GRAPH_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "c_triangular_lattice",
+        "origin": "beta_skeletons.out 'Relative neighborhood graph, triangular lattice' (igraph_relative_neighborhood_graph)",
+        "points": [
+            [0.5, 2.5980762113533159402911695122588085504142078807156],
+            [0.0, 1.7320508075688772935274463415058723669428052538104],
+            [1.0, 1.7320508075688772935274463415058723669428052538104],
+            [-0.5, 0.86602540378443864676372317075293618347140262690519],
+            [0.5, 0.86602540378443864676372317075293618347140262690519],
+            [1.5, 0.86602540378443864676372317075293618347140262690519],
+            [-1.0, 0.0],
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [2.0, 0.0],
+        ],
+        "expected": {
+            "n": 10,
+            "edges": [
+                [0, 1], [0, 2], [1, 2], [1, 3], [1, 4], [2, 4], [2, 5],
+                [3, 4], [3, 6], [3, 7], [4, 5], [4, 7], [4, 8], [5, 8],
+                [5, 9], [6, 7], [7, 8], [8, 9],
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "power_law_fit": POWER_LAW_FIT_MANIFEST,
     "gabriel_graph": GABRIEL_GRAPH_MANIFEST,
+    "relative_neighborhood_graph": RELATIVE_NEIGHBORHOOD_GRAPH_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
@@ -12564,10 +12601,11 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 },
                 "expected": entry["expected"],
             }
-        elif algo == "gabriel_graph":
-            # Spatial point-set input; output is an undirected graph.
-            # `igraph_gabriel_graph` is C-only, so the expected edge list
-            # is transcribed from igraph's golden `beta_skeletons.out`.
+        elif algo in ("gabriel_graph", "relative_neighborhood_graph"):
+            # Spatial point-set input; output is an undirected graph. Both
+            # `igraph_gabriel_graph` and `igraph_relative_neighborhood_graph`
+            # are C-only, so the expected edge list is transcribed from
+            # igraph's golden `beta_skeletons.out`.
             points = [[float(x) for x in row] for row in entry["points"]]
             payload = {
                 "source": "c",

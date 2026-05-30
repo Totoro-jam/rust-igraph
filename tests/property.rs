@@ -4606,3 +4606,62 @@ proptest! {
         prop_assert!(is_connected(&g, ConnectednessMode::Weak).expect("is_connected"));
     }
 }
+
+proptest! {
+    /// Permutation invariance for the RNG (same property as the Gabriel graph):
+    /// reordering the input points permutes the result's vertices identically.
+    #[test]
+    fn rng_is_permutation_invariant(
+        (points, perm) in arb_points_2d(8).prop_flat_map(|pts| {
+            let n = pts.len();
+            let perm = Just((0..n as u32).collect::<Vec<u32>>()).prop_shuffle();
+            (Just(pts), perm)
+        }),
+    ) {
+        let base = rust_igraph::relative_neighborhood_graph(&points).expect("rng base");
+
+        let n = points.len();
+        let mut permuted = vec![Vec::new(); n];
+        for (i, row) in points.iter().enumerate() {
+            permuted[perm[i] as usize] = row.clone();
+        }
+        let permed = rust_igraph::relative_neighborhood_graph(&permuted).expect("rng permuted");
+
+        let mut mapped: Vec<(u32, u32)> = undirected_edge_set(&base)
+            .into_iter()
+            .map(|(u, v)| {
+                let (pu, pv) = (perm[u as usize], perm[v as usize]);
+                (pu.min(pv), pu.max(pv))
+            })
+            .collect();
+        mapped.sort_unstable();
+
+        prop_assert_eq!(mapped, undirected_edge_set(&permed));
+    }
+
+    /// The RNG is a subgraph of the Gabriel graph (the open β = 2 lune contains
+    /// the β = 1 ball), so every RNG edge must also be a Gabriel edge. This
+    /// holds for *distinct* points: the two filters tolerance the boundary in
+    /// opposite directions (Gabriel inflates a closed ball, the RNG deflates an
+    /// open lune), so a coincident point can sit on a boundary that one filter
+    /// counts and the other does not.
+    #[test]
+    fn rng_is_subgraph_of_gabriel(points in arb_distinct_points_2d(8)) {
+        let rng = rust_igraph::relative_neighborhood_graph(&points).expect("rng");
+        let gab = rust_igraph::gabriel_graph(&points).expect("gabriel");
+        let gab_edges: std::collections::HashSet<(u32, u32)> =
+            undirected_edge_set(&gab).into_iter().collect();
+        for e in undirected_edge_set(&rng) {
+            prop_assert!(gab_edges.contains(&e), "RNG edge {:?} absent from Gabriel graph", e);
+        }
+    }
+
+    /// The RNG contains the Euclidean minimum spanning tree, so it is always
+    /// connected for a non-empty set of distinct points.
+    #[test]
+    fn rng_is_connected(points in arb_distinct_points_2d(8)) {
+        use rust_igraph::{is_connected, ConnectednessMode};
+        let g = rust_igraph::relative_neighborhood_graph(&points).expect("rng");
+        prop_assert!(is_connected(&g, ConnectednessMode::Weak).expect("is_connected"));
+    }
+}

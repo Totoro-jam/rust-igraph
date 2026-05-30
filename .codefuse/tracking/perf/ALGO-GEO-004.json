@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-GEO-004",
+  "name": "relative_neighborhood_graph (relative neighborhood graph of a spatial point set)",
+  "date": "2026-05-30",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "relative_neighborhood_graph/scatter",
+      "sizes": [25, 100, 200],
+      "median_ns": [18730, 336940, 1446100],
+      "note": "deterministic LCG scatter in the unit square. The kernel enumerates all O(n^2) candidate pairs and runs an O(n) empty-lune test per pair, so cost is cubic in the point count: 25->100 (4x points) is ~18x time, 100->200 (2x points) is ~4.3x time, both tracking the n^3 expectation. Faster than the Gabriel kernel at equal n: the open-lune predicate rejects on the first endpoint test, so most pairs short-circuit early"
+    },
+    {
+      "group": "relative_neighborhood_graph/lattice",
+      "sizes": [25, 100, 196],
+      "median_ns": [52883, 1082900, 5037800],
+      "note": "k x k triangular lattice (k in 5,10,14): every edge has a third lattice point exactly equidistant, so the open-lune boundary branch fires on every surviving edge. Slower than the scatter at equal n because lattice pairs survive deeper into the empty-lune loop before rejection; still cubic overall"
+    }
+  ],
+  "status": "baseline_created"
+}
