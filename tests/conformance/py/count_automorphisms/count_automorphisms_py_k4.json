@@ -1,0 +1,38 @@
+{
+  "source": "py",
+  "origin": "python-igraph 0.11.9 Graph.Full(4).count_automorphisms() == 24 (4! permutations of K4)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_automorphisms",
+  "params": {},
+  "expected": 24
+}

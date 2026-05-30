@@ -1,0 +1,45 @@
+{
+  "source": "r",
+  "origin": "test-topology.R: count_automorphisms(make_full_graph(4), colors=c(1,2,1,2))$group_size == \"4\"",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_automorphisms",
+  "params": {
+    "colors": [
+      0,
+      1,
+      0,
+      1
+    ]
+  },
+  "expected": 4
+}

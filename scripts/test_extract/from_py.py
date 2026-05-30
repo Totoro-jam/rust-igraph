@@ -89,6 +89,37 @@ SUBISO_COUNT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# BLISS automorphism counts via python-igraph's Graph.count_automorphisms().
+# All expected values verified against python-igraph 0.11.9 (bundles igraph C
+# 0.10.16). The `color` kwarg restricts the count to colour-preserving
+# permutations.
+COUNT_AUTOMORPHISMS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_automorphisms_py_k4",
+        "origin": "python-igraph 0.11.9 Graph.Full(4).count_automorphisms() == 24 (4! permutations of K4)",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "count_automorphisms",
+        "params": {},
+        "expected": 24,
+    },
+    {
+        "case": "count_automorphisms_py_ring6",
+        "origin": "python-igraph 0.11.9 Graph.Ring(6).count_automorphisms() == 12 (dihedral group of the 6-cycle)",
+        "graph_factory": lambda: ig.Graph.Ring(n=6, directed=False, circular=True),
+        "algo": "count_automorphisms",
+        "params": {},
+        "expected": 12,
+    },
+    {
+        "case": "count_automorphisms_py_k4_colored",
+        "origin": "python-igraph 0.11.9 Graph.Full(4).count_automorphisms(color=[0,1,0,1]) == 4 (two colour classes of 2; S2 x S2)",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "count_automorphisms",
+        "params": {"colors": [0, 1, 0, 1]},
+        "expected": 4,
+    },
+]
+
 DFS_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "test_iterators_testDFS_tree10_2",
@@ -9133,6 +9164,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
     "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
+    "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,

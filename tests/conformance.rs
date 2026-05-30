@@ -4373,6 +4373,28 @@ fn count_isomorphisms_vf2_three_source_conformance() {
 }
 
 #[test]
+fn count_automorphisms_three_source_conformance() {
+    // `|Aut(G)|`, a single-graph scalar (returned as f64, matching igraph's
+    // `igraph_count_automorphisms` real_t). Optional vertex colours arrive in
+    // `params.colors`. Fixtures carry values verified against the three
+    // upstream sources: C bliss_automorphisms.c, python-igraph 0.11.9
+    // `Graph.count_automorphisms()`, and rigraph `count_automorphisms()`.
+    run_conformance("count_automorphisms", |g, params| {
+        let colors: Option<Vec<u32>> = params.get("colors").and_then(|c| c.as_array()).map(|arr| {
+            arr.iter()
+                .map(|v| {
+                    u32::try_from(v.as_u64().expect("color is a non-negative integer"))
+                        .expect("color fits in u32")
+                })
+                .collect()
+        });
+        let c =
+            rust_igraph::count_automorphisms(g, colors.as_deref()).expect("count_automorphisms");
+        serde_json::json!(c)
+    });
+}
+
+#[test]
 fn count_subisomorphisms_vf2_three_source_conformance() {
     // VF2 subgraph self-comparison counts a graph's automorphisms (every
     // embedding of g into g is an automorphism), a single-graph scalar that

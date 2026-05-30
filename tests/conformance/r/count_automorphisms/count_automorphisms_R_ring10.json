@@ -1,0 +1,54 @@
+{
+  "source": "r",
+  "origin": "test-topology.R: count_automorphisms(make_ring(10))$group_size == \"20\" (dihedral group of the 10-cycle)",
+  "graph": {
+    "n": 10,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        0,
+        9
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "count_automorphisms",
+  "params": {},
+  "expected": 20
+}

@@ -129,6 +129,38 @@ SUBISO_COUNT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# BLISS automorphism counts. Authentic values verbatim from
+# references/rigraph/tests/testthat/test-topology.R: count_automorphisms(g)
+# returns a list whose $group_size is the order as a string ("20", "24", "4").
+# R colours c(1,2,1,2) are colour classes {1,3} and {2,4}; we encode them
+# 0-based as [0,1,0,1] (only the partition matters, not the labels).
+COUNT_AUTOMORPHISMS_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "count_automorphisms_R_ring10",
+        "origin": "test-topology.R: count_automorphisms(make_ring(10))$group_size == \"20\" (dihedral group of the 10-cycle)",
+        "graph_factory": lambda: _ring(10),
+        "algo": "count_automorphisms",
+        "params": {},
+        "expected": 20,
+    },
+    {
+        "case": "count_automorphisms_R_full4",
+        "origin": "test-topology.R: count_automorphisms(make_full_graph(4))$group_size == \"24\" (4! permutations of K4)",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "count_automorphisms",
+        "params": {},
+        "expected": 24,
+    },
+    {
+        "case": "count_automorphisms_R_full4_colored",
+        "origin": "test-topology.R: count_automorphisms(make_full_graph(4), colors=c(1,2,1,2))$group_size == \"4\"",
+        "graph_factory": lambda: ig.Graph.Full(n=4, directed=False),
+        "algo": "count_automorphisms",
+        "params": {"colors": [0, 1, 0, 1]},
+        "expected": 4,
+    },
+]
+
 CC_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "two_K5_components",
@@ -9272,6 +9304,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "count_isomorphisms_vf2": VF2_COUNT_MANIFEST,
     "count_subisomorphisms_vf2": SUBISO_COUNT_MANIFEST,
+    "count_automorphisms": COUNT_AUTOMORPHISMS_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,

@@ -62,6 +62,7 @@ use std::collections::HashSet;
 use crate::core::{Graph, IgraphError, IgraphResult};
 
 pub(crate) mod canonical_permutation;
+pub(crate) mod count_automorphisms;
 
 /// Full result of one canonicalization run.
 pub(crate) struct Canonicalization {
@@ -74,8 +75,7 @@ pub(crate) struct Canonicalization {
     #[allow(dead_code)]
     pub generators: Vec<Vec<u32>>,
     /// `|Aut(G)|` as `f64` (exact for groups up to `2^53`).
-    // Consumed by the `count_automorphisms` wrapper (ALGO-ISO-004).
-    #[allow(dead_code)]
+    /// Consumed by the `count_automorphisms` wrapper (ALGO-ISO-004).
     pub group_order: f64,
 }
 

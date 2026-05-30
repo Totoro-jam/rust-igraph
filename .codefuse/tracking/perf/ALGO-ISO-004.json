@@ -1,0 +1,16 @@
+{
+  "algo": "ALGO-ISO-004",
+  "name": "count_automorphisms (|Aut(G)| via the shared I-R engine)",
+  "date": "2026-05-30",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "count_automorphisms/cycle",
+      "sizes": [8, 16, 32],
+      "median_ns": [55135, 362600, 3212400],
+      "note": "Same engine as canonical_permutation (ALGO-ISO-003); |Aut| counts the canonical leaves so cost tracks the symmetric C_n I-R tree — figures match the canonicalization baseline within noise"
+    }
+  ],
+  "status": "baseline_created"
+}
