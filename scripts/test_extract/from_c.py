@@ -823,6 +823,73 @@ IS_COMPLETE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-018: is_perfect. Source: tests/unit/igraph_perfect.c.
+# python-igraph 0.11.9 has no `Graph.is_perfect` binding, so the py
+# manifest is intentionally absent; verdicts here are read directly from
+# the upstream C test's IGRAPH_ASSERT lines (authentic-by-construction).
+IS_PERFECT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_perfect_c_c5_false",
+        "origin": "tests/unit/igraph_perfect.c — ring(5, circular): the 5-cycle is the minimal odd hole",
+        "graph_factory": lambda: ig.Graph.Ring(n=5, circular=True),
+        "algo": "is_perfect",
+        "params": {},
+        "expected": False,
+    },
+    {
+        "case": "is_perfect_c_chvatal_false",
+        "origin": "tests/unit/igraph_perfect.c — famous('Chvatal') contains an induced odd hole",
+        "graph_factory": lambda: ig.Graph.Famous("Chvatal"),
+        "algo": "is_perfect",
+        "params": {},
+        "expected": False,
+    },
+    {
+        "case": "is_perfect_c_complement_c7_false",
+        "origin": "tests/unit/igraph_perfect.c — complement of ring(7, circular): complement holds an odd hole",
+        "graph_factory": lambda: ig.Graph.Ring(n=7, circular=True).complementer(loops=False),
+        "algo": "is_perfect",
+        "params": {},
+        "expected": False,
+    },
+    {
+        "case": "is_perfect_c_house_true",
+        "origin": "tests/unit/igraph_perfect.c — famous('House') is perfect (DATA_HOUSE edges)",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (0, 2), (1, 3), (2, 3), (2, 4), (3, 4)],
+            directed=False,
+        ),
+        "algo": "is_perfect",
+        "params": {},
+        "expected": True,
+    },
+    {
+        "case": "is_perfect_c_paley9_true",
+        "origin": "tests/unit/igraph_perfect.c — Paley graph of order 9 (self-complementary, perfect)",
+        "graph_factory": lambda: ig.Graph(
+            n=9,
+            edges=[
+                (0, 1), (0, 3), (0, 6), (0, 2), (1, 2), (1, 4), (1, 7),
+                (2, 5), (2, 8), (3, 4), (3, 5), (3, 6), (4, 5), (4, 7),
+                (5, 8), (6, 7), (7, 8), (6, 8),
+            ],
+            directed=False,
+        ),
+        "algo": "is_perfect",
+        "params": {},
+        "expected": True,
+    },
+    {
+        "case": "is_perfect_c_grid4x4_true",
+        "origin": "tests/unit/igraph_perfect.c — 4x4 square lattice (bipartite, hence perfect)",
+        "graph_factory": lambda: ig.Graph.Lattice([4, 4], circular=False),
+        "algo": "is_perfect",
+        "params": {},
+        "expected": True,
+    },
+]
+
 # ALGO-PR-027: neighborhood_size. Source:
 # tests/unit/igraph_neighborhood_size.c (.out file). Two fixtures
 # from the upstream test driver: the all-mode order-1 case on the
@@ -12181,6 +12248,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_tree": IS_TREE_MANIFEST,
     "is_forest": IS_FOREST_MANIFEST,
     "is_complete": IS_COMPLETE_MANIFEST,
+    "is_perfect": IS_PERFECT_MANIFEST,
     "neighborhood_size": NEIGHBORHOOD_SIZE_MANIFEST,
     "neighborhood": NEIGHBORHOOD_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,

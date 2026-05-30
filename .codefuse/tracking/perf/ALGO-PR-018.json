@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-PR-018",
+  "name": "is_perfect (perfect-graph test, Strong Perfect Graph Theorem)",
+  "date": "2026-05-30",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "perfect/even_ring_bipartite",
+      "sizes": [100, 1000, 5000],
+      "median_ns": [15125, 143430, 713540],
+      "note": "even cycle C_n is bipartite, so is_perfect returns true via the bipartite fast path before the complement is ever built. Cost is dominated by is_simple + is_bipartite, both O(V+E); near-linear scaling (~9.5x per 10x n step plus the ~5x final step matches the BFS 2-colouring + simple-check passes over the ring)"
+    },
+    {
+      "group": "perfect/odd_ring_not_perfect",
+      "sizes": [51, 101, 501],
+      "median_ns": [162740, 587240, 15124000],
+      "note": "odd cycle C_n has odd girth n>3 → not perfect, but the verdict only lands after the Weak-Perfect-Graph-Theorem probes materialise the DENSE complement (~n(n-1)/2 - n edges) and run is_bipartite + is_chordal (MCS) on it. Super-linear because the complement edge count grows quadratically with n; sizes kept modest for this reason. This faithfully mirrors upstream igraph_is_perfect's decision order"
+    }
+  ],
+  "status": "baseline_created"
+}

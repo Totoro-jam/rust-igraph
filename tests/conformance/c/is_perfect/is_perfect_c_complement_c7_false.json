@@ -1,0 +1,70 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_perfect.c \u2014 complement of ring(7, circular): complement holds an odd hole",
+  "graph": {
+    "n": 7,
+    "edges": [
+      [
+        0,
+        5
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        6
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_perfect",
+  "params": {},
+  "expected": false
+}

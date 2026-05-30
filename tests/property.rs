@@ -515,6 +515,28 @@ proptest! {
         prop_assert_eq!(a, b);
     }
 
+    /// `is_perfect` invariants (undirected, simple input):
+    /// - Weak Perfect Graph Theorem: a graph is perfect iff its
+    ///   complement is perfect, so `is_perfect(g) == is_perfect(comp(g))`.
+    /// - Every bipartite graph is perfect.
+    #[test]
+    fn is_perfect_matches_complement_and_bipartite_are_perfect(g in arb_graph(8)) {
+        let simple = rust_igraph::simplify(&g, true, true).unwrap();
+        let comp = rust_igraph::complementer(&simple, false).unwrap();
+
+        let p = rust_igraph::is_perfect(&simple).unwrap();
+        let pc = rust_igraph::is_perfect(&comp).unwrap();
+        prop_assert_eq!(
+            p, pc,
+            "Weak Perfect Graph Theorem violated: is_perfect(g)={} but is_perfect(comp(g))={}",
+            p, pc,
+        );
+
+        if rust_igraph::is_bipartite(&simple).unwrap().is_bipartite {
+            prop_assert!(p, "bipartite graph reported as not perfect");
+        }
+    }
+
     /// Weighted assortativity invariants:
     /// - `assortativity_degree_weighted(g, [1.0; m])` matches
     ///   `assortativity_degree(g)` (within fp tolerance)

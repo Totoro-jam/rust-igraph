@@ -874,6 +874,11 @@ name = "bench_lad"
 path = "benches/bench_lad.rs"
 harness = false
 
+[[bench]]
+name = "bench_perfect"
+path = "benches/bench_perfect.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

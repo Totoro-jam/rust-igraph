@@ -1,0 +1,86 @@
+{
+  "source": "r",
+  "origin": "rigraph is_perfect(Paley(9)) \u2014 self-complementary perfect graph",
+  "graph": {
+    "n": 9,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        6,
+        8
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_perfect",
+  "params": {},
+  "expected": true
+}

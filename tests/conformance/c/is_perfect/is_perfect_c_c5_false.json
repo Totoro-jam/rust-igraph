@@ -1,0 +1,34 @@
+{
+  "source": "c",
+  "origin": "tests/unit/igraph_perfect.c \u2014 ring(5, circular): the 5-cycle is the minimal odd hole",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_perfect",
+  "params": {},
+  "expected": false
+}

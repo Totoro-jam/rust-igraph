@@ -1217,6 +1217,49 @@ IS_COMPLETE_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-018: is_perfect. rigraph exposes `is_perfect(graph)`
+# (R/aaa-auto.R is_perfect_impl → R_igraph_is_perfect, same C entry
+# point igraph_is_perfect). Verdicts mirror the upstream C unit test;
+# graphs serialized via python-igraph for the shared fixture format.
+IS_PERFECT_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "is_perfect_R_c5_false",
+        "origin": "rigraph is_perfect(make_ring(5)) — the 5-cycle is imperfect (minimal odd hole)",
+        "graph_factory": lambda: ig.Graph.Ring(n=5, circular=True),
+        "algo": "is_perfect",
+        "params": {},
+        "expected": False,
+    },
+    {
+        "case": "is_perfect_R_house_true",
+        "origin": "rigraph is_perfect(make_graph('House')) — the House graph is perfect",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (0, 2), (1, 3), (2, 3), (2, 4), (3, 4)],
+            directed=False,
+        ),
+        "algo": "is_perfect",
+        "params": {},
+        "expected": True,
+    },
+    {
+        "case": "is_perfect_R_paley9_true",
+        "origin": "rigraph is_perfect(Paley(9)) — self-complementary perfect graph",
+        "graph_factory": lambda: ig.Graph(
+            n=9,
+            edges=[
+                (0, 1), (0, 3), (0, 6), (0, 2), (1, 2), (1, 4), (1, 7),
+                (2, 5), (2, 8), (3, 4), (3, 5), (3, 6), (4, 5), (4, 7),
+                (5, 8), (6, 7), (7, 8), (6, 8),
+            ],
+            directed=False,
+        ),
+        "algo": "is_perfect",
+        "params": {},
+        "expected": True,
+    },
+]
+
 # ALGO-PR-027: neighborhood_size. rigraph exposes
 # `neighborhood_size(g, order, vids, mode)`. R test fixture from
 # tests/testthat/test-aaa-auto.R:neighborhood_size_impl basic
@@ -9673,6 +9716,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "is_tree": IS_TREE_MANIFEST,
     "is_forest": IS_FOREST_MANIFEST,
     "is_complete": IS_COMPLETE_MANIFEST,
+    "is_perfect": IS_PERFECT_MANIFEST,
     "neighborhood_size": NEIGHBORHOOD_SIZE_MANIFEST,
     "neighborhood": NEIGHBORHOOD_MANIFEST,
     "dijkstra_all_shortest_paths": DIJKSTRA_ASP_MANIFEST,

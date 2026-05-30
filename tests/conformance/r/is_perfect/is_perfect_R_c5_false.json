@@ -1,0 +1,34 @@
+{
+  "source": "r",
+  "origin": "rigraph is_perfect(make_ring(5)) \u2014 the 5-cycle is imperfect (minimal odd hole)",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "is_perfect",
+  "params": {},
+  "expected": false
+}

@@ -485,6 +485,7 @@ pub use crate::algorithms::properties::neighborhood::{
 pub use crate::algorithms::properties::pagerank::pagerank;
 pub use crate::algorithms::properties::pagerank_linsys::pagerank_linsys;
 pub use crate::algorithms::properties::pagerank_weighted::pagerank_weighted;
+pub use crate::algorithms::properties::perfect::is_perfect;
 pub use crate::algorithms::properties::personalized_pagerank::{
     personalized_pagerank, personalized_pagerank_default, personalized_pagerank_vs,
 };
