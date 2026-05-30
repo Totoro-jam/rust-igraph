@@ -12572,6 +12572,113 @@ CIRCLE_BETA_SKELETON_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 
+# Authentic golden weight vectors for `igraph_beta_weighted_gabriel_graph`,
+# transcribed from igraph's `beta_skeletons.out`. The output is the Gabriel
+# graph with each edge weighted by the β at which it leaves the lune-based
+# β-skeleton (or +∞ if it persists past the `max_beta` cutoff). The upstream
+# .out prints only the weight vector in igraph's internal (Delaunay) edge
+# order, NOT an edge list, so conformance compares the order-independent
+# sorted multiset of finite weights plus the count of infinite weights.
+# Infinity is encoded as JSON `null` (per the repo convention — JSON has no
+# Infinity literal); both `max_beta` and the expected weights use `null` for
+# +∞. C-only API (no python-igraph / rigraph binding). The four cases mirror
+# the upstream test: the 25-point 2-D set and the 10-point 3-D set, each at
+# max_beta = +∞ and max_beta = 5.
+BETA_WEIGHTED_GABRIEL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "c_25_2d_cutoff_inf",
+        "origin": "beta_skeletons.out 'Beta weighted Gabriel graph, 25 points' (max_beta = inf)",
+        "max_beta": None,
+        "points": [
+            [0.474217, 0.0314797], [0.208089, 0.439308], [0.967367, 0.530466],
+            [0.177005, 0.426713], [0.568462, 0.57507], [0.441834, 0.284514],
+            [0.479224, 0.817988], [0.720209, 0.225744], [0.204941, 0.44297],
+            [0.285318, 0.912984], [0.831097, 0.0176603], [0.827154, 0.472702],
+            [0.173059, 0.561858], [0.156276, 0.88019], [0.65935, 0.538207],
+            [0.570379, 0.518081], [0.900553, 0.656416], [0.726631, 0.863709],
+            [0.380264, 0.287159], [0.31098, 0.230773], [0.243089, 0.164584],
+            [0.967974, 0.524992], [0.726605, 0.0724703], [0.739752, 0.447069],
+            [0.0443581, 0.444839],
+        ],
+        "expected": {
+            "weights": [
+                2.13771, 1.87896, 1.30643, 10.5357, None, 1.04766, 2.38206,
+                1.72356, 10.9882, 41555.3, 115.458, 6.14845, 4.87967, 1.32814,
+                1.42918, 8.52199, 1.20967, 2.72446, 3.66988, None, 11.4047,
+                1.33013, 3.50412, 36.5966, 10.6973, 4.82793, 48.4413, 628.646,
+                1.11477, 8.32087, None, 4.28868, 1.19886, 3.33, 1.31892,
+                11.3292, 3.3514, 15.7597, 29.7302,
+            ],
+        },
+    },
+    {
+        "case": "c_25_2d_cutoff_5",
+        "origin": "beta_skeletons.out 'Beta weighted Gabriel graph, 25 points' (max_beta = 5)",
+        "max_beta": 5.0,
+        "points": [
+            [0.474217, 0.0314797], [0.208089, 0.439308], [0.967367, 0.530466],
+            [0.177005, 0.426713], [0.568462, 0.57507], [0.441834, 0.284514],
+            [0.479224, 0.817988], [0.720209, 0.225744], [0.204941, 0.44297],
+            [0.285318, 0.912984], [0.831097, 0.0176603], [0.827154, 0.472702],
+            [0.173059, 0.561858], [0.156276, 0.88019], [0.65935, 0.538207],
+            [0.570379, 0.518081], [0.900553, 0.656416], [0.726631, 0.863709],
+            [0.380264, 0.287159], [0.31098, 0.230773], [0.243089, 0.164584],
+            [0.967974, 0.524992], [0.726605, 0.0724703], [0.739752, 0.447069],
+            [0.0443581, 0.444839],
+        ],
+        "expected": {
+            "weights": [
+                2.13771, 1.87896, 1.30643, None, None, 1.04766, 2.38206,
+                1.72356, None, None, None, None, 4.87967, 1.32814, 1.42918,
+                None, 1.20967, 2.72446, 3.66988, None, None, 1.33013, 3.50412,
+                None, None, 4.82793, None, None, 1.11477, None, None, 4.28868,
+                1.19886, 3.33, 1.31892, None, 3.3514, None, None,
+            ],
+        },
+    },
+    {
+        "case": "c_10_3d_cutoff_inf",
+        "origin": "beta_skeletons.out 'Beta weighted Gabriel graph, 10 points 3d' (max_beta = inf)",
+        "max_beta": None,
+        "points": [
+            [0.474217, 0.0314797, 0.208089], [0.439308, 0.967367, 0.530466],
+            [0.177005, 0.426713, 0.568462], [0.57507, 0.441834, 0.284514],
+            [0.479224, 0.817988, 0.720209], [0.225744, 0.204941, 0.44297],
+            [0.285318, 0.912984, 0.831097], [0.0176603, 0.827154, 0.472702],
+            [0.173059, 0.561858, 0.156276], [0.88019, 0.65935, 0.538207],
+        ],
+        "expected": {
+            "weights": [
+                2.29424, 2.87805, 1.51364, 15.0303, 1.01534, 2.12088, 1.05443,
+                1.30234, 2.07368, 8.72711, 1.0848, 1.99727, 2.0717, 1.25544,
+                1.77266, 2.21701, 4.16352, 58.0727, 4.91485, 1.47137, 1.89216,
+                2.00274,
+            ],
+        },
+    },
+    {
+        "case": "c_10_3d_cutoff_5",
+        "origin": "beta_skeletons.out 'Beta weighted Gabriel graph, 10 points 3d' (max_beta = 5)",
+        "max_beta": 5.0,
+        "points": [
+            [0.474217, 0.0314797, 0.208089], [0.439308, 0.967367, 0.530466],
+            [0.177005, 0.426713, 0.568462], [0.57507, 0.441834, 0.284514],
+            [0.479224, 0.817988, 0.720209], [0.225744, 0.204941, 0.44297],
+            [0.285318, 0.912984, 0.831097], [0.0176603, 0.827154, 0.472702],
+            [0.173059, 0.561858, 0.156276], [0.88019, 0.65935, 0.538207],
+        ],
+        "expected": {
+            "weights": [
+                2.29424, 2.87805, 1.51364, None, 1.01534, 2.12088, 1.05443,
+                1.30234, 2.07368, None, 1.0848, 1.99727, 2.0717, 1.25544,
+                1.77266, 2.21701, 4.16352, None, 4.91485, 1.47137, 1.89216,
+                2.00274,
+            ],
+        },
+    },
+]
+
+
 ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "bfs": BFS_MANIFEST,
     "power_law_fit": POWER_LAW_FIT_MANIFEST,
@@ -12580,6 +12687,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "nearest_neighbor_graph": NEAREST_NEIGHBOR_GRAPH_MANIFEST,
     "lune_beta_skeleton": LUNE_BETA_SKELETON_MANIFEST,
     "circle_beta_skeleton": CIRCLE_BETA_SKELETON_MANIFEST,
+    "beta_weighted_gabriel_graph": BETA_WEIGHTED_GABRIEL_MANIFEST,
     "community_to_membership": COMMUNITY_TO_MEMBERSHIP_MANIFEST,
     "compare_communities": COMPARE_COMMUNITIES_MANIFEST,
     "reindex_membership": REINDEX_MEMBERSHIP_MANIFEST,
@@ -12900,6 +13008,25 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 "graph": {"n": 1, "edges": [], "directed": False, "weights": None},
                 "algo": algo,
                 "params": {"points": points, "beta": float(entry["beta"])},
+                "expected": entry["expected"],
+            }
+        elif algo == "beta_weighted_gabriel_graph":
+            # Spatial point set with a `max_beta` cutoff; output is the Gabriel
+            # graph with per-edge β-threshold weights. C-only API; the golden
+            # weight vector is transcribed from igraph's `beta_skeletons.out`.
+            # +∞ (both for `max_beta` and for any persisting-edge weight) is
+            # encoded as JSON `null`, since JSON has no Infinity literal.
+            points = [[float(x) for x in row] for row in entry["points"]]
+            max_beta = entry["max_beta"]
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": {"n": 1, "edges": [], "directed": False, "weights": None},
+                "algo": algo,
+                "params": {
+                    "points": points,
+                    "max_beta": None if max_beta is None else float(max_beta),
+                },
                 "expected": entry["expected"],
             }
         elif algo == "community_to_membership":

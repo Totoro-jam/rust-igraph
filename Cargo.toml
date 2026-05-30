@@ -914,6 +914,11 @@ name = "bench_circle_beta_skeleton"
 path = "benches/bench_circle_beta_skeleton.rs"
 harness = false
 
+[[bench]]
+name = "bench_beta_weighted_gabriel_graph"
+path = "benches/bench_beta_weighted_gabriel_graph.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

@@ -1,5 +1,6 @@
 //! Spatial / geometric algorithms (ALGO-GEO-*).
 
+pub(crate) mod beta_weighted_gabriel_graph;
 pub(crate) mod circle_beta_skeleton;
 pub(crate) mod convex_hull;
 pub(crate) mod edge_lengths;
@@ -8,6 +9,7 @@ pub(crate) mod lune_beta_skeleton;
 pub(crate) mod nearest_neighbor_graph;
 pub(crate) mod relative_neighborhood_graph;
 
+pub use beta_weighted_gabriel_graph::{BetaWeightedGabriel, beta_weighted_gabriel_graph};
 pub use circle_beta_skeleton::circle_beta_skeleton;
 pub use convex_hull::{ConvexHullResult, convex_hull_2d};
 pub use edge_lengths::{DistanceMetric, spatial_edge_lengths};

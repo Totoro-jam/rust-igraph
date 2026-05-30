@@ -4888,3 +4888,70 @@ proptest! {
         }
     }
 }
+
+proptest! {
+    /// The β-weighted Gabriel graph's edge set is exactly the Gabriel graph's,
+    /// independent of the `max_beta` cutoff (the cutoff only converts finite
+    /// weights to +∞). Uses distinct points because coincident points are
+    /// rejected by the weighted builder.
+    #[test]
+    fn beta_weighted_gabriel_edge_set_equals_gabriel(points in arb_distinct_points_2d(8)) {
+        let gab = rust_igraph::gabriel_graph(&points).expect("gabriel");
+        let gab_edges = undirected_edge_set(&gab);
+        for cutoff in [f64::INFINITY, 5.0, 1.0] {
+            let res = rust_igraph::beta_weighted_gabriel_graph(&points, cutoff)
+                .expect("beta_weighted_gabriel_graph");
+            prop_assert_eq!(undirected_edge_set(&res.graph), gab_edges.clone());
+            prop_assert_eq!(res.weights.len(), res.graph.ecount() as usize);
+        }
+    }
+
+    /// Every β-threshold weight is either ≥ 1 (the threshold β of any edge is
+    /// at least 1) or +∞ (an edge persisting past the cutoff). None is finite
+    /// and below 1.
+    #[test]
+    fn beta_weighted_gabriel_weights_at_least_one(points in arb_distinct_points_2d(8)) {
+        let res = rust_igraph::beta_weighted_gabriel_graph(&points, f64::INFINITY)
+            .expect("beta_weighted_gabriel_graph");
+        for &w in &res.weights {
+            prop_assert!(
+                w.is_infinite() || w >= 1.0,
+                "weight {} is finite and below 1",
+                w
+            );
+        }
+    }
+
+    /// Cutoff monotonicity: lowering `max_beta` keeps the edge set fixed and
+    /// only caps weights to +∞. Since both runs emit edges in the same
+    /// `(min, max)` order, their weight vectors are index-aligned: an edge
+    /// finite under the larger cutoff and below the smaller one keeps its exact
+    /// value, otherwise it is +∞ under the smaller cutoff.
+    #[test]
+    fn beta_weighted_gabriel_cutoff_caps_weights(points in arb_distinct_points_2d(8)) {
+        let small = 3.0f64;
+        let full = rust_igraph::beta_weighted_gabriel_graph(&points, f64::INFINITY)
+            .expect("full");
+        let capped = rust_igraph::beta_weighted_gabriel_graph(&points, small)
+            .expect("capped");
+        prop_assert_eq!(full.weights.len(), capped.weights.len());
+        for (wf, wc) in full.weights.iter().zip(capped.weights.iter()) {
+            if wf.is_finite() && *wf < small {
+                prop_assert!(
+                    (wf - wc).abs() <= 1e-9 * wf.abs().max(1.0),
+                    "weight below cutoff changed: {} vs {}",
+                    wf,
+                    wc
+                );
+            } else {
+                prop_assert!(
+                    wc.is_infinite(),
+                    "weight {} should be capped to +∞ under cutoff {}, got {}",
+                    wf,
+                    small,
+                    wc
+                );
+            }
+        }
+    }
+}

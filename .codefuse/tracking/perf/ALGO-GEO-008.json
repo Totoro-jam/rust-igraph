@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-GEO-008",
+  "name": "beta_weighted_gabriel_graph (Gabriel graph with per-edge beta-threshold weights)",
+  "date": "2026-05-31",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "beta_weighted_gabriel_graph/point_count",
+      "sizes": [50, 200, 400],
+      "median_ns": [850865, 52425875, 417186854],
+      "note": "deterministic LCG scatter in the unit square at max_beta = infinity. The kernel is an O(n^2) candidate enumeration with an O(n*d) per-pair point scan and NO early break (every other point can lower the edge's beta-threshold), so cost is O(n^3*d). 50->200 (4x points) is ~62x time (~4^3) and 200->400 (2x points) is ~8x time (=2^3), tracking the cubic scaling cleanly"
+    },
+    {
+      "group": "beta_weighted_gabriel_graph/max_beta",
+      "sizes": [1.0, 5.0, "inf"],
+      "median_ns": [176100021, 181192916, 225364980],
+      "note": "fixed 300-point LCG scatter, varying max_beta. A smaller cutoff lets the `beta < max_beta` test skip the smallest-tracking update sooner, so the work decreases modestly with the cutoff (inf -> 225ms, 5 -> 181ms, 1 -> 176ms). The per-pair point scan still visits every point in all regimes, so the cutoff is only a constant-factor effect, not an asymptotic one"
+    }
+  ],
+  "status": "baseline_created"
+}

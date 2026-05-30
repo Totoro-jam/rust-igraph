@@ -18870,3 +18870,132 @@ fn circle_beta_skeleton_c_conformance() {
 
     assert!(seen_c > 0, "no circle_beta_skeleton fixtures from source c");
 }
+
+/// `igraph_beta_weighted_gabriel_graph` three-source (C) conformance.
+///
+/// The output is the Gabriel graph with each edge weighted by the β at which
+/// it leaves the lune-based β-skeleton, or +∞ for an edge that persists past
+/// the `max_beta` cutoff. Fixtures come from igraph's own `beta_skeletons.out`
+/// (25-point 2-D and 10-point 3-D sets, each at `max_beta` = +∞ and 5). The
+/// `.out`
+/// prints only the weight vector in igraph's internal (Delaunay) edge order —
+/// not the edge list — so we compare the order-independent sorted multiset of
+/// finite weights (relative tolerance) plus the count of infinite weights.
+/// Infinity is encoded as JSON `null` in both `max_beta` and the expected
+/// weights.
+#[test]
+fn beta_weighted_gabriel_graph_c_conformance() {
+    use rust_igraph::beta_weighted_gabriel_graph;
+
+    let cases = load_all("beta_weighted_gabriel_graph");
+    assert!(
+        !cases.is_empty(),
+        "no beta_weighted_gabriel_graph conformance fixtures found — did you run \
+         `.venv/bin/python -m scripts.test_extract.from_c --algo beta_weighted_gabriel_graph`?"
+    );
+
+    let mut seen_c = 0usize;
+    for (path, case) in cases {
+        assert_eq!(case.algo, "beta_weighted_gabriel_graph");
+        assert_eq!(
+            case.source,
+            "c",
+            "unexpected non-C beta_weighted_gabriel_graph fixture {}",
+            path.display()
+        );
+
+        let points: Vec<Vec<f64>> = case
+            .params
+            .get("points")
+            .and_then(serde_json::Value::as_array)
+            .expect("`points` param")
+            .iter()
+            .map(|row| {
+                row.as_array()
+                    .expect("point row is an array")
+                    .iter()
+                    .map(|v| v.as_f64().expect("coordinate is a number"))
+                    .collect()
+            })
+            .collect();
+
+        // `max_beta` is `null` for +∞ (JSON has no Infinity literal).
+        let max_beta = match case.params.get("max_beta") {
+            Some(serde_json::Value::Null) | None => f64::INFINITY,
+            Some(v) => v.as_f64().expect("`max_beta` is a number or null"),
+        };
+
+        // Expected weights: numbers, with `null` meaning +∞.
+        let exp = case.expected.as_object().expect("expected is an object");
+        let exp_weights: Vec<f64> = exp
+            .get("weights")
+            .and_then(serde_json::Value::as_array)
+            .expect("expected.weights")
+            .iter()
+            .map(|w| match w {
+                serde_json::Value::Null => f64::INFINITY,
+                other => other.as_f64().expect("weight is a number or null"),
+            })
+            .collect();
+
+        let res =
+            beta_weighted_gabriel_graph(&points, max_beta).expect("beta_weighted_gabriel_graph");
+        assert_eq!(
+            res.weights.len(),
+            res.graph.ecount() as usize,
+            "weight/edge count mismatch\n  fixture: {}\n  origin:  {}",
+            path.display(),
+            case.origin,
+        );
+
+        // Infinite-weight counts must agree.
+        let inf_actual = res.weights.iter().filter(|w| w.is_infinite()).count();
+        let inf_exp = exp_weights.iter().filter(|w| w.is_infinite()).count();
+        assert_eq!(
+            inf_actual,
+            inf_exp,
+            "infinite-weight count mismatch\n  fixture: {}\n  origin:  {}",
+            path.display(),
+            case.origin,
+        );
+
+        // Finite weights must match as a sorted multiset within tolerance. The
+        // golden values are printed to ~6 significant figures, so a 1e-4
+        // relative tolerance covers the rounding.
+        let mut actual: Vec<f64> = res
+            .weights
+            .iter()
+            .copied()
+            .filter(|w| w.is_finite())
+            .collect();
+        let mut golden: Vec<f64> = exp_weights
+            .iter()
+            .copied()
+            .filter(|w| w.is_finite())
+            .collect();
+        assert_eq!(
+            actual.len(),
+            golden.len(),
+            "finite-weight count mismatch\n  fixture: {}\n  origin:  {}",
+            path.display(),
+            case.origin,
+        );
+        actual.sort_by(|a, b| a.partial_cmp(b).expect("finite"));
+        golden.sort_by(|a, b| a.partial_cmp(b).expect("finite"));
+        for (x, y) in actual.iter().zip(golden.iter()) {
+            let tol = 1e-4 * y.abs().max(1.0);
+            assert!(
+                (x - y).abs() <= tol,
+                "weight mismatch: got {x}, expected {y} (tol {tol})\n  fixture: {}\n  origin:  {}",
+                path.display(),
+                case.origin,
+            );
+        }
+        seen_c += 1;
+    }
+
+    assert!(
+        seen_c > 0,
+        "no beta_weighted_gabriel_graph fixtures from source c"
+    );
+}
