@@ -929,6 +929,11 @@ name = "bench_astar"
 path = "benches/bench_astar.rs"
 harness = false
 
+[[bench]]
+name = "bench_all_sp_dijkstra"
+path = "benches/bench_all_sp_dijkstra.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 

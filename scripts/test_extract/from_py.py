@@ -2009,6 +2009,33 @@ ASTAR_PY_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ALL_SP_DIJKSTRA_PY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "all_sp_dij_py_diamond_equal",
+        "origin": "live py-igraph get_all_shortest_paths weighted diamond equal weights",
+        "graph_factory": lambda: ig.Graph(4, [(0, 1), (0, 2), (1, 3), (2, 3)], directed=False),
+        "source": 0,
+        "weights": [1.0, 1.0, 1.0, 1.0],
+        "directed": False,
+    },
+    {
+        "case": "all_sp_dij_py_diamond_asymmetric",
+        "origin": "live py-igraph get_all_shortest_paths weighted diamond asymmetric",
+        "graph_factory": lambda: ig.Graph(4, [(0, 1), (0, 2), (1, 3), (2, 3)], directed=False),
+        "source": 0,
+        "weights": [1.0, 10.0, 1.0, 1.0],
+        "directed": False,
+    },
+    {
+        "case": "all_sp_dij_py_directed_ring5",
+        "origin": "live py-igraph get_all_shortest_paths directed ring5",
+        "graph_factory": lambda: ig.Graph(5, [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)], directed=True),
+        "source": 0,
+        "weights": [1.0, 1.0, 1.0, 1.0, 1.0],
+        "directed": True,
+    },
+]
+
 CORENESS_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "coreness_with_mode_py_directed_3_cycle_in",
@@ -9789,6 +9816,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "assortativity_degree_directed_weighted": ASSORT_DIR_W_MANIFEST,
     "assortativity_values": ASSORT_VAL_MANIFEST,
     "get_shortest_path_astar": ASTAR_PY_MANIFEST,
+    "get_all_shortest_paths_dijkstra": ALL_SP_DIJKSTRA_PY_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
@@ -10228,6 +10256,31 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "normalized": normalized,
                 },
                 "expected": expected,
+            }
+        elif algo == "get_all_shortest_paths_dijkstra":
+            g = entry["graph_factory"]()
+            graph_payload = graph_to_payload(g)
+            source = int(entry["source"])
+            weights = entry.get("weights")
+            mode_str = "out" if entry.get("directed", False) else "all"
+            # nrgeo: count shortest paths to each vertex
+            nrgeo = []
+            for target in range(g.vcount()):
+                paths = g.get_all_shortest_paths(
+                    source, to=target, weights=weights, mode=mode_str,
+                )
+                nrgeo.append(len(paths))
+            payload = {
+                "source": "py",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": {
+                    "source": source,
+                    "weights": [float(x) for x in weights] if weights else None,
+                    "mode": mode_str,
+                },
+                "expected": nrgeo,
             }
         elif algo == "get_shortest_path_astar":
             g = entry["graph_factory"]()

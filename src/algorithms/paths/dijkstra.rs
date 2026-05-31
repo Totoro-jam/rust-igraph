@@ -75,7 +75,11 @@ pub enum DijkstraMode {
 
 /// Per-vertex mode-aware incident edges. For undirected graphs every
 /// mode collapses to [`Graph::incident`]'s merged adjacency.
-fn incident_for_mode(graph: &Graph, v: VertexId, mode: DijkstraMode) -> IgraphResult<Vec<EdgeId>> {
+pub(super) fn incident_for_mode(
+    graph: &Graph,
+    v: VertexId,
+    mode: DijkstraMode,
+) -> IgraphResult<Vec<EdgeId>> {
     if !graph.is_directed() {
         return graph.incident(v);
     }
@@ -92,7 +96,7 @@ fn incident_for_mode(graph: &Graph, v: VertexId, mode: DijkstraMode) -> IgraphRe
 
 /// Validate `weights`: length matches `graph.ecount()`, no negative,
 /// no NaN, no non-finite values. Shared by every public entry point.
-fn validate_weights(graph: &Graph, weights: &[f64]) -> IgraphResult<()> {
+pub(super) fn validate_weights(graph: &Graph, weights: &[f64]) -> IgraphResult<()> {
     let m = graph.ecount();
     if weights.len() != m {
         return Err(IgraphError::InvalidArgument(format!(

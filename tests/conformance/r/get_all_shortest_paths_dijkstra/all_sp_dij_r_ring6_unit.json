@@ -1,0 +1,56 @@
+{
+  "source": "r",
+  "origin": "rigraph shares igraph C core; ring(6) unit weights from vertex 0",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "get_all_shortest_paths_dijkstra",
+  "params": {
+    "source": 0,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "mode": "all"
+  },
+  "expected": [
+    1,
+    1,
+    1,
+    2,
+    1,
+    1
+  ]
+}

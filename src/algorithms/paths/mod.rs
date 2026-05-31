@@ -17,6 +17,7 @@ pub(crate) mod edge_path_to_vertex_path;
 pub(crate) mod eulerian;
 pub(crate) mod eulerian_construct;
 pub(crate) mod floyd_warshall;
+pub(crate) mod get_all_shortest_paths_dijkstra;
 pub(crate) mod get_shortest_path;
 pub(crate) mod get_shortest_path_astar;
 pub(crate) mod graph_center;
@@ -52,6 +53,10 @@ pub use edge_path_to_vertex_path::{WalkMode, vertex_path_from_edge_path};
 pub use eulerian::{EulerianClassification, is_eulerian};
 pub use eulerian_construct::{eulerian_cycle, eulerian_path};
 pub use floyd_warshall::floyd_warshall_distances;
+pub use get_all_shortest_paths_dijkstra::{
+    AllShortestPathsDijkstra, get_all_shortest_paths_dijkstra,
+    get_all_shortest_paths_dijkstra_with_mode,
+};
 pub use get_shortest_path::{ShortestPath, get_shortest_path};
 pub use get_shortest_path_astar::{AstarHeuristic, get_shortest_path_astar};
 pub use graph_center::{PseudoDiameterResult, graph_center, pseudo_diameter};

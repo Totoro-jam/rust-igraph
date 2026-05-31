@@ -3135,6 +3135,23 @@ ASTAR_C_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ALL_SP_DIJKSTRA_C_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "all_sp_dij_c_path5_weighted",
+        "origin": "constructed: path 0-1-2-3-4 weighted [1,2,3,4]",
+        "graph_factory": lambda: ig.Graph(5, [(0, 1), (1, 2), (2, 3), (3, 4)], directed=False),
+        "source": 0,
+        "weights": [1.0, 2.0, 3.0, 4.0],
+    },
+    {
+        "case": "all_sp_dij_c_zachary_unit",
+        "origin": "Famous('Zachary') unit weights from vertex 0",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "source": 0,
+        "weights": None,
+    },
+]
+
 DENSITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "density_c_zachary",
@@ -12849,6 +12866,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "assortativity_degree_directed_weighted": ASSORT_DIR_W_MANIFEST,
     "assortativity_values": ASSORT_VAL_MANIFEST,
     "get_shortest_path_astar": ASTAR_C_MANIFEST,
+    "get_all_shortest_paths_dijkstra": ALL_SP_DIJKSTRA_C_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
@@ -13265,6 +13283,33 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "normalized": normalized,
                 },
                 "expected": expected,
+            }
+        elif algo == "get_all_shortest_paths_dijkstra":
+            g = entry["graph_factory"]()
+            graph_payload = graph_to_payload(g)
+            source = int(entry["source"])
+            weights_raw = entry.get("weights")
+            if weights_raw is None:
+                weights = [1.0] * g.ecount()
+            else:
+                weights = [float(x) for x in weights_raw]
+            nrgeo = []
+            for target in range(g.vcount()):
+                paths = g.get_all_shortest_paths(
+                    source, to=target, weights=weights, mode="all"
+                )
+                nrgeo.append(len(paths))
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": {
+                    "source": source,
+                    "weights": weights,
+                    "mode": "all",
+                },
+                "expected": nrgeo,
             }
         elif algo == "get_shortest_path_astar":
             g = entry["graph_factory"]()

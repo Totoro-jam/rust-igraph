@@ -358,6 +358,10 @@ pub use crate::algorithms::paths::edge_path_to_vertex_path::{
 pub use crate::algorithms::paths::eulerian::{EulerianClassification, is_eulerian};
 pub use crate::algorithms::paths::eulerian_construct::{eulerian_cycle, eulerian_path};
 pub use crate::algorithms::paths::floyd_warshall::floyd_warshall_distances;
+pub use crate::algorithms::paths::get_all_shortest_paths_dijkstra::{
+    AllShortestPathsDijkstra, get_all_shortest_paths_dijkstra,
+    get_all_shortest_paths_dijkstra_with_mode,
+};
 pub use crate::algorithms::paths::get_shortest_path::{ShortestPath, get_shortest_path};
 pub use crate::algorithms::paths::get_shortest_path_astar::{
     AstarHeuristic, get_shortest_path_astar,

@@ -1,0 +1,45 @@
+{
+  "source": "c",
+  "origin": "constructed: path 0-1-2-3-4 weighted [1,2,3,4]",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "get_all_shortest_paths_dijkstra",
+  "params": {
+    "source": 0,
+    "weights": [
+      1.0,
+      2.0,
+      3.0,
+      4.0
+    ],
+    "mode": "all"
+  },
+  "expected": [
+    1,
+    1,
+    1,
+    1,
+    1
+  ]
+}
