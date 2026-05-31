@@ -3114,6 +3114,27 @@ ASSORT_VAL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ASTAR_C_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "astar_c_singleton",
+        "origin": "authentic igraph_get_shortest_path_astar.c singleton (from=to=0)",
+        "graph_factory": lambda: ig.Graph(1, [], directed=False),
+        "from": 0,
+        "to": 0,
+        "weights": None,
+        "mode": "all",
+    },
+    {
+        "case": "astar_c_ring10_unweighted",
+        "origin": "authentic igraph_get_shortest_path_astar.c ring(10) unweighted null heuristic, .out line 4: 0 1 2 3 4 5 → cost 5",
+        "graph_factory": lambda: ig.Graph.Ring(10),
+        "from": 0,
+        "to": 5,
+        "weights": None,
+        "mode": "all",
+    },
+]
+
 DENSITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "density_c_zachary",
@@ -12827,6 +12848,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "assortativity_degree_weighted": ASSORT_W_MANIFEST,
     "assortativity_degree_directed_weighted": ASSORT_DIR_W_MANIFEST,
     "assortativity_values": ASSORT_VAL_MANIFEST,
+    "get_shortest_path_astar": ASTAR_C_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
@@ -13241,6 +13263,46 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "weights": None,
                     "directed": directed,
                     "normalized": normalized,
+                },
+                "expected": expected,
+            }
+        elif algo == "get_shortest_path_astar":
+            g = entry["graph_factory"]()
+            graph_payload = graph_to_payload(g)
+            fr = int(entry["from"])
+            to = int(entry["to"])
+            weights = entry.get("weights")
+            mode_str = entry.get("mode", "all")
+            vpath = g.get_shortest_path_astar(
+                fr, to=to, weights=weights,
+                heuristics=lambda _g, _v, _t: 0,
+                mode=mode_str,
+            )
+            if len(vpath) == 0:
+                expected = None
+            elif len(vpath) == 1:
+                expected = 0.0
+            else:
+                epath = g.get_shortest_path_astar(
+                    fr, to=to, weights=weights,
+                    heuristics=lambda _g, _v, _t: 0,
+                    mode=mode_str,
+                    output="epath",
+                )
+                if weights is not None:
+                    expected = float(sum(weights[e] for e in epath))
+                else:
+                    expected = float(len(epath))
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": {
+                    "from": fr,
+                    "to": to,
+                    "weights": [float(x) for x in weights] if weights else None,
+                    "mode": mode_str,
                 },
                 "expected": expected,
             }

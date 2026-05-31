@@ -1,0 +1,18 @@
+{
+  "source": "c",
+  "origin": "authentic igraph_get_shortest_path_astar.c singleton (from=to=0)",
+  "graph": {
+    "n": 1,
+    "edges": [],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "get_shortest_path_astar",
+  "params": {
+    "from": 0,
+    "to": 0,
+    "weights": null,
+    "mode": "all"
+  },
+  "expected": 0.0
+}

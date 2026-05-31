@@ -1,0 +1,59 @@
+{
+  "source": "c",
+  "origin": "authentic igraph_get_shortest_path_astar.c ring(10) unweighted null heuristic, .out line 4: 0 1 2 3 4 5 \u2192 cost 5",
+  "graph": {
+    "n": 10,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        0,
+        9
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "get_shortest_path_astar",
+  "params": {
+    "from": 0,
+    "to": 5,
+    "weights": null,
+    "mode": "all"
+  },
+  "expected": 5.0
+}

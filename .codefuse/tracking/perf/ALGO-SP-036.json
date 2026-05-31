@@ -1,0 +1,28 @@
+{
+  "algo": "ALGO-SP-036",
+  "name": "get_shortest_path_astar (A* single-pair shortest path)",
+  "date": "2026-05-31",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "astar/karate 0→33 null heuristic",
+      "sizes": ["34v 78e"],
+      "median_ns": [1409.1],
+      "note": "Zachary karate club, from=0 to=33, null heuristic (Dijkstra). Lazy-deletion binary heap A*, O(E log V)."
+    },
+    {
+      "group": "astar/ring-1000 0→500 null heuristic",
+      "sizes": ["1000v 1000e"],
+      "median_ns": [39733.0],
+      "note": "1000-vertex ring, diametrically opposite endpoints (0→500). Null heuristic explores all reachable vertices before finding optimal 500-hop path."
+    },
+    {
+      "group": "astar/ring-1000 0→500 admissible heuristic",
+      "sizes": ["1000v 1000e"],
+      "median_ns": [39616.0],
+      "note": "Same ring with admissible heuristic h(v)=min(|v-to|, 1000-|v-to|). Ring topology defeats A* pruning since the heuristic cannot distinguish the two equi-length paths."
+    }
+  ],
+  "status": "baseline_created"
+}

@@ -1,0 +1,27 @@
+{
+  "source": "py",
+  "origin": "live py-igraph get_shortest_path_astar directed unreachable",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "get_shortest_path_astar",
+  "params": {
+    "from": 2,
+    "to": 0,
+    "weights": null,
+    "mode": "out"
+  },
+  "expected": null
+}

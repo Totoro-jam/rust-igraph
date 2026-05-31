@@ -3073,6 +3073,27 @@ ASSORT_VAL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ASTAR_R_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "astar_R_zachary_unweighted",
+        "origin": "rigraph shares igraph C core; computed live via py-igraph get_shortest_path_astar (null heuristic)",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "from": 0,
+        "to": 33,
+        "weights": None,
+        "mode": "all",
+    },
+    {
+        "case": "astar_R_ring5_weighted",
+        "origin": "rigraph shares igraph C core; computed live via py-igraph (null heuristic)",
+        "graph_factory": lambda: ig.Graph.Ring(5),
+        "from": 0,
+        "to": 3,
+        "weights": [1.0, 2.0, 3.0, 1.0, 1.0],
+        "mode": "all",
+    },
+]
+
 DENSITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "density_R_path_3",
@@ -9846,6 +9867,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "assortativity_degree_weighted": ASSORT_W_MANIFEST,
     "assortativity_degree_directed_weighted": ASSORT_DIR_W_MANIFEST,
     "assortativity_values": ASSORT_VAL_MANIFEST,
+    "get_shortest_path_astar": ASTAR_R_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
@@ -10181,6 +10203,46 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "weights": None,
                     "directed": directed,
                     "normalized": normalized,
+                },
+                "expected": expected,
+            }
+        elif algo == "get_shortest_path_astar":
+            g = entry["graph_factory"]()
+            graph_payload = graph_to_payload(g)
+            fr = int(entry["from"])
+            to = int(entry["to"])
+            weights = entry.get("weights")
+            mode_str = entry.get("mode", "all")
+            vpath = g.get_shortest_path_astar(
+                fr, to=to, weights=weights,
+                heuristics=lambda _g, _v, _t: 0,
+                mode=mode_str,
+            )
+            if len(vpath) == 0:
+                expected = None
+            elif len(vpath) == 1:
+                expected = 0.0
+            else:
+                epath = g.get_shortest_path_astar(
+                    fr, to=to, weights=weights,
+                    heuristics=lambda _g, _v, _t: 0,
+                    mode=mode_str,
+                    output="epath",
+                )
+                if weights is not None:
+                    expected = float(sum(weights[e] for e in epath))
+                else:
+                    expected = float(len(epath))
+            payload = {
+                "source": "r",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": {
+                    "from": fr,
+                    "to": to,
+                    "weights": [float(x) for x in weights] if weights else None,
+                    "mode": mode_str,
                 },
                 "expected": expected,
             }

@@ -1976,6 +1976,39 @@ ASSORT_VAL_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+ASTAR_PY_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "astar_py_path4_unweighted",
+        "origin": "live py-igraph get_shortest_path_astar (null heuristic → Dijkstra)",
+        "graph_factory": lambda: ig.Graph(4, [(0, 1), (1, 2), (2, 3)], directed=False),
+        "from": 0,
+        "to": 3,
+        "weights": None,
+        "mode": "all",
+        "directed": False,
+    },
+    {
+        "case": "astar_py_path4_weighted",
+        "origin": "live py-igraph get_shortest_path_astar weighted (null heuristic → Dijkstra)",
+        "graph_factory": lambda: ig.Graph(4, [(0, 1), (1, 2), (2, 3), (0, 3)], directed=False),
+        "from": 0,
+        "to": 3,
+        "weights": [1.0, 1.0, 1.0, 10.0],
+        "mode": "all",
+        "directed": False,
+    },
+    {
+        "case": "astar_py_directed_unreachable",
+        "origin": "live py-igraph get_shortest_path_astar directed unreachable",
+        "graph_factory": lambda: ig.Graph(3, [(0, 1), (1, 2)], directed=True),
+        "from": 2,
+        "to": 0,
+        "weights": None,
+        "mode": "out",
+        "directed": True,
+    },
+]
+
 CORENESS_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "coreness_with_mode_py_directed_3_cycle_in",
@@ -9755,6 +9788,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "assortativity_degree_weighted": ASSORT_W_MANIFEST,
     "assortativity_degree_directed_weighted": ASSORT_DIR_W_MANIFEST,
     "assortativity_values": ASSORT_VAL_MANIFEST,
+    "get_shortest_path_astar": ASTAR_PY_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
@@ -10192,6 +10226,47 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "weights": None,
                     "directed": directed,
                     "normalized": normalized,
+                },
+                "expected": expected,
+            }
+        elif algo == "get_shortest_path_astar":
+            g = entry["graph_factory"]()
+            graph_payload = graph_to_payload(g)
+            fr = int(entry["from"])
+            to = int(entry["to"])
+            weights = entry.get("weights")
+            mode_str = entry.get("mode", "all")
+            # null heuristic → A* degenerates to Dijkstra
+            vpath = g.get_shortest_path_astar(
+                fr, to=to, weights=weights,
+                heuristics=lambda _g, _v, _t: 0,
+                mode=mode_str,
+            )
+            if len(vpath) == 0:
+                expected = None  # unreachable
+            elif len(vpath) == 1:
+                expected = 0.0  # from == to
+            else:
+                epath = g.get_shortest_path_astar(
+                    fr, to=to, weights=weights,
+                    heuristics=lambda _g, _v, _t: 0,
+                    mode=mode_str,
+                    output="epath",
+                )
+                if weights is not None:
+                    expected = float(sum(weights[e] for e in epath))
+                else:
+                    expected = float(len(epath))
+            payload = {
+                "source": "py",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": {
+                    "from": fr,
+                    "to": to,
+                    "weights": [float(x) for x in weights] if weights else None,
+                    "mode": mode_str,
                 },
                 "expected": expected,
             }

@@ -539,6 +539,43 @@ fn assortativity_values_three_source_conformance() {
 }
 
 #[test]
+fn get_shortest_path_astar_three_source_conformance() {
+    // ALGO-SP-036: A* shortest path. Conformance compares path COST (sum of
+    // edge weights or hop count), which is implementation-independent even
+    // when tie-breaking differs. Null = unreachable.
+    use rust_igraph::{DijkstraMode, get_shortest_path_astar};
+    run_conformance("get_shortest_path_astar", |g, params| {
+        #[allow(clippy::cast_possible_truncation)]
+        let from = params["from"].as_u64().expect("from") as u32;
+        #[allow(clippy::cast_possible_truncation)]
+        let to = params["to"].as_u64().expect("to") as u32;
+        let weights: Option<Vec<f64>> = params
+            .get("weights")
+            .and_then(serde_json::Value::as_array)
+            .map(|a| a.iter().map(|v| v.as_f64().expect("weight f64")).collect());
+        let mode = match params.get("mode").and_then(|v| v.as_str()).unwrap_or("all") {
+            "out" => DijkstraMode::Out,
+            "in" => DijkstraMode::In,
+            _ => DijkstraMode::All,
+        };
+        let path = get_shortest_path_astar(g, from, to, weights.as_deref(), mode, None)
+            .expect("get_shortest_path_astar");
+        if path.vertices.is_empty() {
+            return serde_json::Value::Null;
+        }
+        if path.edges.is_empty() {
+            return serde_json::json!(0.0);
+        }
+        let cost: f64 = match &weights {
+            Some(w) => path.edges.iter().map(|&e| w[e as usize]).sum(),
+            #[allow(clippy::cast_precision_loss)]
+            None => path.edges.len() as f64,
+        };
+        serde_json::json!(cost)
+    });
+}
+
+#[test]
 fn coreness_with_mode_three_source_conformance() {
     use rust_igraph::CorenessMode;
     run_conformance("coreness_with_mode", |g, params| {

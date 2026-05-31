@@ -1,0 +1,31 @@
+{
+  "source": "py",
+  "origin": "live py-igraph get_shortest_path_astar (null heuristic \u2192 Dijkstra)",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "get_shortest_path_astar",
+  "params": {
+    "from": 0,
+    "to": 3,
+    "weights": null,
+    "mode": "all"
+  },
+  "expected": 3.0
+}
