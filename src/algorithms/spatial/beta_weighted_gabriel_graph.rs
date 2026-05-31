@@ -100,6 +100,7 @@ pub struct BetaWeightedGabriel {
 /// ```
 // Single-character names (`a`, `b`, `c` points, `d` axis) are natural here.
 #[allow(clippy::many_single_char_names)]
+#[allow(clippy::similar_names)]
 pub fn beta_weighted_gabriel_graph(
     points: &[Vec<f64>],
     max_beta: f64,

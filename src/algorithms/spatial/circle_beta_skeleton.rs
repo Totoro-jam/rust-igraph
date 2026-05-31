@@ -72,6 +72,7 @@ const TOLERANCE: f64 = 128.0 * f64::EPSILON;
 // Single-character names (`a`, `b`, `c` for the three points) are the natural
 // geometric notation here.
 #[allow(clippy::many_single_char_names)]
+#[allow(clippy::similar_names)]
 pub fn circle_beta_skeleton(points: &[Vec<f64>], beta: f64) -> IgraphResult<Graph> {
     if !beta.is_finite() || beta <= 0.0 {
         return Err(IgraphError::InvalidArgument(format!(
