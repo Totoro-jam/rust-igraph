@@ -366,6 +366,9 @@ pub use crate::algorithms::paths::get_shortest_path::{ShortestPath, get_shortest
 pub use crate::algorithms::paths::get_shortest_path_astar::{
     AstarHeuristic, get_shortest_path_astar,
 };
+pub use crate::algorithms::paths::get_shortest_paths_dijkstra::{
+    ShortestPathsDijkstra, get_shortest_paths_dijkstra, get_shortest_paths_dijkstra_with_mode,
+};
 pub use crate::algorithms::paths::graph_center::{
     PseudoDiameterResult, graph_center, pseudo_diameter,
 };

@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "rigraph shares igraph C core; triangle with nonuniform weights",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "get_shortest_paths_dijkstra",
+  "params": {
+    "source": 0,
+    "weights": [
+      1.0,
+      4.0,
+      2.0
+    ],
+    "mode": "all"
+  },
+  "expected": [
+    0.0,
+    1.0,
+    3.0
+  ]
+}

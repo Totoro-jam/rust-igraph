@@ -20,6 +20,7 @@ pub(crate) mod floyd_warshall;
 pub(crate) mod get_all_shortest_paths_dijkstra;
 pub(crate) mod get_shortest_path;
 pub(crate) mod get_shortest_path_astar;
+pub(crate) mod get_shortest_paths_dijkstra;
 pub(crate) mod graph_center;
 pub(crate) mod histogram;
 pub(crate) mod johnson;
@@ -59,6 +60,9 @@ pub use get_all_shortest_paths_dijkstra::{
 };
 pub use get_shortest_path::{ShortestPath, get_shortest_path};
 pub use get_shortest_path_astar::{AstarHeuristic, get_shortest_path_astar};
+pub use get_shortest_paths_dijkstra::{
+    ShortestPathsDijkstra, get_shortest_paths_dijkstra, get_shortest_paths_dijkstra_with_mode,
+};
 pub use graph_center::{PseudoDiameterResult, graph_center, pseudo_diameter};
 pub use histogram::{PathLengthHistResult, path_length_hist};
 pub use k_shortest_paths::{KShortestPath, k_shortest_paths};

@@ -1,0 +1,44 @@
+{
+  "source": "py",
+  "origin": "live py-igraph get_shortest_paths weighted diamond shortcut",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "get_shortest_paths_dijkstra",
+  "params": {
+    "source": 0,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      10.0
+    ],
+    "mode": "all"
+  },
+  "expected": [
+    0.0,
+    1.0,
+    2.0,
+    3.0
+  ]
+}

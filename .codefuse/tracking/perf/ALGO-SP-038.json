@@ -1,0 +1,18 @@
+{
+  "algo": "ALGO-SP-038",
+  "name": "get_shortest_paths_dijkstra",
+  "date": "2026-05-31",
+  "system": "Apple M-series (arm64), macOS",
+  "benchmarks": [
+    {
+      "label": "sp_dij/karate unit weights from 0 (34v 78e)",
+      "mean_us": 3.723,
+      "iterations": 1300000
+    },
+    {
+      "label": "sp_dij/ring-500 from 0 unit weights",
+      "mean_us": 411.0,
+      "iterations": 15000
+    }
+  ]
+}

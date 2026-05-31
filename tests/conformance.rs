@@ -598,6 +598,39 @@ fn get_all_shortest_paths_dijkstra_three_source_conformance() {
 }
 
 #[test]
+fn get_shortest_paths_dijkstra_three_source_conformance() {
+    use rust_igraph::get_shortest_paths_dijkstra;
+    run_conformance("get_shortest_paths_dijkstra", |g, params| {
+        #[allow(clippy::cast_possible_truncation)]
+        let source = params["source"].as_u64().expect("source") as u32;
+        let weights: Vec<f64> = params["weights"]
+            .as_array()
+            .expect("weights array")
+            .iter()
+            .map(|v| v.as_f64().expect("weight f64"))
+            .collect();
+        let result =
+            get_shortest_paths_dijkstra(g, source, &weights).expect("get_shortest_paths_dijkstra");
+        let path_costs: Vec<serde_json::Value> = result
+            .vertex_paths
+            .iter()
+            .zip(result.edge_paths.iter())
+            .map(|(vp, ep)| {
+                if vp.is_empty() {
+                    serde_json::Value::Null
+                } else if ep.is_empty() {
+                    serde_json::json!(0.0)
+                } else {
+                    let cost: f64 = ep.iter().map(|&e| weights[e as usize]).sum();
+                    serde_json::json!(cost)
+                }
+            })
+            .collect();
+        serde_json::json!(path_costs)
+    });
+}
+
+#[test]
 fn coreness_with_mode_three_source_conformance() {
     use rust_igraph::CorenessMode;
     run_conformance("coreness_with_mode", |g, params| {
