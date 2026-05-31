@@ -45,6 +45,7 @@ use crate::core::{IgraphError, IgraphResult};
 #[allow(
     clippy::cast_precision_loss,
     clippy::needless_range_loop,
+    unknown_lints,
     clippy::manual_midpoint
 )]
 pub fn dim_select(sv: &[f64]) -> IgraphResult<usize> {

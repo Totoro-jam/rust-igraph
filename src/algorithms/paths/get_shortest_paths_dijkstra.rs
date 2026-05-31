@@ -114,7 +114,7 @@ fn build_all_paths(graph: &Graph, source: VertexId, dp: &DijkstraPaths) -> Short
             if let Some(eid) = dp.inbound_edges[cur as usize] {
                 es.push(eid);
             }
-            match dp.parents[cur as usize] {
+            match dp.parents.get(cur as usize).copied().flatten() {
                 Some(p) => cur = p,
                 None => break,
             }
