@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-GEO-009",
+  "name": "delaunay_graph (Bowyer-Watson 2D Delaunay triangulation)",
+  "date": "2026-05-31",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "delaunay/point_count",
+      "sizes": ["20", "100", "500"],
+      "median_ns": [51307, 1234600, 31884000],
+      "note": "Pseudo-random scatter in [0,1]². O(n²) Bowyer-Watson; 20-point case includes O(n³) circumradius enumeration for super-triangle sizing."
+    },
+    {
+      "group": "delaunay/near_collinear",
+      "sizes": ["10", "50", "200"],
+      "median_ns": [2572, 13260, 104810],
+      "note": "Near-collinear points (high aspect ratio). Collinear-path fast-path kicks in for n≤20; larger sets use Bowyer-Watson with adaptive super-triangle."
+    }
+  ],
+  "status": "baseline_created"
+}

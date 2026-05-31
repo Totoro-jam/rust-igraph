@@ -535,6 +535,7 @@ pub use crate::algorithms::spatial::beta_weighted_gabriel_graph::{
 };
 pub use crate::algorithms::spatial::circle_beta_skeleton::circle_beta_skeleton;
 pub use crate::algorithms::spatial::convex_hull::{ConvexHullResult, convex_hull_2d};
+pub use crate::algorithms::spatial::delaunay::delaunay_graph;
 pub use crate::algorithms::spatial::edge_lengths::{DistanceMetric, spatial_edge_lengths};
 pub use crate::algorithms::spatial::gabriel_graph::gabriel_graph;
 pub use crate::algorithms::spatial::lune_beta_skeleton::lune_beta_skeleton;

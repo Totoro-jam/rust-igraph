@@ -920,6 +920,11 @@ path = "benches/bench_beta_weighted_gabriel_graph.rs"
 harness = false
 
 [[bench]]
+name = "bench_delaunay"
+path = "benches/bench_delaunay.rs"
+harness = false
+
+[[bench]]
 name = "bench_assortativity_values"
 path = "benches/bench_assortativity_values.rs"
 harness = false

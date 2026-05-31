@@ -3,6 +3,7 @@
 pub(crate) mod beta_weighted_gabriel_graph;
 pub(crate) mod circle_beta_skeleton;
 pub(crate) mod convex_hull;
+pub(crate) mod delaunay;
 pub(crate) mod edge_lengths;
 pub(crate) mod gabriel_graph;
 pub(crate) mod lune_beta_skeleton;
@@ -12,6 +13,7 @@ pub(crate) mod relative_neighborhood_graph;
 pub use beta_weighted_gabriel_graph::{BetaWeightedGabriel, beta_weighted_gabriel_graph};
 pub use circle_beta_skeleton::circle_beta_skeleton;
 pub use convex_hull::{ConvexHullResult, convex_hull_2d};
+pub use delaunay::delaunay_graph;
 pub use edge_lengths::{DistanceMetric, spatial_edge_lengths};
 pub use gabriel_graph::gabriel_graph;
 pub use lune_beta_skeleton::lune_beta_skeleton;
