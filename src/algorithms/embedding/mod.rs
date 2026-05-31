@@ -1,6 +1,6 @@
 //! Spectral-embedding utilities.
 //!
-//! The first member of this module is [`dim_select`], the Zhu–Ghodsi
+//! The first member of this module is [`dim_select()`], the Zhu–Ghodsi
 //! profile-likelihood dimensionality selector used to pick the number of
 //! significant singular values for spectral embeddings.
 
