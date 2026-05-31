@@ -3086,6 +3086,34 @@ ASSORT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-067: generic value-based assortativity. The authentic C case is
+# `tests/unit/assortativity.c`, which runs Famous("Zachary") with
+# values = range(0, vcount) and prints 0.448049 (normalized) / 69.3478
+# (unnormalized) in `assortativity.out`. Expected is reproduced full-
+# precision via python-igraph 0.11.9 (the same C core) and cross-checked
+# against the 6-digit `.out` prints. The C API has no Python-visible
+# weight argument; fixtures are unweighted.
+ASSORT_VAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assortativity_values_c_zachary_norm",
+        "origin": "tests/unit/assortativity.c — Famous('Zachary'), values=range(0,34), normalized; .out 0.448049 (full precision via python-igraph 0.11.9, same C core)",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "values": list(range(34)),
+        "values_in": None,
+        "directed": False,
+        "normalized": True,
+    },
+    {
+        "case": "assortativity_values_c_zachary_unnorm",
+        "origin": "tests/unit/assortativity.c — Famous('Zachary'), values=range(0,34), unnormalized; .out 69.3478 (full precision via python-igraph 0.11.9, same C core)",
+        "graph_factory": lambda: ig.Graph.Famous("Zachary"),
+        "values": list(range(34)),
+        "values_in": None,
+        "directed": False,
+        "normalized": False,
+    },
+]
+
 DENSITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "density_c_zachary",
@@ -12798,6 +12826,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "pagerank_weighted": PAGERANK_W_MANIFEST,
     "assortativity_degree_weighted": ASSORT_W_MANIFEST,
     "assortativity_degree_directed_weighted": ASSORT_DIR_W_MANIFEST,
+    "assortativity_values": ASSORT_VAL_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
@@ -13184,6 +13213,36 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 "algo": algo,
                 "params": entry["params"],
                 "expected": entry["expected"],
+            }
+        elif algo == "assortativity_values":
+            g = entry["graph_factory"]()
+            graph_payload = graph_to_payload(g)
+            values = [float(x) for x in entry["values"]]
+            values_in = (
+                [float(x) for x in entry["values_in"]]
+                if entry.get("values_in") is not None
+                else None
+            )
+            directed = bool(entry.get("directed", False))
+            normalized = bool(entry.get("normalized", True))
+            r = g.assortativity(
+                values, values_in, directed=directed, normalized=normalized
+            )
+            # python-igraph (the C core) returns NaN when undefined.
+            expected = None if (r is None or r != r) else float(r)
+            payload = {
+                "source": "c",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": {
+                    "values": values,
+                    "values_in": values_in,
+                    "weights": None,
+                    "directed": directed,
+                    "normalized": normalized,
+                },
+                "expected": expected,
             }
         else:
             g: ig.Graph = entry["graph_factory"]()

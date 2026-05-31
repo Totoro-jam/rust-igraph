@@ -1932,6 +1932,50 @@ ASSORT_DIR_W_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-067: generic value-based assortativity. python-igraph's
+# `Graph.assortativity(types1, types2=None, directed=, normalized=)`
+# is the live oracle (the C core); it has no edge-weight argument, so
+# every extracted fixture is unweighted (weights=None). Weighted
+# coverage stays in the Rust unit tests, matching the
+# `assortativity_degree_weighted` sibling convention.
+ASSORT_VAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assortativity_values_py_path5_norm",
+        "origin": "constructed: undirected 5-path, values [3,1,4,1,5], normalized — live python-igraph 0.11.9 Graph.assortativity",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "values": [3.0, 1.0, 4.0, 1.0, 5.0],
+        "values_in": None,
+        "directed": False,
+        "normalized": True,
+    },
+    {
+        "case": "assortativity_values_py_path5_unnorm",
+        "origin": "constructed: undirected 5-path, values [3,1,4,1,5], unnormalized — live python-igraph 0.11.9 Graph.assortativity",
+        "graph_factory": lambda: ig.Graph(
+            n=5, edges=[(0, 1), (1, 2), (2, 3), (3, 4)], directed=False
+        ),
+        "values": [3.0, 1.0, 4.0, 1.0, 5.0],
+        "values_in": None,
+        "directed": False,
+        "normalized": False,
+    },
+    {
+        "case": "assortativity_values_py_directed_hub",
+        "origin": "constructed: directed hub, source values [1..5], target values_in [5..1], normalized — live python-igraph 0.11.9 Graph.assortativity",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 3), (2, 3), (4, 3)],
+            directed=True,
+        ),
+        "values": [1.0, 2.0, 3.0, 4.0, 5.0],
+        "values_in": [5.0, 4.0, 3.0, 2.0, 1.0],
+        "directed": True,
+        "normalized": True,
+    },
+]
+
 CORENESS_MODE_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "coreness_with_mode_py_directed_3_cycle_in",
@@ -9710,6 +9754,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "pagerank_weighted": PAGERANK_W_MANIFEST,
     "assortativity_degree_weighted": ASSORT_W_MANIFEST,
     "assortativity_degree_directed_weighted": ASSORT_DIR_W_MANIFEST,
+    "assortativity_values": ASSORT_VAL_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
@@ -10117,6 +10162,36 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                     "other": pat,
                     "induced": induced,
                     "domains": domains,
+                },
+                "expected": expected,
+            }
+        elif algo == "assortativity_values":
+            g = entry["graph_factory"]()
+            graph_payload = graph_to_payload(g)
+            values = [float(x) for x in entry["values"]]
+            values_in = (
+                [float(x) for x in entry["values_in"]]
+                if entry.get("values_in") is not None
+                else None
+            )
+            directed = bool(entry.get("directed", False))
+            normalized = bool(entry.get("normalized", True))
+            r = g.assortativity(
+                values, values_in, directed=directed, normalized=normalized
+            )
+            # python-igraph returns NaN when the coefficient is undefined.
+            expected = None if (r is None or r != r) else float(r)
+            payload = {
+                "source": "py",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": {
+                    "values": values,
+                    "values_in": values_in,
+                    "weights": None,
+                    "directed": directed,
+                    "normalized": normalized,
                 },
                 "expected": expected,
             }

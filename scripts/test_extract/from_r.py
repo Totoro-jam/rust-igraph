@@ -3040,6 +3040,39 @@ ASSORT_MANIFEST: List[Dict[str, Any]] = [
     },
 ]
 
+# ALGO-PR-067: generic value-based assortativity. rigraph's
+# `assortativity(graph, values, ..., values.in=NULL, directed=, normalized=)`
+# shares the igraph C core, so the coefficient is identical to the value
+# computed live via python-igraph here (Rscript is unavailable in this
+# environment). The R API has no edge-weight argument; fixtures are
+# unweighted, mirroring the R-style path/directed smoke cases.
+ASSORT_VAL_MANIFEST: List[Dict[str, Any]] = [
+    {
+        "case": "assortativity_values_R_path3_norm",
+        "origin": "test-aaa-auto.R-style — assortativity(path_graph(3), values=c(1,2,1)); same C core, value via python-igraph 0.11.9",
+        "graph_factory": lambda: ig.Graph(
+            n=3, edges=[(0, 1), (1, 2)], directed=False
+        ),
+        "values": [1.0, 2.0, 1.0],
+        "values_in": None,
+        "directed": False,
+        "normalized": True,
+    },
+    {
+        "case": "assortativity_values_R_directed_hub_reuse",
+        "origin": "test-aaa-auto.R-style — assortativity(directed hub, values=1:5, values.in=NULL); reuses values for both endpoints; same C core, value via python-igraph 0.11.9",
+        "graph_factory": lambda: ig.Graph(
+            n=5,
+            edges=[(0, 1), (0, 2), (0, 3), (1, 3), (2, 3), (4, 3)],
+            directed=True,
+        ),
+        "values": [1.0, 2.0, 3.0, 4.0, 5.0],
+        "values_in": None,
+        "directed": True,
+        "normalized": True,
+    },
+]
+
 DENSITY_MANIFEST: List[Dict[str, Any]] = [
     {
         "case": "density_R_path_3",
@@ -9812,6 +9845,7 @@ ALGO_MANIFESTS: Dict[str, List[Dict[str, Any]]] = {
     "pagerank_weighted": PAGERANK_W_MANIFEST,
     "assortativity_degree_weighted": ASSORT_W_MANIFEST,
     "assortativity_degree_directed_weighted": ASSORT_DIR_W_MANIFEST,
+    "assortativity_values": ASSORT_VAL_MANIFEST,
     "closeness": CLOSE_MANIFEST,
     "harmonic_centrality": HARMONIC_MANIFEST,
     "betweenness": BETW_MANIFEST,
@@ -10119,6 +10153,36 @@ def emit(algo: str, manifest: List[Dict[str, Any]]) -> int:
                 "algo": algo,
                 "params": entry["params"],
                 "expected": entry["expected"],
+            }
+        elif algo == "assortativity_values":
+            g = entry["graph_factory"]()
+            graph_payload = graph_to_payload(g)
+            values = [float(x) for x in entry["values"]]
+            values_in = (
+                [float(x) for x in entry["values_in"]]
+                if entry.get("values_in") is not None
+                else None
+            )
+            directed = bool(entry.get("directed", False))
+            normalized = bool(entry.get("normalized", True))
+            r = g.assortativity(
+                values, values_in, directed=directed, normalized=normalized
+            )
+            # rigraph shares the C core; NaN encodes the undefined case.
+            expected = None if (r is None or r != r) else float(r)
+            payload = {
+                "source": "r",
+                "origin": entry["origin"],
+                "graph": graph_payload,
+                "algo": algo,
+                "params": {
+                    "values": values,
+                    "values_in": values_in,
+                    "weights": None,
+                    "directed": directed,
+                    "normalized": normalized,
+                },
+                "expected": expected,
             }
         else:
             g: ig.Graph = entry["graph_factory"]()

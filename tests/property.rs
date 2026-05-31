@@ -4955,3 +4955,61 @@ proptest! {
         }
     }
 }
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(200))]
+
+    /// Value-based assortativity (ALGO-PR-067) with `values` set to each
+    /// vertex's degree must reproduce `assortativity_degree` on undirected
+    /// graphs (the degree case is a special case of the generic formula).
+    #[test]
+    fn assortativity_values_with_degrees_match_degree_assortativity(g in arb_graph(8)) {
+        if g.is_directed() { return Ok(()); }
+        let n = g.vcount();
+        let values: Vec<f64> = (0..n)
+            .map(|v| g.degree(v).unwrap() as f64)
+            .collect();
+        let a = rust_igraph::assortativity(&g, &values, None, None, false, true).unwrap();
+        let b = rust_igraph::assortativity_degree(&g).unwrap();
+        match (a, b) {
+            (Some(x), Some(y)) => {
+                prop_assert!((x - y).abs() < 1e-9, "value-based={} degree={}", x, y);
+            }
+            (None, None) => {}
+            (a, b) => prop_assert!(false, "value-based={:?} degree={:?}", a, b),
+        }
+    }
+
+    /// Normalized value-based assortativity is bounded in [-1, 1] when
+    /// defined.
+    #[test]
+    fn assortativity_values_in_minus_one_to_one(g in arb_graph(8)) {
+        if g.is_directed() { return Ok(()); }
+        let n = g.vcount();
+        // Use the vertex index as the value (an arbitrary distinct value).
+        let values: Vec<f64> = (0..n).map(f64::from).collect();
+        if let Some(r) = rust_igraph::assortativity(&g, &values, None, None, false, true).unwrap() {
+            prop_assert!(r.abs() <= 1.0 + 1e-9, "assortativity {r} outside [-1, 1]");
+        }
+    }
+
+    /// Normalized assortativity is invariant under a positive affine
+    /// transformation of the vertex values (`a*x + b`, `a > 0`): the
+    /// Pearson-style coefficient does not depend on the scale or offset.
+    #[test]
+    fn assortativity_values_affine_invariant(g in arb_graph(8)) {
+        if g.is_directed() { return Ok(()); }
+        let n = g.vcount();
+        let values: Vec<f64> = (0..n).map(|v| f64::from(v) + 1.0).collect();
+        let scaled: Vec<f64> = values.iter().map(|x| 3.0 * x + 7.0).collect();
+        let base = rust_igraph::assortativity(&g, &values, None, None, false, true).unwrap();
+        let aff = rust_igraph::assortativity(&g, &scaled, None, None, false, true).unwrap();
+        match (base, aff) {
+            (Some(x), Some(y)) => {
+                prop_assert!((x - y).abs() < 1e-7, "base={} affine={}", x, y);
+            }
+            (None, None) => {}
+            (a, b) => prop_assert!(false, "base={:?} affine={:?}", a, b),
+        }
+    }
+}

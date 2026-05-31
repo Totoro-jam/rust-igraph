@@ -12,6 +12,7 @@ pub(crate) mod adjacency;
 pub(crate) mod are_adjacent;
 pub(crate) mod assortativity;
 pub(crate) mod assortativity_nominal;
+pub(crate) mod assortativity_values;
 pub(crate) mod assortativity_weighted;
 pub(crate) mod basic;
 pub(crate) mod betweenness;
@@ -88,6 +89,7 @@ pub use adjacency::{AdjacencyType, LoopHandling, get_adjacency};
 pub use are_adjacent::are_adjacent;
 pub use assortativity::{assortativity_degree, assortativity_degree_directed};
 pub use assortativity_nominal::assortativity_nominal;
+pub use assortativity_values::assortativity;
 pub use assortativity_weighted::{
     assortativity_degree_directed_weighted, assortativity_degree_weighted,
 };

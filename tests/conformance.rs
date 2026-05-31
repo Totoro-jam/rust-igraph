@@ -490,6 +490,55 @@ fn assortativity_degree_directed_three_source_conformance() {
 }
 
 #[test]
+fn assortativity_values_three_source_conformance() {
+    // ALGO-PR-067: generic value-based assortativity. params carry
+    // `values`, optional `values_in`, optional `weights`, `directed`,
+    // `normalized`. `None`/undefined is encoded as JSON null on both sides.
+    run_conformance("assortativity_values", |g, params| {
+        let values: Vec<f64> = params
+            .get("values")
+            .and_then(serde_json::Value::as_array)
+            .expect("values array")
+            .iter()
+            .map(|v| v.as_f64().expect("value f64"))
+            .collect();
+        let values_in: Option<Vec<f64>> = params
+            .get("values_in")
+            .and_then(serde_json::Value::as_array)
+            .map(|a| {
+                a.iter()
+                    .map(|v| v.as_f64().expect("value_in f64"))
+                    .collect()
+            });
+        let weights: Option<Vec<f64>> = params
+            .get("weights")
+            .and_then(serde_json::Value::as_array)
+            .map(|a| a.iter().map(|v| v.as_f64().expect("weight f64")).collect());
+        let directed = params
+            .get("directed")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        let normalized = params
+            .get("normalized")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(true);
+        let r = rust_igraph::assortativity(
+            g,
+            &values,
+            values_in.as_deref(),
+            weights.as_deref(),
+            directed,
+            normalized,
+        )
+        .expect("assortativity");
+        match r {
+            Some(v) => serde_json::json!(v),
+            None => serde_json::Value::Null,
+        }
+    });
+}
+
+#[test]
 fn coreness_with_mode_three_source_conformance() {
     use rust_igraph::CorenessMode;
     run_conformance("coreness_with_mode", |g, params| {

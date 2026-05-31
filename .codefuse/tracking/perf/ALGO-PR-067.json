@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-PR-067",
+  "name": "assortativity (generic value-based assortativity coefficient)",
+  "date": "2026-05-31",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "assortativity_values/karate normalized",
+      "sizes": ["34v 78e"],
+      "median_ns": [125.91],
+      "note": "Zachary karate club, values = degree vector, normalized. A single linear pass over the 78 edges accumulating num1/num2/den1, then a constant-time combine. Sub-microsecond, dominated by the per-edge endpoint lookups."
+    },
+    {
+      "group": "assortativity_values/ring-1000 normalized",
+      "sizes": ["1000v 1000e"],
+      "median_ns": [1542.7],
+      "note": "1000-vertex ring, values = vertex index, normalized. Pure O(E) edge scan: ~1.54 us for 1000 edges tracks the karate per-edge cost (~16 ns/edge) cleanly, confirming the linear, structure-independent scaling."
+    }
+  ],
+  "status": "baseline_created"
+}
