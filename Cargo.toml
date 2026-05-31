@@ -925,6 +925,11 @@ path = "benches/bench_assortativity_values.rs"
 harness = false
 
 [[bench]]
+name = "bench_graphlets"
+path = "benches/bench_graphlets.rs"
+harness = false
+
+[[bench]]
 name = "bench_astar"
 path = "benches/bench_astar.rs"
 harness = false

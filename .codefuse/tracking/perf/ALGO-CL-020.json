@@ -1,0 +1,28 @@
+{
+  "algo": "ALGO-CL-020",
+  "name": "graphlets (candidate_basis + project + graphlets)",
+  "date": "2026-05-31",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "graphlets/candidate_basis triangle+tail",
+      "sizes": ["4v 4e"],
+      "median_ns": [1928.7],
+      "note": "Candidate basis discovery on a small triangle-with-tail graph (4 vertices, 4 edges). Dominated by maximal_cliques enumeration and recursive subclique construction."
+    },
+    {
+      "group": "graphlets/project triangle+tail 1000 iters",
+      "sizes": ["4v 4e, 1000 iterations"],
+      "median_ns": [17272.0],
+      "note": "NNLS-like projection of edge weights onto the candidate basis (2 cliques) for 1000 iterations. Each iteration scans all cliques and their edge pairs, updating residuals."
+    },
+    {
+      "group": "graphlets/full ring-20",
+      "sizes": ["20v"],
+      "median_ns": [117910.0],
+      "note": "Full graphlets decomposition (basis discovery + 1000-iteration projection) on a 20-vertex dense ring graph. The basis discovery dominates, involving recursive clique enumeration at multiple weight thresholds."
+    }
+  ],
+  "status": "baseline_created"
+}

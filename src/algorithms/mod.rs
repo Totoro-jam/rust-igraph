@@ -17,6 +17,7 @@ pub mod feedback_arc_set;
 pub mod flow;
 pub mod fundamental_cycles;
 pub mod games;
+pub mod graphlets;
 pub mod io;
 pub mod isomorphism;
 pub mod layout;
