@@ -175,7 +175,7 @@ pub(crate) fn lanczos_top_k<F>(
     max_iter: usize,
 ) -> LanczosTopKResult
 where
-    F: Fn(&[f64], &mut [f64]),
+    F: Fn(&[f64], &mut [f64]) + ?Sized,
 {
     if n == 0 || k == 0 {
         return LanczosTopKResult {

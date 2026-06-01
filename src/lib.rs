@@ -171,6 +171,9 @@ pub use crate::algorithms::embedding::adjacency_spectral_embedding::{
     AdjacencySpectralEmbeddingResult, SpectralWhich, adjacency_spectral_embedding,
 };
 pub use crate::algorithms::embedding::dim_select::dim_select;
+pub use crate::algorithms::embedding::laplacian_spectral_embedding::{
+    LaplacianSpectralEmbeddingResult, LaplacianType, laplacian_spectral_embedding,
+};
 pub use crate::algorithms::epidemics::{Sir, sir};
 pub use crate::algorithms::feedback_arc_set::{FasAlgorithm, feedback_arc_set};
 pub use crate::algorithms::flow::all_st_cuts::{StCuts, all_st_cuts};
