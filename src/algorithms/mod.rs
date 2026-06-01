@@ -25,6 +25,7 @@ pub mod matching;
 pub mod matching_lsap;
 pub mod minimum_cycle_basis;
 pub mod motifs;
+pub mod nongraph;
 pub mod operators;
 pub mod paths;
 pub mod properties;

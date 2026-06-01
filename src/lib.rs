@@ -302,6 +302,7 @@ pub use crate::algorithms::motifs::{
     isoclass_subgraph, motifs_randesu, motifs_randesu_callback, motifs_randesu_estimate,
     motifs_randesu_no, triad_census,
 };
+pub use crate::algorithms::nongraph::random_sample::random_sample;
 pub use crate::algorithms::operators::bipartite_projection::{
     BipartiteProjection, bipartite_projection,
 };
