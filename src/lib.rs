@@ -53,8 +53,9 @@ pub use crate::algorithms::cliques::{
 };
 pub use crate::algorithms::coloring::{
     BipartiteColoringResult, BipartiteEdgeDirection, GreedyColoringHeuristic,
-    edge_chromatic_number, edge_coloring_greedy, is_bipartite_coloring, is_edge_coloring,
-    is_vertex_coloring, vertex_coloring_greedy,
+    chromatic_number_upper_bound, edge_chromatic_number, edge_coloring_greedy,
+    is_bipartite_coloring, is_edge_coloring, is_vertex_coloring, vertex_chromatic_number,
+    vertex_coloring_greedy,
 };
 pub use crate::algorithms::community::community_to_membership::{
     CommunityToMembershipResult, community_to_membership, le_community_to_membership,

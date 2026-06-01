@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (312 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (313 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -532,6 +532,8 @@ MA-002 (`minimum_edge_cover` + `is_edge_cover` — minimum edge cover via greedy
 FL-040 (`maximum_cut` + `cut_value` + `MaxCutResult` — greedy 0.5-approximation for maximum cut: partitions vertices into two sets to maximize crossing edges; processes vertices in order, placing each on the side with fewer already-placed neighbors; `cut_value` counts edges crossing a given partition; handles directed graphs (merged in/out neighbors), self-loops (skipped — never cross), parallel edges; guaranteed ≥ |E|/2 crossing edges; O(V+E); 14 unit tests + 2 doctests).
 
 PR-070 (`is_regular` + `regularity` — check whether a graph is k-regular (all vertices have same degree); for directed graphs checks both out-degree and in-degree uniformity and equality; `regularity` returns the common degree k or None; O(V+E); 18 unit tests + 2 doctests).
+
+COL-003 (`vertex_chromatic_number` + `chromatic_number_upper_bound` — vertex chromatic number from a coloring vector and convenience DSatur upper bound; `vertex_chromatic_number` counts distinct colors (max+1); `chromatic_number_upper_bound` runs DSatur greedy coloring and returns the count; O(V²·d_max) via DSatur; 14 unit tests + 2 doctests).
 
 > Update the counters after every PR merge.
 

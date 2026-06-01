@@ -681,6 +681,73 @@ fn collect_used_colors(
     Ok(())
 }
 
+// ---------------------------------------------------------------
+// vertex_chromatic_number
+// ---------------------------------------------------------------
+
+/// Return the number of distinct colors used in a vertex coloring.
+///
+/// Given a color assignment `colors[v]` for each vertex, returns
+/// the count of distinct colors. This is a utility function that
+/// works on the output of [`vertex_coloring_greedy`].
+///
+/// For an empty coloring (no vertices), returns 0.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, vertex_coloring_greedy, vertex_chromatic_number, GreedyColoringHeuristic};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// let colors = vertex_coloring_greedy(&g, GreedyColoringHeuristic::DSatur).unwrap();
+/// assert_eq!(vertex_chromatic_number(&colors), 3); // triangle needs 3 colors
+/// ```
+pub fn vertex_chromatic_number(colors: &[u32]) -> u32 {
+    if colors.is_empty() {
+        return 0;
+    }
+    let max_color = colors.iter().copied().max().unwrap_or(0);
+    max_color.saturating_add(1)
+}
+
+/// Compute an upper bound on the vertex chromatic number using
+/// greedy `DSatur` coloring.
+///
+/// This is a convenience function that runs [`vertex_coloring_greedy`]
+/// with [`GreedyColoringHeuristic::DSatur`] and returns the number
+/// of colors used. The result is an upper bound on the true chromatic
+/// number χ(G).
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, chromatic_number_upper_bound};
+///
+/// // C4 is bipartite → χ = 2
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// g.add_edge(3, 0).unwrap();
+/// assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 2);
+///
+/// // K4 → χ = 4, DSatur finds optimal
+/// let mut g = Graph::with_vertices(4);
+/// for u in 0..4u32 {
+///     for v in (u + 1)..4 {
+///         g.add_edge(u, v).unwrap();
+///     }
+/// }
+/// assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 4);
+/// ```
+pub fn chromatic_number_upper_bound(graph: &Graph) -> IgraphResult<u32> {
+    let colors = vertex_coloring_greedy(graph, GreedyColoringHeuristic::DSatur)?;
+    Ok(vertex_chromatic_number(&colors))
+}
+
 // =================================================================
 // Tests
 // =================================================================
@@ -1139,6 +1206,114 @@ mod tests {
         assert_eq!(edge_chromatic_number(&[0]), 1);
         assert_eq!(edge_chromatic_number(&[0, 1, 2]), 3);
         assert_eq!(edge_chromatic_number(&[0, 0, 0]), 1);
+    }
+
+    // ---- vertex_chromatic_number + chromatic_number_upper_bound ----
+
+    #[test]
+    fn test_vertex_chromatic_number_empty() {
+        assert_eq!(vertex_chromatic_number(&[]), 0);
+    }
+
+    #[test]
+    fn test_vertex_chromatic_number_values() {
+        assert_eq!(vertex_chromatic_number(&[0]), 1);
+        assert_eq!(vertex_chromatic_number(&[0, 1, 2]), 3);
+        assert_eq!(vertex_chromatic_number(&[0, 0, 0]), 1);
+        assert_eq!(vertex_chromatic_number(&[0, 1, 0, 1]), 2);
+    }
+
+    #[test]
+    fn test_chromatic_upper_empty() {
+        let g = make_undirected(0, &[]);
+        assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 0);
+    }
+
+    #[test]
+    fn test_chromatic_upper_singleton() {
+        let g = make_undirected(1, &[]);
+        assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 1);
+    }
+
+    #[test]
+    fn test_chromatic_upper_no_edges() {
+        let g = make_undirected(5, &[]);
+        assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 1);
+    }
+
+    #[test]
+    fn test_chromatic_upper_single_edge() {
+        let g = make_undirected(2, &[(0, 1)]);
+        assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 2);
+    }
+
+    #[test]
+    fn test_chromatic_upper_triangle() {
+        let g = make_undirected(3, &[(0, 1), (1, 2), (2, 0)]);
+        assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 3);
+    }
+
+    #[test]
+    fn test_chromatic_upper_bipartite_c4() {
+        let g = make_undirected(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
+        assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 2);
+    }
+
+    #[test]
+    fn test_chromatic_upper_k4() {
+        let g = make_undirected(4, &[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]);
+        assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 4);
+    }
+
+    #[test]
+    fn test_chromatic_upper_path() {
+        let g = make_undirected(4, &[(0, 1), (1, 2), (2, 3)]);
+        assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 2);
+    }
+
+    #[test]
+    fn test_chromatic_upper_star() {
+        let g = make_undirected(5, &[(0, 1), (0, 2), (0, 3), (0, 4)]);
+        assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 2);
+    }
+
+    #[test]
+    fn test_chromatic_upper_self_loop() {
+        let g = make_undirected(2, &[(0, 0), (0, 1)]);
+        assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 2);
+    }
+
+    #[test]
+    fn test_chromatic_upper_directed() {
+        let g = make_directed(3, &[(0, 1), (1, 2), (2, 0)]);
+        assert_eq!(chromatic_number_upper_bound(&g).unwrap(), 3);
+    }
+
+    #[test]
+    fn test_chromatic_upper_petersen() {
+        let g = make_undirected(
+            10,
+            &[
+                (0, 1),
+                (1, 2),
+                (2, 3),
+                (3, 4),
+                (4, 0),
+                (5, 7),
+                (7, 9),
+                (9, 6),
+                (6, 8),
+                (8, 5),
+                (0, 5),
+                (1, 6),
+                (2, 7),
+                (3, 8),
+                (4, 9),
+            ],
+        );
+        let chi = chromatic_number_upper_bound(&g).unwrap();
+        assert!(chi >= 3);
+        assert!(chi <= 4);
     }
 }
 
