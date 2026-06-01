@@ -497,6 +497,7 @@ pub use crate::algorithms::properties::is_clique::{is_clique, is_independent_ver
 pub use crate::algorithms::properties::is_complete::is_complete;
 pub use crate::algorithms::properties::is_dag::is_dag;
 pub use crate::algorithms::properties::is_forest::is_forest;
+pub use crate::algorithms::properties::is_pseudo_forest::is_pseudo_forest;
 pub use crate::algorithms::properties::is_regular::{is_regular, regularity};
 pub use crate::algorithms::properties::is_simple::{SimpleMode, is_simple, is_simple_with_mode};
 pub use crate::algorithms::properties::is_split::is_split_graph;

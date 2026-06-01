@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (317 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (318 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -542,6 +542,8 @@ PR-072 (`is_split_graph` — check whether a graph is a split graph via Hammer-S
 PR-073 (`is_threshold_graph` — check whether a graph is a threshold graph via degree-sequence peeling; sort degrees descending, repeatedly remove dominating (degree n-1) or isolated (degree 0) vertices; if top degree is neither 0 nor n-1 at any step, graph is not threshold; returns false for directed/non-simple graphs; O(V log V); 20 unit tests + 1 doctest).
 
 PR-074 (`is_block_graph` — check whether a graph is a block graph (every biconnected component is a clique); uses biconnected_components; each block with k vertices must have k(k-1)/2 edges; requires connectivity; returns false for directed graphs; O(V+E); 19 unit tests + 1 doctest).
+
+PR-075 (`is_pseudo_forest` — check whether every connected component has at most one cycle; equivalently |E| <= |V| per component; uses connected_components; handles self-loops and parallel edges; returns false for directed graphs; O(V+E); 19 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
 
