@@ -48,8 +48,8 @@ pub use crate::algorithms::chordality::{
 pub use crate::algorithms::cliques::{
     clique_number, clique_size_hist, cliques, independence_number, independent_vertex_sets,
     largest_cliques, largest_independent_vertex_sets, largest_weighted_cliques, maximal_cliques,
-    maximal_cliques_count, maximal_cliques_hist, maximal_independent_vertex_sets,
-    weighted_clique_number, weighted_cliques,
+    maximal_cliques_count, maximal_cliques_hist, maximal_cliques_subset,
+    maximal_independent_vertex_sets, weighted_clique_number, weighted_cliques,
 };
 pub use crate::algorithms::coloring::{
     BipartiteColoringResult, BipartiteEdgeDirection, GreedyColoringHeuristic,

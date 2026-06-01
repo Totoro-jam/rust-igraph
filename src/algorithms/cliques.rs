@@ -579,6 +579,119 @@ pub fn maximal_cliques_hist(graph: &Graph) -> IgraphResult<Vec<u64>> {
     Ok(hist)
 }
 
+/// Returns maximal cliques containing at least one vertex from `subset`.
+///
+/// Enumerates all maximal cliques of the graph, then filters to keep
+/// only those that contain at least one vertex from the given subset.
+/// Optional `min_size` / `max_size` bounds filter by clique size, and
+/// `max_results` caps output count.
+///
+/// Edge directions are ignored for directed graphs.
+///
+/// # Arguments
+///
+/// * `graph` — the input graph.
+/// * `subset` — vertex IDs to seed the search. A clique is included if
+///   it contains at least one vertex from this set.
+/// * `min_size` — minimum clique size (0 = no bound).
+/// * `max_size` — maximum clique size (0 = no bound).
+/// * `max_results` — maximum number of cliques to return (`None` = unlimited).
+///
+/// # Errors
+///
+/// Returns `InvalidArgument` if any vertex in `subset` is out of range.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, maximal_cliques_subset};
+///
+/// // Triangle {0,1,2} plus edge {2,3}
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+///
+/// // Cliques touching vertex 3: only {2,3}
+/// let cliques = maximal_cliques_subset(&g, &[3], 0, 0, None).unwrap();
+/// assert_eq!(cliques.len(), 1);
+/// assert_eq!(cliques[0].len(), 2);
+///
+/// // Cliques touching vertex 0: only {0,1,2}
+/// let cliques = maximal_cliques_subset(&g, &[0], 0, 0, None).unwrap();
+/// assert_eq!(cliques.len(), 1);
+/// assert_eq!(cliques[0].len(), 3);
+/// ```
+pub fn maximal_cliques_subset(
+    graph: &Graph,
+    subset: &[VertexId],
+    min_size: u32,
+    max_size: u32,
+    max_results: Option<usize>,
+) -> IgraphResult<Vec<Vec<VertexId>>> {
+    let n = graph.vcount();
+
+    for &v in subset {
+        if v >= n {
+            return Err(IgraphError::InvalidArgument(format!(
+                "vertex id {v} is out of range [0, {n})"
+            )));
+        }
+    }
+
+    if n == 0 || subset.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let adj = build_neighbor_set(graph)?;
+    let mut all_cliques: Vec<Vec<VertexId>> = Vec::new();
+
+    let all_vertices: Vec<VertexId> = (0..n).collect();
+    bron_kerbosch_all(
+        &adj,
+        &mut Vec::new(),
+        &mut all_vertices.clone(),
+        &mut Vec::new(),
+        &mut all_cliques,
+    );
+
+    // Include isolated vertices as cliques of size 1
+    for v in 0..n {
+        if adj[v as usize].is_empty() {
+            all_cliques.push(vec![v]);
+        }
+    }
+
+    // Build a fast lookup set for subset membership
+    let mut in_subset = vec![false; n as usize];
+    for &v in subset {
+        in_subset[v as usize] = true;
+    }
+
+    let effective_min = if min_size == 0 { 1 } else { min_size };
+    let effective_max = if max_size == 0 { u32::MAX } else { max_size };
+    let limit = max_results.unwrap_or(usize::MAX);
+
+    let mut result: Vec<Vec<VertexId>> = Vec::new();
+    for clique in all_cliques {
+        #[allow(clippy::cast_possible_truncation)]
+        let csize = clique.len() as u32;
+        if csize < effective_min || csize > effective_max {
+            continue;
+        }
+        if !clique.iter().any(|&v| in_subset[v as usize]) {
+            continue;
+        }
+        result.push(clique);
+        if result.len() >= limit {
+            break;
+        }
+    }
+
+    Ok(result)
+}
+
 /// Tally every clique (complete subgraph) by size into `hist[size]`.
 fn count_cliques_by_size(
     adj: &[Vec<VertexId>],
@@ -1833,5 +1946,129 @@ mod tests {
         let g = Graph::with_vertices(5);
         let sets = independent_vertex_sets(&g, 1, 5, Some(10)).unwrap();
         assert_eq!(sets.len(), 10);
+    }
+
+    // ---- maximal_cliques_subset tests ----
+
+    #[test]
+    fn test_mcs_empty_graph() {
+        let g = Graph::with_vertices(0);
+        let r = maximal_cliques_subset(&g, &[], 0, 0, None).unwrap();
+        assert!(r.is_empty());
+    }
+
+    #[test]
+    fn test_mcs_empty_subset() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        let r = maximal_cliques_subset(&g, &[], 0, 0, None).unwrap();
+        assert!(r.is_empty());
+    }
+
+    #[test]
+    fn test_mcs_invalid_vertex() {
+        let g = Graph::with_vertices(3);
+        assert!(maximal_cliques_subset(&g, &[5], 0, 0, None).is_err());
+    }
+
+    #[test]
+    fn test_mcs_triangle_plus_edge() {
+        // Triangle {0,1,2} + edge {2,3}
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+
+        // Subset {3}: only {2,3} touches vertex 3
+        let r = maximal_cliques_subset(&g, &[3], 0, 0, None).unwrap();
+        assert_eq!(r.len(), 1);
+        assert!(r[0].contains(&2));
+        assert!(r[0].contains(&3));
+
+        // Subset {0}: only the triangle touches vertex 0
+        let r = maximal_cliques_subset(&g, &[0], 0, 0, None).unwrap();
+        assert_eq!(r.len(), 1);
+        assert_eq!(r[0].len(), 3);
+
+        // Subset {2}: both cliques touch vertex 2
+        let r = maximal_cliques_subset(&g, &[2], 0, 0, None).unwrap();
+        assert_eq!(r.len(), 2);
+    }
+
+    #[test]
+    fn test_mcs_size_filter() {
+        // Triangle {0,1,2} + edge {2,3}
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(0, 2).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+
+        // Subset {2}, min_size=3 → only the triangle
+        let r = maximal_cliques_subset(&g, &[2], 3, 0, None).unwrap();
+        assert_eq!(r.len(), 1);
+        assert_eq!(r[0].len(), 3);
+
+        // Subset {2}, max_size=2 → only {2,3}
+        let r = maximal_cliques_subset(&g, &[2], 0, 2, None).unwrap();
+        assert_eq!(r.len(), 1);
+        assert_eq!(r[0].len(), 2);
+    }
+
+    #[test]
+    fn test_mcs_max_results() {
+        // K4: 4 triangles + 1 clique of size 4
+        let mut g = Graph::with_vertices(4);
+        for i in 0..4u32 {
+            for j in (i + 1)..4 {
+                g.add_edge(i, j).unwrap();
+            }
+        }
+        // All vertices in subset → all cliques touch subset
+        let all = maximal_cliques_subset(&g, &[0, 1, 2, 3], 0, 0, None).unwrap();
+        let limited = maximal_cliques_subset(&g, &[0, 1, 2, 3], 0, 0, Some(1)).unwrap();
+        assert!(!all.is_empty());
+        assert_eq!(limited.len(), 1);
+    }
+
+    #[test]
+    fn test_mcs_isolated_vertex_in_subset() {
+        // 0-1, vertex 2 isolated
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+
+        // Subset {2}: isolated vertex forms a size-1 maximal clique
+        let r = maximal_cliques_subset(&g, &[2], 0, 0, None).unwrap();
+        assert_eq!(r.len(), 1);
+        assert_eq!(r[0], vec![2]);
+    }
+
+    #[test]
+    fn test_mcs_directed_ignores_direction() {
+        // Directed triangle 0→1→2→0 treated as undirected
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+
+        let r = maximal_cliques_subset(&g, &[0], 0, 0, None).unwrap();
+        assert_eq!(r.len(), 1);
+        assert_eq!(r[0].len(), 3);
+    }
+
+    #[test]
+    fn test_mcs_all_vertices_subset() {
+        // Same result as maximal_cliques when all vertices are in subset
+        let mut g = Graph::with_vertices(5);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+        g.add_edge(3, 4).unwrap();
+
+        let subset: Vec<u32> = (0..5).collect();
+        let mcs = maximal_cliques_subset(&g, &subset, 0, 0, None).unwrap();
+        let mc = maximal_cliques(&g).unwrap();
+        assert_eq!(mcs.len(), mc.len());
     }
 }
