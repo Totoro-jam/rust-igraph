@@ -521,6 +521,7 @@ pub use crate::algorithms::properties::is_threshold::is_threshold_graph;
 pub use crate::algorithms::properties::is_tournament::is_tournament;
 pub use crate::algorithms::properties::is_tree::is_tree;
 pub use crate::algorithms::properties::is_triangle_free::is_triangle_free;
+pub use crate::algorithms::properties::is_unicyclic::is_unicyclic;
 pub use crate::algorithms::properties::is_wheel::is_wheel;
 pub use crate::algorithms::properties::is_windmill::is_windmill;
 pub use crate::algorithms::properties::joint_degree_distribution::joint_degree_distribution;

@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (335 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (336 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -578,5 +578,7 @@ PR-090 (`is_complete_multipartite` — check whether a graph is a complete multi
 PR-091 (`is_star` — check whether a graph is a star graph K_{1,n-1}; verifies is_tree and exactly one vertex has degree n-1 with all others having degree 1; returns false for directed graphs and empty graph; 12 unit tests + 1 doctest).
 
 PR-092 (`is_windmill` — check whether a graph is a windmill graph Wd(k,n); finds hub vertex of degree n-1, verifies all non-hub vertices have uniform degree k-1, validates edge count, then walks clique structure; returns `Some((k, n))` or `None`; returns false for directed/non-simple graphs; 12 unit tests + 1 doctest).
+
+PR-093 (`is_unicyclic` — check whether a graph is unicyclic (connected with exactly one cycle); verifies connected + exactly n edges; returns false for directed graphs; 13 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
