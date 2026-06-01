@@ -5,7 +5,8 @@
 //! Traag-Šubelj 2023 fast variant), `fluid_communities`
 //! (Parés et al. 2017), `edge_betweenness_community` (Girvan-Newman 2002),
 //! `fast_greedy_modularity` (Clauset-Newman-Moore 2004),
-//! `walktrap` (Pons-Latapy 2005). Helpers: `community_to_membership`
+//! `walktrap` (Pons-Latapy 2005), `leading_eigenvector` (Newman 2006).
+//! Helpers: `community_to_membership`
 //! (cut a dendrogram at `k` merges), `reindex_membership` (densify a
 //! membership vector to `0..k-1` by first occurrence).
 
@@ -19,6 +20,8 @@ pub(crate) mod edge_betweenness_community_weighted;
 pub(crate) mod fast_greedy_modularity;
 pub(crate) mod fluid_communities;
 pub(crate) mod label_propagation;
+mod lanczos;
+pub(crate) mod leading_eigenvector;
 pub(crate) mod leiden;
 pub(crate) mod louvain;
 pub(crate) mod modularity;
@@ -44,6 +47,9 @@ pub use fluid_communities::{
 pub use label_propagation::{
     LpaOptions, LpaResult, LpaVariant, label_propagation, label_propagation_weighted,
     label_propagation_with_options,
+};
+pub use leading_eigenvector::{
+    LeadingEigenvectorResult, leading_eigenvector, leading_eigenvector_weighted,
 };
 pub use leiden::{
     LEIDEN_DEFAULT_BETA, LEIDEN_DEFAULT_ITERATIONS, LeidenObjective, LeidenOptions, LeidenResult,
