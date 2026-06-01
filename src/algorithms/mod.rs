@@ -12,6 +12,7 @@ pub mod connectivity;
 pub mod constructors;
 pub mod cycles;
 pub mod dominating_set;
+pub mod edge_cover;
 pub mod embedding;
 pub mod epidemics;
 pub mod feedback_arc_set;

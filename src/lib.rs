@@ -173,6 +173,7 @@ pub use crate::algorithms::constructors::weighted_biadjacency::{
 pub use crate::algorithms::constructors::wheel::{WheelMode, wheel_graph};
 pub use crate::algorithms::cycles::{CycleMode, CycleResult, find_cycle};
 pub use crate::algorithms::dominating_set::{is_dominating_set, minimum_dominating_set};
+pub use crate::algorithms::edge_cover::{is_edge_cover, minimum_edge_cover};
 pub use crate::algorithms::embedding::adjacency_spectral_embedding::{
     AdjacencySpectralEmbeddingResult, SpectralWhich, adjacency_spectral_embedding,
 };
