@@ -1,8 +1,9 @@
 //! Symmetric Lanczos eigensolver (private).
 //!
-//! Computes the algebraically largest eigenpair of a real symmetric
+//! Computes the algebraically largest eigenpair(s) of a real symmetric
 //! matrix defined implicitly by a matrix-vector product closure.
-//! Used internally by `community_leading_eigenvector`.
+//! Used internally by `community_leading_eigenvector` and spectral
+//! embedding functions.
 
 /// Result of a Lanczos eigensolver run.
 pub(crate) struct LanczosResult {
@@ -131,6 +132,139 @@ where
     LanczosResult {
         eigenvalue: best_eigenvalue,
         eigenvector: best_eigenvector,
+    }
+}
+
+/// Result of a top-k Lanczos eigensolver run.
+#[allow(dead_code)]
+pub(crate) struct LanczosTopKResult {
+    /// Eigenvalues in descending order of magnitude or algebraic value.
+    pub eigenvalues: Vec<f64>,
+    /// Eigenvectors (one per eigenvalue), each of length `n`.
+    pub eigenvectors: Vec<Vec<f64>>,
+}
+
+/// Which eigenvalues to compute.
+#[allow(dead_code)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum EigenWhich {
+    /// Largest algebraic (most positive).
+    LargestAlgebraic,
+    /// Smallest algebraic (most negative).
+    SmallestAlgebraic,
+    /// Largest magnitude (largest |λ|).
+    LargestMagnitude,
+}
+
+/// Compute the top-k eigenpairs of a symmetric matrix via Hotelling
+/// deflation: find the dominant eigenpair, deflate `A ← A − λ·v·v^T`,
+/// repeat. For `SmallestAlgebraic`, negate the matrix first.
+///
+/// Returns eigenvalues sorted by the requested criterion and their
+/// corresponding eigenvectors.
+#[allow(clippy::many_single_char_names, dead_code)]
+pub(crate) fn lanczos_top_k<F>(
+    n: usize,
+    matvec: &F,
+    k: usize,
+    which: EigenWhich,
+    max_iter_per: usize,
+) -> LanczosTopKResult
+where
+    F: Fn(&[f64], &mut [f64]),
+{
+    if n == 0 || k == 0 {
+        return LanczosTopKResult {
+            eigenvalues: Vec::new(),
+            eigenvectors: Vec::new(),
+        };
+    }
+
+    let actual_k = k.min(n);
+
+    let mut found_eigenvalues: Vec<f64> = Vec::with_capacity(actual_k);
+    let mut found_eigenvectors: Vec<Vec<f64>> = Vec::with_capacity(actual_k);
+    let mut rng = crate::core::rng::SplitMix64::new(137);
+
+    for _ in 0..actual_k {
+        let deflated_count = found_eigenvalues.len();
+
+        let deflated_matvec = |x: &[f64], y: &mut [f64]| {
+            match which {
+                EigenWhich::SmallestAlgebraic => {
+                    matvec(x, y);
+                    for val in y.iter_mut() {
+                        *val = -*val;
+                    }
+                }
+                _ => {
+                    matvec(x, y);
+                }
+            }
+            // Hotelling deflation: subtract λ_i * (v_i^T x) * v_i
+            for i in 0..deflated_count {
+                let proj: f64 = found_eigenvectors[i]
+                    .iter()
+                    .zip(x.iter())
+                    .map(|(a, b)| a * b)
+                    .sum();
+                let lam = match which {
+                    EigenWhich::SmallestAlgebraic => -found_eigenvalues[i],
+                    _ => found_eigenvalues[i],
+                };
+                for (yj, vj) in y.iter_mut().zip(found_eigenvectors[i].iter()) {
+                    *yj -= lam * proj * vj;
+                }
+            }
+        };
+
+        let mut start = vec![0.0_f64; n];
+        for (i, sv) in start.iter_mut().enumerate() {
+            let sign = if i % 2 == 0 { 1.0 } else { -1.0 };
+            *sv = sign + (rng.gen_unit() - 0.5) * 0.2;
+        }
+        // Orthogonalize start vector against found eigenvectors
+        for ev in &found_eigenvectors {
+            let proj: f64 = ev.iter().zip(start.iter()).map(|(a, b)| a * b).sum();
+            for (sj, vj) in start.iter_mut().zip(ev.iter()) {
+                *sj -= proj * vj;
+            }
+        }
+
+        let result = lanczos_largest(n, &deflated_matvec, &mut start, max_iter_per);
+
+        let eigenvalue = match which {
+            EigenWhich::SmallestAlgebraic => -result.eigenvalue,
+            _ => result.eigenvalue,
+        };
+
+        found_eigenvalues.push(eigenvalue);
+        found_eigenvectors.push(result.eigenvector);
+    }
+
+    // For LargestMagnitude, sort by |λ| descending
+    if which == EigenWhich::LargestMagnitude {
+        let mut indices: Vec<usize> = (0..found_eigenvalues.len()).collect();
+        indices.sort_by(|&a, &b| {
+            found_eigenvalues[b]
+                .abs()
+                .partial_cmp(&found_eigenvalues[a].abs())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        let sorted_evals: Vec<f64> = indices.iter().map(|&i| found_eigenvalues[i]).collect();
+        let sorted_evecs: Vec<Vec<f64>> = indices
+            .iter()
+            .map(|&i| found_eigenvectors[i].clone())
+            .collect();
+        return LanczosTopKResult {
+            eigenvalues: sorted_evals,
+            eigenvectors: sorted_evecs,
+        };
+    }
+
+    LanczosTopKResult {
+        eigenvalues: found_eigenvalues,
+        eigenvectors: found_eigenvectors,
     }
 }
 

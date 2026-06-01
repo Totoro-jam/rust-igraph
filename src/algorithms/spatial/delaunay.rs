@@ -33,7 +33,7 @@ use crate::core::{Graph, IgraphError, IgraphResult};
 /// - **2D**: Bowyer-Watson incremental insertion. `O(n²)` average,
 ///   `O(n²)` worst case for pathological inputs.
 /// - **≥3D**: Currently unsupported; returns
-///   [`IgraphError::Unimplemented`].
+///   [`IgraphError::InvalidArgument`].
 ///
 /// # Errors
 ///
@@ -268,7 +268,7 @@ fn check_duplicate_2d(points: &[Vec<f64>]) -> IgraphResult<()> {
     Ok(())
 }
 
-#[allow(clippy::manual_midpoint)]
+#[allow(unknown_lints, clippy::manual_midpoint)]
 fn super_triangle_setup(pts: &[Pt], n: usize) -> (Vec<Pt>, Vec<Triangle>, Vec<Circumcircle>) {
     let mut lo_x = f64::INFINITY;
     let mut hi_x = f64::NEG_INFINITY;
