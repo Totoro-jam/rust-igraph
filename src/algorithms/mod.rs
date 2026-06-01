@@ -14,6 +14,7 @@ pub mod cycles;
 pub mod embedding;
 pub mod epidemics;
 pub mod feedback_arc_set;
+pub mod feedback_vertex_set;
 pub mod flow;
 pub mod fundamental_cycles;
 pub mod games;

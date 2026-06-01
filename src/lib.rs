@@ -180,6 +180,7 @@ pub use crate::algorithms::embedding::laplacian_spectral_embedding::{
 };
 pub use crate::algorithms::epidemics::{Sir, sir};
 pub use crate::algorithms::feedback_arc_set::{FasAlgorithm, feedback_arc_set};
+pub use crate::algorithms::feedback_vertex_set::{FvsAlgorithm, feedback_vertex_set};
 pub use crate::algorithms::flow::all_st_cuts::{StCuts, all_st_cuts};
 pub use crate::algorithms::flow::all_st_mincuts::{StMinCuts, all_st_mincuts};
 pub use crate::algorithms::flow::dominator_tree::{DominatorMode, DominatorTree, dominator_tree};
