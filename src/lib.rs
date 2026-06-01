@@ -153,6 +153,7 @@ pub use crate::algorithms::constructors::realize_bipartite_degree_sequence::real
 pub use crate::algorithms::constructors::realize_degree_sequence::{
     RealizeDegseqMethod, realize_degree_sequence,
 };
+pub use crate::algorithms::constructors::realize_directed_degree_sequence::realize_directed_degree_sequence;
 pub use crate::algorithms::constructors::regular_tree::regular_tree;
 pub use crate::algorithms::constructors::ring::{cycle_graph, path_graph, ring_graph};
 pub use crate::algorithms::constructors::square_lattice::square_lattice;

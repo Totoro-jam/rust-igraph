@@ -31,6 +31,7 @@ pub mod mycielskian;
 pub mod prufer;
 pub mod realize_bipartite_degree_sequence;
 pub mod realize_degree_sequence;
+pub mod realize_directed_degree_sequence;
 pub mod regular_tree;
 pub mod ring;
 pub mod square_lattice;
