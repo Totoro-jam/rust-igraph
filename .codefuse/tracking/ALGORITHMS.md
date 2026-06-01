@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (330 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (332 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -568,5 +568,9 @@ PR-085 (`is_wheel` — check whether a graph is a wheel graph; finds hub vertex 
 PR-086 (`is_caterpillar` — check whether a graph is a caterpillar tree; verifies is_tree then checks that all non-leaf vertices have at most 2 non-leaf neighbors (spine forms a path); returns false for directed graphs; 15 unit tests + 1 doctest).
 
 PR-087 (`is_lobster` — check whether a graph is a lobster tree; verifies is_tree then double-prunes leaves: first pass identifies leaf1 (degree 1) and computes pruned degrees, second pass identifies leaf2 (pruned_deg ≤ 1) and checks remaining vertices have ≤ 2 non-leaf1-non-leaf2 neighbors; returns false for directed graphs; 13 unit tests + 1 doctest).
+
+PR-088 (`is_path` — check whether a graph is a path graph; verifies is_tree and all vertices have degree ≤ 2; returns false for directed graphs; 13 unit tests + 1 doctest).
+
+PR-089 (`is_cycle` — check whether a graph is a cycle graph; verifies n ≥ 3, exactly n edges, all vertices have degree 2, and connected; returns false for directed graphs; 14 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
