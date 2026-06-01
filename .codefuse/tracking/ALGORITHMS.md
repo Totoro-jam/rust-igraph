@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (325 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (326 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -558,6 +558,8 @@ PR-080 (`is_cograph` — check whether a graph is a cograph (P4-free / complemen
 PR-081 (`is_ptolemaic` — check whether a graph is ptolemaic (chordal ∩ distance-hereditary); composes is_chordal and is_distance_hereditary; returns false for directed graphs; 17 unit tests + 1 doctest).
 
 PR-082 (`is_strongly_regular` — check whether a graph is strongly regular; returns optional `StronglyRegularParams(n, k, λ, μ)`; checks regularity then verifies all adjacent pairs share λ common neighbors and all non-adjacent pairs share μ; handles complete/edgeless degenerate cases; returns None for directed/non-simple graphs; 16 unit tests + 1 doctest).
+
+PR-083 (`is_biclique` — check whether a graph is a complete bipartite graph (biclique); uses is_bipartite to partition, then verifies edge count equals part_a × part_b; returns false for directed graphs; handles empty/single-vertex/K_{m,0} degenerate cases; 16 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
 
