@@ -156,19 +156,23 @@ pub(crate) enum EigenWhich {
     LargestMagnitude,
 }
 
-/// Compute the top-k eigenpairs of a symmetric matrix via Hotelling
-/// deflation: find the dominant eigenpair, deflate `A ← A − λ·v·v^T`,
-/// repeat. For `SmallestAlgebraic`, negate the matrix first.
+/// Compute the top-k eigenpairs of a symmetric matrix.
+///
+/// Builds a single Lanczos decomposition (with restarts), solves
+/// the tridiagonal eigenproblem, and selects the k Ritz pairs that
+/// match `which`. For `SmallestAlgebraic` the matrix is implicitly
+/// negated so the Ritz values at the top of the negated spectrum
+/// converge first.
 ///
 /// Returns eigenvalues sorted by the requested criterion and their
 /// corresponding eigenvectors.
-#[allow(clippy::many_single_char_names, dead_code)]
+#[allow(clippy::many_single_char_names, clippy::too_many_lines, dead_code)]
 pub(crate) fn lanczos_top_k<F>(
     n: usize,
     matvec: &F,
     k: usize,
     which: EigenWhich,
-    max_iter_per: usize,
+    max_iter: usize,
 ) -> LanczosTopKResult
 where
     F: Fn(&[f64], &mut [f64]),
@@ -181,90 +185,197 @@ where
     }
 
     let actual_k = k.min(n);
+    let negate = which == EigenWhich::SmallestAlgebraic;
 
-    let mut found_eigenvalues: Vec<f64> = Vec::with_capacity(actual_k);
-    let mut found_eigenvectors: Vec<Vec<f64>> = Vec::with_capacity(actual_k);
-    let mut rng = crate::core::rng::SplitMix64::new(137);
-
-    for _ in 0..actual_k {
-        let deflated_count = found_eigenvalues.len();
-
-        let deflated_matvec = |x: &[f64], y: &mut [f64]| {
-            match which {
-                EigenWhich::SmallestAlgebraic => {
-                    matvec(x, y);
-                    for val in y.iter_mut() {
-                        *val = -*val;
-                    }
-                }
-                _ => {
-                    matvec(x, y);
-                }
-            }
-            // Hotelling deflation: subtract λ_i * (v_i^T x) * v_i
-            for i in 0..deflated_count {
-                let proj: f64 = found_eigenvectors[i]
-                    .iter()
-                    .zip(x.iter())
-                    .map(|(a, b)| a * b)
-                    .sum();
-                let lam = match which {
-                    EigenWhich::SmallestAlgebraic => -found_eigenvalues[i],
-                    _ => found_eigenvalues[i],
-                };
-                for (yj, vj) in y.iter_mut().zip(found_eigenvectors[i].iter()) {
-                    *yj -= lam * proj * vj;
-                }
-            }
+    if n == 1 {
+        let mut y = vec![0.0];
+        matvec(&[1.0], &mut y);
+        return LanczosTopKResult {
+            eigenvalues: vec![y[0]],
+            eigenvectors: vec![vec![1.0]],
         };
-
-        let mut start = vec![0.0_f64; n];
-        for (i, sv) in start.iter_mut().enumerate() {
-            let sign = if i % 2 == 0 { 1.0 } else { -1.0 };
-            *sv = sign + (rng.gen_unit() - 0.5) * 0.2;
-        }
-        // Orthogonalize start vector against found eigenvectors
-        for ev in &found_eigenvectors {
-            let proj: f64 = ev.iter().zip(start.iter()).map(|(a, b)| a * b).sum();
-            for (sj, vj) in start.iter_mut().zip(ev.iter()) {
-                *sj -= proj * vj;
-            }
-        }
-
-        let result = lanczos_largest(n, &deflated_matvec, &mut start, max_iter_per);
-
-        let eigenvalue = match which {
-            EigenWhich::SmallestAlgebraic => -result.eigenvalue,
-            _ => result.eigenvalue,
-        };
-
-        found_eigenvalues.push(eigenvalue);
-        found_eigenvectors.push(result.eigenvector);
     }
 
-    // For LargestMagnitude, sort by |λ| descending
-    if which == EigenWhich::LargestMagnitude {
-        let mut indices: Vec<usize> = (0..found_eigenvalues.len()).collect();
-        indices.sort_by(|&a, &b| {
-            found_eigenvalues[b]
-                .abs()
-                .partial_cmp(&found_eigenvalues[a].abs())
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
-        let sorted_evals: Vec<f64> = indices.iter().map(|&i| found_eigenvalues[i]).collect();
-        let sorted_evecs: Vec<Vec<f64>> = indices
-            .iter()
-            .map(|&i| found_eigenvectors[i].clone())
-            .collect();
-        return LanczosTopKResult {
-            eigenvalues: sorted_evals,
-            eigenvectors: sorted_evecs,
+    // Subspace dimension: enough to capture k Ritz values at the
+    // relevant spectral edge(s).
+    let m = n.min(actual_k.saturating_mul(2).saturating_add(20).max(20));
+
+    let tol = 1e-10;
+    let mut total_matvecs = 0usize;
+
+    let mut rng = crate::core::rng::SplitMix64::new(137);
+    let mut start = vec![0.0_f64; n];
+    for (i, sv) in start.iter_mut().enumerate() {
+        let sign = if i % 2 == 0 { 1.0 } else { -1.0 };
+        *sv = sign + (rng.gen_unit() - 0.5) * 0.2;
+    }
+    normalize(&mut start);
+
+    let mut best_eigenvalues: Vec<f64> = Vec::new();
+    let mut best_indices: Vec<usize> = Vec::new();
+    let mut best_q: Vec<Vec<f64>> = Vec::new();
+    let mut best_ritz_vals: Vec<f64> = Vec::new();
+    let mut best_ritz_vecs: Vec<Vec<f64>> = Vec::new();
+
+    loop {
+        let mut q: Vec<Vec<f64>> = Vec::with_capacity(m + 1);
+        let mut alpha_vec = Vec::with_capacity(m);
+        let mut beta_vec = Vec::with_capacity(m);
+
+        q.push(start.clone());
+        let mut w = vec![0.0; n];
+
+        for j in 0..m {
+            if total_matvecs >= max_iter {
+                break;
+            }
+
+            matvec(&q[j], &mut w);
+            if negate {
+                for val in &mut w {
+                    *val = -*val;
+                }
+            }
+            total_matvecs += 1;
+
+            let a_j: f64 = dot(&q[j], &w);
+            alpha_vec.push(a_j);
+
+            for i in 0..n {
+                w[i] -= a_j * q[j][i];
+            }
+            if j > 0 {
+                let b_prev = beta_vec[j - 1];
+                for i in 0..n {
+                    w[i] -= b_prev * q[j - 1][i];
+                }
+            }
+
+            // Full reorthogonalization
+            for prev in &q {
+                let proj = dot(prev, &w);
+                for i in 0..n {
+                    w[i] -= proj * prev[i];
+                }
+            }
+
+            let b_j = norm(&w);
+            if b_j < 1e-14 {
+                break;
+            }
+            beta_vec.push(b_j);
+
+            let inv_b = 1.0 / b_j;
+            let q_next: Vec<f64> = w.iter().map(|&x| x * inv_b).collect();
+            q.push(q_next);
+        }
+
+        if alpha_vec.is_empty() {
+            break;
+        }
+
+        let (ritz_vals, ritz_vecs) = tridiag_eig(&alpha_vec, &beta_vec);
+
+        // Sort indices by the requested criterion (in the working space,
+        // i.e. after possible negation).
+        let mut indices: Vec<usize> = (0..ritz_vals.len()).collect();
+        match which {
+            EigenWhich::LargestAlgebraic | EigenWhich::SmallestAlgebraic => {
+                indices.sort_by(|&a, &b| {
+                    ritz_vals[b]
+                        .partial_cmp(&ritz_vals[a])
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
+            }
+            EigenWhich::LargestMagnitude => {
+                indices.sort_by(|&a, &b| {
+                    ritz_vals[b]
+                        .abs()
+                        .partial_cmp(&ritz_vals[a].abs())
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
+            }
+        }
+
+        let take = actual_k.min(indices.len());
+        let current: Vec<f64> = indices[..take].iter().map(|&i| ritz_vals[i]).collect();
+
+        let converged = if best_eigenvalues.len() == current.len() {
+            best_eigenvalues
+                .iter()
+                .zip(current.iter())
+                .all(|(p, c)| (p - c).abs() < tol * (1.0 + c.abs()))
+        } else {
+            false
         };
+
+        // Always save the best decomposition
+        best_eigenvalues = current;
+        best_indices = indices;
+        best_q = q;
+        best_ritz_vals = ritz_vals;
+        best_ritz_vecs = ritz_vecs;
+
+        if converged || total_matvecs >= max_iter {
+            break;
+        }
+
+        // Restart: build a start vector that spans all k desired
+        // Ritz directions (not just the dominant one, which would
+        // collapse the Krylov subspace for matrices with simple
+        // eigenvalues).
+        let mut new_start = vec![0.0_f64; n];
+        let blend = take.min(best_indices.len());
+        for &idx in &best_indices[..blend] {
+            let s = &best_ritz_vecs[idx];
+            let mut v = vec![0.0; n];
+            for j in 0..s.len().min(best_q.len()) {
+                let coeff = s[j];
+                for i in 0..n {
+                    v[i] += coeff * best_q[j][i];
+                }
+            }
+            let weight = 1.0 + rng.gen_unit() * 0.1;
+            for i in 0..n {
+                new_start[i] += weight * v[i];
+            }
+        }
+        // Add a small random perturbation
+        for ns in &mut new_start {
+            *ns += (rng.gen_unit() - 0.5) * 1e-6;
+        }
+        normalize(&mut new_start);
+        start.copy_from_slice(&new_start);
+    }
+
+    // Backtransform the saved Ritz vectors
+    let take = actual_k.min(best_indices.len());
+    let mut result_evals = Vec::with_capacity(take);
+    let mut result_evecs = Vec::with_capacity(take);
+
+    for &idx in &best_indices[..take] {
+        let eval = if negate {
+            -best_ritz_vals[idx]
+        } else {
+            best_ritz_vals[idx]
+        };
+        result_evals.push(eval);
+
+        let s = &best_ritz_vecs[idx];
+        let mut v = vec![0.0; n];
+        for j in 0..s.len().min(best_q.len()) {
+            let coeff = s[j];
+            for i in 0..n {
+                v[i] += coeff * best_q[j][i];
+            }
+        }
+        normalize(&mut v);
+        result_evecs.push(v);
     }
 
     LanczosTopKResult {
-        eigenvalues: found_eigenvalues,
-        eigenvectors: found_eigenvectors,
+        eigenvalues: result_evals,
+        eigenvectors: result_evecs,
     }
 }
 
@@ -518,5 +629,102 @@ mod tests {
             "expected {expected}, got {}",
             result.eigenvalue
         );
+    }
+
+    #[test]
+    fn top_k_diagonal_largest_algebraic() {
+        let diag = [1.0, 3.0, 2.0, 5.0, 4.0];
+        let n = diag.len();
+        let matvec = |x: &[f64], y: &mut [f64]| {
+            for (yi, (di, xi)) in y.iter_mut().zip(diag.iter().zip(x.iter())) {
+                *yi = di * xi;
+            }
+        };
+        let result = lanczos_top_k(n, &matvec, 3, EigenWhich::LargestAlgebraic, 200);
+        assert_eq!(result.eigenvalues.len(), 3);
+        assert!(
+            (result.eigenvalues[0] - 5.0).abs() < 1e-4,
+            "expected 5.0, got {}",
+            result.eigenvalues[0]
+        );
+        assert!(
+            (result.eigenvalues[1] - 4.0).abs() < 1e-4,
+            "expected 4.0, got {}",
+            result.eigenvalues[1]
+        );
+        assert!(
+            (result.eigenvalues[2] - 3.0).abs() < 1e-4,
+            "expected 3.0, got {}",
+            result.eigenvalues[2]
+        );
+    }
+
+    #[test]
+    fn top_k_diagonal_smallest_algebraic() {
+        let diag = [1.0, 3.0, 2.0, 5.0, 4.0];
+        let n = diag.len();
+        let matvec = |x: &[f64], y: &mut [f64]| {
+            for (yi, (di, xi)) in y.iter_mut().zip(diag.iter().zip(x.iter())) {
+                *yi = di * xi;
+            }
+        };
+        let result = lanczos_top_k(n, &matvec, 2, EigenWhich::SmallestAlgebraic, 200);
+        assert_eq!(result.eigenvalues.len(), 2);
+        assert!(
+            (result.eigenvalues[0] - 1.0).abs() < 1e-4,
+            "expected 1.0, got {}",
+            result.eigenvalues[0]
+        );
+        assert!(
+            (result.eigenvalues[1] - 2.0).abs() < 1e-4,
+            "expected 2.0, got {}",
+            result.eigenvalues[1]
+        );
+    }
+
+    #[test]
+    fn top_k_largest_magnitude() {
+        // Matrix with eigenvalues -5, -1, 2, 3
+        // LargestMagnitude should return -5 first, then 3
+        let n = 4;
+        let diag = [-5.0, -1.0, 2.0, 3.0];
+        let matvec = |x: &[f64], y: &mut [f64]| {
+            for (yi, (di, xi)) in y.iter_mut().zip(diag.iter().zip(x.iter())) {
+                *yi = di * xi;
+            }
+        };
+        let result = lanczos_top_k(n, &matvec, 2, EigenWhich::LargestMagnitude, 200);
+        assert_eq!(result.eigenvalues.len(), 2);
+        assert!(
+            (result.eigenvalues[0] - (-5.0)).abs() < 1e-4,
+            "expected -5.0, got {}",
+            result.eigenvalues[0]
+        );
+        assert!(
+            (result.eigenvalues[1] - 3.0).abs() < 1e-4,
+            "expected 3.0, got {}",
+            result.eigenvalues[1]
+        );
+    }
+
+    #[test]
+    fn top_k_eigenvectors_orthogonal() {
+        let diag = [1.0, 3.0, 2.0, 5.0, 4.0];
+        let n = diag.len();
+        let matvec = |x: &[f64], y: &mut [f64]| {
+            for (yi, (di, xi)) in y.iter_mut().zip(diag.iter().zip(x.iter())) {
+                *yi = di * xi;
+            }
+        };
+        let result = lanczos_top_k(n, &matvec, 3, EigenWhich::LargestAlgebraic, 200);
+        for i in 0..result.eigenvectors.len() {
+            for j in (i + 1)..result.eigenvectors.len() {
+                let d = dot(&result.eigenvectors[i], &result.eigenvectors[j]);
+                assert!(
+                    d.abs() < 1e-4,
+                    "eigenvectors {i} and {j} not orthogonal: dot = {d}"
+                );
+            }
+        }
     }
 }
