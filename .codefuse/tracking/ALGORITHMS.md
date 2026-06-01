@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (305 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (306 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -522,6 +522,8 @@ CY-004 (`feedback_vertex_set` + `FvsAlgorithm` — greedy heuristic for feedback
 VC-001 (`minimum_vertex_cover` + `is_vertex_cover` — greedy 2-approximation for minimum vertex cover: repeatedly picks an uncovered edge and adds both endpoints; marks all incident edges of newly-covered vertices to skip redundant work; guaranteed at most 2× optimal (König 1931 / Gavril 1974); `is_vertex_cover` validator checks every edge has at least one endpoint in the set; supports directed and undirected graphs, self-loops, parallel edges; O(V+E); 16 unit tests + 2 doctests).
 
 VC-002 (`maximum_independent_set` — greedy heuristic for maximum independent set: repeatedly picks the vertex with minimum effective degree among remaining candidates, adds it to the independent set, removes it and all its neighbors; uses both in- and out-neighbors for directed graphs; pre-excludes self-loop vertices; O(V·(V+E)); 14 unit tests + 2 doctests).
+
+VC-003 (`minimum_dominating_set` + `is_dominating_set` — greedy O(ln n)-approximation for minimum dominating set: precomputes closed neighborhoods (vertex + all neighbors, both directions for directed), repeatedly picks the vertex that dominates the most undominated vertices; `is_dominating_set` validator checks every vertex is either in the set or adjacent to a set member; supports directed and undirected graphs, self-loops; O(V·(V+E)); 17 unit tests + 2 doctests).
 
 > Update the counters after every PR merge.
 
