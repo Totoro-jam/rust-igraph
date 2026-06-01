@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (340 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (342 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -588,5 +588,9 @@ PR-095 (`is_semicomplete` — check whether a directed graph is semicomplete (ev
 PR-096 (`is_claw_free` — check whether a graph has no induced `K_{1,3}` (claw); for each vertex checks if any three neighbors are mutually non-adjacent; returns false for directed graphs; 14 unit tests + 1 doctest).
 
 PR-097 (`is_diamond_free` — check whether a graph has no induced diamond (`K_4` minus one edge); for each edge checks if any pair of common neighbors is non-adjacent; returns false for directed graphs; 14 unit tests + 1 doctest).
+
+PR-098 (`is_gem_free` — check whether a graph has no induced gem (fan `F_{1,3}`: `P_4` + universal vertex); for each high-degree vertex checks if its neighborhood contains an induced `P_4`; returns false for directed graphs; 11 unit tests + 1 doctest).
+
+PR-099 (`is_paw_free` — check whether a graph has no induced paw (triangle + pendant edge); for each triangle checks if any vertex is adjacent to exactly one member; returns false for directed graphs; 13 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
