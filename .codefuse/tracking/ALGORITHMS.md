@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (314 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (315 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -536,6 +536,8 @@ PR-070 (`is_regular` + `regularity` — check whether a graph is k-regular (all 
 COL-003 (`vertex_chromatic_number` + `chromatic_number_upper_bound` — vertex chromatic number from a coloring vector and convenience DSatur upper bound; `vertex_chromatic_number` counts distinct colors (max+1); `chromatic_number_upper_bound` runs DSatur greedy coloring and returns the count; O(V²·d_max) via DSatur; 14 unit tests + 2 doctests).
 
 PR-071 (`is_cactus_graph` — check whether a graph is a cactus (connected, every biconnected component is a single edge or simple cycle); uses biconnected_components; handles directed (weak connectivity + undirected bicomp), self-loops, parallel edges; O(V+E); 17 unit tests + 1 doctest).
+
+PR-072 (`is_split_graph` — check whether a graph is a split graph via Hammer-Simeone degree-sequence characterization; sort degrees descending, find m = max{i : d_i >= i-1}, split iff sum(d_1..d_m) = m(m-1) + sum(d_{m+1}..d_n); returns false for directed/non-simple graphs; O(V+E); 16 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
 
