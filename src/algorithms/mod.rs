@@ -34,3 +34,4 @@ pub mod simple_cycles;
 pub mod spanning;
 pub mod spatial;
 pub mod traversal;
+pub mod vertex_cover;

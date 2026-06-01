@@ -566,5 +566,6 @@ pub use crate::algorithms::traversal::bfs::{
 pub use crate::algorithms::traversal::dfs::{
     DfsMode, DfsSimple, DfsTree, dfs, dfs_simple, dfs_tree,
 };
+pub use crate::algorithms::vertex_cover::{is_vertex_cover, minimum_vertex_cover};
 pub use crate::core::error::{IgraphError, IgraphResult};
 pub use crate::core::graph::{Graph, VertexId};

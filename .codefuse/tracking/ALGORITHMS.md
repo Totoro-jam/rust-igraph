@@ -511,13 +511,15 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (303 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (304 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
 CL-005 (`maximal_cliques_subset` — enumerate maximal cliques containing at least one vertex from a given subset; full BK enumeration then filter by subset membership + size bounds + max_results cap; directed graphs treated as undirected; O(3^(V/3)) worst case; 9 unit tests + 1 doctest).
 
 CY-004 (`feedback_vertex_set` + `FvsAlgorithm` — greedy heuristic for feedback vertex set: iteratively finds a cycle via DFS with a removed-vertex mask, removes the highest-degree (or highest-weight) vertex from it, and repeats until acyclic; supports directed and undirected graphs, optional per-vertex weights; `FvsAlgorithm::Greedy` accepted for API parity with the C enum — the C version only has `IGRAPH_FVS_EXACT_IP` which requires GLPK; our greedy heuristic is dependency-free and produces reasonable approximations; O((V+E)·|FVS|); 18 unit tests + 1 doctest).
+
+VC-001 (`minimum_vertex_cover` + `is_vertex_cover` — greedy 2-approximation for minimum vertex cover: repeatedly picks an uncovered edge and adds both endpoints; marks all incident edges of newly-covered vertices to skip redundant work; guaranteed at most 2× optimal (König 1931 / Gavril 1974); `is_vertex_cover` validator checks every edge has at least one endpoint in the set; supports directed and undirected graphs, self-loops, parallel edges; O(V+E); 16 unit tests + 2 doctests).
 
 > Update the counters after every PR merge.
 
