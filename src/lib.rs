@@ -499,6 +499,7 @@ pub use crate::algorithms::properties::is_clique::{is_clique, is_independent_ver
 pub use crate::algorithms::properties::is_cluster::is_cluster_graph;
 pub use crate::algorithms::properties::is_cograph::is_cograph;
 pub use crate::algorithms::properties::is_complete::is_complete;
+pub use crate::algorithms::properties::is_complete_multipartite::is_complete_multipartite;
 pub use crate::algorithms::properties::is_cycle::is_cycle;
 pub use crate::algorithms::properties::is_dag::is_dag;
 pub use crate::algorithms::properties::is_distance_hereditary::is_distance_hereditary;

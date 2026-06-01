@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (332 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (333 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -572,5 +572,7 @@ PR-087 (`is_lobster` — check whether a graph is a lobster tree; verifies is_tr
 PR-088 (`is_path` — check whether a graph is a path graph; verifies is_tree and all vertices have degree ≤ 2; returns false for directed graphs; 13 unit tests + 1 doctest).
 
 PR-089 (`is_cycle` — check whether a graph is a cycle graph; verifies n ≥ 3, exactly n edges, all vertices have degree 2, and connected; returns false for directed graphs; 14 unit tests + 1 doctest).
+
+PR-090 (`is_complete_multipartite` — check whether a graph is a complete multipartite graph; computes complement, verifies each connected component of complement is a clique (= independent set in original), validates edge count; returns `Some(parts)` with sorted part sizes or `None`; returns false for directed/non-simple graphs; 17 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
