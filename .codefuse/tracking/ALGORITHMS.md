@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (323 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (324 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -554,6 +554,8 @@ PR-078 (`is_geodetic` — check whether every pair of reachable vertices has a u
 PR-079 (`is_distance_hereditary` — check whether a graph is distance-hereditary via pruning; repeatedly remove pendant vertices (degree 1), true twins (adjacent with identical closed neighborhoods), and false twins (non-adjacent with identical open neighborhoods); per-component via connected_components; returns false for directed graphs; O(V^2) worst case; 17 unit tests + 1 doctest).
 
 PR-080 (`is_cograph` — check whether a graph is a cograph (P4-free / complement-reducible); recursive characterization: G is a cograph iff G or complement(G) is disconnected and all components are cographs; uses connected_components and complementer; returns false for directed graphs; 20 unit tests + 1 doctest).
+
+PR-081 (`is_ptolemaic` — check whether a graph is ptolemaic (chordal ∩ distance-hereditary); composes is_chordal and is_distance_hereditary; returns false for directed graphs; 17 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
 

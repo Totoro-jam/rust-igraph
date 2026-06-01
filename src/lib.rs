@@ -502,6 +502,7 @@ pub use crate::algorithms::properties::is_distance_hereditary::is_distance_hered
 pub use crate::algorithms::properties::is_forest::is_forest;
 pub use crate::algorithms::properties::is_geodetic::is_geodetic;
 pub use crate::algorithms::properties::is_pseudo_forest::is_pseudo_forest;
+pub use crate::algorithms::properties::is_ptolemaic::is_ptolemaic;
 pub use crate::algorithms::properties::is_regular::{is_regular, regularity};
 pub use crate::algorithms::properties::is_self_complementary::is_self_complementary;
 pub use crate::algorithms::properties::is_simple::{SimpleMode, is_simple, is_simple_with_mode};
