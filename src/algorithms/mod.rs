@@ -27,6 +27,7 @@ pub mod isomorphism;
 pub mod layout;
 pub mod matching;
 pub mod matching_lsap;
+pub mod max_cut;
 pub mod minimum_cycle_basis;
 pub mod motifs;
 pub mod nongraph;

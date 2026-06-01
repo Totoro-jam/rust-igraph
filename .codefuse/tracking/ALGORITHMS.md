@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (310 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (311 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -528,6 +528,8 @@ VC-003 (`minimum_dominating_set` + `is_dominating_set` — greedy O(ln n)-approx
 COL-002 (`edge_coloring_greedy` + `edge_chromatic_number` — greedy edge coloring: iterates edges in order, assigns the smallest color not used by any adjacent edge; handles directed graphs (both in/out incidence), self-loops (not self-adjacent per igraph convention), parallel edges; `edge_chromatic_number` returns the count of distinct colors used; up to 2·Δ-1 colors in the worst case; O(E·Δ); 14 unit tests + 2 doctests).
 
 MA-002 (`minimum_edge_cover` + `is_edge_cover` — minimum edge cover via greedy maximal matching + unmatched vertex extension; an edge cover is a set of edges covering all vertices; errors on isolated vertices (no edge cover exists); handles directed graphs (both in/out incidence for coverage), self-loops, parallel edges; optimal by König's theorem: |cover| = n - |matching|; O(V+E); 16 unit tests + 2 doctests).
+
+FL-040 (`maximum_cut` + `cut_value` + `MaxCutResult` — greedy 0.5-approximation for maximum cut: partitions vertices into two sets to maximize crossing edges; processes vertices in order, placing each on the side with fewer already-placed neighbors; `cut_value` counts edges crossing a given partition; handles directed graphs (merged in/out neighbors), self-loops (skipped — never cross), parallel edges; guaranteed ≥ |E|/2 crossing edges; O(V+E); 14 unit tests + 2 doctests).
 
 > Update the counters after every PR merge.
 
