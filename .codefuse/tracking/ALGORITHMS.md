@@ -140,6 +140,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-CC-020 | Reachability counts (`count_reachable`) | reachability.c:179 | ~80 | adapt | SP-006 | done | (next) | (BFS-from-each, ≈ vcount * SP-006) | C:1 / py:1 / R:1 |
 | ALGO-CC-021 | Reachability matrix (`reachability_matrix`) | reachability.c:72-148 | ~80 | adapt | SP-006 | done | (next) | O(V*(V+E)) BFS-from-each | C:1 / py:1 / R:1 |
 | ALGO-CC-022 | Transitive closure (`transitive_closure`) | reachability.c:225-257 | ~80 | adapt | CC-021 | done | (next) | (CC-021 + closure ctor) | C:1 / py:1 / R:1 |
+| ALGO-CC-023 | SCC-based reachability (`reachability`) | reachability.c:72-149 | ~130 | adapt | CC-001, CC-002 | done | (next) | O(\|C\|·\|V\|/w + \|V\| + \|E\|) SCC condensation + bitset propagation | C:1 / py:0 / R:0 |
 | ALGO-CC-030 | Edge-list percolation (union-find on vertex-pair sequence) | percolation.c (lines 105-180) | 76 | adapt | - | done | (next) | O(\|E\| α(\|E\|)) | C:2 / py:2 / R:2 |
 | ALGO-CC-031 | Bond percolation (Graph + edge id order → thin wrapper over edgelist) | percolation.c (lines 214-265) | 51 | adapt | CC-030 | done | (next) | O(\|E\| α(\|E\|)) | C:2 / py:2 / R:2 |
 | ALGO-CC-032 | Site percolation (Graph + vertex order — incremental site activation) | percolation.c (lines 328-410) | 80 | adapt | CC-030 | done | (next) | O(\|V\| + \|E\| α(\|E\|)) | C:2 / py:2 / R:2 |
@@ -509,7 +510,9 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (212/212).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (301 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+
+CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
 

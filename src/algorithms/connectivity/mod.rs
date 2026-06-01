@@ -17,6 +17,7 @@ pub(crate) mod is_connected;
 pub(crate) mod percolation;
 pub(crate) mod reachability;
 pub(crate) mod reachability_matrix;
+pub(crate) mod reachability_scc;
 pub(crate) mod separators;
 pub(crate) mod strong;
 pub(crate) mod subcomponent;
@@ -35,6 +36,7 @@ pub use percolation::{
 };
 pub use reachability::count_reachable;
 pub use reachability_matrix::reachability_matrix;
+pub use reachability_scc::{ReachabilityMode, ReachabilityResult, reachability};
 pub use separators::{
     all_minimal_st_separators, is_minimal_separator, is_separator, minimum_size_separators,
 };
