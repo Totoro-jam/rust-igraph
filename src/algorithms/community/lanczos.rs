@@ -5,6 +5,8 @@
 //! Used internally by `community_leading_eigenvector` and spectral
 //! embedding functions.
 
+#![allow(clippy::needless_range_loop)]
+
 /// Result of a Lanczos eigensolver run.
 pub(crate) struct LanczosResult {
     pub eigenvalue: f64,
