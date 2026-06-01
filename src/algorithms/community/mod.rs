@@ -20,7 +20,7 @@ pub(crate) mod edge_betweenness_community_weighted;
 pub(crate) mod fast_greedy_modularity;
 pub(crate) mod fluid_communities;
 pub(crate) mod label_propagation;
-mod lanczos;
+pub(crate) mod lanczos;
 pub(crate) mod leading_eigenvector;
 pub(crate) mod leiden;
 pub(crate) mod louvain;

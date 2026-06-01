@@ -167,6 +167,9 @@ pub use crate::algorithms::constructors::weighted_biadjacency::{
 };
 pub use crate::algorithms::constructors::wheel::{WheelMode, wheel_graph};
 pub use crate::algorithms::cycles::{CycleMode, CycleResult, find_cycle};
+pub use crate::algorithms::embedding::adjacency_spectral_embedding::{
+    AdjacencySpectralEmbeddingResult, SpectralWhich, adjacency_spectral_embedding,
+};
 pub use crate::algorithms::embedding::dim_select::dim_select;
 pub use crate::algorithms::epidemics::{Sir, sir};
 pub use crate::algorithms::feedback_arc_set::{FasAlgorithm, feedback_arc_set};
