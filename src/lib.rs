@@ -495,6 +495,7 @@ pub use crate::algorithms::properties::is_block::is_block_graph;
 pub use crate::algorithms::properties::is_cactus::is_cactus_graph;
 pub use crate::algorithms::properties::is_clique::{is_clique, is_independent_vertex_set};
 pub use crate::algorithms::properties::is_cluster::is_cluster_graph;
+pub use crate::algorithms::properties::is_cograph::is_cograph;
 pub use crate::algorithms::properties::is_complete::is_complete;
 pub use crate::algorithms::properties::is_dag::is_dag;
 pub use crate::algorithms::properties::is_distance_hereditary::is_distance_hereditary;
