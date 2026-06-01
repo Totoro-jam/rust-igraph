@@ -10,6 +10,7 @@
     clippy::similar_names,
     clippy::many_single_char_names,
     clippy::too_many_lines,
+    unknown_lints,
     clippy::manual_midpoint
 )]
 pub(crate) mod align;

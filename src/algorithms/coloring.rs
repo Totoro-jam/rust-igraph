@@ -561,6 +561,126 @@ pub fn is_edge_coloring(graph: &Graph, colors: &[u32]) -> IgraphResult<bool> {
     Ok(true)
 }
 
+/// Compute a greedy edge coloring.
+///
+/// Assigns colors (starting from 0) to edges such that no two edges
+/// sharing a vertex receive the same color. Iterates edges in order
+/// and assigns the smallest color not used by any adjacent edge.
+///
+/// The greedy approach may use up to `2·Δ - 1` colors where `Δ` is
+/// the maximum degree. By Vizing's theorem, any simple graph can be
+/// edge-colored with at most `Δ + 1` colors, but the greedy
+/// heuristic does not guarantee that bound.
+///
+/// Self-loops are assigned a color but are not considered adjacent
+/// to themselves (matching `is_edge_coloring` behavior).
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, edge_coloring_greedy, is_edge_coloring};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// let colors = edge_coloring_greedy(&g).unwrap();
+/// assert!(is_edge_coloring(&g, &colors).unwrap());
+/// ```
+pub fn edge_coloring_greedy(graph: &Graph) -> IgraphResult<Vec<u32>> {
+    let ec = graph.ecount();
+
+    if ec == 0 {
+        return Ok(Vec::new());
+    }
+
+    let mut colors = vec![u32::MAX; ec];
+
+    // For each vertex, track which colors are used by incident edges
+    // We rebuild the used-color set per vertex on demand
+    for eid in 0..ec {
+        let (u, v) = graph.edge(eid as u32)?;
+
+        // Collect colors used by edges incident to u (excluding self: eid)
+        let mut used = Vec::new();
+        collect_used_colors(graph, u, eid, &colors, &mut used)?;
+        if u != v {
+            collect_used_colors(graph, v, eid, &colors, &mut used)?;
+        }
+        used.sort_unstable();
+        used.dedup();
+
+        // Find smallest unused color
+        let mut color = 0u32;
+        for &c in &used {
+            if c == color {
+                color = color.checked_add(1).unwrap_or(color);
+            } else {
+                break;
+            }
+        }
+
+        colors[eid] = color;
+    }
+
+    // Verify no u32::MAX remains (shouldn't happen for valid graphs)
+    debug_assert!(colors.iter().all(|&c| c != u32::MAX || ec == 0));
+
+    Ok(colors)
+}
+
+/// Return the number of distinct colors used by an edge coloring.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, edge_coloring_greedy, edge_chromatic_number};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// let colors = edge_coloring_greedy(&g).unwrap();
+/// assert_eq!(edge_chromatic_number(&colors), 3);
+/// ```
+pub fn edge_chromatic_number(colors: &[u32]) -> u32 {
+    if colors.is_empty() {
+        return 0;
+    }
+    let max_color = colors.iter().copied().max().unwrap_or(0);
+    max_color.checked_add(1).unwrap_or(max_color)
+}
+
+fn collect_used_colors(
+    graph: &Graph,
+    v: VertexId,
+    exclude_eid: usize,
+    colors: &[u32],
+    used: &mut Vec<u32>,
+) -> IgraphResult<()> {
+    let edges = graph.incident(v)?;
+    if graph.is_directed() {
+        let in_edges = graph.incident_in(v)?;
+        for &eid in edges.iter().chain(in_edges.iter()) {
+            if (eid as usize) != exclude_eid && colors[eid as usize] != u32::MAX {
+                used.push(colors[eid as usize]);
+            }
+        }
+    } else {
+        let mut seen: Vec<EdgeId> = Vec::with_capacity(edges.len());
+        for &eid in &edges {
+            if !seen.contains(&eid) {
+                seen.push(eid);
+                if (eid as usize) != exclude_eid && colors[eid as usize] != u32::MAX {
+                    used.push(colors[eid as usize]);
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 // =================================================================
 // Tests
 // =================================================================
@@ -916,6 +1036,109 @@ mod tests {
     fn test_edge_coloring_empty() {
         let g = make_undirected(0, &[]);
         assert!(is_edge_coloring(&g, &[]).expect("ok"));
+    }
+
+    // ---- edge_coloring_greedy tests ----
+
+    #[test]
+    fn test_edge_coloring_greedy_empty() {
+        let g = make_undirected(0, &[]);
+        let colors = edge_coloring_greedy(&g).unwrap();
+        assert!(colors.is_empty());
+    }
+
+    #[test]
+    fn test_edge_coloring_greedy_no_edges() {
+        let g = make_undirected(5, &[]);
+        let colors = edge_coloring_greedy(&g).unwrap();
+        assert!(colors.is_empty());
+    }
+
+    #[test]
+    fn test_edge_coloring_greedy_single_edge() {
+        let g = make_undirected(2, &[(0, 1)]);
+        let colors = edge_coloring_greedy(&g).unwrap();
+        assert_eq!(colors.len(), 1);
+        assert_eq!(colors[0], 0);
+        assert!(is_edge_coloring(&g, &colors).unwrap());
+    }
+
+    #[test]
+    fn test_edge_coloring_greedy_path() {
+        let g = make_undirected(4, &[(0, 1), (1, 2), (2, 3)]);
+        let colors = edge_coloring_greedy(&g).unwrap();
+        assert!(is_edge_coloring(&g, &colors).unwrap());
+        assert_eq!(edge_chromatic_number(&colors), 2); // path needs 2
+    }
+
+    #[test]
+    fn test_edge_coloring_greedy_triangle() {
+        let g = make_undirected(3, &[(0, 1), (1, 2), (2, 0)]);
+        let colors = edge_coloring_greedy(&g).unwrap();
+        assert!(is_edge_coloring(&g, &colors).unwrap());
+        assert_eq!(edge_chromatic_number(&colors), 3); // odd cycle needs 3
+    }
+
+    #[test]
+    fn test_edge_coloring_greedy_k4() {
+        let g = make_undirected(4, &[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]);
+        let colors = edge_coloring_greedy(&g).unwrap();
+        assert!(is_edge_coloring(&g, &colors).unwrap());
+        // K4 max degree = 3, Vizing: needs 3 or 4
+        assert!(edge_chromatic_number(&colors) >= 3);
+    }
+
+    #[test]
+    fn test_edge_coloring_greedy_star() {
+        let g = make_undirected(5, &[(0, 1), (0, 2), (0, 3), (0, 4)]);
+        let colors = edge_coloring_greedy(&g).unwrap();
+        assert!(is_edge_coloring(&g, &colors).unwrap());
+        assert_eq!(edge_chromatic_number(&colors), 4); // star: Δ colors
+    }
+
+    #[test]
+    fn test_edge_coloring_greedy_bipartite() {
+        let g = make_undirected(4, &[(0, 2), (0, 3), (1, 2), (1, 3)]);
+        let colors = edge_coloring_greedy(&g).unwrap();
+        assert!(is_edge_coloring(&g, &colors).unwrap());
+    }
+
+    #[test]
+    fn test_edge_coloring_greedy_self_loop() {
+        let g = make_undirected(3, &[(0, 0), (0, 1), (1, 2)]);
+        let colors = edge_coloring_greedy(&g).unwrap();
+        assert!(is_edge_coloring(&g, &colors).unwrap());
+    }
+
+    #[test]
+    fn test_edge_coloring_greedy_parallel_edges() {
+        let g = make_undirected(2, &[(0, 1), (0, 1), (0, 1)]);
+        let colors = edge_coloring_greedy(&g).unwrap();
+        assert!(is_edge_coloring(&g, &colors).unwrap());
+        assert_eq!(edge_chromatic_number(&colors), 3);
+    }
+
+    #[test]
+    fn test_edge_coloring_greedy_directed() {
+        let g = Graph::new(3, true).unwrap();
+        let mut g = g;
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 0).unwrap();
+        let colors = edge_coloring_greedy(&g).unwrap();
+        assert!(is_edge_coloring(&g, &colors).unwrap());
+    }
+
+    #[test]
+    fn test_edge_chromatic_number_empty() {
+        assert_eq!(edge_chromatic_number(&[]), 0);
+    }
+
+    #[test]
+    fn test_edge_chromatic_number_values() {
+        assert_eq!(edge_chromatic_number(&[0]), 1);
+        assert_eq!(edge_chromatic_number(&[0, 1, 2]), 3);
+        assert_eq!(edge_chromatic_number(&[0, 0, 0]), 1);
     }
 }
 
