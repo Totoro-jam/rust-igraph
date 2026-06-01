@@ -4,6 +4,15 @@
 //! ALGO-LO-003: Kamada-Kawai spring layout.
 //! ALGO-LO-004: Reingold-Tilford tree layout.
 
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::needless_range_loop,
+    clippy::similar_names,
+    clippy::many_single_char_names,
+    clippy::too_many_lines,
+    clippy::manual_midpoint
+)]
+pub(crate) mod align;
 pub(crate) mod bipartite;
 #[allow(
     clippy::similar_names,
@@ -134,6 +143,7 @@ pub(crate) mod sugiyama;
 )]
 pub(crate) mod umap;
 
+pub use align::layout_align;
 pub use bipartite::layout_bipartite;
 pub use davidson_harel::{DhParams, layout_davidson_harel};
 pub use drl::{DrlOptions, DrlTemplate, layout_drl, layout_drl_3d};
