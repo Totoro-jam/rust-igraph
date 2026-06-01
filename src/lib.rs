@@ -513,6 +513,7 @@ pub use crate::algorithms::properties::is_regular::{is_regular, regularity};
 pub use crate::algorithms::properties::is_self_complementary::is_self_complementary;
 pub use crate::algorithms::properties::is_simple::{SimpleMode, is_simple, is_simple_with_mode};
 pub use crate::algorithms::properties::is_split::is_split_graph;
+pub use crate::algorithms::properties::is_star::is_star;
 pub use crate::algorithms::properties::is_strongly_regular::{
     StronglyRegularParams, is_strongly_regular,
 };
@@ -521,6 +522,7 @@ pub use crate::algorithms::properties::is_tournament::is_tournament;
 pub use crate::algorithms::properties::is_tree::is_tree;
 pub use crate::algorithms::properties::is_triangle_free::is_triangle_free;
 pub use crate::algorithms::properties::is_wheel::is_wheel;
+pub use crate::algorithms::properties::is_windmill::is_windmill;
 pub use crate::algorithms::properties::joint_degree_distribution::joint_degree_distribution;
 pub use crate::algorithms::properties::joint_degree_matrix::joint_degree_matrix;
 pub use crate::algorithms::properties::joint_type_distribution::joint_type_distribution;
