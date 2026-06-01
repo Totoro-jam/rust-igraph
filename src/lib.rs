@@ -490,6 +490,7 @@ pub use crate::algorithms::properties::hits::{
     HitsScores, hub_and_authority_scores, hub_and_authority_scores_weighted,
 };
 pub use crate::algorithms::properties::is_acyclic::is_acyclic;
+pub use crate::algorithms::properties::is_biclique::is_biclique;
 pub use crate::algorithms::properties::is_bipartite::{BipartiteResult, is_bipartite};
 pub use crate::algorithms::properties::is_block::is_block_graph;
 pub use crate::algorithms::properties::is_cactus::is_cactus_graph;
@@ -511,8 +512,10 @@ pub use crate::algorithms::properties::is_strongly_regular::{
     StronglyRegularParams, is_strongly_regular,
 };
 pub use crate::algorithms::properties::is_threshold::is_threshold_graph;
+pub use crate::algorithms::properties::is_tournament::is_tournament;
 pub use crate::algorithms::properties::is_tree::is_tree;
 pub use crate::algorithms::properties::is_triangle_free::is_triangle_free;
+pub use crate::algorithms::properties::is_wheel::is_wheel;
 pub use crate::algorithms::properties::joint_degree_distribution::joint_degree_distribution;
 pub use crate::algorithms::properties::joint_degree_matrix::joint_degree_matrix;
 pub use crate::algorithms::properties::joint_type_distribution::joint_type_distribution;

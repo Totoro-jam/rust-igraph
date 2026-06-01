@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (326 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (328 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -560,6 +560,10 @@ PR-081 (`is_ptolemaic` — check whether a graph is ptolemaic (chordal ∩ dista
 PR-082 (`is_strongly_regular` — check whether a graph is strongly regular; returns optional `StronglyRegularParams(n, k, λ, μ)`; checks regularity then verifies all adjacent pairs share λ common neighbors and all non-adjacent pairs share μ; handles complete/edgeless degenerate cases; returns None for directed/non-simple graphs; 16 unit tests + 1 doctest).
 
 PR-083 (`is_biclique` — check whether a graph is a complete bipartite graph (biclique); uses is_bipartite to partition, then verifies edge count equals part_a × part_b; returns false for directed graphs; handles empty/single-vertex/K_{m,0} degenerate cases; 16 unit tests + 1 doctest).
+
+PR-084 (`is_tournament` — check whether a directed graph is a tournament (complete asymmetric); verifies directed, simple, n(n-1)/2 edges, no mutual edges; returns false for undirected graphs; 13 unit tests + 1 doctest).
+
+PR-085 (`is_wheel` — check whether a graph is a wheel graph; finds hub vertex of degree n-1, verifies all rim vertices have degree 3, walks the rim to confirm it forms a Hamiltonian cycle; returns false for directed/non-simple graphs and n < 4; 13 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
 
