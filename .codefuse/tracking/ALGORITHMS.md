@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (338 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (340 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -584,5 +584,9 @@ PR-093 (`is_unicyclic` — check whether a graph is unicyclic (connected with ex
 PR-094 (`is_trivially_perfect` — check whether a graph is trivially perfect (quasi-threshold); recursively verifies every connected component has a universal vertex; returns false for directed graphs; 17 unit tests + 1 doctest).
 
 PR-095 (`is_semicomplete` — check whether a directed graph is semicomplete (every pair of distinct vertices has at least one arc); builds adjacency matrix and checks all pairs; returns false for undirected graphs; 12 unit tests + 1 doctest).
+
+PR-096 (`is_claw_free` — check whether a graph has no induced `K_{1,3}` (claw); for each vertex checks if any three neighbors are mutually non-adjacent; returns false for directed graphs; 14 unit tests + 1 doctest).
+
+PR-097 (`is_diamond_free` — check whether a graph has no induced diamond (`K_4` minus one edge); for each edge checks if any pair of common neighbors is non-adjacent; returns false for directed graphs; 14 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
