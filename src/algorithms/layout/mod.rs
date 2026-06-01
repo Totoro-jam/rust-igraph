@@ -136,7 +136,7 @@ pub(crate) mod umap;
 
 pub use bipartite::layout_bipartite;
 pub use davidson_harel::{DhParams, layout_davidson_harel};
-pub use drl::{DrlOptions, DrlTemplate, layout_drl};
+pub use drl::{DrlOptions, DrlTemplate, layout_drl, layout_drl_3d};
 pub use fruchterman_reingold::{
     FrBounds, FrBounds3d, FrGrid, FrParams, FrParams3d, layout_fruchterman_reingold,
     layout_fruchterman_reingold_3d,

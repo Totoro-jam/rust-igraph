@@ -1,0 +1,22 @@
+{
+  "algo": "ALGO-LO-015",
+  "name": "layout_drl_3d (3D DrL force-directed layout)",
+  "date": "2026-06-01",
+  "rust_version": "1.85",
+  "platform": "darwin-aarch64",
+  "benchmarks": [
+    {
+      "group": "drl_3d/vertex_count",
+      "sizes": ["10", "50", "200"],
+      "median_ns": [5147300, 155390000, 531960000],
+      "note": "Cycle graphs with Refine template. 3D density grid 100³. O(n·stages·iters) per layout."
+    },
+    {
+      "group": "drl_3d/template",
+      "sizes": ["Refine", "Final", "Default"],
+      "median_ns": [43168000, 42045000, 575440000],
+      "note": "30-vertex path graph. Default template has many more iterations than Refine/Final."
+    }
+  ],
+  "status": "baseline_created"
+}

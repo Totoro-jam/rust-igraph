@@ -127,6 +127,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-LO-012 | `layout_drl` — DrL (Distributed Recursive Layout); multi-phase simulated annealing (liquid/expansion/cooldown/crunch/simmer) with 400×400 density-grid repulsion; 5 preset templates; weighted edges; seed positions | layout/drl/ (~4200 lines C++) | ~640 | adapt | core/Graph | done | 2026-05-27 | O(V·E·stages·iters) | 12 unit + 1 doctest |
 | ALGO-LO-013 | `layout_umap` + `layout_umap_3d` — UMAP (Uniform Manifold Approximation and Projection); distance→weight conversion with sigma/rho, Gauss-Newton a/b fitting, SGD with negative-sampling repulsion; 2D/3D; seed support | layout/umap.c (~1285 lines) | ~640 | adapt | core/Graph | done | 2026-05-27 | O(E·epochs·neg_rate) | 16 unit + 1 doctest |
 | ALGO-LO-014 | `layout_merge_dla` — merge multiple 2D component layouts into a single combined layout via DLA (Diffusion Limited Aggregation); bounding circle coverage + DLA random walk placement with 200×200 MergeGrid collision detection; deterministic SplitMix64 seed | layout/merge_dla.c + merge_grid.c | ~480 | adapt | — | done | 2026-05-27 | O(n_components² · grid_size) | 8 unit + 1 doctest |
+| ALGO-LO-015 | `layout_drl_3d` — 3D extension of DrL force-directed layout; 100³ density grid (vs 400² for 2D); same multi-phase simulated annealing with 3D centroid/random energy minimization; shares `DrlOptions`/`DrlTemplate` with 2D variant | layout/drl/ (~1250 lines C++) | ~400 | adapt | ALGO-LO-012 | done | 2026-06-01 | O(V·E·stages·iters) | 12 unit + 1 doctest |
 | ALGO-CC-001 | Weakly connected components | components.c:82-180 | 100 | adapt | TR-001 | done | (next) | 4.1 µs/karate | C:2 / py:1 / R:1 |
 | ALGO-CC-002 | Strongly connected components (Kosaraju) | components.c:203-386 | 184 | adapt | CC-001 | done | (next) | 4.49 µs/karate-dir | C:2 / py:1 / R:1 |
 | ALGO-CC-003 | Decompose graph by components (`decompose`, weak only) | components.c:566-732 | 350 | adapt | CC-001,002 | done | (next) | O(V+E) BFS + edge sweep | C:1 / py:1 / R:1 |
@@ -380,7 +381,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 > `todo` count, since they would otherwise distort the algorithm-progress
 > ratio.
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 198/198 done —
+**Phase 0 — complete (37/37)**. **Phase 1 underway**: 251/251 done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected

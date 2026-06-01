@@ -949,6 +949,11 @@ name = "bench_sp_dijkstra"
 path = "benches/bench_sp_dijkstra.rs"
 harness = false
 
+[[bench]]
+name = "bench_drl_3d"
+path = "benches/bench_drl_3d.rs"
+harness = false
+
 [lints.rust]
 unsafe_code = "deny"
 
