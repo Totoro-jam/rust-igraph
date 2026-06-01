@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (313 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (314 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -534,6 +534,8 @@ FL-040 (`maximum_cut` + `cut_value` + `MaxCutResult` — greedy 0.5-approximatio
 PR-070 (`is_regular` + `regularity` — check whether a graph is k-regular (all vertices have same degree); for directed graphs checks both out-degree and in-degree uniformity and equality; `regularity` returns the common degree k or None; O(V+E); 18 unit tests + 2 doctests).
 
 COL-003 (`vertex_chromatic_number` + `chromatic_number_upper_bound` — vertex chromatic number from a coloring vector and convenience DSatur upper bound; `vertex_chromatic_number` counts distinct colors (max+1); `chromatic_number_upper_bound` runs DSatur greedy coloring and returns the count; O(V²·d_max) via DSatur; 14 unit tests + 2 doctests).
+
+PR-071 (`is_cactus_graph` — check whether a graph is a cactus (connected, every biconnected component is a single edge or simple cycle); uses biconnected_components; handles directed (weak connectivity + undirected bicomp), self-loops, parallel edges; O(V+E); 17 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
 
