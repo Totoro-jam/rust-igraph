@@ -498,6 +498,7 @@ pub use crate::algorithms::properties::is_cluster::is_cluster_graph;
 pub use crate::algorithms::properties::is_complete::is_complete;
 pub use crate::algorithms::properties::is_dag::is_dag;
 pub use crate::algorithms::properties::is_forest::is_forest;
+pub use crate::algorithms::properties::is_geodetic::is_geodetic;
 pub use crate::algorithms::properties::is_pseudo_forest::is_pseudo_forest;
 pub use crate::algorithms::properties::is_regular::{is_regular, regularity};
 pub use crate::algorithms::properties::is_self_complementary::is_self_complementary;

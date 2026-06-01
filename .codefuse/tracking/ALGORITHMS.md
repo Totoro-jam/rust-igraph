@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (320 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (321 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -548,6 +548,8 @@ PR-075 (`is_pseudo_forest` — check whether every connected component has at mo
 PR-076 (`is_self_complementary` — check whether a graph is isomorphic to its complement; fast edge-count filter (need n(n-1)/4 edges) then VF2 isomorphism test; returns false for directed graphs; O(V^2) complement + VF2; 14 unit tests + 1 doctest).
 
 PR-077 (`is_cluster_graph` — check whether a graph is a disjoint union of cliques (P3-free); each connected component must be complete; uses connected_components; rejects self-loops and parallel edges; returns false for directed graphs; O(V+E); 16 unit tests + 1 doctest).
+
+PR-078 (`is_geodetic` — check whether every pair of reachable vertices has a unique shortest path; BFS from each vertex tracking shortest-path counts; supports directed graphs; O(V*(V+E)); 18 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
 
