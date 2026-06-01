@@ -99,6 +99,56 @@ impl SplitMix64 {
         }
         (one_minus_u.ln() / log_one_minus_p).floor()
     }
+
+    /// Standard normal (Gaussian) variate via Box-Muller transform.
+    ///
+    /// Returns a draw from N(0, 1). Uses the basic form: generate two
+    /// independent U(0,1) draws, produce two independent N(0,1) draws,
+    /// cache the second for the next call.
+    pub fn gen_normal(&mut self) -> f64 {
+        let u1 = self.gen_unit();
+        let u2 = self.gen_unit();
+        let r = (-2.0 * (1.0 - u1).ln()).sqrt();
+        r * (std::f64::consts::TAU * u2).cos()
+    }
+
+    /// Gamma(shape, 1) variate via Marsaglia-Tsang's method (2000).
+    ///
+    /// For `shape >= 1` uses the direct method. For `0 < shape < 1`
+    /// uses `Gamma(shape+1, 1) * U^(1/shape)` where U ~ U(0,1).
+    ///
+    /// Caller must ensure `shape > 0`.
+    #[allow(clippy::many_single_char_names)]
+    pub fn gen_gamma(&mut self, shape: f64) -> f64 {
+        debug_assert!(shape > 0.0, "gen_gamma requires shape > 0");
+
+        if shape < 1.0 {
+            let g = self.gen_gamma(shape + 1.0);
+            let u = self.gen_unit();
+            return g * u.powf(1.0 / shape);
+        }
+
+        let d = shape - 1.0 / 3.0;
+        let c = 1.0 / (9.0 * d).sqrt();
+
+        loop {
+            let x = self.gen_normal();
+            let v_base = 1.0 + c * x;
+            if v_base <= 0.0 {
+                continue;
+            }
+            let v = v_base * v_base * v_base;
+            let u = self.gen_unit();
+            let x2 = x * x;
+
+            if u < 1.0 - 0.0331 * x2 * x2 {
+                return d * v;
+            }
+            if u.ln() < 0.5 * x2 + d * (1.0 - v + v.ln()) {
+                return d * v;
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -150,6 +200,50 @@ mod tests {
             {
                 assert_eq!(v, 0.0);
             }
+        }
+    }
+
+    #[test]
+    fn gen_normal_mean_and_variance() {
+        let n: i32 = 100_000;
+        let mut r = SplitMix64::new(42);
+        let samples: Vec<f64> = (0..n).map(|_| r.gen_normal()).collect();
+        let nf = f64::from(n);
+        let mean = samples.iter().sum::<f64>() / nf;
+        let variance = samples
+            .iter()
+            .map(|&x| (x - mean) * (x - mean))
+            .sum::<f64>()
+            / nf;
+        assert!(mean.abs() < 0.02, "normal mean should be ~0, got {mean}");
+        assert!(
+            (variance - 1.0).abs() < 0.05,
+            "normal variance should be ~1, got {variance}"
+        );
+    }
+
+    #[test]
+    fn gen_gamma_mean_matches_shape() {
+        // E[Gamma(shape, 1)] = shape
+        for &shape in &[0.5, 1.0, 2.0, 5.0] {
+            let n: i32 = 50_000;
+            let mut r = SplitMix64::new(99);
+            let sum: f64 = (0..n).map(|_| r.gen_gamma(shape)).sum();
+            let mean = sum / f64::from(n);
+            let rel_err = (mean - shape).abs() / shape;
+            assert!(
+                rel_err < 0.05,
+                "gamma({shape}) mean={mean}, expected ~{shape}, rel_err={rel_err}"
+            );
+        }
+    }
+
+    #[test]
+    fn gen_gamma_all_positive() {
+        let mut r = SplitMix64::new(777);
+        for _ in 0..10_000 {
+            let v = r.gen_gamma(0.3);
+            assert!(v > 0.0, "gamma sample must be positive, got {v}");
         }
     }
 
