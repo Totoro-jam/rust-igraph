@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (346 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (348 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -600,5 +600,9 @@ PR-101 (`is_c4_free` — check whether a graph has no induced `C_4` (chordless 4
 PR-102 (`is_c5_free` — check whether a graph has no induced `C_5` (chordless pentagon); for each edge (a,b) chains through non-adjacent neighbors to find a 5-cycle with no chords; Petersen graph has induced `C_5` (girth 5); returns false for directed graphs; 14 unit tests + 1 doctest).
 
 PR-103 (`is_bowtie_free` — check whether a graph has no induced bowtie (butterfly/hourglass: two triangles sharing a single vertex); for each vertex collects triangle-partner pairs among neighbors, then checks if any two triangle pairs are vertex-disjoint with no cross-edges; `K_5` is bowtie-free (cross-edges present); returns false for directed graphs; 14 unit tests + 1 doctest).
+
+PR-104 (`is_cricket_free` — check whether a graph has no induced cricket (triangle with two pendant edges from the *same* vertex); for each triangle tries each vertex as pendant hub and checks for two non-adjacent pendant neighbors; differs from bull where pendants hang from different vertices; returns false for directed graphs; 13 unit tests + 1 doctest).
+
+PR-105 (`is_house_free` — check whether a graph has no induced house (`C_5` with one chord, equivalently triangle + `P_2` extension completing a 5-cycle); for each triangle tries all 6 orientations of the chord/roof and searches for roof vertices d, e; Petersen graph is house-free (triangle-free); returns false for directed graphs; 14 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.

@@ -505,6 +505,7 @@ pub use crate::algorithms::properties::is_cluster::is_cluster_graph;
 pub use crate::algorithms::properties::is_cograph::is_cograph;
 pub use crate::algorithms::properties::is_complete::is_complete;
 pub use crate::algorithms::properties::is_complete_multipartite::is_complete_multipartite;
+pub use crate::algorithms::properties::is_cricket_free::is_cricket_free;
 pub use crate::algorithms::properties::is_cycle::is_cycle;
 pub use crate::algorithms::properties::is_dag::is_dag;
 pub use crate::algorithms::properties::is_diamond_free::is_diamond_free;
@@ -512,6 +513,7 @@ pub use crate::algorithms::properties::is_distance_hereditary::is_distance_hered
 pub use crate::algorithms::properties::is_forest::is_forest;
 pub use crate::algorithms::properties::is_gem_free::is_gem_free;
 pub use crate::algorithms::properties::is_geodetic::is_geodetic;
+pub use crate::algorithms::properties::is_house_free::is_house_free;
 pub use crate::algorithms::properties::is_lobster::is_lobster;
 pub use crate::algorithms::properties::is_path::is_path;
 pub use crate::algorithms::properties::is_paw_free::is_paw_free;
