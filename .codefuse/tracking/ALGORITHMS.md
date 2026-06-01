@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (342 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (344 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -592,5 +592,9 @@ PR-097 (`is_diamond_free` — check whether a graph has no induced diamond (`K_4
 PR-098 (`is_gem_free` — check whether a graph has no induced gem (fan `F_{1,3}`: `P_4` + universal vertex); for each high-degree vertex checks if its neighborhood contains an induced `P_4`; returns false for directed graphs; 11 unit tests + 1 doctest).
 
 PR-099 (`is_paw_free` — check whether a graph has no induced paw (triangle + pendant edge); for each triangle checks if any vertex is adjacent to exactly one member; returns false for directed graphs; 13 unit tests + 1 doctest).
+
+PR-100 (`is_bull_free` — check whether a graph has no induced bull (triangle with two pendant edges from distinct triangle vertices); enumerates triangles and checks all 3 pairs for pendant neighbors; returns false for directed graphs; 13 unit tests + 1 doctest).
+
+PR-101 (`is_c4_free` — check whether a graph has no induced `C_4` (chordless 4-cycle); for each edge (a,b) finds c adjacent to b but not a, then d adjacent to both c and a but not b; `K_4` is `C_4`-free, Petersen is `C_4`-free (girth 5); returns false for directed graphs; 14 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
