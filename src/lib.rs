@@ -303,6 +303,9 @@ pub use crate::algorithms::motifs::{
     motifs_randesu_no, triad_census,
 };
 pub use crate::algorithms::nongraph::random_sample::random_sample;
+pub use crate::algorithms::nongraph::sampling::{
+    sample_dirichlet, sample_sphere_surface, sample_sphere_volume,
+};
 pub use crate::algorithms::operators::bipartite_projection::{
     BipartiteProjection, bipartite_projection,
 };
