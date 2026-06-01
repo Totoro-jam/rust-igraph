@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (318 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (319 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -544,6 +544,8 @@ PR-073 (`is_threshold_graph` — check whether a graph is a threshold graph via 
 PR-074 (`is_block_graph` — check whether a graph is a block graph (every biconnected component is a clique); uses biconnected_components; each block with k vertices must have k(k-1)/2 edges; requires connectivity; returns false for directed graphs; O(V+E); 19 unit tests + 1 doctest).
 
 PR-075 (`is_pseudo_forest` — check whether every connected component has at most one cycle; equivalently |E| <= |V| per component; uses connected_components; handles self-loops and parallel edges; returns false for directed graphs; O(V+E); 19 unit tests + 1 doctest).
+
+PR-076 (`is_self_complementary` — check whether a graph is isomorphic to its complement; fast edge-count filter (need n(n-1)/4 edges) then VF2 isomorphism test; returns false for directed graphs; O(V^2) complement + VF2; 14 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
 
