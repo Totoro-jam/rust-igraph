@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (315 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (316 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -538,6 +538,8 @@ COL-003 (`vertex_chromatic_number` + `chromatic_number_upper_bound` — vertex c
 PR-071 (`is_cactus_graph` — check whether a graph is a cactus (connected, every biconnected component is a single edge or simple cycle); uses biconnected_components; handles directed (weak connectivity + undirected bicomp), self-loops, parallel edges; O(V+E); 17 unit tests + 1 doctest).
 
 PR-072 (`is_split_graph` — check whether a graph is a split graph via Hammer-Simeone degree-sequence characterization; sort degrees descending, find m = max{i : d_i >= i-1}, split iff sum(d_1..d_m) = m(m-1) + sum(d_{m+1}..d_n); returns false for directed/non-simple graphs; O(V+E); 16 unit tests + 1 doctest).
+
+PR-073 (`is_threshold_graph` — check whether a graph is a threshold graph via degree-sequence peeling; sort degrees descending, repeatedly remove dominating (degree n-1) or isolated (degree 0) vertices; if top degree is neither 0 nor n-1 at any step, graph is not threshold; returns false for directed/non-simple graphs; O(V log V); 20 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
 
