@@ -141,6 +141,38 @@ impl Graph {
         Ok(g)
     }
 
+    /// Build a graph from weighted edges, returning both the graph and the
+    /// weight vector (indexed by edge id).
+    ///
+    /// Each element of `edges` is `(from, to, weight)`. The resulting weight
+    /// vector has length equal to the edge count, with `weights[eid]`
+    /// corresponding to the edge added from the `eid`-th tuple.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let (g, weights) = Graph::from_weighted_edges(
+    ///     &[(0, 1, 1.5), (1, 2, 2.0), (2, 0, 0.5)],
+    ///     false,
+    ///     None,
+    /// ).unwrap();
+    /// assert_eq!(g.vcount(), 3);
+    /// assert_eq!(g.ecount(), 3);
+    /// assert_eq!(weights, vec![1.5, 2.0, 0.5]);
+    /// ```
+    pub fn from_weighted_edges(
+        edges: &[(u32, u32, f64)],
+        directed: bool,
+        n_override: Option<u32>,
+    ) -> IgraphResult<(Self, Vec<f64>)> {
+        let plain: Vec<(u32, u32)> = edges.iter().map(|&(u, v, _)| (u, v)).collect();
+        let weights: Vec<f64> = edges.iter().map(|&(_, _, w)| w).collect();
+        let g = Self::from_edges(&plain, directed, n_override)?;
+        Ok((g, weights))
+    }
+
     /// Construct an empty *undirected* graph on `n` vertices.
     ///
     /// Builds the graph directly (no intermediate `Result`) since an
