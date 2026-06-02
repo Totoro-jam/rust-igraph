@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (369 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (371 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -644,5 +644,9 @@ PR-123 (`is_cubic` — check whether a graph is cubic (3-regular): every vertex 
 PR-124 (`is_co_chordal` — check whether a graph is co-chordal: complement of G is chordal; builds complement graph and runs chordality check; complete, edgeless, `C_4`, and star graphs are co-chordal; `C_5`, `C_6`, `P_5` are not; directed treated as undirected; 13 unit tests + 1 doctest).
 
 PR-125 (`is_net_free` — check whether a graph has no induced net subgraph: a net is a triangle with a pendant edge on each vertex (6 vertices, 6 edges); precomputes pendant candidates per triangle vertex for efficiency; triangles, complete graphs, cycles, paths are net-free; directed treated as undirected; 14 unit tests + 1 doctest).
+
+PR-126 (`is_biregular` — check whether a graph is biregular (semiregular bipartite): bipartite and all vertices in the same partition have the same degree; uses `is_bipartite` for partition, then checks degree uniformity per side; `K_{m,n}`, regular bipartite, stars are biregular; `P_4`, mixed-component disconnected graphs are not; directed treated as undirected; 15 unit tests + 1 doctest).
+
+PR-127 (`is_series_parallel` — check whether a graph is series-parallel: no `K_4` minor (Duffin 1965); iterative reduction algorithm: peel degree-0/1 vertices, series-reduce degree-2 vertices, collapse parallel edges until fixpoint; graph is SP iff it reduces to at most one edge; trees, cycles, diamonds, `K_{2,3}` are SP; `K_4`, `K_5`, Petersen, wheels are not; directed treated as undirected; 20 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
