@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (367 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (369 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -640,5 +640,9 @@ PR-121 (`is_weakly_chordal` — check whether a graph is weakly chordal (weakly 
 PR-122 (`is_complete_bipartite` — check whether a graph is complete bipartite `K_{m,n}`: uses bipartite check to find two parts, then verifies edge count = m × n; `K_{1,1}`, `C_4` = `K_{2,2}`, stars = `K_{1,n}` are complete bipartite; `C_6`, triangles, disconnected graphs are not; directed treated as undirected; 15 unit tests + 1 doctest).
 
 PR-123 (`is_cubic` — check whether a graph is cubic (3-regular): every vertex has degree exactly 3; `K_4`, `K_{3,3}`, Petersen graph, prism graph are cubic; `C_4` (2-regular), `K_5` (4-regular), stars are not; returns false for directed or n < 4; 13 unit tests + 1 doctest).
+
+PR-124 (`is_co_chordal` — check whether a graph is co-chordal: complement of G is chordal; builds complement graph and runs chordality check; complete, edgeless, `C_4`, and star graphs are co-chordal; `C_5`, `C_6`, `P_5` are not; directed treated as undirected; 13 unit tests + 1 doctest).
+
+PR-125 (`is_net_free` — check whether a graph has no induced net subgraph: a net is a triangle with a pendant edge on each vertex (6 vertices, 6 edges); precomputes pendant candidates per triangle vertex for efficiency; triangles, complete graphs, cycles, paths are net-free; directed treated as undirected; 14 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
