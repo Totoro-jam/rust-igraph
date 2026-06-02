@@ -141,6 +141,7 @@ pub(crate) mod similarity;
 pub(crate) mod sort_by_degree;
 pub(crate) mod stochastic;
 pub(crate) mod strength;
+pub(crate) mod summary;
 pub(crate) mod topological_sorting;
 pub(crate) mod triangles;
 pub(crate) mod trussness;
@@ -304,6 +305,7 @@ pub use similarity::{
 pub use sort_by_degree::{SortOrder, sort_vertices_by_degree};
 pub use stochastic::get_stochastic;
 pub use strength::{StrengthMode, diversity, strength, strength_with_mode};
+pub use summary::{GraphSummary, graph_summary, graph_summary_string};
 pub use topological_sorting::topological_sorting;
 pub use triangles::{
     TransitivityMode, count_adjacent_triangles, count_triangles, transitivity_avglocal_undirected,

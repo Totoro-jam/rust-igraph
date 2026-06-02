@@ -643,6 +643,9 @@ pub use crate::algorithms::properties::stochastic::get_stochastic;
 pub use crate::algorithms::properties::strength::{
     StrengthMode, diversity, strength, strength_with_mode,
 };
+pub use crate::algorithms::properties::summary::{
+    GraphSummary, graph_summary, graph_summary_string,
+};
 pub use crate::algorithms::properties::topological_sorting::topological_sorting;
 pub use crate::algorithms::properties::triangles::{
     TransitivityMode, count_adjacent_triangles, count_triangles, transitivity_avglocal_undirected,
