@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (350 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (352 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -608,5 +608,9 @@ PR-105 (`is_house_free` — check whether a graph has no induced house (`C_5` wi
 PR-106 (`is_banner_free` — check whether a graph has no induced banner (flag: `C_4` + pendant edge); finds each induced `C_4` then checks if any cycle vertex has a pendant neighbor outside; `K_{3,3}` is banner-free (outside vertices connect to 2 cycle vertices); returns false for directed graphs; 14 unit tests + 1 doctest).
 
 PR-107 (`is_dart_free` — check whether a graph has no induced dart (diamond + pendant from a wing/degree-2 vertex); finds diamonds via common-neighbor pairs of edges, then checks wing vertices for pendants; pendant from spine vertex does NOT form a dart; returns false for directed graphs; 14 unit tests + 1 doctest).
+
+PR-108 (`is_fork_free` — check whether a graph has no induced fork (claw `K_{1,3}` with one edge subdivided); for each induced claw checks if any arm has a pendant neighbor forming the fork; star graphs are fork-free (leaves have no pendants); returns false for directed graphs; 13 unit tests + 1 doctest).
+
+PR-109 (`is_p5_free` — check whether a graph has no induced `P_5` (path on 5 vertices); chains through edges finding a-b-c-d-e with no chords; `C_5` is `P_5`-free (closing edge is a chord), `C_6` is not; returns false for directed graphs; 14 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
