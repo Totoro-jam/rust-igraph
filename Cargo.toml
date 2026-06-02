@@ -14,9 +14,12 @@ categories = ["algorithms", "data-structures", "science", "mathematics"]
 authors = ["rust-igraph contributors"]
 include = [
     "/src/**/*.rs",
+    "/examples/**/*.rs",
+    "/fixtures/karate.edges",
     "/Cargo.toml",
     "/README.md",
     "/LICENSE",
+    "/CHANGELOG.md",
 ]
 
 [features]
