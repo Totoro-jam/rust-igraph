@@ -91,6 +91,45 @@ impl Graph {
         Ok(g)
     }
 
+    /// Build a graph from an edge list, inferring the vertex count from
+    /// the highest endpoint.
+    ///
+    /// This is the most ergonomic way to create a small graph. The vertex
+    /// count is `max(u, v) + 1` over all `(u, v)` pairs (or 0 if `edges`
+    /// is empty and `n_override` is `None`).
+    ///
+    /// `n_override` can force a minimum vertex count (useful when you want
+    /// isolated vertices beyond the edges). Pass `None` to auto-derive.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0, 1), (1, 2), (2, 0)], false, None).unwrap();
+    /// assert_eq!(g.vcount(), 3);
+    /// assert_eq!(g.ecount(), 3);
+    /// assert!(!g.is_directed());
+    /// ```
+    pub fn from_edges(
+        edges: &[(u32, u32)],
+        directed: bool,
+        n_override: Option<u32>,
+    ) -> IgraphResult<Self> {
+        let max_id = edges
+            .iter()
+            .flat_map(|&(u, v)| [u, v])
+            .max()
+            .map_or(Some(0), |m| m.checked_add(1));
+        let auto_n = max_id.ok_or(IgraphError::InvalidArgument(
+            "vertex id overflow in from_edges".to_owned(),
+        ))?;
+        let n = n_override.map_or(auto_n, |ov| ov.max(auto_n));
+        let mut g = Self::new(n, directed)?;
+        g.add_edges(edges.to_vec())?;
+        Ok(g)
+    }
+
     /// Construct an empty *undirected* graph on `n` vertices.
     ///
     /// Builds the graph directly (no intermediate `Result`) since an
@@ -741,6 +780,22 @@ impl Graph {
         }
 
         Ok(())
+    }
+}
+
+impl std::fmt::Display for Graph {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let kind = if self.directed {
+            "Directed"
+        } else {
+            "Undirected"
+        };
+        write!(
+            f,
+            "{kind} graph with {} vertices and {} edges",
+            self.n,
+            self.ecount()
+        )
     }
 }
 
