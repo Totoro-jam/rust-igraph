@@ -11,6 +11,7 @@
 //! use rust_igraph::{Graph, louvain, pagerank, betweenness};
 //! ```
 
+pub use crate::core::builder::GraphBuilder;
 pub use crate::core::error::{IgraphError, IgraphResult};
 pub use crate::core::graph::{Graph, VertexId};
 

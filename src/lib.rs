@@ -37,6 +37,18 @@
 //! assert_eq!(order, vec![0, 1, 2, 3]);
 //! ```
 //!
+//! Or with the fluent builder:
+//!
+//! ```
+//! use rust_igraph::GraphBuilder;
+//!
+//! let g = GraphBuilder::undirected()
+//!     .edges(&[(0, 1), (1, 2), (2, 3), (3, 0)])
+//!     .build()
+//!     .unwrap();
+//! assert_eq!(g.vcount(), 4);
+//! ```
+//!
 //! ## Import style
 //!
 //! All algorithms are re-exported at the crate root for convenience:
@@ -674,6 +686,7 @@ pub use crate::algorithms::traversal::dfs::{
     DfsMode, DfsSimple, DfsTree, dfs, dfs_simple, dfs_tree,
 };
 pub use crate::algorithms::vertex_cover::{is_vertex_cover, minimum_vertex_cover};
+pub use crate::core::builder::GraphBuilder;
 pub use crate::core::cache::CachedProperty;
 pub use crate::core::error::{IgraphError, IgraphResult};
 pub use crate::core::graph::{Graph, VertexId};
