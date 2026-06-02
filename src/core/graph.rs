@@ -1421,6 +1421,66 @@ impl std::fmt::Display for Graph {
     }
 }
 
+/// Construct an undirected graph from a slice of `(from, to)` edge pairs.
+///
+/// Vertex count is inferred from the maximum endpoint id (plus one).
+/// This is a convenience for quick construction; for more control use
+/// [`Graph::from_edges`] or [`GraphBuilder`](super::builder::GraphBuilder).
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::Graph;
+///
+/// let edges = vec![(0u32, 1), (1, 2), (2, 0)];
+/// let g = Graph::try_from(edges.as_slice()).unwrap();
+/// assert_eq!(g.vcount(), 3);
+/// assert_eq!(g.ecount(), 3);
+/// assert!(!g.is_directed());
+/// ```
+impl TryFrom<&[(VertexId, VertexId)]> for Graph {
+    type Error = IgraphError;
+
+    fn try_from(edges: &[(VertexId, VertexId)]) -> IgraphResult<Self> {
+        let n = match edges.iter().flat_map(|&(u, v)| [u, v]).max() {
+            Some(m) => m
+                .checked_add(1)
+                .ok_or_else(|| IgraphError::InvalidArgument("vertex id overflow".to_owned()))?,
+            None => 0,
+        };
+        let mut g = Self::new(n, false)?;
+        g.add_edges(edges.to_vec())?;
+        Ok(g)
+    }
+}
+
+/// Construct an undirected graph from a `Vec` of `(from, to)` edge pairs.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::Graph;
+///
+/// let g = Graph::try_from(vec![(0u32, 1), (1, 2), (2, 3)]).unwrap();
+/// assert_eq!(g.vcount(), 4);
+/// assert_eq!(g.ecount(), 3);
+/// ```
+impl TryFrom<Vec<(VertexId, VertexId)>> for Graph {
+    type Error = IgraphError;
+
+    fn try_from(edges: Vec<(VertexId, VertexId)>) -> IgraphResult<Self> {
+        let n = match edges.iter().flat_map(|&(u, v)| [u, v]).max() {
+            Some(m) => m
+                .checked_add(1)
+                .ok_or_else(|| IgraphError::InvalidArgument("vertex id overflow".to_owned()))?,
+            None => 0,
+        };
+        let mut g = Self::new(n, false)?;
+        g.add_edges(edges)?;
+        Ok(g)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
