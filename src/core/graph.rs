@@ -343,6 +343,80 @@ impl Graph {
         Ok((graph, weights))
     }
 
+    /// Construct a graph from an adjacency list.
+    ///
+    /// `adj_list[v]` contains the neighbors of vertex `v`. The number of
+    /// vertices is `adj_list.len()`.
+    ///
+    /// For undirected graphs (`directed = false`), an edge `(u, v)` should
+    /// appear in both `adj_list[u]` and `adj_list[v]`; each pair is
+    /// counted once (duplicates are deduplicated by only adding edge `(u, v)`
+    /// when `u <= v` or when it appears only in `adj_list[u]`).
+    ///
+    /// For directed graphs, `adj_list[v]` lists the **out-neighbors** of `v`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any neighbor index is out of range.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // Triangle: 0-1, 1-2, 0-2
+    /// let adj = vec![vec![1, 2], vec![0, 2], vec![0, 1]];
+    /// let g = Graph::from_adjacency_list(&adj, false).unwrap();
+    /// assert_eq!(g.vcount(), 3);
+    /// assert_eq!(g.ecount(), 3);
+    /// ```
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // Directed: 0->1, 0->2, 1->2
+    /// let adj = vec![vec![1, 2], vec![2], vec![]];
+    /// let g = Graph::from_adjacency_list(&adj, true).unwrap();
+    /// assert_eq!(g.vcount(), 3);
+    /// assert_eq!(g.ecount(), 3);
+    /// assert!(g.is_directed());
+    /// ```
+    pub fn from_adjacency_list(adj_list: &[Vec<u32>], directed: bool) -> IgraphResult<Self> {
+        let n = u32::try_from(adj_list.len()).map_err(|_| {
+            IgraphError::InvalidArgument("adjacency list too large for u32".to_owned())
+        })?;
+
+        let mut graph = Self::new(n, directed)?;
+
+        if directed {
+            for (src, neighbors) in adj_list.iter().enumerate() {
+                #[allow(clippy::cast_possible_truncation)]
+                let src_u32 = src as u32;
+                for &tgt in neighbors {
+                    if tgt >= n {
+                        return Err(IgraphError::VertexOutOfRange { id: tgt, n });
+                    }
+                    graph.add_edge(src_u32, tgt)?;
+                }
+            }
+        } else {
+            for (src, neighbors) in adj_list.iter().enumerate() {
+                #[allow(clippy::cast_possible_truncation)]
+                let src_u32 = src as u32;
+                for &tgt in neighbors {
+                    if tgt >= n {
+                        return Err(IgraphError::VertexOutOfRange { id: tgt, n });
+                    }
+                    if src_u32 <= tgt {
+                        graph.add_edge(src_u32, tgt)?;
+                    }
+                }
+            }
+        }
+
+        Ok(graph)
+    }
+
     /// Construct an empty *undirected* graph on `n` vertices.
     ///
     /// Builds the graph directly (no intermediate `Result`) since an
@@ -655,6 +729,36 @@ impl Graph {
             }
             Ok(out)
         }
+    }
+
+    /// Convert the graph to an adjacency list representation.
+    ///
+    /// Returns a `Vec<Vec<u32>>` where `result[v]` contains the neighbors
+    /// of vertex `v`. For directed graphs, returns out-neighbors.
+    ///
+    /// For undirected graphs, each edge `(u, v)` causes `v` to appear in
+    /// `result[u]` and `u` to appear in `result[v]`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// let adj = g.to_adjacency_list().unwrap();
+    /// assert_eq!(adj[0], vec![1]);
+    /// assert_eq!(adj[1], vec![0, 2]);
+    /// assert_eq!(adj[2], vec![1]);
+    /// ```
+    pub fn to_adjacency_list(&self) -> IgraphResult<Vec<Vec<VertexId>>> {
+        let n = self.vcount();
+        let mut adj = vec![Vec::new(); n as usize];
+        for v in 0..n {
+            adj[v as usize] = self.neighbors(v)?;
+        }
+        Ok(adj)
     }
 
     /// Degree of vertex `v` — number of edges incident to it.
@@ -1855,5 +1959,53 @@ mod tests {
         let g = Graph::from_adjacency_matrix(&adj, false).unwrap();
         assert_eq!(g.vcount(), 2);
         assert_eq!(g.ecount(), 3); // 3 parallel edges
+    }
+
+    #[test]
+    fn from_adjacency_list_undirected_triangle() {
+        let adj = vec![vec![1, 2], vec![0, 2], vec![0, 1]];
+        let g = Graph::from_adjacency_list(&adj, false).unwrap();
+        assert_eq!(g.vcount(), 3);
+        assert_eq!(g.ecount(), 3);
+        assert!(!g.is_directed());
+    }
+
+    #[test]
+    fn from_adjacency_list_directed() {
+        let adj = vec![vec![1, 2], vec![2], vec![]];
+        let g = Graph::from_adjacency_list(&adj, true).unwrap();
+        assert_eq!(g.vcount(), 3);
+        assert_eq!(g.ecount(), 3);
+        assert!(g.is_directed());
+    }
+
+    #[test]
+    fn from_adjacency_list_empty() {
+        let adj: Vec<Vec<u32>> = Vec::new();
+        let g = Graph::from_adjacency_list(&adj, false).unwrap();
+        assert_eq!(g.vcount(), 0);
+        assert_eq!(g.ecount(), 0);
+    }
+
+    #[test]
+    fn from_adjacency_list_isolated_vertices() {
+        let adj = vec![vec![], vec![], vec![]];
+        let g = Graph::from_adjacency_list(&adj, false).unwrap();
+        assert_eq!(g.vcount(), 3);
+        assert_eq!(g.ecount(), 0);
+    }
+
+    #[test]
+    fn from_adjacency_list_self_loop() {
+        let adj = vec![vec![0, 1], vec![0]];
+        let g = Graph::from_adjacency_list(&adj, false).unwrap();
+        assert_eq!(g.vcount(), 2);
+        assert_eq!(g.ecount(), 2); // self-loop on 0 + edge 0-1
+    }
+
+    #[test]
+    fn from_adjacency_list_out_of_range_error() {
+        let adj = vec![vec![5]]; // only 1 vertex but references vertex 5
+        assert!(Graph::from_adjacency_list(&adj, false).is_err());
     }
 }
