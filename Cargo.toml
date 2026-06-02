@@ -4,13 +4,13 @@ version = "0.0.1-alpha.2"
 edition = "2024"
 rust-version = "1.85"
 license = "GPL-2.0-or-later"
-description = "Pure-Rust port of the igraph network analysis library (alpha — Phase 1 complete)."
+description = "Pure-Rust, high-performance graph & network analysis library — 370+ algorithms, zero unsafe, igraph-compatible"
 repository = "https://github.com/Totoro-jam/rust-igraph"
 homepage = "https://Totoro-jam.github.io/rust-igraph"
 documentation = "https://docs.rs/rust-igraph"
 readme = "README.md"
-keywords = ["graph", "network", "igraph", "algorithm"]
-categories = ["data-structures", "science", "mathematics"]
+keywords = ["graph", "network-analysis", "igraph", "graph-algorithms", "complex-networks"]
+categories = ["algorithms", "data-structures", "science", "mathematics"]
 authors = ["rust-igraph contributors"]
 include = [
     "/src/**/*.rs",

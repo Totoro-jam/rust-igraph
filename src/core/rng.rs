@@ -51,9 +51,11 @@ impl SplitMix64 {
     /// `bound ≤ 2^32`, which covers every realistic graph index.
     pub fn gen_index(&mut self, bound: usize) -> usize {
         assert!(bound > 0, "gen_index bound must be positive");
-        let bound_u64 = u64::try_from(bound).expect("bound fits in u64 on supported targets");
-        let r = self.next_u64() % bound_u64;
-        usize::try_from(r).expect("modulus result fits in usize by construction")
+        // r < bound ≤ usize::MAX, so the truncation on 32-bit is unreachable.
+        #[allow(clippy::cast_possible_truncation)]
+        {
+            (self.next_u64() % (bound as u64)) as usize
+        }
     }
 
     /// Uniform `f64` in `[0, 1)`, using the top 53 mantissa bits.

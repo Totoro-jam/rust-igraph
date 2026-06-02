@@ -10,6 +10,5 @@ pub mod error;
 pub mod graph;
 pub mod rng;
 
-pub use cache::CachedProperty;
-pub use error::{IgraphError, IgraphResult};
-pub use graph::{Graph, VertexId};
+pub(crate) use error::{IgraphError, IgraphResult};
+pub(crate) use graph::{Graph, VertexId};

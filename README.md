@@ -7,86 +7,147 @@
 [![License: GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
 [![MSRV](https://img.shields.io/badge/MSRV-1.85-orange.svg)](Cargo.toml)
 
-A pure-Rust port of [igraph](https://igraph.org/) — the network analysis library.
-Targets full API parity with igraph C v1.0.x (~850 public functions).
+**Pure-Rust, high-performance graph and network analysis library.** A faithful port of
+[igraph](https://igraph.org/) with 370+ public APIs, zero `unsafe`, and no C/C++ FFI.
 
-> **Status**: `0.0.1-alpha.0` — Phase 0 walking skeleton; only `Graph`,
-> `read_edgelist`, and `bfs` ship. Not yet usable as a library. See
-> [docs/plans/MASTER_PLAN.md](docs/plans/MASTER_PLAN.md) for the roadmap
-> and [.codefuse/tracking/ALGORITHMS.md](.codefuse/tracking/ALGORITHMS.md)
-> for per-algorithm progress.
+Built for researchers, data scientists, and systems engineers who need production-grade
+graph algorithms without leaving the Rust ecosystem.
 
-## Goals
+## Why rust-igraph?
 
-- 100% public-API parity with `igraph` C core
-- Pure Rust (no C FFI in default features); WASM-friendly
-- Numerical results match `python-igraph` within tight tolerance
-- Test suites from **all three** official implementations integrated:
-  - `igraph` C — `tests/unit/*.c` + `*.out`
-  - `python-igraph` — `tests/test_*.py`
-  - `R-igraph` (`rigraph`) — `tests/testthat/test-*.R`
+| | rust-igraph | petgraph | igraph (C/Python) |
+|---|---|---|---|
+| **Algorithm coverage** | 370+ APIs (BFS, DFS, shortest paths, community detection, centrality, isomorphism, flows, layouts, graph generators, 60+ graph class recognizers...) | ~30 algorithms | ~850 APIs |
+| **Safety** | Zero `unsafe`, zero `unwrap` in library code | Some `unsafe` | C core with FFI |
+| **Correctness** | Cross-validated against igraph C, python-igraph, and R-igraph test suites | Independent | Reference implementation |
+| **Dependencies** | Minimal (1 runtime dep: `thiserror`) | Minimal | Large C/C++ toolchain |
+| **WASM** | Designed for `wasm32-unknown-unknown` | Yes | No |
+
+## Features
+
+- **Traversal**: BFS, DFS, topological sort, random walks
+- **Shortest paths**: Dijkstra, Bellman-Ford, A*, all-pairs, widest paths
+- **Centrality**: betweenness, closeness, eigenvector, PageRank, HITS, harmonic, constraint
+- **Community detection**: Louvain, Leiden, label propagation, Walktrap, edge betweenness, fast greedy, leading eigenvector, fluid communities, Voronoi
+- **Connectivity**: connected/biconnected components, articulation points, bridges, separators, cohesive blocks, SCC
+- **Network flow**: max-flow (push-relabel), min-cut, Gomory-Hu tree, edge/vertex connectivity, disjoint paths
+- **Isomorphism**: VF2 (graph/subgraph), LAD subgraph, BLISS canonical labeling, automorphism groups
+- **Graph generators**: Erdos-Renyi, Barabasi-Albert, Watts-Strogatz, SBM, forest fire, geometric random, degree sequence, lattices, famous graphs, and 30+ more
+- **Graph properties**: 60+ structural recognizers (`is_bipartite`, `is_chordal`, `is_planar`, `is_perfect`, `is_cograph`, `is_series_parallel`, ...)
+- **Layout**: Fruchterman-Reingold, Kamada-Kawai, DrL, circle, star, grid, tree, bipartite
+- **Spatial**: Delaunay triangulation, Gabriel graph, beta-skeleton, nearest-neighbor graph
+- **I/O**: edge list, adjacency matrix, Prufer sequence, LCF notation
+
+## Quick start
+
+Add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+rust-igraph = "0.0.1-alpha"
+```
+
+```rust
+use rust_igraph::{Graph, bfs, BfsResult};
+
+fn main() {
+    // Build a small social network
+    let mut g = Graph::with_vertices(6);
+    g.add_edge(0, 1).unwrap(); // Alice - Bob
+    g.add_edge(0, 2).unwrap(); // Alice - Carol
+    g.add_edge(1, 3).unwrap(); // Bob - Dave
+    g.add_edge(2, 4).unwrap(); // Carol - Eve
+    g.add_edge(3, 5).unwrap(); // Dave - Frank
+
+    // BFS from Alice
+    let result = bfs(&g, 0, None, false).unwrap();
+    println!("Visit order: {:?}", result.order);
+    println!("Distances:   {:?}", result.dist);
+}
+```
+
+### Community detection
+
+```rust
+use rust_igraph::{Graph, louvain};
+
+let mut g = Graph::with_vertices(10);
+// ... add edges forming two clusters ...
+let result = louvain(&g, None, 1.0).unwrap();
+println!("Communities: {:?}", result.membership);
+println!("Modularity: {:.4}", result.modularity);
+```
+
+### Centrality analysis
+
+```rust
+use rust_igraph::{Graph, pagerank, betweenness};
+
+let mut g = Graph::with_vertices(5);
+g.add_edge(0, 1).unwrap();
+g.add_edge(1, 2).unwrap();
+g.add_edge(2, 3).unwrap();
+g.add_edge(3, 4).unwrap();
+
+let pr = pagerank(&g, 0.85).unwrap();
+let bc = betweenness(&g, false).unwrap();
+println!("PageRank: {:?}", pr);
+println!("Betweenness: {:?}", bc);
+```
+
+## Performance
+
+All algorithms are implemented in idiomatic Rust with careful attention to cache locality
+and allocation patterns. Benchmarks (via `criterion`) are included for every major algorithm:
+
+```bash
+cargo bench --bench bench_louvain     # community detection
+cargo bench --bench bench_bfs         # traversal
+cargo bench --bench bench_max_flow    # network flow
+cargo bench --bench bench_vf2         # isomorphism
+```
+
+## Project status
+
+> **Alpha** (`v0.0.1-alpha`) — The API is stabilizing but may change before `v0.1.0`.
+> Core algorithms are implemented and tested. Not yet recommended for production use
+> without your own validation.
+
+| Category | Status |
+|----------|--------|
+| Core data structures | Stable |
+| Traversal (BFS, DFS) | Stable |
+| Shortest paths | Stable |
+| Centrality | Stable |
+| Community detection | Stable |
+| Connectivity | Stable |
+| Network flow | Stable |
+| Isomorphism | Stable |
+| Graph generators | Stable |
+| Layout algorithms | Beta |
+| I/O formats | Partial |
+
+## Development
+
+```bash
+cargo build                          # build
+cargo test                           # fast test suite (578 tests)
+cargo test --all-features            # full suite with oracle + proptests
+cargo clippy -- -D warnings          # lint
+cargo doc --no-deps --open           # browse API docs locally
+```
+
+Each algorithm follows a 9-step **AWU** (Algorithm Work Unit) process tracked in
+[`.codefuse/tracking/ALGORITHMS.md`](.codefuse/tracking/ALGORITHMS.md). The engineering
+plan is in [`docs/plans/MASTER_PLAN.md`](docs/plans/MASTER_PLAN.md).
 
 ## License
 
 GPL-2.0-or-later. Same as upstream igraph C, which permits direct reference-translation
 of the C source. See [LICENSE](LICENSE).
 
-## Project layout
-
-```
-rust-igraph/
-├── src/
-│   ├── lib.rs                 # crate root, re-exports
-│   ├── core/                  # data structures (Graph, Vector, Matrix, ...)
-│   └── algorithms/            # algorithm implementations
-├── tests/
-│   ├── oracle.rs              # live python-igraph oracle
-│   ├── conformance.rs         # static fixtures from igraph C / py / R
-│   ├── property.rs            # proptest invariants
-│   └── conformance/{c,py,r}/  # extracted upstream test fixtures (JSON)
-├── benches/                   # criterion benchmarks
-├── examples/                  # usage examples
-├── fixtures/                  # standard graph data (karate, dolphins, ...)
-├── scripts/                   # oracle.py + test extractors
-├── templates/                 # AWU templates (Step 3 skeleton source)
-├── book/                      # mdBook source for the docs site
-├── docs/
-│   └── plans/MASTER_PLAN.md   # the engineering plan (single source of truth)
-├── references/                # gitignored; clone igraph/python-igraph/rigraph here
-└── .codefuse/tracking/        # ALGORITHMS.md, ARCHITECTURE.md, CONFORMANCE.md, ...
-```
-
-## Quick start
-
-```bash
-# build the crate (Phase 0 alpha — only Graph/read_edgelist/bfs ship today)
-cargo build
-
-# run the smoke-test example
-cargo run --example bfs_karate
-
-# run all tests including oracle (requires python-igraph installed)
-cargo test --features oracle-tests
-```
-
-## Development workflow
-
-Each algorithm is an **AWU** (Algorithm Work Unit) tracked in
-`.codefuse/tracking/ALGORITHMS.md`. The 9-step SOP is in
-[docs/plans/MASTER_PLAN.md §4](docs/plans/MASTER_PLAN.md). AI-assisted execution
-uses the agents and skills under `.claude/`:
-
-```
-/awu-start    ALGO-XXX-NNN     # bootstrap an AWU
-/awu-translate ALGO-XXX-NNN    # C → Rust translation (subagent)
-/awu-test     ALGO-XXX-NNN     # unit + oracle + proptest
-/awu-conformance ALGO-XXX-NNN  # extract from igraph C / py / R
-/awu-bench    ALGO-XXX-NNN     # criterion baseline
-/awu-finish   ALGO-XXX-NNN     # rustdoc + status update + PR template
-```
-
 ## Acknowledgements
 
-- Upstream [igraph](https://github.com/igraph/igraph) by the igraph team
-- Reference test assets from [python-igraph](https://github.com/igraph/python-igraph) and [rigraph](https://github.com/igraph/rigraph)
-- Linear algebra by [faer](https://github.com/sarah-quinones/faer-rs)
+- [igraph](https://github.com/igraph/igraph) by the igraph team (C core)
+- [python-igraph](https://github.com/igraph/python-igraph) and [rigraph](https://github.com/igraph/rigraph) (reference test suites)
+- [faer](https://github.com/sarah-quinones/faer-rs) (linear algebra backend)

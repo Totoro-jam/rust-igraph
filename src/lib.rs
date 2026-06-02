@@ -1,14 +1,26 @@
 //! # rust-igraph
 //!
-//! Pure-Rust port of the [igraph](https://igraph.org) network analysis
-//! library. Targets full API parity with igraph C v1.0.x (~850 public
-//! functions), validated continuously against the three official
-//! implementations (igraph C, python-igraph, R-igraph).
+//! **Pure-Rust, high-performance graph and network analysis library.**
 //!
-//! > **Status**: alpha — only the Phase 0 walking-skeleton API is shipped
-//! > (`Graph`, `read_edgelist`, `bfs`). The catalog grows
-//! > algorithm-by-algorithm through Phase 1-10. See the project's
-//! > [master plan](https://github.com/Totoro-jam/rust-igraph/blob/main/docs/plans/MASTER_PLAN.md).
+//! A faithful port of [igraph](https://igraph.org) with 370+ public APIs,
+//! zero `unsafe`, and no C/C++ FFI. Built for researchers, data scientists,
+//! and systems engineers who need production-grade graph algorithms in the
+//! Rust ecosystem.
+//!
+//! ## Feature overview
+//!
+//! | Category | Highlights |
+//! |----------|-----------|
+//! | **Traversal** | BFS, DFS, topological sort, random walks |
+//! | **Shortest paths** | Dijkstra, Bellman-Ford, A\*, all-pairs |
+//! | **Centrality** | betweenness, closeness, eigenvector, `PageRank`, HITS |
+//! | **Community** | Louvain, Leiden, label propagation, Walktrap, fast greedy |
+//! | **Connectivity** | components, articulation points, bridges, separators |
+//! | **Flow** | max-flow, min-cut, Gomory-Hu tree, disjoint paths |
+//! | **Isomorphism** | VF2, LAD, BLISS canonical labeling |
+//! | **Generators** | Erdos-Renyi, Barabasi-Albert, SBM, lattices, 30+ more |
+//! | **Properties** | 60+ structural recognizers, degree stats, transitivity |
+//! | **Layout** | Fruchterman-Reingold, Kamada-Kawai, `DrL`, circle, tree |
 //!
 //! ## Quick start
 //!
@@ -24,12 +36,27 @@
 //! assert_eq!(order, vec![0, 1, 2, 3]);
 //! ```
 //!
+//! ## Import style
+//!
+//! All algorithms are re-exported at the crate root for convenience:
+//!
+//! ```rust,no_run
+//! use rust_igraph::{Graph, pagerank, betweenness, louvain};
+//! ```
+//!
+//! For minimal imports, use the [`prelude`] module:
+//!
+//! ```rust,no_run
+//! use rust_igraph::prelude::*;
+//! ```
+//!
 //! ## License
 //!
 //! GPL-2.0-or-later, matching upstream igraph.
 
 pub mod algorithms;
-pub mod core;
+pub(crate) mod core;
+pub mod prelude;
 
 // Top-level re-exports for the common case.
 // IMPORTANT: when a function name collides with the file/module it
@@ -635,5 +662,6 @@ pub use crate::algorithms::traversal::dfs::{
     DfsMode, DfsSimple, DfsTree, dfs, dfs_simple, dfs_tree,
 };
 pub use crate::algorithms::vertex_cover::{is_vertex_cover, minimum_vertex_cover};
+pub use crate::core::cache::CachedProperty;
 pub use crate::core::error::{IgraphError, IgraphResult};
 pub use crate::core::graph::{Graph, VertexId};

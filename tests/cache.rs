@@ -8,8 +8,8 @@
 //! - selective invalidation correctly preserves values that the
 //!   mutation cannot affect.
 
+use rust_igraph::CachedProperty;
 use rust_igraph::DijkstraMode;
-use rust_igraph::core::cache::CachedProperty;
 use rust_igraph::{Graph, has_loop, has_multiple, is_dag, is_forest};
 
 #[test]

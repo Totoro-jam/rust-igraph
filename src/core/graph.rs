@@ -93,10 +93,21 @@ impl Graph {
 
     /// Construct an empty *undirected* graph on `n` vertices.
     ///
-    /// Equivalent to `Graph::new(n, false).unwrap()` for the success path.
-    /// Phase-0 compatibility shim — exact signature preserved.
+    /// Builds the graph directly (no intermediate `Result`) since an
+    /// empty undirected graph with `n` vertices cannot fail to construct.
     pub fn with_vertices(n: u32) -> Self {
-        Self::new(n, false).expect("with_vertices: n cannot exceed u32::MAX")
+        let len = n as usize + 1;
+        Self {
+            n,
+            directed: false,
+            from: Vec::new(),
+            to: Vec::new(),
+            oi: Vec::new(),
+            ii: Vec::new(),
+            os: vec![0; len],
+            is: vec![0; len],
+            cache: PropertyCache::new(),
+        }
     }
 
     /// Number of vertices. Counterpart of `igraph_vcount()`.
