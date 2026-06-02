@@ -490,6 +490,7 @@ pub use crate::algorithms::properties::hits::{
     HitsScores, hub_and_authority_scores, hub_and_authority_scores_weighted,
 };
 pub use crate::algorithms::properties::is_acyclic::is_acyclic;
+pub use crate::algorithms::properties::is_banner_free::is_banner_free;
 pub use crate::algorithms::properties::is_biclique::is_biclique;
 pub use crate::algorithms::properties::is_bipartite::{BipartiteResult, is_bipartite};
 pub use crate::algorithms::properties::is_block::is_block_graph;
@@ -508,6 +509,7 @@ pub use crate::algorithms::properties::is_complete_multipartite::is_complete_mul
 pub use crate::algorithms::properties::is_cricket_free::is_cricket_free;
 pub use crate::algorithms::properties::is_cycle::is_cycle;
 pub use crate::algorithms::properties::is_dag::is_dag;
+pub use crate::algorithms::properties::is_dart_free::is_dart_free;
 pub use crate::algorithms::properties::is_diamond_free::is_diamond_free;
 pub use crate::algorithms::properties::is_distance_hereditary::is_distance_hereditary;
 pub use crate::algorithms::properties::is_forest::is_forest;
