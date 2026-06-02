@@ -14,6 +14,8 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+## [0.0.1-alpha.4] — 2026-06-03
+
 ### Added
 - **ALGO-GN-031** — `iea_game`: **Independent Edge Allocation** random
   multigraph generator. Counterpart of `igraph_iea_game()` at
@@ -4608,6 +4610,23 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
     Δσ recomputation; tracked for alpha.3.
   - Example: `examples/walktrap_karate.rs` (karate club → 4
     communities at Q ≈ 0.420).
+
+- **ALGO-EIG-001/002/003** — Eigenvalue solvers cluster:
+  `eigen_matrix_symmetric` (Lanczos), `eigen_matrix` (Arnoldi),
+  `eigen_adjacency` (adjacency spectrum wrapper). Supports
+  `LargestAlgebraic`, `SmallestAlgebraic`, `LargestMagnitude` selection.
+
+- **Core ergonomics** — `Graph::from_edges(&[(u32,u32)], directed, n_override)`
+  constructor infers vertex count from the highest endpoint. `Display` impl
+  for `Graph` shows `"Directed/Undirected graph with N vertices and M edges"`.
+
+### Changed
+- Eliminated all `unwrap()`/`expect()` from production code — library is now
+  fully panic-free outside tests.
+- Added doctests to every public `Graph` method and all 400+ public API
+  functions (test count: 640 → 661).
+- Fixed stale README examples to match current API signatures.
+- Removed stale `#[allow(dead_code)]` from Lanczos module.
 
 ## [0.0.1-alpha.2] — 2026-05-22
 
