@@ -71,13 +71,10 @@ pub fn is_dag(graph: &Graph) -> bool {
     // on a directed graph; its length is the in-degree.
     let mut in_deg: Vec<u32> = Vec::with_capacity(n_us);
     for v in 0..n {
-        let deg = u32::try_from(
-            graph
-                .incident_in(v)
-                .expect("incident_in on valid vertex")
-                .len(),
-        )
-        .unwrap_or(u32::MAX);
+        let Ok(in_edges) = graph.incident_in(v) else {
+            return false;
+        };
+        let deg = u32::try_from(in_edges.len()).unwrap_or(u32::MAX);
         in_deg.push(deg);
     }
 
@@ -94,9 +91,13 @@ pub fn is_dag(graph: &Graph) -> bool {
         peeled = peeled.saturating_add(1);
 
         // Walk out-edges; for each neighbour, drop its in-degree.
-        let out_eids = graph.incident(v).expect("incident on valid vertex");
+        let Ok(out_eids) = graph.incident(v) else {
+            return false;
+        };
         for eid in out_eids {
-            let nei = graph.edge_other(eid, v).expect("edge_other on valid edge");
+            let Ok(nei) = graph.edge_other(eid, v) else {
+                return false;
+            };
             if nei == v {
                 // Self-loop: vertex v depends on itself; it can
                 // never be peeled away. The graph has a cycle.

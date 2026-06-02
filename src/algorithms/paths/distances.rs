@@ -61,7 +61,9 @@ pub fn distances(graph: &Graph, source: VertexId) -> IgraphResult<Vec<Option<u32
 
     while let Some(v) = queue.pop_front() {
         let next = dist[v as usize]
-            .expect("dequeued vertex has been visited")
+            .ok_or(crate::core::IgraphError::Internal(
+                "dequeued vertex has no distance",
+            ))?
             .checked_add(1)
             .ok_or(crate::core::IgraphError::Internal(
                 "distance overflow (graph diameter exceeds u32::MAX)",

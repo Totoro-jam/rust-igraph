@@ -479,7 +479,11 @@ pub fn degree_sequence_game_edge_switching_simple(
     }
 
     if directed {
-        let in_seq = in_degrees.expect("directed branch implies Some(in_degrees)");
+        let Some(in_seq) = in_degrees else {
+            return Err(IgraphError::InvalidArgument(
+                "directed graph requires in_degrees".to_string(),
+            ));
+        };
         if !is_graphical_simple_directed(out_degrees, in_seq) {
             return Err(IgraphError::InvalidArgument(
                 "degree_sequence_game_edge_switching_simple: degree pair is not realisable as a simple directed graph (Fulkerson–Chen–Anstee)"
@@ -496,7 +500,11 @@ pub fn degree_sequence_game_edge_switching_simple(
     let mut rng = SplitMix64::new(seed);
 
     let mut edges = if directed {
-        let in_seq = in_degrees.expect("directed branch implies Some(in_degrees)");
+        let Some(in_seq) = in_degrees else {
+            return Err(IgraphError::InvalidArgument(
+                "directed graph requires in_degrees".to_string(),
+            ));
+        };
         build_seed_directed(out_degrees, in_seq)?
     } else {
         build_seed_undirected(out_degrees)?

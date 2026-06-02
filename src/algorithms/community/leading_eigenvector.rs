@@ -322,8 +322,14 @@ fn build_adjacency(graph: &Graph) -> AdjList {
     for eid in 0..graph.ecount() {
         #[allow(clippy::cast_possible_truncation)]
         let eid32 = eid as u32;
-        let s = graph.edge_source(eid32).unwrap() as usize;
-        let t = graph.edge_target(eid32).unwrap() as usize;
+        let Ok(s) = graph.edge_source(eid32) else {
+            continue;
+        };
+        let Ok(t) = graph.edge_target(eid32) else {
+            continue;
+        };
+        let s = s as usize;
+        let t = t as usize;
         adj[s].push((t, eid));
         if s != t {
             adj[t].push((s, eid));
@@ -443,8 +449,14 @@ fn compute_modularity(
     for eid in 0..graph.ecount() {
         #[allow(clippy::cast_possible_truncation)]
         let eid32 = eid as u32;
-        let s = graph.edge_source(eid32).unwrap() as usize;
-        let t = graph.edge_target(eid32).unwrap() as usize;
+        let Ok(s) = graph.edge_source(eid32) else {
+            continue;
+        };
+        let Ok(t) = graph.edge_target(eid32) else {
+            continue;
+        };
+        let s = s as usize;
+        let t = t as usize;
         if membership[s] == membership[t] {
             let w = match weights {
                 Some(wt) => wt[eid],

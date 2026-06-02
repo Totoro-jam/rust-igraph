@@ -77,12 +77,11 @@ pub fn is_same_graph(g1: &Graph, g2: &Graph) -> bool {
     let Ok(m_u32) = u32::try_from(m) else {
         return false;
     };
-    let mut e1: Vec<(u32, u32)> = (0..m_u32)
-        .map(|e| g1.edge(e).expect("valid edge id"))
-        .collect();
-    let mut e2: Vec<(u32, u32)> = (0..m_u32)
-        .map(|e| g2.edge(e).expect("valid edge id"))
-        .collect();
+    let e1_result: Result<Vec<(u32, u32)>, _> = (0..m_u32).map(|e| g1.edge(e)).collect();
+    let e2_result: Result<Vec<(u32, u32)>, _> = (0..m_u32).map(|e| g2.edge(e)).collect();
+    let (Ok(mut e1), Ok(mut e2)) = (e1_result, e2_result) else {
+        return false;
+    };
     // `(u32, u32)` derives `Ord` with lex ordering already; no
     // custom comparator needed.
     e1.sort_unstable();

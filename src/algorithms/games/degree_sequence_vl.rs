@@ -128,9 +128,10 @@ fn is_graphical_simple_undirected(degrees: &[u32]) -> bool {
     let mut left_sum: u64 = 0;
     let mut right_sum: u64 = d_desc.iter().map(|&d| u64::from(d)).sum();
     for k in 1..=n {
-        left_sum = left_sum
-            .checked_add(u64::from(d_desc[k - 1]))
-            .expect("left_sum bounded by Σd ≤ 2|E|");
+        left_sum = match left_sum.checked_add(u64::from(d_desc[k - 1])) {
+            Some(v) => v,
+            None => return false,
+        };
         right_sum = right_sum.saturating_sub(u64::from(d_desc[k - 1]));
         let k_u64 = k as u64;
         let bound_right: u64 = d_desc[k..].iter().map(|&d| u64::from(d).min(k_u64)).sum();

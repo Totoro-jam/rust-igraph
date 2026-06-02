@@ -1183,7 +1183,7 @@ impl SplitMix64 {
     fn gen_index(&mut self, bound: usize) -> usize {
         debug_assert!(bound > 0);
         let r = self.next_u64() % (bound as u64);
-        usize::try_from(r).expect("bound fits in usize by construction")
+        usize::try_from(r).unwrap_or(0)
     }
     /// Uniform `[0, 1)` via the top 53 bits — standard practice.
     fn next_f64(&mut self) -> f64 {

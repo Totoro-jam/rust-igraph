@@ -341,7 +341,11 @@ pub fn local_scan_0_them(
     //
     // Weighted scan-0-them: for each edge in `us`, check if the same edge
     // exists in `them` and if so add its weight.
-    let ws = weights_them.expect("checked above");
+    let Some(ws) = weights_them else {
+        return Err(IgraphError::Internal(
+            "weights_them should be Some after guard",
+        ));
+    };
     let n = us.vcount() as usize;
     let mut res = vec![0.0_f64; n];
     let directed = us.is_directed();

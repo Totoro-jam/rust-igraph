@@ -65,7 +65,7 @@ fn bfs_distances(graph: &Graph, source: VertexId, mode: EccMode) -> IgraphResult
     let directed = graph.is_directed();
     while let Some(v) = queue.pop_front() {
         let next = dist[v as usize]
-            .expect("dequeued vertex has been visited")
+            .ok_or(IgraphError::Internal("dequeued vertex has no distance"))?
             .checked_add(1)
             .ok_or(IgraphError::Internal(
                 "distance overflow (graph diameter exceeds u32::MAX)",

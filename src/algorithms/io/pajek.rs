@@ -292,7 +292,8 @@ fn parse_vertex_line(line: &str, line_idx: usize) -> IgraphResult<(u32, Option<S
     // Read vertex ID (digits)
     let mut id_str = String::new();
     while chars.peek().is_some_and(char::is_ascii_digit) {
-        id_str.push(chars.next().unwrap());
+        let Some(c) = chars.next() else { break };
+        id_str.push(c);
     }
 
     if id_str.is_empty() {
@@ -332,7 +333,8 @@ fn parse_vertex_line(line: &str, line_idx: usize) -> IgraphResult<(u32, Option<S
         // Unquoted label: take next non-whitespace token
         let mut lbl = String::new();
         while chars.peek().is_some_and(|c| !c.is_whitespace()) {
-            lbl.push(chars.next().unwrap());
+            let Some(c) = chars.next() else { break };
+            lbl.push(c);
         }
         if lbl.is_empty() { None } else { Some(lbl) }
     };

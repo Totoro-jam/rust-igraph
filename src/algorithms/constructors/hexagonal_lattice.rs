@@ -95,7 +95,7 @@ pub fn hexagonal_lattice(dims: &[u32], directed: bool, mutual: bool) -> IgraphRe
     let (row_lengths, row_start) = match dims.len() {
         1 => triangle_shape(dims[0]),
         2 => rectangle_shape(dims[0], dims[1]),
-        3 => hex_shape(dims[0], dims[1], dims[2]),
+        3 => hex_shape(dims[0], dims[1], dims[2])?,
         _ => unreachable!("dims length already checked"),
     };
 
@@ -157,7 +157,7 @@ fn rectangle_shape(size_x: u32, size_y: u32) -> (Vec<u32>, Vec<u32>) {
 /// { 0 } else { -2 }` (encoded as a boolean for the middle phase).
 /// Two extra corrections at `i == size_y - 1` and `i == size_z - 1`
 /// match upstream byte-for-byte.
-fn hex_shape(size_x: u32, size_y: u32, size_z: u32) -> (Vec<u32>, Vec<u32>) {
+fn hex_shape(size_x: u32, size_y: u32, size_z: u32) -> IgraphResult<(Vec<u32>, Vec<u32>)> {
     let row_count = size_y + size_z;
     let n_rows = row_count as usize;
 
@@ -175,9 +175,12 @@ fn hex_shape(size_x: u32, size_y: u32, size_z: u32) -> (Vec<u32>, Vec<u32>) {
     let mut row_start = Vec::with_capacity(n_rows);
 
     for i in 0..row_count {
-        let len_u32 = u32::try_from(row_length).expect("row_length non-negative by construction");
-        let start_u32 =
-            u32::try_from(row_start_val).expect("row_start non-negative by construction");
+        let len_u32 = u32::try_from(row_length).map_err(|_| {
+            crate::core::IgraphError::InvalidArgument("row_length out of u32 range".into())
+        })?;
+        let start_u32 = u32::try_from(row_start_val).map_err(|_| {
+            crate::core::IgraphError::InvalidArgument("row_start out of u32 range".into())
+        })?;
         row_lengths.push(len_u32);
         row_start.push(start_u32);
 
@@ -201,7 +204,7 @@ fn hex_shape(size_x: u32, size_y: u32, size_z: u32) -> (Vec<u32>, Vec<u32>) {
         }
     }
 
-    (row_lengths, row_start)
+    Ok((row_lengths, row_start))
 }
 
 /// Emit edges from per-row metadata and assemble the graph.
@@ -226,13 +229,17 @@ fn layout(
     let mut prefix_sum: Vec<u32> = Vec::with_capacity(row_count + 1);
     prefix_sum.push(0);
     for &len in row_lengths {
-        let last = *prefix_sum.last().expect("non-empty");
+        let Some(&last) = prefix_sum.last() else {
+            return Err(overflow_error("empty prefix sum"));
+        };
         let next = last
             .checked_add(len)
             .ok_or_else(|| overflow_error("vertex count"))?;
         prefix_sum.push(next);
     }
-    let vcount = *prefix_sum.last().expect("non-empty");
+    let Some(&vcount) = prefix_sum.last() else {
+        return Err(overflow_error("empty prefix sum"));
+    };
 
     let vertex_index = |i: u32, j: usize| -> u32 { prefix_sum[j] + i - row_start[j] };
     let row_end = |j: usize| -> u32 { row_start[j] + row_lengths[j] - 1 };

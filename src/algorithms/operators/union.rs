@@ -105,12 +105,18 @@ pub fn union(left: &Graph, right: &Graph) -> IgraphResult<Graph> {
             break;
         };
         let cl = if take_l {
-            *iter_l.next().expect("peek matched").1
+            match iter_l.next() {
+                Some((_, v)) => *v,
+                None => 0,
+            }
         } else {
             0
         };
         let cr = if take_r {
-            *iter_r.next().expect("peek matched").1
+            match iter_r.next() {
+                Some((_, v)) => *v,
+                None => 0,
+            }
         } else {
             0
         };

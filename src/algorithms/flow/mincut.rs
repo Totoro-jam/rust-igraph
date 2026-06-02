@@ -120,7 +120,9 @@ pub fn mincut(graph: &Graph, capacity: Option<&[f64]>) -> IgraphResult<Mincut> {
         }
     }
 
-    Ok(best.expect("n >= 2 guarantees at least one iteration"))
+    best.ok_or(IgraphError::Internal(
+        "mincut: no iteration completed despite n >= 2",
+    ))
 }
 
 #[cfg(test)]

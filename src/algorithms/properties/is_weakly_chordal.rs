@@ -175,7 +175,9 @@ fn dfs_chordless(
     n: usize,
     min_len: usize,
 ) -> bool {
-    let current = *path.last().unwrap();
+    let Some(&current) = path.last() else {
+        return false;
+    };
     let depth = path.len();
 
     // If current depth ≥ min_len and we can reach target

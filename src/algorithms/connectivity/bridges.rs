@@ -82,7 +82,9 @@ pub fn bridges(graph: &Graph) -> IgraphResult<Vec<EdgeId>> {
         si.push(0);
 
         while let Some(u) = su.pop() {
-            let i = si.pop().expect("si parallel to su");
+            let Some(i) = si.pop() else {
+                return Err(IgraphError::Internal("si/su stack invariant broken"));
+            };
             let u_us = u as usize;
 
             if i == 0 {

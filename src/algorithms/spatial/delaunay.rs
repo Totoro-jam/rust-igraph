@@ -122,7 +122,7 @@ fn delaunay_1d(points: &[Vec<f64>]) -> IgraphResult<Graph> {
     order.sort_by(|&a, &b| {
         points[a][0]
             .partial_cmp(&points[b][0])
-            .expect("NaN filtered")
+            .unwrap_or(std::cmp::Ordering::Equal)
     });
 
     let n_u32 = u32::try_from(n)
@@ -178,7 +178,7 @@ fn delaunay_collinear(points: &[Vec<f64>]) -> IgraphResult<Graph> {
     order.sort_by(|&a, &b| {
         let pa = ux * points[a][0] + uy * points[a][1];
         let pb = ux * points[b][0] + uy * points[b][1];
-        pa.partial_cmp(&pb).expect("NaN filtered")
+        pa.partial_cmp(&pb).unwrap_or(std::cmp::Ordering::Equal)
     });
 
     let mut g = Graph::with_vertices(n_u32);
@@ -248,11 +248,11 @@ fn check_duplicate_2d(points: &[Vec<f64>]) -> IgraphResult<()> {
     sorted_indices.sort_by(|&a, &b| {
         points[a][0]
             .partial_cmp(&points[b][0])
-            .expect("NaN filtered")
+            .unwrap_or(std::cmp::Ordering::Equal)
             .then_with(|| {
                 points[a][1]
                     .partial_cmp(&points[b][1])
-                    .expect("NaN filtered")
+                    .unwrap_or(std::cmp::Ordering::Equal)
             })
     });
     for w in sorted_indices.windows(2) {

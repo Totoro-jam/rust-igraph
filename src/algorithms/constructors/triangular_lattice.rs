@@ -205,13 +205,17 @@ fn layout(
     let mut prefix_sum: Vec<u32> = Vec::with_capacity(row_count + 1);
     prefix_sum.push(0);
     for &len in row_lengths {
-        let last = *prefix_sum.last().expect("non-empty");
+        let Some(&last) = prefix_sum.last() else {
+            return Err(overflow_error("empty prefix sum"));
+        };
         let next = last
             .checked_add(len)
             .ok_or_else(|| overflow_error("vertex count"))?;
         prefix_sum.push(next);
     }
-    let vcount = *prefix_sum.last().expect("non-empty");
+    let Some(&vcount) = prefix_sum.last() else {
+        return Err(overflow_error("empty prefix sum"));
+    };
 
     // Vertex index helper: (i, j) → prefix_sum[j] + (i - row_start[j]).
     let vertex_index = |i: u32, j: usize| -> u32 { prefix_sum[j] + i - row_start[j] };

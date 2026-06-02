@@ -127,7 +127,10 @@ pub fn umap_compute_weights(graph: &Graph, distances: Option<&[f64]>) -> IgraphR
             -1.0 // flag: all neighbors equidistant
         } else {
             let target = (neis.len() as f64).log2();
-            find_sigma(distances.unwrap(), neis, rho, target)
+            let dists = distances.ok_or(IgraphError::Internal(
+                "distances must be Some when dist_max != rho",
+            ))?;
+            find_sigma(dists, neis, rho, target)
         };
 
         // Convert to weights
@@ -135,7 +138,10 @@ pub fn umap_compute_weights(graph: &Graph, distances: Option<&[f64]>) -> IgraphR
             let weight = if sigma < 0.0 {
                 1.0
             } else {
-                let d = distances.unwrap()[eid];
+                let dists = distances.ok_or(IgraphError::Internal(
+                    "distances must be Some when sigma >= 0",
+                ))?;
+                let d = dists[eid];
                 (-(d - rho) / sigma).exp()
             };
 

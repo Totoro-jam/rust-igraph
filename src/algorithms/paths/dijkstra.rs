@@ -344,7 +344,11 @@ pub fn dijkstra_path_to(
     let mut cur = target;
     while let Some(eid) = p.inbound_edges[cur as usize] {
         es.push(eid);
-        let parent = p.parents[cur as usize].expect("inbound edge implies parent exists");
+        let Some(parent) = p.parents[cur as usize] else {
+            return Err(IgraphError::Internal(
+                "inbound edge exists but parent is None",
+            ));
+        };
         vs.push(cur);
         cur = parent;
     }
@@ -521,7 +525,11 @@ pub fn dijkstra_path_to_with_mode(
     let mut cur = target;
     while let Some(eid) = p.inbound_edges[cur as usize] {
         es.push(eid);
-        let parent = p.parents[cur as usize].expect("inbound edge implies parent exists");
+        let Some(parent) = p.parents[cur as usize] else {
+            return Err(IgraphError::Internal(
+                "inbound edge exists but parent is None",
+            ));
+        };
         vs.push(cur);
         cur = parent;
     }

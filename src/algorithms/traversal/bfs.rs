@@ -70,7 +70,9 @@ pub fn bfs_tree(graph: &Graph, root: VertexId) -> IgraphResult<BfsTree> {
     queue.push_back(root);
 
     while let Some(v) = queue.pop_front() {
-        let v_dist = distances[v as usize].expect("dequeued vertex is visited");
+        let v_dist = distances[v as usize].ok_or(crate::core::IgraphError::Internal(
+            "dequeued vertex has no distance",
+        ))?;
         let next_dist = v_dist
             .checked_add(1)
             .ok_or(crate::core::IgraphError::Internal(

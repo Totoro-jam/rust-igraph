@@ -390,13 +390,13 @@ fn densify_labels(labels: &[u32]) -> (Vec<u32>, u32) {
         let dense = if let Some(&(_, d)) = remap.iter().find(|&&(orig, _)| orig == l) {
             d
         } else {
-            let d = u32::try_from(remap.len()).expect("dense label fits u32");
+            let d = u32::try_from(remap.len()).unwrap_or(u32::MAX);
             remap.push((l, d));
             d
         };
         out.push(dense);
     }
-    let k = u32::try_from(remap.len()).expect("nb_clusters fits u32");
+    let k = u32::try_from(remap.len()).unwrap_or(u32::MAX);
     (out, k)
 }
 

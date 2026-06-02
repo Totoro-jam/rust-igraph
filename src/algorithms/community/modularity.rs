@@ -85,7 +85,12 @@ pub fn modularity(graph: &Graph, membership: &[u32], resolution: f64) -> IgraphR
             remap[slot] = Some(next_id);
             next_id += 1;
         }
-        reindexed.push(remap[slot].expect("just assigned"));
+        let Some(id) = remap[slot] else {
+            return Err(IgraphError::Internal(
+                "membership reindex failed: missing label",
+            ));
+        };
+        reindexed.push(id);
     }
     let no_of_partitions = next_id as usize;
 
@@ -223,7 +228,12 @@ pub fn modularity_weighted(
             remap[slot] = Some(next_id);
             next_id += 1;
         }
-        reindexed.push(remap[slot].expect("just assigned"));
+        let Some(id) = remap[slot] else {
+            return Err(IgraphError::Internal(
+                "membership reindex failed: missing label",
+            ));
+        };
+        reindexed.push(id);
     }
     let no_of_partitions = next_id as usize;
 
@@ -339,7 +349,12 @@ pub fn modularity_directed(
             remap[slot] = Some(next_id);
             next_id += 1;
         }
-        reindexed.push(remap[slot].expect("just assigned"));
+        let Some(id) = remap[slot] else {
+            return Err(IgraphError::Internal(
+                "membership reindex failed: missing label",
+            ));
+        };
+        reindexed.push(id);
     }
     let no_of_partitions = next_id as usize;
 
@@ -453,7 +468,12 @@ pub fn modularity_weighted_directed(
             remap[slot] = Some(next_id);
             next_id += 1;
         }
-        reindexed.push(remap[slot].expect("just assigned"));
+        let Some(id) = remap[slot] else {
+            return Err(IgraphError::Internal(
+                "membership reindex failed: missing label",
+            ));
+        };
+        reindexed.push(id);
     }
     let no_of_partitions = next_id as usize;
 

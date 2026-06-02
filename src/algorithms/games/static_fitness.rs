@@ -306,11 +306,15 @@ pub fn static_fitness_game(
 
     // Build cumulative-sum vectors.
     let cum_out = cumulative_sum(fitness_out);
-    let max_out = *cum_out.last().expect("n > 0 ⇒ cum_out non-empty");
+    let Some(&max_out) = cum_out.last() else {
+        return Err(IgraphError::Internal("cum_out unexpectedly empty"));
+    };
     let (cum_in_storage, cum_in_view, max_in): (Vec<f64>, &[f64], f64) = match fitness_in {
         Some(fin) => {
             let c = cumulative_sum(fin);
-            let m = *c.last().expect("n > 0 ⇒ cum_in non-empty");
+            let Some(&m) = c.last() else {
+                return Err(IgraphError::Internal("cum_in unexpectedly empty"));
+            };
             (c, &[], m)
         }
         None => (Vec::new(), &cum_out, max_out),

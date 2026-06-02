@@ -230,7 +230,10 @@ pub fn fluid_communities_with_options(
     shuffle_in_place(&mut node_order, &mut rng);
     for i in 0..k as usize {
         let v = node_order[i];
-        membership[v as usize] = u32::try_from(i).expect("k fits u32") + 1;
+        let label = u32::try_from(i)
+            .map_err(|_| IgraphError::InvalidArgument("k exceeds u32 range".into()))?
+            + 1;
+        membership[v as usize] = label;
         com_to_numvertices[i] = 1;
     }
 
@@ -389,7 +392,7 @@ impl SplitMix64 {
     fn gen_index(&mut self, bound: usize) -> usize {
         debug_assert!(bound > 0);
         let r = self.next_u64() % (bound as u64);
-        usize::try_from(r).expect("bound fits in usize by construction")
+        usize::try_from(r).unwrap_or(0)
     }
 }
 

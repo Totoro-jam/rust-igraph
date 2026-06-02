@@ -75,7 +75,9 @@ pub fn is_complete(graph: &Graph) -> IgraphResult<bool> {
     let directed = graph.is_directed();
 
     // n*(n-1) cannot overflow u64 since n is u32 (so ≤ 2^32).
-    let target_undir_x2 = n64.checked_mul(n64 - 1).expect("u64 mul fits");
+    let Some(target_undir_x2) = n64.checked_mul(n64 - 1) else {
+        return Ok(false);
+    };
     let target = if directed {
         target_undir_x2
     } else {
@@ -101,15 +103,15 @@ pub fn is_complete(graph: &Graph) -> IgraphResult<bool> {
     for v in 0..n {
         seen.clear();
         if directed {
-            let eids = graph.incident(v).expect("incident on valid vertex");
+            let eids = graph.incident(v)?;
             for eid in eids {
-                let nei = graph.edge_other(eid, v).expect("edge_other on valid edge");
+                let nei = graph.edge_other(eid, v)?;
                 if nei != v {
                     seen.insert(nei);
                 }
             }
         } else {
-            let neis = graph.neighbors(v).expect("neighbors on valid vertex");
+            let neis = graph.neighbors(v)?;
             for nei in neis {
                 if nei != v {
                     seen.insert(nei);
