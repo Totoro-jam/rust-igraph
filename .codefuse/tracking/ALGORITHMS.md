@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (371 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (373 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -648,5 +648,9 @@ PR-125 (`is_net_free` — check whether a graph has no induced net subgraph: a n
 PR-126 (`is_biregular` — check whether a graph is biregular (semiregular bipartite): bipartite and all vertices in the same partition have the same degree; uses `is_bipartite` for partition, then checks degree uniformity per side; `K_{m,n}`, regular bipartite, stars are biregular; `P_4`, mixed-component disconnected graphs are not; directed treated as undirected; 15 unit tests + 1 doctest).
 
 PR-127 (`is_series_parallel` — check whether a graph is series-parallel: no `K_4` minor (Duffin 1965); iterative reduction algorithm: peel degree-0/1 vertices, series-reduce degree-2 vertices, collapse parallel edges until fixpoint; graph is SP iff it reduces to at most one edge; trees, cycles, diamonds, `K_{2,3}` are SP; `K_4`, `K_5`, Petersen, wheels are not; directed treated as undirected; 20 unit tests + 1 doctest).
+
+PR-128 (`is_apex_tree` — check whether a graph is an apex tree: removing some single vertex yields a tree; stricter than apex forest (requires connected remainder); uses adjacency-matrix removal + tree-check per candidate; trees, triangles, diamonds, theta graphs are apex trees; `K_4`, wheels, two disjoint triangles, edgeless graphs with n >= 4 are not; directed treated as undirected; 16 unit tests + 1 doctest).
+
+PR-129 (`is_outerplanar` — check whether a graph is outerplanar: embeddable in the plane with all vertices on the outer face; equivalent to no `K_4` minor and no `K_{2,3}` minor; uses `is_series_parallel` for `K_4`-freeness plus a tagged SP-reduction for `K_{2,3}` detection — edges created by series contraction are tagged synthetic, and 3+ synthetic parallel edges between any pair certify a `K_{2,3}` minor; forests, cycles, diamonds, triangulated polygons are outerplanar; `K_4`, `K_{2,3}`, Petersen are not; directed treated as undirected; 18 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.

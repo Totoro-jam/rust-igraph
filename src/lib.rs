@@ -491,6 +491,7 @@ pub use crate::algorithms::properties::hits::{
 };
 pub use crate::algorithms::properties::is_acyclic::is_acyclic;
 pub use crate::algorithms::properties::is_apex_forest::is_apex_forest;
+pub use crate::algorithms::properties::is_apex_tree::is_apex_tree;
 pub use crate::algorithms::properties::is_banner_free::is_banner_free;
 pub use crate::algorithms::properties::is_biclique::is_biclique;
 pub use crate::algorithms::properties::is_bipartite::{BipartiteResult, is_bipartite};
@@ -528,6 +529,7 @@ pub use crate::algorithms::properties::is_house_free::is_house_free;
 pub use crate::algorithms::properties::is_k_degenerate::{degeneracy, is_k_degenerate};
 pub use crate::algorithms::properties::is_lobster::is_lobster;
 pub use crate::algorithms::properties::is_net_free::is_net_free;
+pub use crate::algorithms::properties::is_outerplanar::is_outerplanar;
 pub use crate::algorithms::properties::is_p5_free::is_p5_free;
 pub use crate::algorithms::properties::is_path::is_path;
 pub use crate::algorithms::properties::is_paw_free::is_paw_free;
