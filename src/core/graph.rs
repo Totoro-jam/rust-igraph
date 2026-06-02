@@ -75,6 +75,17 @@ impl Graph {
     ///
     /// Counterpart of `igraph_empty()`; `directed` defaults to `false` if
     /// you use [`Graph::with_vertices`] instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::new(5, true).unwrap();
+    /// assert_eq!(g.vcount(), 5);
+    /// assert_eq!(g.ecount(), 0);
+    /// assert!(g.is_directed());
+    /// ```
     pub fn new(n: u32, directed: bool) -> IgraphResult<Self> {
         let mut g = Self {
             n: 0,
@@ -134,6 +145,16 @@ impl Graph {
     ///
     /// Builds the graph directly (no intermediate `Result`) since an
     /// empty undirected graph with `n` vertices cannot fail to construct.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::with_vertices(4);
+    /// assert_eq!(g.vcount(), 4);
+    /// assert!(!g.is_directed());
+    /// ```
     pub fn with_vertices(n: u32) -> Self {
         let len = n as usize + 1;
         Self {
@@ -150,18 +171,50 @@ impl Graph {
     }
 
     /// Number of vertices. Counterpart of `igraph_vcount()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::with_vertices(10);
+    /// assert_eq!(g.vcount(), 10);
+    /// ```
     #[must_use]
     pub fn vcount(&self) -> u32 {
         self.n
     }
 
     /// Number of edges. Counterpart of `igraph_ecount()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// assert_eq!(g.ecount(), 2);
+    /// ```
     #[must_use]
     pub fn ecount(&self) -> usize {
         self.from.len()
     }
 
     /// `true` if the graph is directed. Counterpart of `igraph_is_directed()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::new(3, true).unwrap();
+    /// assert!(g.is_directed());
+    ///
+    /// let g2 = Graph::with_vertices(3);
+    /// assert!(!g2.is_directed());
+    /// ```
     #[must_use]
     pub fn is_directed(&self) -> bool {
         self.directed
@@ -172,6 +225,18 @@ impl Graph {
     /// `(self.n, self.n)` and does nothing.
     ///
     /// Counterpart of `igraph_add_vertices()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// let (first, last) = g.add_vertices(2).unwrap();
+    /// assert_eq!(first, 3);
+    /// assert_eq!(last, 4);
+    /// assert_eq!(g.vcount(), 5);
+    /// ```
     pub fn add_vertices(&mut self, nv: u32) -> IgraphResult<(VertexId, VertexId)> {
         let new_n = self
             .n
@@ -196,6 +261,17 @@ impl Graph {
     ///
     /// Self-loops and parallel edges are allowed. For undirected graphs the
     /// edge is canonicalised so the stored `from <= to`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// assert_eq!(g.ecount(), 2);
+    /// ```
     pub fn add_edge(&mut self, u: VertexId, v: VertexId) -> IgraphResult<()> {
         self.add_edges(std::iter::once((u, v)))
     }
@@ -203,6 +279,16 @@ impl Graph {
     /// Add a sequence of edges. After all edges are appended, the indexes
     /// (`oi` / `ii` / `os` / `is`) are rebuilt in one pass — counterpart of
     /// `igraph_add_edges` (`type_indexededgelist.c:254-367`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(4);
+    /// g.add_edges(vec![(0, 1), (1, 2), (2, 3)]).unwrap();
+    /// assert_eq!(g.ecount(), 3);
+    /// ```
     pub fn add_edges<I>(&mut self, edges: I) -> IgraphResult<()>
     where
         I: IntoIterator<Item = (VertexId, VertexId)>,
@@ -235,6 +321,19 @@ impl Graph {
     /// duplicates suppressed when the same edge is incident on both.
     ///
     /// Counterpart of `igraph_neighbors(graph, _, vid, IGRAPH_ALL, ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(4);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(0, 2).unwrap();
+    /// g.add_edge(0, 3).unwrap();
+    /// let neis = g.neighbors(0).unwrap();
+    /// assert_eq!(neis, vec![1, 2, 3]);
+    /// ```
     pub fn neighbors(&self, v: VertexId) -> IgraphResult<Vec<VertexId>> {
         self.check_vertex(v)?;
         let v_idx = v as usize;
@@ -290,6 +389,18 @@ impl Graph {
     /// at `type_indexededgelist.c:1162`).
     ///
     /// Counterpart of `igraph_degree_1(_, _, _, IGRAPH_ALL, IGRAPH_LOOPS_TWICE)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(0, 2).unwrap();
+    /// assert_eq!(g.degree(0).unwrap(), 2);
+    /// assert_eq!(g.degree(1).unwrap(), 1);
+    /// ```
     pub fn degree(&self, v: VertexId) -> IgraphResult<usize> {
         self.check_vertex(v)?;
         let v_idx = v as usize;
@@ -312,6 +423,16 @@ impl Graph {
 
     /// Source endpoint of edge `eid`. Counterpart of `IGRAPH_FROM`
     /// (`igraph_interface.h:115`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 2).unwrap();
+    /// assert_eq!(g.edge_source(0).unwrap(), 0);
+    /// ```
     pub fn edge_source(&self, eid: EdgeId) -> IgraphResult<VertexId> {
         self.check_edge(eid)?;
         Ok(self.from[eid as usize])
@@ -319,6 +440,16 @@ impl Graph {
 
     /// Target endpoint of edge `eid`. Counterpart of `IGRAPH_TO`
     /// (`igraph_interface.h:128`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 2).unwrap();
+    /// assert_eq!(g.edge_target(0).unwrap(), 2);
+    /// ```
     pub fn edge_target(&self, eid: EdgeId) -> IgraphResult<VertexId> {
         self.check_edge(eid)?;
         Ok(self.to[eid as usize])
@@ -326,6 +457,18 @@ impl Graph {
 
     /// Both endpoints of edge `eid`, ordered as `(from, to)`. Counterpart
     /// of `igraph_edge` (`igraph_interface.h:71`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// let (from, to) = g.edge(0).unwrap();
+    /// assert_eq!(from, 0);
+    /// assert_eq!(to, 1);
+    /// ```
     pub fn edge(&self, eid: EdgeId) -> IgraphResult<(VertexId, VertexId)> {
         self.check_edge(eid)?;
         let i = eid as usize;
@@ -335,6 +478,17 @@ impl Graph {
     /// The other endpoint of `eid` given one endpoint `vid`. Counterpart
     /// of `IGRAPH_OTHER` (`igraph_interface.h:145`). Errors if `vid` is
     /// not actually an endpoint of `eid`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 2).unwrap();
+    /// assert_eq!(g.edge_other(0, 0).unwrap(), 2);
+    /// assert_eq!(g.edge_other(0, 2).unwrap(), 0);
+    /// ```
     pub fn edge_other(&self, eid: EdgeId, vid: VertexId) -> IgraphResult<VertexId> {
         let (u, v) = self.edge(eid)?;
         if vid == u {
@@ -363,6 +517,18 @@ impl Graph {
     ///
     /// Counterpart of `igraph_incident(_, _, v, IGRAPH_ALL, IGRAPH_LOOPS_TWICE)`
     /// for undirected; `IGRAPH_OUT` mode for directed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap(); // edge 0
+    /// g.add_edge(0, 2).unwrap(); // edge 1
+    /// let inc = g.incident(0).unwrap();
+    /// assert_eq!(inc.len(), 2);
+    /// ```
     pub fn incident(&self, v: VertexId) -> IgraphResult<Vec<EdgeId>> {
         self.check_vertex(v)?;
         let v_idx = v as usize;
@@ -408,6 +574,19 @@ impl Graph {
     /// from `references/igraph/src/graph/type_indexededgelist.c:1522-1555`.
     /// Phase-1 minimal slice: linear scan across the from-bucket; the
     /// upstream binary-search optimisation lands in a perf pass.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// assert_eq!(g.get_eid(0, 1).unwrap(), 0);
+    /// assert_eq!(g.get_eid(1, 2).unwrap(), 1);
+    /// assert!(g.get_eid(0, 2).is_err());
+    /// ```
     pub fn get_eid(&self, from: VertexId, to: VertexId) -> IgraphResult<EdgeId> {
         self.find_eid(from, to)?
             .ok_or_else(|| IgraphError::InvalidArgument(format!("no edge between {from} and {to}")))
@@ -419,6 +598,17 @@ impl Graph {
     /// matching upstream's `error=false` mode. When parallel edges
     /// exist, returns the lowest edge id (matching upstream's
     /// "always returns the same edge ID" guarantee).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// assert_eq!(g.find_eid(0, 1).unwrap(), Some(0));
+    /// assert_eq!(g.find_eid(0, 2).unwrap(), None);
+    /// ```
     pub fn find_eid(&self, from: VertexId, to: VertexId) -> IgraphResult<Option<EdgeId>> {
         self.check_vertex(from)?;
         self.check_vertex(to)?;
@@ -453,6 +643,18 @@ impl Graph {
     /// `references/igraph/src/graph/type_indexededgelist.c:~1700`.
     /// On undirected graphs `(u, v)` and `(v, u)` are equivalent. The
     /// returned vector is sorted ascending by edge id.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(2);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(0, 1).unwrap(); // parallel edge
+    /// let eids = g.get_all_eids_between(0, 1).unwrap();
+    /// assert_eq!(eids, vec![0, 1]);
+    /// ```
     pub fn get_all_eids_between(&self, from: VertexId, to: VertexId) -> IgraphResult<Vec<EdgeId>> {
         self.check_vertex(from)?;
         self.check_vertex(to)?;
@@ -525,6 +727,19 @@ impl Graph {
     ///
     /// Counterpart of `igraph_delete_edges`
     /// (`references/igraph/src/graph/type_indexededgelist.c:500`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// g.add_edge(0, 2).unwrap();
+    /// g.delete_edges(&[1]).unwrap(); // remove edge 1-2
+    /// assert_eq!(g.ecount(), 2);
+    /// ```
     pub fn delete_edges(&mut self, edges: &[EdgeId]) -> IgraphResult<()> {
         let m = self.ecount();
         let m_u32 = u32::try_from(m).unwrap_or(u32::MAX);
@@ -569,6 +784,20 @@ impl Graph {
     ///
     /// Counterpart of `igraph_delete_vertices`
     /// (`references/igraph/src/graph/type_indexededgelist.c:540`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(4);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// g.add_edge(2, 3).unwrap();
+    /// g.delete_vertices(&[1]).unwrap();
+    /// assert_eq!(g.vcount(), 3);
+    /// assert_eq!(g.ecount(), 1); // only edge 2-3 survives (renumbered)
+    /// ```
     pub fn delete_vertices(&mut self, vertices: &[VertexId]) -> IgraphResult<()> {
         self.delete_vertices_map(vertices).map(|_| ())
     }
@@ -583,6 +812,20 @@ impl Graph {
     ///
     /// Counterpart of `igraph_delete_vertices_map`
     /// (`references/igraph/src/graph/type_indexededgelist.c:645`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(4);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(2, 3).unwrap();
+    /// let (map, invmap) = g.delete_vertices_map(&[1, 2]).unwrap();
+    /// assert_eq!(g.vcount(), 2);
+    /// assert_eq!(map, vec![Some(0), None, None, Some(1)]);
+    /// assert_eq!(invmap, vec![0, 3]);
+    /// ```
     pub fn delete_vertices_map(
         &mut self,
         vertices: &[VertexId],
