@@ -49,7 +49,7 @@ rust-igraph = "0.0.1-alpha"
 ```
 
 ```rust
-use rust_igraph::{Graph, bfs, BfsResult};
+use rust_igraph::{Graph, bfs};
 
 fn main() {
     // Build a small social network
@@ -61,9 +61,8 @@ fn main() {
     g.add_edge(3, 5).unwrap(); // Dave - Frank
 
     // BFS from Alice
-    let result = bfs(&g, 0, None, false).unwrap();
-    println!("Visit order: {:?}", result.order);
-    println!("Distances:   {:?}", result.dist);
+    let order = bfs(&g, 0).unwrap();
+    println!("Visit order: {:?}", order);
 }
 ```
 
@@ -74,7 +73,7 @@ use rust_igraph::{Graph, louvain};
 
 let mut g = Graph::with_vertices(10);
 // ... add edges forming two clusters ...
-let result = louvain(&g, None, 1.0).unwrap();
+let result = louvain(&g).unwrap();
 println!("Communities: {:?}", result.membership);
 println!("Modularity: {:.4}", result.modularity);
 ```
@@ -90,8 +89,8 @@ g.add_edge(1, 2).unwrap();
 g.add_edge(2, 3).unwrap();
 g.add_edge(3, 4).unwrap();
 
-let pr = pagerank(&g, 0.85).unwrap();
-let bc = betweenness(&g, false).unwrap();
+let pr = pagerank(&g).unwrap();
+let bc = betweenness(&g).unwrap();
 println!("PageRank: {:?}", pr);
 println!("Betweenness: {:?}", bc);
 ```
@@ -132,7 +131,7 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ```bash
 cargo build                          # build
-cargo test                           # fast test suite (639+ tests)
+cargo test                           # fast test suite (660+ tests)
 cargo test --all-features            # full suite with oracle + proptests
 cargo clippy -- -D warnings          # lint
 cargo doc --no-deps --open           # browse API docs locally
