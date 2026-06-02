@@ -49,6 +49,19 @@ impl Default for UmapParams {
 /// * `distances` — per-edge distances. If `None`, all edges get weight 1.
 ///
 /// Returns a weight vector of length `ecount`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, umap_compute_weights};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let w = umap_compute_weights(&g, Some(&[1.0, 2.0])).unwrap();
+/// assert_eq!(w.len(), 2);
+/// assert!(w.iter().all(|&v| v >= 0.0 && v <= 1.0));
+/// ```
 pub fn umap_compute_weights(graph: &Graph, distances: Option<&[f64]>) -> IgraphResult<Vec<f64>> {
     let n = graph.vcount() as usize;
     let m = graph.ecount();
@@ -579,6 +592,18 @@ pub fn layout_umap(
 /// * `params` — algorithm parameters.
 ///
 /// Returns `[x, y, z]` positions for each vertex.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, layout_umap_3d, UmapParams};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let pos = layout_umap_3d(&g, None, None, &UmapParams::default()).unwrap();
+/// assert_eq!(pos.len(), 3);
+/// ```
 pub fn layout_umap_3d(
     graph: &Graph,
     seed: Option<&[[f64; 3]]>,

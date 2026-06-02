@@ -31,6 +31,17 @@ use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 /// Counterpart of `igraph_count_triangles()`. Returns the number of
 /// triangles as a `u64` (fits comfortably for graphs up to about
 /// `n = 600 000` cliques).
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, count_triangles};
+///
+/// // K4 has C(4,3) = 4 triangles.
+/// let mut g = Graph::with_vertices(4);
+/// for i in 0..4 { for j in (i+1)..4 { g.add_edge(i, j).unwrap(); } }
+/// assert_eq!(count_triangles(&g).unwrap(), 4);
+/// ```
 pub fn count_triangles(graph: &Graph) -> IgraphResult<u64> {
     let (triangles, _) = triangles_and_triples(graph)?;
     Ok(triangles)

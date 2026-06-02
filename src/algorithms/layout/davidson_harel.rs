@@ -31,6 +31,17 @@ pub struct DhParams {
 
 impl DhParams {
     /// Create parameters with defaults scaled to the given graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, DhParams};
+    ///
+    /// let g = Graph::with_vertices(10);
+    /// let params = DhParams::for_graph(&g);
+    /// assert_eq!(params.maxiter, 10);
+    /// assert!(params.cool_fact > 0.0 && params.cool_fact < 1.0);
+    /// ```
     pub fn for_graph(graph: &Graph) -> Self {
         let n = graph.vcount() as usize;
         let e = graph.ecount();

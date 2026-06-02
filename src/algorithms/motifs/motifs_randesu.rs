@@ -416,6 +416,21 @@ fn estimate_count_from_root(
 /// * `graph` — the input graph.
 /// * `size` — motif size (3 or 4 for directed; 3, 4, or 5 for undirected).
 /// * `callback` — called with (vertex ids, isomorphism class) for each motif.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, motifs_randesu_callback};
+///
+/// // K3 undirected has exactly one size-3 motif (the triangle).
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(0, 2).unwrap();
+/// let mut count = 0u32;
+/// motifs_randesu_callback(&g, 3, |_vids, _class| { count += 1; Ok(true) }).unwrap();
+/// assert_eq!(count, 1);
+/// ```
 pub fn motifs_randesu_callback<F>(graph: &Graph, size: u32, mut callback: F) -> IgraphResult<()>
 where
     F: FnMut(&[VertexId], u32) -> IgraphResult<bool>,

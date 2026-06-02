@@ -11,6 +11,17 @@ use std::io::{BufRead, BufReader, Read, Write};
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
 /// Read an edge list from any [`Read`] into a fresh [`Graph`].
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::read_edgelist;
+///
+/// let data = b"0 1\n1 2\n2 0\n";
+/// let g = read_edgelist(&data[..]).unwrap();
+/// assert_eq!(g.vcount(), 3);
+/// assert_eq!(g.ecount(), 3);
+/// ```
 pub fn read_edgelist<R: Read>(input: R) -> IgraphResult<Graph> {
     let reader = BufReader::new(input);
     let mut edges: Vec<(VertexId, VertexId)> = Vec::new();

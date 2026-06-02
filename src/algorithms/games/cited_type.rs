@@ -120,6 +120,17 @@ fn cum_upper(cumsum: &[f64], target: f64) -> usize {
 }
 
 /// Cited-type growing citation game. See module docs.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::cited_type_game;
+///
+/// // 5 vertices, 2 types with equal attractivity, 1 edge per step.
+/// let g = cited_type_game(5, &[0, 1, 0, 1, 0], &[1.0, 1.0], 1, true, 42).unwrap();
+/// assert_eq!(g.vcount(), 5);
+/// assert_eq!(g.ecount(), 4);
+/// ```
 pub fn cited_type_game(
     nodes: u32,
     types: &[u32],

@@ -403,6 +403,19 @@ pub fn dijkstra_distances_cutoff(
 /// to=igraph_vss_all(), weights, IGRAPH_OUT, cutoff)`. Each source is
 /// run independently — upstream loops over `fromvit` doing exactly
 /// the same.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, dijkstra_distances_multi};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let d = dijkstra_distances_multi(&g, &[0, 2], &[1.0, 3.0], None).unwrap();
+/// assert_eq!(d[0], vec![Some(0.0), Some(1.0), Some(4.0)]);
+/// assert_eq!(d[1], vec![Some(4.0), Some(3.0), Some(0.0)]);
+/// ```
 pub fn dijkstra_distances_multi(
     graph: &Graph,
     sources: &[VertexId],
@@ -520,6 +533,20 @@ pub fn dijkstra_path_to_with_mode(
 
 /// Mode-aware [`dijkstra_distances_cutoff`]. Counterpart of
 /// `igraph_distances_dijkstra_cutoff(_, _, source, vss_all(), weights, mode, cutoff)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, dijkstra_distances_cutoff_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::new(3, true).unwrap();
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let d = dijkstra_distances_cutoff_with_mode(
+///     &g, 0, &[1.0, 2.0], Some(1.5), DijkstraMode::Out
+/// ).unwrap();
+/// assert_eq!(d, vec![Some(0.0), Some(1.0), None]);
+/// ```
 pub fn dijkstra_distances_cutoff_with_mode(
     graph: &Graph,
     source: VertexId,
@@ -548,6 +575,21 @@ pub fn dijkstra_distances_cutoff_with_mode(
 }
 
 /// Mode-aware [`dijkstra_distances_multi`].
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, dijkstra_distances_multi_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::new(3, true).unwrap();
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let d = dijkstra_distances_multi_with_mode(
+///     &g, &[0, 2], &[1.0, 2.0], None, DijkstraMode::Out
+/// ).unwrap();
+/// assert_eq!(d[0], vec![Some(0.0), Some(1.0), Some(3.0)]);
+/// assert_eq!(d[1], vec![None, None, Some(0.0)]);
+/// ```
 pub fn dijkstra_distances_multi_with_mode(
     graph: &Graph,
     sources: &[VertexId],

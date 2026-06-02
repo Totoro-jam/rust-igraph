@@ -51,6 +51,15 @@ pub struct DrlOptions {
 
 impl DrlOptions {
     /// Create options from a predefined template.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{DrlOptions, DrlTemplate};
+    ///
+    /// let opts = DrlOptions::from_template(DrlTemplate::Default);
+    /// assert!(opts.edge_cut > 0.0);
+    /// ```
     pub fn from_template(templ: DrlTemplate) -> Self {
         let edge_cut: f32 = 32.0 / 40.0;
         match templ {

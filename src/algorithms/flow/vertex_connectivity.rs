@@ -205,6 +205,20 @@ pub fn vertex_connectivity(graph: &Graph, checks: bool) -> IgraphResult<i64> {
 /// with the upstream API and so users following the
 /// White-Harary (2001) sociological-network literature have a direct
 /// hit. Identical signature and behaviour.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, cohesion};
+///
+/// // A cycle of 4 vertices: removing any single vertex still leaves a path.
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// g.add_edge(3, 0).unwrap();
+/// assert_eq!(cohesion(&g, true).unwrap(), 2);
+/// ```
 pub fn cohesion(graph: &Graph, checks: bool) -> IgraphResult<i64> {
     vertex_connectivity(graph, checks)
 }

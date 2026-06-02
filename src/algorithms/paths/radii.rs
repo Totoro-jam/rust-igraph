@@ -106,6 +106,18 @@ fn bfs_distances(graph: &Graph, source: VertexId, mode: EccMode) -> IgraphResult
 /// Isolated vertices have eccentricity `0`.
 ///
 /// Counterpart of `igraph_eccentricity(_, NULL_weights, _, igraph_vss_all(), IGRAPH_OUT)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, eccentricity};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// assert_eq!(eccentricity(&g).unwrap(), vec![3, 2, 2, 3]);
+/// ```
 pub fn eccentricity(graph: &Graph) -> IgraphResult<Vec<u32>> {
     let n = graph.vcount();
     let mut out = vec![0u32; n as usize];
@@ -122,6 +134,18 @@ pub fn eccentricity(graph: &Graph) -> IgraphResult<Vec<u32>> {
 /// null graph).
 ///
 /// Counterpart of `igraph_radius(_, NULL_weights, _, IGRAPH_OUT)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, radius};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// assert_eq!(radius(&g).unwrap(), Some(2));
+/// ```
 pub fn radius(graph: &Graph) -> IgraphResult<Option<u32>> {
     let n = graph.vcount();
     if n == 0 {
@@ -317,11 +341,34 @@ pub fn eccentricity_weighted(graph: &Graph, weights: &[f64]) -> IgraphResult<Vec
 }
 
 /// OUT-mode default for [`radius_weighted_with_mode`].
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, radius_weighted};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let r = radius_weighted(&g, &[1.0, 2.5]).unwrap();
+/// assert_eq!(r, Some(2.5));
+/// ```
 pub fn radius_weighted(graph: &Graph, weights: &[f64]) -> IgraphResult<Option<f64>> {
     radius_weighted_with_mode(graph, weights, EccMode::Out)
 }
 
 /// OUT-mode default for [`diameter_weighted_with_mode`].
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, diameter_weighted};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// assert_eq!(diameter_weighted(&g, &[1.0, 2.5]).unwrap(), Some(3.5));
+/// ```
 pub fn diameter_weighted(graph: &Graph, weights: &[f64]) -> IgraphResult<Option<f64>> {
     diameter_weighted_with_mode(graph, weights, EccMode::Out)
 }

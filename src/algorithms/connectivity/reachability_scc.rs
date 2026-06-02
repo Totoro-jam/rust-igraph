@@ -43,6 +43,19 @@ pub struct ReachabilityResult {
 
 impl ReachabilityResult {
     /// Returns `true` if vertex `target` is reachable from vertex `source`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, reachability, ReachabilityMode};
+    ///
+    /// let mut g = Graph::new(3, true).unwrap();
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// let r = reachability(&g, ReachabilityMode::Out).unwrap();
+    /// assert!(r.is_reachable(0, 2));
+    /// assert!(!r.is_reachable(2, 0));
+    /// ```
     pub fn is_reachable(&self, source: VertexId, target: VertexId) -> bool {
         let comp = self.membership[source as usize] as usize;
         let word = target as usize / 64;
@@ -54,6 +67,19 @@ impl ReachabilityResult {
     }
 
     /// Count how many vertices are reachable from `v` (including `v`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, reachability, ReachabilityMode};
+    ///
+    /// let mut g = Graph::new(3, true).unwrap();
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// let r = reachability(&g, ReachabilityMode::Out).unwrap();
+    /// assert_eq!(r.count_from(0), 3); // reaches 0, 1, 2
+    /// assert_eq!(r.count_from(2), 1); // reaches only itself
+    /// ```
     pub fn count_from(&self, v: VertexId) -> u32 {
         let comp = self.membership[v as usize] as usize;
         let mut count = 0u32;

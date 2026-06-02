@@ -186,6 +186,17 @@ fn validate(
 }
 
 /// Recent-degree game. See module docs.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::recent_degree_game;
+///
+/// // 10 vertices, linear preference, window of 5, 1 edge per step.
+/// let g = recent_degree_game(10, 1.0, 5, 1, None, false, 1.0, true, 42).unwrap();
+/// assert_eq!(g.vcount(), 10);
+/// assert_eq!(g.ecount(), 9);
+/// ```
 pub fn recent_degree_game(
     nodes: u32,
     power: f64,

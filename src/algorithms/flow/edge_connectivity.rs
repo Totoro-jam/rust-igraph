@@ -203,6 +203,19 @@ pub fn edge_connectivity(graph: &Graph, checks: bool) -> IgraphResult<i64> {
 /// with the upstream API and so users following the
 /// White-Harary (2001) sociological-network literature have a direct
 /// hit. Identical signature and behaviour.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, adhesion};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// g.add_edge(3, 0).unwrap();
+/// assert_eq!(adhesion(&g, true).unwrap(), 2);
+/// ```
 pub fn adhesion(graph: &Graph, checks: bool) -> IgraphResult<i64> {
     edge_connectivity(graph, checks)
 }

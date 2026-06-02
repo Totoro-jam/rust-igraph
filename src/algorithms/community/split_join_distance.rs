@@ -47,6 +47,15 @@ pub struct SplitJoinDistance {
 
 impl SplitJoinDistance {
     /// Total (symmetric) split-join distance, `d12 + d21`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::split_join_distance;
+    ///
+    /// let r = split_join_distance(&[0, 0, 1, 1], &[0, 1, 1, 1]).unwrap();
+    /// assert_eq!(r.total(), r.d12 + r.d21);
+    /// ```
     #[must_use]
     pub fn total(self) -> u64 {
         self.d12 + self.d21

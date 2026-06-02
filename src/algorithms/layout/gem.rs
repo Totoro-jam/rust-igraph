@@ -25,6 +25,16 @@ pub struct GemParams {
 
 impl GemParams {
     /// Create parameters with defaults scaled to the given vertex count.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::GemParams;
+    ///
+    /// let params = GemParams::for_graph(20);
+    /// assert!(params.temp_max > 0.0);
+    /// assert!(params.temp_init > 0.0);
+    /// ```
     pub fn for_graph(n: u32) -> Self {
         let nf = f64::from(n);
         Self {

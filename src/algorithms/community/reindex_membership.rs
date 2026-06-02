@@ -39,6 +39,15 @@ pub struct ReindexMembershipResult {
 
 impl ReindexMembershipResult {
     /// Number of distinct clusters in the densified membership.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::reindex_membership;
+    ///
+    /// let r = reindex_membership(&[5, 5, 10, 10, 5]).unwrap();
+    /// assert_eq!(r.nb_clusters(), 2);
+    /// ```
     #[must_use]
     pub fn nb_clusters(&self) -> u32 {
         // `new_to_old` cannot exceed `membership.len()`, which is a

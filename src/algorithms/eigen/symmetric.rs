@@ -59,6 +59,22 @@ pub struct EigenDecomposition {
 /// # Errors
 ///
 /// Returns [`IgraphError::InvalidArgument`] if `n == 0`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{eigen_matrix_symmetric, EigenWhich};
+///
+/// // diag(5, 3, 1): top-2 eigenvalues are 5.0 and 3.0.
+/// let result = eigen_matrix_symmetric(
+///     3,
+///     |x, y| { y[0] = 5.0*x[0]; y[1] = 3.0*x[1]; y[2] = x[2]; },
+///     2,
+///     EigenWhich::LargestAlgebraic,
+/// ).unwrap();
+/// assert!((result.eigenvalues[0] - 5.0).abs() < 1e-6);
+/// assert!((result.eigenvalues[1] - 3.0).abs() < 1e-6);
+/// ```
 pub fn eigen_matrix_symmetric<F>(
     n: usize,
     matvec: F,

@@ -539,6 +539,15 @@ pub fn layout_kamada_kawai_3d(
 
 impl KkParams {
     /// Reasonable defaults for a graph with `n` vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::KkParams;
+    ///
+    /// let params = KkParams::default_for(100);
+    /// assert_eq!(params.maxiter, 1000);
+    /// ```
     pub fn default_for(n: usize) -> Self {
         Self {
             maxiter: 10 * n.max(1),
@@ -551,6 +560,15 @@ impl KkParams {
 
 impl KkParams3d {
     /// Reasonable defaults for a graph with `n` vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::KkParams3d;
+    ///
+    /// let params = KkParams3d::default_for(50);
+    /// assert_eq!(params.maxiter, 500);
+    /// ```
     pub fn default_for(n: usize) -> Self {
         Self {
             maxiter: 10 * n.max(1),

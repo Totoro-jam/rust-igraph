@@ -56,6 +56,19 @@ pub struct TriadCensus {
 
 impl TriadCensus {
     /// Get the count for a specific triad type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, triad_census, TriadType};
+    ///
+    /// let mut g = Graph::new(3, true).unwrap();
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// g.add_edge(2, 0).unwrap();
+    /// let tc = triad_census(&g).unwrap();
+    /// assert_eq!(tc.get(TriadType::T030C), 1.0);
+    /// ```
     pub fn get(&self, triad_type: TriadType) -> f64 {
         self.counts[triad_type as usize]
     }

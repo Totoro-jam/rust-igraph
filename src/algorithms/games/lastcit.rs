@@ -172,6 +172,18 @@ fn validate(nodes: u32, edges_per_node: u32, agebins: u32, preference: &[f64]) -
 }
 
 /// Last-citation citation-network game. See module docs.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::lastcit_game;
+///
+/// // 5 vertices, 1 edge per step, 2 age bins.
+/// // preference: [bin0, bin1, never_cited] — 3 entries.
+/// let g = lastcit_game(5, 1, 2, &[1.0, 0.5, 0.1], true, 42).unwrap();
+/// assert_eq!(g.vcount(), 5);
+/// assert_eq!(g.ecount(), 4);
+/// ```
 pub fn lastcit_game(
     nodes: u32,
     edges_per_node: u32,
