@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (361 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (363 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -628,5 +628,9 @@ PR-115 (`is_proper_interval` — check whether a graph is a proper interval grap
 PR-116 (`is_k_degenerate` + `degeneracy` — check whether every subgraph has a vertex of degree ≤ k (equivalently coreness ≤ k); uses existing coreness decomposition; 0-degenerate = edgeless, 1-degenerate = forest; `degeneracy` returns the smallest such k; directed graphs treated as undirected; 13 unit tests + 2 doctests).
 
 PR-117 (`is_spider` — check whether a graph is a spider (tree with at most one vertex of degree ≥ 3); stars, paths, and subdivided stars are spiders; caterpillars with two branching vertices are not; directed graphs treated as undirected; 14 unit tests + 1 doctest).
+
+PR-118 (`satisfies_dirac` — check Dirac's condition for Hamiltonicity: every vertex has degree ≥ ⌈n/2⌉; `K_n`, `C_4`, `K_{3,3}` satisfy; `C_5`, paths, and stars do not; returns false for directed or n < 3; 13 unit tests + 1 doctest).
+
+PR-119 (`satisfies_ore` — check Ore's condition for Hamiltonicity: for every non-adjacent pair u,v, deg(u)+deg(v) ≥ n; strictly weaker than Dirac; `K_5 - 2 edges` satisfies Ore but not Dirac; returns false for directed or n < 3; 13 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
