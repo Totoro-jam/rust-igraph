@@ -138,7 +138,6 @@ where
 }
 
 /// Result of a top-k Lanczos eigensolver run.
-#[allow(dead_code)]
 pub(crate) struct LanczosTopKResult {
     /// Eigenvalues in descending order of magnitude or algebraic value.
     pub eigenvalues: Vec<f64>,
@@ -147,7 +146,6 @@ pub(crate) struct LanczosTopKResult {
 }
 
 /// Which eigenvalues to compute.
-#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum EigenWhich {
     /// Largest algebraic (most positive).
@@ -168,7 +166,7 @@ pub(crate) enum EigenWhich {
 ///
 /// Returns eigenvalues sorted by the requested criterion and their
 /// corresponding eigenvectors.
-#[allow(clippy::many_single_char_names, clippy::too_many_lines, dead_code)]
+#[allow(clippy::many_single_char_names, clippy::too_many_lines)]
 pub(crate) fn lanczos_top_k<F>(
     n: usize,
     matvec: &F,
