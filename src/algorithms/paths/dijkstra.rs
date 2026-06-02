@@ -368,6 +368,20 @@ pub fn dijkstra_path_to(
 /// Counterpart of `igraph_distances_dijkstra_cutoff(..., IGRAPH_OUT, cutoff)`
 /// for a single source. Upstream uses `cutoff < 0` to disable; this
 /// Rust port uses `None`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, dijkstra_distances_cutoff};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let d = dijkstra_distances_cutoff(&g, 0, &[1.0, 10.0], Some(5.0)).unwrap();
+/// assert!(d[0].is_some()); // distance 0
+/// assert!(d[1].is_some()); // distance 1
+/// assert!(d[2].is_none()); // distance 11, beyond cutoff
+/// ```
 pub fn dijkstra_distances_cutoff(
     graph: &Graph,
     source: VertexId,
@@ -481,6 +495,18 @@ pub fn dijkstra_distances_with_mode(
 
 /// Mode-aware [`dijkstra_paths`]. Counterpart of
 /// `igraph_get_shortest_paths_dijkstra(_, _, _, source, vss_all(), weights, mode, parents, inbound_edges)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, dijkstra_paths_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let p = dijkstra_paths_with_mode(&g, 0, &[1.0, 1.0], DijkstraMode::All).unwrap();
+/// assert!(p.distances[2].is_some());
+/// ```
 pub fn dijkstra_paths_with_mode(
     graph: &Graph,
     source: VertexId,
@@ -505,6 +531,19 @@ pub fn dijkstra_paths_with_mode(
 
 /// Mode-aware [`dijkstra_path_to`]. Counterpart of
 /// `igraph_get_shortest_path_dijkstra(_, _, _, source, target, weights, mode)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, dijkstra_path_to_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let (vs, es) = dijkstra_path_to_with_mode(&g, 0, 2, &[1.0, 1.0], DijkstraMode::All)
+///     .unwrap().unwrap();
+/// assert_eq!(vs, vec![0, 1, 2]);
+/// ```
 pub fn dijkstra_path_to_with_mode(
     graph: &Graph,
     source: VertexId,

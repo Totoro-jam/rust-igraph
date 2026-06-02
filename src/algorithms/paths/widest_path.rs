@@ -137,6 +137,18 @@ pub fn widest_path_widths(
 ///
 /// Counterpart of `igraph_widest_path_widths_dijkstra(_, _,
 /// vss(source), vss_all(), weights, mode)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, widest_path_widths_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let w = widest_path_widths_with_mode(&g, 0, &[3.0, 5.0], DijkstraMode::All).unwrap();
+/// assert_eq!(w[1], Some(3.0));
+/// ```
 pub fn widest_path_widths_with_mode(
     graph: &Graph,
     source: VertexId,
@@ -307,6 +319,18 @@ pub fn widest_paths(graph: &Graph, from: VertexId, weights: &[f64]) -> IgraphRes
 ///
 /// Counterpart of `igraph_get_widest_paths(_, NULL, NULL, source,
 /// vss_all(), weights, mode, parents, inbound_edges)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, widest_paths_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let sp = widest_paths_with_mode(&g, 0, &[3.0, 5.0], DijkstraMode::All).unwrap();
+/// assert!(sp.widths[2].is_some());
+/// ```
 pub fn widest_paths_with_mode(
     graph: &Graph,
     from: VertexId,
@@ -348,6 +372,18 @@ pub fn widest_paths_with_mode(
 /// you pick OUT/IN/ALL traversal on directed graphs.
 ///
 /// Counterpart of `igraph_get_widest_path(_, _, _, from, to, weights, mode)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, widest_path_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let p = widest_path_with_mode(&g, 0, 2, &[3.0, 5.0], DijkstraMode::All).unwrap();
+/// assert!(p.is_some());
+/// ```
 pub fn widest_path_with_mode(
     graph: &Graph,
     from: VertexId,
@@ -448,6 +484,18 @@ pub fn widest_paths_to(
 ///
 /// Counterpart of `igraph_get_widest_paths(_, vertices, edges,
 /// from, to, weights, mode, parents=NULL, inbound_edges=NULL)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, widest_paths_to_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let paths = widest_paths_to_with_mode(&g, 0, &[2], &[3.0, 5.0], DijkstraMode::All).unwrap();
+/// assert!(paths[0].is_some());
+/// ```
 pub fn widest_paths_to_with_mode(
     graph: &Graph,
     from: VertexId,
@@ -531,6 +579,18 @@ pub fn widest_path_widths_floyd_warshall(
 ///
 /// Counterpart of `igraph_widest_path_widths_floyd_warshall(_, _,
 /// vss_all(), vss_all(), weights, mode)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, widest_path_widths_floyd_warshall_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let m = widest_path_widths_floyd_warshall_with_mode(&g, &[3.0, 5.0], DijkstraMode::All).unwrap();
+/// assert_eq!(m[0][2], Some(3.0));
+/// ```
 pub fn widest_path_widths_floyd_warshall_with_mode(
     graph: &Graph,
     weights: &[f64],

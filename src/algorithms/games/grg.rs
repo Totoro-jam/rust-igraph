@@ -125,6 +125,17 @@ pub fn grg_game(n: u32, radius: f64, torus: bool, seed: u64) -> IgraphResult<Gra
 /// # Errors
 ///
 /// Same as [`grg_game`].
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::grg_game_with_coords;
+///
+/// let (g, xs, ys) = grg_game_with_coords(20, 0.4, false, 42).unwrap();
+/// assert_eq!(g.vcount(), 20);
+/// assert_eq!(xs.len(), 20);
+/// assert_eq!(ys.len(), 20);
+/// ```
 pub fn grg_game_with_coords(
     n: u32,
     radius: f64,

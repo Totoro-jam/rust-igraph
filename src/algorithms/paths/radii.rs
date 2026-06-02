@@ -222,6 +222,17 @@ pub fn eccentricity_with_mode(graph: &Graph, mode: EccMode) -> IgraphResult<Vec<
 /// Radius of `graph` under the given `mode`. `None` for `vcount == 0`.
 ///
 /// Counterpart of `igraph_radius(_, NULL_weights, _, mode)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, radius_with_mode, EccMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// assert_eq!(radius_with_mode(&g, EccMode::All).unwrap(), Some(1));
+/// ```
 pub fn radius_with_mode(graph: &Graph, mode: EccMode) -> IgraphResult<Option<u32>> {
     if graph.vcount() == 0 {
         return Ok(None);
@@ -234,6 +245,17 @@ pub fn radius_with_mode(graph: &Graph, mode: EccMode) -> IgraphResult<Option<u32
 ///
 /// Counterpart of `igraph_diameter(_, NULL_weights, _, NULL, NULL, NULL,
 /// NULL, mode == directed ? IGRAPH_OUT : IGRAPH_ALL, /*unconn=*/true)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, diameter_with_mode, EccMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// assert_eq!(diameter_with_mode(&g, EccMode::All).unwrap(), Some(2));
+/// ```
 pub fn diameter_with_mode(graph: &Graph, mode: EccMode) -> IgraphResult<Option<u32>> {
     if graph.vcount() == 0 {
         return Ok(None);
@@ -302,6 +324,18 @@ pub fn eccentricity_weighted_with_mode(
 /// Mode-aware weighted radius. `None` for `vcount == 0`.
 ///
 /// Counterpart of `igraph_radius(_, weights, _, mode)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, radius_weighted_with_mode, EccMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let r = radius_weighted_with_mode(&g, &[1.0, 2.0], EccMode::All).unwrap();
+/// assert!((r.unwrap() - 2.0).abs() < 1e-9);
+/// ```
 pub fn radius_weighted_with_mode(
     graph: &Graph,
     weights: &[f64],
@@ -320,6 +354,18 @@ pub fn radius_weighted_with_mode(
 ///
 /// Counterpart of `igraph_diameter(_, weights, _, NULL, NULL, NULL,
 /// NULL, mode == directed ? IGRAPH_OUT : IGRAPH_ALL, /*unconn=*/true)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, diameter_weighted_with_mode, EccMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let d = diameter_weighted_with_mode(&g, &[1.0, 2.0], EccMode::All).unwrap();
+/// assert!((d.unwrap() - 3.0).abs() < 1e-9);
+/// ```
 pub fn diameter_weighted_with_mode(
     graph: &Graph,
     weights: &[f64],
@@ -336,6 +382,19 @@ pub fn diameter_weighted_with_mode(
 
 /// OUT-mode default for [`eccentricity_weighted_with_mode`]. Counterpart
 /// of `igraph_eccentricity(_, weights, _, igraph_vss_all(), IGRAPH_OUT)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, eccentricity_weighted};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let e = eccentricity_weighted(&g, &[1.0, 2.0]).unwrap();
+/// assert!((e[0] - 3.0).abs() < 1e-9);
+/// assert!((e[1] - 2.0).abs() < 1e-9);
+/// ```
 pub fn eccentricity_weighted(graph: &Graph, weights: &[f64]) -> IgraphResult<Vec<f64>> {
     eccentricity_weighted_with_mode(graph, weights, EccMode::Out)
 }

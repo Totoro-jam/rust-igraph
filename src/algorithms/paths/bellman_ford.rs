@@ -112,6 +112,18 @@ pub fn bellman_ford_distances(
 ///
 /// Counterpart of `igraph_distances_bellman_ford(_, _, vss(source),
 /// vss_all(), weights, mode)`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, bellman_ford_distances_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::new(3, true).unwrap();
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let d = bellman_ford_distances_with_mode(&g, 2, &[1.0, 1.0], DijkstraMode::In).unwrap();
+/// assert!((d[0].unwrap() - 2.0).abs() < 1e-9);
+/// ```
 pub fn bellman_ford_distances_with_mode(
     graph: &Graph,
     source: VertexId,
@@ -231,6 +243,19 @@ pub fn bellman_ford_path_to(
 ///
 /// Returns `Some((vertices, edges))` if a finite-weight path exists,
 /// `None` if `target` is unreachable.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, bellman_ford_path_to_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::new(3, true).unwrap();
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let p = bellman_ford_path_to_with_mode(&g, 2, 0, &[1.0, 1.0], DijkstraMode::In)
+///     .unwrap().unwrap();
+/// assert_eq!(p.0, vec![2, 1, 0]);
+/// ```
 pub fn bellman_ford_path_to_with_mode(
     graph: &Graph,
     source: VertexId,
@@ -383,6 +408,18 @@ pub fn bellman_ford_paths(
 /// - [`DijkstraMode::Out`] follows out-edges (default),
 /// - [`DijkstraMode::In`] follows in-edges,
 /// - [`DijkstraMode::All`] ignores edge direction.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, bellman_ford_paths_with_mode, DijkstraMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let res = bellman_ford_paths_with_mode(&g, 0, &[2], &[1.0, 1.0], DijkstraMode::All).unwrap();
+/// assert!(res[0].is_some());
+/// ```
 pub fn bellman_ford_paths_with_mode(
     graph: &Graph,
     source: VertexId,

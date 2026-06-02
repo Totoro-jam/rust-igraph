@@ -202,6 +202,19 @@ pub fn eigenvector_centrality_directed(
 ///
 /// Counterpart of `igraph_eigenvector_centrality(g, &v, &λ, mode,
 /// weights, NULL)` on directed graphs.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, eigenvector_centrality_directed_weighted, EigenvectorMode};
+///
+/// let mut g = Graph::new(3, true).unwrap();
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// let r = eigenvector_centrality_directed_weighted(&g, EigenvectorMode::All, &[1.0, 1.0, 1.0]).unwrap();
+/// assert_eq!(r.vector.len(), 3);
+/// ```
 pub fn eigenvector_centrality_directed_weighted(
     graph: &Graph,
     mode: EigenvectorMode,
@@ -218,6 +231,19 @@ pub fn eigenvector_centrality_directed_weighted(
 ///
 /// Counterpart of `igraph_eigenvector_centrality(g, &v, &λ, mode,
 /// weights, NULL)` — the C-level "do everything" signature.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, eigenvector_centrality_full, EigenvectorMode};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// let r = eigenvector_centrality_full(&g, EigenvectorMode::All, None).unwrap();
+/// assert_eq!(r.vector.len(), 3);
+/// ```
 pub fn eigenvector_centrality_full(
     graph: &Graph,
     mode: EigenvectorMode,

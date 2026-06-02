@@ -213,6 +213,18 @@ pub fn knnk(graph: &Graph) -> IgraphResult<Vec<Option<f64>>> {
 /// `result[k-1]` is `Σ_{deg(v)=k} sum_v / Σ_{deg(v)=k} strength_v`,
 /// matching upstream's pooling formula. Same input requirements as
 /// [`avg_nearest_neighbor_degree_weighted`].
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, knnk_weighted};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// let k = knnk_weighted(&g, &[1.0, 1.0]).unwrap();
+/// assert!(!k.is_empty());
+/// ```
 pub fn knnk_weighted(graph: &Graph, weights: &[f64]) -> IgraphResult<Vec<Option<f64>>> {
     let n = graph.vcount();
     let m = graph.ecount();

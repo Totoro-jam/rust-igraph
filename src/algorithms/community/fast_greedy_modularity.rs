@@ -117,6 +117,19 @@ pub fn fast_greedy_modularity(graph: &Graph) -> IgraphResult<FastGreedyResult> {
 /// - [`IgraphError::Unsupported`] if `graph.is_directed()`.
 /// - [`IgraphError::InvalidArgument`] if the graph has multi-edges,
 ///   `weights.len() != graph.ecount()`, or any weight is negative / NaN.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, fast_greedy_modularity_weighted};
+///
+/// let mut g = Graph::with_vertices(4);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 3).unwrap();
+/// let r = fast_greedy_modularity_weighted(&g, &[1.0, 2.0, 1.0]).unwrap();
+/// assert!(r.nb_clusters >= 1);
+/// ```
 pub fn fast_greedy_modularity_weighted(
     graph: &Graph,
     weights: &[f64],

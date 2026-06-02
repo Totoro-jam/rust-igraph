@@ -160,6 +160,31 @@ fn validate_inputs(
     Ok(())
 }
 
+/// Voronoi-based community detection.
+///
+/// Partitions the vertex set into communities using graph Voronoi
+/// diagrams with local relative density to select generators.
+/// Pass `r < 0` for automatic radius selection that maximises modularity.
+///
+/// See the module documentation for the full algorithm description.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, community_voronoi, DijkstraMode};
+///
+/// let mut g = Graph::with_vertices(6);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// g.add_edge(3, 4).unwrap();
+/// g.add_edge(4, 5).unwrap();
+/// g.add_edge(5, 3).unwrap();
+/// g.add_edge(2, 3).unwrap();
+///
+/// let res = community_voronoi(&g, None, None, DijkstraMode::All, -1.0).unwrap();
+/// assert_eq!(res.membership.len(), 6);
+/// ```
 pub fn community_voronoi(
     graph: &Graph,
     lengths: Option<&[f64]>,

@@ -17,7 +17,7 @@ graph algorithms without leaving the Rust ecosystem.
 
 | | rust-igraph | petgraph | igraph (C/Python) |
 |---|---|---|---|
-| **Algorithm coverage** | 370+ APIs (BFS, DFS, shortest paths, community detection, centrality, isomorphism, flows, layouts, graph generators, 60+ graph class recognizers...) | ~30 algorithms | ~850 APIs |
+| **Algorithm coverage** | 400+ APIs (BFS, DFS, shortest paths, community detection, centrality, isomorphism, flows, layouts, graph generators, 60+ graph class recognizers...) | ~30 algorithms | ~850 APIs |
 | **Safety** | Zero `unsafe`, zero `unwrap` in library code | Some `unsafe` | C core with FFI |
 | **Correctness** | Cross-validated against igraph C, python-igraph, and R-igraph test suites | Independent | Reference implementation |
 | **Dependencies** | Minimal (1 runtime dep: `thiserror`) | Minimal | Large C/C++ toolchain |
@@ -132,7 +132,7 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ```bash
 cargo build                          # build
-cargo test                           # fast test suite (578 tests)
+cargo test                           # fast test suite (639+ tests)
 cargo test --all-features            # full suite with oracle + proptests
 cargo clippy -- -D warnings          # lint
 cargo doc --no-deps --open           # browse API docs locally

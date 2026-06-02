@@ -114,6 +114,19 @@ pub fn walktrap(graph: &Graph) -> IgraphResult<WalktrapResult> {
 /// - [`IgraphError::Unsupported`] if `graph.is_directed()`.
 /// - [`IgraphError::InvalidArgument`] if `weights.len() != ecount` or
 ///   any weight is negative or non-finite.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, walktrap_weighted};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// let r = walktrap_weighted(&g, &[1.0, 2.0, 1.0]).unwrap();
+/// assert_eq!(r.nb_clusters, 1);
+/// ```
 pub fn walktrap_weighted(graph: &Graph, weights: &[f64]) -> IgraphResult<WalktrapResult> {
     walktrap_with_options(graph, Some(weights), WalktrapOptions::default())
 }
@@ -128,6 +141,20 @@ pub fn walktrap_weighted(graph: &Graph, weights: &[f64]) -> IgraphResult<Walktra
 /// - [`IgraphError::InvalidArgument`] for `opts.steps == 0`, weight
 ///   length mismatch, negative / non-finite weights, or a vertex whose
 ///   incident-edge total weight underflows to zero.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, walktrap_with_options, WalktrapOptions};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+/// g.add_edge(2, 0).unwrap();
+/// let opts = WalktrapOptions { steps: 6 };
+/// let r = walktrap_with_options(&g, None, opts).unwrap();
+/// assert_eq!(r.nb_clusters, 1);
+/// ```
 pub fn walktrap_with_options(
     graph: &Graph,
     weights: Option<&[f64]>,
