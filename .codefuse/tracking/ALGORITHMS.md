@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (352 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (354 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -612,5 +612,9 @@ PR-107 (`is_dart_free` — check whether a graph has no induced dart (diamond + 
 PR-108 (`is_fork_free` — check whether a graph has no induced fork (claw `K_{1,3}` with one edge subdivided); for each induced claw checks if any arm has a pendant neighbor forming the fork; star graphs are fork-free (leaves have no pendants); returns false for directed graphs; 13 unit tests + 1 doctest).
 
 PR-109 (`is_p5_free` — check whether a graph has no induced `P_5` (path on 5 vertices); chains through edges finding a-b-c-d-e with no chords; `C_5` is `P_5`-free (closing edge is a chord), `C_6` is not; returns false for directed graphs; 14 unit tests + 1 doctest).
+
+PR-110 (`is_co_bipartite` — check whether a graph is co-bipartite (complement is bipartite, vertex set partitions into two cliques); builds adjacency matrix, 2-colors complement via BFS; `K_n` and `C_4` are co-bipartite; `C_5` is not (self-complementary odd cycle); 3 isolated vertices not (complement `K_3` not bipartite); returns false for directed graphs; 14 unit tests + 1 doctest).
+
+PR-111 (`is_chordal_bipartite` — check whether a bipartite graph is chordal bipartite (no induced `C_6` or longer); uses bisimplicial elimination ordering on adjacency matrix; handles disconnected graphs via component decomposition; complete bipartite graphs are chordal bipartite; `C_6` and `C_8` are not; returns false for non-bipartite or directed graphs; 14 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
