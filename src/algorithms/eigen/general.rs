@@ -35,6 +35,8 @@
     clippy::cast_precision_loss,
     clippy::manual_memcpy,
     clippy::manual_swap,
+    clippy::similar_names,
+    unknown_lints,
     clippy::manual_midpoint
 )]
 
