@@ -97,8 +97,8 @@ fn is_forest_without(adj: &[Vec<bool>], removed: usize, n: usize) -> bool {
 
         while let Some(u) = stack.pop() {
             visited_count += 1;
-            for v in 0..n {
-                if v == removed || !adj[u][v] {
+            for (v, &is_adj) in adj[u].iter().enumerate() {
+                if v == removed || !is_adj {
                     continue;
                 }
                 edge_count += 1;
