@@ -12,7 +12,7 @@ fn main() {
     let result = eigen_adjacency(&g, 2, EigenWhich::LargestAlgebraic).unwrap();
     println!("C5 top-2 eigenvalues:");
     for (i, val) in result.eigenvalues.iter().enumerate() {
-        println!("  λ{} = {:.6}", i, val);
+        println!("  λ{i} = {val:.6}");
     }
 
     // 2. Custom symmetric matrix: 4×4 diagonal.
@@ -31,7 +31,7 @@ fn main() {
 
     println!("\ndiag(10, 7, 3, 1) top-3 eigenvalues:");
     for (i, val) in result.eigenvalues.iter().enumerate() {
-        println!("  λ{} = {:.6}", i, val);
+        println!("  λ{i} = {val:.6}");
     }
 
     // 3. Smallest eigenvalue of the complete graph K4.
