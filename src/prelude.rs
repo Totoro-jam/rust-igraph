@@ -35,5 +35,12 @@ pub use crate::algorithms::connectivity::components::connected_components;
 pub use crate::algorithms::connectivity::is_connected::{ConnectednessMode, is_connected};
 
 // Properties
+pub use crate::algorithms::properties::basic::density;
 pub use crate::algorithms::properties::degree::{DegreeMode, degree_sequence};
 pub use crate::algorithms::properties::is_bipartite::{BipartiteResult, is_bipartite};
+pub use crate::algorithms::properties::is_simple::is_simple;
+pub use crate::algorithms::properties::summary::{GraphSummary, graph_summary};
+
+// Generators
+pub use crate::algorithms::constructors::famous::famous;
+pub use crate::algorithms::constructors::full::full_graph;
