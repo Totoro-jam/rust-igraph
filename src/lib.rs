@@ -596,6 +596,7 @@ pub use crate::algorithms::properties::is_windmill::is_windmill;
 pub use crate::algorithms::properties::joint_degree_distribution::joint_degree_distribution;
 pub use crate::algorithms::properties::joint_degree_matrix::joint_degree_matrix;
 pub use crate::algorithms::properties::joint_type_distribution::joint_type_distribution;
+pub use crate::algorithms::properties::katz_centrality::katz_centrality;
 pub use crate::algorithms::properties::knn::{
     avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, knnk, knnk_weighted,
 };

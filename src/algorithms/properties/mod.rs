@@ -116,6 +116,7 @@ pub(crate) mod is_windmill;
 pub(crate) mod joint_degree_distribution;
 pub(crate) mod joint_degree_matrix;
 pub(crate) mod joint_type_distribution;
+pub(crate) mod katz_centrality;
 pub(crate) mod knn;
 pub(crate) mod laplacian;
 pub(crate) mod list_triangles;
