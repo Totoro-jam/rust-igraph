@@ -27,7 +27,7 @@ graph algorithms without leaving the Rust ecosystem.
 
 - **Traversal**: BFS, DFS, topological sort, random walks
 - **Shortest paths**: Dijkstra, Bellman-Ford, A*, all-pairs, widest paths
-- **Centrality**: betweenness, closeness, eigenvector, PageRank, HITS, harmonic, constraint
+- **Centrality**: betweenness, closeness, eigenvector, PageRank, HITS, Katz, harmonic, constraint
 - **Community detection**: Louvain, Leiden, label propagation, Walktrap, edge betweenness, fast greedy, leading eigenvector, fluid communities, Voronoi
 - **Connectivity**: connected/biconnected components, articulation points, bridges, separators, cohesive blocks, SCC
 - **Network flow**: max-flow (push-relabel), min-cut, Gomory-Hu tree, edge/vertex connectivity, disjoint paths
@@ -66,6 +66,27 @@ fn main() {
 }
 ```
 
+### Graph construction
+
+```rust
+use rust_igraph::Graph;
+
+// From an edge list
+let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+
+// From a string (great for tests)
+let g = Graph::from_edge_list_str("0 1\n1 2\n2 0").unwrap();
+
+// With weights
+let (g, weights) = Graph::from_weighted_edges(
+    &[(0, 1, 1.5), (1, 2, 2.0), (2, 0, 0.5)], false, None,
+).unwrap();
+
+// Classic generators
+let k5 = rust_igraph::full_graph(5, false).unwrap();
+let ring = rust_igraph::cycle_graph(10, false).unwrap();
+```
+
 ### Community detection
 
 ```rust
@@ -81,18 +102,18 @@ println!("Modularity: {:.4}", result.modularity);
 ### Centrality analysis
 
 ```rust
-use rust_igraph::{Graph, pagerank, betweenness};
+use rust_igraph::{Graph, pagerank, betweenness, katz_centrality};
 
-let mut g = Graph::with_vertices(5);
-g.add_edge(0, 1).unwrap();
-g.add_edge(1, 2).unwrap();
-g.add_edge(2, 3).unwrap();
-g.add_edge(3, 4).unwrap();
+let g = Graph::from_edges(
+    &[(0,1), (1,2), (2,3), (3,4)], false, None
+).unwrap();
 
 let pr = pagerank(&g).unwrap();
 let bc = betweenness(&g).unwrap();
+let katz = katz_centrality(&g, 0.1, 1.0, None, None).unwrap();
 println!("PageRank: {:?}", pr);
 println!("Betweenness: {:?}", bc);
+println!("Katz: {:?}", katz);
 ```
 
 ## Performance
@@ -131,7 +152,7 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ```bash
 cargo build                          # build
-cargo test                           # fast test suite (660+ tests)
+cargo test                           # fast test suite (668+ tests)
 cargo test --all-features            # full suite with oracle + proptests
 cargo clippy -- -D warnings          # lint
 cargo doc --no-deps --open           # browse API docs locally
