@@ -298,6 +298,12 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 > centrality algorithms. Full per-AWU table to be expanded when Phase 2 nears
 > completion. See MASTER_PLAN.md §5.2 Phase 3.
 
+| ID | Task | C source | LOC | Complexity | Deps | Status | Commit | Big-O | Conformance |
+|----|------|----------|-----|------------|------|--------|--------|-------|-------------|
+| ALGO-EIG-001 | `eigen_matrix_symmetric` + `EigenWhich` + `EigenDecomposition` — public API for computing selected eigenvalues/eigenvectors of a real symmetric matrix defined by a matrix-vector product closure; wraps existing Lanczos solver (`community/lanczos.rs`); supports `LargestAlgebraic`, `SmallestAlgebraic`, `LargestMagnitude` spectrum targeting | eigen/symmetric.rs (wraps community/lanczos.rs) | ~100 | adapt | community/lanczos | done | 2026-06-02 | O(n·k·max_iter) Lanczos | 5 unit + 1 doctest |
+| ALGO-EIG-002 | `eigen_adjacency` — compute selected eigenvalues of a graph's adjacency matrix; pre-builds edge list for allocation-free matvec; directed graphs use symmetrized `(A+A^T)/2`; delegates to `eigen_matrix_symmetric` | eigen/adjacency.rs | ~100 | adapt | ALGO-EIG-001 | done | 2026-06-02 | O(E·k·max_iter) Lanczos | 6 unit + 2 doctest |
+| ALGO-EIG-003 | `eigen_matrix` + `GeneralEigenWhich` + `GeneralEigenDecomposition` — public API for computing selected eigenvalues/eigenvectors of a general (non-symmetric) real matrix; Arnoldi iteration builds upper Hessenberg projection, Francis double-shift QR iteration extracts eigenvalues (real or complex); supports `LargestMagnitude`, `SmallestMagnitude`, `LargestReal`, `SmallestReal`; complex eigenvalues returned as `(re, im)` pairs; inverse iteration for eigenvector recovery | eigen/general.rs | ~500 | novel | - | done | 2026-06-02 | O(n·m·max_iter) Arnoldi + O(m³) QR | 8 unit + 2 doctest |
+
 ## Phase 4-10 — see MASTER_PLAN.md
 
 Each phase's per-AWU table is materialized here as work approaches.
