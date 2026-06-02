@@ -277,6 +277,10 @@ path = "examples/strength_demo.rs"
 name = "trussness_demo"
 path = "examples/trussness_demo.rs"
 
+[[example]]
+name = "social_network_demo"
+path = "examples/social_network_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
