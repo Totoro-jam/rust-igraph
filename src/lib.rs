@@ -285,7 +285,7 @@ pub use crate::algorithms::io::dot::write_dot;
 pub use crate::algorithms::io::edgelist::{read_edgelist, write_edgelist};
 pub use crate::algorithms::io::gml::{read_gml, write_gml};
 pub use crate::algorithms::io::graphdb::read_graphdb;
-pub use crate::algorithms::io::graphml::write_graphml;
+pub use crate::algorithms::io::graphml::{GraphmlGraph, read_graphml, write_graphml};
 pub use crate::algorithms::io::leda::write_leda;
 pub use crate::algorithms::io::lgl::{LglGraph, read_lgl, write_lgl};
 pub use crate::algorithms::io::ncol::{NcolGraph, read_ncol, write_ncol};

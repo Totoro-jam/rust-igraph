@@ -19,7 +19,7 @@ pub use dot::write_dot;
 pub use edgelist::{read_edgelist, write_edgelist};
 pub use gml::{read_gml, write_gml};
 pub use graphdb::read_graphdb;
-pub use graphml::write_graphml;
+pub use graphml::{GraphmlGraph, read_graphml, write_graphml};
 pub use leda::write_leda;
 pub use lgl::{LglGraph, read_lgl, write_lgl};
 pub use ncol::{NcolGraph, read_ncol, write_ncol};
