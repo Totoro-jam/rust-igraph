@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (356 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (358 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -620,5 +620,9 @@ PR-111 (`is_chordal_bipartite` — check whether a bipartite graph is chordal bi
 PR-112 (`is_well_covered` — check whether all maximal independent sets have the same cardinality; Bron-Kerbosch enumeration with early termination on size mismatch; complete graphs, odd cycles, and complete bipartite graphs are well-covered; stars with ≥ 3 leaves are not; directed graphs treated as undirected; 14 unit tests + 1 doctest).
 
 PR-113 (`is_strongly_chordal` — check whether a chordal graph admits a strong elimination ordering; uses MCS to find PEO then verifies later-neighborhood inclusion ordering; complete graphs and trees are strongly chordal; sun graphs (chordal but with induced trampoline) are not; directed graphs treated as undirected; 14 unit tests + 1 doctest).
+
+PR-114 (`is_chain_graph` — check whether a bipartite graph is a chain graph (neighborhoods in each part totally ordered by inclusion, equivalently no induced `2K_2`); partitions via bipartite check then verifies nested neighborhoods using sorted inclusion test; complete bipartite and star graphs are chain graphs; `C_6` and `2K_2` are not; returns false for non-bipartite or directed graphs; 16 unit tests + 1 doctest).
+
+PR-115 (`is_proper_interval` — check whether a graph is a proper interval graph (unit interval graph); equivalent to chordal + claw-free (Roberts/Wegner characterization); paths, complete graphs, and diamonds are proper interval; stars and cycles ≥ 4 are not; returns false for directed graphs; 15 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
