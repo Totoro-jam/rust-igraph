@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (365 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (367 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -636,5 +636,9 @@ PR-119 (`satisfies_ore` — check Ore's condition for Hamiltonicity: for every n
 PR-120 (`is_apex_forest` — check whether a graph is an apex forest: removing some single vertex yields a forest; triangles, diamonds, theta graphs are apex forests; `K_4`, wheels, and two disjoint triangles are not; directed graphs treated as undirected; 14 unit tests + 1 doctest).
 
 PR-121 (`is_weakly_chordal` — check whether a graph is weakly chordal (weakly triangulated): neither G nor its complement has an induced `C_k` for k ≥ 5; chordal and co-chordal graphs are weakly chordal; `C_4` allowed but `C_5`, `C_6` are not; uses DFS-based chordless cycle detection on both G and complement adjacency matrices; directed graphs treated as undirected; 14 unit tests + 1 doctest).
+
+PR-122 (`is_complete_bipartite` — check whether a graph is complete bipartite `K_{m,n}`: uses bipartite check to find two parts, then verifies edge count = m × n; `K_{1,1}`, `C_4` = `K_{2,2}`, stars = `K_{1,n}` are complete bipartite; `C_6`, triangles, disconnected graphs are not; directed treated as undirected; 15 unit tests + 1 doctest).
+
+PR-123 (`is_cubic` — check whether a graph is cubic (3-regular): every vertex has degree exactly 3; `K_4`, `K_{3,3}`, Petersen graph, prism graph are cubic; `C_4` (2-regular), `K_5` (4-regular), stars are not; returns false for directed or n < 4; 13 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.
