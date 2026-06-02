@@ -34,7 +34,7 @@
 //! ## Determinism
 //!
 //! Reproducible given the inputs and `seed` against the shared
-//! [`crate::core::rng::SplitMix64`] PRNG. The stream is **not** portable
+//! `SplitMix64` PRNG. The stream is **not** portable
 //! to upstream igraph's GLIBC RNG, so conformance assertions are
 //! structural (vertex/edge counts, type-vector range, `loops` respect,
 //! pref-matrix support) rather than bit-exact.

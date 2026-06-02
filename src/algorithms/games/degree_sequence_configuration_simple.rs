@@ -58,7 +58,7 @@
 //!
 //! ## Determinism
 //!
-//! A single [`SplitMix64`] seed drives every shuffle and every retry.
+//! A single `SplitMix64` seed drives every shuffle and every retry.
 //! The PRNG is not bitwise portable to igraph C / `NumPy` / R, so the
 //! three-source conformance harness asserts structural invariants only
 //! (vcount, ecount = Σd/2 or Σout, exact out/in degree match,
@@ -273,7 +273,7 @@ fn run_directed(
 ///   * `Some(in_seq)` → directed graph; requires `in_seq.len() ==
 ///     out_degrees.len()`, `Σ in_seq == Σ out_degrees`, and the pair to
 ///     satisfy Fulkerson–Chen–Anstee.
-/// * `seed` — drives a [`SplitMix64`] PRNG; the same `(out_degrees,
+/// * `seed` — drives a `SplitMix64` PRNG; the same `(out_degrees,
 ///   in_degrees, seed)` triple always produces the same graph.
 ///
 /// # Errors

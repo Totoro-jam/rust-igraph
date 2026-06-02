@@ -36,7 +36,7 @@
 //!
 //! The output is fully reproducible given `(pref_matrix, block_sizes,
 //! directed, loops, multiple, seed)` via the shared
-//! [`crate::core::rng::SplitMix64`] PRNG.
+//! `SplitMix64` PRNG.
 //!
 //! ## References
 //!

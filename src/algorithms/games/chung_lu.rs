@@ -51,7 +51,7 @@
 //! ## Determinism
 //!
 //! Reproducible given `(out_weights, in_weights, loops, variant, seed)`
-//! against the shared [`crate::core::rng::SplitMix64`] PRNG.
+//! against the shared `SplitMix64` PRNG.
 //!
 //! ## References
 //!
@@ -181,7 +181,7 @@ fn apply_variant(q: f64, variant: ChungLuVariant) -> f64 {
 ///   independently with `p_ii`).
 /// * `variant` — which connection-probability formula to use; see
 ///   [`ChungLuVariant`].
-/// * `seed` — initialises an internal [`SplitMix64`] PRNG so output is
+/// * `seed` — initialises an internal `SplitMix64` PRNG so output is
 ///   reproducible given the inputs.
 ///
 /// # Errors

@@ -36,7 +36,7 @@
 //! ## Determinism
 //!
 //! `grg_game` is fully deterministic in `(n, radius, torus, seed)`. The
-//! PRNG is [`crate::core::rng::SplitMix64`]; reusing the same seed in
+//! PRNG is `SplitMix64`; reusing the same seed in
 //! another generator (e.g. [`crate::tree_game_lerw`]) is safe — each
 //! call owns a fresh `SplitMix64` instance.
 //!
@@ -85,7 +85,7 @@ fn validate_inputs(n: u32, radius: f64) -> IgraphResult<()> {
 /// * `torus` — periodic boundary conditions when `true`. The unit
 ///   square is identified with a torus and y-distances wrap by
 ///   `1 - |Δy|` if shorter; x-wrapping is folded into the sweep tail.
-/// * `seed` — seeds the internal [`SplitMix64`] PRNG. Same
+/// * `seed` — seeds the internal `SplitMix64` PRNG. Same
 ///   `(n, radius, torus, seed)` always yields the same graph.
 ///
 /// The generated graph is always undirected and free of self-loops

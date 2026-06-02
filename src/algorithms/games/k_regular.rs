@@ -46,7 +46,7 @@
 //! ## Determinism
 //!
 //! Fully deterministic in `(n, k, directed, multiple, seed)` via
-//! [`crate::core::rng::SplitMix64`].
+//! `SplitMix64`.
 
 #![allow(
     clippy::cast_possible_truncation,
@@ -363,7 +363,7 @@ fn directed_pair_feasible(
 /// * `multiple` — if `true`, samples via the configuration model and
 ///   permits self-loops and parallel edges; if `false`, samples via the
 ///   fast-heuristic simple-graph sampler.
-/// * `seed` — initialises an internal [`SplitMix64`] PRNG. The same
+/// * `seed` — initialises an internal `SplitMix64` PRNG. The same
 ///   `(n, k, directed, multiple, seed)` always yields the same graph.
 ///
 /// # Errors

@@ -73,7 +73,7 @@
 //!
 //! ## Determinism
 //!
-//! A single [`SplitMix64`] seed drives both the (RNG-free) seed phase
+//! A single `SplitMix64` seed drives both the (RNG-free) seed phase
 //! and every rewire trial. The PRNG is not bitwise portable to igraph C
 //! / `NumPy` / R, so the three-source conformance harness asserts
 //! structural invariants only (vcount, ecount, exact degree match,
@@ -439,7 +439,7 @@ fn rewire_directed(
 ///     sequence to satisfy Erdős–Gallai.
 ///   * `Some(in_seq)` → directed. Requires equal lengths, equal sums,
 ///     and the pair to satisfy Fulkerson–Chen–Anstee.
-/// * `seed` — drives a [`SplitMix64`] PRNG. The same
+/// * `seed` — drives a `SplitMix64` PRNG. The same
 ///   `(out_degrees, in_degrees, seed)` triple always produces the same
 ///   graph.
 ///

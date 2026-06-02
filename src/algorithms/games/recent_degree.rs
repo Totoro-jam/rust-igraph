@@ -45,7 +45,7 @@
 //!
 //! ## Determinism
 //!
-//! Reproducible against the shared [`crate::core::rng::SplitMix64`]
+//! Reproducible against the shared `SplitMix64`
 //! PRNG. Not bit-portable to upstream igraph's GLIBC RNG; conformance
 //! asserts structural invariants only.
 //!

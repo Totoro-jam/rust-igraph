@@ -83,7 +83,7 @@
 //!   vertices have non-zero weight (when `aging_exp` is non-negative).
 //!   Must be non-negative.
 //! * `directed` — emit directed edges (newer → older convention).
-//! * `seed` — initialises an internal [`SplitMix64`].
+//! * `seed` — initialises an internal `SplitMix64`.
 //!
 //! ## Construction guarantees
 //!

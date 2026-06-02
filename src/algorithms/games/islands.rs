@@ -32,7 +32,7 @@
 //!
 //! Fully deterministic in
 //! `(islands_n, islands_size, islands_pin, n_inter, seed)` via
-//! [`crate::core::rng::SplitMix64`].
+//! `SplitMix64`.
 
 #![allow(
     unknown_lints,
@@ -114,7 +114,7 @@ fn distinct_sample(rng: &mut SplitMix64, n_pairs: u64, m: u64) -> Vec<u64> {
 /// * `n_inter` — number of bipartite edges drawn between each
 ///   unordered pair of islands. Must satisfy
 ///   `n_inter ≤ islands_size²`.
-/// * `seed` — seeds the internal [`SplitMix64`] PRNG.
+/// * `seed` — seeds the internal `SplitMix64` PRNG.
 ///
 /// The returned graph is always undirected and simple. Vertex
 /// labelling: island `is` occupies the contiguous range

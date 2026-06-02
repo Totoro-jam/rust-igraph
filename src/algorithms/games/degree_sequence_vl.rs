@@ -58,7 +58,7 @@
 //!
 //! ## Determinism
 //!
-//! All randomness flows from a single [`SplitMix64`] seed — the same
+//! All randomness flows from a single `SplitMix64` seed — the same
 //! `(degrees, seed)` pair always yields the same graph. The PRNG state
 //! is not bitwise portable to igraph C / `NumPy` / R, so the
 //! three-source conformance harness asserts the **structural
@@ -480,7 +480,7 @@ fn shuffle_mcmc(adj: &mut Adj, rng: &mut SplitMix64, total_attempts: u64, window
 ///
 /// * `degrees` — undirected degree of every vertex. Length defines
 ///   vertex count `n`.
-/// * `seed` — drives the internal [`SplitMix64`] PRNG.
+/// * `seed` — drives the internal `SplitMix64` PRNG.
 ///
 /// # Errors
 ///

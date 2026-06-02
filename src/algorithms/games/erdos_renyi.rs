@@ -19,7 +19,7 @@
 //!   upstream C implementation uses.
 //!
 //! Both functions are deterministic given the `seed` argument and run
-//! against the shared [`crate::core::rng::SplitMix64`] PRNG.
+//! against the shared `SplitMix64` PRNG.
 //!
 //! ## Scope
 //!

@@ -42,7 +42,7 @@
 //! ## Determinism
 //!
 //! Fully deterministic in `(n, fw_prob, bw_factor, ambs, directed,
-//! seed)` via [`crate::core::rng::SplitMix64`].
+//! seed)` via `SplitMix64`.
 
 #![allow(
     clippy::cast_possible_truncation,
@@ -85,7 +85,7 @@ fn validate(fw_prob: f64, bw_factor: f64) -> IgraphResult<()> {
 /// * `directed` — whether to return a directed graph. The internal
 ///   burn tracks in/out-neighbour lists regardless of this flag; only
 ///   the final `Graph` honours it.
-/// * `seed` — seeds the internal [`SplitMix64`] PRNG.
+/// * `seed` — seeds the internal `SplitMix64` PRNG.
 ///
 /// # Errors
 ///

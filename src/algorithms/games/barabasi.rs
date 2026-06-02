@@ -89,7 +89,7 @@ fn validate_inputs(n: u32, m: u32) -> IgraphResult<()> {
 ///   total degree).
 /// * `directed` — generate a directed graph (edges point from new
 ///   vertex to older).
-/// * `seed` — initialises an internal [`SplitMix64`] PRNG. Same
+/// * `seed` — initialises an internal `SplitMix64` PRNG. Same
 ///   `(n, m, outpref, directed, seed)` always yields the same graph.
 ///
 /// # Errors

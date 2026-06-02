@@ -38,7 +38,7 @@
 //! ## Determinism
 //!
 //! Given the same `(args, seed)` the output is bit-exact reproducible
-//! via the shared [`crate::core::rng::SplitMix64`] PRNG.
+//! via the shared `SplitMix64` PRNG.
 //!
 //! ## References
 //!

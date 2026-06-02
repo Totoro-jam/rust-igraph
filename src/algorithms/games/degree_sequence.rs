@@ -34,7 +34,7 @@
 //!
 //! ## Determinism
 //!
-//! All randomness flows from a single [`SplitMix64`] seed — the same
+//! All randomness flows from a single `SplitMix64` seed — the same
 //! `(out_degrees, in_degrees, seed)` triple always yields the same graph.
 //! The PRNG state is not bitwise portable to igraph C / `NumPy` / R, so
 //! the three-source conformance harness asserts structural invariants
@@ -86,7 +86,7 @@ fn build_bag(degrees: &[u32], total: u64) -> IgraphResult<Vec<VertexId>> {
 /// * `in_degrees` — when `Some(seq)`, switches to directed mode and
 ///   `seq[i]` is the in-degree of vertex `i`. Must have the same length
 ///   as `out_degrees` and the same total.
-/// * `seed` — drives the internal [`SplitMix64`] PRNG.
+/// * `seed` — drives the internal `SplitMix64` PRNG.
 ///
 /// The output is a **multigraph**: self-loops and parallel edges can
 /// occur whenever the degree sequence allows them, with the natural

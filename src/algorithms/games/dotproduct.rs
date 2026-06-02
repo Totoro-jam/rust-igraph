@@ -37,7 +37,7 @@
 //! `[0, 1]` band — exactly mirroring the C kernel. Conformance is
 //! structural (vcount, directed flag, simple-by-construction, no
 //! self-loops, edge-count bound) rather than bit-exact because
-//! [`crate::core::rng::SplitMix64`] is not bit-portable to upstream's
+//! `SplitMix64` is not bit-portable to upstream's
 //! glibc-style stream.
 //!
 //! ## Construction guarantees
@@ -53,7 +53,7 @@
 //! ## Determinism
 //!
 //! Reproducible given `(vecs, directed, seed)` against the shared
-//! [`crate::core::rng::SplitMix64`] PRNG.
+//! `SplitMix64` PRNG.
 
 #![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 
@@ -118,7 +118,7 @@ fn dot(a: &[f64], b: &[f64]) -> f64 {
 ///   independently with their own dot product (the matrix need not be
 ///   symmetric — even though the dot product itself is, the *draws* are
 ///   distinct). When `false`, only `i < j` pairs are sampled.
-/// * `seed` initialises an internal [`SplitMix64`] PRNG so the output
+/// * `seed` initialises an internal `SplitMix64` PRNG so the output
 ///   is reproducible given the inputs.
 ///
 /// Returns the generated graph together with [`DotProductWarnings`]

@@ -53,7 +53,7 @@
 //!   `outpref = true`, may be zero but must be non-negative.
 //! * `directed` — emit directed edges (older → newer convention
 //!   matches BAG variant).
-//! * `seed` — initialises an internal [`SplitMix64`]; the output is
+//! * `seed` — initialises an internal `SplitMix64`; the output is
 //!   deterministic for fixed parameters and seed.
 //!
 //! ## Construction guarantees

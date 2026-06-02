@@ -38,7 +38,7 @@
 //! ## Determinism
 //!
 //! Fully deterministic in `(size, nei, p, loops, multiple, seed)` via
-//! [`crate::core::rng::SplitMix64`].
+//! `SplitMix64`.
 //!
 //! ## Reference
 //!

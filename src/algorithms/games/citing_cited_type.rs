@@ -52,7 +52,7 @@
 //! ## Determinism
 //!
 //! Reproducible given the inputs and `seed` against the shared
-//! [`SplitMix64`] PRNG. The stream is **not** portable to upstream
+//! `SplitMix64` PRNG. The stream is **not** portable to upstream
 //! igraph's GLIBC RNG, so conformance assertions are structural rather
 //! than bit-exact.
 //!

@@ -96,7 +96,7 @@ fn validate(n: u32, m: u64, loops: bool) -> IgraphResult<()> {
 /// * `loops` — when `true`, the sampler may place self-loop edges
 ///   `(u, u)`. When `false`, the diagonal of the pair space is excluded
 ///   and every edge connects two distinct vertices.
-/// * `seed` — initialises an internal [`SplitMix64`] PRNG. Same
+/// * `seed` — initialises an internal `SplitMix64` PRNG. Same
 ///   `(n, m, directed, loops, seed)` always yields the same graph.
 ///
 /// # Errors

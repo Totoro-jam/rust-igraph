@@ -57,7 +57,7 @@ use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 ///   orientation in walk order (the resulting tree is rooted at the
 ///   randomly chosen initial vertex). If `false`, the same edges are
 ///   stored as an undirected tree.
-/// * `seed` — initialises an internal [`SplitMix64`] PRNG. Same
+/// * `seed` — initialises an internal `SplitMix64` PRNG. Same
 ///   `(n, directed, seed)` always yields the same tree.
 ///
 /// The output has exactly `max(0, n - 1)` edges, is acyclic, has no
@@ -125,7 +125,7 @@ pub fn tree_game_lerw(n: u32, directed: bool, seed: u64) -> IgraphResult<Graph> 
 ///
 /// * `n` — vertex count. `n = 0` returns an empty graph, `n = 1`
 ///   returns a single isolated vertex.
-/// * `seed` — initialises an internal [`SplitMix64`] PRNG. Same
+/// * `seed` — initialises an internal `SplitMix64` PRNG. Same
 ///   `(n, seed)` always yields the same tree.
 ///
 /// The output has exactly `max(0, n - 1)` edges, is acyclic, has no

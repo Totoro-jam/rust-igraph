@@ -17,7 +17,7 @@
 //! no infected individuals remain. Event times and the S/I/R population
 //! sizes are recorded after every state transition.
 //!
-//! Determinism: randomness comes from the project's [`SplitMix64`] PRNG
+//! Determinism: randomness comes from the project's `SplitMix64` PRNG
 //! seeded by the caller, so a given `seed` reproduces the same trajectory
 //! bit-for-bit. (This means trajectories will *not* coincide with
 //! upstream igraph, which uses a different RNG — only the statistical
@@ -136,7 +136,7 @@ const S_R: u8 = 2;
 /// * `gamma` — recovery rate of an infected individual. Must be strictly
 ///   positive (otherwise the process would never terminate).
 /// * `no_sim` — number of independent runs. Must be positive.
-/// * `seed` — seed for the deterministic [`SplitMix64`] PRNG.
+/// * `seed` — seed for the deterministic `SplitMix64` PRNG.
 ///
 /// Returns one [`Sir`] trajectory per simulation.
 ///

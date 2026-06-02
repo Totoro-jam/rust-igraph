@@ -42,7 +42,7 @@
 //!
 //! ## Determinism
 //!
-//! A single [`SplitMix64`] seed drives every shuffle. The PRNG is not
+//! A single `SplitMix64` seed drives every shuffle. The PRNG is not
 //! bitwise portable to igraph C / `NumPy` / R, so the three-source
 //! conformance harness asserts structural invariants only (vcount,
 //! ecount = Σd/2, exact degree match, simplicity).
@@ -421,7 +421,7 @@ fn run_directed(
 /// * `in_degrees` — when `Some(seq)`, switches to directed mode with
 ///   `seq[i]` as the in-degree of vertex `i`; must equal `out_degrees`
 ///   in length and sum.
-/// * `seed` — drives the internal [`SplitMix64`] PRNG.
+/// * `seed` — drives the internal `SplitMix64` PRNG.
 ///
 /// Output is a simple graph (no self-loops, no multi-edges). The sampled
 /// graph is *not* uniformly distributed on the space of simple

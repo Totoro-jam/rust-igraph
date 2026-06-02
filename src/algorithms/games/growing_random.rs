@@ -69,7 +69,7 @@ fn validate_inputs(n: u32, m: u32) -> IgraphResult<()> {
 /// * `citation` — if `true`, every new edge originates at the
 ///   freshly-added vertex; if `false`, both endpoints are uniformly
 ///   sampled within the current frontier.
-/// * `seed` — initialises an internal [`SplitMix64`] PRNG. Same
+/// * `seed` — initialises an internal `SplitMix64` PRNG. Same
 ///   `(n, m, directed, citation, seed)` always yields the same graph.
 ///
 /// # Errors

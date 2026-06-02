@@ -42,7 +42,7 @@
 //! ## Determinism
 //!
 //! Reproducible given the inputs and `seed` against the shared
-//! [`crate::core::rng::SplitMix64`] PRNG. The stream is *not* portable
+//! `SplitMix64` PRNG. The stream is *not* portable
 //! to upstream igraph's GLIBC-style RNG, so conformance assertions are
 //! structural (vertex/edge counts, validation rules, expected
 //! degree-fitness correlation) rather than bit-exact.
@@ -209,7 +209,7 @@ fn max_edges(fitness_out: &[f64], fitness_in: Option<&[f64]>, loops: bool) -> f6
 ///   sampled).
 /// * `multiple` — when `true`, parallel edges are permitted; when
 ///   `false`, every accepted edge is unique.
-/// * `seed` — initialises an internal [`SplitMix64`] PRNG so the output
+/// * `seed` — initialises an internal `SplitMix64` PRNG so the output
 ///   is reproducible given the inputs.
 ///
 /// # Errors
@@ -404,7 +404,7 @@ fn pick(cum: &[f64], total: f64, rng: &mut SplitMix64) -> usize {
 /// * `finite_size_correction` — when `true`, apply the Cho et al.
 ///   shift on each exponent that satisfies `α < -0.5` (equivalently
 ///   `exponent < 3`).
-/// * `seed` — initialises an internal [`SplitMix64`] PRNG so the
+/// * `seed` — initialises an internal `SplitMix64` PRNG so the
 ///   output is reproducible given the inputs.
 ///
 /// # Errors

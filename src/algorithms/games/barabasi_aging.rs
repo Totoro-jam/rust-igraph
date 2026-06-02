@@ -50,7 +50,7 @@
 //! * `deg_coef` — multiplicative degree coefficient. Must be non-negative.
 //! * `age_coef` — multiplicative age coefficient. Must be non-negative.
 //! * `directed` — emit directed edges (newer → older convention).
-//! * `seed` — initialises an internal [`SplitMix64`].
+//! * `seed` — initialises an internal `SplitMix64`.
 //!
 //! ## Construction guarantees
 //!
