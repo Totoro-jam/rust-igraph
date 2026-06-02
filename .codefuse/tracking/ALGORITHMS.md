@@ -511,7 +511,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (363 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (365 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -632,5 +632,9 @@ PR-117 (`is_spider` — check whether a graph is a spider (tree with at most one
 PR-118 (`satisfies_dirac` — check Dirac's condition for Hamiltonicity: every vertex has degree ≥ ⌈n/2⌉; `K_n`, `C_4`, `K_{3,3}` satisfy; `C_5`, paths, and stars do not; returns false for directed or n < 3; 13 unit tests + 1 doctest).
 
 PR-119 (`satisfies_ore` — check Ore's condition for Hamiltonicity: for every non-adjacent pair u,v, deg(u)+deg(v) ≥ n; strictly weaker than Dirac; `K_5 - 2 edges` satisfies Ore but not Dirac; returns false for directed or n < 3; 13 unit tests + 1 doctest).
+
+PR-120 (`is_apex_forest` — check whether a graph is an apex forest: removing some single vertex yields a forest; triangles, diamonds, theta graphs are apex forests; `K_4`, wheels, and two disjoint triangles are not; directed graphs treated as undirected; 14 unit tests + 1 doctest).
+
+PR-121 (`is_weakly_chordal` — check whether a graph is weakly chordal (weakly triangulated): neither G nor its complement has an induced `C_k` for k ≥ 5; chordal and co-chordal graphs are weakly chordal; `C_4` allowed but `C_5`, `C_6` are not; uses DFS-based chordless cycle detection on both G and complement adjacency matrices; directed graphs treated as undirected; 14 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.

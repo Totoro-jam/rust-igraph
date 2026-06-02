@@ -490,6 +490,7 @@ pub use crate::algorithms::properties::hits::{
     HitsScores, hub_and_authority_scores, hub_and_authority_scores_weighted,
 };
 pub use crate::algorithms::properties::is_acyclic::is_acyclic;
+pub use crate::algorithms::properties::is_apex_forest::is_apex_forest;
 pub use crate::algorithms::properties::is_banner_free::is_banner_free;
 pub use crate::algorithms::properties::is_biclique::is_biclique;
 pub use crate::algorithms::properties::is_bipartite::{BipartiteResult, is_bipartite};
@@ -545,6 +546,7 @@ pub use crate::algorithms::properties::is_tree::is_tree;
 pub use crate::algorithms::properties::is_triangle_free::is_triangle_free;
 pub use crate::algorithms::properties::is_trivially_perfect::is_trivially_perfect;
 pub use crate::algorithms::properties::is_unicyclic::is_unicyclic;
+pub use crate::algorithms::properties::is_weakly_chordal::is_weakly_chordal;
 pub use crate::algorithms::properties::is_well_covered::is_well_covered;
 pub use crate::algorithms::properties::is_wheel::is_wheel;
 pub use crate::algorithms::properties::is_windmill::is_windmill;
