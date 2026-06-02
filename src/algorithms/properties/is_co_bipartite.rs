@@ -70,15 +70,14 @@ pub fn is_co_bipartite(graph: &Graph) -> IgraphResult<bool> {
         while let Some(u) = queue.pop_front() {
             let u_color = color[u];
             let next_color = 1 - u_color;
-            for v in 0..n_usize {
+            for (v, c) in color.iter_mut().enumerate() {
                 if v == u || adj[u][v] {
                     continue;
                 }
-                // u-v is a complement edge
-                if color[v] == -1 {
-                    color[v] = next_color;
+                if *c == -1 {
+                    *c = next_color;
                     queue.push_back(v);
-                } else if color[v] == u_color {
+                } else if *c == u_color {
                     return Ok(false);
                 }
             }
