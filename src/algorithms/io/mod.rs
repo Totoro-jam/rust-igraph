@@ -15,7 +15,7 @@ pub(crate) mod pajek;
 
 pub use dimacs::{DimacsGraph, DimacsProblem, read_dimacs, write_dimacs_flow};
 pub use dl::{DlGraph, read_dl};
-pub use dot::write_dot;
+pub use dot::{DotGraph, read_dot, write_dot};
 pub use edgelist::{read_edgelist, write_edgelist};
 pub use gml::{read_gml, write_gml};
 pub use graphdb::read_graphdb;
