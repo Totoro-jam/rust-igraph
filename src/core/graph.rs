@@ -173,6 +173,26 @@ impl Graph {
         Ok((g, weights))
     }
 
+    /// Parse an undirected graph from an edge-list string.
+    ///
+    /// Each non-empty, non-comment line should contain two whitespace-separated
+    /// vertex ids. Lines starting with `#` are ignored. This is the most
+    /// convenient way to construct a graph inline (e.g. in tests or examples).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edge_list_str("0 1\n1 2\n2 0").unwrap();
+    /// assert_eq!(g.vcount(), 3);
+    /// assert_eq!(g.ecount(), 3);
+    /// ```
+    pub fn from_edge_list_str(s: &str) -> IgraphResult<Self> {
+        use std::io::Cursor;
+        crate::algorithms::io::edgelist::read_edgelist(Cursor::new(s))
+    }
+
     /// Construct an empty *undirected* graph on `n` vertices.
     ///
     /// Builds the graph directly (no intermediate `Result`) since an
