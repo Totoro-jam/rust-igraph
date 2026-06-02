@@ -138,7 +138,7 @@ pub fn adjacency_spectral_embedding(
     }
 
     // Build adjacency list (undirected)
-    let adj = build_adjacency(graph);
+    let adj = build_adjacency(graph)?;
 
     // Matrix-vector product: y = (A + diag(cvec)) x
     let matvec = |x: &[f64], y: &mut [f64]| {
@@ -193,20 +193,20 @@ pub fn adjacency_spectral_embedding(
 
 type AdjList = Vec<Vec<(usize, usize)>>; // adj[v] = [(neighbor, edge_id), ...]
 
-fn build_adjacency(graph: &Graph) -> AdjList {
+fn build_adjacency(graph: &Graph) -> IgraphResult<AdjList> {
     let n = graph.vcount() as usize;
     let mut adj: AdjList = vec![Vec::new(); n];
     for eid in 0..graph.ecount() {
         #[allow(clippy::cast_possible_truncation)]
         let eid32 = eid as u32;
-        let s = graph.edge_source(eid32).unwrap() as usize;
-        let t = graph.edge_target(eid32).unwrap() as usize;
+        let s = graph.edge_source(eid32)? as usize;
+        let t = graph.edge_target(eid32)? as usize;
         adj[s].push((t, eid));
         if s != t {
             adj[t].push((s, eid));
         }
     }
-    adj
+    Ok(adj)
 }
 
 fn adjacency_matvec(

@@ -100,11 +100,9 @@ pub fn realize_degree_sequence(
 
     for _ in 0..n {
         // Select hub vertex based on method
-        let hub_pos = select_hub(&vd, method);
-        if hub_pos.is_none() {
+        let Some(hub_pos) = select_hub(&vd, method) else {
             break;
-        }
-        let hub_pos = hub_pos.unwrap();
+        };
         let (hub_vertex, hub_degree) = vd[hub_pos];
 
         if hub_degree == 0 {

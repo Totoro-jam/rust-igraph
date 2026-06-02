@@ -82,7 +82,9 @@ fn is_tree_without(adj: &[Vec<bool>], removed: usize, n: usize) -> bool {
     let mut visited = vec![false; n];
     visited[removed] = true;
 
-    let start = (0..n).find(|&v| v != removed).unwrap();
+    let Some(start) = (0..n).find(|&v| v != removed) else {
+        return false;
+    };
     let mut stack = vec![start];
     visited[start] = true;
     let mut visited_count = 1usize;

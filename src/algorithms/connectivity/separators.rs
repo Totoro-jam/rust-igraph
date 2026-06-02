@@ -84,7 +84,9 @@ pub fn is_separator(graph: &Graph, candidates: &[VertexId]) -> IgraphResult<bool
 
     // BFS from the first non-removed vertex. If it can't reach all
     // remaining vertices, the graph is disconnected → separator.
-    let start = (0..n_us).find(|&v| !removed[v]).unwrap();
+    let Some(start) = (0..n_us).find(|&v| !removed[v]) else {
+        return Ok(false);
+    };
     #[allow(clippy::cast_possible_truncation)] // start < n which is u32
     let reached = bfs_count(graph, start as u32, &removed)?;
 
@@ -156,7 +158,9 @@ pub fn is_minimal_separator(graph: &Graph, candidates: &[VertexId]) -> IgraphRes
             continue;
         }
 
-        let start = (0..n_us).find(|&x| !removed[x]).unwrap();
+        let Some(start) = (0..n_us).find(|&x| !removed[x]) else {
+            continue;
+        };
         #[allow(clippy::cast_possible_truncation)] // start < n which is u32
         let reached = bfs_count(graph, start as u32, &removed)?;
 

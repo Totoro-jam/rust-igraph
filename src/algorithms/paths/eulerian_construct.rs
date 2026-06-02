@@ -261,7 +261,8 @@ fn compute_in_degree(graph: &Graph, v: VertexId) -> IgraphResult<usize> {
     // count via in-side inferred from edges (n times m worst case is fine
     // here — only called once per vertex during start selection).
     let mut count = 0usize;
-    let m = u32::try_from(graph.ecount()).expect("edge count fits in u32");
+    let m = u32::try_from(graph.ecount())
+        .map_err(|_| IgraphError::InvalidArgument("edge count exceeds u32 range".into()))?;
     for e in 0..m {
         if graph.edge_target(e)? == v {
             count += 1;

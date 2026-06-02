@@ -141,7 +141,7 @@ pub fn laplacian_spectral_embedding(
         });
     }
 
-    let adj = build_adjacency(graph);
+    let adj = build_adjacency(graph)?;
     let deg = compute_degree(&adj, weights, n);
 
     let eigen_which = match which {
@@ -213,20 +213,20 @@ fn build_result(
 
 type AdjList = Vec<Vec<(usize, usize)>>; // adj[v] = [(neighbor, edge_id), ...]
 
-fn build_adjacency(graph: &Graph) -> AdjList {
+fn build_adjacency(graph: &Graph) -> IgraphResult<AdjList> {
     let n = graph.vcount() as usize;
     let mut adj: AdjList = vec![Vec::new(); n];
     for eid in 0..graph.ecount() {
         #[allow(clippy::cast_possible_truncation)]
         let eid32 = eid as u32;
-        let s = graph.edge_source(eid32).unwrap() as usize;
-        let t = graph.edge_target(eid32).unwrap() as usize;
+        let s = graph.edge_source(eid32)? as usize;
+        let t = graph.edge_target(eid32)? as usize;
         adj[s].push((t, eid));
         if s != t {
             adj[t].push((s, eid));
         }
     }
-    adj
+    Ok(adj)
 }
 
 fn compute_degree(adj: &AdjList, weights: Option<&[f64]>, n: usize) -> Vec<f64> {
