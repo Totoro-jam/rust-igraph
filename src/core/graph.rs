@@ -220,6 +220,79 @@ impl Graph {
         self.directed
     }
 
+    /// Iterator over vertex ids `0..vcount()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::with_vertices(4);
+    /// let ids: Vec<u32> = g.vertex_ids().collect();
+    /// assert_eq!(ids, vec![0, 1, 2, 3]);
+    /// ```
+    pub fn vertex_ids(&self) -> impl Iterator<Item = VertexId> {
+        0..self.n
+    }
+
+    /// Iterator over edge ids `0..ecount()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// let ids: Vec<u32> = g.edge_ids().collect();
+    /// assert_eq!(ids, vec![0, 1]);
+    /// ```
+    pub fn edge_ids(&self) -> impl Iterator<Item = u32> {
+        let m = u32::try_from(self.from.len()).unwrap_or(u32::MAX);
+        0..m
+    }
+
+    /// Iterator over all edges as `(from, to)` pairs.
+    ///
+    /// Yields edges in edge-id order. For undirected graphs, `from <= to`
+    /// (canonicalised storage order).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// let edges: Vec<(u32, u32)> = g.edges().collect();
+    /// assert_eq!(edges, vec![(0, 1), (1, 2)]);
+    /// ```
+    pub fn edges(&self) -> impl Iterator<Item = (VertexId, VertexId)> + '_ {
+        self.from.iter().zip(self.to.iter()).map(|(&u, &v)| (u, v))
+    }
+
+    /// Check whether an edge exists between `from` and `to`.
+    ///
+    /// On undirected graphs `(u, v)` and `(v, u)` are equivalent.
+    /// Returns `false` for out-of-range vertex ids rather than erroring.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// assert!(g.has_edge(0, 1));
+    /// assert!(g.has_edge(1, 0)); // undirected
+    /// assert!(!g.has_edge(0, 2));
+    /// ```
+    pub fn has_edge(&self, from: VertexId, to: VertexId) -> bool {
+        self.find_eid(from, to).ok().flatten().is_some()
+    }
+
     /// Append `nv` isolated vertices, returning the inclusive id range
     /// `(first, last)` of the new vertices. If `nv == 0` returns
     /// `(self.n, self.n)` and does nothing.
