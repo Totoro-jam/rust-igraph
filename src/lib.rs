@@ -2,7 +2,7 @@
 //!
 //! **Pure-Rust, high-performance graph and network analysis library.**
 //!
-//! A faithful port of [igraph](https://igraph.org) with 370+ public APIs,
+//! A faithful port of [igraph](https://igraph.org) with 400+ public APIs,
 //! zero `unsafe`, and no C/C++ FFI. Built for researchers, data scientists,
 //! and systems engineers who need production-grade graph algorithms in the
 //! Rust ecosystem.
@@ -20,6 +20,7 @@
 //! | **Isomorphism** | VF2, LAD, BLISS canonical labeling |
 //! | **Generators** | Erdos-Renyi, Barabasi-Albert, SBM, lattices, 30+ more |
 //! | **Properties** | 60+ structural recognizers, degree stats, transitivity |
+//! | **Eigenvalues** | Lanczos (symmetric), Arnoldi (general), adjacency |
 //! | **Layout** | Fruchterman-Reingold, Kamada-Kawai, `DrL`, circle, tree |
 //!
 //! ## Quick start

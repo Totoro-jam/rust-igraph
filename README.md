@@ -8,7 +8,7 @@
 [![MSRV](https://img.shields.io/badge/MSRV-1.85-orange.svg)](Cargo.toml)
 
 **Pure-Rust, high-performance graph and network analysis library.** A faithful port of
-[igraph](https://igraph.org/) with 370+ public APIs, zero `unsafe`, and no C/C++ FFI.
+[igraph](https://igraph.org/) with 400+ public APIs, zero `unsafe`, and no C/C++ FFI.
 
 Built for researchers, data scientists, and systems engineers who need production-grade
 graph algorithms without leaving the Rust ecosystem.
@@ -34,6 +34,7 @@ graph algorithms without leaving the Rust ecosystem.
 - **Isomorphism**: VF2 (graph/subgraph), LAD subgraph, BLISS canonical labeling, automorphism groups
 - **Graph generators**: Erdos-Renyi, Barabasi-Albert, Watts-Strogatz, SBM, forest fire, geometric random, degree sequence, lattices, famous graphs, and 30+ more
 - **Graph properties**: 60+ structural recognizers (`is_bipartite`, `is_chordal`, `is_planar`, `is_perfect`, `is_cograph`, `is_series_parallel`, ...)
+- **Eigenvalue solvers**: Lanczos (symmetric), Arnoldi (general), graph adjacency
 - **Layout**: Fruchterman-Reingold, Kamada-Kawai, DrL, circle, star, grid, tree, bipartite
 - **Spatial**: Delaunay triangulation, Gabriel graph, beta-skeleton, nearest-neighbor graph
 - **I/O**: edge list, adjacency matrix, Prufer sequence, LCF notation
