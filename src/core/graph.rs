@@ -193,6 +193,156 @@ impl Graph {
         crate::algorithms::io::edgelist::read_edgelist(Cursor::new(s))
     }
 
+    /// Construct a graph from an adjacency matrix.
+    ///
+    /// Counterpart of `igraph_adjacency()`. The matrix should be a
+    /// square `n×n` slice-of-slices where `matrix[i][j]` gives the
+    /// number of edges from vertex `i` to vertex `j` (or the edge
+    /// weight; see below).
+    ///
+    /// For undirected graphs (`directed = false`), only the upper
+    /// triangle is used (including diagonal for self-loops); the lower
+    /// triangle is ignored. Each non-zero entry `matrix[i][j]` (with
+    /// `i <= j`) creates one edge.
+    ///
+    /// For directed graphs, every non-zero entry creates one edge.
+    ///
+    /// Entries are rounded to the nearest integer to determine edge
+    /// count. If you need fractional weights, use
+    /// [`from_adjacency_matrix_weighted`](Graph::from_adjacency_matrix_weighted).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the matrix is not square.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let adj = vec![
+    ///     vec![0.0, 1.0, 1.0],
+    ///     vec![1.0, 0.0, 1.0],
+    ///     vec![1.0, 1.0, 0.0],
+    /// ];
+    /// let g = Graph::from_adjacency_matrix(&adj, false).unwrap();
+    /// assert_eq!(g.vcount(), 3);
+    /// assert_eq!(g.ecount(), 3); // triangle
+    /// ```
+    pub fn from_adjacency_matrix(matrix: &[Vec<f64>], directed: bool) -> IgraphResult<Self> {
+        let n = matrix.len();
+        for row in matrix {
+            if row.len() != n {
+                return Err(IgraphError::InvalidArgument(format!(
+                    "adjacency matrix is not square: got row of length {} for {}×{} matrix",
+                    row.len(),
+                    n,
+                    n
+                )));
+            }
+        }
+
+        let n_u32 = u32::try_from(n)
+            .map_err(|_| IgraphError::InvalidArgument("matrix too large for u32".to_owned()))?;
+        let mut graph = Self::new(n_u32, directed)?;
+
+        #[allow(clippy::cast_possible_truncation)]
+        if directed {
+            for (i, row) in matrix.iter().enumerate() {
+                for (j, &val) in row.iter().enumerate() {
+                    let count = val.round() as i64;
+                    for _ in 0..count.max(0) {
+                        graph.add_edge(i as u32, j as u32)?;
+                    }
+                }
+            }
+        } else {
+            for (i, row) in matrix.iter().enumerate() {
+                for (j, &val) in row.iter().enumerate().skip(i) {
+                    let count = val.round() as i64;
+                    for _ in 0..count.max(0) {
+                        graph.add_edge(i as u32, j as u32)?;
+                    }
+                }
+            }
+        }
+
+        Ok(graph)
+    }
+
+    /// Construct a graph from an adjacency matrix, also returning edge weights.
+    ///
+    /// Like [`from_adjacency_matrix`](Graph::from_adjacency_matrix), but
+    /// instead of rounding entries to edge counts, each non-zero entry
+    /// creates exactly one edge with the matrix value as its weight.
+    ///
+    /// Returns the graph and a weight vector aligned with edge indices.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the matrix is not square.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let adj = vec![
+    ///     vec![0.0, 2.5, 0.0],
+    ///     vec![2.5, 0.0, 1.0],
+    ///     vec![0.0, 1.0, 0.0],
+    /// ];
+    /// let (g, weights) = Graph::from_adjacency_matrix_weighted(&adj, false).unwrap();
+    /// assert_eq!(g.vcount(), 3);
+    /// assert_eq!(g.ecount(), 2);
+    /// assert!((weights[0] - 2.5).abs() < 1e-10);
+    /// assert!((weights[1] - 1.0).abs() < 1e-10);
+    /// ```
+    pub fn from_adjacency_matrix_weighted(
+        matrix: &[Vec<f64>],
+        directed: bool,
+    ) -> IgraphResult<(Self, Vec<f64>)> {
+        let n = matrix.len();
+        for row in matrix {
+            if row.len() != n {
+                return Err(IgraphError::InvalidArgument(format!(
+                    "adjacency matrix is not square: got row of length {} for {}×{} matrix",
+                    row.len(),
+                    n,
+                    n
+                )));
+            }
+        }
+
+        let n_u32 = u32::try_from(n)
+            .map_err(|_| IgraphError::InvalidArgument("matrix too large for u32".to_owned()))?;
+        let mut graph = Self::new(n_u32, directed)?;
+        let mut weights = Vec::new();
+
+        #[allow(clippy::cast_possible_truncation)]
+        if directed {
+            for (i, row) in matrix.iter().enumerate() {
+                for (j, &w) in row.iter().enumerate() {
+                    if w != 0.0 {
+                        graph.add_edge(i as u32, j as u32)?;
+                        weights.push(w);
+                    }
+                }
+            }
+        } else {
+            for (i, row) in matrix.iter().enumerate() {
+                for (j, &w) in row.iter().enumerate().skip(i) {
+                    if w != 0.0 {
+                        graph.add_edge(i as u32, j as u32)?;
+                        weights.push(w);
+                    }
+                }
+            }
+        }
+
+        Ok((graph, weights))
+    }
+
     /// Construct an empty *undirected* graph on `n` vertices.
     ///
     /// Builds the graph directly (no intermediate `Result`) since an
@@ -1618,5 +1768,92 @@ mod tests {
         assert_eq!(g.ecount(), 3);
         assert_eq!(g.degree(0).unwrap(), 2); // (0,1)+(0,2)
         assert!(g.find_eid(0, 2).unwrap().is_some());
+    }
+
+    #[test]
+    fn from_adjacency_matrix_undirected_triangle() {
+        let adj = vec![
+            vec![0.0, 1.0, 1.0],
+            vec![1.0, 0.0, 1.0],
+            vec![1.0, 1.0, 0.0],
+        ];
+        let g = Graph::from_adjacency_matrix(&adj, false).unwrap();
+        assert_eq!(g.vcount(), 3);
+        assert_eq!(g.ecount(), 3);
+        assert!(!g.is_directed());
+    }
+
+    #[test]
+    fn from_adjacency_matrix_directed() {
+        let adj = vec![
+            vec![0.0, 1.0, 0.0],
+            vec![0.0, 0.0, 1.0],
+            vec![1.0, 0.0, 0.0],
+        ];
+        let g = Graph::from_adjacency_matrix(&adj, true).unwrap();
+        assert_eq!(g.vcount(), 3);
+        assert_eq!(g.ecount(), 3);
+        assert!(g.is_directed());
+    }
+
+    #[test]
+    fn from_adjacency_matrix_with_self_loop() {
+        let adj = vec![vec![1.0, 1.0], vec![1.0, 0.0]];
+        let g = Graph::from_adjacency_matrix(&adj, false).unwrap();
+        assert_eq!(g.vcount(), 2);
+        assert_eq!(g.ecount(), 2); // self-loop on 0 + edge 0-1
+    }
+
+    #[test]
+    fn from_adjacency_matrix_empty() {
+        let adj: Vec<Vec<f64>> = Vec::new();
+        let g = Graph::from_adjacency_matrix(&adj, false).unwrap();
+        assert_eq!(g.vcount(), 0);
+        assert_eq!(g.ecount(), 0);
+    }
+
+    #[test]
+    fn from_adjacency_matrix_non_square_error() {
+        let adj = vec![vec![0.0, 1.0], vec![1.0, 0.0, 1.0]];
+        assert!(Graph::from_adjacency_matrix(&adj, false).is_err());
+    }
+
+    #[test]
+    fn from_adjacency_matrix_weighted_basic() {
+        let adj = vec![
+            vec![0.0, 2.5, 0.0],
+            vec![2.5, 0.0, 1.0],
+            vec![0.0, 1.0, 0.0],
+        ];
+        let (g, weights) = Graph::from_adjacency_matrix_weighted(&adj, false).unwrap();
+        assert_eq!(g.vcount(), 3);
+        assert_eq!(g.ecount(), 2);
+        assert_eq!(weights.len(), 2);
+        assert!((weights[0] - 2.5).abs() < 1e-10);
+        assert!((weights[1] - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn from_adjacency_matrix_weighted_directed() {
+        let adj = vec![
+            vec![0.0, 3.0, 0.0],
+            vec![0.0, 0.0, 2.0],
+            vec![1.5, 0.0, 0.0],
+        ];
+        let (g, weights) = Graph::from_adjacency_matrix_weighted(&adj, true).unwrap();
+        assert_eq!(g.vcount(), 3);
+        assert_eq!(g.ecount(), 3);
+        assert_eq!(weights.len(), 3);
+        assert!((weights[0] - 3.0).abs() < 1e-10);
+        assert!((weights[1] - 2.0).abs() < 1e-10);
+        assert!((weights[2] - 1.5).abs() < 1e-10);
+    }
+
+    #[test]
+    fn from_adjacency_matrix_multi_edges() {
+        let adj = vec![vec![0.0, 3.0], vec![3.0, 0.0]];
+        let g = Graph::from_adjacency_matrix(&adj, false).unwrap();
+        assert_eq!(g.vcount(), 2);
+        assert_eq!(g.ecount(), 3); // 3 parallel edges
     }
 }
