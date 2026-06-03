@@ -14,7 +14,13 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+## [0.5.0-alpha.2] — 2026-06-03
+
 ### Added
+- **Vertex/edge/graph attribute system** — `AttributeValue` enum
+  (Numeric/Boolean/String) with 19 methods on `Graph` for setting, getting,
+  deleting, and listing attributes. Attribute vectors are automatically
+  maintained during structural mutations (add/delete vertices/edges).
 - **Ergonomic API improvements** for idiomatic Rust usage:
   - `GraphBuilder` — fluent builder pattern with `.vertices()`, `.edge()`,
     `.edges()`, `.path()`, `.cycle()`, `.clique()`, `.star()`, `.build()`.
