@@ -2261,6 +2261,102 @@ impl Graph {
         crate::algorithms::io::gml::write_gml(self, &mut file)
     }
 
+    /// Read a graph from a `GraphML` file.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_graphml_file("network.graphml").unwrap();
+    /// ```
+    pub fn from_graphml_file<P: AsRef<std::path::Path>>(path: P) -> IgraphResult<Self> {
+        let file = std::fs::File::open(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot open file: {e}")))?;
+        let result = crate::algorithms::io::graphml::read_graphml(std::io::BufReader::new(file))?;
+        Ok(result.graph)
+    }
+
+    /// Write the graph to a file in `GraphML` format.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// g.to_graphml_file("output.graphml").unwrap();
+    /// ```
+    pub fn to_graphml_file<P: AsRef<std::path::Path>>(&self, path: P) -> IgraphResult<()> {
+        let mut file = std::fs::File::create(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot create file: {e}")))?;
+        crate::algorithms::io::graphml::write_graphml(self, None, &mut file)
+    }
+
+    /// Read a graph from a DOT (Graphviz) file.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_dot_file("network.dot").unwrap();
+    /// ```
+    pub fn from_dot_file<P: AsRef<std::path::Path>>(path: P) -> IgraphResult<Self> {
+        let file = std::fs::File::open(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot open file: {e}")))?;
+        let result = crate::algorithms::io::dot::read_dot(std::io::BufReader::new(file))?;
+        Ok(result.graph)
+    }
+
+    /// Write the graph to a file in DOT (Graphviz) format.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// g.to_dot_file("output.dot").unwrap();
+    /// ```
+    pub fn to_dot_file<P: AsRef<std::path::Path>>(&self, path: P) -> IgraphResult<()> {
+        let mut file = std::fs::File::create(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot create file: {e}")))?;
+        crate::algorithms::io::dot::write_dot(self, None, &mut file)
+    }
+
+    /// Read a graph from a Pajek (.net) file.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_pajek_file("network.net").unwrap();
+    /// ```
+    pub fn from_pajek_file<P: AsRef<std::path::Path>>(path: P) -> IgraphResult<Self> {
+        let file = std::fs::File::open(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot open file: {e}")))?;
+        let result = crate::algorithms::io::pajek::read_pajek(std::io::BufReader::new(file))?;
+        Ok(result.graph)
+    }
+
+    /// Write the graph to a file in Pajek (.net) format.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// g.to_pajek_file("output.net").unwrap();
+    /// ```
+    pub fn to_pajek_file<P: AsRef<std::path::Path>>(&self, path: P) -> IgraphResult<()> {
+        let mut file = std::fs::File::create(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot create file: {e}")))?;
+        crate::algorithms::io::pajek::write_pajek(self, None, None, &mut file)
+    }
+
     /// Generate an Erdos-Renyi G(n, p) random graph.
     ///
     /// Each possible edge exists independently with probability `p`.
