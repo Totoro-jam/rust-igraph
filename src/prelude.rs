@@ -13,7 +13,7 @@
 
 pub use crate::core::builder::GraphBuilder;
 pub use crate::core::error::{IgraphError, IgraphResult};
-pub use crate::core::graph::{EdgeIter, Graph, VertexId};
+pub use crate::core::graph::{EdgeIter, Graph, NeighborsIter, VertexId};
 
 // Traversal
 pub use crate::algorithms::traversal::bfs::{bfs, bfs_simple, bfs_tree};

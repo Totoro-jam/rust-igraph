@@ -714,4 +714,4 @@ pub use crate::algorithms::vertex_cover::{is_vertex_cover, minimum_vertex_cover}
 pub use crate::core::builder::GraphBuilder;
 pub use crate::core::cache::CachedProperty;
 pub use crate::core::error::{IgraphError, IgraphResult};
-pub use crate::core::graph::{EdgeIter, Graph, VertexId};
+pub use crate::core::graph::{EdgeIter, Graph, NeighborsIter, VertexId};

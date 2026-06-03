@@ -46,6 +46,72 @@ pub type EdgeIter<'a> = std::iter::Map<
     fn((&'a VertexId, &'a VertexId)) -> (VertexId, VertexId),
 >;
 
+/// Zero-allocation iterator over the neighbors of a vertex.
+///
+/// For directed graphs, yields out-neighbors in ascending order.
+/// For undirected graphs, yields all neighbors in ascending order by
+/// merging the out-edge and in-edge sublists on the fly.
+///
+/// Created by [`Graph::neighbors_iter`].
+pub struct NeighborsIter<'a> {
+    graph: &'a Graph,
+    out_pos: usize,
+    out_end: usize,
+    in_pos: usize,
+    in_end: usize,
+    directed: bool,
+}
+
+impl Iterator for NeighborsIter<'_> {
+    type Item = VertexId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.directed {
+            if self.out_pos < self.out_end {
+                let eid = self.graph.oi[self.out_pos] as usize;
+                self.out_pos += 1;
+                Some(self.graph.to[eid])
+            } else {
+                None
+            }
+        } else {
+            let have_out = self.out_pos < self.out_end;
+            let have_in = self.in_pos < self.in_end;
+            match (have_out, have_in) {
+                (false, false) => None,
+                (true, false) => {
+                    let eid = self.graph.oi[self.out_pos] as usize;
+                    self.out_pos += 1;
+                    Some(self.graph.to[eid])
+                }
+                (false, true) => {
+                    let eid = self.graph.ii[self.in_pos] as usize;
+                    self.in_pos += 1;
+                    Some(self.graph.from[eid])
+                }
+                (true, true) => {
+                    let a = self.graph.to[self.graph.oi[self.out_pos] as usize];
+                    let b = self.graph.from[self.graph.ii[self.in_pos] as usize];
+                    if a <= b {
+                        self.out_pos += 1;
+                        Some(a)
+                    } else {
+                        self.in_pos += 1;
+                        Some(b)
+                    }
+                }
+            }
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = (self.out_end - self.out_pos) + (self.in_end - self.in_pos);
+        (remaining, Some(remaining))
+    }
+}
+
+impl ExactSizeIterator for NeighborsIter<'_> {}
+
 /// Counterpart of `igraph_t` (see `references/igraph/include/igraph_datatype.h`).
 ///
 /// Phase-0 callers (`bfs`, `read_edgelist`, oracle tests) only depended on
@@ -756,6 +822,47 @@ impl Graph {
             }
             Ok(out)
         }
+    }
+
+    /// Zero-allocation iterator over the neighbors of vertex `v`.
+    ///
+    /// For directed graphs, yields out-neighbors in ascending order.
+    /// For undirected graphs, yields all neighbors in ascending order
+    /// (merged from out-edge and in-edge sublists without allocation).
+    ///
+    /// Prefer this over [`Graph::neighbors`] in hot loops where avoiding
+    /// a `Vec` allocation matters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(4);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(0, 2).unwrap();
+    /// g.add_edge(0, 3).unwrap();
+    /// let neis: Vec<u32> = g.neighbors_iter(0).unwrap().collect();
+    /// assert_eq!(neis, vec![1, 2, 3]);
+    /// ```
+    pub fn neighbors_iter(&self, v: VertexId) -> IgraphResult<NeighborsIter<'_>> {
+        self.check_vertex(v)?;
+        let v_idx = v as usize;
+        let out_pos = self.os[v_idx] as usize;
+        let out_end = self.os[v_idx + 1] as usize;
+        let (in_pos, in_end) = if self.directed {
+            (0, 0)
+        } else {
+            (self.is[v_idx] as usize, self.is[v_idx + 1] as usize)
+        };
+        Ok(NeighborsIter {
+            graph: self,
+            out_pos,
+            out_end,
+            in_pos,
+            in_end,
+            directed: self.directed,
+        })
     }
 
     /// Convert the graph to an adjacency list representation.
@@ -2884,5 +2991,38 @@ mod tests {
     fn from_adjacency_list_out_of_range_error() {
         let adj = vec![vec![5]]; // only 1 vertex but references vertex 5
         assert!(Graph::from_adjacency_list(&adj, false).is_err());
+    }
+
+    #[test]
+    fn neighbors_iter_matches_neighbors_undirected() {
+        let g = Graph::from_edges(&[(0, 1), (0, 2), (1, 3), (2, 3), (3, 4)], false, None).unwrap();
+        for v in 0..g.vcount() {
+            let from_vec = g.neighbors(v).unwrap();
+            let from_iter: Vec<VertexId> = g.neighbors_iter(v).unwrap().collect();
+            assert_eq!(from_vec, from_iter, "mismatch at vertex {v}");
+        }
+    }
+
+    #[test]
+    fn neighbors_iter_matches_neighbors_directed() {
+        let g = Graph::from_edges(&[(0, 1), (0, 2), (1, 3), (2, 3), (3, 4)], true, None).unwrap();
+        for v in 0..g.vcount() {
+            let from_vec = g.neighbors(v).unwrap();
+            let from_iter: Vec<VertexId> = g.neighbors_iter(v).unwrap().collect();
+            assert_eq!(from_vec, from_iter, "mismatch at vertex {v}");
+        }
+    }
+
+    #[test]
+    fn neighbors_iter_exact_size() {
+        let g = Graph::from_edges(&[(0, 1), (0, 2), (0, 3)], false, None).unwrap();
+        let iter = g.neighbors_iter(0).unwrap();
+        assert_eq!(iter.len(), 3);
+    }
+
+    #[test]
+    fn neighbors_iter_invalid_vertex() {
+        let g = Graph::with_vertices(3);
+        assert!(g.neighbors_iter(5).is_err());
     }
 }
