@@ -1504,6 +1504,95 @@ impl Graph {
     ) -> IgraphResult<crate::algorithms::connectivity::components::ConnectedComponents> {
         crate::algorithms::connectivity::components::connected_components(self)
     }
+
+    /// Compute `PageRank` centrality for all vertices.
+    ///
+    /// Uses the default damping factor (0.85).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let pr = g.pagerank().unwrap();
+    /// assert_eq!(pr.len(), 3);
+    /// ```
+    pub fn pagerank(&self) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::pagerank::pagerank(self)
+    }
+
+    /// Compute betweenness centrality for all vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let bc = g.betweenness().unwrap();
+    /// // Middle vertices have higher betweenness
+    /// assert!(bc[1] > bc[0]);
+    /// ```
+    pub fn betweenness(&self) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::betweenness::betweenness(self)
+    }
+
+    /// Detect communities using the Louvain algorithm.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (0,2), (1,2), (3,4), (3,5), (4,5), (2,3)],
+    ///     false, None,
+    /// ).unwrap();
+    /// let result = g.louvain().unwrap();
+    /// assert!(result.modularity > 0.0);
+    /// ```
+    pub fn louvain(&self) -> IgraphResult<crate::algorithms::community::louvain::LouvainResult> {
+        crate::algorithms::community::louvain::louvain(self)
+    }
+
+    /// Create the induced subgraph on the given vertex set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3), (3,0)], false, None).unwrap();
+    /// let sub = g.induced_subgraph(&[0, 1, 2]).unwrap();
+    /// assert_eq!(sub.graph.vcount(), 3);
+    /// assert_eq!(sub.graph.ecount(), 2); // edges 0-1 and 1-2
+    /// ```
+    pub fn induced_subgraph(
+        &self,
+        vertices: &[VertexId],
+    ) -> IgraphResult<crate::algorithms::operators::induced_subgraph::InducedSubgraphResult> {
+        crate::algorithms::operators::induced_subgraph::induced_subgraph(self, vertices)
+    }
+
+    /// Export the graph in DOT (Graphviz) format as a string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let dot = g.to_dot(None).unwrap();
+    /// assert!(dot.contains("--"));
+    /// ```
+    pub fn to_dot(&self, labels: Option<&[String]>) -> IgraphResult<String> {
+        let mut buf = Vec::new();
+        crate::algorithms::io::dot::write_dot(self, labels, &mut buf)?;
+        String::from_utf8(buf).map_err(|e| {
+            IgraphError::InvalidArgument(format!("DOT output is not valid UTF-8: {e}"))
+        })
+    }
 }
 
 impl std::fmt::Display for Graph {
