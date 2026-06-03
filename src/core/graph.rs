@@ -40,6 +40,12 @@ pub type VertexId = u32;
 /// `from`/`to`.
 pub type EdgeId = u32;
 
+/// Iterator over graph edges as `(from, to)` pairs.
+pub type EdgeIter<'a> = std::iter::Map<
+    std::iter::Zip<std::slice::Iter<'a, VertexId>, std::slice::Iter<'a, VertexId>>,
+    fn((&'a VertexId, &'a VertexId)) -> (VertexId, VertexId),
+>;
+
 /// Counterpart of `igraph_t` (see `references/igraph/include/igraph_datatype.h`).
 ///
 /// Phase-0 callers (`bfs`, `read_edgelist`, oracle tests) only depended on
@@ -547,6 +553,27 @@ impl Graph {
     /// ```
     pub fn edges(&self) -> impl Iterator<Item = (VertexId, VertexId)> + '_ {
         self.from.iter().zip(self.to.iter()).map(|(&u, &v)| (u, v))
+    }
+
+    /// Returns an iterator over edges as `(from, to)` pairs in edge-id order.
+    ///
+    /// This is the named-return counterpart to the `IntoIterator` impl
+    /// for `&Graph`, enabling `graph.iter().filter(...)` usage.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    ///
+    /// let edges: Vec<_> = g.iter().collect();
+    /// assert_eq!(edges, vec![(0, 1), (1, 2)]);
+    /// ```
+    pub fn iter(&self) -> EdgeIter<'_> {
+        self.from.iter().zip(self.to.iter()).map(|(&a, &b)| (a, b))
     }
 
     /// Check whether an edge exists between `from` and `to`.
@@ -1418,6 +1445,32 @@ impl std::fmt::Display for Graph {
             self.n,
             self.ecount()
         )
+    }
+}
+
+/// Iterate over a graph's edges by reference.
+///
+/// Yields `(from, to)` pairs in edge-id order, enabling the idiomatic
+/// `for (u, v) in &graph { ... }` pattern.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::Graph;
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+///
+/// let edges: Vec<_> = (&g).into_iter().collect();
+/// assert_eq!(edges, vec![(0, 1), (1, 2)]);
+/// ```
+impl<'a> IntoIterator for &'a Graph {
+    type Item = (VertexId, VertexId);
+    type IntoIter = EdgeIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
 
