@@ -9,6 +9,7 @@ pub mod builder;
 pub mod cache;
 pub mod error;
 pub mod graph;
+pub mod ops;
 pub mod rng;
 
 pub(crate) use error::{IgraphError, IgraphResult};
