@@ -49,8 +49,7 @@ pub fn distances(graph: &Graph, source: VertexId) -> IgraphResult<Vec<Option<u32
     if n == 0 {
         return Ok(Vec::new());
     }
-    // `neighbors()` will reject an out-of-range `source`.
-    graph.neighbors(source)?;
+    graph.neighbors_iter(source)?; // validate source
 
     let n_us = n as usize;
     let mut dist: Vec<Option<u32>> = vec![None; n_us];
@@ -68,7 +67,7 @@ pub fn distances(graph: &Graph, source: VertexId) -> IgraphResult<Vec<Option<u32
             .ok_or(crate::core::IgraphError::Internal(
                 "distance overflow (graph diameter exceeds u32::MAX)",
             ))?;
-        for w in graph.neighbors(v)? {
+        for w in graph.neighbors_iter(v)? {
             if dist[w as usize].is_none() {
                 dist[w as usize] = Some(next);
                 queue.push_back(w);

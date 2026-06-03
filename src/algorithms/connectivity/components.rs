@@ -72,7 +72,7 @@ pub fn connected_components(graph: &Graph) -> IgraphResult<ConnectedComponents> 
         queue.clear();
         queue.push_back(start);
         while let Some(v) = queue.pop_front() {
-            for w in graph.neighbors(v)? {
+            for w in graph.neighbors_iter(v)? {
                 if membership[w as usize] == u32::MAX {
                     membership[w as usize] = component_id;
                     queue.push_back(w);
