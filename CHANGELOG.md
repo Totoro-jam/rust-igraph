@@ -14,6 +14,20 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+### Added
+- **Attribute-aware I/O** — all three structured graph formats now read and
+  write vertex, edge, and graph-level attributes through the `Graph`
+  attribute system:
+  - **GraphML**: reads `<key>` definitions and `<data>` elements; writes
+    typed `<key>`/`<data>` for all attribute types. Node ID stored as
+    `"name"` vertex attribute. 18 attribute tests including roundtrip.
+  - **GML**: reads non-structural keys inside `node`/`edge` blocks as
+    vertex/edge attributes; top-level keys (e.g. `Creator`) as graph
+    attributes. Writer emits attribute key-value pairs. 21 tests.
+  - **DOT**: reads `[key=value, ...]` blocks on nodes, edges, and `graph`
+    statements; writer emits attribute blocks. Supports numeric, boolean,
+    and string values. 34 tests including roundtrip with attributes.
+
 ## [0.5.0-alpha.2] — 2026-06-03
 
 ### Added
