@@ -5251,6 +5251,230 @@ impl Graph {
             project_type,
         )
     }
+
+    // ── Paths (advanced) ─────────────────────────────────────────────
+
+    /// Bellman-Ford shortest-path distances from a single source.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let w = vec![1.0; g.ecount()];
+    /// let d = g.bellman_ford_distances(0, &w).unwrap();
+    /// assert!((d[3].unwrap() - 3.0).abs() < 1e-9);
+    /// ```
+    pub fn bellman_ford_distances(
+        &self,
+        source: VertexId,
+        weights: &[f64],
+    ) -> IgraphResult<Vec<Option<f64>>> {
+        crate::algorithms::paths::bellman_ford::bellman_ford_distances(self, source, weights)
+    }
+
+    /// Floyd-Warshall all-pairs shortest-path distances.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let d = g.floyd_warshall_distances(None).unwrap();
+    /// assert!((d[0][2].unwrap() - 2.0).abs() < 1e-9);
+    /// ```
+    pub fn floyd_warshall_distances(
+        &self,
+        weights: Option<&[f64]>,
+    ) -> IgraphResult<Vec<Vec<Option<f64>>>> {
+        crate::algorithms::paths::floyd_warshall::floyd_warshall_distances(self, weights)
+    }
+
+    /// Find the k shortest paths between two vertices.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,3), (0,2), (2,3)], false, None,
+    /// ).unwrap();
+    /// let w = vec![1.0; g.ecount()];
+    /// let paths = g.k_shortest_paths(0, 3, &w, 2).unwrap();
+    /// assert_eq!(paths.len(), 2);
+    /// ```
+    pub fn k_shortest_paths(
+        &self,
+        source: VertexId,
+        target: VertexId,
+        weights: &[f64],
+        k: usize,
+    ) -> IgraphResult<Vec<crate::algorithms::paths::k_shortest_paths::KShortestPath>> {
+        use crate::algorithms::paths::dijkstra::DijkstraMode;
+        crate::algorithms::paths::k_shortest_paths::k_shortest_paths(
+            self,
+            source,
+            target,
+            weights,
+            k,
+            DijkstraMode::Out,
+        )
+    }
+
+    /// Enumerate all simple paths from a source vertex.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// let paths = g.all_simple_paths(0, Some(&[2]), 1, 10).unwrap();
+    /// assert!(paths.len() >= 2);
+    /// ```
+    pub fn all_simple_paths(
+        &self,
+        from: u32,
+        to: Option<&[u32]>,
+        min_length: i32,
+        max_length: i32,
+    ) -> IgraphResult<Vec<Vec<u32>>> {
+        crate::algorithms::paths::simple_paths::all_simple_paths(
+            self,
+            from,
+            to,
+            crate::algorithms::paths::simple_paths::SimplePathMode::Out,
+            min_length,
+            max_length,
+            -1,
+        )
+    }
+
+    // ── Matching ──────────────────────────────────────────────────────
+
+    /// Maximum bipartite matching.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::new(4, false).unwrap();
+    /// g.add_edge(0, 2).unwrap();
+    /// g.add_edge(0, 3).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// let types = vec![false, false, true, true];
+    /// let m = g.maximum_bipartite_matching(&types).unwrap();
+    /// assert_eq!(m.matching_size, 2);
+    /// ```
+    pub fn maximum_bipartite_matching(
+        &self,
+        types: &[bool],
+    ) -> IgraphResult<crate::algorithms::matching::MatchingResult> {
+        crate::algorithms::matching::maximum_bipartite_matching(self, types)
+    }
+
+    // ── Coloring ─────────────────────────────────────────────────────
+
+    /// Greedy vertex coloring.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, GreedyColoringHeuristic};
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let colors = g.vertex_coloring_greedy(GreedyColoringHeuristic::ColoredNeighbors).unwrap();
+    /// assert_eq!(colors.len(), 3);
+    /// ```
+    pub fn vertex_coloring_greedy(
+        &self,
+        heuristic: crate::algorithms::coloring::GreedyColoringHeuristic,
+    ) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::coloring::vertex_coloring_greedy(self, heuristic)
+    }
+
+    // ── Cycles ───────────────────────────────────────────────────────
+
+    /// Enumerate all simple cycles.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, SimpleCycleMode};
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let cycles = g.simple_cycles(SimpleCycleMode::All, 3, None).unwrap();
+    /// assert!(!cycles.is_empty());
+    /// ```
+    pub fn simple_cycles(
+        &self,
+        mode: crate::algorithms::simple_cycles::SimpleCycleMode,
+        min_length: u32,
+        max_length: Option<u32>,
+    ) -> IgraphResult<Vec<crate::algorithms::simple_cycles::SimpleCycle>> {
+        crate::algorithms::simple_cycles::simple_cycles(self, mode, min_length, max_length, None)
+    }
+
+    // ── Community (additional) ───────────────────────────────────────
+
+    /// Leading eigenvector community detection.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (3,4), (4,5), (5,3), (2,3)],
+    ///     false, None,
+    /// ).unwrap();
+    /// let result = g.leading_eigenvector(None, None).unwrap();
+    /// assert!(result.membership.len() == g.vcount() as usize);
+    /// ```
+    pub fn leading_eigenvector(
+        &self,
+        weights: Option<&[f64]>,
+        steps: Option<u32>,
+    ) -> IgraphResult<crate::algorithms::community::leading_eigenvector::LeadingEigenvectorResult>
+    {
+        crate::algorithms::community::leading_eigenvector::leading_eigenvector(self, weights, steps)
+    }
+
+    /// Fluid community detection.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (3,4), (4,5), (5,3), (2,3)],
+    ///     false, None,
+    /// ).unwrap();
+    /// let r = g.fluid_communities(2).unwrap();
+    /// assert_eq!(r.membership.len(), g.vcount() as usize);
+    /// ```
+    pub fn fluid_communities(
+        &self,
+        k: u32,
+    ) -> IgraphResult<crate::algorithms::community::fluid_communities::FluidResult> {
+        crate::algorithms::community::fluid_communities::fluid_communities(self, k)
+    }
+
+    /// Motif census (subgraph isomorphism classes of a given size).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], true, None).unwrap();
+    /// let hist = g.motifs_randesu(3).unwrap();
+    /// assert!(!hist.is_empty());
+    /// ```
+    pub fn motifs_randesu(&self, size: u32) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::motifs::motifs_randesu::motifs_randesu(self, size)
+    }
+
+    /// Personalized `PageRank` with a custom reset distribution.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let reset = vec![1.0, 0.0, 0.0];
+    /// let pr = g.personalized_pagerank(&reset).unwrap();
+    /// assert_eq!(pr.len(), 3);
+    /// ```
+    pub fn personalized_pagerank(&self, reset: &[f64]) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::personalized_pagerank::personalized_pagerank_default(
+            self, reset,
+        )
+    }
 }
 
 impl std::fmt::Display for Graph {
