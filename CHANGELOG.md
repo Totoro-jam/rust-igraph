@@ -50,7 +50,16 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   - `closeness()`, `eigenvector_centrality()`, `clustering_coefficients()`
   - `complement()`, `leiden()`, `bridges()`, `coreness()`
   - `watts_strogatz(n, k, p, seed)` — small-world graph constructor
+  - `strongly_connected_components()`, `shortest_path_to()`,
+    `average_path_length()`, `is_bipartite()`
+  - `simplify()`, `reverse()`, `contract_vertices()`, `random_walk()`
+- `Graph::neighbors_iter()` — zero-allocation iterator over neighbors,
+  with `ExactSizeIterator` impl. Ideal for hot-loop traversals.
+- `NeighborsIter` type exported from crate root and prelude.
 - **Prelude expanded** with `erdos_renyi_gnp` and `watts_strogatz_game`.
+- Enhanced crate-level documentation with a "Complete workflow" example
+  showing load → structural check → centrality → community → shortest path
+  → random walk in one coherent snippet.
 
 ### Changed
 - CONTRIBUTING.md now welcomes external pull requests with clear guidelines.

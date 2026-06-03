@@ -56,7 +56,7 @@ pub struct BfsTree {
 /// assert_eq!(r.parents, vec![None, Some(0), Some(0), Some(1)]);
 /// ```
 pub fn bfs_tree(graph: &Graph, root: VertexId) -> IgraphResult<BfsTree> {
-    graph.neighbors(root)?; // surface VertexOutOfRange
+    graph.neighbors_iter(root)?; // validate root vertex
 
     let n = graph.vcount();
     let n_us = n as usize;
@@ -78,7 +78,7 @@ pub fn bfs_tree(graph: &Graph, root: VertexId) -> IgraphResult<BfsTree> {
             .ok_or(crate::core::IgraphError::Internal(
                 "BFS distance overflow (graph diameter exceeds u32::MAX)",
             ))?;
-        for w in graph.neighbors(v)? {
+        for w in graph.neighbors_iter(v)? {
             if distances[w as usize].is_none() {
                 distances[w as usize] = Some(next_dist);
                 parents[w as usize] = Some(v);
@@ -117,8 +117,7 @@ pub fn bfs_tree(graph: &Graph, root: VertexId) -> IgraphResult<BfsTree> {
 /// assert_eq!(order, vec![0, 1, 2, 3]);
 /// ```
 pub fn bfs(graph: &Graph, root: VertexId) -> IgraphResult<Vec<VertexId>> {
-    // Validate root via the neighbor lookup; this surfaces VertexOutOfRange.
-    graph.neighbors(root)?;
+    graph.neighbors_iter(root)?; // validate root
 
     let n = graph.vcount();
     let mut visited = vec![false; n as usize];
@@ -130,9 +129,7 @@ pub fn bfs(graph: &Graph, root: VertexId) -> IgraphResult<Vec<VertexId>> {
     queue.push_back(root);
 
     while let Some(v) = queue.pop_front() {
-        // `neighbors` returns Vec<VertexId> on the new indexed-edgelist
-        // backend (ALGO-CORE-001a); a contiguous slice is not free anymore.
-        for w in graph.neighbors(v)? {
+        for w in graph.neighbors_iter(v)? {
             if !visited[w as usize] {
                 visited[w as usize] = true;
                 order.push(w);
@@ -198,7 +195,7 @@ pub struct BfsSimple {
 /// assert_eq!(r.parents[3], Some(1));
 /// ```
 pub fn bfs_simple(graph: &Graph, root: VertexId, mode: BfsMode) -> IgraphResult<BfsSimple> {
-    graph.neighbors(root)?; // validate root
+    graph.neighbors_iter(root)?; // validate root
 
     let n = graph.vcount() as usize;
     let use_mode = if graph.is_directed() {
