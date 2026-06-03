@@ -788,6 +788,37 @@ impl Graph {
         Ok(adj)
     }
 
+    /// Return the adjacency matrix as a dense `n × n` matrix of `f64`.
+    ///
+    /// Entry `[i][j]` is the number of edges from vertex `i` to vertex `j`.
+    /// For undirected graphs the matrix is symmetric. Self-loops contribute
+    /// 1 to `[i][i]` (not 2).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let m = g.to_adjacency_matrix();
+    /// assert_eq!(m[0][1], 1.0);
+    /// assert_eq!(m[1][0], 1.0);
+    /// assert_eq!(m[0][2], 0.0);
+    /// ```
+    pub fn to_adjacency_matrix(&self) -> Vec<Vec<f64>> {
+        let n = self.n as usize;
+        let mut mat = vec![vec![0.0f64; n]; n];
+        for eid in 0..self.ecount() {
+            let u = self.from[eid] as usize;
+            let v = self.to[eid] as usize;
+            mat[u][v] += 1.0;
+            if !self.directed && u != v {
+                mat[v][u] += 1.0;
+            }
+        }
+        mat
+    }
+
     /// Degree of vertex `v` — number of edges incident to it.
     ///
     /// On undirected graphs every edge counts once except a self-loop which

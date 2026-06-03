@@ -137,6 +137,38 @@ println!("Betweenness: {:?}", bc);
 println!("Katz: {:?}", katz);
 ```
 
+### Method-style API
+
+The most common operations are available directly on `Graph`:
+
+```rust
+use rust_igraph::Graph;
+
+let g = Graph::from_edges(
+    &[(0,1), (1,2), (2,0), (2,3), (3,4), (4,5), (5,3)],
+    false, None
+).unwrap();
+
+// Structural queries
+assert!(g.is_connected().unwrap());
+let cores = g.coreness().unwrap();
+let bridges = g.bridges().unwrap();
+
+// Centrality
+let pr = g.pagerank().unwrap();
+let cl = g.closeness().unwrap();
+let ec = g.eigenvector_centrality().unwrap();
+
+// Community detection
+let communities = g.louvain().unwrap();
+println!("Modularity: {:.4}", communities.modularity);
+
+// Graph construction
+let er = Graph::erdos_renyi(1000, 0.01, 42).unwrap();
+let ws = Graph::watts_strogatz(1000, 6, 0.1, 42).unwrap();
+let ba = Graph::barabasi_albert(1000, 3, 42).unwrap();
+```
+
 ## Performance
 
 All algorithms are implemented in idiomatic Rust with careful attention to cache locality
