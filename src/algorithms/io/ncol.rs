@@ -13,6 +13,7 @@
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Read, Write};
 
+use crate::core::attributes::AttributeValue;
 use crate::core::{Graph, IgraphError, IgraphResult};
 
 /// Result of reading an NCOL file: the graph plus optional metadata.
@@ -105,6 +106,26 @@ pub fn read_ncol<R: Read>(input: R) -> IgraphResult<NcolGraph> {
     let mut graph = Graph::with_vertices(n);
     graph.add_edges(edges)?;
 
+    let has_any_label = names.iter().any(|l| !l.is_empty());
+    if has_any_label {
+        graph.set_vertex_attribute_all(
+            "name",
+            names
+                .iter()
+                .map(|l| AttributeValue::String(l.clone()))
+                .collect(),
+        )?;
+    }
+    if has_any_weight {
+        graph.set_edge_attribute_all(
+            "weight",
+            weights
+                .iter()
+                .map(|&w| AttributeValue::Numeric(w))
+                .collect(),
+        )?;
+    }
+
     Ok(NcolGraph {
         graph,
         names,
@@ -165,16 +186,33 @@ pub fn write_ncol<W: Write>(
 
         let src_name = match names {
             Some(n) => n[src as usize].as_str().to_owned(),
-            None => src.to_string(),
+            None => graph
+                .vertex_attribute("name", src)
+                .and_then(AttributeValue::as_str)
+                .map_or_else(|| src.to_string(), str::to_owned),
         };
         let tgt_name = match names {
             Some(n) => n[tgt as usize].as_str().to_owned(),
-            None => tgt.to_string(),
+            None => graph
+                .vertex_attribute("name", tgt)
+                .and_then(AttributeValue::as_str)
+                .map_or_else(|| tgt.to_string(), str::to_owned),
         };
 
+        #[allow(clippy::cast_possible_truncation)]
+        let eid_u32 = eid as u32;
         match weights {
             Some(w) => writeln!(writer, "{src_name} {tgt_name} {}", w[eid])?,
-            None => writeln!(writer, "{src_name} {tgt_name}")?,
+            None => {
+                if let Some(w) = graph
+                    .edge_attribute("weight", eid_u32)
+                    .and_then(AttributeValue::as_f64)
+                {
+                    writeln!(writer, "{src_name} {tgt_name} {w}")?;
+                } else {
+                    writeln!(writer, "{src_name} {tgt_name}")?;
+                }
+            }
         }
     }
 
@@ -364,5 +402,120 @@ mod tests {
         let weights = vec![1.0, 2.0]; // 2 weights but only 1 edge
         let mut buf = Vec::new();
         assert!(write_ncol(&g, None, Some(&weights), &mut buf).is_err());
+    }
+
+    // --- Attribute integration tests ---
+
+    #[test]
+    fn test_read_stores_name_attribute() {
+        let input = b"Alice Bob 1.0\nBob Carol\n";
+        let result = read_ncol(&input[..]).unwrap();
+        let g = &result.graph;
+
+        assert_eq!(
+            g.vertex_attribute("name", 0)
+                .and_then(AttributeValue::as_str),
+            Some("Alice")
+        );
+        assert_eq!(
+            g.vertex_attribute("name", 1)
+                .and_then(AttributeValue::as_str),
+            Some("Bob")
+        );
+        assert_eq!(
+            g.vertex_attribute("name", 2)
+                .and_then(AttributeValue::as_str),
+            Some("Carol")
+        );
+    }
+
+    #[test]
+    fn test_read_stores_weight_attribute() {
+        let input = b"a b 1.5\nb c 2.0\n";
+        let result = read_ncol(&input[..]).unwrap();
+        let g = &result.graph;
+
+        let w0 = g
+            .edge_attribute("weight", 0)
+            .and_then(AttributeValue::as_f64)
+            .unwrap();
+        let w1 = g
+            .edge_attribute("weight", 1)
+            .and_then(AttributeValue::as_f64)
+            .unwrap();
+        assert!((w0 - 1.5).abs() < 1e-10);
+        assert!((w1 - 2.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_read_no_weight_attribute_when_unweighted() {
+        let input = b"a b\nb c\n";
+        let result = read_ncol(&input[..]).unwrap();
+        assert!(result.graph.edge_attribute("weight", 0).is_none());
+    }
+
+    #[test]
+    fn test_write_fallback_to_name_attribute() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_vertex_attribute("name", 0, AttributeValue::String("X".into()))
+            .unwrap();
+        g.set_vertex_attribute("name", 1, AttributeValue::String("Y".into()))
+            .unwrap();
+
+        let mut buf = Vec::new();
+        write_ncol(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("X Y"));
+    }
+
+    #[test]
+    fn test_write_fallback_to_weight_attribute() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_edge_attribute("weight", 0, AttributeValue::Numeric(4.25))
+            .unwrap();
+
+        let mut buf = Vec::new();
+        write_ncol(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("4.25"));
+    }
+
+    #[test]
+    fn test_roundtrip_via_attributes() {
+        let input = b"Alice Bob 1.5\nBob Carol 2.5\n";
+        let result = read_ncol(&input[..]).unwrap();
+
+        // Write using attribute fallback (no explicit names/weights)
+        let mut buf = Vec::new();
+        write_ncol(&result.graph, None, None, &mut buf).unwrap();
+
+        let result2 = read_ncol(&buf[..]).unwrap();
+        assert_eq!(result2.names, vec!["Alice", "Bob", "Carol"]);
+        let w = result2.weights.unwrap();
+        assert!((w[0] - 1.5).abs() < 1e-10);
+        assert!((w[1] - 2.5).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_explicit_params_override_attributes() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_vertex_attribute("name", 0, AttributeValue::String("attr_A".into()))
+            .unwrap();
+        g.set_vertex_attribute("name", 1, AttributeValue::String("attr_B".into()))
+            .unwrap();
+        g.set_edge_attribute("weight", 0, AttributeValue::Numeric(9.0))
+            .unwrap();
+
+        let names = vec!["explicit_A".to_string(), "explicit_B".to_string()];
+        let weights = vec![1.0];
+        let mut buf = Vec::new();
+        write_ncol(&g, Some(&names), Some(&weights), &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("explicit_A explicit_B 1"));
+        assert!(!s.contains("attr_A"));
+        assert!(!s.contains('9'));
     }
 }

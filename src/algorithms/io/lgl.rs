@@ -21,6 +21,7 @@
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Read, Write};
 
+use crate::core::attributes::AttributeValue;
 use crate::core::{Graph, IgraphError, IgraphResult};
 
 /// Result of reading an LGL file: the graph plus optional metadata.
@@ -114,6 +115,26 @@ pub fn read_lgl<R: Read>(input: R) -> IgraphResult<LglGraph> {
     let mut graph = Graph::with_vertices(n);
     graph.add_edges(edges)?;
 
+    let has_any_label = names.iter().any(|l| !l.is_empty());
+    if has_any_label {
+        graph.set_vertex_attribute_all(
+            "name",
+            names
+                .iter()
+                .map(|l| AttributeValue::String(l.clone()))
+                .collect(),
+        )?;
+    }
+    if has_any_weight {
+        graph.set_edge_attribute_all(
+            "weight",
+            weights
+                .iter()
+                .map(|&w| AttributeValue::Numeric(w))
+                .collect(),
+        )?;
+    }
+
     Ok(LglGraph {
         graph,
         names,
@@ -191,20 +212,39 @@ pub fn write_lgl<W: Write>(
             continue;
         }
 
+        #[allow(clippy::cast_possible_truncation)]
+        let v_u32 = v as u32;
         let hub_name = match names {
             Some(n) => n[v].as_str().to_owned(),
-            None => v.to_string(),
+            None => graph
+                .vertex_attribute("name", v_u32)
+                .and_then(AttributeValue::as_str)
+                .map_or_else(|| v.to_string(), str::to_owned),
         };
         writeln!(writer, "# {hub_name}")?;
 
         for &(neighbour, eid) in &adj[v] {
             let nbr_name = match names {
                 Some(n) => n[neighbour as usize].as_str().to_owned(),
-                None => neighbour.to_string(),
+                None => graph
+                    .vertex_attribute("name", neighbour)
+                    .and_then(AttributeValue::as_str)
+                    .map_or_else(|| neighbour.to_string(), str::to_owned),
             };
+            #[allow(clippy::cast_possible_truncation)]
+            let eid_u32 = eid as u32;
             match weights {
                 Some(w) => writeln!(writer, "{nbr_name} {}", w[eid])?,
-                None => writeln!(writer, "{nbr_name}")?,
+                None => {
+                    if let Some(w) = graph
+                        .edge_attribute("weight", eid_u32)
+                        .and_then(AttributeValue::as_f64)
+                    {
+                        writeln!(writer, "{nbr_name} {w}")?;
+                    } else {
+                        writeln!(writer, "{nbr_name}")?;
+                    }
+                }
             }
         }
     }
@@ -434,5 +474,121 @@ mod tests {
         assert!(s.contains("# A\n"));
         assert!(s.contains("B\n"));
         assert!(!s.contains('C'));
+    }
+
+    // --- Attribute integration tests ---
+
+    #[test]
+    fn test_read_stores_name_attribute() {
+        let input = b"# Alice\nBob\nCarol\n";
+        let result = read_lgl(&input[..]).unwrap();
+        let g = &result.graph;
+
+        assert_eq!(
+            g.vertex_attribute("name", 0)
+                .and_then(AttributeValue::as_str),
+            Some("Alice")
+        );
+        assert_eq!(
+            g.vertex_attribute("name", 1)
+                .and_then(AttributeValue::as_str),
+            Some("Bob")
+        );
+        assert_eq!(
+            g.vertex_attribute("name", 2)
+                .and_then(AttributeValue::as_str),
+            Some("Carol")
+        );
+    }
+
+    #[test]
+    fn test_read_stores_weight_attribute() {
+        let input = b"# x\ny 1.5\nz 2.0\n";
+        let result = read_lgl(&input[..]).unwrap();
+        let g = &result.graph;
+
+        let w0 = g
+            .edge_attribute("weight", 0)
+            .and_then(AttributeValue::as_f64)
+            .unwrap();
+        let w1 = g
+            .edge_attribute("weight", 1)
+            .and_then(AttributeValue::as_f64)
+            .unwrap();
+        assert!((w0 - 1.5).abs() < 1e-10);
+        assert!((w1 - 2.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_read_no_weight_attribute_when_unweighted() {
+        let input = b"# a\nb\nc\n";
+        let result = read_lgl(&input[..]).unwrap();
+        assert!(result.graph.edge_attribute("weight", 0).is_none());
+    }
+
+    #[test]
+    fn test_write_fallback_to_name_attribute() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_vertex_attribute("name", 0, AttributeValue::String("X".into()))
+            .unwrap();
+        g.set_vertex_attribute("name", 1, AttributeValue::String("Y".into()))
+            .unwrap();
+
+        let mut buf = Vec::new();
+        write_lgl(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("# X\n"));
+        assert!(s.contains("Y\n"));
+    }
+
+    #[test]
+    fn test_write_fallback_to_weight_attribute() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_edge_attribute("weight", 0, AttributeValue::Numeric(4.25))
+            .unwrap();
+
+        let mut buf = Vec::new();
+        write_lgl(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("4.25"));
+    }
+
+    #[test]
+    fn test_roundtrip_via_attributes() {
+        let input = b"# Alice\nBob 1.5\nCarol 2.5\n# Bob\nCarol 3.0\n";
+        let result = read_lgl(&input[..]).unwrap();
+
+        // Write using attribute fallback (no explicit names/weights)
+        let mut buf = Vec::new();
+        write_lgl(&result.graph, None, None, &mut buf).unwrap();
+
+        let result2 = read_lgl(&buf[..]).unwrap();
+        assert_eq!(result2.graph.vcount(), 3);
+        assert_eq!(result2.graph.ecount(), 3);
+        assert!(result2.weights.is_some());
+    }
+
+    #[test]
+    fn test_explicit_params_override_attributes() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_vertex_attribute("name", 0, AttributeValue::String("attr_A".into()))
+            .unwrap();
+        g.set_vertex_attribute("name", 1, AttributeValue::String("attr_B".into()))
+            .unwrap();
+        g.set_edge_attribute("weight", 0, AttributeValue::Numeric(9.0))
+            .unwrap();
+
+        let names = vec!["explicit_A".to_string(), "explicit_B".to_string()];
+        let weights = vec![1.0];
+        let mut buf = Vec::new();
+        write_lgl(&g, Some(&names), Some(&weights), &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("# explicit_A"));
+        assert!(s.contains("explicit_B 1"));
+        assert!(!s.contains("attr_A"));
+        assert!(!s.contains('9'));
     }
 }

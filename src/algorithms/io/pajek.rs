@@ -672,13 +672,13 @@ mod tests {
     fn write_uses_weight_attribute_fallback() {
         let mut g = Graph::with_vertices(2);
         g.add_edge(0, 1).unwrap();
-        g.set_edge_attribute_all("weight", vec![AttributeValue::Numeric(3.14)])
+        g.set_edge_attribute_all("weight", vec![AttributeValue::Numeric(4.25)])
             .unwrap();
 
         let mut buf = Vec::new();
         write_pajek(&g, None, None, &mut buf).unwrap();
         let s = String::from_utf8(buf).unwrap();
-        assert!(s.contains("1 2 3.14"));
+        assert!(s.contains("1 2 4.25"));
     }
 
     #[test]
