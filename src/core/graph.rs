@@ -5011,6 +5011,246 @@ impl Graph {
     pub fn trussness(&self) -> IgraphResult<Vec<u32>> {
         crate::algorithms::properties::trussness::trussness(self)
     }
+
+    // ── Graph operators ──────────────────────────────────────────────
+
+    /// Union of two graphs on the same vertex set.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let a = Graph::from_edges(&[(0,1)], false, None).unwrap();
+    /// let b = Graph::from_edges(&[(1,2)], false, None).unwrap();
+    /// let u = a.union(&b).unwrap();
+    /// assert_eq!(u.ecount(), 2);
+    /// ```
+    pub fn union(&self, other: &Graph) -> IgraphResult<Graph> {
+        crate::algorithms::operators::union::union(self, other)
+    }
+
+    /// Intersection of two graphs on the same vertex set.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let a = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let b = Graph::from_edges(&[(1,2), (2,3)], false, None).unwrap();
+    /// let i = a.intersection(&b).unwrap();
+    /// assert_eq!(i.ecount(), 1);
+    /// ```
+    pub fn intersection(&self, other: &Graph) -> IgraphResult<Graph> {
+        crate::algorithms::operators::intersection::intersection(self, other)
+    }
+
+    /// Edge difference: edges in `self` but not in `other`.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let a = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let b = Graph::from_edges(&[(1,2)], false, None).unwrap();
+    /// let d = a.difference(&b).unwrap();
+    /// assert_eq!(d.ecount(), 1);
+    /// ```
+    pub fn difference(&self, other: &Graph) -> IgraphResult<Graph> {
+        crate::algorithms::operators::difference::difference(self, other)
+    }
+
+    /// Disjoint union: concatenate vertex sets, then concatenate edge sets.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let a = Graph::from_edges(&[(0,1)], false, None).unwrap();
+    /// let b = Graph::from_edges(&[(0,1)], false, None).unwrap();
+    /// let d = a.disjoint_union(&b).unwrap();
+    /// assert_eq!(d.vcount(), 4);
+    /// assert_eq!(d.ecount(), 2);
+    /// ```
+    pub fn disjoint_union(&self, other: &Graph) -> IgraphResult<Graph> {
+        crate::algorithms::operators::disjoint_union::disjoint_union(self, other)
+    }
+
+    /// Join: disjoint union plus all edges between the two vertex sets.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let a = Graph::with_vertices(2);
+    /// let b = Graph::with_vertices(2);
+    /// let j = a.join(&b).unwrap();
+    /// assert_eq!(j.vcount(), 4);
+    /// assert_eq!(j.ecount(), 4);
+    /// ```
+    pub fn join(&self, other: &Graph) -> IgraphResult<Graph> {
+        crate::algorithms::operators::join::join(self, other)
+    }
+
+    /// Compose two graphs (relational composition).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], true, None).unwrap();
+    /// let c = g.compose(&g).unwrap();
+    /// assert!(c.ecount() > 0);
+    /// ```
+    pub fn compose(&self, other: &Graph) -> IgraphResult<Graph> {
+        crate::algorithms::operators::compose::compose(self, other)
+    }
+
+    /// Cartesian product of two graphs.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let p2 = Graph::from_edges(&[(0,1)], false, None).unwrap();
+    /// let grid = p2.cartesian_product(&p2).unwrap();
+    /// assert_eq!(grid.vcount(), 4);
+    /// ```
+    pub fn cartesian_product(&self, other: &Graph) -> IgraphResult<Graph> {
+        crate::algorithms::operators::products::cartesian_product(self, other)
+    }
+
+    /// Tensor (categorical/direct) product of two graphs.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let p2 = Graph::from_edges(&[(0,1)], false, None).unwrap();
+    /// let t = p2.tensor_product(&p2).unwrap();
+    /// assert_eq!(t.vcount(), 4);
+    /// ```
+    pub fn tensor_product(&self, other: &Graph) -> IgraphResult<Graph> {
+        crate::algorithms::operators::products::tensor_product(self, other)
+    }
+
+    /// Strong product of two graphs.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let p2 = Graph::from_edges(&[(0,1)], false, None).unwrap();
+    /// let s = p2.strong_product(&p2).unwrap();
+    /// assert_eq!(s.vcount(), 4);
+    /// ```
+    pub fn strong_product(&self, other: &Graph) -> IgraphResult<Graph> {
+        crate::algorithms::operators::products::strong_product(self, other)
+    }
+
+    /// Lexicographic product of two graphs.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let a = Graph::from_edges(&[(0,1)], false, None).unwrap();
+    /// let b = Graph::with_vertices(2);
+    /// let l = a.lexicographic_product(&b).unwrap();
+    /// assert_eq!(l.vcount(), 4);
+    /// ```
+    pub fn lexicographic_product(&self, other: &Graph) -> IgraphResult<Graph> {
+        crate::algorithms::operators::products::lexicographic_product(self, other)
+    }
+
+    /// Connect each vertex to all vertices within distance `order`.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let c = g.connect_neighborhood(2).unwrap();
+    /// assert!(c.ecount() > g.ecount());
+    /// ```
+    pub fn connect_neighborhood(&self, order: u32) -> IgraphResult<Graph> {
+        crate::algorithms::operators::connect_neighborhood::connect_neighborhood(self, order)
+    }
+
+    /// Rewire edges while preserving the degree sequence.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3), (3,0)], false, None).unwrap();
+    /// let r = g.rewire(100, false, 42).unwrap();
+    /// assert_eq!(r.ecount(), g.ecount());
+    /// ```
+    pub fn rewire(&self, num_trials: usize, loops: bool, seed: u64) -> IgraphResult<Graph> {
+        crate::algorithms::operators::rewire::rewire(self, num_trials, loops, seed)
+    }
+
+    /// Randomly rewire each edge with probability `prob`.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let r = g.rewire_edges(0.5, false, 42).unwrap();
+    /// assert_eq!(r.vcount(), g.vcount());
+    /// ```
+    pub fn rewire_edges(&self, prob: f64, loops: bool, seed: u64) -> IgraphResult<Graph> {
+        crate::algorithms::operators::rewire_edges::rewire_edges(self, prob, loops, seed)
+    }
+
+    /// Extract a subgraph induced by the given edge ids.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let s = g.subgraph_from_edges(&[0, 1]).unwrap();
+    /// assert_eq!(s.graph.ecount(), 2);
+    /// ```
+    pub fn subgraph_from_edges(
+        &self,
+        eids: &[u32],
+    ) -> IgraphResult<crate::algorithms::operators::subgraph_from_edges::SubgraphFromEdgesResult>
+    {
+        crate::algorithms::operators::subgraph_from_edges::subgraph_from_edges(self, eids, true)
+    }
+
+    /// The Even-Tarjan reduction of a directed graph.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], true, None).unwrap();
+    /// let et = g.even_tarjan_reduction().unwrap();
+    /// assert!(et.graph.vcount() > g.vcount());
+    /// ```
+    pub fn even_tarjan_reduction(
+        &self,
+    ) -> IgraphResult<crate::algorithms::operators::even_tarjan::EvenTarjanResult> {
+        crate::algorithms::operators::even_tarjan::even_tarjan_reduction(self)
+    }
+
+    /// Bipartite projection onto one vertex type.
+    ///
+    /// `project_type` selects which side: `false` projects the `false`-typed
+    /// vertices, `true` projects the `true`-typed vertices.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::new(4, false).unwrap();
+    /// g.add_edge(0, 2).unwrap();
+    /// g.add_edge(0, 3).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// g.add_edge(1, 3).unwrap();
+    /// let types = vec![false, false, true, true];
+    /// let p = g.bipartite_projection(&types, false).unwrap();
+    /// assert_eq!(p.graph.vcount(), 2);
+    /// ```
+    pub fn bipartite_projection(
+        &self,
+        types: &[bool],
+        project_type: bool,
+    ) -> IgraphResult<crate::algorithms::operators::bipartite_projection::BipartiteProjection> {
+        crate::algorithms::operators::bipartite_projection::bipartite_projection(
+            self,
+            types,
+            project_type,
+        )
+    }
 }
 
 impl std::fmt::Display for Graph {
