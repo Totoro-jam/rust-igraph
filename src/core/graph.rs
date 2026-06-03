@@ -2906,6 +2906,192 @@ impl Graph {
     pub fn layout_grid(&self, width: i32) -> Vec<(f64, f64)> {
         crate::algorithms::layout::simple::layout_grid(self, width)
     }
+
+    // ── Triangle / local clustering ──────────────────────────────────
+
+    /// Per-vertex triangle count.
+    ///
+    /// `result[v]` is the number of triangles incident to vertex `v`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,0),(2,3)], false, None).unwrap();
+    /// let t = g.count_adjacent_triangles().unwrap();
+    /// assert_eq!(t[0], 1);
+    /// assert_eq!(t[3], 0);
+    /// ```
+    pub fn count_adjacent_triangles(&self) -> IgraphResult<Vec<u64>> {
+        crate::algorithms::properties::triangles::count_adjacent_triangles(self)
+    }
+
+    /// Per-vertex local clustering coefficient (local transitivity).
+    ///
+    /// `result[v]` is `None` for vertices with degree < 2.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,0),(2,3)], false, None).unwrap();
+    /// let lcc = g.transitivity_local_undirected().unwrap();
+    /// assert!(lcc[0].unwrap() > 0.9); // vertex 0 in triangle
+    /// assert!(lcc[3].is_none());       // degree 1
+    /// ```
+    pub fn transitivity_local_undirected(&self) -> IgraphResult<Vec<Option<f64>>> {
+        crate::algorithms::properties::triangles::transitivity_local_undirected(self)
+    }
+
+    // ── Network metrics ──────────────────────────────────────────────
+
+    /// Reciprocity of a directed graph.
+    ///
+    /// Returns the fraction of edges that are reciprocated, or `None` for
+    /// empty graphs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,0),(1,2)], true, None).unwrap();
+    /// let r = g.reciprocity().unwrap().unwrap();
+    /// assert!((r - 2.0/3.0).abs() < 1e-12);
+    /// ```
+    pub fn reciprocity(&self) -> IgraphResult<Option<f64>> {
+        crate::algorithms::properties::reciprocity::reciprocity(self)
+    }
+
+    /// Burt's constraint for each vertex.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(0,2),(1,2)], false, None).unwrap();
+    /// let c = g.constraint(None).unwrap();
+    /// assert_eq!(c.len(), 3);
+    /// ```
+    pub fn constraint(&self, weights: Option<&[f64]>) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::constraint::constraint(self, weights)
+    }
+
+    /// Whether the graph has multi-edges.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(0,1)], false, None).unwrap();
+    /// assert!(g.has_multiple().unwrap());
+    /// ```
+    pub fn has_multiple(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::multiplicity::has_multiple(self)
+    }
+
+    /// Per-edge multiplicity count.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(0,1),(1,2)], false, None).unwrap();
+    /// let mc = g.count_multiple().unwrap();
+    /// assert_eq!(mc[0], 2);
+    /// assert_eq!(mc[2], 1);
+    /// ```
+    pub fn count_multiple(&self) -> IgraphResult<Vec<usize>> {
+        crate::algorithms::properties::multiplicity::count_multiple(self)
+    }
+
+    /// Test whether two vertices are adjacent.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// assert!(g.are_adjacent(0, 1).unwrap());
+    /// assert!(!g.are_adjacent(0, 2).unwrap());
+    /// ```
+    pub fn are_adjacent(&self, v1: VertexId, v2: VertexId) -> IgraphResult<bool> {
+        crate::algorithms::properties::are_adjacent::are_adjacent(self, v1, v2)
+    }
+
+    // ── Motifs ───────────────────────────────────────────────────────
+
+    /// Triad census of a directed graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, TriadType};
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,0)], true, None).unwrap();
+    /// let tc = g.triad_census().unwrap();
+    /// assert!(tc.get(TriadType::T030C) > 0.0);
+    /// ```
+    pub fn triad_census(
+        &self,
+    ) -> IgraphResult<crate::algorithms::motifs::triad_census::TriadCensus> {
+        crate::algorithms::motifs::triad_census::triad_census(self)
+    }
+
+    /// Dyad census of a directed graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,0),(1,2)], true, None).unwrap();
+    /// let dc = g.dyad_census().unwrap();
+    /// assert!((dc.mutual - 1.0).abs() < 1e-12);
+    /// ```
+    pub fn dyad_census(&self) -> IgraphResult<crate::algorithms::motifs::DyadCensus> {
+        crate::algorithms::motifs::dyad_census(self)
+    }
+
+    // ── Similarity ───────────────────────────────────────────────────
+
+    /// Jaccard similarity between all pairs of vertices.
+    ///
+    /// Returns a flattened `n × n` matrix (row-major).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(0,2),(1,2)], false, None).unwrap();
+    /// let sim = g.similarity_jaccard().unwrap();
+    /// assert_eq!(sim.len(), 9); // 3×3 matrix
+    /// ```
+    pub fn similarity_jaccard(&self) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::similarity::similarity_jaccard(self)
+    }
+
+    /// Co-citation scores for all vertex pairs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,2),(1,2)], true, None).unwrap();
+    /// let cc = g.cocitation().unwrap();
+    /// assert!(!cc.is_empty());
+    /// ```
+    pub fn cocitation(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::properties::similarity::cocitation(self)
+    }
 }
 
 impl std::fmt::Display for Graph {
