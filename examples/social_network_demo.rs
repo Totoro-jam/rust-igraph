@@ -1,7 +1,8 @@
 //! Comprehensive social network analysis demo.
 //!
 //! Demonstrates rust-igraph's breadth: graph construction, community
-//! detection, centrality, shortest paths, and structural properties
+//! detection, centrality, shortest paths, structural properties,
+//! vertex/edge/graph attributes, and attribute-aware I/O round-trips
 //! — all in one coherent workflow on Zachary's karate club.
 //!
 //! Run: `cargo run --example social_network_demo`
@@ -9,12 +10,15 @@
 use std::fs::File;
 use std::path::PathBuf;
 
+use rust_igraph::AttributeValue;
+
+#[allow(clippy::too_many_lines)]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // --- 1. Load graph ---
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path.push("fixtures/karate.edges");
     let file = File::open(path.canonicalize()?)?;
-    let g = rust_igraph::read_edgelist(file)?;
+    let mut g = rust_igraph::read_edgelist(file)?;
     println!("=== Zachary's Karate Club ===");
     println!("{g}");
     println!();
@@ -32,10 +36,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     println!();
 
-    // --- 3. Centrality ---
+    // --- 3. Centrality → store as vertex attributes ---
     let pr = rust_igraph::pagerank(&g)?;
     let bc = rust_igraph::betweenness(&g)?;
     let cl = rust_igraph::closeness(&g)?;
+
+    g.set_vertex_attribute_all(
+        "pagerank",
+        pr.iter().copied().map(AttributeValue::Numeric).collect(),
+    )?;
+    g.set_vertex_attribute_all(
+        "betweenness",
+        bc.iter().copied().map(AttributeValue::Numeric).collect(),
+    )?;
+    g.set_vertex_attribute_all(
+        "closeness",
+        cl.iter()
+            .map(|c| AttributeValue::Numeric(c.unwrap_or(0.0)))
+            .collect(),
+    )?;
 
     let mut top_pr: Vec<(usize, f64)> = pr.iter().copied().enumerate().collect();
     top_pr.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
@@ -49,7 +68,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!();
 
-    // --- 4. Community detection ---
+    // --- 4. Community detection → store as vertex attribute ---
     let louvain = rust_igraph::louvain(&g)?;
     let n_communities = louvain
         .membership
@@ -61,6 +80,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "Louvain: {n_communities} communities, Q = {:.4}",
         louvain.modularity
     );
+
+    g.set_vertex_attribute_all(
+        "community",
+        louvain
+            .membership
+            .iter()
+            .map(|&c| AttributeValue::Numeric(f64::from(c)))
+            .collect(),
+    )?;
 
     for c in 0..n_communities {
         let members: Vec<u32> = g
@@ -95,7 +123,106 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let components = rust_igraph::connected_components(&g)?;
     println!("Connected components: {}", components.count);
+    println!();
 
-    println!("\nDone — {} algorithms demonstrated in one workflow.", 8);
+    // --- 7. Graph-level attributes ---
+    g.set_graph_attribute(
+        "name",
+        AttributeValue::String("Zachary's Karate Club".into()),
+    );
+    g.set_graph_attribute("vertices", AttributeValue::Numeric(f64::from(g.vcount())));
+
+    println!("Graph attributes:");
+    for name in g.graph_attribute_names() {
+        if let Some(val) = g.graph_attribute(name) {
+            println!("  {name} = {val}");
+        }
+    }
+    println!();
+
+    // --- 8. Attribute-aware I/O round-trip: GML ---
+    let mut gml_buf = Vec::new();
+    rust_igraph::write_gml(&g, &mut gml_buf)?;
+    let gml_str = String::from_utf8_lossy(&gml_buf);
+    println!("--- GML output (first 500 chars) ---");
+    println!("{}", &gml_str[..gml_str.len().min(500)]);
+    println!("...\n");
+
+    let g_from_gml = rust_igraph::read_gml(gml_buf.as_slice())?;
+    println!(
+        "GML round-trip: {} vertices, {} edges, pagerank[0] = {:.4}",
+        g_from_gml.vcount(),
+        g_from_gml.ecount(),
+        g_from_gml
+            .vertex_attribute("pagerank", 0)
+            .and_then(AttributeValue::as_f64)
+            .unwrap_or(0.0),
+    );
+    println!(
+        "  graph name = {:?}",
+        g_from_gml
+            .graph_attribute("name")
+            .and_then(AttributeValue::as_str)
+            .unwrap_or("?"),
+    );
+    println!();
+
+    // --- 9. Attribute-aware I/O round-trip: GraphML ---
+    let mut graphml_buf = Vec::new();
+    rust_igraph::write_graphml(&g, None, &mut graphml_buf)?;
+    let graphml_str = String::from_utf8_lossy(&graphml_buf);
+    println!("--- GraphML output (first 500 chars) ---");
+    println!("{}", &graphml_str[..graphml_str.len().min(500)]);
+    println!("...\n");
+
+    let g_from_graphml = rust_igraph::read_graphml(graphml_buf.as_slice())?;
+    println!(
+        "GraphML round-trip: {} vertices, {} edges, community[0] = {:.0}",
+        g_from_graphml.graph.vcount(),
+        g_from_graphml.graph.ecount(),
+        g_from_graphml
+            .graph
+            .vertex_attribute("community", 0)
+            .and_then(AttributeValue::as_f64)
+            .unwrap_or(-1.0),
+    );
+    println!();
+
+    // --- 10. Attribute-aware I/O: DOT output ---
+    let labels: Vec<String> = (0..g.vcount()).map(|v| format!("v{v}")).collect();
+    let mut dot_buf = Vec::new();
+    rust_igraph::write_dot(&g, Some(&labels), &mut dot_buf)?;
+    let dot_str = String::from_utf8_lossy(&dot_buf);
+    println!("--- DOT output (first 500 chars) ---");
+    println!("{}", &dot_str[..dot_str.len().min(500)]);
+    println!("...\n");
+
+    let dot_result = rust_igraph::read_dot(dot_buf.as_slice())?;
+    println!(
+        "DOT round-trip: {} vertices, {} edges",
+        dot_result.graph.vcount(),
+        dot_result.graph.ecount(),
+    );
+    println!(
+        "  pagerank[0] = {:.4}, community[0] = {:.0}",
+        dot_result
+            .graph
+            .vertex_attribute("pagerank", 0)
+            .and_then(AttributeValue::as_f64)
+            .unwrap_or(0.0),
+        dot_result
+            .graph
+            .vertex_attribute("community", 0)
+            .and_then(AttributeValue::as_f64)
+            .unwrap_or(-1.0),
+    );
+    println!();
+
+    println!(
+        "Done — {} capabilities demonstrated: construction, density, connectivity,\n\
+         diameter, PageRank, betweenness, closeness, community detection, shortest\n\
+         paths, clustering coefficient, attributes, GML I/O, GraphML I/O, DOT I/O.",
+        14
+    );
     Ok(())
 }
