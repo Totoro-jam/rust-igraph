@@ -60,7 +60,7 @@ pub struct DfsTree {
 /// assert_eq!(r.order_out.last(), Some(&0)); // root finishes last
 /// ```
 pub fn dfs_tree(graph: &Graph, root: VertexId) -> IgraphResult<DfsTree> {
-    let _ = graph.neighbors(root)?;
+    graph.neighbors_iter(root)?;
 
     let n = graph.vcount();
     let n_us = n as usize;
@@ -75,7 +75,7 @@ pub fn dfs_tree(graph: &Graph, root: VertexId) -> IgraphResult<DfsTree> {
     visited[root as usize] = true;
     order.push(root);
     dist[root as usize] = Some(0);
-    let mut root_neis = graph.neighbors(root)?;
+    let mut root_neis: Vec<VertexId> = graph.neighbors_iter(root)?.collect();
     root_neis.reverse();
     stack.push_back((root, 0, root_neis));
 
@@ -100,7 +100,7 @@ pub fn dfs_tree(graph: &Graph, root: VertexId) -> IgraphResult<DfsTree> {
             #[allow(clippy::cast_possible_truncation)]
             let depth = (stack.len()) as u32; // stack.len() == depth of new node
             dist[nei as usize] = Some(depth);
-            let mut nei_neis = graph.neighbors(nei)?;
+            let mut nei_neis: Vec<VertexId> = graph.neighbors_iter(nei)?.collect();
             nei_neis.reverse();
             stack.push_back((nei, 0, nei_neis));
         } else {
@@ -143,7 +143,7 @@ pub fn dfs_tree(graph: &Graph, root: VertexId) -> IgraphResult<DfsTree> {
 /// ```
 pub fn dfs(graph: &Graph, root: VertexId) -> IgraphResult<Vec<VertexId>> {
     // Validate root via the neighbour lookup; surfaces VertexOutOfRange.
-    let _ = graph.neighbors(root)?;
+    graph.neighbors_iter(root)?;
 
     let n = graph.vcount();
     let mut visited = vec![false; n as usize];
@@ -161,7 +161,7 @@ pub fn dfs(graph: &Graph, root: VertexId) -> IgraphResult<Vec<VertexId>> {
     // `Graph.dfs`). Concretely, igraph C's lazy adjacency list yields
     // neighbours in opposite order to `igraph_neighbors` for DFS;
     // pre-reversing here keeps our DFS in lockstep with both.
-    let mut root_neis = graph.neighbors(root)?;
+    let mut root_neis: Vec<VertexId> = graph.neighbors_iter(root)?.collect();
     root_neis.reverse();
     stack.push_back((root, 0, root_neis));
 
@@ -185,7 +185,7 @@ pub fn dfs(graph: &Graph, root: VertexId) -> IgraphResult<Vec<VertexId>> {
             stack[last].1 = next_cursor;
             visited[nei as usize] = true;
             order.push(nei);
-            let mut nei_neis = graph.neighbors(nei)?;
+            let mut nei_neis: Vec<VertexId> = graph.neighbors_iter(nei)?.collect();
             nei_neis.reverse();
             stack.push_back((nei, 0, nei_neis));
         } else {
@@ -250,7 +250,7 @@ pub struct DfsSimple {
 /// assert_eq!(r.dist[2], Some(2));
 /// ```
 pub fn dfs_simple(graph: &Graph, root: VertexId, mode: DfsMode) -> IgraphResult<DfsSimple> {
-    graph.neighbors(root)?; // validate root
+    graph.neighbors_iter(root)?; // validate root
 
     let n = graph.vcount();
     let n_us = n as usize;
@@ -276,7 +276,7 @@ pub fn dfs_simple(graph: &Graph, root: VertexId, mode: DfsMode) -> IgraphResult<
                     combined.extend(graph.in_neighbors_vec(v)?);
                     Ok(combined)
                 } else {
-                    graph.neighbors(v)
+                    Ok(graph.neighbors_iter(v)?.collect())
                 }
             }
         }

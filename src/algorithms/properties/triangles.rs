@@ -260,8 +260,7 @@ fn per_vertex_triangle_stats(graph: &Graph) -> IgraphResult<(Vec<u64>, Vec<u64>)
 
     let mut adj: Vec<Vec<VertexId>> = Vec::with_capacity(n_us);
     for v in 0..n {
-        let raw = graph.neighbors(v)?;
-        let mut simple: Vec<VertexId> = raw.into_iter().filter(|&u| u != v).collect();
+        let mut simple: Vec<VertexId> = graph.neighbors_iter(v)?.filter(|&u| u != v).collect();
         simple.sort_unstable();
         simple.dedup();
         adj.push(simple);
@@ -437,8 +436,7 @@ fn triangles_and_triples(graph: &Graph) -> IgraphResult<(u64, u64)> {
     // dedupe each list so the `if v2 >= v1: break` early-out works.
     let mut adj: Vec<Vec<VertexId>> = Vec::with_capacity(n_us);
     for v in 0..n {
-        let raw = graph.neighbors(v)?;
-        let mut simple: Vec<VertexId> = raw.into_iter().filter(|&u| u != v).collect();
+        let mut simple: Vec<VertexId> = graph.neighbors_iter(v)?.filter(|&u| u != v).collect();
         simple.sort_unstable();
         simple.dedup();
         adj.push(simple);

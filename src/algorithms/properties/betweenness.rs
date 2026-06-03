@@ -83,7 +83,7 @@ pub fn betweenness(graph: &Graph) -> IgraphResult<Vec<f64>> {
 
         while let Some(v) = queue.pop_front() {
             stack.push(v);
-            for w in graph.neighbors(v)? {
+            for w in graph.neighbors_iter(v)? {
                 if dist[w as usize] < 0 {
                     queue.push_back(w);
                     dist[w as usize] = dist[v as usize] + 1;

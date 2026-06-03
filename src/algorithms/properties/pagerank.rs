@@ -67,23 +67,8 @@ pub fn pagerank(graph: &Graph) -> IgraphResult<Vec<f64>> {
     // (each edge contributes both directions).
     let n_f = f64::from(n);
     let mut out_deg = vec![0u64; n_us];
-    if directed {
-        for v in 0..n {
-            let v_us = v as usize;
-            // Count out-edges of v: use Graph's pub(crate) helper via neighbors()
-            // (which returns out-only for directed).
-            let nbrs = graph.neighbors(v)?;
-            out_deg[v_us] = nbrs.len() as u64;
-        }
-    } else {
-        for v in 0..n {
-            let v_us = v as usize;
-            let nbrs = graph.neighbors(v)?;
-            // For undirected, neighbors() returns each incident edge once
-            // (LOOPS_TWICE for self-loops). The "out degree" for PageRank
-            // is the total degree.
-            out_deg[v_us] = nbrs.len() as u64;
-        }
+    for v in 0..n {
+        out_deg[v as usize] = graph.neighbors_iter(v)?.len() as u64;
     }
 
     // Build the in-adjacency: for each edge u → v (or u-v undirected, both
