@@ -3707,6 +3707,1283 @@ impl Graph {
     pub fn spanner(&self, stretch: f64) -> IgraphResult<Vec<u32>> {
         crate::algorithms::paths::spanner::spanner(self, stretch, None)
     }
+
+    // ── Graph recognizers ─────────────────────────────────────────
+
+    /// Check whether this graph is acyclic (a DAG for directed, forest for undirected).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let tree = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(tree.is_acyclic());
+    /// ```
+    pub fn is_acyclic(&self) -> bool {
+        crate::algorithms::properties::is_acyclic::is_acyclic(self)
+    }
+
+    /// Check whether this graph is an apex forest.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(g.is_apex_forest().unwrap());
+    /// ```
+    pub fn is_apex_forest(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_apex_forest::is_apex_forest(self)
+    }
+
+    /// Check whether this graph is an apex tree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(g.is_apex_tree().unwrap());
+    /// ```
+    pub fn is_apex_tree(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_apex_tree::is_apex_tree(self)
+    }
+
+    /// Check whether this graph is banner-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_banner_free().unwrap());
+    /// ```
+    pub fn is_banner_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_banner_free::is_banner_free(self)
+    }
+
+    /// Check whether this graph is a biclique.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,2), (0,3), (1,2), (1,3)], false, None).unwrap();
+    /// assert!(g.is_biclique().unwrap());
+    /// ```
+    pub fn is_biclique(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_biclique::is_biclique(self)
+    }
+
+    /// Check whether this graph is biregular.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,2), (0,3), (1,2), (1,3)], false, None).unwrap();
+    /// assert!(g.is_biregular().unwrap());
+    /// ```
+    pub fn is_biregular(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_biregular::is_biregular(self)
+    }
+
+    /// Check whether this graph is a block graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_block_graph().unwrap());
+    /// ```
+    pub fn is_block_graph(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_block::is_block_graph(self)
+    }
+
+    /// Check whether this graph is bowtie-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(g.is_bowtie_free().unwrap());
+    /// ```
+    pub fn is_bowtie_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_bowtie_free::is_bowtie_free(self)
+    }
+
+    /// Check whether this graph is bull-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_bull_free().unwrap());
+    /// ```
+    pub fn is_bull_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_bull_free::is_bull_free(self)
+    }
+
+    /// Check whether this graph is C4-free (contains no 4-cycle).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_c4_free().unwrap());
+    /// ```
+    pub fn is_c4_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_c4_free::is_c4_free(self)
+    }
+
+    /// Check whether this graph is C5-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_c5_free().unwrap());
+    /// ```
+    pub fn is_c5_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_c5_free::is_c5_free(self)
+    }
+
+    /// Check whether this graph is a cactus graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_cactus_graph().unwrap());
+    /// ```
+    pub fn is_cactus_graph(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_cactus::is_cactus_graph(self)
+    }
+
+    /// Check whether this graph is a caterpillar.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (1,3)], false, None).unwrap();
+    /// assert!(g.is_caterpillar().unwrap());
+    /// ```
+    pub fn is_caterpillar(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_caterpillar::is_caterpillar(self)
+    }
+
+    /// Check whether this graph is a chain graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,2), (0,3), (1,3)], false, None).unwrap();
+    /// assert!(g.is_chain_graph().unwrap());
+    /// ```
+    pub fn is_chain_graph(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_chain_graph::is_chain_graph(self)
+    }
+
+    /// Check whether this graph is chordal bipartite.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,2), (1,2)], false, None).unwrap();
+    /// assert!(g.is_chordal_bipartite().unwrap());
+    /// ```
+    pub fn is_chordal_bipartite(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_chordal_bipartite::is_chordal_bipartite(self)
+    }
+
+    /// Check whether this graph is claw-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_claw_free().unwrap());
+    /// ```
+    pub fn is_claw_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_claw_free::is_claw_free(self)
+    }
+
+    /// Check whether this graph is a cluster graph (disjoint union of cliques).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1)], false, None).unwrap();
+    /// assert!(g.is_cluster_graph().unwrap());
+    /// ```
+    pub fn is_cluster_graph(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_cluster::is_cluster_graph(self)
+    }
+
+    /// Check whether this graph is co-bipartite.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1)], false, None).unwrap();
+    /// assert!(g.is_co_bipartite().unwrap());
+    /// ```
+    pub fn is_co_bipartite(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_co_bipartite::is_co_bipartite(self)
+    }
+
+    /// Check whether this graph is co-chordal.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_co_chordal().unwrap());
+    /// ```
+    pub fn is_co_chordal(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_co_chordal::is_co_chordal(self)
+    }
+
+    /// Check whether this graph is a complete graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_complete().unwrap());
+    /// ```
+    pub fn is_complete(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_complete::is_complete(self)
+    }
+
+    /// Check whether this graph is a complete bipartite graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,2), (0,3), (1,2), (1,3)], false, None).unwrap();
+    /// assert!(g.is_complete_bipartite().unwrap());
+    /// ```
+    pub fn is_complete_bipartite(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_complete_bipartite::is_complete_bipartite(self)
+    }
+
+    /// Check whether this graph is cricket-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_cricket_free().unwrap());
+    /// ```
+    pub fn is_cricket_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_cricket_free::is_cricket_free(self)
+    }
+
+    /// Check whether this graph is cubic (3-regular).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, full_graph};
+    ///
+    /// let g = full_graph(4, false, false).unwrap();
+    /// assert!(g.is_cubic().unwrap());
+    /// ```
+    pub fn is_cubic(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_cubic::is_cubic(self)
+    }
+
+    /// Check whether this graph is a cycle.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, cycle_graph};
+    ///
+    /// let g = cycle_graph(5, false, false).unwrap();
+    /// assert!(g.is_cycle().unwrap());
+    /// ```
+    pub fn is_cycle(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_cycle::is_cycle(self)
+    }
+
+    /// Check whether this graph is dart-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_dart_free().unwrap());
+    /// ```
+    pub fn is_dart_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_dart_free::is_dart_free(self)
+    }
+
+    /// Check whether this graph is diamond-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_diamond_free().unwrap());
+    /// ```
+    pub fn is_diamond_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_diamond_free::is_diamond_free(self)
+    }
+
+    /// Check whether this graph is distance-hereditary.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(g.is_distance_hereditary().unwrap());
+    /// ```
+    pub fn is_distance_hereditary(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_distance_hereditary::is_distance_hereditary(self)
+    }
+
+    /// Check whether this graph is Eulerian.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let class = g.is_eulerian().unwrap();
+    /// assert!(class.has_cycle);
+    /// ```
+    pub fn is_eulerian(
+        &self,
+    ) -> IgraphResult<crate::algorithms::paths::eulerian::EulerianClassification> {
+        crate::algorithms::paths::eulerian::is_eulerian(self)
+    }
+
+    /// Check whether this graph is fork-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_fork_free().unwrap());
+    /// ```
+    pub fn is_fork_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_fork_free::is_fork_free(self)
+    }
+
+    /// Check whether this graph is gem-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(g.is_gem_free().unwrap());
+    /// ```
+    pub fn is_gem_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_gem_free::is_gem_free(self)
+    }
+
+    /// Check whether this graph is geodetic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(g.is_geodetic().unwrap());
+    /// ```
+    pub fn is_geodetic(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_geodetic::is_geodetic(self)
+    }
+
+    /// Check whether this graph is house-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_house_free().unwrap());
+    /// ```
+    pub fn is_house_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_house_free::is_house_free(self)
+    }
+
+    /// Check whether this graph is k-degenerate.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(g.is_k_degenerate(1).unwrap());
+    /// ```
+    pub fn is_k_degenerate(&self, k: u32) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_k_degenerate::is_k_degenerate(self, k)
+    }
+
+    /// Check whether this graph is a lobster.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// assert!(g.is_lobster().unwrap());
+    /// ```
+    pub fn is_lobster(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_lobster::is_lobster(self)
+    }
+
+    /// Check whether this graph is net-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_net_free().unwrap());
+    /// ```
+    pub fn is_net_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_net_free::is_net_free(self)
+    }
+
+    /// Check whether this graph is P5-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_p5_free().unwrap());
+    /// ```
+    pub fn is_p5_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_p5_free::is_p5_free(self)
+    }
+
+    /// Check whether this graph is a path.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// assert!(g.is_path().unwrap());
+    /// ```
+    pub fn is_path(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_path::is_path(self)
+    }
+
+    /// Check whether this graph is paw-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_paw_free().unwrap());
+    /// ```
+    pub fn is_paw_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_paw_free::is_paw_free(self)
+    }
+
+    /// Check whether this graph is a proper interval graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(g.is_proper_interval().unwrap());
+    /// ```
+    pub fn is_proper_interval(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_proper_interval::is_proper_interval(self)
+    }
+
+    /// Check whether this graph is a pseudo-forest.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_pseudo_forest().unwrap());
+    /// ```
+    pub fn is_pseudo_forest(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_pseudo_forest::is_pseudo_forest(self)
+    }
+
+    /// Check whether this graph is Ptolemaic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(g.is_ptolemaic().unwrap());
+    /// ```
+    pub fn is_ptolemaic(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_ptolemaic::is_ptolemaic(self)
+    }
+
+    /// Check whether this graph is self-complementary.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // P_4 (path on 4 vertices) is self-complementary
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// assert!(g.is_self_complementary().unwrap());
+    /// ```
+    pub fn is_self_complementary(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_self_complementary::is_self_complementary(self)
+    }
+
+    /// Check whether this graph is semicomplete.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], true, None).unwrap();
+    /// assert!(g.is_semicomplete().unwrap());
+    /// ```
+    pub fn is_semicomplete(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_semicomplete::is_semicomplete(self)
+    }
+
+    /// Check whether this graph is a spider.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (0,3)], false, None).unwrap();
+    /// assert!(g.is_spider().unwrap());
+    /// ```
+    pub fn is_spider(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_spider::is_spider(self)
+    }
+
+    /// Check whether this graph is a split graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,2), (2,3)], false, None).unwrap();
+    /// assert!(g.is_split_graph().unwrap());
+    /// ```
+    pub fn is_split_graph(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_split::is_split_graph(self)
+    }
+
+    /// Check whether this graph is a star.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (0,3)], false, None).unwrap();
+    /// assert!(g.is_star().unwrap());
+    /// ```
+    pub fn is_star(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_star::is_star(self)
+    }
+
+    /// Check whether this graph is strongly chordal.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_strongly_chordal().unwrap());
+    /// ```
+    pub fn is_strongly_chordal(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_strongly_chordal::is_strongly_chordal(self)
+    }
+
+    /// Check whether this graph is a threshold graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,2)], false, None).unwrap();
+    /// assert!(g.is_threshold_graph().unwrap());
+    /// ```
+    pub fn is_threshold_graph(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_threshold::is_threshold_graph(self)
+    }
+
+    /// Check whether this graph is a tournament.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], true, None).unwrap();
+    /// assert!(g.is_tournament().unwrap());
+    /// ```
+    pub fn is_tournament(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_tournament::is_tournament(self)
+    }
+
+    /// Check whether this graph is triangle-free.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// assert!(g.is_triangle_free().unwrap());
+    /// ```
+    pub fn is_triangle_free(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_triangle_free::is_triangle_free(self)
+    }
+
+    /// Check whether this graph is trivially perfect.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,2)], false, None).unwrap();
+    /// assert!(g.is_trivially_perfect().unwrap());
+    /// ```
+    pub fn is_trivially_perfect(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_trivially_perfect::is_trivially_perfect(self)
+    }
+
+    /// Check whether this graph is unicyclic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_unicyclic().unwrap());
+    /// ```
+    pub fn is_unicyclic(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_unicyclic::is_unicyclic(self)
+    }
+
+    /// Check whether this graph is a wheel.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // W_4: center 0 connected to rim {1,2,3}, rim forms a cycle
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (0,2), (0,3), (1,2), (2,3), (3,1)],
+    ///     false, None
+    /// ).unwrap();
+    /// assert!(g.is_wheel().unwrap());
+    /// ```
+    pub fn is_wheel(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_wheel::is_wheel(self)
+    }
+
+    /// Check whether this graph satisfies Dirac's condition for Hamiltonicity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, full_graph};
+    ///
+    /// let g = full_graph(5, false, false).unwrap();
+    /// assert!(g.satisfies_dirac().unwrap());
+    /// ```
+    pub fn satisfies_dirac(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::satisfies_dirac::satisfies_dirac(self)
+    }
+
+    /// Check whether this graph satisfies Ore's condition for Hamiltonicity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, full_graph};
+    ///
+    /// let g = full_graph(5, false, false).unwrap();
+    /// assert!(g.satisfies_ore().unwrap());
+    /// ```
+    pub fn satisfies_ore(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::satisfies_ore::satisfies_ore(self)
+    }
+
+    // ── Centrality variants ───────────────────────────────────────
+
+    /// Compute edge betweenness centrality.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let eb = g.edge_betweenness().unwrap();
+    /// assert_eq!(eb.len(), 3);
+    /// ```
+    pub fn edge_betweenness(&self) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::edge_betweenness::edge_betweenness(self)
+    }
+
+    /// Compute betweenness centrality with a distance cutoff.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let bc = g.betweenness_cutoff(2).unwrap();
+    /// assert_eq!(bc.len(), 4);
+    /// ```
+    pub fn betweenness_cutoff(&self, cutoff: u32) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::betweenness_cutoff::betweenness_cutoff(self, cutoff)
+    }
+
+    /// Compute weighted betweenness centrality.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let bc = g.betweenness_weighted(&[1.0, 2.0]).unwrap();
+    /// assert_eq!(bc.len(), 3);
+    /// ```
+    pub fn betweenness_weighted(&self, weights: &[f64]) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::betweenness_weighted::betweenness_weighted(self, weights)
+    }
+
+    /// Compute weighted closeness centrality.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let cc = g.closeness_weighted(&[1.0, 2.0]).unwrap();
+    /// assert_eq!(cc.len(), 3);
+    /// ```
+    pub fn closeness_weighted(&self, weights: &[f64]) -> IgraphResult<Vec<Option<f64>>> {
+        crate::algorithms::properties::closeness_weighted::closeness_weighted(self, weights)
+    }
+
+    /// Compute edge betweenness centrality with a distance cutoff.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let eb = g.edge_betweenness_cutoff(2).unwrap();
+    /// assert_eq!(eb.len(), 3);
+    /// ```
+    pub fn edge_betweenness_cutoff(&self, cutoff: u32) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::edge_betweenness_cutoff::edge_betweenness_cutoff(
+            self, cutoff,
+        )
+    }
+
+    /// Compute weighted edge betweenness centrality.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let eb = g.edge_betweenness_weighted(&[1.0, 2.0]).unwrap();
+    /// assert_eq!(eb.len(), 2);
+    /// ```
+    pub fn edge_betweenness_weighted(&self, weights: &[f64]) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::edge_betweenness_weighted::edge_betweenness_weighted(
+            self, weights,
+        )
+    }
+
+    /// Compute weighted harmonic centrality.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let hc = g.harmonic_centrality_weighted(&[1.0, 2.0]).unwrap();
+    /// assert_eq!(hc.len(), 3);
+    /// ```
+    pub fn harmonic_centrality_weighted(&self, weights: &[f64]) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::harmonic_weighted::harmonic_centrality_weighted(
+            self, weights,
+        )
+    }
+
+    /// Compute weighted `PageRank`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let pr = g.pagerank_weighted(&[1.0, 2.0]).unwrap();
+    /// assert_eq!(pr.len(), 3);
+    /// ```
+    pub fn pagerank_weighted(&self, weights: &[f64]) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::pagerank_weighted::pagerank_weighted(self, weights)
+    }
+
+    // ── Connectivity & structural ─────────────────────────────────
+
+    /// Compute the cohesive block structure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (2,3), (3,4), (4,5), (5,3)],
+    ///     false, None
+    /// ).unwrap();
+    /// let blocks = g.cohesive_blocks().unwrap();
+    /// assert!(!blocks.blocks.is_empty());
+    /// ```
+    pub fn cohesive_blocks(
+        &self,
+    ) -> IgraphResult<crate::algorithms::connectivity::cohesive_blocks::CohesiveBlocks> {
+        crate::algorithms::connectivity::cohesive_blocks::cohesive_blocks(self)
+    }
+
+    /// Count reachable vertices from each vertex.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let counts = g.count_reachable().unwrap();
+    /// assert_eq!(counts, vec![3, 3, 3]);
+    /// ```
+    pub fn count_reachable(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::connectivity::reachability::count_reachable(self)
+    }
+
+    /// Compute the reachability matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], true, None).unwrap();
+    /// let mat = g.reachability_matrix().unwrap();
+    /// assert!(mat[0][2]);
+    /// assert!(!mat[2][0]);
+    /// ```
+    pub fn reachability_matrix(&self) -> IgraphResult<Vec<Vec<bool>>> {
+        crate::algorithms::connectivity::reachability_matrix::reachability_matrix(self)
+    }
+
+    /// Compute the transitive closure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], true, None).unwrap();
+    /// let tc = g.transitive_closure().unwrap();
+    /// assert!(tc.has_edge(0, 2));
+    /// ```
+    pub fn transitive_closure(&self) -> IgraphResult<Graph> {
+        crate::algorithms::connectivity::transitive_closure::transitive_closure(self)
+    }
+
+    // ── Flow & cuts ───────────────────────────────────────────────
+
+    /// Compute the global minimum cut.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (0,2), (1,3), (2,3)], false, None
+    /// ).unwrap();
+    /// let mc = g.mincut(None).unwrap();
+    /// assert!(mc.value >= 2.0 - 1e-10);
+    /// ```
+    pub fn mincut(
+        &self,
+        capacity: Option<&[f64]>,
+    ) -> IgraphResult<crate::algorithms::flow::mincut::Mincut> {
+        crate::algorithms::flow::mincut::mincut(self, capacity)
+    }
+
+    /// Compute the global minimum cut value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (0,2), (1,3), (2,3)], false, None
+    /// ).unwrap();
+    /// let val = g.mincut_value(None).unwrap();
+    /// assert!(val >= 2.0 - 1e-10);
+    /// ```
+    pub fn mincut_value(&self, capacity: Option<&[f64]>) -> IgraphResult<f64> {
+        crate::algorithms::flow::mincut_value::mincut_value(self, capacity)
+    }
+
+    /// Compute the Gomory-Hu tree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (0,2), (1,2), (1,3)], false, None
+    /// ).unwrap();
+    /// let tree = g.gomory_hu_tree(None).unwrap();
+    /// assert_eq!(tree.tree.vcount(), 4);
+    /// ```
+    pub fn gomory_hu_tree(
+        &self,
+        capacity: Option<&[f64]>,
+    ) -> IgraphResult<crate::algorithms::flow::gomory_hu_tree::GomoryHuTree> {
+        crate::algorithms::flow::gomory_hu_tree::gomory_hu_tree(self, capacity)
+    }
+
+    /// Enumerate all minimum s-t cuts.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (0,2), (1,3), (2,3)], true, None
+    /// ).unwrap();
+    /// let cuts = g.all_st_cuts(0, 3).unwrap();
+    /// assert!(!cuts.cuts.is_empty());
+    /// ```
+    pub fn all_st_cuts(
+        &self,
+        source: VertexId,
+        target: VertexId,
+    ) -> IgraphResult<crate::algorithms::flow::all_st_cuts::StCuts> {
+        crate::algorithms::flow::all_st_cuts::all_st_cuts(self, source, target)
+    }
+
+    /// Count edge-disjoint paths between two vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (0,2), (1,3), (2,3)], false, None
+    /// ).unwrap();
+    /// let count = g.edge_disjoint_paths(0, 3).unwrap();
+    /// assert_eq!(count, 2);
+    /// ```
+    pub fn edge_disjoint_paths(&self, source: VertexId, target: VertexId) -> IgraphResult<i64> {
+        crate::algorithms::flow::edge_disjoint_paths::edge_disjoint_paths(self, source, target)
+    }
+
+    // ── Paths & distances ─────────────────────────────────────────
+
+    /// Compute BFS distances from a source vertex.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let dist = g.distances(0).unwrap();
+    /// assert_eq!(dist[3], Some(3));
+    /// ```
+    pub fn distances(&self, source: VertexId) -> IgraphResult<Vec<Option<u32>>> {
+        crate::algorithms::paths::distances::distances(self, source)
+    }
+
+    /// Compute an Eulerian path if one exists.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let path = g.eulerian_path().unwrap();
+    /// assert!(path.is_some());
+    /// ```
+    pub fn eulerian_path(&self) -> IgraphResult<Option<Vec<u32>>> {
+        crate::algorithms::paths::eulerian_construct::eulerian_path(self)
+    }
+
+    /// Compute mean geodesic distance.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let d = g.mean_distance().unwrap();
+    /// assert!(d.is_some());
+    /// ```
+    pub fn mean_distance(&self) -> IgraphResult<Option<f64>> {
+        crate::algorithms::properties::basic::mean_distance(self)
+    }
+
+    /// Topological sort of a directed graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], true, None).unwrap();
+    /// let order = g.topological_sorting().unwrap();
+    /// assert_eq!(order, vec![0, 1, 2]);
+    /// ```
+    pub fn topological_sorting(&self) -> IgraphResult<Vec<VertexId>> {
+        crate::algorithms::properties::topological_sorting::topological_sorting(
+            self,
+            crate::algorithms::paths::dijkstra::DijkstraMode::Out,
+        )
+    }
+
+    /// List all triangles in the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let tris = g.list_triangles().unwrap();
+    /// assert_eq!(tris.len(), 1);
+    /// ```
+    pub fn list_triangles(&self) -> IgraphResult<Vec<(u32, u32, u32)>> {
+        crate::algorithms::properties::list_triangles::list_triangles(self)
+    }
+
+    /// Compute the degree distribution.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let dist = g.degree_distribution().unwrap();
+    /// assert!(!dist.is_empty());
+    /// ```
+    pub fn degree_distribution(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::properties::degree_distribution::degree_distribution(
+            self,
+            crate::algorithms::properties::degree::DegreeMode::All,
+        )
+    }
+
+    /// Get the edge list as (source, target) pairs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let edges = g.get_edgelist().unwrap();
+    /// assert_eq!(edges.len(), 2);
+    /// ```
+    pub fn get_edgelist(&self) -> IgraphResult<Vec<(VertexId, VertexId)>> {
+        crate::algorithms::properties::edgelist::get_edgelist(self)
+    }
+
+    /// Compute the graph's regularity (degree if regular, None otherwise).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert_eq!(g.regularity().unwrap(), Some(2));
+    /// ```
+    pub fn regularity(&self) -> IgraphResult<Option<u32>> {
+        crate::algorithms::properties::is_regular::regularity(self)
+    }
+
+    /// Find a cycle in the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let result = g.find_cycle().unwrap();
+    /// assert!(!result.vertices.is_empty());
+    /// ```
+    pub fn find_cycle(&self) -> IgraphResult<crate::algorithms::cycles::CycleResult> {
+        crate::algorithms::cycles::find_cycle(self, crate::algorithms::cycles::CycleMode::All)
+    }
+
+    /// Compute the joint degree matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let jdm = g.joint_degree_matrix(None).unwrap();
+    /// assert!(!jdm.is_empty());
+    /// ```
+    pub fn joint_degree_matrix(&self, weights: Option<&[f64]>) -> IgraphResult<Vec<Vec<f64>>> {
+        crate::algorithms::properties::joint_degree_matrix::joint_degree_matrix(self, weights)
+    }
+
+    /// Compute the minimum dominating set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let dom = g.minimum_dominating_set().unwrap();
+    /// assert!(!dom.is_empty());
+    /// ```
+    pub fn minimum_dominating_set(&self) -> IgraphResult<Vec<VertexId>> {
+        crate::algorithms::dominating_set::minimum_dominating_set(self)
+    }
+
+    /// Compute the k-th power of this graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let g2 = g.graph_power(2).unwrap();
+    /// assert!(g2.has_edge(0, 2));
+    /// ```
+    pub fn graph_power(&self, order: u32) -> IgraphResult<Graph> {
+        crate::algorithms::operators::connect_neighborhood::graph_power(self, order)
+    }
+
+    /// Compute the trussness of each edge.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (2,3)], false, None
+    /// ).unwrap();
+    /// let tr = g.trussness().unwrap();
+    /// assert_eq!(tr.len(), g.ecount());
+    /// ```
+    pub fn trussness(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::properties::trussness::trussness(self)
+    }
 }
 
 impl std::fmt::Display for Graph {
