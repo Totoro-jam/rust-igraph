@@ -134,6 +134,46 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   8 categories: construction, structural queries, centrality, community
   detection, shortest paths, generators, isomorphism, graph operations.
 - Total public methods on `Graph`: 276 (up from 170).
+- **I/O convenience methods on `Graph`** — read/write shortcuts that hide
+  wrapper types:
+  - `from_ncol_file()` / `to_ncol_file()`, `from_lgl_file()` /
+    `to_lgl_file()`, `from_leda_file()` / `to_leda_file()`,
+    `from_dl_file()` / `to_dl_file()`, `from_dimacs_file()`.
+- **30 structural/analysis convenience methods** on `Graph`:
+  - Cliques: `largest_cliques()`, `maximal_cliques_count()`,
+    `clique_size_hist()`
+  - Independent sets: `maximal_independent_vertex_sets()`,
+    `largest_independent_vertex_sets()`
+  - Coloring: `edge_coloring_greedy()`, `chromatic_number_upper_bound()`
+  - Clustering: `transitivity_avglocal()`
+  - Degree: `mean_degree()`, `degeneracy()`, `convergence_degree()`,
+    `avg_nearest_neighbor_degree()`
+  - Connectivity: `biconnected_components()`,
+    `minimum_size_separators()`, `all_minimal_st_separators()`,
+    `adhesion()`, `cohesion()`, `count_mutual()`
+  - Traversal: `bfs_tree()`, `dfs_tree()`
+  - Efficiency: `average_local_efficiency()`
+  - Coupling: `bibcoupling()`
+  - Predicates: `is_perfect()`, `is_regular()`, `is_strongly_regular()`,
+    `is_weakly_chordal()`, `is_well_covered()`, `is_windmill()`,
+    `is_complete_multipartite()`, `count_loops()`
+- Total public methods on `Graph`: 315 (up from 276).
+- **31 more convenience methods on `Graph`** (batch 5):
+  - Paths: `distances_all()`, `distances_from()`, `get_shortest_paths()`,
+    `get_all_shortest_paths()`, `johnson_distances()`, `widest_paths()`,
+    `graph_center()`, `path_length_hist()`, `eulerian_cycle()`
+  - Centrality: `hub_and_authority_scores()`, `strength()`, `knnk()`,
+    `transitivity_barrat()`, `local_scan_1()`, `max_degree_vertex()`
+  - Structure: `maximum_cardinality_search()`, `has_loop()`,
+    `has_mutual()`, `is_multiple()`, `is_mutual()`, `isoclass()`
+  - Community: `modularity()`
+  - Constructors: `mycielskian()`, `to_prufer()`
+  - Connectivity: `bond_percolation()`, `site_percolation()`,
+    `reachability()`
+  - Neighborhoods: `neighborhood_graphs()`
+  - Cliques: `weighted_clique_number()`
+  - Layout: `layout_mds()`, `layout_sphere()`
+- Total public methods on `Graph`: 346 (up from 315).
 
 - **I/O completeness** — all major graph formats now support both reading
   and writing:

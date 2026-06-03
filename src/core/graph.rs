@@ -6237,6 +6237,465 @@ impl Graph {
     pub fn diversity(&self, weights: &[f64]) -> IgraphResult<Vec<f64>> {
         crate::algorithms::properties::strength::diversity(self, weights)
     }
+
+    // ---- Paths (batch 5) ----
+
+    /// All-pairs shortest-path distances (unweighted BFS).
+    ///
+    /// Returns a flat `n*n` vector in row-major order where
+    /// `result[i*n + j]` is the distance from vertex `i` to `j`,
+    /// or `None` if unreachable.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let d = g.distances_all().unwrap();
+    /// assert_eq!(d[0 * 3 + 2], Some(2)); // path 0→1→2
+    /// ```
+    pub fn distances_all(&self) -> IgraphResult<Vec<Option<u32>>> {
+        crate::algorithms::paths::distances_all::distances_all(self)
+    }
+
+    /// Shortest-path distances from a set of source vertices.
+    ///
+    /// Returns a flat `sources.len() * n` vector in row-major order.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let d = g.distances_from(&[0]).unwrap();
+    /// assert_eq!(d[3], Some(3)); // vertex 3 is 3 hops from vertex 0
+    /// ```
+    pub fn distances_from(&self, sources: &[VertexId]) -> IgraphResult<Vec<Option<u32>>> {
+        crate::algorithms::paths::distances_from::distances_from(self, sources)
+    }
+
+    /// Shortest-path trees from a source vertex (one path per target).
+    ///
+    /// Returns a vector of vertex sequences, one per target vertex.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let paths = g.get_shortest_paths(0).unwrap();
+    /// assert_eq!(paths[2], vec![0, 1, 2]);
+    /// ```
+    pub fn get_shortest_paths(&self, source: VertexId) -> IgraphResult<Vec<Vec<VertexId>>> {
+        crate::algorithms::paths::shortest_paths::get_shortest_paths(self, source)
+    }
+
+    /// All shortest paths from a source vertex.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(0,2),(1,3),(2,3)], false, None).unwrap();
+    /// let asp = g.get_all_shortest_paths(0).unwrap();
+    /// // Two shortest paths from 0 to 3: 0-1-3 and 0-2-3
+    /// assert_eq!(asp.paths[3].len(), 2);
+    /// ```
+    pub fn get_all_shortest_paths(
+        &self,
+        source: VertexId,
+    ) -> IgraphResult<crate::AllShortestPaths> {
+        crate::algorithms::paths::all_shortest_paths::get_all_shortest_paths(self, source)
+    }
+
+    /// Johnson's algorithm for all-pairs shortest paths with edge weights.
+    ///
+    /// Handles negative weights (but not negative cycles).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let d = g.johnson_distances(&[1.0, 2.0]).unwrap();
+    /// assert!((d[0][2].unwrap() - 3.0).abs() < 1e-10);
+    /// ```
+    pub fn johnson_distances(&self, weights: &[f64]) -> IgraphResult<Vec<Vec<Option<f64>>>> {
+        crate::algorithms::paths::johnson::johnson_distances(self, weights)
+    }
+
+    /// Widest (bottleneck) paths from a source vertex.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let wp = g.widest_paths(0, &[10.0, 5.0]).unwrap();
+    /// assert!((wp.widths[2].unwrap() - 5.0).abs() < 1e-10);
+    /// ```
+    pub fn widest_paths(
+        &self,
+        from: VertexId,
+        weights: &[f64],
+    ) -> IgraphResult<crate::WidestPaths> {
+        crate::algorithms::paths::widest_path::widest_paths(self, from, weights)
+    }
+
+    /// Graph center — vertices with minimum eccentricity.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, cycle_graph};
+    ///
+    /// let g = cycle_graph(5, false, false).unwrap();
+    /// let center = g.graph_center().unwrap();
+    /// assert_eq!(center.len(), 5); // all vertices equidistant in a cycle
+    /// ```
+    pub fn graph_center(&self) -> IgraphResult<Vec<VertexId>> {
+        crate::algorithms::paths::graph_center::graph_center(
+            self,
+            crate::algorithms::paths::radii::EccMode::Out,
+        )
+    }
+
+    /// Path-length histogram of the graph.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let h = g.path_length_hist(false).unwrap();
+    /// assert!(!h.hist.is_empty());
+    /// ```
+    pub fn path_length_hist(&self, directed: bool) -> IgraphResult<crate::PathLengthHistResult> {
+        crate::algorithms::paths::histogram::path_length_hist(self, directed)
+    }
+
+    /// Find an Eulerian cycle (every edge visited exactly once, returning
+    /// to start).
+    ///
+    /// ```
+    /// use rust_igraph::cycle_graph;
+    ///
+    /// let g = cycle_graph(5, false, false).unwrap();
+    /// let cycle = g.eulerian_cycle().unwrap();
+    /// assert_eq!(cycle.len(), 5); // 5 edges in C5
+    /// ```
+    pub fn eulerian_cycle(&self) -> IgraphResult<Vec<EdgeId>> {
+        crate::algorithms::paths::eulerian_construct::eulerian_cycle(self)
+    }
+
+    // ---- Centrality / properties (batch 5) ----
+
+    /// HITS hub and authority scores.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], true, None).unwrap();
+    /// let hits = g.hub_and_authority_scores().unwrap();
+    /// assert_eq!(hits.hub.len(), 3);
+    /// ```
+    pub fn hub_and_authority_scores(&self) -> IgraphResult<crate::HitsScores> {
+        crate::algorithms::properties::hits::hub_and_authority_scores(self)
+    }
+
+    /// Weighted vertex degree (strength).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(0,2),(1,2)], false, None).unwrap();
+    /// let s = g.strength(&[1.0, 2.0, 3.0]).unwrap();
+    /// assert!((s[0] - 3.0).abs() < 1e-10); // edges 0-1 (w=1) + 0-2 (w=2)
+    /// ```
+    pub fn strength(&self, weights: &[f64]) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::strength::strength(self, weights)
+    }
+
+    /// Average nearest-neighbor degree by degree class (knn(k)).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let k = g.knnk().unwrap();
+    /// assert!(k.len() > 0);
+    /// ```
+    pub fn knnk(&self) -> IgraphResult<Vec<Option<f64>>> {
+        crate::algorithms::properties::knn::knnk(self)
+    }
+
+    /// Barrat's weighted clustering coefficient per vertex.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(0,2)], false, None).unwrap();
+    /// let t = g.transitivity_barrat(&[1.0, 1.0, 1.0]).unwrap();
+    /// assert!(t[0].unwrap() > 0.0);
+    /// ```
+    pub fn transitivity_barrat(&self, weights: &[f64]) -> IgraphResult<Vec<Option<f64>>> {
+        crate::algorithms::properties::triangles::transitivity_barrat(self, weights)
+    }
+
+    /// Local scan statistic (order 1) — triangle counts per vertex.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(0,2)], false, None).unwrap();
+    /// let s = g.local_scan_1(None).unwrap();
+    /// assert_eq!(s.len(), 3);
+    /// ```
+    pub fn local_scan_1(&self, weights: Option<&[f64]>) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::local_scan::local_scan_1(self, weights)
+    }
+
+    /// Maximum cardinality search ordering.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(0,2)], false, None).unwrap();
+    /// let mcs = g.maximum_cardinality_search().unwrap();
+    /// assert_eq!(mcs.alpha.len(), 3);
+    /// ```
+    pub fn maximum_cardinality_search(&self) -> IgraphResult<crate::McsResult> {
+        crate::algorithms::chordality::maximum_cardinality_search(self)
+    }
+
+    /// Vertex with the highest degree.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(0,2),(0,3),(1,2)], false, None).unwrap();
+    /// let v = g.max_degree_vertex().unwrap();
+    /// assert_eq!(v, Some(0)); // vertex 0 has degree 3
+    /// ```
+    pub fn max_degree_vertex(&self) -> IgraphResult<Option<VertexId>> {
+        crate::algorithms::properties::degree::max_degree_vertex(
+            self,
+            crate::algorithms::properties::degree::DegreeMode::All,
+        )
+    }
+
+    // ---- Graph predicates / queries (batch 5) ----
+
+    /// Whether the graph has at least one self-loop.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,1)], false, None).unwrap();
+    /// assert!(g.has_loop().unwrap());
+    /// ```
+    pub fn has_loop(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::multiplicity::has_loop(self)
+    }
+
+    /// Whether the graph has at least one pair of mutual (reciprocal) edges.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,0)], true, None).unwrap();
+    /// assert!(g.has_mutual(true).unwrap());
+    /// ```
+    pub fn has_mutual(&self, loops: bool) -> IgraphResult<bool> {
+        crate::algorithms::properties::mutual::has_mutual(self, loops)
+    }
+
+    /// Per-edge test: is each edge a multi-edge?
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(0,1),(1,2)], false, None).unwrap();
+    /// let m = g.is_multiple().unwrap();
+    /// assert!(m.iter().any(|&x| x)); // at least one multi-edge
+    /// ```
+    pub fn is_multiple(&self) -> IgraphResult<Vec<bool>> {
+        crate::algorithms::properties::multiplicity::is_multiple(self)
+    }
+
+    /// Per-edge test: is each edge mutual (has a reciprocal)?
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,0),(0,2)], true, None).unwrap();
+    /// let m = g.is_mutual(true).unwrap();
+    /// assert!(m[0]); // edge 0→1 has reciprocal 1→0
+    /// ```
+    pub fn is_mutual(&self, loops: bool) -> IgraphResult<Vec<bool>> {
+        crate::algorithms::properties::mutual::is_mutual(self, loops)
+    }
+
+    // ---- Community detection (batch 5) ----
+
+    /// Modularity of a given community assignment.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1),(1,2),(2,0),(3,4),(4,5),(5,3),(0,3)],
+    ///     false, None,
+    /// ).unwrap();
+    /// let q = g.modularity(&[0,0,0,1,1,1], 1.0).unwrap();
+    /// assert!(q.unwrap() > 0.0);
+    /// ```
+    pub fn modularity(&self, membership: &[u32], resolution: f64) -> IgraphResult<Option<f64>> {
+        crate::algorithms::community::modularity::modularity(self, membership, resolution)
+    }
+
+    // ---- Constructors / operators (batch 5) ----
+
+    /// Mycielskian — triangle-free graph with increasing chromatic number.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1)], false, None).unwrap();
+    /// let m = g.mycielskian(1).unwrap();
+    /// assert!(m.vcount() > g.vcount());
+    /// ```
+    pub fn mycielskian(&self, k: u32) -> IgraphResult<Graph> {
+        crate::algorithms::constructors::mycielskian::mycielskian(self, k)
+    }
+
+    /// Prüfer sequence of a labeled tree.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // Path graph 0-1-2-3 is a tree
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let seq = g.to_prufer().unwrap();
+    /// assert_eq!(seq.len(), 2); // n-2 elements for n=4
+    /// ```
+    pub fn to_prufer(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::constructors::prufer::to_prufer(self)
+    }
+
+    // ---- Connectivity / percolation (batch 5) ----
+
+    /// Bond (edge) percolation — add edges one by one and track components.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let p = g.bond_percolation(&[0, 1, 2]).unwrap();
+    /// assert_eq!(p.giant_size.len(), 3); // one snapshot per step
+    /// ```
+    pub fn bond_percolation(
+        &self,
+        edge_order: &[EdgeId],
+    ) -> IgraphResult<crate::EdgelistPercolation> {
+        crate::algorithms::connectivity::percolation::bond_percolation(self, edge_order)
+    }
+
+    /// Site (vertex) percolation — add vertices one by one and track components.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let p = g.site_percolation(&[0, 1, 2, 3]).unwrap();
+    /// assert_eq!(p.giant_size.len(), 4);
+    /// ```
+    pub fn site_percolation(
+        &self,
+        vertex_order: &[VertexId],
+    ) -> IgraphResult<crate::SitePercolation> {
+        crate::algorithms::connectivity::percolation::site_percolation(self, vertex_order)
+    }
+
+    /// Reachability matrix (transitive closure as a boolean matrix).
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, ReachabilityMode};
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], true, None).unwrap();
+    /// let r = g.reachability(ReachabilityMode::Out).unwrap();
+    /// assert!(r.is_reachable(0, 2)); // 0 can reach 2 transitively
+    /// ```
+    pub fn reachability(
+        &self,
+        mode: crate::ReachabilityMode,
+    ) -> IgraphResult<crate::ReachabilityResult> {
+        crate::algorithms::connectivity::reachability_scc::reachability(self, mode)
+    }
+
+    // ---- Neighborhoods (batch 5) ----
+
+    /// Induced subgraphs of k-hop neighborhoods around each vertex.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let nbrs = g.neighborhood_graphs(1).unwrap();
+    /// assert_eq!(nbrs.len(), 4); // one subgraph per vertex
+    /// ```
+    pub fn neighborhood_graphs(&self, order: i32) -> IgraphResult<Vec<Graph>> {
+        crate::algorithms::properties::neighborhood::neighborhood_graphs(self, order)
+    }
+
+    // ---- Cliques (batch 5) ----
+
+    /// Weighted clique number — maximum total weight of any clique.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(0,2)], false, None).unwrap();
+    /// let wc = g.weighted_clique_number(&[1.0, 2.0, 3.0]).unwrap();
+    /// assert!((wc - 6.0).abs() < 1e-10); // triangle, all 3 vertices
+    /// ```
+    pub fn weighted_clique_number(&self, vertex_weights: &[f64]) -> IgraphResult<f64> {
+        crate::algorithms::cliques::weighted_clique_number(self, vertex_weights)
+    }
+
+    // ---- Isomorphism (batch 5) ----
+
+    /// Isomorphism class of a small graph (up to 6 vertices).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let cls = g.isoclass().unwrap();
+    /// assert!(cls > 0);
+    /// ```
+    pub fn isoclass(&self) -> IgraphResult<u32> {
+        crate::algorithms::motifs::isoclass::isoclass(self)
+    }
+
+    // ---- Layout (batch 5) ----
+
+    /// Multidimensional scaling layout.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let pos = g.layout_mds(None).unwrap();
+    /// assert_eq!(pos.len(), 4);
+    /// ```
+    pub fn layout_mds(&self, dist: Option<&[Vec<f64>]>) -> IgraphResult<Vec<[f64; 2]>> {
+        crate::algorithms::layout::mds::layout_mds(self, dist)
+    }
+
+    /// Spherical layout (3D positions on a unit sphere).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let pos = g.layout_sphere();
+    /// assert_eq!(pos.len(), 3);
+    /// ```
+    pub fn layout_sphere(&self) -> Vec<(f64, f64, f64)> {
+        crate::algorithms::layout::simple::layout_sphere(self)
+    }
 }
 
 impl std::fmt::Display for Graph {
