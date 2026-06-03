@@ -1432,6 +1432,80 @@ impl Graph {
     }
 }
 
+// — Convenience methods delegating to free-function algorithms —
+
+impl Graph {
+    /// Compute the density of this graph.
+    ///
+    /// Density is the ratio of actual edges to possible edges.
+    /// Returns `None` for graphs with fewer than 2 vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let d = g.density().unwrap().unwrap();
+    /// assert!((d - 1.0).abs() < 1e-10); // K_3 is fully connected
+    /// ```
+    pub fn density(&self) -> IgraphResult<Option<f64>> {
+        crate::algorithms::properties::basic::density(self)
+    }
+
+    /// Check whether the graph is connected.
+    ///
+    /// For directed graphs this checks weak connectivity by default.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(g.is_connected().unwrap());
+    /// ```
+    pub fn is_connected(&self) -> IgraphResult<bool> {
+        crate::algorithms::connectivity::is_connected::is_connected(
+            self,
+            crate::algorithms::connectivity::is_connected::ConnectednessMode::Weak,
+        )
+    }
+
+    /// Check whether the graph is simple (no self-loops, no multi-edges).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert!(g.is_simple().unwrap());
+    /// ```
+    pub fn is_simple(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_simple::is_simple(self)
+    }
+
+    /// Compute connected components.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::new(4, false).unwrap();
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(2, 3).unwrap();
+    /// let cc = g.connected_components().unwrap();
+    /// assert_eq!(cc.count, 2);
+    /// ```
+    pub fn connected_components(
+        &self,
+    ) -> IgraphResult<crate::algorithms::connectivity::components::ConnectedComponents> {
+        crate::algorithms::connectivity::components::connected_components(self)
+    }
+}
+
 impl std::fmt::Display for Graph {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let kind = if self.directed {
