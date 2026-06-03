@@ -38,9 +38,8 @@ cargo build --benches
 # Doc build (catches broken doc links / missing exports)
 cargo doc --workspace --no-deps
 
-# WASM target compiles (default features must be wasm-friendly)
-cargo check --target wasm32-unknown-unknown --no-default-features \
-  --features faer-backend,bliss-rust 2>&1 || echo "(WASM check — non-blocking until faer-backend lands)"
+# WASM target compiles (zero external deps — pure Rust)
+cargo check --target wasm32-unknown-unknown 2>&1 || echo "(WASM check — install target with rustup target add wasm32-unknown-unknown)"
 
 # Cargo deny (license + advisories)
 cargo deny check 2>&1 || echo "(install cargo-deny if missing)"

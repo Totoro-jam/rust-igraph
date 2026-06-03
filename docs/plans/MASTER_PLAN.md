@@ -93,9 +93,8 @@ AWU 是本计划的"工作原子"。所有计时、跟踪、AI 调度都以 AWU 
 |------|------|--------------|
 | 许可证 | **GPL-2.0-or-later** | 允许直接参照翻译 igraph C 代码，工作量降至 1/3；与 igraph 同许可 |
 | 实现方式 | 纯 Rust 参照翻译 | 正确性继承 20 年验证；WASM 兼容；商业层后续以独立项目隔离 |
-| 线性代数主后端 | **faer 0.24+**（feature `faer-backend`，默认开启） | 纯 Rust、MIT、原生 EVD + sparse-linalg、性能优于 nalgebra |
-| 备选后端 | nalgebra 0.33（feature `nalgebra-backend`） | 给用户选择权 |
-| ARPACK 替代 | 三层分级：A=faer EVD（n≤50）/ B=自研 IRLM 大稀疏 / C=幂迭代（PageRank 默认） | 完全控制收敛行为；与 igraph 数值精确匹配 |
+| 线性代数 | **纯手写**（power iteration + 未来 IRLM/IRAM） | 零依赖、WASM 天然兼容、完全控制收敛行为 |
+| ARPACK 替代 | 两层分级：A=手写幂迭代（PageRank 默认）/ B=手写 IRLM 大稀疏 | 与 igraph 数值精确匹配；无外部依赖 |
 | 自研 IRLM / IRAM | 参照 igraph `src/linalg/arpack.c` 翻译 | 1634 行 C 翻译为 Rust ~2000 行，AI 适合此类 1:1 翻译 |
 | BLISS 替代 | 直接翻译 igraph 内嵌 BLISS C++→Rust（约 9500 行） | GPL 许可证允许；100% API 兼容 |
 | 同构兜底 | 阶段 1 用 VF2 + isoclass 查表覆盖主要路径 | BLISS 翻译完成前 isomorphic() 仍可用 |
@@ -184,49 +183,37 @@ use rust_igraph::{Graph, bfs};
 
 ### 2.3 依赖清单
 
+> ⚠ **2026-06-03 修订**：实际实现证明所有线性代数和图算法均可纯手写完成。
+> 当前运行时唯一依赖为 `thiserror`。以下为修订后的依赖规划。
+
 | 依赖 | 版本 | 用途 | 必须? |
 |------|------|------|------|
-| `faer` | ^0.24 | 线性代数（EVD/QR/SVD/Cholesky/sparse-linalg） | 是（feature `faer-backend`，默认） |
-| `nalgebra` | ^0.33 | 备选后端 | 可选 |
-| `rayon` | ^1.11 | 数据并行 | 是 |
-| `rand` | ^0.9 | 随机数 / 生成器 | 是 |
-| `num-traits` | ^0.2 | 数值 trait | 是 |
-| `num-bigint` | ^0.4 | BLISS 自同构群大小（GMP 替代） | 是 |
-| `thiserror` | ^2 | 错误派生 | 是 |
-| `quick-xml` | ^0.37 | GraphML 解析 | 可选（`io-graphml`） |
-| `nauty-Traces-sys` | TBD | nauty C FFI | 可选（`nauty-backend`，非默认） |
+| `thiserror` | ^2 | 错误派生 | 是（唯一运行时依赖） |
+| `quick-xml` | ^0.37 | GraphML 解析 | 可选（`io-graphml`，未来 Phase B） |
+| `rayon` | ^1.11 | 数据并行 | 可选（`parallel`，未来 Phase F） |
 | `proptest` | ^1.6 | 属性测试 | dev |
 | `criterion` | ^0.5 | 基准测试 | dev |
-| `pyo3` | ^0.24 | python-igraph oracle（subprocess 备选） | dev 可选 |
 
-⚠ **明确不引入**：`petgraph`（API 表达力不够）、`graphalgs`（GPL-3.0 与本项目 GPL-2.0+ 不兼容）、`scirs2-sparse`（依赖链过重）、`spectra`（非特征值求解器）。
+⚠ **明确不引入**：`faer`（依赖树过重，手写足够）、`nalgebra`（同理）、`petgraph`（API 表达力不够）、`graphalgs`（GPL-3.0 与本项目 GPL-2.0+ 不兼容）、`scirs2-sparse`（依赖链过重）。
 
 ### 2.4 Feature flags
 
 ```toml
 [features]
-default = ["faer-backend", "bliss-rust", "rayon"]
-
-faer-backend = ["dep:faer"]
-nalgebra-backend = ["dep:nalgebra"]
-
-bliss-rust = []                                      # 默认；纯 Rust BLISS；WASM 兼容
-nauty-backend = ["dep:nauty-Traces-sys"]             # 可选；C FFI；非 WASM
-
-rayon = ["dep:rayon", "faer?/rayon"]
+default = []
 
 io-graphml = ["dep:quick-xml"]
 io-gml = []
 io-pajek = []
 io-all = ["io-graphml", "io-gml", "io-pajek"]
 
-oracle-tests = ["dep:pyo3"]
-proptest-harness = ["dep:proptest"]
+parallel = ["dep:rayon"]                             # 可选；数据并行加速
 
-glpk = ["dep:glpk-sys"]                              # 可选；optimal_modularity 需要
+oracle-tests = []                                    # 启用 live python-igraph oracle 测试
+proptest-harness = []                                # 启用 proptest bodies
 ```
 
-WASM 验证目标：`cargo check --target wasm32-unknown-unknown --no-default-features --features faer-backend,bliss-rust`。
+WASM 验证目标：`cargo check --target wasm32-unknown-unknown`（零外部依赖，天然兼容）。
 
 ---
 
@@ -580,7 +567,7 @@ if __name__ == "__main__":
 |----|------|------|
 | ALGO-LA-OPT-001 | ArpackOptions / ArpackStorage | igraph_arpack.h |
 | ALGO-LA-TRAIT-001 | ArpackSolver trait + EigenSolver trait | (新设计) |
-| ALGO-LA-FAER-001 | faer EVD 后端（小矩阵 n≤50） | (新) |
+| ALGO-LA-DENSE-001 | 手写 dense EVD（Jacobi/QR，小矩阵 n≤50） | (新) |
 | ALGO-LA-BLAS-001..005 | BLAS 桥接（dgemv/dgemm/ddot/...） | blas.c (261 行) |
 | ALGO-LA-LAPACK-001..007 | LAPACK 桥接（dgetrf/dgesv/dsyevr/dgeev/dgehrd/...） | lapack.c (1057 行) |
 | **ALGO-LA-IRLM-001** | IRLM 对称迭代求解器 | arpack.c → arpack_rssolve* |
