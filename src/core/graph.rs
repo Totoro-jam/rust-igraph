@@ -1547,6 +1547,15 @@ impl Graph {
     ///
     /// Counterpart of `igraph_i_property_cache_has` + `_get_bool` from
     /// `references/igraph/src/graph/caching.c`.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, CachedProperty};
+    ///
+    /// let g = Graph::with_vertices(3);
+    /// assert!(g.cache_get(CachedProperty::HasLoop).is_none());
+    /// g.cache_set(CachedProperty::HasLoop, true);
+    /// assert_eq!(g.cache_get(CachedProperty::HasLoop), Some(true));
+    /// ```
     #[must_use]
     pub fn cache_get(&self, prop: CachedProperty) -> Option<bool> {
         self.cache.get(prop)
@@ -1570,6 +1579,15 @@ impl Graph {
     /// go through `add_edges` / `delete_*`.
     ///
     /// Counterpart of `igraph_i_property_cache_invalidate`.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, CachedProperty};
+    ///
+    /// let g = Graph::with_vertices(3);
+    /// g.cache_set(CachedProperty::HasLoop, true);
+    /// g.cache_invalidate(CachedProperty::HasLoop);
+    /// assert!(g.cache_get(CachedProperty::HasLoop).is_none());
+    /// ```
     pub fn cache_invalidate(&self, prop: CachedProperty) {
         self.cache.invalidate(prop);
     }
@@ -1577,6 +1595,15 @@ impl Graph {
     /// Drop every cached boolean property.
     ///
     /// Counterpart of `igraph_i_property_cache_invalidate_all`.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, CachedProperty};
+    ///
+    /// let g = Graph::with_vertices(3);
+    /// g.cache_set(CachedProperty::HasLoop, true);
+    /// g.cache_invalidate_all();
+    /// assert!(g.cache_get(CachedProperty::HasLoop).is_none());
+    /// ```
     pub fn cache_invalidate_all(&self) {
         self.cache.invalidate_all();
     }

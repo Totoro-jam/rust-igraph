@@ -66,6 +66,14 @@ pub fn famous(name: &str) -> IgraphResult<Graph> {
 /// Canonical (lowercase) names of every famous graph supported by
 /// [`famous`]. Aliases are not duplicated here — each graph appears once
 /// under its primary name. `famous` itself still accepts every alias.
+///
+/// ```
+/// use rust_igraph::famous_names;
+///
+/// let names = famous_names();
+/// assert!(names.contains(&"petersen"));
+/// assert!(names.contains(&"zachary"));
+/// ```
 #[must_use]
 pub fn famous_names() -> &'static [&'static str] {
     &[
