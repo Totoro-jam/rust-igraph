@@ -78,6 +78,17 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   showing load → structural check → centrality → community → shortest path
   → random walk in one coherent snippet.
 
+- **I/O completeness** — all major graph formats now support both reading
+  and writing:
+  - `read_leda` (ALGO-IO-012) — LEDA native format reader with `LedaGraph`
+    struct returning graph + optional labels + optional weights. Full
+    round-trip with `write_leda`.
+  - `write_dl` (ALGO-IO-013) — UCINET DL writer using edgelist1 format.
+    Supports optional labels and edge weights. Full round-trip with `read_dl`.
+  - `read_dot` (ALGO-IO-014) and `read_graphml` (ALGO-IO-015) now tracked.
+  - Total: 15 I/O functions across 11 formats (GML, GraphML, Pajek, DOT,
+    LEDA, DL, DIMACS, edge list, NCOL, LGL, GraphDB).
+
 ### Performance
 - Switched hot-path inner loops across 16 algorithms from the allocating
   `neighbors()` to zero-allocation `neighbors_iter()`:

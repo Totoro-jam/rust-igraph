@@ -36,9 +36,9 @@ graph algorithms without leaving the Rust ecosystem.
 - **Graph generators**: Erdos-Renyi, Barabasi-Albert, Watts-Strogatz, SBM, forest fire, geometric random, degree sequence, lattices, famous graphs, and 30+ more
 - **Graph properties**: 60+ structural recognizers (`is_bipartite`, `is_chordal`, `is_planar`, `is_perfect`, `is_cograph`, `is_series_parallel`, ...)
 - **Eigenvalue solvers**: Lanczos (symmetric), Arnoldi (general), graph adjacency
-- **Layout**: Fruchterman-Reingold, Kamada-Kawai, DrL, circle, star, grid, tree, bipartite
+- **Layout**: Fruchterman-Reingold, Kamada-Kawai, DrL, Sugiyama, GEM, Davidson-Harel, GraphOpt, MDS, LGL, UMAP, Reingold-Tilford, circle, star, grid, bipartite (16 engines, 2D+3D)
 - **Spatial**: Delaunay triangulation, Gabriel graph, beta-skeleton, nearest-neighbor graph
-- **I/O**: edge list, adjacency matrix, Prufer sequence, LCF notation
+- **I/O**: GML, GraphML, Pajek, DOT/Graphviz, LEDA, UCINET DL, DIMACS, edge list, NCOL, LGL, GraphDB (15 read/write functions)
 
 ## Quick start
 
@@ -46,7 +46,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-igraph = "0.0.1-alpha"
+rust-igraph = "0.5.0-alpha"
 ```
 
 ```rust
@@ -185,9 +185,8 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ## Project status
 
-> **Alpha** (`v0.0.1-alpha`) — The API is stabilizing but may change before `v0.1.0`.
-> Core algorithms are implemented and tested. Not yet recommended for production use
-> without your own validation.
+> **Alpha** (`v0.5.0-alpha`) — 377 algorithms implemented and tested across all major
+> categories. The API is stabilizing but may change before `v1.0.0`.
 
 | Category | Status |
 |----------|--------|
@@ -200,14 +199,15 @@ cargo bench --bench bench_vf2         # isomorphism
 | Network flow | Stable |
 | Isomorphism | Stable |
 | Graph generators | Stable |
-| Layout algorithms | Beta |
-| I/O formats | Partial |
+| Layout algorithms | Stable (16 engines) |
+| I/O formats | Stable (15 functions) |
+| Spatial algorithms | Stable |
 
 ## Development
 
 ```bash
 cargo build                          # build
-cargo test                           # fast test suite (7,100+ tests)
+cargo test                           # fast test suite (7,200+ tests)
 cargo test --all-features            # full suite with oracle + proptests
 cargo clippy -- -D warnings          # lint
 cargo doc --no-deps --open           # browse API docs locally
