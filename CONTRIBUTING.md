@@ -1,49 +1,80 @@
-# Contributing — pre-1.0 alpha
+# Contributing to rust-igraph
 
-**rust-igraph is in `0.0.x-alpha` and is not accepting external pull
-requests yet.**
+**Contributions are welcome!** Whether it's a bug fix, new algorithm, documentation
+improvement, or performance optimization — we appreciate your help making rust-igraph
+the best graph library in the Rust ecosystem.
 
-The project is a single-developer + AI port of [igraph](https://igraph.org)
-to pure Rust. The public API surface, internal data structures, error
-types, and even the crate name are still moving fast; merging external
-work right now would mean breaking it on every Phase-1 milestone.
+## Getting started
 
-## What you can do today
+```bash
+git clone https://github.com/Totoro-jam/rust-igraph.git
+cd rust-igraph
+cargo build
+cargo test
+```
 
-- ⭐ **Star the repo** if you'd like to follow along.
-- 👀 **Watch releases** — we'll cut a `0.1.0` once Phase 1 (the real
-  `igraph_t`-equivalent data structures) lands. That's the first version
-  worth depending on.
-- 🐛 **Bug reports are welcome** — open an issue with a minimal
-  reproducer, but expect them to sit in a queue while alpha churn is
-  happening.
-- 💬 **Discussion / API requests** — use GitHub Discussions when enabled,
-  or open an issue tagged `discussion`. Concrete use-cases inform Phase
-  ordering.
+## How to contribute
 
-## What's not accepted today
+1. **Fork** the repository and create a branch from `main`.
+2. **Make your changes** — see the guidelines below.
+3. **Run the checks**:
+   ```bash
+   cargo test --workspace
+   cargo clippy --workspace --all-targets -- -D warnings
+   cargo fmt --all --check
+   ```
+4. **Open a pull request** with a clear description of what and why.
 
-- New algorithm PRs (algorithms land via the internal AWU SOP — see
-  [DEVELOPMENT.md](DEVELOPMENT.md))
-- Refactors to data structures that are still `unimplemented!()`
-- API renaming bikeshed (the API will rename itself plenty before 1.0)
+## Guidelines
 
-## When external contributions open up
+- **No `unsafe`** — the library is 100% safe Rust and we intend to keep it that way.
+- **No `unwrap()`/`expect()`** in library code (tests are fine).
+- **No new dependencies** without discussion — we keep the dep tree minimal.
+- **Floating-point comparisons** use tolerance helpers, never `==`.
+- **Integer arithmetic** uses `checked_*` / `try_from` to avoid silent overflow.
+- **Public API** needs rustdoc with at least one doctest.
+- **All code, comments, and identifiers in English.**
 
-Roughly when one of these happens:
+## What we're looking for
 
-1. `0.1.0` ships — Phase 1 data structures stabilise.
-2. The first algorithm-translation AWUs are merged via the real workflow,
-   so the SOP is documented by example rather than by template.
-3. CI is hardened against drift (currently passes, but there are no
-   external eyeballs on it yet).
+- Bug fixes with regression tests
+- New algorithms (see [ALGORITHMS.md](.codefuse/tracking/ALGORITHMS.md) for coverage)
+- Performance improvements with benchmarks
+- Documentation improvements and examples
+- Test coverage for edge cases
+- I/O format support (GraphML, GML, GEXF, etc.)
 
-When that time comes, this file gets rewritten with real PR conventions
-and good-first-issue labels. For now, see
-[DEVELOPMENT.md](DEVELOPMENT.md) if you want to read the maintainer's
-own setup notes.
+## Algorithm contributions
+
+New algorithms follow our AWU (Algorithm Work Unit) process:
+
+1. Open an issue describing the algorithm and its use case.
+2. Reference the igraph C implementation if applicable (see `references/igraph/`).
+3. Include unit tests and at least one doctest.
+4. Add a benchmark if the algorithm is non-trivial.
+
+See [MASTER_PLAN.md](docs/plans/MASTER_PLAN.md) for architecture context.
+
+## Code style
+
+- `cargo fmt` with default settings.
+- `cargo clippy -- -D warnings` must pass.
+- Comments only when the *why* is non-obvious — don't restate what code already says.
+- Commit messages: `<type>(<scope>): short description`
+  - types: `feat / fix / test / docs / refactor / perf / chore`
+
+## Reporting bugs
+
+Open an issue with:
+- Minimal reproducer code
+- Expected vs. actual behavior
+- Rust version (`rustc --version`)
 
 ## Reporting security issues
 
-See [SECURITY.md](SECURITY.md). Please do **not** open public issues
-for vulnerabilities.
+See [SECURITY.md](SECURITY.md). Please do **not** open public issues for vulnerabilities.
+
+## License
+
+By contributing, you agree that your contributions will be licensed under
+GPL-2.0-or-later (same as the project).

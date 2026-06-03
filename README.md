@@ -162,6 +162,13 @@ Each algorithm follows a 9-step **AWU** (Algorithm Work Unit) process tracked in
 [`.codefuse/tracking/ALGORITHMS.md`](.codefuse/tracking/ALGORITHMS.md). The engineering
 plan is in [`docs/plans/MASTER_PLAN.md`](docs/plans/MASTER_PLAN.md).
 
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+Whether you want to fix a bug, add an algorithm, improve docs, or optimize performance —
+we'd love your help. Open an issue to discuss larger changes before starting.
+
 ## License
 
 GPL-2.0-or-later. Same as upstream igraph C, which permits direct reference-translation
