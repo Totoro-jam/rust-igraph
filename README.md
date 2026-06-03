@@ -69,22 +69,43 @@ fn main() {
 ### Graph construction
 
 ```rust
-use rust_igraph::Graph;
+use rust_igraph::{Graph, GraphBuilder};
 
-// From an edge list
+// Fluent builder pattern
+let g = GraphBuilder::undirected()
+    .vertices(5)
+    .edges(&[(0,1), (1,2), (2,3), (3,4)])
+    .cycle(&[0, 1, 2, 3, 4])
+    .build()
+    .unwrap();
+
+// From an edge list (auto-infers vertex count)
 let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+
+// From a slice via TryFrom
+let g = Graph::try_from(vec![(0u32, 1), (1, 2), (2, 0)].as_slice()).unwrap();
 
 // From a string (great for tests)
 let g = Graph::from_edge_list_str("0 1\n1 2\n2 0").unwrap();
 
-// With weights
-let (g, weights) = Graph::from_weighted_edges(
-    &[(0, 1, 1.5), (1, 2, 2.0), (2, 0, 0.5)], false, None,
-).unwrap();
-
 // Classic generators
 let k5 = rust_igraph::full_graph(5, false).unwrap();
 let ring = rust_igraph::cycle_graph(10, false).unwrap();
+```
+
+### Graph algebra (operator overloading)
+
+```rust
+use rust_igraph::Graph;
+
+let a = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+let b = Graph::from_edges(&[(1,2), (2,0)], false, None).unwrap();
+
+let union = &a | &b;          // edges in either graph
+let intersection = &a & &b;   // edges in both graphs
+let difference = &a - &b;     // edges in a but not b
+let complement = !&a;          // all missing edges
+let disjoint = &a + &b;       // concatenated (6 vertices)
 ```
 
 ### Community detection
@@ -152,7 +173,7 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ```bash
 cargo build                          # build
-cargo test                           # fast test suite (668+ tests)
+cargo test                           # fast test suite (700+ tests)
 cargo test --all-features            # full suite with oracle + proptests
 cargo clippy -- -D warnings          # lint
 cargo doc --no-deps --open           # browse API docs locally

@@ -1534,6 +1534,121 @@ impl TryFrom<Vec<(VertexId, VertexId)>> for Graph {
     }
 }
 
+/// Collect edges from an iterator into an undirected graph.
+///
+/// Vertex count is inferred from the maximum endpoint id.
+/// For directed graphs or explicit vertex counts, use [`Graph::from_edges`].
+///
+/// # Panics
+///
+/// Panics if a vertex id would overflow `u32::MAX`.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::Graph;
+///
+/// let g: Graph = [(0u32, 1), (1, 2), (2, 0)].into_iter().collect();
+/// assert_eq!(g.vcount(), 3);
+/// assert_eq!(g.ecount(), 3);
+/// ```
+impl std::iter::FromIterator<(VertexId, VertexId)> for Graph {
+    fn from_iter<I: IntoIterator<Item = (VertexId, VertexId)>>(iter: I) -> Self {
+        let edges: Vec<(VertexId, VertexId)> = iter.into_iter().collect();
+        Self::try_from(edges).expect("FromIterator: vertex id overflow or invalid edge")
+    }
+}
+
+/// Extend a graph by adding edges from an iterator.
+///
+/// New vertices are automatically created as needed. This enables
+/// patterns like `graph.extend(new_edges)`.
+///
+/// # Panics
+///
+/// Panics if an edge endpoint exceeds the current vertex count and
+/// cannot be added.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::Graph;
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.extend([(0u32, 1), (1, 2)]);
+/// assert_eq!(g.ecount(), 2);
+///
+/// // Extending with a vertex beyond current count grows the graph
+/// g.extend([(2u32, 5)]);
+/// assert_eq!(g.vcount(), 6);
+/// assert_eq!(g.ecount(), 3);
+/// ```
+impl Extend<(VertexId, VertexId)> for Graph {
+    fn extend<I: IntoIterator<Item = (VertexId, VertexId)>>(&mut self, iter: I) {
+        let edges: Vec<(VertexId, VertexId)> = iter.into_iter().collect();
+        if edges.is_empty() {
+            return;
+        }
+        let max_id = edges
+            .iter()
+            .flat_map(|&(u, v)| [u, v])
+            .max()
+            .expect("non-empty edges");
+        if max_id >= self.n {
+            self.add_vertices(max_id - self.n + 1)
+                .expect("Extend: failed to add vertices");
+        }
+        self.add_edges(edges).expect("Extend: failed to add edges");
+    }
+}
+
+/// Structural equality: two graphs are equal if they have the same
+/// directedness, same vertex count, and the same sorted edge set.
+///
+/// This is *not* isomorphism — vertex ids must match exactly.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::Graph;
+///
+/// let a = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+/// let b = Graph::from_edges(&[(1,2), (0,1)], false, None).unwrap();
+/// assert_eq!(a, b); // same edges, different insertion order
+///
+/// let c = Graph::from_edges(&[(0,1), (1,2)], true, None).unwrap();
+/// assert_ne!(a, c); // different directedness
+/// ```
+impl PartialEq for Graph {
+    fn eq(&self, other: &Self) -> bool {
+        if self.directed != other.directed || self.n != other.n || self.ecount() != other.ecount() {
+            return false;
+        }
+        let mut self_edges: Vec<(VertexId, VertexId)> = self.iter().collect();
+        let mut other_edges: Vec<(VertexId, VertexId)> = other.iter().collect();
+        self_edges.sort_unstable();
+        other_edges.sort_unstable();
+        self_edges == other_edges
+    }
+}
+
+impl Eq for Graph {}
+
+/// Hash a graph by its structural content (directedness + vertex count +
+/// sorted edge set).
+///
+/// This is consistent with the [`PartialEq`] impl: structurally equal
+/// graphs produce the same hash.
+impl std::hash::Hash for Graph {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.directed.hash(state);
+        self.n.hash(state);
+        let mut edges: Vec<(VertexId, VertexId)> = self.iter().collect();
+        edges.sort_unstable();
+        edges.hash(state);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

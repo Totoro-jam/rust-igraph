@@ -1,4 +1,4 @@
-//! Demonstrates the graph_summary function for quick graph inspection.
+//! Demonstrates the `graph_summary` function for quick graph inspection.
 
 use rust_igraph::{Graph, famous, full_graph, graph_summary, graph_summary_string};
 
