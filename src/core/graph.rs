@@ -2153,6 +2153,332 @@ impl Graph {
         crate::algorithms::cliques::clique_number(self)
     }
 
+    /// Find all largest cliques (cliques of maximum size).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2), (2,3)], false, None).unwrap();
+    /// let lc = g.largest_cliques().unwrap();
+    /// assert_eq!(lc.len(), 1);
+    /// assert_eq!(lc[0].len(), 3);
+    /// ```
+    pub fn largest_cliques(&self) -> IgraphResult<Vec<Vec<VertexId>>> {
+        crate::algorithms::cliques::largest_cliques(self)
+    }
+
+    /// Count maximal cliques without enumerating them.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2), (2,3)], false, None).unwrap();
+    /// assert!(g.maximal_cliques_count().unwrap() >= 2);
+    /// ```
+    pub fn maximal_cliques_count(&self) -> IgraphResult<u64> {
+        crate::algorithms::cliques::maximal_cliques_count(self)
+    }
+
+    /// Find all maximal independent vertex sets.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let sets = g.maximal_independent_vertex_sets().unwrap();
+    /// assert!(!sets.is_empty());
+    /// ```
+    pub fn maximal_independent_vertex_sets(&self) -> IgraphResult<Vec<Vec<VertexId>>> {
+        crate::algorithms::cliques::maximal_independent_vertex_sets(self)
+    }
+
+    /// Find all largest independent vertex sets.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let sets = g.largest_independent_vertex_sets().unwrap();
+    /// assert!(sets.iter().all(|s| s.len() == 2));
+    /// ```
+    pub fn largest_independent_vertex_sets(&self) -> IgraphResult<Vec<Vec<VertexId>>> {
+        crate::algorithms::cliques::largest_independent_vertex_sets(self)
+    }
+
+    /// Greedy edge coloring.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// let colors = g.edge_coloring_greedy().unwrap();
+    /// assert_eq!(colors.len(), 3);
+    /// ```
+    pub fn edge_coloring_greedy(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::coloring::edge_coloring_greedy(self)
+    }
+
+    /// Upper bound on the chromatic number.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// assert!(g.chromatic_number_upper_bound().unwrap() >= 3);
+    /// ```
+    pub fn chromatic_number_upper_bound(&self) -> IgraphResult<u32> {
+        crate::algorithms::coloring::chromatic_number_upper_bound(self)
+    }
+
+    /// Test whether the graph is perfect (Strong Perfect Graph Theorem).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// assert!(g.is_perfect().unwrap());
+    /// ```
+    pub fn is_perfect(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::perfect::is_perfect(self)
+    }
+
+    /// Average local transitivity (clustering coefficient).
+    ///
+    /// Vertices with degree < 2 are treated as having transitivity 0.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// let avg = g.transitivity_avglocal().unwrap();
+    /// assert!(avg > 0.9);
+    /// ```
+    pub fn transitivity_avglocal(&self) -> IgraphResult<f64> {
+        crate::algorithms::properties::triangles::transitivity_avglocal_undirected(
+            self,
+            crate::algorithms::properties::triangles::TransitivityMode::Zero,
+        )
+    }
+
+    /// Mean degree of all vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// let md = g.mean_degree().unwrap();
+    /// assert!((md.unwrap() - 2.0).abs() < 1e-10);
+    /// ```
+    pub fn mean_degree(&self) -> IgraphResult<Option<f64>> {
+        crate::algorithms::properties::basic::mean_degree(self, true)
+    }
+
+    /// Graph degeneracy (maximum k for which a k-core exists).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// assert_eq!(g.degeneracy().unwrap(), 2);
+    /// ```
+    pub fn degeneracy(&self) -> IgraphResult<u32> {
+        crate::algorithms::properties::is_k_degenerate::degeneracy(self)
+    }
+
+    /// Convergence degree of each edge.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// let cd = g.convergence_degree().unwrap();
+    /// assert_eq!(cd.len(), g.ecount());
+    /// ```
+    pub fn convergence_degree(&self) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::convergence_degree::convergence_degree(self)
+    }
+
+    /// Count self-loops in the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert_eq!(g.count_loops().unwrap(), 0);
+    /// ```
+    pub fn count_loops(&self) -> IgraphResult<usize> {
+        crate::algorithms::properties::multiplicity::count_loops(self)
+    }
+
+    /// Average nearest neighbor degree for each vertex.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// let knn = g.avg_nearest_neighbor_degree().unwrap();
+    /// assert_eq!(knn.len(), 3);
+    /// ```
+    pub fn avg_nearest_neighbor_degree(&self) -> IgraphResult<Vec<Option<f64>>> {
+        crate::algorithms::properties::knn::avg_nearest_neighbor_degree(self)
+    }
+
+    /// Bibliographic coupling scores between all vertex pairs.
+    ///
+    /// Returns a flat n*n matrix where entry `[i*n + j]` is the coupling
+    /// score between vertices `i` and `j`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,2), (1,2)], true, None).unwrap();
+    /// let n = g.vcount() as usize;
+    /// let bc = g.bibcoupling().unwrap();
+    /// assert_eq!(bc.len(), n * n);
+    /// ```
+    pub fn bibcoupling(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::properties::similarity::bibcoupling(self)
+    }
+
+    /// Biconnected components of the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0), (2,3)], false, None).unwrap();
+    /// let bc = g.biconnected_components().unwrap();
+    /// assert_eq!(bc.components.len(), 2);
+    /// ```
+    pub fn biconnected_components(
+        &self,
+    ) -> IgraphResult<crate::algorithms::connectivity::biconnected::BiconnectedComponents> {
+        crate::algorithms::connectivity::biconnected::biconnected_components(self)
+    }
+
+    /// Find all minimum-size vertex separators.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,3), (2,3)], false, None).unwrap();
+    /// let seps = g.minimum_size_separators().unwrap();
+    /// assert!(!seps.is_empty());
+    /// ```
+    pub fn minimum_size_separators(&self) -> IgraphResult<Vec<Vec<VertexId>>> {
+        crate::algorithms::connectivity::separators::minimum_size_separators(self)
+    }
+
+    /// Find all minimal s-t separators.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,3), (2,3)], false, None).unwrap();
+    /// let seps = g.all_minimal_st_separators().unwrap();
+    /// assert!(!seps.is_empty());
+    /// ```
+    pub fn all_minimal_st_separators(&self) -> IgraphResult<Vec<Vec<VertexId>>> {
+        crate::algorithms::connectivity::separators::all_minimal_st_separators(self)
+    }
+
+    /// Graph adhesion (minimum edge connectivity over all pairs).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert_eq!(g.adhesion().unwrap(), 2);
+    /// ```
+    pub fn adhesion(&self) -> IgraphResult<i64> {
+        crate::algorithms::flow::edge_connectivity::adhesion(self, true)
+    }
+
+    /// Graph cohesion (minimum vertex connectivity over all pairs).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert_eq!(g.cohesion().unwrap(), 2);
+    /// ```
+    pub fn cohesion(&self) -> IgraphResult<i64> {
+        crate::algorithms::flow::vertex_connectivity::cohesion(self, true)
+    }
+
+    /// BFS tree rooted at `root`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// let tree = g.bfs_tree(0).unwrap();
+    /// assert_eq!(tree.order.len(), 3);
+    /// ```
+    pub fn bfs_tree(
+        &self,
+        root: VertexId,
+    ) -> IgraphResult<crate::algorithms::traversal::bfs::BfsTree> {
+        crate::algorithms::traversal::bfs::bfs_tree(self, root)
+    }
+
+    /// DFS tree rooted at `root`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// let tree = g.dfs_tree(0).unwrap();
+    /// assert_eq!(tree.order.len(), 3);
+    /// ```
+    pub fn dfs_tree(
+        &self,
+        root: VertexId,
+    ) -> IgraphResult<crate::algorithms::traversal::dfs::DfsTree> {
+        crate::algorithms::traversal::dfs::dfs_tree(self, root)
+    }
+
     /// Find all articulation points (cut vertices).
     ///
     /// # Examples
@@ -2531,6 +2857,180 @@ impl Graph {
         let mut file = std::fs::File::create(path.as_ref())
             .map_err(|e| IgraphError::InvalidArgument(format!("cannot create file: {e}")))?;
         crate::algorithms::io::pajek::write_pajek(self, None, None, &mut file)
+    }
+
+    /// Read a graph from an NCOL file (Large Graph Layout edge list format).
+    ///
+    /// Returns just the graph; use [`read_ncol`](crate::read_ncol) directly
+    /// to also obtain vertex names and edge weights.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_ncol_file("network.ncol").unwrap();
+    /// ```
+    pub fn from_ncol_file<P: AsRef<std::path::Path>>(path: P) -> IgraphResult<Self> {
+        let file = std::fs::File::open(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot open file: {e}")))?;
+        let result = crate::algorithms::io::ncol::read_ncol(std::io::BufReader::new(file))?;
+        Ok(result.graph)
+    }
+
+    /// Write the graph to a file in NCOL format.
+    ///
+    /// Writes vertex indices as names (no custom names or weights).
+    /// Use [`write_ncol`](crate::write_ncol) for full control.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// g.to_ncol_file("output.ncol").unwrap();
+    /// ```
+    pub fn to_ncol_file<P: AsRef<std::path::Path>>(&self, path: P) -> IgraphResult<()> {
+        let mut file = std::fs::File::create(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot create file: {e}")))?;
+        crate::algorithms::io::ncol::write_ncol(self, None, None, &mut file)
+    }
+
+    /// Read a graph from an LGL file (Large Graph Layout adjacency list).
+    ///
+    /// Returns just the graph; use [`read_lgl`](crate::read_lgl) directly
+    /// to also obtain vertex names and edge weights.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_lgl_file("network.lgl").unwrap();
+    /// ```
+    pub fn from_lgl_file<P: AsRef<std::path::Path>>(path: P) -> IgraphResult<Self> {
+        let file = std::fs::File::open(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot open file: {e}")))?;
+        let result = crate::algorithms::io::lgl::read_lgl(std::io::BufReader::new(file))?;
+        Ok(result.graph)
+    }
+
+    /// Write the graph to a file in LGL format.
+    ///
+    /// Writes vertex indices as names (no custom names or weights).
+    /// Use [`write_lgl`](crate::write_lgl) for full control.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// g.to_lgl_file("output.lgl").unwrap();
+    /// ```
+    pub fn to_lgl_file<P: AsRef<std::path::Path>>(&self, path: P) -> IgraphResult<()> {
+        let mut file = std::fs::File::create(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot create file: {e}")))?;
+        crate::algorithms::io::lgl::write_lgl(self, None, None, &mut file)
+    }
+
+    /// Read a graph from a LEDA native graph file.
+    ///
+    /// Returns just the graph; use [`read_leda`](crate::read_leda) directly
+    /// to also obtain vertex labels and edge weights.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_leda_file("network.lgr").unwrap();
+    /// ```
+    pub fn from_leda_file<P: AsRef<std::path::Path>>(path: P) -> IgraphResult<Self> {
+        let file = std::fs::File::open(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot open file: {e}")))?;
+        let result = crate::algorithms::io::leda::read_leda(std::io::BufReader::new(file))?;
+        Ok(result.graph)
+    }
+
+    /// Write the graph to a file in LEDA native graph format.
+    ///
+    /// Writes without vertex labels or edge weights.
+    /// Use [`write_leda`](crate::write_leda) for full control.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// g.to_leda_file("output.lgr").unwrap();
+    /// ```
+    pub fn to_leda_file<P: AsRef<std::path::Path>>(&self, path: P) -> IgraphResult<()> {
+        let mut file = std::fs::File::create(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot create file: {e}")))?;
+        crate::algorithms::io::leda::write_leda(self, None, None, &mut file)
+    }
+
+    /// Read a graph from a UCINET DL file.
+    ///
+    /// Reads as undirected by default. Use [`read_dl`](crate::read_dl)
+    /// directly for directed graphs or to obtain vertex labels and edge
+    /// weights.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_dl_file("network.dl").unwrap();
+    /// ```
+    pub fn from_dl_file<P: AsRef<std::path::Path>>(path: P) -> IgraphResult<Self> {
+        let file = std::fs::File::open(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot open file: {e}")))?;
+        let result = crate::algorithms::io::dl::read_dl(std::io::BufReader::new(file), false)?;
+        Ok(result.graph)
+    }
+
+    /// Write the graph to a file in UCINET DL format.
+    ///
+    /// Writes without vertex labels or edge weights.
+    /// Use [`write_dl`](crate::write_dl) for full control.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// g.to_dl_file("output.dl").unwrap();
+    /// ```
+    pub fn to_dl_file<P: AsRef<std::path::Path>>(&self, path: P) -> IgraphResult<()> {
+        let mut file = std::fs::File::create(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot create file: {e}")))?;
+        crate::algorithms::io::dl::write_dl(self, None, None, &mut file)
+    }
+
+    /// Read a graph from a DIMACS file.
+    ///
+    /// Reads as directed by default (flow problems). Returns just the graph;
+    /// use [`read_dimacs`](crate::read_dimacs) directly to also obtain
+    /// source/target, capacities, or labels.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_dimacs_file("network.dimacs").unwrap();
+    /// ```
+    pub fn from_dimacs_file<P: AsRef<std::path::Path>>(path: P) -> IgraphResult<Self> {
+        let file = std::fs::File::open(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot open file: {e}")))?;
+        let result =
+            crate::algorithms::io::dimacs::read_dimacs(std::io::BufReader::new(file), true)?;
+        Ok(result.graph)
     }
 
     /// Generate an Erdos-Renyi G(n, p) random graph.
