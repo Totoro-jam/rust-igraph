@@ -281,6 +281,14 @@ path = "examples/trussness_demo.rs"
 name = "social_network_demo"
 path = "examples/social_network_demo.rs"
 
+[[example]]
+name = "quickstart"
+path = "examples/quickstart.rs"
+
+[[example]]
+name = "summary_demo"
+path = "examples/summary_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
