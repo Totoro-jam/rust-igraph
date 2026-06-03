@@ -252,12 +252,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     println!();
 
+    // --- 14. Attribute-aware I/O: DL round-trip (via attributes) ---
+    let mut dl_buf = Vec::new();
+    rust_igraph::write_dl(&g, None, None, &mut dl_buf)?;
+    let dl_result = rust_igraph::read_dl(dl_buf.as_slice(), false)?;
+    println!(
+        "DL round-trip: {} vertices, {} edges",
+        dl_result.graph.vcount(),
+        dl_result.graph.ecount(),
+    );
+    println!();
+
+    // --- 15. Attribute-aware I/O: LEDA round-trip (via attributes) ---
+    let mut leda_buf = Vec::new();
+    rust_igraph::write_leda(&g, None, None, &mut leda_buf)?;
+    let leda_result = rust_igraph::read_leda(leda_buf.as_slice())?;
+    println!(
+        "LEDA round-trip: {} vertices, {} edges",
+        leda_result.graph.vcount(),
+        leda_result.graph.ecount(),
+    );
+    println!();
+
     println!(
         "Done — {} capabilities demonstrated: construction, density, connectivity,\n\
          diameter, PageRank, betweenness, closeness, community detection, shortest\n\
          paths, clustering coefficient, attributes, GML I/O, GraphML I/O, DOT I/O,\n\
-         Pajek I/O, NCOL I/O, LGL I/O.",
-        17
+         Pajek I/O, NCOL I/O, LGL I/O, DL I/O, LEDA I/O.",
+        19
     );
     Ok(())
 }

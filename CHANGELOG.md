@@ -15,9 +15,9 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ## [Unreleased]
 
 ### Added
-- **Attribute-aware I/O** — all three structured graph formats now read and
-  write vertex, edge, and graph-level attributes through the `Graph`
-  attribute system:
+- **Attribute-aware I/O** — all eight graph formats now read and write
+  vertex, edge, and graph-level attributes through the `Graph` attribute
+  system:
   - **GraphML**: reads `<key>` definitions and `<data>` elements; writes
     typed `<key>`/`<data>` for all attribute types. Node ID stored as
     `"name"` vertex attribute. 18 attribute tests including roundtrip.
@@ -33,6 +33,10 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   - **NCOL**: same attribute integration — `"name"` and `"weight"` stored on
     read, used as fallback on write. 7 new attribute tests.
   - **LGL**: same attribute integration. 7 new attribute tests.
+  - **DL (UCINET)**: same attribute integration for labels and weights;
+    writer emits `labels:` section from attributes. 7 new attribute tests.
+  - **LEDA**: same attribute integration; header type declarations
+    (`string`/`double`) automatically set from attributes. 7 new tests.
 
 ## [0.5.0-alpha.2] — 2026-06-03
 
