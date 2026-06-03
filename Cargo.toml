@@ -290,6 +290,10 @@ name = "summary_demo"
 path = "examples/summary_demo.rs"
 
 [[example]]
+name = "method_api_demo"
+path = "examples/method_api_demo.rs"
+
+[[example]]
 name = "community_detection_demo"
 path = "examples/community_detection_demo.rs"
 
