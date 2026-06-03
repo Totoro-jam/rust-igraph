@@ -14,6 +14,30 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+### Added
+- **Ergonomic API improvements** for idiomatic Rust usage:
+  - `GraphBuilder` — fluent builder pattern with `.vertices()`, `.edge()`,
+    `.edges()`, `.path()`, `.cycle()`, `.clique()`, `.star()`, `.build()`.
+  - `TryFrom<&[(u32, u32)]>` and `TryFrom<Vec<(u32, u32)>>` for `Graph` —
+    construct undirected graphs directly from edge lists.
+  - `std::ops` overloads: `+` (disjoint union), `|` (union), `&`
+    (intersection), `-` (difference), `!` (complement) on `Graph`.
+  - `IntoIterator for &Graph` and `Graph::iter()` — enables
+    `for (u, v) in &graph { ... }` patterns.
+  - `FromIterator<(u32, u32)>` — collect edges into a `Graph`.
+  - `Extend<(u32, u32)>` — add edges from an iterator, auto-growing vertices.
+  - `PartialEq`, `Eq`, `Hash` for `Graph` — structural equality
+    (same directedness + vertices + sorted edge set).
+  - `EdgeIter` type alias — public named iterator type for `Graph::iter()`.
+- `examples/quickstart.rs` — complete analysis pipeline example showcasing
+  builder, connectivity, centrality, community detection, iteration, and
+  graph algebra.
+
+### Changed
+- CONTRIBUTING.md now welcomes external pull requests with clear guidelines.
+- README updated with GraphBuilder and operator overloading examples;
+  test count corrected to 700+.
+
 ## [0.0.1-alpha.4] — 2026-06-03
 
 ### Added
