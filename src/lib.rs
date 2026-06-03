@@ -61,6 +61,17 @@
 //! assert_eq!(pr.len(), 3);
 //! ```
 //!
+//! Random graph generators are one method call away:
+//!
+//! ```
+//! use rust_igraph::Graph;
+//!
+//! let er = Graph::erdos_renyi(1000, 0.01, 42).unwrap();
+//! let ba = Graph::barabasi_albert(1000, 3, 42).unwrap();
+//! assert_eq!(er.vcount(), 1000);
+//! assert_eq!(ba.vcount(), 1000);
+//! ```
+//!
 //! ## Import style
 //!
 //! All algorithms are also re-exported as free functions at the crate root:
