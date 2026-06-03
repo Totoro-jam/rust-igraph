@@ -2,7 +2,7 @@
 //!
 //! **Pure-Rust, high-performance graph and network analysis library.**
 //!
-//! A faithful port of [igraph](https://igraph.org) with 850+ public APIs,
+//! A faithful port of [igraph](https://igraph.org) with 1200+ public APIs,
 //! zero `unsafe`, and no C/C++ FFI. Built for researchers, data scientists,
 //! and systems engineers who need production-grade graph algorithms in the
 //! Rust ecosystem.
@@ -12,16 +12,18 @@
 //! | Category | Highlights |
 //! |----------|-----------|
 //! | **Traversal** | BFS, DFS, topological sort, random walks |
-//! | **Shortest paths** | Dijkstra, Bellman-Ford, A\*, all-pairs |
-//! | **Centrality** | betweenness, closeness, eigenvector, `PageRank`, HITS |
+//! | **Shortest paths** | Dijkstra, Bellman-Ford, A\*, Johnson, all-pairs, widest paths |
+//! | **Centrality** | betweenness, closeness, eigenvector, `PageRank`, HITS, Katz |
 //! | **Community** | Louvain, Leiden, label propagation, Walktrap, fast greedy |
-//! | **Connectivity** | components, articulation points, bridges, separators |
+//! | **Connectivity** | components, articulation points, bridges, separators, percolation |
 //! | **Flow** | max-flow, min-cut, Gomory-Hu tree, disjoint paths |
-//! | **Isomorphism** | VF2, LAD, BLISS canonical labeling |
-//! | **Generators** | Erdos-Renyi, Barabasi-Albert, SBM, lattices, 30+ more |
-//! | **Properties** | 60+ structural recognizers, degree stats, transitivity |
+//! | **Isomorphism** | VF2, LAD, BLISS canonical labeling, isoclass |
+//! | **Generators** | Erdos-Renyi, Barabasi-Albert, SBM, lattices, 40+ more |
+//! | **Properties** | 60+ structural recognizers, degree stats, transitivity, graphlets |
 //! | **Eigenvalues** | Lanczos (symmetric), Arnoldi (general), adjacency |
-//! | **Layout** | Fruchterman-Reingold, Kamada-Kawai, `DrL`, circle, tree |
+//! | **Layout** | Fruchterman-Reingold, Kamada-Kawai, `DrL`, MDS, LGL, circle, tree |
+//! | **I/O** | GML, GraphML, Pajek, DOT, LEDA, DL, DIMACS, NCOL, LGL |
+//! | **Similarity** | Jaccard, Dice, inverse-log-weighted |
 //!
 //! ## Quick start
 //!
