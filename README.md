@@ -199,4 +199,3 @@ of the C source. See [LICENSE](LICENSE).
 
 - [igraph](https://github.com/igraph/igraph) by the igraph team (C core)
 - [python-igraph](https://github.com/igraph/python-igraph) and [rigraph](https://github.com/igraph/rigraph) (reference test suites)
-- [faer](https://github.com/sarah-quinones/faer-rs) (linear algebra backend)

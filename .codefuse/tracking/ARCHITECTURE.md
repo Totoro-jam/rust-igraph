@@ -24,7 +24,7 @@ before the code that depends on them lands.
 |----|-------|--------|--------|
 | ADR-0001 | License: GPL-2.0-or-later, matching igraph | accepted | [#below](#adr-0001) |
 | ADR-0002 | 3-crate workspace: core / algorithms / facade | superseded by ADR-0009 | [#below](#adr-0002) |
-| ADR-0003 | Linear algebra backend: faer + self-rolled IRLM/IRAM | accepted | [#below](#adr-0003) |
+| ADR-0003 | Linear algebra backend: pure hand-rolled (power iteration + IRLM) | accepted | [#below](#adr-0003) |
 | ADR-0004 | Isomorphism: VF2 first, BLISS C++ → Rust translation, optional nauty FFI | accepted | [#below](#adr-0004) |
 | ADR-0005 | Test conformance: integrate all three official test suites | accepted | [#below](#adr-0005) |
 | ADR-0006 | AI workflow: AWU SOP + skills + agents + hooks committed in repo | accepted | [#below](#adr-0006) |
@@ -101,38 +101,38 @@ ergonomic surface.
 
 ## ADR-0003 — Linear algebra backend
 
-**Status**: accepted (2026-05-15; not yet exercised since no eigenvalue
-algorithm has landed in code, but locked in MASTER_PLAN.md §2.1).
+**Status**: accepted (2026-05-15; revised 2026-06-03 to drop faer in favor
+of pure hand-rolled implementations that already landed).
 
 **Context**: igraph C uses ARPACK (Fortran) for sparse eigenvalue problems.
-Pure-Rust ARPACK does not exist. We need WASM-friendly, MIT-compatible
-linear algebra plus our own implementations of IRLM (symmetric) and IRAM
-(non-symmetric) Krylov solvers.
+Pure-Rust ARPACK does not exist. We need WASM-friendly linear algebra.
 
-**Decision**: Three-tier dispatch:
-- **Tier A (n ≤ 50)**: faer's dense EVD.
-- **Tier B (large sparse)**: hand-rolled IRLM/IRAM, line-by-line translation
-  of `references/igraph/src/linalg/arpack.c` (1634 lines). Internal QR /
-  three-diagonal EVD calls back into faer.
-- **Tier C**: power iteration. PageRank uses this by default (matches
-  igraph's preference for PRPACK / power iteration over ARPACK).
+**Decision**: All linear algebra is hand-rolled pure Rust, zero external
+dependencies beyond `thiserror`:
+- **Power iteration**: PageRank, leading eigenvector community detection.
+  Matches igraph's preference for PRPACK / power iteration over ARPACK.
+- **Future IRLM/IRAM**: if needed for spectral methods, will be
+  self-implemented as a line-by-line translation of
+  `references/igraph/src/linalg/arpack.c`.
+- **Dense EVD (small n)**: Jacobi rotation or QR iteration, hand-rolled
+  when the first AWU requires it.
 
-`faer 0.24` is the default backend (feature `faer-backend`); `nalgebra` is
-an alternative (`nalgebra-backend`). Both expose the same `EigenSolver`
-trait so callers don't see the choice.
+No external linear algebra crate (`faer`, `nalgebra`, `ndarray`) is used.
+This keeps the dependency tree at zero (aside from `thiserror`) and
+guarantees WASM compatibility without feature flags.
 
 **Consequences**:
 - Numerical-correctness reviews (the `numerical-reviewer` agent) are
-  mandatory for any AWU that lives in `linalg/` or transitively depends on
-  IRLM (PageRank, eigenvector centrality, leading-eigenvector community,
-  spectral embedding, MDS layout).
-- WASM works out of the box with `faer-backend`.
-- nauty C FFI remains an optional opt-in (`nauty-backend`) for users on
-  100K+ vertex graphs who can sacrifice WASM.
+  mandatory for any AWU in `linalg/` or that depends on eigenvalue
+  computation.
+- WASM works out of the box with `cargo check --target wasm32-unknown-unknown`.
+- No feature flags needed for linear algebra backend selection.
 
-**Alternatives**:
-- C-FFI to ARPACK — rejected, breaks WASM and adds Fortran toolchain to CI.
-- nalgebra-only — rejected, ~2-10× slower than faer on dense EVD.
+**Alternatives considered and rejected**:
+- faer — high-quality pure Rust, but heavy dep tree (~15 transitive crates),
+  overkill for the sparse matrix-vector products graph algorithms actually need.
+- nalgebra — even heavier, slower on dense EVD benchmarks.
+- C-FFI to ARPACK — breaks WASM, adds Fortran toolchain to CI.
 
 ---
 

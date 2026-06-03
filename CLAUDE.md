@@ -80,9 +80,8 @@ cargo test  --workspace --all-features
 .venv/bin/python -m scripts.test_extract.from_py --algo bfs
 .venv/bin/python -m scripts.test_extract.from_r  --algo bfs
 
-# WASM check (default features)
-cargo check --target wasm32-unknown-unknown --no-default-features \
-  --features faer-backend,bliss-rust       # once Phase 1 deps land
+# WASM check (no external deps — pure Rust)
+cargo check --target wasm32-unknown-unknown
 ```
 
 ## Git conventions
