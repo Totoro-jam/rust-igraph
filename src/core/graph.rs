@@ -2186,6 +2186,94 @@ impl Graph {
     pub fn watts_strogatz(n: u32, k: u32, p: f64, seed: u64) -> IgraphResult<Self> {
         crate::algorithms::games::watts::watts_strogatz_game(n, k / 2, p, false, false, seed)
     }
+
+    /// Compute strongly connected components (directed graphs).
+    ///
+    /// For undirected graphs, this is equivalent to connected components.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0), (2,3)], true, None).unwrap();
+    /// let scc = g.strongly_connected_components().unwrap();
+    /// assert_eq!(scc.count, 2);
+    /// ```
+    pub fn strongly_connected_components(
+        &self,
+    ) -> IgraphResult<crate::algorithms::connectivity::components::ConnectedComponents> {
+        crate::algorithms::connectivity::strong::strongly_connected_components(self)
+    }
+
+    /// Find the shortest path between two vertices.
+    ///
+    /// Uses BFS for unweighted graphs, Dijkstra/Bellman-Ford for weighted.
+    /// Returns the vertex and edge sequences along the path.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,3), (0,3)], false, None
+    /// ).unwrap();
+    /// let path = g.shortest_path_to(0, 3, None).unwrap();
+    /// assert_eq!(path.vertices, vec![0, 3]);
+    /// ```
+    pub fn shortest_path_to(
+        &self,
+        source: VertexId,
+        target: VertexId,
+        weights: Option<&[f64]>,
+    ) -> IgraphResult<crate::algorithms::paths::get_shortest_path::ShortestPath> {
+        use crate::algorithms::paths::dijkstra::DijkstraMode;
+        let mode = if self.directed {
+            DijkstraMode::Out
+        } else {
+            DijkstraMode::All
+        };
+        crate::algorithms::paths::get_shortest_path::get_shortest_path(
+            self, source, target, weights, mode,
+        )
+    }
+
+    /// Compute the average path length of the graph.
+    ///
+    /// Returns the mean shortest-path distance over all reachable vertex pairs.
+    /// Unreachable pairs are excluded. Returns `None` if the graph has fewer
+    /// than 2 vertices or no reachable pairs exist.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let apl = g.average_path_length().unwrap().unwrap();
+    /// assert!((apl - 5.0 / 3.0).abs() < 1e-10); // (1+2+3+1+2+1)/6
+    /// ```
+    pub fn average_path_length(&self) -> IgraphResult<Option<f64>> {
+        crate::algorithms::properties::basic::mean_distance(self)
+    }
+
+    /// Check if the graph is bipartite and return the partition if so.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let result = g.is_bipartite().unwrap();
+    /// assert!(result.is_bipartite);
+    /// ```
+    pub fn is_bipartite(
+        &self,
+    ) -> IgraphResult<crate::algorithms::properties::is_bipartite::BipartiteResult> {
+        crate::algorithms::properties::is_bipartite::is_bipartite(self)
+    }
 }
 
 impl std::fmt::Display for Graph {
