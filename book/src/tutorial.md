@@ -1,0 +1,244 @@
+# Tutorial
+
+This chapter walks through the core features of `rust-igraph` by building
+a small network analysis pipeline. Every code block is a self-contained
+snippet you can paste into a Rust file with `use rust_igraph::prelude::*;`.
+
+## Creating graphs
+
+The simplest way to create a graph is from an edge list:
+
+```rust
+use rust_igraph::Graph;
+
+// Undirected triangle
+let g = Graph::from_edges(&[(0, 1), (1, 2), (2, 0)], false, None).unwrap();
+assert_eq!(g.vcount(), 3);
+assert_eq!(g.ecount(), 3);
+```
+
+For more control, use the `GraphBuilder`:
+
+```rust
+use rust_igraph::GraphBuilder;
+
+let g = GraphBuilder::undirected()
+    .vertices(5)
+    .edges(&[(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)])
+    .build()
+    .unwrap();
+```
+
+There are also 40+ named constructors for common graph families:
+
+```rust
+use rust_igraph::{full_graph, ring_graph, star_graph, erdos_renyi_gnp};
+
+let complete = full_graph(5, false, false).unwrap();       // K_5
+let cycle = ring_graph(10, false, false, false).unwrap();  // C_10
+let hub = star_graph(8, false).unwrap();                   // star with 8 leaves
+let random = erdos_renyi_gnp(100, 0.05, false).unwrap();   // G(100, 0.05)
+```
+
+## Basic properties
+
+```rust
+use rust_igraph::{Graph, density, is_connected, ConnectednessMode, diameter};
+
+let g = Graph::from_edges(
+    &[(0,1),(1,2),(2,3),(3,0),(2,4),(4,5)], false, None
+).unwrap();
+
+println!("Vertices: {}", g.vcount());            // 6
+println!("Edges: {}", g.ecount());               // 6
+println!("Directed: {}", g.is_directed());        // false
+println!("Density: {:.4}", density(&g).unwrap().unwrap_or(0.0));
+println!("Connected: {}", is_connected(&g, ConnectednessMode::Weak).unwrap());
+println!("Diameter: {:?}", diameter(&g).unwrap());
+```
+
+## Centrality measures
+
+```rust
+use rust_igraph::{Graph, pagerank, betweenness, closeness};
+
+let g = Graph::from_edges(
+    &[(0,1),(0,2),(1,2),(1,3),(2,3),(3,4),(4,5),(5,6),(6,4)],
+    false, None
+).unwrap();
+
+let pr = pagerank(&g).unwrap();
+let bc = betweenness(&g).unwrap();
+let cl = closeness(&g).unwrap();
+
+// Find the most central vertex
+let (top_v, top_score) = pr.iter()
+    .enumerate()
+    .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+    .unwrap();
+println!("Highest PageRank: vertex {} ({:.4})", top_v, top_score);
+```
+
+## Community detection
+
+```rust
+use rust_igraph::{Graph, louvain, leiden};
+
+let g = Graph::from_edges(
+    &[(0,1),(0,2),(1,2),(3,4),(3,5),(4,5),(2,3)],
+    false, None
+).unwrap();
+
+let result = louvain(&g).unwrap();
+println!("Communities: {:?}", result.membership);
+println!("Modularity: {:.4}", result.modularity);
+```
+
+Available community detection algorithms: Louvain, Leiden, label
+propagation, fluid communities, fast greedy, edge betweenness, walktrap,
+and leading eigenvector.
+
+## Shortest paths
+
+```rust
+use rust_igraph::{Graph, distances, dijkstra_distances};
+
+let g = Graph::from_edges(
+    &[(0,1),(1,2),(2,3),(0,3),(1,3)], false, None
+).unwrap();
+
+// Unweighted distances from vertex 0
+let dist = distances(&g, 0).unwrap();
+println!("Distances from 0: {:?}", dist);  // [Some(0), Some(1), Some(2), Some(1)]
+
+// Weighted shortest paths
+let weights = vec![1.0, 2.0, 1.0, 5.0, 1.0];
+let wdist = dijkstra_distances(&g, 0, Some(&weights)).unwrap();
+println!("Weighted distances from 0: {:?}", wdist);
+```
+
+## Graph attributes
+
+Vertices, edges, and the graph itself can carry typed attributes:
+
+```rust
+use rust_igraph::{Graph, AttributeValue};
+
+let mut g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+
+// Vertex attributes
+g.set_vertex_attribute("name", 0, AttributeValue::String("Alice".into()));
+g.set_vertex_attribute("name", 1, AttributeValue::String("Bob".into()));
+g.set_vertex_attribute("name", 2, AttributeValue::String("Carol".into()));
+
+// Edge attributes
+g.set_edge_attribute("weight", 0, AttributeValue::Numeric(1.5));
+g.set_edge_attribute("weight", 1, AttributeValue::Numeric(2.3));
+
+// Graph-level attributes
+g.set_graph_attribute("title", AttributeValue::String("My Network".into()));
+
+// Read back
+if let Some(name) = g.vertex_attribute("name", 0) {
+    println!("Vertex 0: {}", name);  // "Alice"
+}
+```
+
+## File I/O
+
+Read and write graphs in 8 formats, all attribute-aware:
+
+```rust
+use rust_igraph::{Graph, AttributeValue, write_gml, read_gml};
+
+let mut g = Graph::from_edges(&[(0,1),(1,2),(2,0)], false, None).unwrap();
+g.set_graph_attribute("name", AttributeValue::String("triangle".into()));
+
+// Write to GML
+let mut buf = Vec::new();
+write_gml(&g, &mut buf).unwrap();
+
+// Read back — attributes survive the round-trip
+let g2 = read_gml(buf.as_slice()).unwrap();
+assert_eq!(g2.vcount(), 3);
+assert_eq!(
+    g2.graph_attribute("name").and_then(AttributeValue::as_str),
+    Some("triangle")
+);
+```
+
+Supported formats: GML, GraphML, DOT (Graphviz), Pajek, NCOL, LGL,
+DL (UCINET), and LEDA.
+
+## Graph isomorphism
+
+```rust
+use rust_igraph::{full_graph, ring_graph, isomorphic};
+
+let g1 = full_graph(4, false, false).unwrap();
+let g2 = full_graph(4, false, false).unwrap();
+let g3 = ring_graph(4, false, false, false).unwrap();
+
+assert!(isomorphic(&g1, &g2).unwrap());   // K_4 ≅ K_4
+assert!(!isomorphic(&g1, &g3).unwrap());  // K_4 ≇ C_4
+```
+
+## Graph operators
+
+```rust
+use rust_igraph::Graph;
+
+let a = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+let b = Graph::from_edges(&[(1,2),(2,3)], false, None).unwrap();
+
+let u = &a | &b;  // union
+let i = &a & &b;  // intersection
+
+println!("Union: {} vertices, {} edges", u.vcount(), u.ecount());
+println!("Intersection: {} vertices, {} edges", i.vcount(), i.ecount());
+```
+
+## Iterating over a graph
+
+```rust
+use rust_igraph::Graph;
+
+let g = Graph::from_edges(&[(0,1),(1,2),(2,0)], false, None).unwrap();
+
+// Iterate over edges
+for (src, tgt) in &g {
+    println!("{} -- {}", src, tgt);
+}
+
+// Iterate over vertex ids
+for v in g.vertex_ids() {
+    let deg = g.degree(v);
+    println!("Vertex {}: degree {}", v, deg);
+}
+```
+
+## Method API vs free functions
+
+Most algorithms are available both as free functions and as methods on
+`Graph`:
+
+```rust
+use rust_igraph::{Graph, pagerank};
+
+let g = Graph::from_edges(&[(0,1),(1,2),(2,0)], false, None).unwrap();
+
+// Free function style
+let pr1 = pagerank(&g).unwrap();
+
+// Method style
+let pr2 = g.pagerank().unwrap();
+
+// Same result
+assert_eq!(pr1, pr2);
+```
+
+## Next steps
+
+- Browse the [API documentation](./api.md) for the full list of functions
+- Run `cargo run --example social_network_demo` for a comprehensive demo
+- Check the 110+ examples in the `examples/` directory

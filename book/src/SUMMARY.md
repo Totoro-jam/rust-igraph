@@ -5,6 +5,7 @@
 # Getting started
 
 - [Quick start](./getting-started.md)
+- [Tutorial](./tutorial.md)
 - [Project layout](./project-layout.md)
 
 # How rust-igraph is built

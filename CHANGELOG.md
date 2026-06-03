@@ -14,6 +14,8 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+## [0.5.0-alpha.3] — 2026-06-04
+
 ### Added
 - **Attribute-aware I/O** — all eight graph formats now read and write
   vertex, edge, and graph-level attributes through the `Graph` attribute
@@ -37,6 +39,22 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
     writer emits `labels:` section from attributes. 7 new attribute tests.
   - **LEDA**: same attribute integration; header type declarations
     (`string`/`double`) automatically set from attributes. 7 new tests.
+- **mdBook tutorial** — new user-facing tutorial chapter covering graph
+  construction, properties, centrality, community detection, shortest paths,
+  attributes, I/O, isomorphism, operators, and iteration patterns.
+- `examples/social_network_demo.rs` expanded to demonstrate all 8 I/O
+  format round-trips (19 capabilities total).
+
+### Changed
+- mdBook introduction updated to reflect current project state (305+ AWUs,
+  386 public APIs, 7,400+ tests).
+- ALGORITHMS.md: Phase 5/6/9 headers updated from "(partial)" to complete;
+  ALGO-CORE-010 marked done.
+
+### Fixed
+- Broken rustdoc link to `AdjacencyType::Both` in `Graph::get_adjacency`
+  doc comment — now uses fully-qualified `crate::` path.
+- Clippy `similar_names` lint on `k4a`/`k4b` in `method_api_demo.rs`.
 
 ## [0.5.0-alpha.2] — 2026-06-03
 

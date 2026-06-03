@@ -1,6 +1,6 @@
 [package]
 name = "rust-igraph"
-version = "0.5.0-alpha.2"
+version = "0.5.0-alpha.3"
 edition = "2024"
 rust-version = "1.85"
 license = "GPL-2.0-or-later"
