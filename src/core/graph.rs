@@ -4987,6 +4987,98 @@ impl Graph {
         crate::algorithms::properties::is_wheel::is_wheel(self)
     }
 
+    /// Check whether the graph is regular (all vertices have the same degree).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, full_graph};
+    ///
+    /// let g = full_graph(4, false, false).unwrap();
+    /// assert!(g.is_regular().unwrap());
+    /// ```
+    pub fn is_regular(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_regular::is_regular(self)
+    }
+
+    /// Check whether the graph is strongly regular, returning parameters if so.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, cycle_graph};
+    ///
+    /// let g = cycle_graph(5, false, false).unwrap();
+    /// let result = g.is_strongly_regular().unwrap();
+    /// assert!(result.is_some());
+    /// ```
+    pub fn is_strongly_regular(
+        &self,
+    ) -> IgraphResult<
+        Option<crate::algorithms::properties::is_strongly_regular::StronglyRegularParams>,
+    > {
+        crate::algorithms::properties::is_strongly_regular::is_strongly_regular(self)
+    }
+
+    /// Check whether the graph is weakly chordal.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// assert!(g.is_weakly_chordal().unwrap());
+    /// ```
+    pub fn is_weakly_chordal(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_weakly_chordal::is_weakly_chordal(self)
+    }
+
+    /// Check whether the graph is well-covered.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, full_graph};
+    ///
+    /// let g = full_graph(4, false, false).unwrap();
+    /// assert!(g.is_well_covered().unwrap());
+    /// ```
+    pub fn is_well_covered(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_well_covered::is_well_covered(self)
+    }
+
+    /// Check whether the graph is a windmill graph, returning (k, n) if so.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, full_graph};
+    ///
+    /// let g = full_graph(3, false, false).unwrap();
+    /// let result = g.is_windmill().unwrap();
+    /// assert!(result.is_some());
+    /// ```
+    pub fn is_windmill(&self) -> IgraphResult<Option<(u32, u32)>> {
+        crate::algorithms::properties::is_windmill::is_windmill(self)
+    }
+
+    /// Check whether the graph is complete multipartite, returning
+    /// partition sizes if so.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, full_graph};
+    ///
+    /// let g = full_graph(3, false, false).unwrap();
+    /// let result = g.is_complete_multipartite().unwrap();
+    /// assert!(result.is_some());
+    /// ```
+    pub fn is_complete_multipartite(&self) -> IgraphResult<Option<Vec<u32>>> {
+        crate::algorithms::properties::is_complete_multipartite::is_complete_multipartite(self)
+    }
+
     /// Check whether this graph satisfies Dirac's condition for Hamiltonicity.
     ///
     /// # Examples
