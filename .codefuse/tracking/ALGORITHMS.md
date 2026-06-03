@@ -401,7 +401,7 @@ Each phase's per-AWU table is materialized here as work approaches.
 > `todo` count, since they would otherwise distort the algorithm-progress
 > ratio.
 
-**Phase 0 — complete (37/37)**. **Phase 1 underway**: 251/251 done —
+**Phase 0 — complete (37/37)**. **Phase 1 complete**: 419 algorithms done —
 Graph core (CORE-001a/b/d), DFS (TR-002), weak CC (CC-001), strong CC
 (CC-002), unweighted distances (SP-006), Eulerian existence (CC-040),
 articulation points (CC-010), bridges (CC-014), is_biconnected
@@ -521,7 +521,7 @@ CL-004 (`maximal_cliques_count` + `clique_size_hist` — counting maximal clique
 
 ---
 
-**Phase 1 complete (377 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
+**Phase 1 complete (419 algorithms done).** Next: Phase 2 (I/O formats for practical utility).
 
 CC-023 (`reachability` — SCC-based per-component reachability bitsets; condenses directed graph into DAG of SCCs, propagates bitsets in reverse topological order; O(|C|·|V|/w + |V| + |E|); supports Out/In/All modes; 14 unit tests + 1 doctest).
 
@@ -662,5 +662,91 @@ PR-127 (`is_series_parallel` — check whether a graph is series-parallel: no `K
 PR-128 (`is_apex_tree` — check whether a graph is an apex tree: removing some single vertex yields a tree; stricter than apex forest (requires connected remainder); uses adjacency-matrix removal + tree-check per candidate; trees, triangles, diamonds, theta graphs are apex trees; `K_4`, wheels, two disjoint triangles, edgeless graphs with n >= 4 are not; directed treated as undirected; 16 unit tests + 1 doctest).
 
 PR-129 (`is_outerplanar` — check whether a graph is outerplanar: embeddable in the plane with all vertices on the outer face; equivalent to no `K_4` minor and no `K_{2,3}` minor; uses `is_series_parallel` for `K_4`-freeness plus a tagged SP-reduction for `K_{2,3}` detection — edges created by series contraction are tagged synthetic, and 3+ synthetic parallel edges between any pair certify a `K_{2,3}` minor; forests, cycles, diamonds, triangulated polygons are outerplanar; `K_4`, `K_{2,3}`, Petersen are not; directed treated as undirected; 18 unit tests + 1 doctest).
+
+PR-130 (`is_mutual` + `has_mutual` + `count_mutual` — per-edge mutual/reciprocal classification for directed graphs: `is_mutual` returns a bool vector indicating whether each edge has a reciprocal partner; `has_mutual` returns true if any edge is mutual; `count_mutual` returns the count of mutual edges; self-loops optionally treated as mutual; undirected graphs: all edges mutual; O(E); 15 unit tests + 1 doctest).
+
+PR-131 (`is_clique` + `is_independent_vertex_set` — vertex-set property tests: `is_clique` checks whether a given vertex set induces a complete subgraph; `is_independent_vertex_set` checks whether no two vertices in the set are adjacent; supports directed mode; O(|S|^2); 15 unit tests + 2 doctests).
+
+PR-132 (`is_triangle_free` — check whether a graph has no triangle (3-clique); iterates edges and checks common neighbors; returns false for directed graphs; O(E * sqrt(E)); 15 unit tests + 1 doctest).
+
+PR-133 (`degree_correlation_vector` — degree-degree correlation vector (average neighbor degree per degree class); supports Out/In/All modes; O(V+E); 12 unit tests + 1 doctest).
+
+PR-134 (`joint_degree_matrix` — joint degree matrix counting edges between degree-i and degree-j vertices; optional edge weights; O(E); 12 unit tests + 1 doctest).
+
+PR-135 (`joint_type_distribution` — joint type/attribute distribution matrix; generalizes joint_degree_matrix to arbitrary vertex types; O(E); 10 unit tests + 1 doctest).
+
+PR-136 (`katz_centrality` — Katz centrality: weighted sum of walks of all lengths with attenuation factor alpha; power-iteration with convergence check; supports optional initial scores and edge weights; O(V+E) per iteration; 7 unit tests + 1 doctest).
+
+PR-137 (`list_triangles` — enumerate all triangles as sorted vertex triples; directed graphs treated as undirected; O(E * sqrt(E)); 12 unit tests + 1 doctest).
+
+PR-138 (`mean_distance_weighted` — weighted average shortest-path distance using Dijkstra all-pairs; handles directed/undirected; returns NaN for disconnected components when unconditional=false; O(V * E log V); 13 unit tests + 1 doctest).
+
+PR-139 (`cocitation` + `bibcoupling` + `similarity_jaccard_pairs` + `similarity_dice_pairs` + `similarity_inverse_log_weighted_pairs` — pairwise vertex similarity measures: co-citation and bibliographic coupling counts; Jaccard, Dice, and inverse-log-weighted similarity for given vertex pairs; supports directed mode; O(V * d^2) for co-citation/bibcoupling; O(|pairs| * d) for pairwise measures; 40 unit tests + 5 doctests).
+
+PR-140 (`sort_vertices_by_degree` — returns vertex indices sorted by degree in ascending or descending order; supports Out/In/All modes; O(V log V); 9 unit tests + 1 doctest).
+
+PR-141 (`get_stochastic` — row- or column-stochastic matrix from graph adjacency; normalizes rows/columns to sum to 1; handles isolated vertices (all-zero rows); O(V+E); 11 unit tests + 1 doctest).
+
+PR-142 (`graph_summary` + `graph_summary_string` — summary statistics struct for a graph: vertex/edge counts, density, components, diameter, average degree, clustering coefficient, reciprocity; `graph_summary_string` formats as human-readable text; O(V+E); 9 unit tests + 2 doctests).
+
+PR-143 (`unfold_tree` — BFS-based tree unfolding: converts a general graph into a tree rooted at a given vertex by duplicating shared vertices; returns unfolded tree + vertex mapping back to original; supports root selection; O(V+E); 10 unit tests + 1 doctest).
+
+PR-144 (`running_mean` + `expand_path_to_pairs` — sliding-window running mean over a data vector; `expand_path_to_pairs` utility converts a vertex path to consecutive edge pairs; O(n); 11 unit tests + 2 doctests).
+
+PR-145 (`get_eids` — batch edge-ID lookup for vertex pairs; returns edge IDs for given (from, to) pairs; directed-aware with optional error on missing edges; O(|pairs| * d); 7 unit tests + 1 doctest).
+
+PR-146 (`assortativity_nominal` — nominal assortativity coefficient for categorical vertex attributes; Newman 2003 mixing-matrix formulation; O(E); 12 unit tests + 1 doctest).
+
+MO-001 (`motifs_randesu` + `motifs_randesu_no` + `motifs_randesu_estimate` + `motifs_randesu_callback` — subgraph census (motif counting) via Wernicke 2006 RAND-ESU enumeration; counts all subgraphs of size 3 or 4 by isomorphism class; `motifs_randesu_no` returns total count; `motifs_randesu_estimate` samples a fraction; `motifs_randesu_callback` invokes user callback per motif; size 3: 16 classes directed / 4 undirected; size 4: 218 classes directed / 11 undirected; O(V * d^(size-1)); 29 unit tests + 4 doctests).
+
+MO-003 (`dyad_census` — Davis-Holland-Leinhardt dyad census: counts mutual, asymmetric, and null dyads in a directed graph; `DyadCensus { mutual, asymmetric, null }`; undirected: all non-null dyads are mutual; O(V+E); 13 unit tests + 1 doctest).
+
+MO-004 (`graph_count` — number of labeled graphs on n vertices (directed or undirected); `2^(n*(n-1)/2)` undirected, `2^(n*(n-1))` directed; pure combinatorial formula; O(1); 4 unit tests + 1 doctest).
+
+CY-002 (`fundamental_cycles` — fundamental cycle basis from a spanning tree; BFS spanning tree + one non-tree edge per cycle; returns cycles as vertex lists; O(V+E) for tree + O(C * V) for cycle extraction; 14 unit tests + 1 doctest).
+
+CY-005 (`minimum_cycle_basis` — minimum weight cycle basis using Horton's algorithm; enumerates candidate cycles via shortest paths through each edge, then Gaussian elimination over GF(2) to select linearly independent minimum-weight set; optional edge weights; O(E^2 * V + E * V^2 * log V); 16 unit tests + 1 doctest).
+
+CY-006 (`feedback_arc_set` + `FasAlgorithm` — feedback arc set: minimum set of edges whose removal makes a directed graph acyclic; `FasAlgorithm::EadesLinSmyth` greedy heuristic: alternately peel sinks and sources, place remaining by net degree delta; supports optional edge weights; O(V+E); 16 unit tests + 1 doctest).
+
+EP-001 (`sir` — SIR (Susceptible-Infected-Recovered) epidemic simulation on graphs; discrete-time stochastic process with infection rate beta and recovery rate gamma; returns time series of S/I/R counts per simulation; deterministic via SplitMix64 seed; O(V * T) per simulation; 11 unit tests + 1 doctest).
+
+MA-003 (`solve_lsap` — solve the Linear Sum Assignment Problem (Hungarian algorithm); finds minimum-cost perfect matching in a bipartite graph given an n×n cost matrix; returns optimal column assignment vector; O(n^3); 10 unit tests + 1 doctest).
+
+OP-022 (`contract_vertices` — vertex contraction: merges vertices sharing the same mapping value; preserves edges between contracted super-vertices; O(V+E); 9 unit tests + 1 doctest).
+
+OP-023 (`line_graph` — line graph construction: vertices of L(G) are edges of G, two L(G)-vertices adjacent iff their edges share an endpoint; O(E * d); 9 unit tests + 1 doctest).
+
+OP-024 (`rewire_edges` + `rewire_directed_edges` — random edge rewiring: each edge independently rewired with probability p; `rewire_edges` rewires both endpoints; `rewire_directed_edges` rewires only source or target; self-loops optional; deterministic via SplitMix64 seed; O(E); 17 unit tests + 1 doctest).
+
+OP-025 (`subgraph_from_edges` — extract a subgraph induced by a set of edge IDs; optionally deletes non-selected vertices (reindex) or keeps all vertices; O(V+|S|); 13 unit tests + 1 doctest).
+
+OP-026 (`bipartite_projection` + `BipartiteProjectionResult` — one-mode projections of a bipartite graph: projects onto type-0 and/or type-1 vertices; two type-X vertices are connected iff they share a type-Y neighbor; optional edge multiplicity weights; O(V * d^2); 10 unit tests + 1 doctest).
+
+OP-027 (`bipartite_projection_size` — compute sizes (vertex/edge counts) of bipartite projections without constructing them; O(V * d); 9 unit tests + 1 doctest).
+
+OP-028 (`residual_graph` + `reverse_residual_graph` — max-flow residual graph construction: given a flow assignment, builds the residual graph with forward (capacity - flow) and backward (flow) arcs; `reverse_residual_graph` builds the reverse-arc residual; O(V+E); 12 unit tests + 1 doctest).
+
+SP-037 (`distances_from` + `distances_from_with_mode` — single-source unweighted shortest distances via BFS; returns `Vec<Option<u32>>` with None for unreachable vertices; direction-aware (Out/In/All); convenience wrapper over distances with single-source semantics; O(V+E); 10 unit tests + 1 doctest).
+
+SP-038 (`spanner` — graph spanner: sparse subgraph that approximately preserves distances; greedy algorithm selecting edges whose removal would increase stretch beyond threshold; supports optional edge weights; O(E * V); 12 unit tests + 1 doctest).
+
+SP-039 (`graph_center` + `pseudo_diameter` — graph center: vertices with minimum eccentricity; `pseudo_diameter` approximation via BFS double-sweep; supports directed modes; O(V * (V+E)); 17 unit tests + 2 doctests).
+
+SP-040 (`vertex_path_from_edge_path` — convert an edge-ID path to a vertex-ID path; reconstructs the vertex sequence by walking edge endpoints; O(|path|); 15 unit tests + 1 doctest).
+
+ST-001 (`random_spanning_tree` — Wilson's algorithm (loop-erased random walk) for uniform random spanning tree; deterministic via SplitMix64 seed; returns tree as edge-ID vector; O(V * E) expected; 15 unit tests + 1 doctest).
+
+GEO-010 (`convex_hull_2d` — 2-D convex hull via Andrew's monotone chain algorithm; returns vertices in counterclockwise order + hull polygon; handles collinear points; O(n log n); 11 unit tests + 1 doctest).
+
+GEO-011 (`spatial_edge_lengths` — compute Euclidean edge lengths from vertex coordinates; returns `Vec<f64>` aligned with edge IDs; arbitrary dimensionality; O(E * d); 13 unit tests + 1 doctest).
+
+CN-039 (`realize_degree_sequence` — construct a simple undirected graph with a given degree sequence; Erdos-Gallai realizability check then stub-matching construction; O(V^2); 14 unit tests + 1 doctest).
+
+CN-040 (`realize_bipartite_degree_sequence` — construct a simple bipartite graph with given degree sequences for both parts; Gale-Ryser realizability check; O(n1 * n2); 13 unit tests + 1 doctest).
+
+CN-041 (`realize_directed_degree_sequence` — construct a simple directed graph with given in-degree and out-degree sequences; Fulkerson realizability check; O(V^2); 14 unit tests + 1 doctest).
+
+CO-009 (`modularity_matrix` — Newman's modularity matrix B_{ij} = A_{ij} - k_i * k_j / 2m; returns dense V×V matrix; used internally by leading_eigenvector community detection; O(V^2); 12 unit tests + 1 doctest).
 
 > Update the counters after every PR merge.

@@ -9,7 +9,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **Pure-Rust, high-performance graph and network analysis library.** A faithful port of
-[igraph](https://igraph.org/) with 400+ public APIs, zero `unsafe`, and no C/C++ FFI.
+[igraph](https://igraph.org/) with 419+ public APIs, zero `unsafe`, and no C/C++ FFI.
 
 Built for researchers, data scientists, and systems engineers who need production-grade
 graph algorithms without leaving the Rust ecosystem.
@@ -18,7 +18,7 @@ graph algorithms without leaving the Rust ecosystem.
 
 | | rust-igraph | petgraph | igraph (C/Python) |
 |---|---|---|---|
-| **Algorithm coverage** | 400+ APIs (BFS, DFS, shortest paths, community detection, centrality, isomorphism, flows, layouts, graph generators, 60+ graph class recognizers...) | ~30 algorithms | ~850 APIs |
+| **Algorithm coverage** | 419+ APIs (BFS, DFS, shortest paths, community detection, centrality, isomorphism, flows, layouts, graph generators, 60+ graph class recognizers...) | ~30 algorithms | ~850 APIs |
 | **Safety** | Zero `unsafe`, zero `unwrap` in library code | Some `unsafe` | C core with FFI |
 | **Correctness** | Cross-validated against igraph C, python-igraph, and R-igraph test suites | Independent | Reference implementation |
 | **Dependencies** | Minimal (1 runtime dep: `thiserror`) | Minimal | Large C/C++ toolchain |
@@ -185,7 +185,7 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ## Project status
 
-> **Alpha** (`v0.5.0-alpha`) — 377 algorithms implemented and tested across all major
+> **Alpha** (`v0.5.0-alpha`) — 419 algorithms implemented and tested across all major
 > categories. The API is stabilizing but may change before `v1.0.0`.
 
 | Category | Status |
