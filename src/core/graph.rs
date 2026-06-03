@@ -2274,6 +2274,95 @@ impl Graph {
     ) -> IgraphResult<crate::algorithms::properties::is_bipartite::BipartiteResult> {
         crate::algorithms::properties::is_bipartite::is_bipartite(self)
     }
+
+    /// Remove self-loops and/or multi-edges from the graph.
+    ///
+    /// Returns a new simplified graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(0, 1).unwrap(); // multi-edge
+    /// g.add_edge(1, 1).unwrap(); // self-loop
+    /// let simple = g.simplify(true, true).unwrap();
+    /// assert_eq!(simple.ecount(), 1);
+    /// ```
+    pub fn simplify(&self, remove_multiple: bool, remove_loops: bool) -> IgraphResult<Graph> {
+        crate::algorithms::operators::simplify::simplify(self, remove_multiple, remove_loops)
+    }
+
+    /// Reverse all edge directions (directed graphs only).
+    ///
+    /// For undirected graphs, returns a copy of the graph unchanged.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], true, None).unwrap();
+    /// let r = g.reverse().unwrap();
+    /// assert_eq!(r.neighbors(2).unwrap(), vec![1]);
+    /// ```
+    pub fn reverse(&self) -> IgraphResult<Graph> {
+        crate::algorithms::operators::reverse::reverse(self)
+    }
+
+    /// Contract vertices according to a mapping.
+    ///
+    /// `mapping[v]` specifies the new vertex id for vertex `v`. Vertices
+    /// with the same mapping value are merged into one vertex.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// // Merge vertices 0,1 → 0 and 2,3 → 1
+    /// let contracted = g.contract_vertices(&[0, 0, 1, 1]).unwrap();
+    /// assert_eq!(contracted.vcount(), 2);
+    /// ```
+    pub fn contract_vertices(&self, mapping: &[VertexId]) -> IgraphResult<Graph> {
+        crate::algorithms::operators::contract_vertices::contract_vertices(self, mapping)
+    }
+
+    /// Perform a random walk starting from a given vertex.
+    ///
+    /// Returns the sequence of visited vertex ids (length = `steps + 1`
+    /// including the starting vertex, or shorter if the walk gets stuck).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,3), (3,0)], false, None
+    /// ).unwrap();
+    /// let (vertices, edges) = g.random_walk(0, 10, 42).unwrap();
+    /// assert_eq!(vertices[0], 0);
+    /// assert!(vertices.len() <= 11);
+    /// assert_eq!(edges.len(), vertices.len() - 1);
+    /// ```
+    pub fn random_walk(
+        &self,
+        start: VertexId,
+        steps: u32,
+        seed: u64,
+    ) -> IgraphResult<(Vec<VertexId>, Vec<EdgeId>)> {
+        use crate::algorithms::paths::dijkstra::DijkstraMode;
+        let mode = if self.directed {
+            DijkstraMode::Out
+        } else {
+            DijkstraMode::All
+        };
+        crate::algorithms::paths::random_walk::random_walk(self, None, start, mode, steps, seed)
+    }
 }
 
 impl std::fmt::Display for Graph {
