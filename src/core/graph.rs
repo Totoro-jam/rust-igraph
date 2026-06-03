@@ -2539,6 +2539,271 @@ impl Graph {
         };
         crate::algorithms::paths::random_walk::random_walk(self, None, start, mode, steps, seed)
     }
+
+    // ── Graph properties ─────────────────────────────────────────────
+
+    /// Compute the radius (minimum eccentricity) of the graph.
+    ///
+    /// Returns `None` for the empty graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// assert_eq!(g.radius().unwrap(), Some(2));
+    /// ```
+    pub fn radius(&self) -> IgraphResult<Option<u32>> {
+        crate::algorithms::paths::radii::radius(self)
+    }
+
+    /// Compute the eccentricity of every vertex.
+    ///
+    /// `result[v]` is the maximum shortest-path distance from vertex `v`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// assert_eq!(g.eccentricity().unwrap(), vec![2, 1, 2]);
+    /// ```
+    pub fn eccentricity(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::paths::radii::eccentricity(self)
+    }
+
+    /// Compute the girth (length of the shortest cycle) of the graph.
+    ///
+    /// Returns `None` if the graph is acyclic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert_eq!(g.girth().unwrap(), Some(3));
+    /// ```
+    pub fn girth(&self) -> IgraphResult<Option<u32>> {
+        crate::algorithms::properties::girth::girth(self)
+    }
+
+    /// Check whether the graph is a tree.
+    ///
+    /// Returns `Some(root)` where `root` is the first root vertex found,
+    /// or `None` if the graph is not a tree. The `mode` parameter controls
+    /// how edges are followed for directed graphs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, DijkstraMode};
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (1,3)], false, None).unwrap();
+    /// assert!(g.is_tree(DijkstraMode::All).unwrap().is_some());
+    /// ```
+    pub fn is_tree(
+        &self,
+        mode: crate::algorithms::paths::dijkstra::DijkstraMode,
+    ) -> IgraphResult<Option<VertexId>> {
+        crate::algorithms::properties::is_tree::is_tree(self, mode)
+    }
+
+    /// Check whether the directed graph is a DAG.
+    ///
+    /// Returns `false` for undirected graphs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], true, None).unwrap();
+    /// assert!(g.is_dag());
+    /// ```
+    pub fn is_dag(&self) -> bool {
+        crate::algorithms::properties::is_dag::is_dag(self)
+    }
+
+    /// Count the total number of triangles in the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert_eq!(g.count_triangles().unwrap(), 1);
+    /// ```
+    pub fn count_triangles(&self) -> IgraphResult<u64> {
+        crate::algorithms::properties::triangles::count_triangles(self)
+    }
+
+    /// Compute the harmonic centrality of all vertices.
+    ///
+    /// Harmonic centrality of `v` is the sum of inverse distances
+    /// from `v` to all other reachable vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let h = g.harmonic_centrality().unwrap();
+    /// assert_eq!(h.len(), 3);
+    /// ```
+    pub fn harmonic_centrality(&self) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::harmonic::harmonic_centrality(self)
+    }
+
+    /// Compute the k-hop neighborhood size for every vertex.
+    ///
+    /// `result[v]` is the number of vertices within distance `order` from
+    /// `v` (including `v` itself).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let sizes = g.neighborhood_size(1).unwrap();
+    /// assert_eq!(sizes, vec![2, 3, 3, 2]);
+    /// ```
+    pub fn neighborhood_size(&self, order: i32) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::properties::neighborhood::neighborhood_size(self, order)
+    }
+
+    // ── Connectivity ─────────────────────────────────────────────────
+
+    /// Compute the vertex connectivity (minimum vertex cut) of the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (0,2), (1,3), (2,3)], false, None,
+    /// ).unwrap();
+    /// assert_eq!(g.vertex_connectivity().unwrap(), 2);
+    /// ```
+    pub fn vertex_connectivity(&self) -> IgraphResult<i64> {
+        crate::algorithms::flow::vertex_connectivity::vertex_connectivity(self, true)
+    }
+
+    /// Compute the edge connectivity (minimum edge cut) of the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (0,2), (1,3), (2,3)], false, None,
+    /// ).unwrap();
+    /// assert_eq!(g.edge_connectivity().unwrap(), 2);
+    /// ```
+    pub fn edge_connectivity(&self) -> IgraphResult<i64> {
+        crate::algorithms::flow::edge_connectivity::edge_connectivity(self, true)
+    }
+
+    /// Find all vertices reachable from `source`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, SubcomponentMode};
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (3,4)], false, None).unwrap();
+    /// let comp = g.subcomponent(0, SubcomponentMode::All).unwrap();
+    /// assert_eq!(comp.len(), 3);
+    /// ```
+    pub fn subcomponent(
+        &self,
+        source: VertexId,
+        mode: crate::algorithms::connectivity::subcomponent::SubcomponentMode,
+    ) -> IgraphResult<Vec<VertexId>> {
+        crate::algorithms::connectivity::subcomponent::subcomponent(self, source, mode)
+    }
+
+    // ── Cliques ──────────────────────────────────────────────────────
+
+    /// Find all cliques in the graph within a size range.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let c = g.cliques(3, 3, None).unwrap();
+    /// assert_eq!(c.len(), 1);
+    /// ```
+    pub fn cliques(
+        &self,
+        min_size: u32,
+        max_size: u32,
+        max_results: Option<usize>,
+    ) -> IgraphResult<Vec<Vec<VertexId>>> {
+        crate::algorithms::cliques::cliques(self, min_size, max_size, max_results)
+    }
+
+    /// Find all maximal cliques in the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let mc = g.maximal_cliques().unwrap();
+    /// assert_eq!(mc.len(), 1);
+    /// assert_eq!(mc[0].len(), 3);
+    /// ```
+    pub fn maximal_cliques(&self) -> IgraphResult<Vec<Vec<VertexId>>> {
+        crate::algorithms::cliques::maximal_cliques(self)
+    }
+
+    /// Compute the independence number (max independent set size).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // Triangle: independence number is 1 (can pick at most 1 non-adjacent vertex pair... no, 1)
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert_eq!(g.independence_number().unwrap(), 1);
+    /// ```
+    pub fn independence_number(&self) -> IgraphResult<u32> {
+        crate::algorithms::cliques::independence_number(self)
+    }
+
+    // ── Operators ────────────────────────────────────────────────────
+
+    /// Permute the vertices of the graph.
+    ///
+    /// `permutation[v]` gives the new id for vertex `v`. Returns a new
+    /// graph with edges reconnected accordingly.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // permutation[new] = old: new 0 ← old 2, new 1 ← old 0, new 2 ← old 1
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let p = g.permute_vertices(&[2, 0, 1]).unwrap();
+    /// assert!(p.has_edge(1, 2));
+    /// assert!(p.has_edge(2, 0));
+    /// ```
+    pub fn permute_vertices(&self, permutation: &[VertexId]) -> IgraphResult<Graph> {
+        crate::algorithms::operators::permute_vertices::permute_vertices(self, permutation)
+    }
 }
 
 impl std::fmt::Display for Graph {
