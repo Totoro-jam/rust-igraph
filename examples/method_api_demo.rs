@@ -82,10 +82,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!();
 
     // --- 7. Isomorphism ---
-    let k4a = rust_igraph::full_graph(4, false, false)?;
-    let k4b = rust_igraph::full_graph(4, false, false)?;
-    println!("K4 isomorphic to K4: {}", k4a.isomorphic(&k4b)?);
-    println!("K4 automorphisms: {}", k4a.count_isomorphisms_vf2(&k4a)?);
+    let k4_first = rust_igraph::full_graph(4, false, false)?;
+    let k4_second = rust_igraph::full_graph(4, false, false)?;
+    println!("K4 isomorphic to K4: {}", k4_first.isomorphic(&k4_second)?);
+    println!(
+        "K4 automorphisms: {}",
+        k4_first.count_isomorphisms_vf2(&k4_first)?
+    );
 
     // --- 8. Graph operations ---
     let a = rust_igraph::Graph::from_edges(&[(0, 1), (1, 2)], false, None)?;
