@@ -353,13 +353,13 @@ pub use crate::algorithms::independent_set::maximum_independent_set;
 pub use crate::algorithms::io::dimacs::{
     DimacsGraph, DimacsProblem, read_dimacs, write_dimacs_flow,
 };
-pub use crate::algorithms::io::dl::{DlGraph, read_dl};
+pub use crate::algorithms::io::dl::{DlGraph, read_dl, write_dl};
 pub use crate::algorithms::io::dot::{DotGraph, read_dot, write_dot};
 pub use crate::algorithms::io::edgelist::{read_edgelist, write_edgelist};
 pub use crate::algorithms::io::gml::{read_gml, write_gml};
 pub use crate::algorithms::io::graphdb::read_graphdb;
 pub use crate::algorithms::io::graphml::{GraphmlGraph, read_graphml, write_graphml};
-pub use crate::algorithms::io::leda::write_leda;
+pub use crate::algorithms::io::leda::{LedaGraph, read_leda, write_leda};
 pub use crate::algorithms::io::lgl::{LglGraph, read_lgl, write_lgl};
 pub use crate::algorithms::io::ncol::{NcolGraph, read_ncol, write_ncol};
 pub use crate::algorithms::io::pajek::{PajekGraph, read_pajek, write_pajek};

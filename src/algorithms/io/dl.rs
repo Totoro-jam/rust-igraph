@@ -1,11 +1,13 @@
-//! UCINET DL format reader (ALGO-IO-009).
+//! UCINET DL format reader and writer (ALGO-IO-009 / IO-013).
 //!
-//! Reads graphs in the DL format used by UCINET. This is a read-only
-//! text format supporting three data representations:
+//! Reads and writes graphs in the DL format used by UCINET. Three data
+//! representations are supported for reading:
 //!
 //! - **fullmatrix**: adjacency matrix of 0/1 values
 //! - **edgelist1**: pairs of 1-based vertex IDs with optional weights
 //! - **nodelist1**: source vertex followed by its neighbors (1-based)
+//!
+//! Writing always uses **edgelist1** format.
 //!
 //! ```text
 //! DL n=5
@@ -18,9 +20,9 @@
 //!
 //! Vertex labels can be provided via `labels:` or `labels embedded:`.
 //!
-//! Counterpart of `igraph_read_graph_dl`.
+//! Counterpart of `igraph_read_graph_dl` / `igraph_write_graph_dl`.
 
-use std::io::{BufRead, BufReader, Read};
+use std::io::{BufRead, BufReader, Read, Write};
 
 use crate::core::{Graph, IgraphError, IgraphResult};
 
@@ -440,6 +442,76 @@ fn get_or_add_label(labels: &mut Vec<String>, name: &str) -> u32 {
     id
 }
 
+/// Write a graph in UCINET DL edgelist1 format.
+///
+/// Uses the `edgelist1` representation with 1-based vertex IDs. Vertex
+/// labels are emitted as a `labels:` section if provided. Edge weights
+/// appear as a third field on each edge line.
+///
+/// # Examples
+///
+/// ```
+/// use rust_igraph::{Graph, write_dl};
+///
+/// let mut g = Graph::with_vertices(3);
+/// g.add_edge(0, 1).unwrap();
+/// g.add_edge(1, 2).unwrap();
+///
+/// let mut buf = Vec::new();
+/// write_dl(&g, None, None, &mut buf).unwrap();
+/// let s = String::from_utf8(buf).unwrap();
+/// assert!(s.contains("DL n=3"));
+/// assert!(s.contains("format = edgelist1"));
+/// ```
+pub fn write_dl<W: Write>(
+    graph: &Graph,
+    vertex_labels: Option<&[String]>,
+    edge_weights: Option<&[f64]>,
+    writer: &mut W,
+) -> IgraphResult<()> {
+    if let Some(l) = vertex_labels {
+        if l.len() != graph.vcount() as usize {
+            return Err(IgraphError::InvalidArgument(format!(
+                "vertex_labels length {} does not match vcount {}",
+                l.len(),
+                graph.vcount()
+            )));
+        }
+    }
+    if let Some(w) = edge_weights {
+        if w.len() != graph.ecount() {
+            return Err(IgraphError::InvalidArgument(format!(
+                "edge_weights length {} does not match ecount {}",
+                w.len(),
+                graph.ecount()
+            )));
+        }
+    }
+
+    writeln!(writer, "DL n={}", graph.vcount())?;
+    writeln!(writer, "format = edgelist1")?;
+
+    if let Some(labels) = vertex_labels {
+        writeln!(writer, "labels:")?;
+        let joined: Vec<&str> = labels.iter().map(String::as_str).collect();
+        writeln!(writer, "{}", joined.join(","))?;
+    }
+
+    writeln!(writer, "data:")?;
+
+    for eid in 0..graph.ecount() {
+        #[allow(clippy::cast_possible_truncation)]
+        let (from, to) = graph.edge(eid as u32)?;
+
+        match edge_weights {
+            Some(w) => writeln!(writer, "{} {} {}", from + 1, to + 1, w[eid])?,
+            None => writeln!(writer, "{} {}", from + 1, to + 1)?,
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -592,5 +664,196 @@ mod tests {
         let result = read_dl(&input[..], true).unwrap();
         let labels = result.labels.unwrap();
         assert_eq!(labels, vec!["Alpha", "Beta", "Gamma"]);
+    }
+
+    // --- write_dl tests ---
+
+    #[test]
+    fn test_write_basic_directed() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+
+        let mut buf = Vec::new();
+        write_dl(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+
+        assert!(s.contains("DL n=3"));
+        assert!(s.contains("format = edgelist1"));
+        assert!(s.contains("data:"));
+        assert!(s.contains("1 2\n"));
+        assert!(s.contains("2 3\n"));
+    }
+
+    #[test]
+    fn test_write_with_labels() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+
+        let labels = vec!["A".to_string(), "B".to_string(), "C".to_string()];
+        let mut buf = Vec::new();
+        write_dl(&g, Some(&labels), None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+
+        assert!(s.contains("labels:"));
+        assert!(s.contains("A,B,C"));
+    }
+
+    #[test]
+    fn test_write_with_weights() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+
+        let weights = vec![3.5];
+        let mut buf = Vec::new();
+        write_dl(&g, None, Some(&weights), &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+
+        assert!(s.contains("1 2 3.5\n"));
+    }
+
+    #[test]
+    fn test_write_empty_graph() {
+        let g = Graph::with_vertices(0);
+
+        let mut buf = Vec::new();
+        write_dl(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+
+        assert!(s.contains("DL n=0"));
+        assert!(s.contains("data:"));
+    }
+
+    #[test]
+    fn test_write_no_edges() {
+        let g = Graph::with_vertices(5);
+
+        let mut buf = Vec::new();
+        write_dl(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+
+        assert!(s.contains("DL n=5"));
+        let after_data = s.split("data:\n").nth(1).unwrap();
+        assert!(after_data.trim().is_empty());
+    }
+
+    #[test]
+    fn test_write_label_mismatch_error() {
+        let g = Graph::with_vertices(3);
+        let labels = vec!["A".to_string()];
+        let mut buf = Vec::new();
+        assert!(write_dl(&g, Some(&labels), None, &mut buf).is_err());
+    }
+
+    #[test]
+    fn test_write_weight_mismatch_error() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        let weights = vec![1.0, 2.0];
+        let mut buf = Vec::new();
+        assert!(write_dl(&g, None, Some(&weights), &mut buf).is_err());
+    }
+
+    #[test]
+    fn test_roundtrip_directed() {
+        let mut g = Graph::new(4, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+        g.add_edge(2, 3).unwrap();
+
+        let mut buf = Vec::new();
+        write_dl(&g, None, None, &mut buf).unwrap();
+        let result = read_dl(&buf[..], true).unwrap();
+
+        assert_eq!(result.graph.vcount(), g.vcount());
+        assert_eq!(result.graph.ecount(), g.ecount());
+        assert!(result.graph.is_directed());
+    }
+
+    #[test]
+    fn test_roundtrip_undirected() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+
+        let mut buf = Vec::new();
+        write_dl(&g, None, None, &mut buf).unwrap();
+        let result = read_dl(&buf[..], false).unwrap();
+
+        assert_eq!(result.graph.vcount(), g.vcount());
+        assert_eq!(result.graph.ecount(), g.ecount());
+        assert!(!result.graph.is_directed());
+    }
+
+    #[test]
+    fn test_roundtrip_with_labels() {
+        let mut g = Graph::with_vertices(3);
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+
+        let labels = vec!["X".to_string(), "Y".to_string(), "Z".to_string()];
+        let mut buf = Vec::new();
+        write_dl(&g, Some(&labels), None, &mut buf).unwrap();
+        let result = read_dl(&buf[..], false).unwrap();
+
+        assert_eq!(result.labels.unwrap(), labels);
+    }
+
+    #[test]
+    fn test_roundtrip_with_weights() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+
+        let weights = vec![2.75];
+        let mut buf = Vec::new();
+        write_dl(&g, None, Some(&weights), &mut buf).unwrap();
+        let result = read_dl(&buf[..], false).unwrap();
+
+        let w = result.weights.unwrap();
+        assert!((w[0] - 2.75).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_roundtrip_with_labels_and_weights() {
+        let mut g = Graph::new(3, true).unwrap();
+        g.add_edge(0, 1).unwrap();
+        g.add_edge(1, 2).unwrap();
+
+        let labels = vec!["A".to_string(), "B".to_string(), "C".to_string()];
+        let weights = vec![1.5, 2.5];
+        let mut buf = Vec::new();
+        write_dl(&g, Some(&labels), Some(&weights), &mut buf).unwrap();
+        let result = read_dl(&buf[..], true).unwrap();
+
+        assert_eq!(result.graph.vcount(), 3);
+        assert_eq!(result.graph.ecount(), 2);
+        assert_eq!(result.labels.unwrap(), labels);
+        let w = result.weights.unwrap();
+        assert!((w[0] - 1.5).abs() < 1e-10);
+        assert!((w[1] - 2.5).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_write_self_loop() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 0).unwrap();
+
+        let mut buf = Vec::new();
+        write_dl(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+
+        assert!(s.contains("1 1\n"));
+    }
+
+    #[test]
+    fn test_write_one_based_ids() {
+        let mut g = Graph::with_vertices(4);
+        g.add_edge(2, 3).unwrap();
+
+        let mut buf = Vec::new();
+        write_dl(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+
+        assert!(s.contains("3 4\n"));
     }
 }
