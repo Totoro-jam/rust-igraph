@@ -2196,6 +2196,155 @@ impl Graph {
         crate::algorithms::properties::summary::graph_summary(self)
     }
 
+    /// Compute the maximum flow value between two vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (0,2), (1,3), (2,3)], true, None
+    /// ).unwrap();
+    /// let flow = g.max_flow(0, 3).unwrap();
+    /// assert!((flow - 2.0).abs() < 1e-10);
+    /// ```
+    pub fn max_flow(&self, source: VertexId, target: VertexId) -> IgraphResult<f64> {
+        crate::algorithms::flow::max_flow::max_flow_value(self, source, target, None)
+    }
+
+    /// Decompose the graph into its connected components as separate graphs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (2,3)], false, None).unwrap();
+    /// let components = g.decompose().unwrap();
+    /// assert_eq!(components.len(), 2);
+    /// ```
+    pub fn decompose(&self) -> IgraphResult<Vec<Graph>> {
+        crate::algorithms::connectivity::decompose::decompose(self)
+    }
+
+    /// Check whether the graph is biconnected.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_biconnected().unwrap());
+    /// ```
+    pub fn is_biconnected(&self) -> IgraphResult<bool> {
+        crate::algorithms::connectivity::is_biconnected::is_biconnected(self)
+    }
+
+    /// Run label propagation community detection.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (3,4), (4,5), (5,3)], false, None
+    /// ).unwrap();
+    /// let result = g.label_propagation().unwrap();
+    /// assert!(result.membership.len() == 6);
+    /// ```
+    pub fn label_propagation(
+        &self,
+    ) -> IgraphResult<crate::algorithms::community::label_propagation::LpaResult> {
+        crate::algorithms::community::label_propagation::label_propagation(self)
+    }
+
+    /// Run Walktrap community detection.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (3,4), (4,5), (5,3), (2,3)], false, None
+    /// ).unwrap();
+    /// let result = g.walktrap().unwrap();
+    /// assert!(result.membership.len() == 6);
+    /// ```
+    pub fn walktrap(&self) -> IgraphResult<crate::algorithms::community::walktrap::WalktrapResult> {
+        crate::algorithms::community::walktrap::walktrap(self)
+    }
+
+    /// Run fast greedy modularity community detection.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (3,4), (4,5), (5,3), (2,3)], false, None
+    /// ).unwrap();
+    /// let result = g.fast_greedy().unwrap();
+    /// assert!(result.membership.len() == 6);
+    /// ```
+    pub fn fast_greedy(
+        &self,
+    ) -> IgraphResult<crate::algorithms::community::fast_greedy_modularity::FastGreedyResult> {
+        crate::algorithms::community::fast_greedy_modularity::fast_greedy_modularity(self)
+    }
+
+    /// Compute hub and authority scores (HITS algorithm).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], true, None).unwrap();
+    /// let hits = g.hits().unwrap();
+    /// assert_eq!(hits.hub.len(), 3);
+    /// assert_eq!(hits.authority.len(), 3);
+    /// ```
+    pub fn hits(&self) -> IgraphResult<crate::algorithms::properties::hits::HitsScores> {
+        crate::algorithms::properties::hits::hub_and_authority_scores(self)
+    }
+
+    /// Compute Katz centrality for all vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let katz = g.katz_centrality(0.1, 1.0).unwrap();
+    /// assert_eq!(katz.len(), 3);
+    /// ```
+    pub fn katz_centrality(&self, alpha: f64, beta: f64) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::katz_centrality::katz_centrality(
+            self, alpha, beta, None, None,
+        )
+    }
+
+    /// Compute degree assortativity of the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let a = g.assortativity().unwrap();
+    /// assert!(a.is_some());
+    /// ```
+    pub fn assortativity(&self) -> IgraphResult<Option<f64>> {
+        crate::algorithms::properties::assortativity::assortativity_degree(self)
+    }
+
     /// Read a graph from an edge list file.
     ///
     /// Each line should contain two space-separated vertex ids.
