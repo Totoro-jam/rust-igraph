@@ -74,6 +74,42 @@
 //! assert_eq!(ws.vcount(), 1000);
 //! ```
 //!
+//! ## Complete workflow
+//!
+//! A typical analysis pipeline — load, explore, analyze, in just a few lines:
+//!
+//! ```
+//! use rust_igraph::Graph;
+//!
+//! // Build a small network
+//! let g = Graph::from_edges(
+//!     &[(0,1),(1,2),(2,3),(3,4),(4,0),(0,2),(2,4)],
+//!     false, None
+//! ).unwrap();
+//!
+//! // Structural overview
+//! assert!(g.is_connected().unwrap());
+//! assert!(g.is_simple().unwrap());
+//! let apl = g.average_path_length().unwrap().unwrap();
+//! assert!(apl < 2.0);
+//!
+//! // Centrality
+//! let pr = g.pagerank().unwrap();
+//! let bc = g.betweenness().unwrap();
+//!
+//! // Community structure
+//! let communities = g.louvain().unwrap();
+//! assert!(communities.modularity >= 0.0);
+//!
+//! // Single-pair shortest path
+//! let path = g.shortest_path_to(0, 3, None).unwrap();
+//! assert!(!path.vertices.is_empty());
+//!
+//! // Random walk
+//! let (walk, _edges) = g.random_walk(0, 20, 42).unwrap();
+//! assert_eq!(walk[0], 0);
+//! ```
+//!
 //! ## Import style
 //!
 //! All algorithms are also re-exported as free functions at the crate root:
