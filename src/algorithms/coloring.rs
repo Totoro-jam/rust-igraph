@@ -115,7 +115,7 @@ fn all_neighbors(graph: &Graph, v: VertexId) -> IgraphResult<Vec<VertexId>> {
         out.extend(in_neis);
         Ok(out)
     } else {
-        graph.neighbors(v)
+        Ok(graph.neighbors_iter(v)?.collect())
     }
 }
 

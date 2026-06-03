@@ -442,6 +442,7 @@ pub use crate::algorithms::operators::induced_subgraph_edges::induced_subgraph_e
 pub use crate::algorithms::operators::intersection::{intersection, intersection_many};
 pub use crate::algorithms::operators::is_same_graph::is_same_graph;
 pub use crate::algorithms::operators::join::join;
+pub use crate::algorithms::operators::line_graph::line_graph;
 pub use crate::algorithms::operators::permute_vertices::{invert_permutation, permute_vertices};
 pub use crate::algorithms::operators::products::{
     GraphProductType, cartesian_product, graph_product, lexicographic_product, modular_product,

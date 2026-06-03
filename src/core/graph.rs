@@ -1858,6 +1858,28 @@ impl Graph {
         crate::algorithms::operators::complementer::complementer(self, false)
     }
 
+    /// Construct the line graph L(G).
+    ///
+    /// The line graph has one vertex per edge of this graph. Two vertices
+    /// in L(G) are adjacent iff the corresponding edges share an endpoint.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(1, 2).unwrap();
+    /// g.add_edge(2, 0).unwrap();
+    /// let lg = g.line_graph().unwrap();
+    /// assert_eq!(lg.vcount(), 3);
+    /// assert_eq!(lg.ecount(), 3);
+    /// ```
+    pub fn line_graph(&self) -> IgraphResult<Graph> {
+        crate::algorithms::operators::line_graph::line_graph(self)
+    }
+
     /// Detect communities using the Louvain algorithm.
     ///
     /// # Examples

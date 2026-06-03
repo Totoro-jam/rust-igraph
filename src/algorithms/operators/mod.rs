@@ -17,6 +17,7 @@ pub(crate) mod induced_subgraph_edges;
 pub(crate) mod intersection;
 pub(crate) mod is_same_graph;
 pub(crate) mod join;
+pub(crate) mod line_graph;
 pub(crate) mod permute_vertices;
 pub(crate) mod products;
 pub(crate) mod residual_graph;
@@ -48,6 +49,7 @@ pub use induced_subgraph_edges::induced_subgraph_edges;
 pub use intersection::{intersection, intersection_many};
 pub use is_same_graph::is_same_graph;
 pub use join::join;
+pub use line_graph::line_graph;
 pub use permute_vertices::{invert_permutation, permute_vertices};
 pub use products::{
     GraphProductType, cartesian_product, graph_product, lexicographic_product, modular_product,
