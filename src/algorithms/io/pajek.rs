@@ -3,7 +3,9 @@
 //! Reads and writes graphs in a subset of the Pajek `.net` format.
 //! The format has a `*Vertices N` header followed by optional vertex
 //! labels, then `*Edges` (undirected) or `*Arcs` (directed) sections
-//! listing edges with optional weights.
+//! listing edges with optional weights. Vertex labels are stored as the
+//! `"name"` vertex attribute and edge weights as the `"weight"` edge
+//! attribute via the [`Graph`] attribute system.
 //!
 //! ```text
 //! *Vertices 4
@@ -27,6 +29,7 @@
 
 use std::io::{BufRead, BufReader, Read, Write};
 
+use crate::core::attributes::AttributeValue;
 use crate::core::{Graph, IgraphError, IgraphResult};
 
 /// Result of reading a Pajek file.
@@ -200,6 +203,26 @@ pub fn read_pajek<R: Read>(input: R) -> IgraphResult<PajekGraph> {
     let mut graph = Graph::new(n, directed)?;
     graph.add_edges(edges)?;
 
+    // Store labels and weights as graph attributes for I/O interop
+    if has_any_label {
+        graph.set_vertex_attribute_all(
+            "name",
+            labels
+                .iter()
+                .map(|l| AttributeValue::String(l.clone()))
+                .collect(),
+        )?;
+    }
+    if has_any_weight {
+        graph.set_edge_attribute_all(
+            "weight",
+            weights
+                .iter()
+                .map(|&w| AttributeValue::Numeric(w))
+                .collect(),
+        )?;
+    }
+
     Ok(PajekGraph {
         graph,
         labels: if has_any_label { Some(labels) } else { None },
@@ -212,18 +235,26 @@ pub fn read_pajek<R: Read>(input: R) -> IgraphResult<PajekGraph> {
 /// Writes `*Vertices` section (with optional labels), then `*Edges`
 /// (undirected) or `*Arcs` (directed) section with optional weights.
 ///
+/// When `labels` is `None`, falls back to the `"name"` vertex attribute
+/// if present. When `weights` is `None`, falls back to the `"weight"`
+/// edge attribute if present.
+///
 /// # Examples
 ///
 /// ```
-/// use rust_igraph::{Graph, write_pajek};
+/// use rust_igraph::{Graph, write_pajek, AttributeValue};
 ///
 /// let mut g = Graph::with_vertices(3);
 /// g.add_edge(0, 1).unwrap();
 /// g.add_edge(1, 2).unwrap();
+/// g.set_vertex_attribute_all("name", vec![
+///     AttributeValue::String("A".into()),
+///     AttributeValue::String("B".into()),
+///     AttributeValue::String("C".into()),
+/// ]).unwrap();
 ///
-/// let labels = vec!["A".to_string(), "B".to_string(), "C".to_string()];
 /// let mut buf = Vec::new();
-/// write_pajek(&g, Some(&labels), None, &mut buf).unwrap();
+/// write_pajek(&g, None, None, &mut buf).unwrap();
 /// let s = String::from_utf8(buf).unwrap();
 /// assert!(s.contains("*Vertices 3"));
 /// assert!(s.contains("\"A\""));
@@ -256,9 +287,15 @@ pub fn write_pajek<W: Write>(
 
     writeln!(writer, "*Vertices {}", graph.vcount())?;
     for v in 0..graph.vcount() {
-        let label = match labels {
-            Some(l) => format!("\"{}\"", escape_pajek_string(&l[v as usize])),
-            None => format!("\"{}\"", v + 1),
+        let label = if let Some(l) = labels {
+            format!("\"{}\"", escape_pajek_string(&l[v as usize]))
+        } else if let Some(name) = graph
+            .vertex_attribute("name", v)
+            .and_then(AttributeValue::as_str)
+        {
+            format!("\"{}\"", escape_pajek_string(name))
+        } else {
+            format!("\"{}\"", v + 1)
         };
         writeln!(writer, "{} {label}", v + 1)?;
     }
@@ -271,10 +308,17 @@ pub fn write_pajek<W: Write>(
 
     for eid in 0..graph.ecount() {
         #[allow(clippy::cast_possible_truncation)]
-        let (from, to) = graph.edge(eid as u32)?;
-        match weights {
-            Some(w) => writeln!(writer, "{} {} {}", from + 1, to + 1, w[eid])?,
-            None => writeln!(writer, "{} {}", from + 1, to + 1)?,
+        let eid_u32 = eid as u32;
+        let (from, to) = graph.edge(eid_u32)?;
+        if let Some(w) = weights {
+            writeln!(writer, "{} {} {}", from + 1, to + 1, w[eid])?;
+        } else if let Some(w) = graph
+            .edge_attribute("weight", eid_u32)
+            .and_then(AttributeValue::as_f64)
+        {
+            writeln!(writer, "{} {} {w}", from + 1, to + 1)?;
+        } else {
+            writeln!(writer, "{} {}", from + 1, to + 1)?;
         }
     }
 
@@ -553,5 +597,115 @@ mod tests {
         let result = read_pajek(&input[..]).unwrap();
         assert_eq!(result.graph.vcount(), 2);
         assert_eq!(result.graph.ecount(), 1);
+    }
+
+    // --- attribute integration tests ---
+
+    #[test]
+    fn read_stores_name_attribute() {
+        let input = b"*Vertices 3\n1 \"Alice\"\n2 \"Bob\"\n3 \"Carol\"\n*Edges\n1 2\n";
+        let result = read_pajek(&input[..]).unwrap();
+        assert_eq!(
+            result
+                .graph
+                .vertex_attribute("name", 0)
+                .and_then(AttributeValue::as_str),
+            Some("Alice"),
+        );
+        assert_eq!(
+            result
+                .graph
+                .vertex_attribute("name", 2)
+                .and_then(AttributeValue::as_str),
+            Some("Carol"),
+        );
+    }
+
+    #[test]
+    fn read_stores_weight_attribute() {
+        let input = b"*Vertices 3\n*Edges\n1 2 1.5\n2 3 2.5\n";
+        let result = read_pajek(&input[..]).unwrap();
+        assert_eq!(
+            result
+                .graph
+                .edge_attribute("weight", 0)
+                .and_then(AttributeValue::as_f64),
+            Some(1.5),
+        );
+        assert_eq!(
+            result
+                .graph
+                .edge_attribute("weight", 1)
+                .and_then(AttributeValue::as_f64),
+            Some(2.5),
+        );
+    }
+
+    #[test]
+    fn read_no_labels_no_name_attribute() {
+        let input = b"*Vertices 2\n*Edges\n1 2\n";
+        let result = read_pajek(&input[..]).unwrap();
+        assert!(!result.graph.has_vertex_attribute("name"));
+    }
+
+    #[test]
+    fn write_uses_name_attribute_fallback() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_vertex_attribute_all(
+            "name",
+            vec![
+                AttributeValue::String("X".into()),
+                AttributeValue::String("Y".into()),
+            ],
+        )
+        .unwrap();
+
+        let mut buf = Vec::new();
+        write_pajek(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("\"X\""));
+        assert!(s.contains("\"Y\""));
+    }
+
+    #[test]
+    fn write_uses_weight_attribute_fallback() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_edge_attribute_all("weight", vec![AttributeValue::Numeric(3.14)])
+            .unwrap();
+
+        let mut buf = Vec::new();
+        write_pajek(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("1 2 3.14"));
+    }
+
+    #[test]
+    fn roundtrip_with_attributes() {
+        let input = b"*Vertices 3\n1 \"Alice\"\n2 \"Bob\"\n3 \"Carol\"\n*Edges\n1 2 1.5\n2 3 2.0\n";
+        let result = read_pajek(&input[..]).unwrap();
+
+        // Write using attribute fallback (no explicit labels/weights)
+        let mut buf = Vec::new();
+        write_pajek(&result.graph, None, None, &mut buf).unwrap();
+
+        let result2 = read_pajek(&buf[..]).unwrap();
+        assert_eq!(result2.graph.vcount(), 3);
+        assert_eq!(result2.graph.ecount(), 2);
+        assert_eq!(
+            result2
+                .graph
+                .vertex_attribute("name", 0)
+                .and_then(AttributeValue::as_str),
+            Some("Alice"),
+        );
+        assert_eq!(
+            result2
+                .graph
+                .edge_attribute("weight", 0)
+                .and_then(AttributeValue::as_f64),
+            Some(1.5),
+        );
     }
 }
