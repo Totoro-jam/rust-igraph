@@ -49,9 +49,21 @@
 //! assert_eq!(g.vcount(), 4);
 //! ```
 //!
+//! Methods are available directly on [`Graph`] for the most common operations:
+//!
+//! ```
+//! use rust_igraph::Graph;
+//!
+//! let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+//! assert!(g.is_connected().unwrap());
+//! assert!(g.is_simple().unwrap());
+//! let pr = g.pagerank().unwrap();
+//! assert_eq!(pr.len(), 3);
+//! ```
+//!
 //! ## Import style
 //!
-//! All algorithms are re-exported at the crate root for convenience:
+//! All algorithms are also re-exported as free functions at the crate root:
 //!
 //! ```rust,no_run
 //! use rust_igraph::{Graph, pagerank, betweenness, louvain};
