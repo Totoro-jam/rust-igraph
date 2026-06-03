@@ -44,6 +44,13 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 - `examples/quickstart.rs` — complete analysis pipeline example showcasing
   builder, connectivity, centrality, community detection, iteration, and
   graph algebra.
+- `examples/community_detection_demo.rs` — Louvain vs Leiden comparison on
+  a synthetic two-cluster graph.
+- **More convenience methods on `Graph`**:
+  - `closeness()`, `eigenvector_centrality()`, `clustering_coefficients()`
+  - `complement()`, `leiden()`, `bridges()`, `coreness()`
+  - `watts_strogatz(n, k, p, seed)` — small-world graph constructor
+- **Prelude expanded** with `erdos_renyi_gnp` and `watts_strogatz_game`.
 
 ### Changed
 - CONTRIBUTING.md now welcomes external pull requests with clear guidelines.

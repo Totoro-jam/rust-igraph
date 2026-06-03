@@ -53,3 +53,5 @@ pub use crate::algorithms::cliques::clique_number;
 // Generators
 pub use crate::algorithms::constructors::famous::famous;
 pub use crate::algorithms::constructors::full::full_graph;
+pub use crate::algorithms::games::erdos_renyi::erdos_renyi_gnp;
+pub use crate::algorithms::games::watts::watts_strogatz_game;
