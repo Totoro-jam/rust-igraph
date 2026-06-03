@@ -27,6 +27,12 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   - **DOT**: reads `[key=value, ...]` blocks on nodes, edges, and `graph`
     statements; writer emits attribute blocks. Supports numeric, boolean,
     and string values. 34 tests including roundtrip with attributes.
+  - **Pajek**: reader stores vertex labels as `"name"` vertex attribute and
+    edge weights as `"weight"` edge attribute; writer falls back to these
+    attributes when explicit parameters are `None`. 7 new attribute tests.
+  - **NCOL**: same attribute integration — `"name"` and `"weight"` stored on
+    read, used as fallback on write. 7 new attribute tests.
+  - **LGL**: same attribute integration. 7 new attribute tests.
 
 ## [0.5.0-alpha.2] — 2026-06-03
 
