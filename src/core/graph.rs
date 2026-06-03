@@ -6696,6 +6696,419 @@ impl Graph {
     pub fn layout_sphere(&self) -> Vec<(f64, f64, f64)> {
         crate::algorithms::layout::simple::layout_sphere(self)
     }
+
+    // ---- Weighted community detection (batch 6) ----
+
+    /// Louvain community detection with edge weights.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1),(1,2),(2,0),(3,4),(4,5),(5,3),(0,3)],
+    ///     false, None,
+    /// ).unwrap();
+    /// let r = g.louvain_weighted(&[1.0; 7]).unwrap();
+    /// assert!(r.modularity > 0.0);
+    /// ```
+    pub fn louvain_weighted(&self, weights: &[f64]) -> IgraphResult<crate::LouvainResult> {
+        crate::algorithms::community::louvain::louvain_weighted(self, weights)
+    }
+
+    /// Leiden community detection with edge weights.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1),(1,2),(2,0),(3,4),(4,5),(5,3),(0,3)],
+    ///     false, None,
+    /// ).unwrap();
+    /// let r = g.leiden_weighted(&[1.0; 7]).unwrap();
+    /// assert!(r.quality > 0.0);
+    /// ```
+    pub fn leiden_weighted(&self, weights: &[f64]) -> IgraphResult<crate::LeidenResult> {
+        crate::algorithms::community::leiden::leiden_weighted(self, weights)
+    }
+
+    /// Label propagation with edge weights.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1),(1,2),(2,0),(3,4),(4,5),(5,3),(0,3)],
+    ///     false, None,
+    /// ).unwrap();
+    /// let r = g.label_propagation_weighted(&[1.0; 7]).unwrap();
+    /// assert_eq!(r.membership.len(), 6);
+    /// ```
+    pub fn label_propagation_weighted(&self, weights: &[f64]) -> IgraphResult<crate::LpaResult> {
+        crate::algorithms::community::label_propagation::label_propagation_weighted(self, weights)
+    }
+
+    /// Walktrap community detection with edge weights.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1),(1,2),(2,0),(3,4),(4,5),(5,3),(0,3)],
+    ///     false, None,
+    /// ).unwrap();
+    /// let r = g.walktrap_weighted(&[1.0; 7]).unwrap();
+    /// assert!(!r.modularity.is_empty());
+    /// ```
+    pub fn walktrap_weighted(&self, weights: &[f64]) -> IgraphResult<crate::WalktrapResult> {
+        crate::algorithms::community::walktrap::walktrap_weighted(self, weights)
+    }
+
+    // ---- Weighted distance/centrality (batch 6) ----
+
+    /// Weighted diameter (longest shortest-path distance).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let d = g.diameter_weighted(&[1.0, 2.0]).unwrap();
+    /// assert!((d.unwrap() - 3.0).abs() < 1e-10);
+    /// ```
+    pub fn diameter_weighted(&self, weights: &[f64]) -> IgraphResult<Option<f64>> {
+        crate::algorithms::paths::radii::diameter_weighted(self, weights)
+    }
+
+    /// Weighted eccentricity per vertex.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let e = g.eccentricity_weighted(&[1.0, 2.0]).unwrap();
+    /// assert_eq!(e.len(), 3);
+    /// ```
+    pub fn eccentricity_weighted(&self, weights: &[f64]) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::paths::radii::eccentricity_weighted(self, weights)
+    }
+
+    /// Weighted graph radius.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let r = g.radius_weighted(&[1.0, 2.0]).unwrap();
+    /// assert!(r.is_some());
+    /// ```
+    pub fn radius_weighted(&self, weights: &[f64]) -> IgraphResult<Option<f64>> {
+        crate::algorithms::paths::radii::radius_weighted(self, weights)
+    }
+
+    /// Weighted knn(k) — average nearest-neighbor degree by degree class.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let k = g.knnk_weighted(&[1.0, 1.0, 1.0]).unwrap();
+    /// assert!(!k.is_empty());
+    /// ```
+    pub fn knnk_weighted(&self, weights: &[f64]) -> IgraphResult<Vec<Option<f64>>> {
+        crate::algorithms::properties::knn::knnk_weighted(self, weights)
+    }
+
+    /// `PageRank` via linear-system solver (alternative to power iteration).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,0)], true, None).unwrap();
+    /// let pr = g.pagerank_linsys().unwrap();
+    /// assert_eq!(pr.len(), 3);
+    /// ```
+    pub fn pagerank_linsys(&self) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::pagerank_linsys::pagerank_linsys(self)
+    }
+
+    /// Local scan statistic of order k.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(0,2)], false, None).unwrap();
+    /// let s = g.local_scan_k(1, None).unwrap();
+    /// assert_eq!(s.len(), 3);
+    /// ```
+    pub fn local_scan_k(&self, k: u32, weights: Option<&[f64]>) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::local_scan_k::local_scan_k(self, k, weights)
+    }
+
+    // ---- Validators / predicates (batch 6) ----
+
+    /// Per-edge test: is each edge a self-loop?
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,1),(2,3)], false, None).unwrap();
+    /// let loops = g.is_loop().unwrap();
+    /// assert!(!loops[0]); // 0-1 is not a loop
+    /// assert!(loops[1]);  // 1-1 is a loop
+    /// ```
+    pub fn is_loop(&self) -> IgraphResult<Vec<bool>> {
+        crate::algorithms::properties::multiplicity::is_loop(self)
+    }
+
+    /// Whether a set of vertices forms a clique.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(0,2)], false, None).unwrap();
+    /// assert!(g.is_clique(&[0, 1, 2], false).unwrap());
+    /// ```
+    pub fn is_clique(&self, vertices: &[VertexId], directed: bool) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_clique::is_clique(self, vertices, directed)
+    }
+
+    /// Whether a set of vertices forms an independent set.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// assert!(g.is_independent_vertex_set(&[0, 2]).unwrap());
+    /// ```
+    pub fn is_independent_vertex_set(&self, vertices: &[VertexId]) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_clique::is_independent_vertex_set(self, vertices)
+    }
+
+    /// Whether a set of vertices is a separator (its removal disconnects the graph).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// assert!(g.is_separator(&[1]).unwrap());
+    /// ```
+    pub fn is_separator(&self, candidates: &[VertexId]) -> IgraphResult<bool> {
+        crate::algorithms::connectivity::separators::is_separator(self, candidates)
+    }
+
+    /// Whether a separator is minimal.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// assert!(g.is_minimal_separator(&[1]).unwrap());
+    /// ```
+    pub fn is_minimal_separator(&self, candidates: &[VertexId]) -> IgraphResult<bool> {
+        crate::algorithms::connectivity::separators::is_minimal_separator(self, candidates)
+    }
+
+    /// Whether a coloring is a valid vertex coloring.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// assert!(g.is_vertex_coloring(&[0, 1, 0]).unwrap());
+    /// ```
+    pub fn is_vertex_coloring(&self, colors: &[u32]) -> IgraphResult<bool> {
+        crate::algorithms::coloring::is_vertex_coloring(self, colors)
+    }
+
+    /// Whether a coloring is a valid edge coloring.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// assert!(g.is_edge_coloring(&[0, 1]).unwrap());
+    /// ```
+    pub fn is_edge_coloring(&self, colors: &[u32]) -> IgraphResult<bool> {
+        crate::algorithms::coloring::is_edge_coloring(self, colors)
+    }
+
+    /// Whether a set of vertices is a vertex cover.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// assert!(g.is_vertex_cover(&[1]));
+    /// ```
+    pub fn is_vertex_cover(&self, cover: &[VertexId]) -> bool {
+        crate::algorithms::vertex_cover::is_vertex_cover(self, cover)
+    }
+
+    /// Whether a set of edges is an edge cover.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// assert!(g.is_edge_cover(&[0, 1]));
+    /// ```
+    pub fn is_edge_cover(&self, cover: &[EdgeId]) -> bool {
+        crate::algorithms::edge_cover::is_edge_cover(self, cover)
+    }
+
+    /// Whether a set of vertices is a dominating set.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// assert!(g.is_dominating_set(&[1]));
+    /// ```
+    pub fn is_dominating_set(&self, dom_set: &[VertexId]) -> bool {
+        crate::algorithms::dominating_set::is_dominating_set(self, dom_set)
+    }
+
+    // ---- Operators (batch 6) ----
+
+    /// Reverse specific edges in a directed graph.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], true, None).unwrap();
+    /// let r = g.reverse_edges(&[0]).unwrap();
+    /// assert_eq!(r.edge(0).unwrap(), (1, 0));
+    /// ```
+    pub fn reverse_edges(&self, eids: &[u32]) -> IgraphResult<Graph> {
+        crate::algorithms::operators::reverse::reverse_edges(self, eids)
+    }
+
+    /// Edges induced by a subset of vertices.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let eids = g.induced_subgraph_edges(&[0, 1]).unwrap();
+    /// assert_eq!(eids.len(), 1); // only edge 0-1
+    /// ```
+    pub fn induced_subgraph_edges(&self, vids: &[u32]) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::operators::induced_subgraph_edges::induced_subgraph_edges(self, vids)
+    }
+
+    // ---- Similarity (batch 6) ----
+
+    /// Dice similarity between all vertex pairs (n*n flat matrix).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(0,2)], false, None).unwrap();
+    /// let s = g.similarity_dice().unwrap();
+    /// let n = g.vcount() as usize;
+    /// assert_eq!(s.len(), n * n);
+    /// ```
+    pub fn similarity_dice(&self) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::similarity::similarity_dice(self)
+    }
+
+    /// Inverse-log-weighted similarity between all vertex pairs.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(0,2)], false, None).unwrap();
+    /// let s = g.similarity_inverse_log_weighted().unwrap();
+    /// let n = g.vcount() as usize;
+    /// assert_eq!(s.len(), n * n);
+    /// ```
+    pub fn similarity_inverse_log_weighted(&self) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::similarity::similarity_inverse_log_weighted(self)
+    }
+
+    /// Jaccard similarity for given edges.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(0,2)], false, None).unwrap();
+    /// let s = g.similarity_jaccard_es(&[0, 1]).unwrap();
+    /// assert_eq!(s.len(), 2);
+    /// ```
+    pub fn similarity_jaccard_es(&self, eids: &[u32]) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::similarity::similarity_jaccard_es(self, eids)
+    }
+
+    // ---- Layout (batch 6) ----
+
+    /// Large Graph Layout (LGL).
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, LglParams};
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let pos = g.layout_lgl(&LglParams::default()).unwrap();
+    /// assert_eq!(pos.len(), 4);
+    /// ```
+    pub fn layout_lgl(&self, params: &crate::LglParams) -> IgraphResult<Vec<[f64; 2]>> {
+        crate::algorithms::layout::lgl::layout_lgl(self, params)
+    }
+
+    /// Random 3D layout.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let pos = g.layout_random_3d(42);
+    /// assert_eq!(pos.len(), 3);
+    /// ```
+    pub fn layout_random_3d(&self, seed: u64) -> Vec<(f64, f64, f64)> {
+        crate::algorithms::layout::simple::layout_random_3d(self, seed)
+    }
+
+    /// Grid 3D layout.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let pos = g.layout_grid_3d(2, 2);
+    /// assert_eq!(pos.len(), 4);
+    /// ```
+    pub fn layout_grid_3d(&self, width: i32, height: i32) -> Vec<(f64, f64, f64)> {
+        crate::algorithms::layout::simple::layout_grid_3d(self, width, height)
+    }
+
+    // ---- Motifs (batch 6) ----
+
+    /// Count the total number of motifs of a given size.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(0,2)], false, None).unwrap();
+    /// let n = g.motifs_randesu_no(3).unwrap();
+    /// assert!((n - 1.0).abs() < 1e-10); // one triangle
+    /// ```
+    pub fn motifs_randesu_no(&self, size: u32) -> IgraphResult<f64> {
+        crate::algorithms::motifs::motifs_randesu::motifs_randesu_no(self, size)
+    }
+
+    // ---- Graph inspection (batch 6) ----
+
+    /// Structural summary of the graph.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let s = g.graph_summary().unwrap();
+    /// assert_eq!(s.vcount, 3);
+    /// assert_eq!(s.ecount, 2);
+    /// ```
+    pub fn graph_summary(&self) -> IgraphResult<crate::GraphSummary> {
+        crate::algorithms::properties::summary::graph_summary(self)
+    }
 }
 
 impl std::fmt::Display for Graph {

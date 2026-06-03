@@ -174,6 +174,24 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   - Cliques: `weighted_clique_number()`
   - Layout: `layout_mds()`, `layout_sphere()`
 - Total public methods on `Graph`: 346 (up from 315).
+- **30 more convenience methods on `Graph`** (batch 6):
+  - Weighted community: `louvain_weighted()`, `leiden_weighted()`,
+    `label_propagation_weighted()`, `walktrap_weighted()`
+  - Weighted distances: `diameter_weighted()`, `eccentricity_weighted()`,
+    `radius_weighted()`, `knnk_weighted()`
+  - Centrality: `pagerank_linsys()`, `local_scan_k()`
+  - Validators: `is_loop()`, `is_clique()`,
+    `is_independent_vertex_set()`, `is_separator()`,
+    `is_minimal_separator()`, `is_vertex_coloring()`,
+    `is_edge_coloring()`, `is_vertex_cover()`, `is_edge_cover()`,
+    `is_dominating_set()`
+  - Operators: `reverse_edges()`, `induced_subgraph_edges()`
+  - Similarity: `similarity_dice()`,
+    `similarity_inverse_log_weighted()`, `similarity_jaccard_es()`
+  - Layout: `layout_lgl()`, `layout_random_3d()`, `layout_grid_3d()`
+  - Motifs: `motifs_randesu_no()`
+  - Inspection: `graph_summary()`
+- Total public methods on `Graph`: 376 (up from 346).
 
 - **I/O completeness** — all major graph formats now support both reading
   and writing:
