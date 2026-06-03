@@ -24,6 +24,7 @@
 
 use std::io::{BufRead, BufReader, Read, Write};
 
+use crate::core::attributes::AttributeValue;
 use crate::core::{Graph, IgraphError, IgraphResult};
 
 /// Result of reading a DL file.
@@ -378,6 +379,21 @@ pub fn read_dl<R: Read>(input: R, directed: bool) -> IgraphResult<DlGraph> {
     };
     let final_weights = if has_weights { Some(weights) } else { None };
 
+    if let Some(ref lbls) = final_labels {
+        graph.set_vertex_attribute_all(
+            "name",
+            lbls.iter()
+                .map(|l| AttributeValue::String(l.clone()))
+                .collect(),
+        )?;
+    }
+    if let Some(ref wts) = final_weights {
+        graph.set_edge_attribute_all(
+            "weight",
+            wts.iter().map(|&w| AttributeValue::Numeric(w)).collect(),
+        )?;
+    }
+
     Ok(DlGraph {
         graph,
         labels: final_labels,
@@ -491,9 +507,24 @@ pub fn write_dl<W: Write>(
     writeln!(writer, "DL n={}", graph.vcount())?;
     writeln!(writer, "format = edgelist1")?;
 
+    let has_attr_labels =
+        vertex_labels.is_none() && graph.vertex_attribute_names().contains(&"name");
     if let Some(labels) = vertex_labels {
         writeln!(writer, "labels:")?;
         let joined: Vec<&str> = labels.iter().map(String::as_str).collect();
+        writeln!(writer, "{}", joined.join(","))?;
+    } else if has_attr_labels {
+        writeln!(writer, "labels:")?;
+        let attr_labels: Vec<String> = (0..graph.vcount())
+            .map(|v| {
+                graph
+                    .vertex_attribute("name", v)
+                    .and_then(AttributeValue::as_str)
+                    .unwrap_or("")
+                    .to_owned()
+            })
+            .collect();
+        let joined: Vec<&str> = attr_labels.iter().map(String::as_str).collect();
         writeln!(writer, "{}", joined.join(","))?;
     }
 
@@ -503,9 +534,19 @@ pub fn write_dl<W: Write>(
         #[allow(clippy::cast_possible_truncation)]
         let (from, to) = graph.edge(eid as u32)?;
 
-        match edge_weights {
-            Some(w) => writeln!(writer, "{} {} {}", from + 1, to + 1, w[eid])?,
-            None => writeln!(writer, "{} {}", from + 1, to + 1)?,
+        if let Some(w) = edge_weights {
+            writeln!(writer, "{} {} {}", from + 1, to + 1, w[eid])?;
+        } else {
+            #[allow(clippy::cast_possible_truncation)]
+            let eid_u32 = eid as u32;
+            if let Some(w) = graph
+                .edge_attribute("weight", eid_u32)
+                .and_then(AttributeValue::as_f64)
+            {
+                writeln!(writer, "{} {} {w}", from + 1, to + 1)?;
+            } else {
+                writeln!(writer, "{} {}", from + 1, to + 1)?;
+            }
         }
     }
 
@@ -855,5 +896,112 @@ mod tests {
         let s = String::from_utf8(buf).unwrap();
 
         assert!(s.contains("3 4\n"));
+    }
+
+    // --- Attribute integration tests ---
+
+    #[test]
+    fn test_read_stores_label_attribute() {
+        let input = b"DL n=3\nformat = edgelist1\nlabels:\nAlice,Bob,Carol\ndata:\n1 2\n";
+        let result = read_dl(&input[..], false).unwrap();
+        assert_eq!(
+            result
+                .graph
+                .vertex_attribute("name", 0)
+                .and_then(AttributeValue::as_str),
+            Some("Alice")
+        );
+        assert_eq!(
+            result
+                .graph
+                .vertex_attribute("name", 2)
+                .and_then(AttributeValue::as_str),
+            Some("Carol")
+        );
+    }
+
+    #[test]
+    fn test_read_stores_weight_attribute() {
+        let input = b"DL n=2\nformat = edgelist1\ndata:\n1 2 4.5\n";
+        let result = read_dl(&input[..], false).unwrap();
+        let w = result
+            .graph
+            .edge_attribute("weight", 0)
+            .and_then(AttributeValue::as_f64)
+            .unwrap();
+        assert!((w - 4.5).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_read_no_label_attribute_when_absent() {
+        let input = b"DL n=2\nformat = edgelist1\ndata:\n1 2\n";
+        let result = read_dl(&input[..], false).unwrap();
+        assert!(result.graph.vertex_attribute("name", 0).is_none());
+    }
+
+    #[test]
+    fn test_write_fallback_to_label_attribute() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_vertex_attribute("name", 0, AttributeValue::String("X".into()))
+            .unwrap();
+        g.set_vertex_attribute("name", 1, AttributeValue::String("Y".into()))
+            .unwrap();
+
+        let mut buf = Vec::new();
+        write_dl(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("labels:"));
+        assert!(s.contains("X,Y"));
+    }
+
+    #[test]
+    fn test_write_fallback_to_weight_attribute() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_edge_attribute("weight", 0, AttributeValue::Numeric(7.5))
+            .unwrap();
+
+        let mut buf = Vec::new();
+        write_dl(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("1 2 7.5"));
+    }
+
+    #[test]
+    fn test_roundtrip_via_attributes() {
+        let input =
+            b"DL n=3\nformat = edgelist1\nlabels:\nAlice,Bob,Carol\ndata:\n1 2 1.5\n2 3 2.5\n";
+        let result = read_dl(&input[..], false).unwrap();
+
+        let mut buf = Vec::new();
+        write_dl(&result.graph, None, None, &mut buf).unwrap();
+
+        let result2 = read_dl(&buf[..], false).unwrap();
+        assert_eq!(result2.graph.vcount(), 3);
+        assert_eq!(result2.graph.ecount(), 2);
+        assert!(result2.labels.is_some());
+        assert!(result2.weights.is_some());
+    }
+
+    #[test]
+    fn test_explicit_params_override_attributes() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_vertex_attribute("name", 0, AttributeValue::String("attr_A".into()))
+            .unwrap();
+        g.set_vertex_attribute("name", 1, AttributeValue::String("attr_B".into()))
+            .unwrap();
+        g.set_edge_attribute("weight", 0, AttributeValue::Numeric(9.0))
+            .unwrap();
+
+        let labels = vec!["explicit_A".to_string(), "explicit_B".to_string()];
+        let weights = vec![1.0];
+        let mut buf = Vec::new();
+        write_dl(&g, Some(&labels), Some(&weights), &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("explicit_A,explicit_B"));
+        assert!(!s.contains("attr_A"));
+        assert!(s.contains("1 2 1"));
     }
 }

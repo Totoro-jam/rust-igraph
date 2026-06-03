@@ -26,6 +26,7 @@
 
 use std::io::{BufRead, BufReader, Read, Write};
 
+use crate::core::attributes::AttributeValue;
 use crate::core::{Graph, IgraphError, IgraphResult};
 
 /// Result of reading a LEDA file.
@@ -107,6 +108,26 @@ pub fn read_leda<R: Read>(input: R) -> IgraphResult<LedaGraph> {
 
     let mut graph = Graph::new(n, directed)?;
     graph.add_edges(parsed.edges)?;
+
+    if has_labels {
+        graph.set_vertex_attribute_all(
+            "name",
+            labels
+                .iter()
+                .map(|l| AttributeValue::String(l.clone()))
+                .collect(),
+        )?;
+    }
+    if has_weights {
+        graph.set_edge_attribute_all(
+            "weight",
+            parsed
+                .weights
+                .iter()
+                .map(|&w| AttributeValue::Numeric(w))
+                .collect(),
+        )?;
+    }
 
     Ok(LedaGraph {
         graph,
@@ -250,18 +271,23 @@ pub fn write_leda<W: Write>(
         }
     }
 
+    let has_attr_labels =
+        vertex_labels.is_none() && graph.vertex_attribute_names().contains(&"name");
+    let has_attr_weights =
+        edge_weights.is_none() && graph.edge_attribute_names().contains(&"weight");
+
     // Header
     writeln!(writer, "LEDA.GRAPH")?;
 
     // Vertex attribute type
-    if vertex_labels.is_some() {
+    if vertex_labels.is_some() || has_attr_labels {
         writeln!(writer, "string")?;
     } else {
         writeln!(writer, "void")?;
     }
 
     // Edge attribute type
-    if edge_weights.is_some() {
+    if edge_weights.is_some() || has_attr_weights {
         writeln!(writer, "double")?;
     } else {
         writeln!(writer, "void")?;
@@ -281,7 +307,17 @@ pub fn write_leda<W: Write>(
     for v in 0..graph.vcount() {
         match vertex_labels {
             Some(labels) => writeln!(writer, "|{{{}}}|", labels[v as usize])?,
-            None => writeln!(writer, "|{{}}|")?,
+            None => {
+                if has_attr_labels {
+                    let label = graph
+                        .vertex_attribute("name", v)
+                        .and_then(AttributeValue::as_str)
+                        .unwrap_or("");
+                    writeln!(writer, "|{{{label}}}|")?;
+                } else {
+                    writeln!(writer, "|{{}}|")?;
+                }
+            }
         }
     }
 
@@ -293,9 +329,19 @@ pub fn write_leda<W: Write>(
         #[allow(clippy::cast_possible_truncation)]
         let (from, to) = graph.edge(eid as u32)?;
 
-        match edge_weights {
-            Some(w) => writeln!(writer, "{} {} 0 |{{{}}}|", from + 1, to + 1, w[eid])?,
-            None => writeln!(writer, "{} {} 0 |{{}}|", from + 1, to + 1)?,
+        if let Some(w) = edge_weights {
+            writeln!(writer, "{} {} 0 |{{{}}}|", from + 1, to + 1, w[eid])?;
+        } else {
+            #[allow(clippy::cast_possible_truncation)]
+            let eid_u32 = eid as u32;
+            if let Some(w) = graph
+                .edge_attribute("weight", eid_u32)
+                .and_then(AttributeValue::as_f64)
+            {
+                writeln!(writer, "{} {} 0 |{{{w}}}|", from + 1, to + 1)?;
+            } else {
+                writeln!(writer, "{} {} 0 |{{}}|", from + 1, to + 1)?;
+            }
         }
     }
 
@@ -618,5 +664,113 @@ mod tests {
         let labels = result.labels.unwrap();
         assert_eq!(labels[0], "");
         assert_eq!(labels[1], "hello");
+    }
+
+    // --- Attribute integration tests ---
+
+    #[test]
+    fn test_read_stores_label_attribute() {
+        let input =
+            b"LEDA.GRAPH\nstring\nvoid\n-2\n# Vertices\n2\n|{Alice}|\n|{Bob}|\n# Edges\n1\n1 2 0 |{}|\n";
+        let result = read_leda(&input[..]).unwrap();
+        assert_eq!(
+            result
+                .graph
+                .vertex_attribute("name", 0)
+                .and_then(AttributeValue::as_str),
+            Some("Alice")
+        );
+        assert_eq!(
+            result
+                .graph
+                .vertex_attribute("name", 1)
+                .and_then(AttributeValue::as_str),
+            Some("Bob")
+        );
+    }
+
+    #[test]
+    fn test_read_stores_weight_attribute() {
+        let input =
+            b"LEDA.GRAPH\nvoid\ndouble\n-2\n# Vertices\n2\n|{}|\n|{}|\n# Edges\n1\n1 2 0 |{4.5}|\n";
+        let result = read_leda(&input[..]).unwrap();
+        let w = result
+            .graph
+            .edge_attribute("weight", 0)
+            .and_then(AttributeValue::as_f64)
+            .unwrap();
+        assert!((w - 4.5).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_read_no_label_attribute_when_void() {
+        let input = b"LEDA.GRAPH\nvoid\nvoid\n-2\n# Vertices\n2\n|{}|\n|{}|\n# Edges\n0\n";
+        let result = read_leda(&input[..]).unwrap();
+        assert!(result.graph.vertex_attribute("name", 0).is_none());
+    }
+
+    #[test]
+    fn test_write_fallback_to_label_attribute() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_vertex_attribute("name", 0, AttributeValue::String("X".into()))
+            .unwrap();
+        g.set_vertex_attribute("name", 1, AttributeValue::String("Y".into()))
+            .unwrap();
+
+        let mut buf = Vec::new();
+        write_leda(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("string"));
+        assert!(s.contains("|{X}|"));
+        assert!(s.contains("|{Y}|"));
+    }
+
+    #[test]
+    fn test_write_fallback_to_weight_attribute() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_edge_attribute("weight", 0, AttributeValue::Numeric(7.5))
+            .unwrap();
+
+        let mut buf = Vec::new();
+        write_leda(&g, None, None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("double"));
+        assert!(s.contains("|{7.5}|"));
+    }
+
+    #[test]
+    fn test_roundtrip_via_attributes() {
+        let input = b"LEDA.GRAPH\nstring\ndouble\n-2\n# Vertices\n2\n|{Alice}|\n|{Bob}|\n# Edges\n1\n1 2 0 |{1.5}|\n";
+        let result = read_leda(&input[..]).unwrap();
+
+        let mut buf = Vec::new();
+        write_leda(&result.graph, None, None, &mut buf).unwrap();
+
+        let result2 = read_leda(&buf[..]).unwrap();
+        assert_eq!(result2.graph.vcount(), 2);
+        assert_eq!(result2.graph.ecount(), 1);
+        assert!(result2.labels.is_some());
+        assert!(result2.weights.is_some());
+        let labels = result2.labels.unwrap();
+        assert_eq!(labels, vec!["Alice", "Bob"]);
+    }
+
+    #[test]
+    fn test_explicit_params_override_attributes() {
+        let mut g = Graph::with_vertices(2);
+        g.add_edge(0, 1).unwrap();
+        g.set_vertex_attribute("name", 0, AttributeValue::String("attr_A".into()))
+            .unwrap();
+        g.set_vertex_attribute("name", 1, AttributeValue::String("attr_B".into()))
+            .unwrap();
+
+        let labels = vec!["explicit_A".to_string(), "explicit_B".to_string()];
+        let mut buf = Vec::new();
+        write_leda(&g, Some(&labels), None, &mut buf).unwrap();
+        let s = String::from_utf8(buf).unwrap();
+        assert!(s.contains("|{explicit_A}|"));
+        assert!(!s.contains("attr_A"));
     }
 }
