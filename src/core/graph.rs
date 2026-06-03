@@ -1895,6 +1895,26 @@ impl Graph {
     pub fn barabasi_albert(n: u32, m: u32, seed: u64) -> IgraphResult<Self> {
         crate::algorithms::games::barabasi::barabasi_game_bag(n, m, true, false, seed)
     }
+
+    /// Generate a Watts-Strogatz small-world graph.
+    ///
+    /// Creates a ring lattice with `n` vertices where each vertex is connected
+    /// to its `k` nearest neighbours (must be even), then rewires each edge
+    /// with probability `p`. This produces graphs with both high clustering
+    /// and short path lengths — the "small-world" property.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::watts_strogatz(20, 4, 0.3, 42).unwrap();
+    /// assert_eq!(g.vcount(), 20);
+    /// assert_eq!(g.ecount(), 40); // n * k / 2 = 20 * 4 / 2
+    /// ```
+    pub fn watts_strogatz(n: u32, k: u32, p: f64, seed: u64) -> IgraphResult<Self> {
+        crate::algorithms::games::watts::watts_strogatz_game(n, k / 2, p, false, false, seed)
+    }
 }
 
 impl std::fmt::Display for Graph {

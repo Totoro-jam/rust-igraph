@@ -116,9 +116,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with: { targets: wasm32-unknown-unknown }
       - uses: Swatinem/rust-cache@v2
-      # Phase 0: only the no-features check (faer/bliss feature gating
-      # arrives in Phase 1). Once those features land, switch to:
-      #   --no-default-features --features faer-backend,bliss-rust
       - run: cargo check --target wasm32-unknown-unknown --no-default-features
 
   doc:
