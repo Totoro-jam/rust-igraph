@@ -204,7 +204,7 @@ fn bfs_cutoff_undirected(
         let next = d.checked_add(1).ok_or(IgraphError::Internal(
             "distance overflow (graph diameter exceeds u32::MAX)",
         ))?;
-        for w in graph.neighbors(v)? {
+        for w in graph.neighbors_iter(v)? {
             if dist[w as usize].is_none() {
                 dist[w as usize] = Some(next);
                 queue.push_back((w, next));
@@ -238,7 +238,7 @@ fn bfs_cutoff_undirected_into(
             }
         }
         let next = d + 1;
-        for w in graph.neighbors(v)? {
+        for w in graph.neighbors_iter(v)? {
             let w_idx = w as usize;
             if !visited[w_idx] {
                 visited[w_idx] = true;

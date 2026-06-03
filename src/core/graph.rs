@@ -1004,6 +1004,70 @@ impl Graph {
         }
     }
 
+    /// Maximum degree across all vertices (total degree for undirected,
+    /// out-degree for directed). Returns 0 for empty graphs.
+    ///
+    /// Counterpart of `igraph_maxdegree()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(4);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(0, 2).unwrap();
+    /// g.add_edge(0, 3).unwrap();
+    /// assert_eq!(g.max_degree(), 3);
+    /// ```
+    pub fn max_degree(&self) -> usize {
+        let n = self.vcount();
+        if n == 0 {
+            return 0;
+        }
+        (0..n)
+            .map(|v| {
+                let v_idx = v as usize;
+                let out = (self.os[v_idx + 1] - self.os[v_idx]) as usize;
+                let inc = (self.is[v_idx + 1] - self.is[v_idx]) as usize;
+                if self.directed { out } else { out + inc }
+            })
+            .max()
+            .unwrap_or(0)
+    }
+
+    /// Minimum degree across all vertices (total degree for undirected,
+    /// out-degree for directed). Returns 0 for empty graphs.
+    ///
+    /// Counterpart of `igraph_mindegree()` (custom extension).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let mut g = Graph::with_vertices(4);
+    /// g.add_edge(0, 1).unwrap();
+    /// g.add_edge(0, 2).unwrap();
+    /// // vertex 3 has degree 0
+    /// assert_eq!(g.min_degree(), 0);
+    /// ```
+    pub fn min_degree(&self) -> usize {
+        let n = self.vcount();
+        if n == 0 {
+            return 0;
+        }
+        (0..n)
+            .map(|v| {
+                let v_idx = v as usize;
+                let out = (self.os[v_idx + 1] - self.os[v_idx]) as usize;
+                let inc = (self.is[v_idx + 1] - self.is[v_idx]) as usize;
+                if self.directed { out } else { out + inc }
+            })
+            .min()
+            .unwrap_or(0)
+    }
+
     // ---------------------------------------------------------------
     // ALGO-CORE-001b: edge-id helpers + incident edges.
     // ---------------------------------------------------------------

@@ -66,7 +66,7 @@ fn cb_components(graph: &Graph, excluded: &[bool]) -> IgraphResult<Vec<Vec<Verte
         compid[i] = cno;
 
         while let Some(node) = q.pop_front() {
-            for v in graph.neighbors(node)? {
+            for v in graph.neighbors_iter(node)? {
                 let vi = v as usize;
                 if excluded[vi] {
                     if compid[vi] != cno {

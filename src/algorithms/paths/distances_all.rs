@@ -156,9 +156,8 @@ fn bfs_distances_undirected(
     queue.push_back((source, 0u32));
 
     while let Some((cur, dist)) = queue.pop_front() {
-        let neighbors = graph.neighbors(cur)?;
         let next_dist = dist + 1;
-        for &nb in &neighbors {
+        for nb in graph.neighbors_iter(cur)? {
             let nb_idx = nb as usize;
             if !visited[nb_idx] {
                 visited[nb_idx] = true;

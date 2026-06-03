@@ -81,7 +81,7 @@ pub fn decompose(graph: &Graph) -> IgraphResult<Vec<Graph>> {
         queue.push_back(actstart);
 
         while let Some(v) = queue.pop_front() {
-            for w in graph.neighbors(v)? {
+            for w in graph.neighbors_iter(v)? {
                 if vid_in_comp[w as usize] == u32::MAX {
                     let new_local = u32::try_from(verts.len())
                         .map_err(|_| IgraphError::Internal("component too large in decompose"))?;

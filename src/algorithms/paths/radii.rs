@@ -70,8 +70,8 @@ fn bfs_distances(graph: &Graph, source: VertexId, mode: EccMode) -> IgraphResult
             .ok_or(IgraphError::Internal(
                 "distance overflow (graph diameter exceeds u32::MAX)",
             ))?;
-        let neighbours: Vec<VertexId> = if directed {
-            match mode {
+        if directed {
+            let neighbours: Vec<VertexId> = match mode {
                 EccMode::Out => graph.out_neighbors_vec(v)?,
                 EccMode::In => graph.in_neighbors_vec(v)?,
                 EccMode::All => {
@@ -79,16 +79,19 @@ fn bfs_distances(graph: &Graph, source: VertexId, mode: EccMode) -> IgraphResult
                     out.extend(graph.in_neighbors_vec(v)?);
                     out
                 }
+            };
+            for w in neighbours {
+                if dist[w as usize].is_none() {
+                    dist[w as usize] = Some(next);
+                    queue.push_back(w);
+                }
             }
         } else {
-            // Undirected graphs: every mode is `All`, and `Graph::neighbors`
-            // already returns the merged list.
-            graph.neighbors(v)?
-        };
-        for w in neighbours {
-            if dist[w as usize].is_none() {
-                dist[w as usize] = Some(next);
-                queue.push_back(w);
+            for w in graph.neighbors_iter(v)? {
+                if dist[w as usize].is_none() {
+                    dist[w as usize] = Some(next);
+                    queue.push_back(w);
+                }
             }
         }
     }

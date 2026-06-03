@@ -185,8 +185,7 @@ fn bfs_count(graph: &Graph, start: u32, removed: &[bool]) -> IgraphResult<usize>
     count += 1;
 
     while let Some(cur) = queue.pop_front() {
-        let neighbors = graph.neighbors(cur)?;
-        for &nb in &neighbors {
+        for nb in graph.neighbors_iter(cur)? {
             let nidx = nb as usize;
             if !visited[nidx] && !removed[nidx] {
                 visited[nidx] = true;
