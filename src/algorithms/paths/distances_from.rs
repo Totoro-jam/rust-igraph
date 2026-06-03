@@ -172,8 +172,7 @@ fn bfs_undirected(
 
     while let Some((cur, dist)) = queue.pop_front() {
         let next_dist = dist + 1;
-        let neighbors = graph.neighbors(cur)?;
-        for &nb in &neighbors {
+        for nb in graph.neighbors_iter(cur)? {
             let nb_idx = nb as usize;
             if !visited[nb_idx] {
                 visited[nb_idx] = true;

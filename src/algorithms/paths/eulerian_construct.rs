@@ -220,7 +220,7 @@ fn pick_start_vertex(
             let has_edges = if directed {
                 !graph.incident(v)?.is_empty()
             } else {
-                !graph.neighbors(v)?.is_empty()
+                graph.neighbors_iter(v)?.len() > 0
             };
             if has_edges {
                 return Ok(v);
