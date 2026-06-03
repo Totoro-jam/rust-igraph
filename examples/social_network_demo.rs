@@ -218,11 +218,46 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     println!();
 
+    // --- 11. Attribute-aware I/O: Pajek round-trip (via attributes) ---
+    let mut pajek_buf = Vec::new();
+    rust_igraph::write_pajek(&g, None, None, &mut pajek_buf)?;
+    let pajek_result = rust_igraph::read_pajek(pajek_buf.as_slice())?;
+    println!(
+        "Pajek round-trip: {} vertices, {} edges",
+        pajek_result.graph.vcount(),
+        pajek_result.graph.ecount(),
+    );
+    println!();
+
+    // --- 12. Attribute-aware I/O: NCOL round-trip (via attributes) ---
+    let mut ncol_buf = Vec::new();
+    rust_igraph::write_ncol(&g, None, None, &mut ncol_buf)?;
+    let ncol_result = rust_igraph::read_ncol(ncol_buf.as_slice())?;
+    println!(
+        "NCOL round-trip: {} vertices, {} edges, name[0] = {:?}",
+        ncol_result.graph.vcount(),
+        ncol_result.graph.ecount(),
+        ncol_result.names.first().unwrap_or(&String::new()),
+    );
+    println!();
+
+    // --- 13. Attribute-aware I/O: LGL round-trip (via attributes) ---
+    let mut lgl_buf = Vec::new();
+    rust_igraph::write_lgl(&g, None, None, &mut lgl_buf)?;
+    let lgl_result = rust_igraph::read_lgl(lgl_buf.as_slice())?;
+    println!(
+        "LGL round-trip: {} vertices, {} edges",
+        lgl_result.graph.vcount(),
+        lgl_result.graph.ecount(),
+    );
+    println!();
+
     println!(
         "Done — {} capabilities demonstrated: construction, density, connectivity,\n\
          diameter, PageRank, betweenness, closeness, community detection, shortest\n\
-         paths, clustering coefficient, attributes, GML I/O, GraphML I/O, DOT I/O.",
-        14
+         paths, clustering coefficient, attributes, GML I/O, GraphML I/O, DOT I/O,\n\
+         Pajek I/O, NCOL I/O, LGL I/O.",
+        17
     );
     Ok(())
 }
