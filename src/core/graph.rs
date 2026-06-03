@@ -2441,6 +2441,53 @@ impl Graph {
         crate::algorithms::operators::reverse::reverse(self)
     }
 
+    /// Convert an undirected graph to directed.
+    ///
+    /// In `Mutual` mode each undirected edge becomes two directed edges
+    /// (u→v and v→u). In `Arbitrary` mode each edge gets one direction
+    /// (smaller → larger vertex id). Already-directed graphs are copied
+    /// unchanged.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, ToDirectedMode};
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let d = g.to_directed(ToDirectedMode::Mutual).unwrap();
+    /// assert!(d.is_directed());
+    /// assert_eq!(d.ecount(), 4);
+    /// ```
+    pub fn to_directed(
+        &self,
+        mode: crate::algorithms::operators::to_directed::ToDirectedMode,
+    ) -> IgraphResult<Graph> {
+        crate::algorithms::operators::to_directed::to_directed(self, mode)
+    }
+
+    /// Convert a directed graph to undirected.
+    ///
+    /// `Each` keeps every directed edge as undirected. `Collapse` merges
+    /// mutual pairs into one edge. `Mutual` keeps only edges that exist
+    /// in both directions. Already-undirected graphs are copied unchanged.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, ToUndirectedMode};
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,0), (1,2)], true, None).unwrap();
+    /// let u = g.to_undirected(ToUndirectedMode::Collapse).unwrap();
+    /// assert!(!u.is_directed());
+    /// assert_eq!(u.ecount(), 2);
+    /// ```
+    pub fn to_undirected(
+        &self,
+        mode: crate::algorithms::operators::to_undirected::ToUndirectedMode,
+    ) -> IgraphResult<Graph> {
+        crate::algorithms::operators::to_undirected::to_undirected(self, mode)
+    }
+
     /// Contract vertices according to a mapping.
     ///
     /// `mapping[v]` specifies the new vertex id for vertex `v`. Vertices
