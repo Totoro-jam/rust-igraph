@@ -1795,6 +1795,71 @@ impl Graph {
     pub fn summary(&self) -> IgraphResult<crate::algorithms::properties::summary::GraphSummary> {
         crate::algorithms::properties::summary::graph_summary(self)
     }
+
+    /// Read a graph from an edge list file.
+    ///
+    /// Each line should contain two space-separated vertex ids.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edgelist_file("my_graph.edges").unwrap();
+    /// println!("{}", g.vcount());
+    /// ```
+    pub fn from_edgelist_file<P: AsRef<std::path::Path>>(path: P) -> IgraphResult<Self> {
+        let file = std::fs::File::open(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot open file: {e}")))?;
+        crate::algorithms::io::edgelist::read_edgelist(std::io::BufReader::new(file))
+    }
+
+    /// Write the graph to a file in edge list format.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// g.to_edgelist_file("output.edges").unwrap();
+    /// ```
+    pub fn to_edgelist_file<P: AsRef<std::path::Path>>(&self, path: P) -> IgraphResult<()> {
+        let mut file = std::fs::File::create(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot create file: {e}")))?;
+        crate::algorithms::io::edgelist::write_edgelist(self, &mut file)
+    }
+
+    /// Read a graph from a GML file.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_gml_file("network.gml").unwrap();
+    /// ```
+    pub fn from_gml_file<P: AsRef<std::path::Path>>(path: P) -> IgraphResult<Self> {
+        let file = std::fs::File::open(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot open file: {e}")))?;
+        crate::algorithms::io::gml::read_gml(std::io::BufReader::new(file))
+    }
+
+    /// Write the graph to a file in GML format.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// g.to_gml_file("output.gml").unwrap();
+    /// ```
+    pub fn to_gml_file<P: AsRef<std::path::Path>>(&self, path: P) -> IgraphResult<()> {
+        let mut file = std::fs::File::create(path.as_ref())
+            .map_err(|e| IgraphError::InvalidArgument(format!("cannot create file: {e}")))?;
+        crate::algorithms::io::gml::write_gml(self, &mut file)
+    }
 }
 
 impl std::fmt::Display for Graph {
