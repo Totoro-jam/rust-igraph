@@ -29,6 +29,18 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   - `PartialEq`, `Eq`, `Hash` for `Graph` — structural equality
     (same directedness + vertices + sorted edge set).
   - `EdgeIter` type alias — public named iterator type for `Graph::iter()`.
+- **Convenience methods on `Graph`** (method-style API delegating to free
+  functions):
+  - `density()`, `is_connected()`, `is_simple()`, `connected_components()`
+  - `pagerank()`, `betweenness()`, `louvain()`
+  - `induced_subgraph()`, `to_dot()`
+  - `bfs()`, `dfs()`, `shortest_paths()`, `dijkstra()`
+  - `degree_sequence()`, `diameter()`, `transitivity()`, `clique_number()`
+  - `articulation_points()`, `topological_sort()`
+  - `minimum_spanning_tree()`, `summary()`
+- **Expanded prelude** — `EdgeIter`, `leiden`, `articulation_points`,
+  `bridges`, `diameter`, `eccentricity`, `radius`, `transitivity_undirected`,
+  `clique_number` now included in `rust_igraph::prelude`.
 - `examples/quickstart.rs` — complete analysis pipeline example showcasing
   builder, connectivity, centrality, community detection, iteration, and
   graph algebra.
@@ -36,7 +48,12 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 ### Changed
 - CONTRIBUTING.md now welcomes external pull requests with clear guidelines.
 - README updated with GraphBuilder and operator overloading examples;
-  test count corrected to 700+.
+  test count corrected to 720+.
+- **ADR-0003 revised**: removed `faer` dependency plan; all linear algebra
+  is pure hand-rolled Rust (power iteration, future IRLM/IRAM). Zero
+  external deps beyond `thiserror`.
+- MASTER_PLAN.md §2.3/§2.4 updated to reflect actual single-dependency
+  architecture. Feature flags simplified.
 
 ## [0.0.1-alpha.4] — 2026-06-03
 
