@@ -949,13 +949,56 @@ impl Graph {
         self.check_vertex(v)?;
         let v_idx = v as usize;
         let out = (self.os[v_idx + 1] - self.os[v_idx]) as usize;
+        let in_count = (self.is[v_idx + 1] - self.is[v_idx]) as usize;
+        Ok(out + in_count)
+    }
+
+    /// Out-degree of vertex `v` (number of outgoing edges).
+    ///
+    /// For undirected graphs, this equals the total degree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,0)], true, None).unwrap();
+    /// assert_eq!(g.out_degree(0).unwrap(), 2);
+    /// assert_eq!(g.out_degree(1).unwrap(), 1);
+    /// ```
+    pub fn out_degree(&self, v: VertexId) -> IgraphResult<usize> {
+        self.check_vertex(v)?;
+        let v_idx = v as usize;
         if self.directed {
+            Ok((self.os[v_idx + 1] - self.os[v_idx]) as usize)
+        } else {
+            let out = (self.os[v_idx + 1] - self.os[v_idx]) as usize;
             let in_count = (self.is[v_idx + 1] - self.is[v_idx]) as usize;
             Ok(out + in_count)
+        }
+    }
+
+    /// In-degree of vertex `v` (number of incoming edges).
+    ///
+    /// For undirected graphs, this equals the total degree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,0)], true, None).unwrap();
+    /// assert_eq!(g.in_degree(0).unwrap(), 1);
+    /// assert_eq!(g.in_degree(1).unwrap(), 1);
+    /// assert_eq!(g.in_degree(2).unwrap(), 1);
+    /// ```
+    pub fn in_degree(&self, v: VertexId) -> IgraphResult<usize> {
+        self.check_vertex(v)?;
+        let v_idx = v as usize;
+        if self.directed {
+            Ok((self.is[v_idx + 1] - self.is[v_idx]) as usize)
         } else {
-            // Undirected: out + in. Self-loops appear in both (they are
-            // stored once with `from == to` but indexed in both `os` and
-            // `is` slots), so naturally count twice.
+            let out = (self.os[v_idx + 1] - self.os[v_idx]) as usize;
             let in_count = (self.is[v_idx + 1] - self.is[v_idx]) as usize;
             Ok(out + in_count)
         }
