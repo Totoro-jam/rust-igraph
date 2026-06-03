@@ -22,7 +22,7 @@
 //! | **Properties** | 60+ structural recognizers, degree stats, transitivity, graphlets |
 //! | **Eigenvalues** | Lanczos (symmetric), Arnoldi (general), adjacency |
 //! | **Layout** | Fruchterman-Reingold, Kamada-Kawai, `DrL`, MDS, LGL, circle, tree |
-//! | **I/O** | GML, GraphML, Pajek, DOT, LEDA, DL, DIMACS, NCOL, LGL |
+//! | **I/O** | GML, `GraphML`, Pajek, DOT, LEDA, DL, DIMACS, NCOL, LGL |
 //! | **Similarity** | Jaccard, Dice, inverse-log-weighted |
 //!
 //! ## Quick start

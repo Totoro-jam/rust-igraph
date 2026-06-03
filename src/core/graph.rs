@@ -7109,6 +7109,250 @@ impl Graph {
     pub fn graph_summary(&self) -> IgraphResult<crate::GraphSummary> {
         crate::algorithms::properties::summary::graph_summary(self)
     }
+
+    // ---- Matrix representations (batch 7) ----
+
+    /// Adjacency matrix of the graph.
+    ///
+    /// Returns a dense `V×V` matrix. For undirected graphs with
+    /// [`AdjacencyType::Both`], the result is symmetric.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, AdjacencyType, LoopHandling};
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let m = g.get_adjacency(AdjacencyType::Both, LoopHandling::Once).unwrap();
+    /// assert_eq!(m.len(), 3);
+    /// assert!((m[0][1] - 1.0).abs() < 1e-10);
+    /// assert!((m[0][2]).abs() < 1e-10);
+    /// ```
+    pub fn get_adjacency(
+        &self,
+        adj_type: crate::AdjacencyType,
+        loops: crate::LoopHandling,
+    ) -> IgraphResult<Vec<Vec<f64>>> {
+        crate::algorithms::properties::adjacency::get_adjacency(self, adj_type, None, loops)
+    }
+
+    /// Weighted adjacency matrix of the graph.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, AdjacencyType, LoopHandling};
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let w = vec![2.0, 3.0];
+    /// let m = g.get_adjacency_weighted(AdjacencyType::Both, &w, LoopHandling::Once).unwrap();
+    /// assert!((m[0][1] - 2.0).abs() < 1e-10);
+    /// ```
+    pub fn get_adjacency_weighted(
+        &self,
+        adj_type: crate::AdjacencyType,
+        weights: &[f64],
+        loops: crate::LoopHandling,
+    ) -> IgraphResult<Vec<Vec<f64>>> {
+        crate::algorithms::properties::adjacency::get_adjacency(
+            self,
+            adj_type,
+            Some(weights),
+            loops,
+        )
+    }
+
+    /// Laplacian matrix L = D - A (unnormalized, unweighted).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let lap = g.get_laplacian().unwrap();
+    /// assert!((lap[0][0] - 1.0).abs() < 1e-10); // degree of vertex 0
+    /// assert!((lap[1][1] - 2.0).abs() < 1e-10); // degree of vertex 1
+    /// ```
+    pub fn get_laplacian(&self) -> IgraphResult<Vec<Vec<f64>>> {
+        crate::algorithms::properties::laplacian::get_laplacian(
+            self,
+            crate::DegreeMode::All,
+            crate::LaplacianNormalization::Unnormalized,
+            None,
+        )
+    }
+
+    /// Laplacian matrix with normalization and optional weights.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, DegreeMode, LaplacianNormalization};
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let lap = g.get_laplacian_full(
+    ///     DegreeMode::All,
+    ///     LaplacianNormalization::Symmetric,
+    ///     None,
+    /// ).unwrap();
+    /// assert!(lap[0][0] > 0.0);
+    /// ```
+    pub fn get_laplacian_full(
+        &self,
+        mode: crate::DegreeMode,
+        normalization: crate::LaplacianNormalization,
+        weights: Option<&[f64]>,
+    ) -> IgraphResult<Vec<Vec<f64>>> {
+        crate::algorithms::properties::laplacian::get_laplacian(self, mode, normalization, weights)
+    }
+
+    /// Stochastic (transition) matrix of the graph.
+    ///
+    /// Each row (or column, if `column_wise` is true) sums to 1.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(0,2),(1,2)], false, None).unwrap();
+    /// let s = g.get_stochastic(false).unwrap();
+    /// let row_sum: f64 = s[0].iter().sum();
+    /// assert!((row_sum - 1.0).abs() < 1e-10);
+    /// ```
+    pub fn get_stochastic(&self, column_wise: bool) -> IgraphResult<Vec<Vec<f64>>> {
+        crate::algorithms::properties::stochastic::get_stochastic(self, column_wise, None)
+    }
+
+    // ---- Spectral embedding (batch 7) ----
+
+    /// Adjacency spectral embedding into `no` dimensions.
+    ///
+    /// Embeds the graph via the leading eigenvalues/eigenvectors of the
+    /// adjacency matrix.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, SpectralWhich};
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3),(3,0)], false, None).unwrap();
+    /// let emb = g.adjacency_spectral_embedding(2, SpectralWhich::LargestMagnitude).unwrap();
+    /// assert_eq!(emb.embedding.len(), 4); // one row per vertex
+    /// ```
+    pub fn adjacency_spectral_embedding(
+        &self,
+        no: usize,
+        which: crate::SpectralWhich,
+    ) -> IgraphResult<crate::AdjacencySpectralEmbeddingResult> {
+        crate::algorithms::embedding::adjacency_spectral_embedding::adjacency_spectral_embedding(
+            self, no, None, which, true, None,
+        )
+    }
+
+    /// Laplacian spectral embedding into `no` dimensions.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, SpectralWhich, LaplacianType};
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3),(3,0)], false, None).unwrap();
+    /// let emb = g.laplacian_spectral_embedding(
+    ///     2, SpectralWhich::SmallestAlgebraic, LaplacianType::DA,
+    /// ).unwrap();
+    /// assert_eq!(emb.embedding.len(), 4);
+    /// ```
+    pub fn laplacian_spectral_embedding(
+        &self,
+        no: usize,
+        which: crate::SpectralWhich,
+        lap_type: crate::LaplacianType,
+    ) -> IgraphResult<crate::LaplacianSpectralEmbeddingResult> {
+        crate::algorithms::embedding::laplacian_spectral_embedding::laplacian_spectral_embedding(
+            self, no, None, which, lap_type, true,
+        )
+    }
+
+    /// Eigenvalues and eigenvectors of the adjacency matrix.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, EigenWhich};
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,0)], false, None).unwrap();
+    /// let eig = g.eigen_adjacency(2, EigenWhich::LargestAlgebraic).unwrap();
+    /// assert_eq!(eig.eigenvalues.len(), 2);
+    /// ```
+    pub fn eigen_adjacency(
+        &self,
+        nev: usize,
+        which: crate::EigenWhich,
+    ) -> IgraphResult<crate::EigenDecomposition> {
+        crate::algorithms::eigen::adjacency::eigen_adjacency(self, nev, which)
+    }
+
+    // ---- Additional algorithms (batch 7) ----
+
+    /// Feedback vertex set — a minimal set of vertices whose removal
+    /// makes the graph acyclic.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, FvsAlgorithm};
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,0)], true, None).unwrap();
+    /// let fvs = g.feedback_vertex_set(FvsAlgorithm::Greedy).unwrap();
+    /// assert!(!fvs.is_empty()); // need to break the cycle
+    /// ```
+    pub fn feedback_vertex_set(&self, algo: crate::FvsAlgorithm) -> IgraphResult<Vec<VertexId>> {
+        crate::algorithms::feedback_vertex_set::feedback_vertex_set(self, None, algo)
+    }
+
+    /// Complement graph (all edges that are *not* in the original).
+    ///
+    /// Self-loops are excluded.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1)], false, Some(3)).unwrap();
+    /// let c = g.complementer().unwrap();
+    /// assert_eq!(c.ecount(), 2); // edges 0-2 and 1-2
+    /// ```
+    pub fn complementer(&self) -> IgraphResult<Graph> {
+        crate::algorithms::operators::complementer::complementer(self, false)
+    }
+
+    /// Bipartite projection sizes without building the projected graphs.
+    ///
+    /// `types` assigns each vertex to one of two partitions (`false`/`true`).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // K_{2,3} bipartite graph
+    /// let g = Graph::from_edges(
+    ///     &[(0,2),(0,3),(0,4),(1,2),(1,3),(1,4)], false, None
+    /// ).unwrap();
+    /// let types = vec![false, false, true, true, true];
+    /// let sz = g.bipartite_projection_size(&types).unwrap();
+    /// assert_eq!(sz.vcount1, 2);
+    /// assert_eq!(sz.vcount2, 3);
+    /// ```
+    pub fn bipartite_projection_size(
+        &self,
+        types: &[bool],
+    ) -> IgraphResult<crate::BipartiteProjectionSize> {
+        crate::algorithms::operators::bipartite_projection_size::bipartite_projection_size(
+            self, types,
+        )
+    }
+
+    /// Unfold the graph into a tree by BFS from root vertices.
+    ///
+    /// Returns the unfolded tree and a mapping from new to old vertex ids.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, DegreeMode, DijkstraMode, UnfoldTreeResult};
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,0)], false, None).unwrap();
+    /// let r = g.unfold_tree(&[0], DegreeMode::All).unwrap();
+    /// assert!(r.tree.is_tree(DijkstraMode::All).unwrap().is_some());
+    /// assert!(!r.vertex_index.is_empty());
+    /// ```
+    pub fn unfold_tree(
+        &self,
+        roots: &[VertexId],
+        mode: crate::DegreeMode,
+    ) -> IgraphResult<crate::UnfoldTreeResult> {
+        crate::algorithms::properties::unfold_tree::unfold_tree(self, roots, mode)
+    }
 }
 
 impl std::fmt::Display for Graph {
