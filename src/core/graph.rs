@@ -2804,6 +2804,108 @@ impl Graph {
     pub fn permute_vertices(&self, permutation: &[VertexId]) -> IgraphResult<Graph> {
         crate::algorithms::operators::permute_vertices::permute_vertices(self, permutation)
     }
+
+    // ── Layout ───────────────────────────────────────────────────────
+
+    /// Fruchterman-Reingold force-directed layout with default parameters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let coords = g.layout_fruchterman_reingold().unwrap();
+    /// assert_eq!(coords.len(), 3);
+    /// ```
+    pub fn layout_fruchterman_reingold(&self) -> IgraphResult<Vec<(f64, f64)>> {
+        use crate::algorithms::layout::fruchterman_reingold::FrParams;
+        crate::algorithms::layout::fruchterman_reingold::layout_fruchterman_reingold(
+            self,
+            &FrParams::default(),
+        )
+    }
+
+    /// Kamada-Kawai spring-embedder layout with default parameters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let coords = g.layout_kamada_kawai().unwrap();
+    /// assert_eq!(coords.len(), 4);
+    /// ```
+    pub fn layout_kamada_kawai(&self) -> IgraphResult<Vec<[f64; 2]>> {
+        use crate::algorithms::layout::kamada_kawai::KkParams;
+        let params = KkParams::default_for(self.vcount() as usize);
+        crate::algorithms::layout::kamada_kawai::layout_kamada_kawai(self, None, &params, None)
+    }
+
+    /// `DrL` (Distributed Recursive Layout) with default options.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let coords = g.layout_drl().unwrap();
+    /// assert_eq!(coords.len(), 3);
+    /// ```
+    pub fn layout_drl(&self) -> IgraphResult<Vec<[f64; 2]>> {
+        use crate::algorithms::layout::drl::DrlOptions;
+        crate::algorithms::layout::drl::layout_drl(self, None, &DrlOptions::default(), None)
+    }
+
+    /// Circular layout.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let coords = g.layout_circle();
+    /// assert_eq!(coords.len(), 3);
+    /// ```
+    pub fn layout_circle(&self) -> Vec<(f64, f64)> {
+        crate::algorithms::layout::simple::layout_circle(self, None)
+    }
+
+    /// Random layout with the given RNG seed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::with_vertices(5);
+    /// let coords = g.layout_random(42);
+    /// assert_eq!(coords.len(), 5);
+    /// ```
+    pub fn layout_random(&self, seed: u64) -> Vec<(f64, f64)> {
+        crate::algorithms::layout::simple::layout_random(self, seed)
+    }
+
+    /// Grid layout.
+    ///
+    /// `width` specifies the number of columns. Pass 0 to auto-compute
+    /// (ceil of square root of vertex count).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::with_vertices(9);
+    /// let coords = g.layout_grid(3);
+    /// assert_eq!(coords.len(), 9);
+    /// ```
+    pub fn layout_grid(&self, width: i32) -> Vec<(f64, f64)> {
+        crate::algorithms::layout::simple::layout_grid(self, width)
+    }
 }
 
 impl std::fmt::Display for Graph {

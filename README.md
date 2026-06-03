@@ -152,13 +152,14 @@ let g = Graph::from_edges(
 
 // Structural queries
 assert!(g.is_connected().unwrap());
-let cores = g.coreness().unwrap();
-let bridges = g.bridges().unwrap();
+println!("Diameter: {:?}", g.diameter().unwrap());
+println!("Girth: {:?}", g.girth().unwrap());
+println!("Triangles: {}", g.count_triangles().unwrap());
 
 // Centrality
 let pr = g.pagerank().unwrap();
-let cl = g.closeness().unwrap();
-let ec = g.eigenvector_centrality().unwrap();
+let bc = g.betweenness().unwrap();
+let hc = g.harmonic_centrality().unwrap();
 
 // Community detection
 let communities = g.louvain().unwrap();
@@ -206,7 +207,7 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ```bash
 cargo build                          # build
-cargo test                           # fast test suite (700+ tests)
+cargo test                           # fast test suite (7,100+ tests)
 cargo test --all-features            # full suite with oracle + proptests
 cargo clippy -- -D warnings          # lint
 cargo doc --no-deps --open           # browse API docs locally
