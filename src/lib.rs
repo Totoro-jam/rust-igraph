@@ -750,6 +750,7 @@ pub use crate::algorithms::traversal::dfs::{
     DfsMode, DfsSimple, DfsTree, dfs, dfs_simple, dfs_tree,
 };
 pub use crate::algorithms::vertex_cover::{is_vertex_cover, minimum_vertex_cover};
+pub use crate::core::attributes::AttributeValue;
 pub use crate::core::builder::GraphBuilder;
 pub use crate::core::cache::CachedProperty;
 pub use crate::core::error::{IgraphError, IgraphResult};

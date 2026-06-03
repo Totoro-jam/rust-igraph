@@ -5,6 +5,7 @@
 //! `igraph_t`-equivalent structure replaces this during Phase 1
 //! (see `docs/plans/MASTER_PLAN.md`).
 
+pub mod attributes;
 pub mod builder;
 pub mod cache;
 pub mod error;

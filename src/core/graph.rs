@@ -27,6 +27,9 @@
 //!
 //! Attribute system → ALGO-AT-* (out of scope here).
 
+use std::collections::HashMap;
+
+use super::attributes::AttributeValue;
 use super::cache::{
     CachedProperty, PropertyCache, invalidate_after_add_edges, invalidate_after_add_vertices,
 };
@@ -140,6 +143,12 @@ pub struct Graph {
     is: Vec<u32>,
     /// Boolean property cache. Mirrors `igraph_t::cache`.
     cache: PropertyCache,
+    /// Graph-level attributes (name → value).
+    gattrs: HashMap<String, AttributeValue>,
+    /// Vertex attributes (name → vec of values, one per vertex).
+    vertex_attrs: HashMap<String, Vec<AttributeValue>>,
+    /// Edge attributes (name → vec of values, one per edge).
+    edge_attrs: HashMap<String, Vec<AttributeValue>>,
 }
 
 impl Graph {
@@ -169,6 +178,9 @@ impl Graph {
             os: vec![0],
             is: vec![0],
             cache: PropertyCache::new(),
+            gattrs: HashMap::new(),
+            vertex_attrs: HashMap::new(),
+            edge_attrs: HashMap::new(),
         };
         g.add_vertices(n)?;
         Ok(g)
@@ -515,6 +527,9 @@ impl Graph {
             os: vec![0; len],
             is: vec![0; len],
             cache: PropertyCache::new(),
+            gattrs: HashMap::new(),
+            vertex_attrs: HashMap::new(),
+            edge_attrs: HashMap::new(),
         }
     }
 
@@ -692,6 +707,13 @@ impl Graph {
             self.os.push(ec);
             self.is.push(ec);
         }
+        // Extend vertex attribute vectors with defaults.
+        for vals in self.vertex_attrs.values_mut() {
+            if let Some(first_val) = vals.first() {
+                let default = first_val.default_for_same_type();
+                vals.resize(new_n as usize, default);
+            }
+        }
         self.n = new_n;
         if nv > 0 {
             invalidate_after_add_vertices(&self.cache);
@@ -739,7 +761,6 @@ impl Graph {
         for (u, v) in edges {
             self.check_vertex(u)?;
             self.check_vertex(v)?;
-            // Undirected canonicalisation: store the smaller endpoint as `from`.
             if !self.directed && u > v {
                 self.from.push(v);
                 self.to.push(u);
@@ -749,7 +770,15 @@ impl Graph {
             }
         }
         self.rebuild_indexes()?;
-        if self.ecount() > m_before {
+        let m_after = self.ecount();
+        // Extend edge attribute vectors with defaults.
+        if m_after > m_before {
+            for vals in self.edge_attrs.values_mut() {
+                if let Some(first_val) = vals.first() {
+                    let default = first_val.default_for_same_type();
+                    vals.resize(m_after, default);
+                }
+            }
             invalidate_after_add_edges(&self.cache);
         }
         Ok(())
@@ -1418,6 +1447,16 @@ impl Graph {
                 new_to.push(self.to[e]);
             }
         }
+        // Filter edge attributes to match retained edges.
+        for vals in self.edge_attrs.values_mut() {
+            let mut new_vals = Vec::with_capacity(new_from.len());
+            for (e, &is_removed) in remove.iter().enumerate() {
+                if !is_removed {
+                    new_vals.push(vals[e].clone());
+                }
+            }
+            *vals = new_vals;
+        }
         self.from = new_from;
         self.to = new_to;
         self.rebuild_indexes()?;
@@ -1517,11 +1556,36 @@ impl Graph {
         let m = self.ecount();
         let mut new_from: Vec<VertexId> = Vec::with_capacity(m);
         let mut new_to: Vec<VertexId> = Vec::with_capacity(m);
+        let mut edge_keep = Vec::with_capacity(m);
         for (u, v) in self.from.iter().zip(self.to.iter()) {
             if let (Some(nu), Some(nv)) = (map[*u as usize], map[*v as usize]) {
                 new_from.push(nu);
                 new_to.push(nv);
+                edge_keep.push(true);
+            } else {
+                edge_keep.push(false);
             }
+        }
+
+        // Filter vertex attributes to match retained vertices.
+        for vals in self.vertex_attrs.values_mut() {
+            let new_vals: Vec<AttributeValue> = remove
+                .iter()
+                .enumerate()
+                .filter(|&(_, is_removed)| !is_removed)
+                .map(|(i, _)| vals[i].clone())
+                .collect();
+            *vals = new_vals;
+        }
+        // Filter edge attributes to match retained edges.
+        for vals in self.edge_attrs.values_mut() {
+            let new_vals: Vec<AttributeValue> = edge_keep
+                .iter()
+                .enumerate()
+                .filter(|&(_, keep)| *keep)
+                .map(|(i, _)| vals[i].clone())
+                .collect();
+            *vals = new_vals;
         }
 
         self.n = next_new;
@@ -7352,6 +7416,278 @@ impl Graph {
         mode: crate::DegreeMode,
     ) -> IgraphResult<crate::UnfoldTreeResult> {
         crate::algorithms::properties::unfold_tree::unfold_tree(self, roots, mode)
+    }
+
+    // ---- Attribute system ----
+
+    /// Set a graph-level attribute.
+    ///
+    /// Overwrites any existing value with the same name.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, AttributeValue};
+    ///
+    /// let mut g = Graph::with_vertices(0);
+    /// g.set_graph_attribute("name", "test".into());
+    /// assert_eq!(
+    ///     g.graph_attribute("name").and_then(|v| v.as_str()),
+    ///     Some("test"),
+    /// );
+    /// ```
+    pub fn set_graph_attribute(&mut self, name: impl Into<String>, value: AttributeValue) {
+        self.gattrs.insert(name.into(), value);
+    }
+
+    /// Get a graph-level attribute by name.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, AttributeValue};
+    ///
+    /// let g = Graph::with_vertices(0);
+    /// assert!(g.graph_attribute("missing").is_none());
+    /// ```
+    #[must_use]
+    pub fn graph_attribute(&self, name: &str) -> Option<&AttributeValue> {
+        self.gattrs.get(name)
+    }
+
+    /// Delete a graph-level attribute. Returns `true` if it existed.
+    pub fn delete_graph_attribute(&mut self, name: &str) -> bool {
+        self.gattrs.remove(name).is_some()
+    }
+
+    /// Check whether a graph-level attribute exists.
+    #[must_use]
+    pub fn has_graph_attribute(&self, name: &str) -> bool {
+        self.gattrs.contains_key(name)
+    }
+
+    /// List all graph-level attribute names.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, AttributeValue};
+    ///
+    /// let mut g = Graph::with_vertices(0);
+    /// g.set_graph_attribute("name", "test".into());
+    /// g.set_graph_attribute("year", 2024.0.into());
+    /// let names = g.graph_attribute_names();
+    /// assert!(names.contains(&"name"));
+    /// assert!(names.contains(&"year"));
+    /// ```
+    #[must_use]
+    pub fn graph_attribute_names(&self) -> Vec<&str> {
+        self.gattrs.keys().map(String::as_str).collect()
+    }
+
+    /// Set a vertex attribute for a single vertex.
+    ///
+    /// Creates the attribute vector if it doesn't exist. New entries
+    /// for other vertices are filled with a type-appropriate default.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, AttributeValue};
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.set_vertex_attribute("label", 0, "Alice".into()).unwrap();
+    /// g.set_vertex_attribute("label", 1, "Bob".into()).unwrap();
+    /// assert_eq!(
+    ///     g.vertex_attribute("label", 0).and_then(|v| v.as_str()),
+    ///     Some("Alice"),
+    /// );
+    /// ```
+    pub fn set_vertex_attribute(
+        &mut self,
+        name: impl Into<String>,
+        vertex: VertexId,
+        value: AttributeValue,
+    ) -> IgraphResult<()> {
+        self.check_vertex(vertex)?;
+        let n = self.n as usize;
+        let key = name.into();
+        let vals = self.vertex_attrs.entry(key).or_insert_with(|| {
+            let default = value.default_for_same_type();
+            vec![default; n]
+        });
+        vals[vertex as usize] = value;
+        Ok(())
+    }
+
+    /// Set a vertex attribute for all vertices at once.
+    ///
+    /// The `values` slice must have length equal to `vcount()`.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, AttributeValue};
+    ///
+    /// let mut g = Graph::with_vertices(3);
+    /// g.set_vertex_attribute_all(
+    ///     "color",
+    ///     vec![1.0.into(), 2.0.into(), 3.0.into()],
+    /// ).unwrap();
+    /// let colors = g.vertex_attributes("color").unwrap();
+    /// assert_eq!(colors.len(), 3);
+    /// ```
+    pub fn set_vertex_attribute_all(
+        &mut self,
+        name: impl Into<String>,
+        values: Vec<AttributeValue>,
+    ) -> IgraphResult<()> {
+        if values.len() != self.n as usize {
+            return Err(IgraphError::InvalidArgument(format!(
+                "attribute vector length {} does not match vcount {}",
+                values.len(),
+                self.n,
+            )));
+        }
+        self.vertex_attrs.insert(name.into(), values);
+        Ok(())
+    }
+
+    /// Get a vertex attribute for a single vertex.
+    #[must_use]
+    pub fn vertex_attribute(&self, name: &str, vertex: VertexId) -> Option<&AttributeValue> {
+        self.vertex_attrs
+            .get(name)
+            .and_then(|vals| vals.get(vertex as usize))
+    }
+
+    /// Get the full vertex attribute vector by name.
+    #[must_use]
+    pub fn vertex_attributes(&self, name: &str) -> Option<&[AttributeValue]> {
+        self.vertex_attrs.get(name).map(Vec::as_slice)
+    }
+
+    /// Delete a vertex attribute. Returns `true` if it existed.
+    pub fn delete_vertex_attribute(&mut self, name: &str) -> bool {
+        self.vertex_attrs.remove(name).is_some()
+    }
+
+    /// Check whether a vertex attribute exists.
+    #[must_use]
+    pub fn has_vertex_attribute(&self, name: &str) -> bool {
+        self.vertex_attrs.contains_key(name)
+    }
+
+    /// List all vertex attribute names.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, AttributeValue};
+    ///
+    /// let mut g = Graph::with_vertices(2);
+    /// g.set_vertex_attribute("name", 0, "A".into()).unwrap();
+    /// assert!(g.vertex_attribute_names().contains(&"name"));
+    /// ```
+    #[must_use]
+    pub fn vertex_attribute_names(&self) -> Vec<&str> {
+        self.vertex_attrs.keys().map(String::as_str).collect()
+    }
+
+    /// Set an edge attribute for a single edge.
+    ///
+    /// Creates the attribute vector if it doesn't exist. New entries
+    /// for other edges are filled with a type-appropriate default.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, AttributeValue};
+    ///
+    /// let mut g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// g.set_edge_attribute("weight", 0, 1.5.into()).unwrap();
+    /// assert_eq!(
+    ///     g.edge_attribute("weight", 0).and_then(|v| v.as_f64()),
+    ///     Some(1.5),
+    /// );
+    /// ```
+    pub fn set_edge_attribute(
+        &mut self,
+        name: impl Into<String>,
+        edge: EdgeId,
+        value: AttributeValue,
+    ) -> IgraphResult<()> {
+        let m = self.ecount();
+        if (edge as usize) >= m {
+            return Err(IgraphError::EdgeOutOfRange {
+                id: edge,
+                m: u32::try_from(m).unwrap_or(u32::MAX),
+            });
+        }
+        let key = name.into();
+        let vals = self.edge_attrs.entry(key).or_insert_with(|| {
+            let default = value.default_for_same_type();
+            vec![default; m]
+        });
+        vals[edge as usize] = value;
+        Ok(())
+    }
+
+    /// Set an edge attribute for all edges at once.
+    ///
+    /// The `values` slice must have length equal to `ecount()`.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, AttributeValue};
+    ///
+    /// let mut g = Graph::from_edges(&[(0,1),(1,2),(2,0)], false, None).unwrap();
+    /// g.set_edge_attribute_all(
+    ///     "weight",
+    ///     vec![1.0.into(), 2.0.into(), 3.0.into()],
+    /// ).unwrap();
+    /// let w = g.edge_attributes("weight").unwrap();
+    /// assert_eq!(w.len(), 3);
+    /// ```
+    pub fn set_edge_attribute_all(
+        &mut self,
+        name: impl Into<String>,
+        values: Vec<AttributeValue>,
+    ) -> IgraphResult<()> {
+        let m = self.ecount();
+        if values.len() != m {
+            return Err(IgraphError::InvalidArgument(format!(
+                "attribute vector length {} does not match ecount {}",
+                values.len(),
+                m,
+            )));
+        }
+        self.edge_attrs.insert(name.into(), values);
+        Ok(())
+    }
+
+    /// Get an edge attribute for a single edge.
+    #[must_use]
+    pub fn edge_attribute(&self, name: &str, edge: EdgeId) -> Option<&AttributeValue> {
+        self.edge_attrs
+            .get(name)
+            .and_then(|vals| vals.get(edge as usize))
+    }
+
+    /// Get the full edge attribute vector by name.
+    #[must_use]
+    pub fn edge_attributes(&self, name: &str) -> Option<&[AttributeValue]> {
+        self.edge_attrs.get(name).map(Vec::as_slice)
+    }
+
+    /// Delete an edge attribute. Returns `true` if it existed.
+    pub fn delete_edge_attribute(&mut self, name: &str) -> bool {
+        self.edge_attrs.remove(name).is_some()
+    }
+
+    /// Check whether an edge attribute exists.
+    #[must_use]
+    pub fn has_edge_attribute(&self, name: &str) -> bool {
+        self.edge_attrs.contains_key(name)
+    }
+
+    /// List all edge attribute names.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, AttributeValue};
+    ///
+    /// let mut g = Graph::from_edges(&[(0,1)], false, None).unwrap();
+    /// g.set_edge_attribute("weight", 0, 1.0.into()).unwrap();
+    /// assert!(g.edge_attribute_names().contains(&"weight"));
+    /// ```
+    #[must_use]
+    pub fn edge_attribute_names(&self) -> Vec<&str> {
+        self.edge_attrs.keys().map(String::as_str).collect()
     }
 }
 
