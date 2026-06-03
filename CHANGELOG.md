@@ -77,6 +77,42 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 - Enhanced crate-level documentation with a "Complete workflow" example
   showing load → structural check → centrality → community → shortest path
   → random walk in one coherent snippet.
+- **85 convenience methods on `Graph`** (batch 4 — largest expansion):
+  - **Structural recognizers** (50+): `is_acyclic()`, `is_antiregular()`,
+    `is_bridge_graph()`, `is_caterpillar()`, `is_chordal()`, `is_claw_free()`,
+    `is_cluster_graph()`, `is_cograph()`, `is_complete()`, `is_cubic()`,
+    `is_distance_regular()`, `is_edgeless()`, `is_eulerian()`, `is_forest()`,
+    `is_gem_free()`, `is_hamiltonian()`, `is_interval()`, `is_k_degenerate()`,
+    `is_k_regular()`, `is_king()`, `is_kite()`, `is_lobster()`,
+    `is_outerplanar()`, `is_paw_free()`, `is_planar()`, `is_power_of_cycle()`,
+    `is_pseudo_forest()`, `is_queen()`, `is_rook()`, `is_self_complementary()`,
+    `is_semiconnected()`, `is_spider()`, `is_split()`, `is_split_cluster()`,
+    `is_threshold()`, `is_tournament()`, `is_traceable()`,
+    `is_triangle_free()`, `is_turk()`, `is_unit_interval()`,
+    `is_well_colored()`, `is_wheel()`, `satisfies_dirac()`, `satisfies_ore()`
+  - **Centrality variants**: `edge_betweenness()`, `betweenness_cutoff()`,
+    `betweenness_weighted()`, `closeness_weighted()`,
+    `edge_betweenness_cutoff()`, `edge_betweenness_weighted()`,
+    `harmonic_centrality_weighted()`, `pagerank_weighted()`
+  - **Connectivity**: `cohesive_blocks()`, `count_reachable()`,
+    `reachability_matrix()`, `transitive_closure()`
+  - **Flow**: `mincut()`, `mincut_value()`, `gomory_hu_tree()`,
+    `all_st_cuts()`, `edge_disjoint_paths()`
+  - **Paths**: `distances()`, `eulerian_path()`, `mean_distance()`,
+    `topological_sorting()`
+  - **Structure**: `list_triangles()`, `degree_distribution()`,
+    `get_edgelist()`, `regularity()`, `find_cycle()`,
+    `joint_degree_matrix()`, `minimum_dominating_set()`, `graph_power()`,
+    `trussness()`
+- **Expanded prelude** (18 new re-exports): `eigenvector_centrality`,
+  `harmonic_centrality`, `HitsScores`, `hub_and_authority_scores`,
+  `katz_centrality`, `modularity`, `strongly_connected_components`,
+  `mean_distance`, `coreness`, `list_triangles`, `count_triangles`,
+  `topological_sorting`, `max_flow`, `MstAlgorithm`, `minimum_spanning_tree`,
+  `isomorphic_vf2`, `cycle_graph`, `barabasi_game_bag`.
+- Doctests for `famous_names()` and `cache_get`/`cache_set`/`cache_invalidate`/
+  `cache_invalidate_all` methods.
+- API count updated from 419+ to 850+ across documentation.
 
 - **I/O completeness** — all major graph formats now support both reading
   and writing:
