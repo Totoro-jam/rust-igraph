@@ -192,6 +192,14 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   - Motifs: `motifs_randesu_no()`
   - Inspection: `graph_summary()`
 - Total public methods on `Graph`: 376 (up from 346).
+- **12 more convenience methods on `Graph`** (batch 7):
+  - Matrix representations: `get_adjacency()`, `get_adjacency_weighted()`,
+    `get_laplacian()`, `get_laplacian_full()`, `get_stochastic()`
+  - Spectral embedding: `adjacency_spectral_embedding()`,
+    `laplacian_spectral_embedding()`, `eigen_adjacency()`
+  - Algorithms: `feedback_vertex_set()`, `complementer()`,
+    `bipartite_projection_size()`, `unfold_tree()`
+- Total public methods on `Graph`: 388 (up from 376).
 
 - **I/O completeness** — all major graph formats now support both reading
   and writing:
