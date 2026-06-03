@@ -5475,6 +5475,129 @@ impl Graph {
             self, reset,
         )
     }
+
+    // ── Isomorphism ─────────────────────────────────────────────────
+
+    /// Test whether two graphs are isomorphic (VF2).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let a = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let b = Graph::from_edges(&[(0,2), (2,1), (1,0)], false, None).unwrap();
+    /// let result = a.isomorphic_vf2(&b).unwrap();
+    /// assert!(result.iso);
+    /// ```
+    pub fn isomorphic_vf2(
+        &self,
+        other: &Graph,
+    ) -> IgraphResult<crate::algorithms::isomorphism::vf2::Vf2Isomorphism> {
+        crate::algorithms::isomorphism::vf2::isomorphic_vf2(self, other, None, None, None, None)
+    }
+
+    /// Quick isomorphism test (delegates to the best available method).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let a = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let b = Graph::from_edges(&[(0,2), (2,1), (1,0)], false, None).unwrap();
+    /// assert!(a.isomorphic(&b).unwrap());
+    /// ```
+    pub fn isomorphic(&self, other: &Graph) -> IgraphResult<bool> {
+        crate::algorithms::isomorphism::queries::isomorphic(self, other)
+    }
+
+    /// Count the number of isomorphisms between two graphs (VF2).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let count = g.count_isomorphisms_vf2(&g).unwrap();
+    /// assert_eq!(count, 6); // C3 has 6 automorphisms
+    /// ```
+    pub fn count_isomorphisms_vf2(&self, other: &Graph) -> IgraphResult<u64> {
+        crate::algorithms::isomorphism::vf2::count_isomorphisms_vf2(
+            self, other, None, None, None, None,
+        )
+    }
+
+    // ── Cliques ─────────────────────────────────────────────────────
+
+    /// Find all maximal independent vertex sets.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let sets = g.independent_vertex_sets(1, 3).unwrap();
+    /// assert!(!sets.is_empty());
+    /// ```
+    pub fn independent_vertex_sets(
+        &self,
+        min_size: u32,
+        max_size: u32,
+    ) -> IgraphResult<Vec<Vec<u32>>> {
+        crate::algorithms::cliques::independent_vertex_sets(self, min_size, max_size, None)
+    }
+
+    // ── Network properties ──────────────────────────────────────────
+
+    /// Global efficiency of the graph.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let e = g.global_efficiency().unwrap();
+    /// assert!(e.unwrap_or(0.0) > 0.0);
+    /// ```
+    pub fn global_efficiency(&self) -> IgraphResult<Option<f64>> {
+        crate::algorithms::properties::efficiency::global_efficiency(self)
+    }
+
+    /// Local efficiency for each vertex.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let e = g.local_efficiency().unwrap();
+    /// assert_eq!(e.len(), 3);
+    /// ```
+    pub fn local_efficiency(&self) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::efficiency::local_efficiency(self)
+    }
+
+    /// Degree assortativity coefficient.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,3), (3,4)], false, None,
+    /// ).unwrap();
+    /// let r = g.assortativity_degree().unwrap();
+    /// assert!(r.is_some());
+    /// ```
+    pub fn assortativity_degree(&self) -> IgraphResult<Option<f64>> {
+        crate::algorithms::properties::assortativity::assortativity_degree(self)
+    }
+
+    /// Diversity (entropy) of vertex edge weights.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,2)], false, None).unwrap();
+    /// let w = vec![1.0, 2.0, 3.0];
+    /// let d = g.diversity(&w).unwrap();
+    /// assert_eq!(d.len(), 3);
+    /// ```
+    pub fn diversity(&self, weights: &[f64]) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::strength::diversity(self, weights)
+    }
 }
 
 impl std::fmt::Display for Graph {
