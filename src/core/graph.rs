@@ -1660,6 +1660,141 @@ impl Graph {
     pub fn dijkstra(&self, source: VertexId, weights: &[f64]) -> IgraphResult<Vec<Option<f64>>> {
         crate::algorithms::paths::dijkstra::dijkstra_distances(self, source, weights)
     }
+
+    /// Compute the degree sequence (degree of each vertex).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,2)], false, None).unwrap();
+    /// let seq = g.degree_sequence().unwrap();
+    /// assert_eq!(seq, vec![2, 2, 2]);
+    /// ```
+    pub fn degree_sequence(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::properties::degree::degree_sequence(
+            self,
+            crate::algorithms::properties::degree::DegreeMode::All,
+        )
+    }
+
+    /// Compute the graph diameter (longest shortest path).
+    ///
+    /// Returns `None` for graphs with zero vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// assert_eq!(g.diameter().unwrap(), Some(3));
+    /// ```
+    pub fn diameter(&self) -> IgraphResult<Option<u32>> {
+        crate::algorithms::paths::radii::diameter(self)
+    }
+
+    /// Compute the global transitivity (clustering coefficient).
+    ///
+    /// Returns `None` if there are no connected triples.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let t = g.transitivity().unwrap().unwrap();
+    /// assert!((t - 1.0).abs() < 1e-10); // triangle is fully transitive
+    /// ```
+    pub fn transitivity(&self) -> IgraphResult<Option<f64>> {
+        crate::algorithms::properties::triangles::transitivity_undirected(self)
+    }
+
+    /// Compute the clique number (size of the largest clique).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0), (2,3)], false, None).unwrap();
+    /// assert_eq!(g.clique_number().unwrap(), 3);
+    /// ```
+    pub fn clique_number(&self) -> IgraphResult<u32> {
+        crate::algorithms::cliques::clique_number(self)
+    }
+
+    /// Find all articulation points (cut vertices).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3), (1,3)], false, None).unwrap();
+    /// let ap = g.articulation_points().unwrap();
+    /// assert_eq!(ap, vec![1]); // vertex 1 is the only cut vertex
+    /// ```
+    pub fn articulation_points(&self) -> IgraphResult<Vec<VertexId>> {
+        crate::algorithms::connectivity::articulation::articulation_points(self)
+    }
+
+    /// Topological sort (DAG only, returns error for cyclic graphs).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], true, None).unwrap();
+    /// let order = g.topological_sort().unwrap();
+    /// assert_eq!(order[0], 0); // source comes first
+    /// ```
+    pub fn topological_sort(&self) -> IgraphResult<Vec<VertexId>> {
+        crate::algorithms::properties::topological_sorting::topological_sorting(
+            self,
+            crate::algorithms::paths::dijkstra::DijkstraMode::Out,
+        )
+    }
+
+    /// Compute a minimum spanning tree (unweighted).
+    ///
+    /// Returns the edge ids forming the MST.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0), (2,3)], false, None).unwrap();
+    /// let mst_edges = g.minimum_spanning_tree().unwrap();
+    /// assert_eq!(mst_edges.len(), 3); // n-1 edges for connected graph
+    /// ```
+    pub fn minimum_spanning_tree(&self) -> IgraphResult<Vec<EdgeId>> {
+        crate::algorithms::spanning::mst::minimum_spanning_tree(
+            self,
+            None,
+            crate::algorithms::spanning::mst::MstAlgorithm::Automatic,
+        )
+    }
+
+    /// Compute a quick structural summary of the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let s = g.summary().unwrap();
+    /// assert_eq!(s.vcount, 3);
+    /// assert!(s.connected);
+    /// ```
+    pub fn summary(&self) -> IgraphResult<crate::algorithms::properties::summary::GraphSummary> {
+        crate::algorithms::properties::summary::graph_summary(self)
+    }
 }
 
 impl std::fmt::Display for Graph {
