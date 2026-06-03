@@ -3337,6 +3337,376 @@ impl Graph {
     pub fn cocitation(&self) -> IgraphResult<Vec<u32>> {
         crate::algorithms::properties::similarity::cocitation(self)
     }
+
+    // ── Graph structure recognizers ─────────────────────────────────
+
+    /// Check whether the graph is a cograph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,2)], false, None).unwrap();
+    /// assert!(g.is_cograph().unwrap());
+    /// ```
+    pub fn is_cograph(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_cograph::is_cograph(self)
+    }
+
+    /// Check whether the graph is series-parallel.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// assert!(g.is_series_parallel().unwrap());
+    /// ```
+    pub fn is_series_parallel(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_series_parallel::is_series_parallel(self)
+    }
+
+    /// Check whether the graph is outerplanar.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// assert!(g.is_outerplanar().unwrap());
+    /// ```
+    pub fn is_outerplanar(&self) -> IgraphResult<bool> {
+        crate::algorithms::properties::is_outerplanar::is_outerplanar(self)
+    }
+
+    /// Check whether the graph is chordal.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (0,3), (1,3), (2,3)], false, None
+    /// ).unwrap();
+    /// assert!(g.is_chordal().unwrap());
+    /// ```
+    pub fn is_chordal(&self) -> IgraphResult<bool> {
+        let result = crate::algorithms::chordality::is_chordal(self, None)?;
+        Ok(result.chordal)
+    }
+
+    /// Check whether the graph is a forest (acyclic).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// assert!(g.is_forest().unwrap());
+    /// ```
+    pub fn is_forest(&self) -> IgraphResult<bool> {
+        Ok(crate::algorithms::properties::is_forest::is_forest(
+            self,
+            crate::algorithms::paths::dijkstra::DijkstraMode::Out,
+        )?
+        .is_some())
+    }
+
+    // ── Cycles and motifs ───────────────────────────────────────────
+
+    /// Compute a fundamental cycle basis of the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0)], false, None
+    /// ).unwrap();
+    /// let cycles = g.fundamental_cycles().unwrap();
+    /// assert_eq!(cycles.len(), 1);
+    /// ```
+    pub fn fundamental_cycles(&self) -> IgraphResult<Vec<Vec<u32>>> {
+        crate::algorithms::fundamental_cycles::fundamental_cycles(self, None, None)
+    }
+
+    /// Compute a minimum weight cycle basis.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (1,3), (3,0)], false, None
+    /// ).unwrap();
+    /// let basis = g.minimum_cycle_basis().unwrap();
+    /// assert_eq!(basis.len(), 2);
+    /// ```
+    pub fn minimum_cycle_basis(&self) -> IgraphResult<Vec<Vec<u32>>> {
+        crate::algorithms::minimum_cycle_basis::minimum_cycle_basis(self, None, false)
+    }
+
+    // ── Cuts, covers, and sets ──────────────────────────────────────
+
+    /// Find a minimum feedback arc set.
+    ///
+    /// Returns edges whose removal makes the graph acyclic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], true, None).unwrap();
+    /// let fas = g.feedback_arc_set().unwrap();
+    /// assert!(!fas.is_empty());
+    /// ```
+    pub fn feedback_arc_set(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::feedback_arc_set::feedback_arc_set(
+            self,
+            None,
+            crate::algorithms::feedback_arc_set::FasAlgorithm::EadesLinSmyth,
+        )
+    }
+
+    /// Find the maximum cut of the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,3)], false, None
+    /// ).unwrap();
+    /// let result = g.maximum_cut().unwrap();
+    /// assert!(result.cut_value > 0);
+    /// ```
+    pub fn maximum_cut(&self) -> IgraphResult<crate::algorithms::max_cut::MaxCutResult> {
+        crate::algorithms::max_cut::maximum_cut(self)
+    }
+
+    /// Find a minimum vertex cover.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let cover = g.minimum_vertex_cover().unwrap();
+    /// assert!(cover.contains(&1));
+    /// ```
+    pub fn minimum_vertex_cover(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::vertex_cover::minimum_vertex_cover(self)
+    }
+
+    /// Find a minimum edge cover.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let cover = g.minimum_edge_cover().unwrap();
+    /// assert!(!cover.is_empty());
+    /// ```
+    pub fn minimum_edge_cover(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::edge_cover::minimum_edge_cover(self)
+    }
+
+    /// Find a maximum independent set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let mis = g.maximum_independent_set().unwrap();
+    /// assert_eq!(mis.len(), 2);
+    /// ```
+    pub fn maximum_independent_set(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::independent_set::maximum_independent_set(self)
+    }
+
+    // ── Coloring ────────────────────────────────────────────────────
+
+    /// Greedy vertex coloring.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0)], false, None
+    /// ).unwrap();
+    /// let colors = g.vertex_coloring().unwrap();
+    /// assert_eq!(colors.len(), 3);
+    /// // Adjacent vertices must have different colors
+    /// assert_ne!(colors[0], colors[1]);
+    /// ```
+    pub fn vertex_coloring(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::coloring::vertex_coloring_greedy(
+            self,
+            crate::algorithms::coloring::GreedyColoringHeuristic::ColoredNeighbors,
+        )
+    }
+
+    // ── Spanning trees ──────────────────────────────────────────────
+
+    /// Sample a random spanning tree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (1,3)], false, None
+    /// ).unwrap();
+    /// let edges = g.random_spanning_tree(42).unwrap();
+    /// assert_eq!(edges.len(), 3);
+    /// ```
+    pub fn random_spanning_tree(&self, seed: u64) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::spanning::random_spanning_tree::random_spanning_tree(self, None, seed)
+    }
+
+    // ── Community detection (extended) ──────────────────────────────
+
+    /// Edge betweenness community detection.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (3,4), (4,5), (5,3), (2,3)],
+    ///     false, None
+    /// ).unwrap();
+    /// let result = g.edge_betweenness_community().unwrap();
+    /// assert!(!result.membership.is_empty());
+    /// ```
+    pub fn edge_betweenness_community(
+        &self,
+    ) -> IgraphResult<crate::algorithms::community::edge_betweenness_community::EdgeBetweennessResult>
+    {
+        crate::algorithms::community::edge_betweenness_community::edge_betweenness_community(self)
+    }
+
+    // ── Isomorphism (canonical / BLISS) ─────────────────────────────
+
+    /// Compute a canonical vertex permutation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let perm = g.canonical_permutation().unwrap();
+    /// assert_eq!(perm.len(), 3);
+    /// ```
+    pub fn canonical_permutation(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::isomorphism::canonical::canonical_permutation::canonical_permutation(
+            self, None,
+        )
+    }
+
+    /// Count automorphisms of the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // K3 has 3! = 6 automorphisms
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0)], false, None
+    /// ).unwrap();
+    /// let count = g.count_automorphisms().unwrap();
+    /// assert!((count - 6.0).abs() < 1e-10);
+    /// ```
+    pub fn count_automorphisms(&self) -> IgraphResult<f64> {
+        crate::algorithms::isomorphism::canonical::count_automorphisms::count_automorphisms(
+            self, None,
+        )
+    }
+
+    /// Compute a generating set for the automorphism group.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let gens = g.automorphism_group().unwrap();
+    /// assert!(!gens.is_empty());
+    /// ```
+    pub fn automorphism_group(&self) -> IgraphResult<Vec<Vec<u32>>> {
+        crate::algorithms::isomorphism::canonical::automorphism_group::automorphism_group(
+            self, None,
+        )
+    }
+
+    // ── Epidemics ───────────────────────────────────────────────────
+
+    /// Run a single SIR (Susceptible-Infected-Recovered) simulation.
+    ///
+    /// `beta` is the infection rate, `gamma` is the recovery rate.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,3), (3,4)], false, None
+    /// ).unwrap();
+    /// let result = g.sir(0.5, 0.1, 1, 42).unwrap();
+    /// assert!(!result.is_empty());
+    /// ```
+    pub fn sir(
+        &self,
+        beta: f64,
+        gamma: f64,
+        no_sim: usize,
+        seed: u64,
+    ) -> IgraphResult<Vec<crate::algorithms::epidemics::Sir>> {
+        crate::algorithms::epidemics::sir(self, beta, gamma, no_sim, seed)
+    }
+
+    // ── Spanner ─────────────────────────────────────────────────────
+
+    /// Compute a graph spanner with the given stretch factor.
+    ///
+    /// Returns edge indices forming the spanner subgraph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,0), (1,3)], false, None
+    /// ).unwrap();
+    /// let edges = g.spanner(3.0).unwrap();
+    /// assert!(!edges.is_empty());
+    /// ```
+    pub fn spanner(&self, stretch: f64) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::paths::spanner::spanner(self, stretch, None)
+    }
 }
 
 impl std::fmt::Display for Graph {
