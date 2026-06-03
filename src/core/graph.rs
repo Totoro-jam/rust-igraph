@@ -1538,6 +1538,81 @@ impl Graph {
         crate::algorithms::properties::betweenness::betweenness(self)
     }
 
+    /// Compute closeness centrality for all vertices.
+    ///
+    /// For each vertex, closeness is the reciprocal of the average shortest
+    /// path distance to all reachable vertices. Returns `None` for isolated
+    /// vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let cl = g.closeness().unwrap();
+    /// assert_eq!(cl.len(), 4);
+    /// // Middle vertices have higher closeness
+    /// assert!(cl[1].unwrap() > cl[0].unwrap());
+    /// ```
+    pub fn closeness(&self) -> IgraphResult<Vec<Option<f64>>> {
+        crate::algorithms::properties::closeness::closeness(self)
+    }
+
+    /// Compute eigenvector centrality for all vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let ec = g.eigenvector_centrality().unwrap();
+    /// assert_eq!(ec.len(), 3);
+    /// ```
+    pub fn eigenvector_centrality(&self) -> IgraphResult<Vec<f64>> {
+        crate::algorithms::properties::eigenvector::eigenvector_centrality(self)
+    }
+
+    /// Compute per-vertex local clustering coefficients.
+    ///
+    /// Returns the fraction of actual edges between each vertex's neighbours
+    /// out of all possible edges. Vertices with fewer than 2 neighbours
+    /// return `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // A triangle: all vertices have clustering coefficient 1.0
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0)], false, None).unwrap();
+    /// let cc = g.clustering_coefficients().unwrap();
+    /// assert!((cc[0].unwrap() - 1.0).abs() < 1e-10);
+    /// ```
+    pub fn clustering_coefficients(&self) -> IgraphResult<Vec<Option<f64>>> {
+        crate::algorithms::properties::triangles::transitivity_local_undirected(self)
+    }
+
+    /// Compute the complement graph.
+    ///
+    /// The complement has the same vertices but edges wherever the original
+    /// does not (excluding self-loops by default).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1)], false, Some(3)).unwrap();
+    /// let c = g.complement().unwrap();
+    /// // K_3 has 3 edges; original has 1; complement has 2
+    /// assert_eq!(c.ecount(), 2);
+    /// ```
+    pub fn complement(&self) -> IgraphResult<Graph> {
+        crate::algorithms::operators::complementer::complementer(self, false)
+    }
+
     /// Detect communities using the Louvain algorithm.
     ///
     /// # Examples
@@ -1554,6 +1629,64 @@ impl Graph {
     /// ```
     pub fn louvain(&self) -> IgraphResult<crate::algorithms::community::louvain::LouvainResult> {
         crate::algorithms::community::louvain::louvain(self)
+    }
+
+    /// Detect communities using the Leiden algorithm.
+    ///
+    /// Leiden improves upon Louvain by guaranteeing well-connected communities
+    /// and avoiding the "poorly connected community" pathology.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (0,2), (1,2), (3,4), (3,5), (4,5), (2,3)],
+    ///     false, None,
+    /// ).unwrap();
+    /// let result = g.leiden().unwrap();
+    /// assert!(result.quality > 0.0);
+    /// ```
+    pub fn leiden(&self) -> IgraphResult<crate::algorithms::community::leiden::LeidenResult> {
+        crate::algorithms::community::leiden::leiden(self)
+    }
+
+    /// Find all bridge edges (edges whose removal disconnects the graph).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // 0-1-2 with 1-2 as bridge vs. 0-1, 0-2, 1-2 (triangle, no bridges)
+    /// let g = Graph::from_edges(&[(0,1), (1,2)], false, None).unwrap();
+    /// let br = g.bridges().unwrap();
+    /// assert_eq!(br.len(), 2); // both edges are bridges in a path
+    /// ```
+    pub fn bridges(&self) -> IgraphResult<Vec<EdgeId>> {
+        crate::algorithms::connectivity::bridges::bridges(self)
+    }
+
+    /// Compute the k-core decomposition (coreness of each vertex).
+    ///
+    /// The coreness of a vertex is the largest `k` such that the vertex
+    /// belongs to a k-core — a maximal subgraph where every vertex has
+    /// degree at least `k`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// // Triangle (0,1,2) plus pendant vertex 3 attached to 0
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,0), (0,3)], false, None).unwrap();
+    /// let cores = g.coreness().unwrap();
+    /// assert_eq!(cores[0], 2); // part of the triangle
+    /// assert_eq!(cores[3], 1); // pendant
+    /// ```
+    pub fn coreness(&self) -> IgraphResult<Vec<u32>> {
+        crate::algorithms::properties::coreness::coreness(self)
     }
 
     /// Create the induced subgraph on the given vertex set.
