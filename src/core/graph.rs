@@ -1593,6 +1593,73 @@ impl Graph {
             IgraphError::InvalidArgument(format!("DOT output is not valid UTF-8: {e}"))
         })
     }
+
+    /// BFS traversal from a root vertex, returning visit order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,3)], false, None).unwrap();
+    /// let order = g.bfs(0).unwrap();
+    /// assert_eq!(order[0], 0);
+    /// assert_eq!(order.len(), 4);
+    /// ```
+    pub fn bfs(&self, root: VertexId) -> IgraphResult<Vec<VertexId>> {
+        crate::algorithms::traversal::bfs::bfs(self, root)
+    }
+
+    /// DFS traversal from a root vertex, returning visit order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (0,2), (1,3)], false, None).unwrap();
+    /// let order = g.dfs(0).unwrap();
+    /// assert_eq!(order[0], 0);
+    /// assert_eq!(order.len(), 4);
+    /// ```
+    pub fn dfs(&self, root: VertexId) -> IgraphResult<Vec<VertexId>> {
+        crate::algorithms::traversal::dfs::dfs(self, root)
+    }
+
+    /// Unweighted shortest paths from a source to all reachable vertices.
+    ///
+    /// Returns a vector of paths (each path is a `Vec<VertexId>`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let paths = g.shortest_paths(0).unwrap();
+    /// assert_eq!(paths[3], vec![0, 1, 2, 3]);
+    /// ```
+    pub fn shortest_paths(&self, source: VertexId) -> IgraphResult<Vec<Vec<VertexId>>> {
+        crate::algorithms::paths::shortest_paths::get_shortest_paths(self, source)
+    }
+
+    /// Weighted shortest-path distances from a source (Dijkstra).
+    ///
+    /// Returns distances to all vertices; `None` for unreachable vertices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (2,3)], false, None).unwrap();
+    /// let weights = vec![1.0, 2.0, 3.0];
+    /// let dist = g.dijkstra(0, &weights).unwrap();
+    /// assert!((dist[3].unwrap() - 6.0).abs() < 1e-10);
+    /// ```
+    pub fn dijkstra(&self, source: VertexId, weights: &[f64]) -> IgraphResult<Vec<Option<f64>>> {
+        crate::algorithms::paths::dijkstra::dijkstra_distances(self, source, weights)
+    }
 }
 
 impl std::fmt::Display for Graph {
