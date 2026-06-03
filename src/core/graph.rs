@@ -7179,7 +7179,7 @@ impl Graph {
     /// Adjacency matrix of the graph.
     ///
     /// Returns a dense `V×V` matrix. For undirected graphs with
-    /// [`AdjacencyType::Both`], the result is symmetric.
+    /// [`AdjacencyType::Both`](crate::AdjacencyType::Both), the result is symmetric.
     ///
     /// ```
     /// use rust_igraph::{Graph, AdjacencyType, LoopHandling};
