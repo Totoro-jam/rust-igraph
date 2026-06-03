@@ -56,10 +56,24 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 - `Graph::neighbors_iter()` — zero-allocation iterator over neighbors,
   with `ExactSizeIterator` impl. Ideal for hot-loop traversals.
 - `NeighborsIter` type exported from crate root and prelude.
+- `Graph::out_degree()` / `Graph::in_degree()` — O(1) per-vertex degree
+  queries by index-array subtraction.
+- `Graph::max_degree()` / `Graph::min_degree()` — O(V) graph-wide degree
+  extrema.
+- `line_graph()` — construct L(G) where each edge becomes a vertex.
+  Supports directed (head-to-tail adjacency) and undirected graphs.
+- `Graph::line_graph()` convenience method.
 - **Prelude expanded** with `erdos_renyi_gnp` and `watts_strogatz_game`.
 - Enhanced crate-level documentation with a "Complete workflow" example
   showing load → structural check → centrality → community → shortest path
   → random walk in one coherent snippet.
+
+### Performance
+- Switched BFS inner loops in `bfs`, `bfs_tree`, `bfs_simple`,
+  `connected_components`, `distances`, `distances_all`, `distances_cutoff`,
+  `distances_from`, `decompose`, `cohesive_blocks`, `separators`, and
+  `radii` (undirected branch) from the allocating `neighbors()` to
+  zero-allocation `neighbors_iter()`.
 
 ### Changed
 - CONTRIBUTING.md now welcomes external pull requests with clear guidelines.
