@@ -62,6 +62,20 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 - MASTER_PLAN.md §2.3/§2.4 updated to reflect actual single-dependency
   architecture. Feature flags simplified.
 
+## [0.0.1-alpha.5] — 2026-06-03
+
+### Added
+- `Graph::watts_strogatz(n, k, p, seed)` convenience constructor for
+  small-world graphs.
+- Convenience methods on `Graph`: `closeness()`, `eigenvector_centrality()`,
+  `clustering_coefficients()`, `complement()`, `leiden()`, `bridges()`,
+  `coreness()`.
+- `examples/community_detection_demo.rs` — Louvain vs Leiden showcase.
+- Prelude expanded with `erdos_renyi_gnp`, `watts_strogatz_game`.
+
+### Fixed
+- Removed stale `faer`/`bliss` comment from CI WASM job.
+
 ## [0.0.1-alpha.4] — 2026-06-03
 
 ### Added
