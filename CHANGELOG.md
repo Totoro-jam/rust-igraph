@@ -63,17 +63,28 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 - `line_graph()` — construct L(G) where each edge becomes a vertex.
   Supports directed (head-to-tail adjacency) and undirected graphs.
 - `Graph::line_graph()` convenience method.
+- `Graph::to_directed()` / `Graph::to_undirected()` — direction-conversion
+  convenience methods.
+- **More convenience methods on `Graph`** (batch 3):
+  - Graph properties: `radius()`, `eccentricity()`, `girth()`, `is_tree()`,
+    `is_dag()`, `count_triangles()`, `harmonic_centrality()`,
+    `neighborhood_size()`
+  - Connectivity: `vertex_connectivity()`, `edge_connectivity()`,
+    `subcomponent()`
+  - Cliques: `cliques()`, `maximal_cliques()`, `independence_number()`
+  - Operators: `permute_vertices()`
 - **Prelude expanded** with `erdos_renyi_gnp` and `watts_strogatz_game`.
 - Enhanced crate-level documentation with a "Complete workflow" example
   showing load → structural check → centrality → community → shortest path
   → random walk in one coherent snippet.
 
 ### Performance
-- Switched BFS inner loops in `bfs`, `bfs_tree`, `bfs_simple`,
-  `connected_components`, `distances`, `distances_all`, `distances_cutoff`,
-  `distances_from`, `decompose`, `cohesive_blocks`, `separators`, and
-  `radii` (undirected branch) from the allocating `neighbors()` to
-  zero-allocation `neighbors_iter()`.
+- Switched hot-path inner loops across 16 algorithms from the allocating
+  `neighbors()` to zero-allocation `neighbors_iter()`:
+  `bfs`, `bfs_tree`, `bfs_simple`, `connected_components`, `distances`,
+  `distances_all`, `distances_cutoff`, `distances_from`, `decompose`,
+  `cohesive_blocks`, `separators`, `radii`, `eulerian_construct`,
+  `pagerank`, `betweenness`, `triangles`, `dfs`, `coloring`.
 
 ### Changed
 - CONTRIBUTING.md now welcomes external pull requests with clear guidelines.
