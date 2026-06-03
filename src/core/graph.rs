@@ -1860,6 +1860,41 @@ impl Graph {
             .map_err(|e| IgraphError::InvalidArgument(format!("cannot create file: {e}")))?;
         crate::algorithms::io::gml::write_gml(self, &mut file)
     }
+
+    /// Generate an Erdos-Renyi G(n, p) random graph.
+    ///
+    /// Each possible edge exists independently with probability `p`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::erdos_renyi(100, 0.05, 42).unwrap();
+    /// assert_eq!(g.vcount(), 100);
+    /// assert!(!g.is_directed());
+    /// ```
+    pub fn erdos_renyi(n: u32, p: f64, seed: u64) -> IgraphResult<Self> {
+        crate::algorithms::games::erdos_renyi::erdos_renyi_gnp(n, p, false, false, seed)
+    }
+
+    /// Generate a Barabasi-Albert preferential attachment graph.
+    ///
+    /// Starts with one vertex and adds `n - 1` vertices, each connecting
+    /// to `m` existing vertices chosen with probability proportional to degree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::barabasi_albert(100, 2, 42).unwrap();
+    /// assert_eq!(g.vcount(), 100);
+    /// assert!(!g.is_directed());
+    /// ```
+    pub fn barabasi_albert(n: u32, m: u32, seed: u64) -> IgraphResult<Self> {
+        crate::algorithms::games::barabasi::barabasi_game_bag(n, m, true, false, seed)
+    }
 }
 
 impl std::fmt::Display for Graph {
