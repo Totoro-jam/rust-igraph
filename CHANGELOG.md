@@ -113,6 +113,27 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 - Doctests for `famous_names()` and `cache_get`/`cache_set`/`cache_invalidate`/
   `cache_invalidate_all` methods.
 - API count updated from 419+ to 850+ across documentation.
+- **16 graph operator convenience methods** on `Graph`: `union()`,
+  `intersection()`, `difference()`, `disjoint_union()`, `join()`,
+  `compose()`, `cartesian_product()`, `tensor_product()`,
+  `strong_product()`, `lexicographic_product()`,
+  `connect_neighborhood()`, `rewire()`, `rewire_edges()`,
+  `subgraph_from_edges()`, `even_tarjan_reduction()`,
+  `bipartite_projection()`.
+- **13 path/matching/community convenience methods** on `Graph`:
+  `bellman_ford_distances()`, `floyd_warshall_distances()`,
+  `k_shortest_paths()`, `all_simple_paths()`,
+  `maximum_bipartite_matching()`, `vertex_coloring_greedy()`,
+  `simple_cycles()`, `leading_eigenvector()`, `fluid_communities()`,
+  `motifs_randesu()`, `personalized_pagerank()`.
+- **8 isomorphism/analysis convenience methods** on `Graph`:
+  `isomorphic_vf2()`, `isomorphic()`, `count_isomorphisms_vf2()`,
+  `independent_vertex_sets()`, `global_efficiency()`,
+  `local_efficiency()`, `assortativity_degree()`, `diversity()`.
+- `examples/method_api_demo.rs` — showcases the method-style API across
+  8 categories: construction, structural queries, centrality, community
+  detection, shortest paths, generators, isomorphism, graph operations.
+- Total public methods on `Graph`: 276 (up from 170).
 
 - **I/O completeness** — all major graph formats now support both reading
   and writing:
