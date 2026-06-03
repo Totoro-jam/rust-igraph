@@ -2183,6 +2183,53 @@ impl Graph {
         crate::algorithms::cliques::maximal_cliques_count(self)
     }
 
+    /// Histogram of clique sizes in the graph.
+    ///
+    /// Returns a vector where entry `i` is the number of cliques of size `i`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// let hist = g.clique_size_hist().unwrap();
+    /// assert!(hist.len() >= 3);
+    /// ```
+    pub fn clique_size_hist(&self) -> IgraphResult<Vec<u64>> {
+        crate::algorithms::cliques::clique_size_hist(self)
+    }
+
+    /// Average local efficiency of the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,2), (0,2)], false, None).unwrap();
+    /// let eff = g.average_local_efficiency().unwrap();
+    /// assert!(eff > 0.0);
+    /// ```
+    pub fn average_local_efficiency(&self) -> IgraphResult<f64> {
+        crate::algorithms::properties::efficiency::average_local_efficiency(self)
+    }
+
+    /// Count mutual (reciprocal) edges in a directed graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1), (1,0), (1,2)], true, None).unwrap();
+    /// let m = g.count_mutual().unwrap();
+    /// assert_eq!(m, 1);
+    /// ```
+    pub fn count_mutual(&self) -> IgraphResult<usize> {
+        crate::algorithms::properties::mutual::count_mutual(self, true)
+    }
+
     /// Find all maximal independent vertex sets.
     ///
     /// # Examples
