@@ -68,8 +68,10 @@
 //!
 //! let er = Graph::erdos_renyi(1000, 0.01, 42).unwrap();
 //! let ba = Graph::barabasi_albert(1000, 3, 42).unwrap();
+//! let ws = Graph::watts_strogatz(1000, 6, 0.1, 42).unwrap();
 //! assert_eq!(er.vcount(), 1000);
 //! assert_eq!(ba.vcount(), 1000);
+//! assert_eq!(ws.vcount(), 1000);
 //! ```
 //!
 //! ## Import style

@@ -289,6 +289,10 @@ path = "examples/quickstart.rs"
 name = "summary_demo"
 path = "examples/summary_demo.rs"
 
+[[example]]
+name = "community_detection_demo"
+path = "examples/community_detection_demo.rs"
+
 [[bench]]
 name = "bench_bfs"
 path = "benches/bench_bfs.rs"
