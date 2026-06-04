@@ -25,11 +25,11 @@ jobs:
         with:
           node-version: 22
 
-      # Verify WASM crate compiles
-      - name: Check WASM crate
-        run: |
-          rustup target add wasm32-unknown-unknown
-          cargo check --target wasm32-unknown-unknown -p igraph-wasm
+      # Build WASM module for playground
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Build WASM
+        run: wasm-pack build crates/igraph-wasm --target web --out-dir ../../website/playground/wasm --out-name igraph_wasm
 
       # Build rustdoc
       - name: Build rustdoc
@@ -53,7 +53,7 @@ jobs:
       # Assemble site: website at /, rustdoc at /rust_igraph/, book at /book/
       # Order: rustdoc first (includes static.files/, src/, search.index/,
       # trait.impl/, type.impl/ that rustdoc HTML refs via ../), then website
-      # overlay (higher priority), then mdBook.
+      # overlay (higher priority), then mdBook, then WASM for playground.
       - name: Assemble site
         run: |
           mkdir -p _site
@@ -61,6 +61,8 @@ jobs:
           cp -r website/dist/* _site/
           mkdir -p _site/book
           cp -r book/book/* _site/book/
+          mkdir -p _site/playground/wasm
+          cp website/playground/wasm/*.js website/playground/wasm/*.wasm _site/playground/wasm/
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
