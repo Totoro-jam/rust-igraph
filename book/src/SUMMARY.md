@@ -6,6 +6,7 @@
 
 - [Quick start](./getting-started.md)
 - [Tutorial](./tutorial.md)
+- [Using WASM in the browser](./wasm.md)
 - [Cookbook](./cookbook.md)
 - [Project layout](./project-layout.md)
 
