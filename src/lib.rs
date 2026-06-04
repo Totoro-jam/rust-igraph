@@ -180,6 +180,9 @@ pub use crate::algorithms::community::fluid_communities::{
     FLUID_DEFAULT_MAX_ITERATIONS, FluidOptions, FluidResult, fluid_communities,
     fluid_communities_with_options,
 };
+pub use crate::algorithms::community::infomap::{
+    InfomapResult, infomap, infomap_weighted, infomap_with_options,
+};
 pub use crate::algorithms::community::label_propagation::{
     LpaOptions, LpaResult, LpaVariant, label_propagation, label_propagation_weighted,
     label_propagation_with_options,
