@@ -30,7 +30,7 @@ export function AlgoPanel({
   t,
 }: AlgoPanelProps) {
   return (
-    <div className="panel panel-center">
+    <>
       <div className="panel-header">
         <h2>{t('algorithm')}</h2>
       </div>
@@ -84,6 +84,6 @@ export function AlgoPanel({
       <button className="btn-run" onClick={onRun} disabled={running}>
         {running ? t('status.running') : `▶ ${t('run')}`}
       </button>
-    </div>
+    </>
   );
 }

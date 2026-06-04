@@ -89,11 +89,11 @@ export function CodeEditor({ algo, edges, directed, theme, t }: CodeEditorProps)
   }, [code, theme]);
 
   return (
-    <div className="code-panel">
+    <>
       <div className="code-panel-header">
         <h3>{t('code')}</h3>
       </div>
       <div className="code-editor" ref={editorRef} />
-    </div>
+    </>
   );
 }

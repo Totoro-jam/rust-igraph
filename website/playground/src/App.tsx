@@ -4,9 +4,11 @@ import { GraphEditor } from './components/GraphEditor';
 import { AlgoPanel } from './components/AlgoPanel';
 import { Canvas } from './components/Canvas';
 import { CodeEditor } from './components/CodeEditor';
+import { Resizer } from './components/Resizer';
 import { useTheme } from './hooks/useTheme';
 import { useI18n } from './hooks/useI18n';
 import { useWasm } from './hooks/useWasm';
+import { useResizablePanels } from './hooks/useResizablePanels';
 import { PRESETS } from './presets';
 import type { AlgoId, AlgoParams, AlgoResult, Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder } from './types';
 import './App.css';
@@ -87,6 +89,7 @@ export function App() {
   const { theme, toggleTheme } = useTheme();
   const { lang, toggleLang, t } = useI18n();
   const { status, wasmAvailable, run } = useWasm();
+  const { sizes, resizeLeft, resizeCenter, resizeCode, persistSizes } = useResizablePanels();
 
   const [presetId, setPresetId] = useState('karate');
   const [edgeText, setEdgeText] = useState(edgesFromPreset('karate'));
@@ -137,7 +140,6 @@ export function App() {
     return () => window.removeEventListener('keydown', handler);
   }, [handleRun]);
 
-  // Auto-run on first load
   useEffect(() => {
     if (status === 'ready') {
       handleRun();
@@ -161,64 +163,78 @@ export function App() {
         t={t}
       />
 
-      <main className="playground">
-        <GraphEditor
-          edgeText={edgeText}
-          directed={directed}
-          presetId={presetId}
-          onEdgeTextChange={setEdgeText}
-          onDirectedChange={setDirected}
-          onPresetChange={handlePresetChange}
-          t={t}
-        />
-
-        <AlgoPanel
-          algo={algo}
-          params={params}
-          running={status === 'running'}
-          onAlgoChange={setAlgo}
-          onParamsChange={setParams}
-          onRun={handleRun}
-          t={t}
-        />
-
-        <div className="panel panel-right">
-          <div className="panel-header">
-            <h2>{t('results')}</h2>
-            <div className="stats">
-              {vcount > 0 && (
-                <>
-                  <span>{t('nodes')}: {vcount}</span>
-                  <span>{t('edges')}: {edges.length}</span>
-                  {elapsed != null && <span>{t('time')}: {elapsed.toFixed(1)}ms</span>}
-                </>
-              )}
-              <span className={`status ${status}`}>{statusText}</span>
-            </div>
+      <div className="workspace">
+        <div className="workspace-top">
+          <div className="panel panel-left" style={{ width: sizes.leftWidth }}>
+            <GraphEditor
+              edgeText={edgeText}
+              directed={directed}
+              presetId={presetId}
+              onEdgeTextChange={setEdgeText}
+              onDirectedChange={setDirected}
+              onPresetChange={handlePresetChange}
+              t={t}
+            />
           </div>
 
-          <Canvas
-            coords={coords}
-            edges={edges}
-            vcount={vcount}
-            result={result}
+          <Resizer direction="horizontal" onResize={resizeLeft} onResizeEnd={persistSizes} />
+
+          <div className="panel panel-center" style={{ width: sizes.centerWidth }}>
+            <AlgoPanel
+              algo={algo}
+              params={params}
+              running={status === 'running'}
+              onAlgoChange={setAlgo}
+              onParamsChange={setParams}
+              onRun={handleRun}
+              t={t}
+            />
+          </div>
+
+          <Resizer direction="horizontal" onResize={resizeCenter} onResizeEnd={persistSizes} />
+
+          <div className="panel panel-right">
+            <div className="panel-header">
+              <h2>{t('results')}</h2>
+              <div className="stats">
+                {vcount > 0 && (
+                  <>
+                    <span>{t('nodes')}: {vcount}</span>
+                    <span>{t('edges')}: {edges.length}</span>
+                    {elapsed != null && <span>{t('time')}: {elapsed.toFixed(1)}ms</span>}
+                  </>
+                )}
+                <span className={`status ${status}`}>{statusText}</span>
+              </div>
+            </div>
+
+            <Canvas
+              coords={coords}
+              edges={edges}
+              vcount={vcount}
+              result={result}
+              algo={algo}
+              directed={directed}
+              theme={theme}
+              t={t}
+            />
+
+            <pre className="output">{output}</pre>
+          </div>
+        </div>
+
+        <Resizer direction="vertical" onResize={resizeCode} onResizeEnd={persistSizes} />
+
+        <div className="code-section" style={{ height: sizes.codeHeight }}>
+          <CodeEditor
             algo={algo}
+            edges={edges}
             directed={directed}
             theme={theme}
             t={t}
           />
-
-          <pre className="output">{output}</pre>
         </div>
-      </main>
-
-      <CodeEditor
-        algo={algo}
-        edges={edges}
-        directed={directed}
-        theme={theme}
-        t={t}
-      />
+      </div>
     </div>
   );
 }

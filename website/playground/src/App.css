@@ -3,6 +3,7 @@
   --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   --radius: 8px;
   --transition: 0.2s ease;
+  --nav-height: 48px;
 }
 
 [data-theme="dark"] {
@@ -19,6 +20,11 @@
   --accent-bg: rgba(88, 166, 255, 0.1);
   --border: #30363d;
   --canvas-bg: #0d1117;
+  --resizer-bg: transparent;
+  --resizer-hover: rgba(88, 166, 255, 0.4);
+  --resizer-active: rgba(88, 166, 255, 0.6);
+  --toolbar-bg: rgba(22, 27, 34, 0.9);
+  --tooltip-bg: rgba(22, 27, 34, 0.95);
 }
 
 [data-theme="light"] {
@@ -35,6 +41,11 @@
   --accent-bg: rgba(9, 105, 218, 0.08);
   --border: #d0d7de;
   --canvas-bg: #ffffff;
+  --resizer-bg: transparent;
+  --resizer-hover: rgba(9, 105, 218, 0.3);
+  --resizer-active: rgba(9, 105, 218, 0.5);
+  --toolbar-bg: rgba(246, 248, 250, 0.9);
+  --tooltip-bg: rgba(36, 41, 47, 0.92);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -61,12 +72,14 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   background: var(--bg-nav);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
+  height: var(--nav-height);
 }
 
 .nav-inner {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0.75rem 1.5rem;
+  padding: 0 1.5rem;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -110,18 +123,69 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   color: var(--text);
 }
 
-/* ═══════ App Layout ═══════ */
+/* ═══════ Workspace Layout ═══════ */
 .app {
   height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-.playground {
-  display: flex;
+.workspace {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  padding-top: 52px;
+  margin-top: var(--nav-height);
+}
+
+.workspace-top {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ═══════ Resizer ═══════ */
+.resizer {
+  flex-shrink: 0;
+  background: var(--resizer-bg);
+  position: relative;
+  z-index: 10;
+  transition: background 0.15s;
+}
+
+.resizer-horizontal {
+  width: 4px;
+  cursor: col-resize;
+  border-left: 1px solid var(--border);
+}
+
+.resizer-vertical {
+  height: 4px;
+  cursor: row-resize;
+  border-top: 1px solid var(--border);
+}
+
+.resizer::after {
+  content: '';
+  position: absolute;
+}
+
+.resizer-horizontal::after {
+  top: 0; bottom: 0;
+  left: -3px; right: -3px;
+}
+
+.resizer-vertical::after {
+  left: 0; right: 0;
+  top: -3px; bottom: -3px;
+}
+
+.resizer:hover,
+.resizer:active {
+  background: var(--resizer-hover);
+}
+.resizer:active {
+  background: var(--resizer-active);
 }
 
 /* ═══════ Panels ═══════ */
@@ -129,19 +193,14 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .panel-left {
-  width: 280px;
-  min-width: 240px;
-  border-right: 1px solid var(--border);
   background: var(--bg-card);
 }
 
 .panel-center {
-  width: 240px;
-  min-width: 200px;
-  border-right: 1px solid var(--border);
   background: var(--bg-card);
   display: flex;
   flex-direction: column;
@@ -149,6 +208,7 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
 
 .panel-right {
   flex: 1;
+  min-width: 200px;
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -342,16 +402,87 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   50% { opacity: 1; }
 }
 
+/* ═══════ Canvas ═══════ */
 .canvas-container {
   flex: 1;
   min-height: 0;
   position: relative;
   background: var(--canvas-bg);
+  overflow: hidden;
 }
 .canvas-container canvas {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* Canvas Toolbar */
+.canvas-toolbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 5;
+  background: var(--toolbar-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px;
+  backdrop-filter: blur(8px);
+}
+
+.canvas-toolbar button {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  transition: background 0.15s, color 0.15s;
+  line-height: 1;
+}
+
+.canvas-toolbar button:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.canvas-toolbar button:active {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.toolbar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2px 4px;
+}
+
+/* Canvas Tooltip */
+.canvas-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  background: var(--tooltip-bg);
+  color: #e6edf3;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: translate(-50%, -100%);
+  margin-top: -12px;
 }
 
 .output {
@@ -369,19 +500,19 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   word-break: break-all;
 }
 
-/* ═══════ Code Panel (Bottom) ═══════ */
-.code-panel {
+/* ═══════ Code Section (Bottom) ═══════ */
+.code-section {
   flex-shrink: 0;
-  border-top: 1px solid var(--border);
-  max-height: 200px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .code-panel-header {
   padding: 0.35rem 0.75rem;
   background: var(--bg-card);
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .code-panel-header h3 {
@@ -403,23 +534,19 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
 
 /* ═══════ Responsive ═══════ */
 @media (max-width: 900px) {
-  .playground {
+  .workspace-top {
     flex-direction: column;
   }
 
   .panel-left {
-    width: 100%;
-    min-width: unset;
+    width: 100% !important;
     max-height: 25vh;
-    border-right: none;
     border-bottom: 1px solid var(--border);
   }
 
   .panel-center {
-    width: 100%;
-    min-width: unset;
+    width: 100% !important;
     max-height: 20vh;
-    border-right: none;
     border-bottom: 1px solid var(--border);
     flex-direction: row;
     flex-wrap: wrap;
@@ -446,8 +573,12 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
     min-height: 0;
   }
 
-  .code-panel {
-    max-height: 150px;
+  .resizer-horizontal {
+    display: none;
+  }
+
+  .code-section {
+    height: 120px !important;
   }
 }
 

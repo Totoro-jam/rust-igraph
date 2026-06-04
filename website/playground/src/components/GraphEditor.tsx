@@ -20,7 +20,7 @@ export function GraphEditor({
   t,
 }: GraphEditorProps) {
   return (
-    <div className="panel panel-left">
+    <>
       <div className="panel-header">
         <h2>{t('graphEditor')}</h2>
         <label className="directed-label">
@@ -41,6 +41,6 @@ export function GraphEditor({
         placeholder={t('edgePlaceholder')}
       />
       <div className="editor-hint">{t('ctrlEnter')}</div>
-    </div>
+    </>
   );
 }
