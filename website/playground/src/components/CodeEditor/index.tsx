@@ -113,6 +113,16 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, random_walk};\n\n${graphLine}\n\nlet (vertices, _edges) = random_walk(&g, None, 0, DijkstraMode::Out, 20, 42).unwrap();\nprintln!("Walk: {:?}", vertices);`;
     case 'isomorphism':
       return `use rust_igraph::{Graph, isomorphic_bliss};\n\nlet g1 = Graph::from_edges(\n    &[(0,1),(1,2),(2,3),(3,0)],\n    false, None\n).unwrap();\nlet g2 = Graph::from_edges(\n    &[(2,0),(0,3),(3,1),(1,2)],\n    false, None\n).unwrap();\n\nlet result = isomorphic_bliss(&g1, &g2, None, None).unwrap();\nprintln!("Isomorphic: {}", result.iso);\nprintln!("Mapping: {:?}", result.map12);`;
+    case 'fundamental_cycles':
+      return `use rust_igraph::{Graph, fundamental_cycles};\n\n${graphLine}\n\nlet cycles = fundamental_cycles(&g, None, None).unwrap();\nprintln!("Found {} fundamental cycles", cycles.len());\nfor (i, cycle) in cycles.iter().enumerate() {\n    println!("Cycle {}: {:?}", i, cycle);\n}`;
+    case 'list_triangles':
+      return `use rust_igraph::{Graph, list_triangles};\n\n${graphLine}\n\nlet tris = list_triangles(&g).unwrap();\nprintln!("Found {} triangles", tris.len());\nfor (a, b, c) in &tris {\n    println!("Triangle: {} - {} - {}", a, b, c);\n}`;
+    case 'girth':
+      return `use rust_igraph::{Graph, girth};\n\n${graphLine}\n\nlet g_val = girth(&g).unwrap();\nprintln!("Girth: {:?}", g_val);`;
+    case 'trussness':
+      return `use rust_igraph::{Graph, trussness};\n\n${graphLine}\n\nlet t = trussness(&g).unwrap();\nprintln!("Edge trussness: {:?}", t);`;
+    case 'automorphism_group':
+      return `use rust_igraph::{Graph, automorphism_group};\n\n${graphLine}\n\nlet gens = automorphism_group(&g, None).unwrap();\nprintln!("{} generators found", gens.len());\nfor gen in &gens {\n    println!("{:?}", gen);\n}`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }

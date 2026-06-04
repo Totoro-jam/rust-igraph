@@ -46,8 +46,13 @@ export type AlgoId =
   | 'eccentricity'
   | 'constraint'
   | 'diameter'
+  | 'girth'
   | 'shortest_path'
-  | 'random_walk';
+  | 'random_walk'
+  | 'fundamental_cycles'
+  | 'list_triangles'
+  | 'trussness'
+  | 'automorphism_group';
 
 export type LayoutId = 'fr' | 'kamada_kawai' | 'circle' | 'random' | 'grid' | 'star';
 
@@ -172,6 +177,25 @@ export interface AlgoResultDiameter {
   diameter: number | null;
 }
 
+export interface AlgoResultCycles {
+  cycles: number[][];
+  count: number;
+}
+
+export interface AlgoResultTriangles {
+  triangles: [number, number, number][];
+  count: number;
+}
+
+export interface AlgoResultTrussness {
+  trussness: number[];
+}
+
+export interface AlgoResultAutomorphismGroup {
+  generators: number[][];
+  count: number;
+}
+
 export type AlgoResult =
   | AlgoResultScores
   | AlgoResultMembership
@@ -194,7 +218,11 @@ export type AlgoResult =
   | AlgoResultValues
   | AlgoResultPath
   | AlgoResultWalk
-  | AlgoResultDiameter;
+  | AlgoResultDiameter
+  | AlgoResultCycles
+  | AlgoResultTriangles
+  | AlgoResultTrussness
+  | AlgoResultAutomorphismGroup;
 
 export interface RunResult {
   algo: AlgoId;

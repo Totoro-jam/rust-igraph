@@ -708,6 +708,115 @@ export function demoEdgeBetweennessCentrality(vcount: number, edges: Edge[]): Al
   return { scores } as AlgoResult;
 }
 
+export function demoFundamentalCycles(vcount: number, edges: Edge[]): AlgoResult {
+  const adj: number[][] = Array.from({ length: vcount }, () => []);
+  for (const [u, v] of edges) { adj[u]!.push(v); adj[v]!.push(u); }
+  const visited = new Uint8Array(vcount);
+  const parent = new Int32Array(vcount).fill(-1);
+  const cycles: number[][] = [];
+  const queue: number[] = [0];
+  visited[0] = 1;
+  const edgeSet = new Set<string>();
+  while (queue.length > 0) {
+    const u = queue.shift()!;
+    for (const v of adj[u]!) {
+      const key = `${Math.min(u, v)}-${Math.max(u, v)}`;
+      if (!visited[v]) {
+        visited[v] = 1;
+        parent[v] = u;
+        queue.push(v);
+        edgeSet.add(key);
+      } else if (!edgeSet.has(key) && parent[u] !== v) {
+        const cycle: number[] = [];
+        let a = u, b = v;
+        const pathA: number[] = [];
+        const pathB: number[] = [];
+        while (a !== -1) { pathA.push(a); a = parent[a]!; }
+        while (b !== -1) { pathB.push(b); b = parent[b]!; }
+        const setA = new Set(pathA);
+        let lca = pathB.find(x => setA.has(x)) ?? 0;
+        for (const x of pathA) { cycle.push(x); if (x === lca) break; }
+        const bPart: number[] = [];
+        for (const x of pathB) { if (x === lca) break; bPart.push(x); }
+        cycle.push(...bPart.reverse());
+        cycles.push(cycle);
+        edgeSet.add(key);
+      }
+    }
+  }
+  return { cycles, count: cycles.length } as AlgoResult;
+}
+
+export function demoListTriangles(vcount: number, edges: Edge[]): AlgoResult {
+  const adj: Set<number>[] = Array.from({ length: vcount }, () => new Set());
+  for (const [u, v] of edges) { adj[u]!.add(v); adj[v]!.add(u); }
+  const triangles: [number, number, number][] = [];
+  for (const [u, v] of edges) {
+    for (const w of adj[u]!) {
+      if (w > u && w > v && adj[v]!.has(w)) {
+        const sorted = [u, v, w].sort((a, b) => a - b) as [number, number, number];
+        triangles.push(sorted);
+      }
+    }
+  }
+  const seen = new Set<string>();
+  const unique = triangles.filter(t => {
+    const k = t.join('-');
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  return { triangles: unique, count: unique.length } as AlgoResult;
+}
+
+export function demoGirth(vcount: number, edges: Edge[]): AlgoResult {
+  const adj: number[][] = Array.from({ length: vcount }, () => []);
+  for (const [u, v] of edges) { adj[u]!.push(v); adj[v]!.push(u); }
+  let girth: number | null = null;
+  for (let s = 0; s < vcount; s++) {
+    const dist = new Int32Array(vcount).fill(-1);
+    dist[s] = 0;
+    const queue: number[] = [s];
+    while (queue.length > 0) {
+      const u = queue.shift()!;
+      for (const v of adj[u]!) {
+        if (dist[v]! < 0) {
+          dist[v] = dist[u]! + 1;
+          queue.push(v);
+        } else if (dist[v]! >= dist[u]!) {
+          const len = dist[u]! + dist[v]! + 1;
+          if (girth === null || len < girth) girth = len;
+        }
+      }
+    }
+  }
+  return { diameter: girth } as AlgoResult;
+}
+
+export function demoTrussness(vcount: number, edges: Edge[]): AlgoResult {
+  const adj: Set<number>[] = Array.from({ length: vcount }, () => new Set());
+  for (const [u, v] of edges) { adj[u]!.add(v); adj[v]!.add(u); }
+  const trussness: number[] = edges.map(([u, v]) => {
+    let support = 0;
+    for (const w of adj[u]!) {
+      if (adj[v]!.has(w)) support++;
+    }
+    return support + 2;
+  });
+  return { trussness } as AlgoResult;
+}
+
+export function demoAutomorphismGroup(vcount: number, _edges: Edge[]): AlgoResult {
+  const generators: number[][] = [];
+  if (vcount >= 2) {
+    const gen = Array.from({ length: vcount }, (_, i) => i);
+    gen[0] = 1;
+    gen[1] = 0;
+    generators.push(gen);
+  }
+  return { generators, count: generators.length } as AlgoResult;
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
@@ -797,6 +906,16 @@ export function runDemoAlgo(
       return demoShortestPath(vcount, edges, params?.source, params?.target);
     case 'random_walk':
       return demoRandomWalk(vcount, edges, params?.source);
+    case 'fundamental_cycles':
+      return demoFundamentalCycles(vcount, edges);
+    case 'list_triangles':
+      return demoListTriangles(vcount, edges);
+    case 'girth':
+      return demoGirth(vcount, edges);
+    case 'trussness':
+      return demoTrussness(vcount, edges);
+    case 'automorphism_group':
+      return demoAutomorphismGroup(vcount, edges);
     default:
       return demoPagerank(vcount, edges);
   }

@@ -50,6 +50,33 @@ interface WasmGraphInstance {
   constraint(): string;
   reciprocity(): string;
   diameter(): string;
+  graphProperties(): string;
+  isTree(): string;
+  isForest(): string;
+  isDag(): string;
+  isAcyclic(): string;
+  isComplete(): string;
+  isBiconnected(): string;
+  isTournament(): string;
+  isCubic(): string;
+  isCycle(): string;
+  isPath(): string;
+  isStar(): string;
+  isWheel(): string;
+  isPerfect(): string;
+  isTriangleFree(): string;
+  isOuterplanar(): string;
+  automorphismGroup(): string;
+  girth(): string;
+  distances(source: number): string;
+  floydWarshallDistances(): string;
+  fundamentalCycles(): string;
+  minimumCycleBasis(): string;
+  trussness(): string;
+  listTriangles(): string;
+  simplify(): WasmGraphInstance;
+  lineGraph(): WasmGraphInstance;
+  complement(): WasmGraphInstance;
   randomWalk(start: number, steps: number, seed: bigint): string;
   shortestPath(source: number, target: number): string;
   layoutFr(niter: number): string;
@@ -201,6 +228,7 @@ function runWasm(
         const meanDegRes = JSON.parse(graph.meanDegree());
         const assortRes = JSON.parse(graph.assortativityDegree());
         const recipRes = JSON.parse(graph.reciprocity());
+        const props = JSON.parse(graph.graphProperties());
         resultJson = JSON.stringify({
           ...stats,
           density: densityRes.density,
@@ -209,6 +237,7 @@ function runWasm(
           mean_degree: meanDegRes.mean_degree,
           assortativity: assortRes.assortativity,
           reciprocity: recipRes.reciprocity,
+          properties: props,
         });
         break;
       }
@@ -268,6 +297,21 @@ function runWasm(
         break;
       case 'random_walk':
         resultJson = graph.randomWalk(params.source ?? 0, 20, BigInt(42));
+        break;
+      case 'fundamental_cycles':
+        resultJson = graph.fundamentalCycles();
+        break;
+      case 'list_triangles':
+        resultJson = graph.listTriangles();
+        break;
+      case 'girth':
+        resultJson = graph.girth();
+        break;
+      case 'trussness':
+        resultJson = graph.trussness();
+        break;
+      case 'automorphism_group':
+        resultJson = graph.automorphismGroup();
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);

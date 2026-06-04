@@ -30,17 +30,17 @@ const ALGO_CATEGORIES: AlgoCategory[] = [
   {
     key: 'structure',
     icon: '⊞',
-    algos: ['components', 'scc', 'articulation_points', 'bridges', 'coloring', 'triad_census'],
+    algos: ['components', 'scc', 'articulation_points', 'bridges', 'coloring', 'triad_census', 'fundamental_cycles', 'list_triangles'],
   },
   {
     key: 'metrics',
     icon: '▦',
-    algos: ['graph_stats', 'degree_sequence', 'coreness', 'eccentricity', 'constraint', 'diameter', 'transitivity'],
+    algos: ['graph_stats', 'degree_sequence', 'coreness', 'eccentricity', 'constraint', 'diameter', 'girth', 'transitivity', 'trussness'],
   },
   {
     key: 'isomorphism',
     icon: '≅',
-    algos: ['canonical_permutation', 'count_automorphisms', 'isomorphism'],
+    algos: ['canonical_permutation', 'count_automorphisms', 'automorphism_group', 'isomorphism'],
   },
 ];
 

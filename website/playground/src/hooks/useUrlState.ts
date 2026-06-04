@@ -8,7 +8,12 @@ const VALID_ALGOS = new Set<string>([
   'label_propagation', 'walktrap', 'leiden', 'fast_greedy',
   'leading_eigenvector', 'edge_betweenness', 'fluid', 'harmonic',
   'hits', 'katz', 'graph_stats', 'max_flow', 'articulation_points',
-  'degree_sequence',
+  'degree_sequence', 'scc', 'bridges', 'coloring', 'topological_sort',
+  'transitivity', 'edge_betweenness_centrality', 'triad_census',
+  'canonical_permutation', 'count_automorphisms', 'isomorphism',
+  'coreness', 'eccentricity', 'constraint', 'diameter', 'shortest_path',
+  'random_walk', 'fundamental_cycles', 'list_triangles', 'girth',
+  'trussness', 'automorphism_group',
 ]);
 
 export interface UrlState {

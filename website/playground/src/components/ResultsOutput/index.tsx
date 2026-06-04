@@ -188,6 +188,21 @@ function parseResult(
     if (stats.reciprocity != null) {
       badges.push({ label: t('result.reciprocity'), value: stats.reciprocity.toFixed(4) });
     }
+    const props = (result as unknown as Record<string, unknown>).properties as Record<string, boolean> | undefined;
+    if (props) {
+      const propLabels: Record<string, string> = {
+        is_tree: 'Tree', is_forest: 'Forest', is_dag: 'DAG', is_acyclic: 'Acyclic',
+        is_complete: 'Complete', is_biconnected: 'Biconnected', is_tournament: 'Tournament',
+        is_cubic: 'Cubic', is_cycle: 'Cycle', is_path: 'Path', is_star: 'Star',
+        is_wheel: 'Wheel', is_perfect: 'Perfect', is_triangle_free: 'Triangle-Free',
+        is_outerplanar: 'Outerplanar',
+      };
+      for (const [key, label] of Object.entries(propLabels)) {
+        if (props[key]) {
+          badges.push({ label, value: 'Yes', accent: false });
+        }
+      }
+    }
   } else if ('colors' in result) {
     const colorResult = result as { colors: number[]; chromatic: number };
     badges.push({ label: t('result.chromatic'), value: String(colorResult.chromatic), accent: true });
@@ -302,6 +317,53 @@ function parseResult(
       table.push({
         vertex: i,
         value: `v${e[0]} – v${e[1]}`,
+        numericValue: i,
+        barFraction: 1,
+      });
+    });
+  } else if ('cycles' in result) {
+    const cycResult = result as { cycles: number[][]; count: number };
+    badges.push({ label: t('result.cycleCount'), value: String(cycResult.count), accent: true });
+    cycResult.cycles.forEach((c, i) => {
+      table.push({
+        vertex: i,
+        value: c.map(v => `v${v}`).join(' → '),
+        numericValue: c.length,
+        barFraction: 1,
+      });
+    });
+  } else if ('triangles' in result && Array.isArray((result as { triangles: unknown }).triangles)) {
+    const triResult = result as { triangles: [number, number, number][]; count: number };
+    badges.push({ label: t('result.triangleCount'), value: String(triResult.count), accent: true });
+    triResult.triangles.forEach((tri, i) => {
+      table.push({
+        vertex: i,
+        value: `v${tri[0]} – v${tri[1]} – v${tri[2]}`,
+        numericValue: i,
+        barFraction: 1,
+      });
+    });
+  } else if ('trussness' in result) {
+    const tResult = result as { trussness: number[] };
+    const max = Math.max(...tResult.trussness, 1);
+    badges.push({ label: 'Max', value: String(max), accent: true });
+    columnLabel = t('result.col.trussness');
+    showBars = true;
+    tResult.trussness.forEach((t_val, i) => {
+      table.push({
+        vertex: i,
+        value: String(t_val),
+        numericValue: t_val,
+        barFraction: max > 0 ? t_val / max : 0,
+      });
+    });
+  } else if ('generators' in result) {
+    const genResult = result as { generators: number[][]; count: number };
+    badges.push({ label: t('result.generators'), value: String(genResult.count), accent: true });
+    genResult.generators.forEach((gen, i) => {
+      table.push({
+        vertex: i,
+        value: gen.map((v, j) => j !== v ? `${j}→${v}` : '').filter(Boolean).join(', '),
         numericValue: i,
         barFraction: 1,
       });

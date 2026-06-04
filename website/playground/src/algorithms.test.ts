@@ -30,6 +30,11 @@ import {
   demoDiameter,
   demoShortestPath,
   demoRandomWalk,
+  demoFundamentalCycles,
+  demoListTriangles,
+  demoGirth,
+  demoTrussness,
+  demoAutomorphismGroup,
   runDemoAlgo,
   layoutFR,
 } from './algorithms';
@@ -37,6 +42,7 @@ import type {
   Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder, AlgoResultHits,
   AlgoResultTriadCensus, AlgoResultPermutation, AlgoResultAutomorphisms, AlgoResultIsomorphism,
   AlgoResultCores, AlgoResultValues, AlgoResultPath, AlgoResultWalk, AlgoResultDiameter,
+  AlgoResultCycles, AlgoResultTriangles, AlgoResultTrussness, AlgoResultAutomorphismGroup,
 } from './types';
 
 const TRIANGLE: Edge[] = [[0, 1], [1, 2], [2, 0]];
@@ -722,6 +728,135 @@ describe('runDemoAlgo', () => {
   it('falls back to pagerank for unknown algo', () => {
     const result = runDemoAlgo('unknown', 3, TRIANGLE) as AlgoResultScores;
     expect(result.scores).toHaveLength(3);
+  });
+});
+
+const DIAMOND: Edge[] = [[0, 1], [0, 2], [1, 2], [1, 3], [2, 3]];
+
+describe('demoFundamentalCycles', () => {
+  it('finds cycles in a graph with cycles', () => {
+    const result = demoFundamentalCycles(3, TRIANGLE) as AlgoResultCycles;
+    expect(result.cycles).toBeDefined();
+    expect(result.count).toBeGreaterThanOrEqual(0);
+    expect(Array.isArray(result.cycles)).toBe(true);
+  });
+
+  it('finds no cycles in a tree (path)', () => {
+    const result = demoFundamentalCycles(4, PATH) as AlgoResultCycles;
+    expect(result.cycles).toHaveLength(0);
+    expect(result.count).toBe(0);
+  });
+
+  it('each cycle is a list of vertex indices', () => {
+    const result = demoFundamentalCycles(4, DIAMOND) as AlgoResultCycles;
+    for (const cycle of result.cycles) {
+      expect(Array.isArray(cycle)).toBe(true);
+      for (const v of cycle) {
+        expect(v).toBeGreaterThanOrEqual(0);
+        expect(v).toBeLessThan(4);
+      }
+    }
+  });
+});
+
+describe('demoListTriangles', () => {
+  it('finds one triangle in a triangle graph', () => {
+    const result = demoListTriangles(3, TRIANGLE) as AlgoResultTriangles;
+    expect(result.count).toBe(1);
+    expect(result.triangles).toHaveLength(1);
+    expect(result.triangles[0]).toHaveLength(3);
+  });
+
+  it('finds no triangles in a path', () => {
+    const result = demoListTriangles(4, PATH) as AlgoResultTriangles;
+    expect(result.count).toBe(0);
+    expect(result.triangles).toHaveLength(0);
+  });
+
+  it('each triangle has 3 distinct vertices', () => {
+    const result = demoListTriangles(4, DIAMOND) as AlgoResultTriangles;
+    for (const tri of result.triangles) {
+      expect(tri).toHaveLength(3);
+      expect(new Set(tri).size).toBe(3);
+    }
+  });
+});
+
+describe('demoGirth', () => {
+  it('returns 3 for a triangle', () => {
+    const result = demoGirth(3, TRIANGLE) as AlgoResultDiameter;
+    expect(result.diameter).toBe(3);
+  });
+
+  it('returns null for a tree (no cycles)', () => {
+    const result = demoGirth(4, PATH) as AlgoResultDiameter;
+    expect(result.diameter).toBeNull();
+  });
+
+  it('returns a positive integer for graphs with cycles', () => {
+    const result = demoGirth(4, DIAMOND) as AlgoResultDiameter;
+    expect(result.diameter).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('demoTrussness', () => {
+  it('returns trussness values for edges', () => {
+    const result = demoTrussness(3, TRIANGLE) as AlgoResultTrussness;
+    expect(result.trussness).toBeDefined();
+    expect(Array.isArray(result.trussness)).toBe(true);
+    expect(result.trussness.length).toBe(TRIANGLE.length);
+  });
+
+  it('all values are non-negative integers', () => {
+    const result = demoTrussness(4, DIAMOND) as AlgoResultTrussness;
+    for (const t of result.trussness) {
+      expect(t).toBeGreaterThanOrEqual(0);
+      expect(Number.isInteger(t)).toBe(true);
+    }
+  });
+});
+
+describe('demoAutomorphismGroup', () => {
+  it('returns generators array and count', () => {
+    const result = demoAutomorphismGroup(3, TRIANGLE) as AlgoResultAutomorphismGroup;
+    expect(result.generators).toBeDefined();
+    expect(Array.isArray(result.generators)).toBe(true);
+    expect(result.count).toBeGreaterThanOrEqual(0);
+  });
+
+  it('each generator is a valid permutation', () => {
+    const result = demoAutomorphismGroup(4, PATH) as AlgoResultAutomorphismGroup;
+    for (const gen of result.generators) {
+      expect(gen).toHaveLength(4);
+      expect(new Set(gen)).toEqual(new Set([0, 1, 2, 3]));
+    }
+  });
+});
+
+describe('runDemoAlgo — new algorithms', () => {
+  it('dispatches fundamental_cycles', () => {
+    const result = runDemoAlgo('fundamental_cycles', 3, TRIANGLE) as AlgoResultCycles;
+    expect(result.cycles).toBeDefined();
+  });
+
+  it('dispatches list_triangles', () => {
+    const result = runDemoAlgo('list_triangles', 3, TRIANGLE) as AlgoResultTriangles;
+    expect(result.count).toBe(1);
+  });
+
+  it('dispatches girth', () => {
+    const result = runDemoAlgo('girth', 3, TRIANGLE) as AlgoResultDiameter;
+    expect(result.diameter).toBe(3);
+  });
+
+  it('dispatches trussness', () => {
+    const result = runDemoAlgo('trussness', 3, TRIANGLE) as AlgoResultTrussness;
+    expect(result.trussness).toBeDefined();
+  });
+
+  it('dispatches automorphism_group', () => {
+    const result = runDemoAlgo('automorphism_group', 3, TRIANGLE) as AlgoResultAutomorphismGroup;
+    expect(result.generators).toBeDefined();
   });
 });
 
