@@ -17,9 +17,13 @@ pub enum FrGrid {
 /// Optional per-vertex bounding box constraints.
 #[derive(Debug, Clone, Default)]
 pub struct FrBounds {
+    /// Minimum x coordinate per vertex (`None` = unbounded).
     pub minx: Option<Vec<f64>>,
+    /// Maximum x coordinate per vertex (`None` = unbounded).
     pub maxx: Option<Vec<f64>>,
+    /// Minimum y coordinate per vertex (`None` = unbounded).
     pub miny: Option<Vec<f64>>,
+    /// Maximum y coordinate per vertex (`None` = unbounded).
     pub maxy: Option<Vec<f64>>,
 }
 
@@ -59,22 +63,34 @@ impl Default for FrParams {
 /// 3D bounding box constraints.
 #[derive(Debug, Clone, Default)]
 pub struct FrBounds3d {
+    /// Minimum x coordinate per vertex.
     pub minx: Option<Vec<f64>>,
+    /// Maximum x coordinate per vertex.
     pub maxx: Option<Vec<f64>>,
+    /// Minimum y coordinate per vertex.
     pub miny: Option<Vec<f64>>,
+    /// Maximum y coordinate per vertex.
     pub maxy: Option<Vec<f64>>,
+    /// Minimum z coordinate per vertex.
     pub minz: Option<Vec<f64>>,
+    /// Maximum z coordinate per vertex.
     pub maxz: Option<Vec<f64>>,
 }
 
 /// Parameters for the 3D Fruchterman-Reingold layout.
 #[derive(Debug, Clone)]
 pub struct FrParams3d {
+    /// Number of iterations (default: 500).
     pub niter: u32,
+    /// Starting temperature (default: sqrt(V)).
     pub start_temp: Option<f64>,
+    /// Edge weights (must be positive). `None` means unit weights.
     pub weights: Option<Vec<f64>>,
+    /// Per-vertex 3D coordinate bounds.
     pub bounds: FrBounds3d,
+    /// Initial layout seed. `None` means random init.
     pub seed_coords: Option<Vec<(f64, f64, f64)>>,
+    /// RNG seed for random initialization (default: 42).
     pub rng_seed: u64,
 }
 

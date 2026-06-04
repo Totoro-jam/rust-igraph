@@ -18,10 +18,15 @@ const VIEW_TO_GRID: f32 = 0.25;
 /// Predefined parameter templates for DrL.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DrlTemplate {
+    /// Standard parameters (balanced speed/quality).
     Default,
+    /// First coarsening pass.
     Coarsen,
+    /// Most aggressive coarsening.
     Coarsest,
+    /// Refinement after coarsening.
     Refine,
+    /// Final fine-tuning pass.
     Final,
 }
 
@@ -37,10 +42,15 @@ struct StageParams {
 /// Full DrL options.
 #[derive(Debug, Clone)]
 pub struct DrlOptions {
+    /// Fraction of edges to cut during the recursive-grid phase.
     pub edge_cut: f32,
+    /// Iteration count for the initial placement stage.
     pub init_iterations: u32,
+    /// Starting temperature for the initial placement stage.
     pub init_temperature: f32,
+    /// Attraction factor for the initial placement stage.
     pub init_attraction: f32,
+    /// Damping multiplier for the initial placement stage.
     pub init_damping_mult: f32,
     liquid: StageParams,
     expansion: StageParams,

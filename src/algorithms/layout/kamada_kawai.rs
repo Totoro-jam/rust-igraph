@@ -29,9 +29,13 @@ pub struct KkParams {
 /// Per-vertex coordinate bounds for the 2D KK layout.
 #[derive(Debug, Clone, Default)]
 pub struct KkBounds {
+    /// Minimum x coordinate per vertex.
     pub minx: Option<Vec<f64>>,
+    /// Maximum x coordinate per vertex.
     pub maxx: Option<Vec<f64>>,
+    /// Minimum y coordinate per vertex.
     pub miny: Option<Vec<f64>>,
+    /// Maximum y coordinate per vertex.
     pub maxy: Option<Vec<f64>>,
 }
 
@@ -53,11 +57,17 @@ pub struct KkParams3d {
 /// Per-vertex coordinate bounds for the 3D KK layout.
 #[derive(Debug, Clone, Default)]
 pub struct KkBounds3d {
+    /// Minimum x coordinate per vertex.
     pub minx: Option<Vec<f64>>,
+    /// Maximum x coordinate per vertex.
     pub maxx: Option<Vec<f64>>,
+    /// Minimum y coordinate per vertex.
     pub miny: Option<Vec<f64>>,
+    /// Maximum y coordinate per vertex.
     pub maxy: Option<Vec<f64>>,
+    /// Minimum z coordinate per vertex.
     pub minz: Option<Vec<f64>>,
+    /// Maximum z coordinate per vertex.
     pub maxz: Option<Vec<f64>>,
 }
 

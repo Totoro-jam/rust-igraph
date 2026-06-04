@@ -42,8 +42,11 @@ pub enum LoopMode {
 /// Whether centralization considers in-degree, out-degree, or total.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CentralizationMode {
+    /// In-degree centralization (directed graphs).
     In,
+    /// Out-degree centralization (directed graphs).
     Out,
+    /// Total degree centralization.
     All,
 }
 

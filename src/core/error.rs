@@ -18,11 +18,21 @@ pub enum IgraphError {
 
     /// A vertex id referred to a vertex that does not exist.
     #[error("vertex {id} out of range (graph has {n} vertices)")]
-    VertexOutOfRange { id: u32, n: u32 },
+    VertexOutOfRange {
+        /// The invalid vertex id.
+        id: u32,
+        /// Total number of vertices in the graph.
+        n: u32,
+    },
 
     /// An edge id referred to an edge that does not exist.
     #[error("edge {id} out of range (graph has {m} edges)")]
-    EdgeOutOfRange { id: u32, m: u32 },
+    EdgeOutOfRange {
+        /// The invalid edge id.
+        id: u32,
+        /// Total number of edges in the graph.
+        m: u32,
+    },
 
     /// An I/O failure while reading or writing graph data.
     #[error("I/O error: {0}")]
@@ -30,7 +40,12 @@ pub enum IgraphError {
 
     /// Parsing a graph file failed.
     #[error("parse error at line {line}: {message}")]
-    Parse { line: usize, message: String },
+    Parse {
+        /// Line number where the parse error occurred (1-based).
+        line: usize,
+        /// Description of the parse error.
+        message: String,
+    },
 
     /// Operation is not supported (e.g. unweighted-only path requested on weighted graph).
     #[error("unsupported: {0}")]
@@ -38,7 +53,12 @@ pub enum IgraphError {
 
     /// Numeric algorithm failed to converge within iteration budget.
     #[error("did not converge after {iters} iterations (last residual {residual})")]
-    DidNotConverge { iters: usize, residual: f64 },
+    DidNotConverge {
+        /// Number of iterations completed.
+        iters: usize,
+        /// Last measured residual norm.
+        residual: f64,
+    },
 
     /// Catch-all for unexpected internal failures (bugs).
     #[error("internal error: {0}")]

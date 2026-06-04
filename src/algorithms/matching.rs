@@ -48,8 +48,11 @@ use crate::core::graph::Graph;
 /// ```
 #[derive(Debug, Clone)]
 pub struct MatchingResult {
+    /// Number of matched vertex pairs.
     pub matching_size: usize,
+    /// Total weight of matched edges (1.0 per edge if unweighted).
     pub matching_weight: f64,
+    /// Per-vertex matching partner: `Some(j)` if matched to `j`, `None` if unmatched.
     pub matching: Vec<Option<u32>>,
 }
 

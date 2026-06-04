@@ -51,9 +51,13 @@ const MAX_PASSES_PER_LEVEL: usize = 256;
 /// rounds + 1).
 #[derive(Debug, Clone)]
 pub struct LouvainResult {
+    /// Community assignment for each vertex (0-indexed).
     pub membership: Vec<u32>,
+    /// Best modularity found.
     pub modularity: f64,
+    /// Per-level membership vectors (one per aggregation round + initial).
     pub levels: Vec<Vec<u32>>,
+    /// Modularity at each level.
     pub modularities: Vec<f64>,
 }
 

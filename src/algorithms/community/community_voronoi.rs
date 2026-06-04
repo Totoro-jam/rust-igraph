@@ -67,8 +67,11 @@ const VORONOI_BRENT_SEED: u64 = 42;
 /// directness implied by `mode`. `None` for an empty graph.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CommunityVoronoiResult {
+    /// Community membership of each vertex (0-indexed).
     pub membership: Vec<u32>,
+    /// The seed (generator) vertex for each Voronoi cell.
     pub generators: Vec<VertexId>,
+    /// Newman-Girvan modularity; `None` for an empty graph.
     pub modularity: Option<f64>,
 }
 
