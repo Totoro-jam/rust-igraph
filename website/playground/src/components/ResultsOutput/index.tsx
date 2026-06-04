@@ -33,6 +33,7 @@ interface ParsedResult {
 }
 
 function parseResult(
+  algo: string,
   result: AlgoResult,
   t: (key: string) => string,
 ): ParsedResult {
@@ -123,8 +124,22 @@ function parseResult(
     badges.push({ label: t('result.connected'), value: result.is_connected ? 'Yes' : 'No' });
     badges.push({ label: t('result.bipartite'), value: result.is_bipartite ? 'Yes' : 'No' });
     badges.push({ label: t('result.directedProp'), value: result.is_directed ? 'Yes' : 'No' });
+  } else if ('colors' in result) {
+    const colorResult = result as { colors: number[]; chromatic: number };
+    badges.push({ label: t('result.chromatic'), value: String(colorResult.chromatic), accent: true });
+    columnLabel = t('result.col.color');
+    colorResult.colors.forEach((c, i) => {
+      table.push({
+        vertex: i,
+        value: String(c),
+        numericValue: c,
+        barFraction: 1,
+        colorIndex: c % 8,
+      });
+    });
   } else if ('value' in result) {
-    badges.push({ label: t('result.flowValue'), value: (result.value as number).toFixed(4), accent: true });
+    const label = algo === 'transitivity' ? t('result.transitivity') : t('result.flowValue');
+    badges.push({ label, value: (result.value as number).toFixed(4), accent: true });
   } else if ('distances' in result) {
     const distances = (result as { distances: number[] }).distances;
     const finite = distances.filter((d) => Number.isFinite(d));
@@ -168,6 +183,18 @@ function parseResult(
         barFraction: max > 0 ? d / max : 0,
       });
     });
+  } else if ('edges' in result && 'count' in result) {
+    const bridgeResult = result as { edges: [number, number][]; count: number };
+    badges.push({ label: t('result.bridges'), value: String(bridgeResult.count), accent: true });
+    columnLabel = t('result.col.edge');
+    bridgeResult.edges.forEach((e, i) => {
+      table.push({
+        vertex: i,
+        value: `v${e[0]} – v${e[1]}`,
+        numericValue: i,
+        barFraction: 1,
+      });
+    });
   }
 
   return { badges, table, columnLabel, showBars };
@@ -184,11 +211,11 @@ const COMMUNITY_COLORS = [
   '#a5d6ff',
 ];
 
-export function ResultsOutput({ result, elapsed, vcount, edgeCount, t }: ResultsOutputProps) {
+export function ResultsOutput({ algo, result, elapsed, vcount, edgeCount, t }: ResultsOutputProps) {
   const parsed = useMemo(() => {
     if (!result) return null;
-    return parseResult(result, t);
-  }, [result, t]);
+    return parseResult(algo, result, t);
+  }, [algo, result, t]);
 
   if (!result || !parsed) {
     return (

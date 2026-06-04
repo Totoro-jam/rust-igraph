@@ -12,7 +12,7 @@ const ALGO_CATEGORIES: AlgoCategory[] = [
   {
     key: 'centrality',
     icon: '◎',
-    algos: ['pagerank', 'betweenness', 'closeness', 'eigenvector', 'harmonic', 'hits', 'katz'],
+    algos: ['pagerank', 'betweenness', 'closeness', 'eigenvector', 'harmonic', 'hits', 'katz', 'edge_betweenness_centrality'],
   },
   {
     key: 'community',
@@ -25,12 +25,12 @@ const ALGO_CATEGORIES: AlgoCategory[] = [
   {
     key: 'traversal',
     icon: '⇢',
-    algos: ['bfs', 'dfs', 'dijkstra', 'max_flow'],
+    algos: ['bfs', 'dfs', 'dijkstra', 'max_flow', 'topological_sort'],
   },
   {
     key: 'structure',
     icon: '⊞',
-    algos: ['components', 'graph_stats', 'articulation_points', 'degree_sequence'],
+    algos: ['components', 'graph_stats', 'articulation_points', 'degree_sequence', 'scc', 'bridges', 'coloring', 'transitivity'],
   },
 ];
 

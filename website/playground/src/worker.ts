@@ -30,6 +30,12 @@ interface WasmGraphInstance {
   maxFlow(source: number, target: number): string;
   articulationPoints(): string;
   degreeSequence(): string;
+  stronglyConnectedComponents(): string;
+  bridges(): string;
+  vertexColoring(): string;
+  topologicalSort(): string;
+  transitivity(): string;
+  edgeBetweenness(): string;
   layoutFr(niter: number): string;
   free(): void;
 }
@@ -151,6 +157,24 @@ function runWasm(
         break;
       case 'degree_sequence':
         resultJson = graph.degreeSequence();
+        break;
+      case 'scc':
+        resultJson = graph.stronglyConnectedComponents();
+        break;
+      case 'bridges':
+        resultJson = graph.bridges();
+        break;
+      case 'coloring':
+        resultJson = graph.vertexColoring();
+        break;
+      case 'topological_sort':
+        resultJson = graph.topologicalSort();
+        break;
+      case 'transitivity':
+        resultJson = graph.transitivity();
+        break;
+      case 'edge_betweenness_centrality':
+        resultJson = graph.edgeBetweenness();
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);

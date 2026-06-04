@@ -1,10 +1,12 @@
 use rust_igraph::{
-    ConnectednessMode, FrParams, Graph, VertexId, articulation_points, betweenness, bfs, closeness,
-    connected_components, count_triangles, dfs, dijkstra_distances, edge_betweenness_community,
+    ConnectednessMode, DijkstraMode, FrParams, Graph, GreedyColoringHeuristic, VertexId,
+    articulation_points, betweenness, bfs, bridges, closeness, connected_components,
+    count_triangles, dfs, dijkstra_distances, edge_betweenness, edge_betweenness_community,
     eigenvector_centrality, fast_greedy_modularity, fluid_communities, girth, harmonic_centrality,
     hub_and_authority_scores, infomap, is_bipartite, is_connected, katz_centrality,
     label_propagation, layout_fruchterman_reingold, leading_eigenvector, leiden, louvain,
-    max_flow_value, pagerank, spinglass, walktrap,
+    max_flow_value, pagerank, spinglass, strongly_connected_components, topological_sorting,
+    transitivity_undirected, vertex_coloring_greedy, walktrap,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -145,6 +147,39 @@ struct ArticulationResult {
 #[derive(Serialize)]
 struct DegreeResult {
     degrees: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct SccResult {
+    membership: Vec<u32>,
+    count: u32,
+}
+
+#[derive(Serialize)]
+struct BridgesResult {
+    edges: Vec<[u32; 2]>,
+    count: u32,
+}
+
+#[derive(Serialize)]
+struct ColoringResult {
+    colors: Vec<u32>,
+    chromatic: u32,
+}
+
+#[derive(Serialize)]
+struct TopoSortResult {
+    order: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct TransitivityResult {
+    value: f64,
+}
+
+#[derive(Serialize)]
+struct EdgeBetweennessResult {
+    scores: Vec<f64>,
 }
 
 #[wasm_bindgen]
@@ -440,6 +475,63 @@ impl WasmGraph {
         let result = LayoutResult {
             coords: coords.into_iter().map(|(x, y)| [x, y]).collect(),
         };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "stronglyConnectedComponents")]
+    pub fn strongly_connected_components(&self) -> Result<String, JsError> {
+        let cc =
+            strongly_connected_components(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = SccResult {
+            membership: cc.membership,
+            count: cc.count,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn bridges(&self) -> Result<String, JsError> {
+        let edge_ids = bridges(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let edges: Vec<[u32; 2]> = edge_ids
+            .iter()
+            .map(|&eid| {
+                let (s, t) = self.inner.edge(eid).unwrap_or((0, 0));
+                [s, t]
+            })
+            .collect();
+        let count = edges.len() as u32;
+        let result = BridgesResult { edges, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "vertexColoring")]
+    pub fn vertex_coloring(&self) -> Result<String, JsError> {
+        let colors = vertex_coloring_greedy(&self.inner, GreedyColoringHeuristic::DSatur)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let chromatic = colors.iter().copied().max().map(|c| c + 1).unwrap_or(0);
+        let result = ColoringResult { colors, chromatic };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "topologicalSort")]
+    pub fn topological_sort(&self) -> Result<String, JsError> {
+        let order = topological_sorting(&self.inner, DijkstraMode::Out)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = TopoSortResult { order };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn transitivity(&self) -> Result<String, JsError> {
+        let value = transitivity_undirected(&self.inner)
+            .map_err(|e| JsError::new(&e.to_string()))?
+            .unwrap_or(0.0);
+        let result = TransitivityResult { value };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "edgeBetweenness")]
+    pub fn edge_betweenness(&self) -> Result<String, JsError> {
+        let scores = edge_betweenness(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = EdgeBetweennessResult { scores };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 }

@@ -31,7 +31,13 @@ export type AlgoId =
   | 'graph_stats'
   | 'max_flow'
   | 'articulation_points'
-  | 'degree_sequence';
+  | 'degree_sequence'
+  | 'scc'
+  | 'bridges'
+  | 'coloring'
+  | 'topological_sort'
+  | 'transitivity'
+  | 'edge_betweenness_centrality';
 
 export interface AlgoParams {
   source?: number;
@@ -88,6 +94,29 @@ export interface AlgoResultDegrees {
   degrees: number[];
 }
 
+export interface AlgoResultScc {
+  membership: number[];
+  count: number;
+}
+
+export interface AlgoResultBridges {
+  edges: [number, number][];
+  count: number;
+}
+
+export interface AlgoResultColoring {
+  colors: number[];
+  chromatic: number;
+}
+
+export interface AlgoResultTransitivity {
+  value: number;
+}
+
+export interface AlgoResultEdgeBetweenness {
+  scores: number[];
+}
+
 export type AlgoResult =
   | AlgoResultScores
   | AlgoResultMembership
@@ -97,7 +126,11 @@ export type AlgoResult =
   | AlgoResultScalar
   | AlgoResultVertices
   | AlgoResultDistances
-  | AlgoResultDegrees;
+  | AlgoResultDegrees
+  | AlgoResultBridges
+  | AlgoResultColoring
+  | AlgoResultTransitivity
+  | AlgoResultEdgeBetweenness;
 
 export interface RunResult {
   algo: AlgoId;
