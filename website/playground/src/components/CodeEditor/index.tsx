@@ -93,6 +93,14 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, transitivity};\n\n${graphLine}\n\nlet value = transitivity(&g).unwrap();\nprintln!("Transitivity: {:.4}", value);`;
     case 'edge_betweenness_centrality':
       return `use rust_igraph::{Graph, edge_betweenness};\n\n${graphLine}\n\nlet scores = edge_betweenness(&g).unwrap();\nprintln!("Edge betweenness: {:?}", scores);`;
+    case 'triad_census':
+      return `use rust_igraph::{Graph, triad_census};\n\n${graphLine}\n\nlet tc = triad_census(&g).unwrap();\nprintln!("Triad census: {:?}", tc.counts);`;
+    case 'canonical_permutation':
+      return `use rust_igraph::{Graph, canonical_permutation};\n\n${graphLine}\n\nlet perm = canonical_permutation(&g, None).unwrap();\nprintln!("Canonical permutation: {:?}", perm);`;
+    case 'count_automorphisms':
+      return `use rust_igraph::{Graph, count_automorphisms};\n\n${graphLine}\n\nlet count = count_automorphisms(&g, None).unwrap();\nprintln!("|Aut(G)| = {}", count);`;
+    case 'isomorphism':
+      return `use rust_igraph::{Graph, isomorphic_bliss};\n\nlet g1 = Graph::from_edges(\n    &[(0,1),(1,2),(2,3),(3,0)],\n    false, None\n).unwrap();\nlet g2 = Graph::from_edges(\n    &[(2,0),(0,3),(3,1),(1,2)],\n    false, None\n).unwrap();\n\nlet result = isomorphic_bliss(&g1, &g2, None, None).unwrap();\nprintln!("Isomorphic: {}", result.iso);\nprintln!("Mapping: {:?}", result.map12);`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }

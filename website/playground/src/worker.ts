@@ -36,6 +36,10 @@ interface WasmGraphInstance {
   topologicalSort(): string;
   transitivity(): string;
   edgeBetweenness(): string;
+  triadCensus(): string;
+  canonicalPermutation(): string;
+  countAutomorphisms(): string;
+  isomorphicBliss(other: WasmGraphInstance): string;
   layoutFr(niter: number): string;
   free(): void;
 }
@@ -175,6 +179,18 @@ function runWasm(
         break;
       case 'edge_betweenness_centrality':
         resultJson = graph.edgeBetweenness();
+        break;
+      case 'triad_census':
+        resultJson = graph.triadCensus();
+        break;
+      case 'canonical_permutation':
+        resultJson = graph.canonicalPermutation();
+        break;
+      case 'count_automorphisms':
+        resultJson = graph.countAutomorphisms();
+        break;
+      case 'isomorphism':
+        resultJson = graph.canonicalPermutation();
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);

@@ -183,6 +183,53 @@ function parseResult(
         barFraction: max > 0 ? d / max : 0,
       });
     });
+  } else if ('counts' in result) {
+    const counts = (result as { counts: number[] }).counts;
+    const triadLabels = [
+      '003', '012', '102', '021D', '021U', '021C', '111D', '111U',
+      '030T', '030C', '201', '120D', '120U', '120C', '210', '300',
+    ];
+    const max = Math.max(...counts, 1);
+    const total = counts.reduce((s, c) => s + c, 0);
+    badges.push({ label: 'Total', value: String(total), accent: true });
+    columnLabel = t('result.col.triadType');
+    showBars = true;
+    counts.forEach((c, i) => {
+      if (c > 0) {
+        table.push({
+          vertex: i,
+          value: `${triadLabels[i] ?? i}: ${c}`,
+          numericValue: c,
+          barFraction: max > 0 ? c / max : 0,
+        });
+      }
+    });
+  } else if ('permutation' in result) {
+    const perm = (result as { permutation: number[] }).permutation;
+    badges.push({ label: t('result.vertices'), value: String(perm.length), accent: true });
+    columnLabel = t('result.col.permutation');
+    perm.forEach((p, i) => {
+      table.push({
+        vertex: i,
+        value: `v${p}`,
+        numericValue: p,
+        barFraction: perm.length > 1 ? p / (perm.length - 1) : 1,
+      });
+    });
+  } else if ('isomorphic' in result) {
+    const isoResult = result as { isomorphic: boolean; mapping: number[] };
+    badges.push({ label: t('result.isomorphic'), value: isoResult.isomorphic ? 'Yes' : 'No', accent: true });
+    if (isoResult.mapping.length > 0) {
+      columnLabel = t('result.col.permutation');
+      isoResult.mapping.forEach((m, i) => {
+        table.push({
+          vertex: i,
+          value: `v${m}`,
+          numericValue: m,
+          barFraction: 1,
+        });
+      });
+    }
   } else if ('edges' in result && 'count' in result) {
     const bridgeResult = result as { edges: [number, number][]; count: number };
     badges.push({ label: t('result.bridges'), value: String(bridgeResult.count), accent: true });
@@ -195,6 +242,8 @@ function parseResult(
         barFraction: 1,
       });
     });
+  } else if ('count' in result && !('membership' in result)) {
+    badges.push({ label: t('result.automorphisms'), value: String((result as { count: number }).count), accent: true });
   }
 
   return { badges, table, columnLabel, showBars };

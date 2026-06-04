@@ -37,7 +37,11 @@ export type AlgoId =
   | 'coloring'
   | 'topological_sort'
   | 'transitivity'
-  | 'edge_betweenness_centrality';
+  | 'edge_betweenness_centrality'
+  | 'triad_census'
+  | 'canonical_permutation'
+  | 'count_automorphisms'
+  | 'isomorphism';
 
 export interface AlgoParams {
   source?: number;
@@ -117,6 +121,23 @@ export interface AlgoResultEdgeBetweenness {
   scores: number[];
 }
 
+export interface AlgoResultTriadCensus {
+  counts: number[];
+}
+
+export interface AlgoResultPermutation {
+  permutation: number[];
+}
+
+export interface AlgoResultAutomorphisms {
+  count: number;
+}
+
+export interface AlgoResultIsomorphism {
+  isomorphic: boolean;
+  mapping: number[];
+}
+
 export type AlgoResult =
   | AlgoResultScores
   | AlgoResultMembership
@@ -130,7 +151,11 @@ export type AlgoResult =
   | AlgoResultBridges
   | AlgoResultColoring
   | AlgoResultTransitivity
-  | AlgoResultEdgeBetweenness;
+  | AlgoResultEdgeBetweenness
+  | AlgoResultTriadCensus
+  | AlgoResultPermutation
+  | AlgoResultAutomorphisms
+  | AlgoResultIsomorphism;
 
 export interface RunResult {
   algo: AlgoId;

@@ -504,6 +504,28 @@ export function demoTransitivity(vcount: number, edges: Edge[]): AlgoResult {
   return { value: triples > 0 ? triangles / triples : 0 } as AlgoResult;
 }
 
+export function demoTriadCensus(vcount: number, edges: Edge[]): AlgoResult {
+  const counts = new Array(16).fill(0);
+  const triples = vcount * (vcount - 1) * (vcount - 2) / 6;
+  counts[0] = Math.max(0, triples - edges.length);
+  counts[1] = edges.length;
+  return { counts } as AlgoResult;
+}
+
+export function demoCanonicalPermutation(vcount: number, _edges: Edge[]): AlgoResult {
+  const permutation = Array.from({ length: vcount }, (_, i) => i);
+  return { permutation } as AlgoResult;
+}
+
+export function demoCountAutomorphisms(_vcount: number, _edges: Edge[]): AlgoResult {
+  return { count: 1 } as AlgoResult;
+}
+
+export function demoIsomorphism(vcount: number, _edges: Edge[]): AlgoResult {
+  const mapping = Array.from({ length: vcount }, (_, i) => i);
+  return { isomorphic: true, mapping } as AlgoResult;
+}
+
 export function demoEdgeBetweennessCentrality(vcount: number, edges: Edge[]): AlgoResult {
   const scores = new Array(edges.length).fill(0);
   const adj = buildAdj(vcount, edges);
@@ -612,6 +634,14 @@ export function runDemoAlgo(
       return demoTransitivity(vcount, edges);
     case 'edge_betweenness_centrality':
       return demoEdgeBetweennessCentrality(vcount, edges);
+    case 'triad_census':
+      return demoTriadCensus(vcount, edges);
+    case 'canonical_permutation':
+      return demoCanonicalPermutation(vcount, edges);
+    case 'count_automorphisms':
+      return demoCountAutomorphisms(vcount, edges);
+    case 'isomorphism':
+      return demoIsomorphism(vcount, edges);
     default:
       return demoPagerank(vcount, edges);
   }
