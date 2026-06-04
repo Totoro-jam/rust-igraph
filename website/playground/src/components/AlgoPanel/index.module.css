@@ -114,6 +114,13 @@
   overflow: hidden;
 }
 
+.algoOption span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 .algoOption:hover {
   background: var(--bg-hover);
 }

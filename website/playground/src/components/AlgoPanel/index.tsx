@@ -107,18 +107,21 @@ export function AlgoPanel({
               </button>
               <div className={`${styles.groupBody}${isCollapsed ? ` ${styles.groupBodyCollapsed}` : ''}`}>
                 <div className={styles.groupBodyInner}>
-                  {cat.algos.map((id) => (
-                    <label key={id} className={`${styles.algoOption}${algo === id ? ` ${styles.active}` : ''}`}>
-                      <input
-                        type="radio"
-                        name="algo"
-                        value={id}
-                        checked={algo === id}
-                        onChange={() => onAlgoChange(id)}
-                      />
-                      <span>{t(`algo.${id}`)}</span>
-                    </label>
-                  ))}
+                  {cat.algos.map((id) => {
+                    const label = t(`algo.${id}`);
+                    return (
+                      <label key={id} className={`${styles.algoOption}${algo === id ? ` ${styles.active}` : ''}`} title={label}>
+                        <input
+                          type="radio"
+                          name="algo"
+                          value={id}
+                          checked={algo === id}
+                          onChange={() => onAlgoChange(id)}
+                        />
+                        <span>{label}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
             </div>
