@@ -203,6 +203,12 @@ cargo bench --bench bench_vf2         # isomorphism
 | I/O formats | Stable (15 functions) |
 | Spatial algorithms | Stable |
 
+## Documentation
+
+- **[Tutorial & Guide](https://Totoro-jam.github.io/rust-igraph/book/)** — mdBook with getting started, cookbook, and architecture overview
+- **[API Reference](https://Totoro-jam.github.io/rust-igraph/rust_igraph/)** — full rustdoc for all 1,200+ public items
+- **[docs.rs](https://docs.rs/rust-igraph)** — auto-published on every crates.io release
+
 ## Development
 
 ```bash

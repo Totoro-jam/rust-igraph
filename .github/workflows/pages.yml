@@ -21,14 +21,26 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+
+      # Build rustdoc
       - name: Build rustdoc
         env:
           RUSTDOCFLAGS: "-D warnings"
         run: cargo doc --no-deps
-      - name: Add index.html redirect
-        # crates.io-style redirect from / to the rust_igraph crate's docs.
+
+      # Build mdBook
+      - name: Install mdBook
+        run: cargo install mdbook --locked --version 0.4
+      - name: Build mdBook
+        run: mdbook build book
+
+      # Assemble site: rustdoc at /rust_igraph/, book at /book/
+      - name: Assemble site
         run: |
+          mkdir -p target/doc/book
+          cp -r book/book/* target/doc/book/
           echo '<meta http-equiv="refresh" content="0; url=rust_igraph/index.html">' > target/doc/index.html
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
