@@ -25,6 +25,9 @@ const WASM_SUPPORTED_ALGOS: Set<AlgoId> = new Set([
   'coreness', 'eccentricity', 'constraint', 'diameter', 'shortest_path',
   'random_walk', 'fundamental_cycles', 'list_triangles', 'girth',
   'trussness', 'automorphism_group',
+  'clique_number', 'independence_number', 'maximal_cliques',
+  'vertex_connectivity', 'edge_connectivity', 'minimum_spanning_tree',
+  'bellman_ford',
 ]);
 
 export function useWasm(onResult: (result: RunResult) => void) {

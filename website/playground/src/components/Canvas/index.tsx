@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
 import { ForceSimulation } from '../../simulation';
+import { exportGml, exportDot, exportGraphml, exportEdgeList } from '../../graphExport';
 import type { AlgoId, AlgoResult, Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder } from '../../types';
 import css from './index.module.css';
 
@@ -900,6 +901,8 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
     setSimActive(true);
   }, []);
 
+  const [exportOpen, setExportOpen] = useState(false);
+
   const exportPng = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -908,6 +911,24 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
     link.href = canvas.toDataURL('image/png');
     link.click();
   }, []);
+
+  const handleExport = useCallback((fmt: string) => {
+    setExportOpen(false);
+    switch (fmt) {
+      case 'png': exportPng(); break;
+      case 'gml': exportGml(edges, vcount, directed); break;
+      case 'dot': exportDot(edges, vcount, directed); break;
+      case 'graphml': exportGraphml(edges, vcount, directed); break;
+      case 'edgelist': exportEdgeList(edges, vcount, directed); break;
+    }
+  }, [exportPng, edges, vcount, directed]);
+
+  useEffect(() => {
+    if (!exportOpen) return;
+    const close = () => setExportOpen(false);
+    const timer = setTimeout(() => document.addEventListener('click', close), 0);
+    return () => { clearTimeout(timer); document.removeEventListener('click', close); };
+  }, [exportOpen]);
 
   return (
     <div className={css.canvasContainer} ref={containerRef}>
@@ -946,11 +967,22 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
           </svg>
         </button>
         <div className={css.toolbarDivider} />
-        <button onClick={exportPng} title={t('exportPng')}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M8 2v8M5 7l3 3 3-3M3 12h10" />
-          </svg>
-        </button>
+        <div className={css.exportWrap}>
+          <button onClick={() => setExportOpen((p) => !p)} title={t('export')}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M8 2v8M5 7l3 3 3-3M3 12h10" />
+            </svg>
+          </button>
+          {exportOpen && (
+            <div className={css.exportMenu}>
+              <button onClick={() => handleExport('png')}>PNG</button>
+              <button onClick={() => handleExport('gml')}>GML</button>
+              <button onClick={() => handleExport('dot')}>DOT</button>
+              <button onClick={() => handleExport('graphml')}>GraphML</button>
+              <button onClick={() => handleExport('edgelist')}>{t('exportEdgeList')}</button>
+            </div>
+          )}
+        </div>
       </div>
 
       {tooltip && (

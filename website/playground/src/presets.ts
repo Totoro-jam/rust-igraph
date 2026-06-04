@@ -124,6 +124,65 @@ export const PRESETS: Record<string, PresetGraph> = {
       [0,1],[0,2],[1,3],[1,4],[2,4],[2,5],[3,6],[4,6],[5,6],
     ],
   },
+  complete_k8: {
+    id: 'complete_k8',
+    directed: false,
+    edges: (() => {
+      const edges: [number, number][] = [];
+      for (let i = 0; i < 8; i++)
+        for (let j = i + 1; j < 8; j++)
+          edges.push([i, j]);
+      return edges;
+    })(),
+  },
+  cycle_20: {
+    id: 'cycle_20',
+    directed: false,
+    edges: (() => {
+      const n = 20;
+      const edges: [number, number][] = [];
+      for (let i = 0; i < n; i++) edges.push([i, (i + 1) % n]);
+      return edges;
+    })(),
+  },
+  star_12: {
+    id: 'star_12',
+    directed: false,
+    edges: (() => {
+      const edges: [number, number][] = [];
+      for (let i = 1; i < 12; i++) edges.push([0, i]);
+      return edges;
+    })(),
+  },
+  grid_5x5: {
+    id: 'grid_5x5',
+    directed: false,
+    edges: (() => {
+      const w = 5, h = 5;
+      const edges: [number, number][] = [];
+      for (let r = 0; r < h; r++)
+        for (let c = 0; c < w; c++) {
+          const id = r * w + c;
+          if (c + 1 < w) edges.push([id, id + 1]);
+          if (r + 1 < h) edges.push([id, id + w]);
+        }
+      return edges;
+    })(),
+  },
+  binary_tree: {
+    id: 'binary_tree',
+    directed: false,
+    edges: (() => {
+      const edges: [number, number][] = [];
+      for (let i = 0; i < 15; i++) {
+        const left = 2 * i + 1;
+        const right = 2 * i + 2;
+        if (left < 15) edges.push([i, left]);
+        if (right < 15) edges.push([i, right]);
+      }
+      return edges;
+    })(),
+  },
 };
 
 export const PRESET_ORDER = [
@@ -134,4 +193,9 @@ export const PRESET_ORDER = [
   'watts_strogatz',
   'small_triangle',
   'directed_dag',
+  'complete_k8',
+  'cycle_20',
+  'star_12',
+  'grid_5x5',
+  'binary_tree',
 ] as const;
