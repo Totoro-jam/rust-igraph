@@ -98,64 +98,101 @@ function labelColorForHex(hex: string): string {
 }
 
 function getNodeColor(
-  algo: AlgoId,
+  _algo: AlgoId,
   result: AlgoResult | null,
   idx: number,
   theme: 'dark' | 'light',
 ): string {
   const palette = theme === 'dark' ? PALETTE_DARK : PALETTE_LIGHT;
+  const dimmed = theme === 'dark' ? '#30363d' : '#d0d7de';
   if (!result) return palette[0]!;
-  if (
-    (algo === 'louvain' || algo === 'components' || algo === 'infomap' || algo === 'spinglass') &&
-    isMembership(result)
-  ) {
+
+  if (isMembership(result)) {
     return palette[(result.membership[idx] ?? 0) % palette.length]!;
   }
-  if (algo === 'pagerank' && isScores(result)) {
+  if ('colors' in result) {
+    const colors = (result as { colors: number[] }).colors;
+    return palette[(colors[idx] ?? 0) % palette.length]!;
+  }
+  if ('hub' in result && 'authority' in result) {
+    const hub = (result as { hub: number[] }).hub;
+    const max = Math.max(...hub, 1e-9);
+    const min = Math.min(...hub);
+    const t = max > min ? ((hub[idx] ?? 0) - min) / (max - min) : 0.5;
+    return interpolateColor(t, theme);
+  }
+  if (isScores(result)) {
     const scores = result.scores;
     const max = Math.max(...scores, 1e-9);
     const min = Math.min(...scores);
     const t = max > min ? ((scores[idx] ?? 0) - min) / (max - min) : 0.5;
     return interpolateColor(t, theme);
   }
-  if (algo === 'betweenness' && isScores(result)) {
-    const scores = result.scores;
-    const max = Math.max(...scores, 1e-9);
-    const t = max > 0 ? (scores[idx] ?? 0) / max : 0;
-    return interpolateColor(t, theme);
-  }
-  if (algo === 'bfs' && isOrder(result)) {
+  if (isOrder(result)) {
     const order = result.order;
     const pos = order.indexOf(idx);
-    if (pos < 0) return theme === 'dark' ? '#30363d' : '#d0d7de';
+    if (pos < 0) return dimmed;
     const t = order.length > 1 ? pos / (order.length - 1) : 0;
     return interpolateColor(1 - t, theme);
+  }
+  if ('degrees' in result) {
+    const degrees = (result as { degrees: number[] }).degrees;
+    const max = Math.max(...degrees, 1);
+    const min = Math.min(...degrees);
+    const t = max > min ? ((degrees[idx] ?? 0) - min) / (max - min) : 0.5;
+    return interpolateColor(t, theme);
+  }
+  if ('distances' in result) {
+    const distances = (result as { distances: number[] }).distances;
+    const finite = distances.filter((d) => Number.isFinite(d));
+    const max = finite.length > 0 ? Math.max(...finite) : 1;
+    const d = distances[idx] ?? Infinity;
+    if (!Number.isFinite(d)) return dimmed;
+    const t = max > 0 ? d / max : 0;
+    return interpolateColor(1 - t, theme);
+  }
+  if ('vertices' in result) {
+    const vertices = (result as { vertices: number[] }).vertices;
+    if (vertices.includes(idx)) return theme === 'dark' ? '#f85149' : '#cf222e';
+    return palette[0]!;
+  }
+  if ('edges' in result && 'count' in result) {
+    const bridgeEdges = (result as { edges: [number, number][] }).edges;
+    for (const [u, v] of bridgeEdges) {
+      if (u === idx || v === idx) return theme === 'dark' ? '#f85149' : '#cf222e';
+    }
+    return palette[0]!;
   }
   return palette[0]!;
 }
 
 function getNodeRadius(
-  algo: AlgoId,
+  _algo: AlgoId,
   result: AlgoResult | null,
   idx: number,
   vcount: number,
 ): number {
   const base = Math.max(4, Math.min(14, 200 / Math.sqrt(Math.max(vcount, 1))));
   if (!result) return base;
-  if (algo === 'pagerank' && isScores(result)) {
+  if (isScores(result)) {
     const max = Math.max(...result.scores, 1e-9);
     return base * (0.6 + 1.4 * (result.scores[idx] ?? 0) / max);
   }
-  if (algo === 'betweenness' && isScores(result)) {
-    const max = Math.max(...result.scores, 1e-9);
-    return base * (0.6 + 1.4 * (max > 0 ? (result.scores[idx] ?? 0) / max : 0.5));
+  if ('hub' in result) {
+    const hub = (result as { hub: number[] }).hub;
+    const max = Math.max(...hub, 1e-9);
+    return base * (0.6 + 1.4 * (hub[idx] ?? 0) / max);
+  }
+  if ('vertices' in result) {
+    const vertices = (result as { vertices: number[] }).vertices;
+    if (vertices.includes(idx)) return base * 1.5;
   }
   return base;
 }
 
 function formatNodeTooltip(
   idx: number,
-  algo: AlgoId,
+  _algo: AlgoId,
   result: AlgoResult | null,
   edges: Edge[],
 ): string {
@@ -167,22 +204,32 @@ function formatNodeTooltip(
   let info = `vertex ${idx}  (degree: ${degree})`;
   if (!result) return info;
 
-  if (isScores(result)) {
+  if ('hub' in result && 'authority' in result) {
+    const r = result as { hub: number[]; authority: number[] };
+    info += `\nhub: ${(r.hub[idx] ?? 0).toFixed(6)}`;
+    info += `\nauthority: ${(r.authority[idx] ?? 0).toFixed(6)}`;
+  } else if (isScores(result)) {
     const val = result.scores[idx];
-    if (val !== undefined) {
-      const label = algo === 'pagerank' ? 'rank' : 'score';
-      info += `\n${label}: ${val.toFixed(6)}`;
-    }
+    if (val !== undefined) info += `\nscore: ${val.toFixed(6)}`;
   } else if (isMembership(result)) {
     const c = result.membership[idx];
-    if (c !== undefined) {
-      info += `\ncommunity: ${c}`;
-    }
+    if (c !== undefined) info += `\ncommunity: ${c}`;
   } else if (isOrder(result)) {
     const pos = result.order.indexOf(idx);
-    if (pos >= 0) {
-      info += `\nbfs order: ${pos}`;
-    }
+    if (pos >= 0) info += `\norder: ${pos}`;
+  } else if ('colors' in result) {
+    const colors = (result as { colors: number[] }).colors;
+    info += `\ncolor: ${colors[idx]}`;
+  } else if ('degrees' in result) {
+    const degrees = (result as { degrees: number[] }).degrees;
+    info += `\ndegree: ${degrees[idx]}`;
+  } else if ('distances' in result) {
+    const distances = (result as { distances: number[] }).distances;
+    const d = distances[idx];
+    info += `\ndistance: ${d !== undefined && Number.isFinite(d) ? d.toFixed(2) : '∞'}`;
+  } else if ('vertices' in result) {
+    const vertices = (result as { vertices: number[] }).vertices;
+    if (vertices.includes(idx)) info += `\n★ articulation point`;
   }
   return info;
 }
