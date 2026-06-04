@@ -255,6 +255,7 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
   vcountRef.current = vcount;
   const directedRef = useRef(directed);
   directedRef.current = directed;
+  const drawRef = useRef<() => void>(() => {});
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -406,6 +407,8 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
     }
   }, [t]);
 
+  drawRef.current = draw;
+
   // Initialize/update simulation when coords change (triggered by Run)
   useEffect(() => {
     if (simRef.current) {
@@ -424,7 +427,7 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
 
     if (!coords || currentVcount === 0) {
       setSimActive(false);
-      draw();
+      drawRef.current();
       return;
     }
 
@@ -439,10 +442,11 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
     });
 
     sim.alpha = 0.15;
-    sim.setOnTick(() => draw());
+    sim.setOnTick(() => drawRef.current());
     simRef.current = sim;
     setSimActive(true);
     sim.start();
+    drawRef.current();
 
     return () => {
       sim.destroy();
@@ -450,7 +454,7 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
     };
     // Only re-init on new coords (from Run) — edges/vcount read from refs
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coords, draw]);
+  }, [coords]);
 
   // Resize observer
   useEffect(() => {

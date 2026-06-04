@@ -105,6 +105,7 @@ export function App() {
   tRef.current = t;
   const algoRef = useRef(algo);
   algoRef.current = algo;
+  const initialRunDone = useRef(false);
 
   const applyRunResult = useCallback((runResult: RunResult) => {
     setCoords(runResult.coords);
@@ -149,7 +150,8 @@ export function App() {
   }, [handleRun]);
 
   useEffect(() => {
-    if (status === 'ready') {
+    if (status === 'ready' && !initialRunDone.current) {
+      initialRunDone.current = true;
       handleRun();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
