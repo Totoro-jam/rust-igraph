@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://totoro-jam.github.io/rust-igraph/sitemap.xml
