@@ -270,7 +270,10 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
     ctx.globalAlpha = 1;
   }
 
+  let animating = true;
+
   function step() {
+    if (!animating) return;
     for (const node of nodes) {
       node.x += node.vx;
       node.y += node.vy;
@@ -283,9 +286,22 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
     requestAnimationFrame(step);
   }
 
-  init();
-  step();
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    init();
+    draw();
+  } else {
+    init();
+    step();
+  }
   window.addEventListener('resize', resize);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      animating = false;
+    } else if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      animating = true;
+      step();
+    }
+  });
 })();
 
 // Number counter animation

@@ -47,6 +47,21 @@
   --stat-bg: #eaeef2;
 }
 
+/* ========== Skip link (a11y) ========== */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 1000;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius);
+  font-weight: 600;
+  text-decoration: none;
+}
+.skip-link:focus { top: 1rem; }
+
 /* ========== Reset & Base ========== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -548,4 +563,11 @@ td strong { color: var(--accent); }
   .hero h1 { font-size: 1.75rem; }
   .hero-sub { font-size: 0.88rem; }
   .stat-num { font-size: 1.2rem; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  html { scroll-behavior: auto; }
+  #hero-canvas { display: none; }
 }
