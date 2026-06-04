@@ -414,6 +414,135 @@ export function demoDegreeSequence(vcount: number, edges: Edge[]): AlgoResult {
   return { degrees } as AlgoResult;
 }
 
+export function demoScc(vcount: number, edges: Edge[]): AlgoResult {
+  const result = demoComponents(vcount, edges) as { membership: number[]; count: number };
+  return { membership: result.membership, count: result.count };
+}
+
+export function demoBridges(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const disc = new Int32Array(vcount).fill(-1);
+  const low = new Int32Array(vcount).fill(-1);
+  const bridgeEdges: [number, number][] = [];
+  let timer = 0;
+
+  function dfs(u: number, parent: number) {
+    disc[u] = low[u] = timer++;
+    for (const v of adj[u]!) {
+      if (v === parent) continue;
+      if (disc[v]! < 0) {
+        dfs(v, u);
+        low[u] = Math.min(low[u]!, low[v]!);
+        if (low[v]! > disc[u]!) bridgeEdges.push([u, v]);
+      } else {
+        low[u] = Math.min(low[u]!, disc[v]!);
+      }
+    }
+  }
+
+  for (let i = 0; i < vcount; i++) {
+    if (disc[i]! < 0) dfs(i, -1);
+  }
+  return { edges: bridgeEdges, count: bridgeEdges.length } as AlgoResult;
+}
+
+export function demoColoring(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const colors = new Array<number>(vcount).fill(-1);
+  for (let v = 0; v < vcount; v++) {
+    const used = new Set<number>();
+    for (const u of adj[v]!) {
+      if (colors[u]! >= 0) used.add(colors[u]!);
+    }
+    let c = 0;
+    while (used.has(c)) c++;
+    colors[v] = c;
+  }
+  const chromatic = colors.length > 0 ? Math.max(...colors) + 1 : 0;
+  return { colors, chromatic } as AlgoResult;
+}
+
+export function demoTopologicalSort(vcount: number, edges: Edge[]): AlgoResult {
+  const inDeg = new Int32Array(vcount);
+  const adj: number[][] = Array.from({ length: vcount }, () => []);
+  for (const [u, v] of edges) {
+    if (u < vcount && v < vcount) {
+      adj[u]!.push(v);
+      inDeg[v]!++;
+    }
+  }
+  const queue: number[] = [];
+  for (let i = 0; i < vcount; i++) {
+    if (inDeg[i] === 0) queue.push(i);
+  }
+  const order: number[] = [];
+  while (queue.length > 0) {
+    const v = queue.shift()!;
+    order.push(v);
+    for (const w of adj[v]!) {
+      inDeg[w]!--;
+      if (inDeg[w] === 0) queue.push(w);
+    }
+  }
+  return { order };
+}
+
+export function demoTransitivity(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  let triangles = 0;
+  let triples = 0;
+  for (let v = 0; v < vcount; v++) {
+    const nbrs = adj[v]!;
+    const nbrSet = new Set(nbrs);
+    for (let i = 0; i < nbrs.length; i++) {
+      for (let j = i + 1; j < nbrs.length; j++) {
+        triples++;
+        if (nbrSet.has(nbrs[j]!) && adj[nbrs[i]!]!.includes(nbrs[j]!)) triangles++;
+      }
+    }
+  }
+  return { value: triples > 0 ? triangles / triples : 0 } as AlgoResult;
+}
+
+export function demoEdgeBetweennessCentrality(vcount: number, edges: Edge[]): AlgoResult {
+  const scores = new Array(edges.length).fill(0);
+  const adj = buildAdj(vcount, edges);
+  const edgeIndex = new Map<string, number>();
+  edges.forEach(([u, v], i) => {
+    edgeIndex.set(`${Math.min(u, v)}-${Math.max(u, v)}`, i);
+  });
+
+  for (let s = 0; s < vcount; s++) {
+    const stack: number[] = [];
+    const pred: number[][] = Array.from({ length: vcount }, () => []);
+    const sigma = new Float64Array(vcount);
+    sigma[s] = 1;
+    const dist = new Int32Array(vcount).fill(-1);
+    dist[s] = 0;
+    const queue = [s];
+    while (queue.length > 0) {
+      const v = queue.shift()!;
+      stack.push(v);
+      for (const w of adj[v]!) {
+        if (dist[w]! < 0) { queue.push(w); dist[w] = dist[v]! + 1; }
+        if (dist[w] === dist[v]! + 1) { sigma[w]! += sigma[v]!; pred[w]!.push(v); }
+      }
+    }
+    const delta = new Float64Array(vcount);
+    while (stack.length > 0) {
+      const w = stack.pop()!;
+      for (const v of pred[w]!) {
+        const c = (sigma[v]! / sigma[w]!) * (1 + delta[w]!);
+        delta[v]! += c;
+        const key = `${Math.min(v, w)}-${Math.max(v, w)}`;
+        const idx = edgeIndex.get(key);
+        if (idx !== undefined) scores[idx]! += c;
+      }
+    }
+  }
+  return { scores } as AlgoResult;
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
@@ -471,6 +600,18 @@ export function runDemoAlgo(
       return demoArticulationPoints(vcount, edges);
     case 'degree_sequence':
       return demoDegreeSequence(vcount, edges);
+    case 'scc':
+      return demoScc(vcount, edges);
+    case 'bridges':
+      return demoBridges(vcount, edges);
+    case 'coloring':
+      return demoColoring(vcount, edges);
+    case 'topological_sort':
+      return demoTopologicalSort(vcount, edges);
+    case 'transitivity':
+      return demoTransitivity(vcount, edges);
+    case 'edge_betweenness_centrality':
+      return demoEdgeBetweennessCentrality(vcount, edges);
     default:
       return demoPagerank(vcount, edges);
   }
