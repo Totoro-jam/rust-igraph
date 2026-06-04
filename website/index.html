@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>rust-igraph — Pure-Rust Graph Algorithms for Native &amp; WASM</title>
+  <meta name="description" content="Pure-Rust graph algorithm library. 1200+ APIs, zero unsafe, runs natively and in the browser via WASM. Community detection, centrality, shortest paths, isomorphism, and more.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="rust-igraph — Graph Algorithms in Rust &amp; WASM">
+  <meta property="og:description" content="1200+ graph algorithms. Zero unsafe. Runs natively and in the browser.">
+  <meta property="og:image" content="https://Totoro-jam.github.io/rust-igraph/assets/og-image.png">
+  <meta property="og:url" content="https://Totoro-jam.github.io/rust-igraph/">
+  <meta property="og:site_name" content="rust-igraph">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image:alt" content="rust-igraph: graph algorithms in Rust and WASM">
+
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <span class="logo-text">rust-igraph</span>
+      </a>
+      <div class="nav-links">
+        <a href="/book/">Guide</a>
+        <a href="/rust_igraph/">API Docs</a>
+        <a href="/playground/" class="nav-cta">Playground</a>
+        <a href="https://github.com/Totoro-jam/rust-igraph" class="nav-github" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        </a>
+        <button class="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <canvas id="hero-canvas" aria-hidden="true"></canvas>
+    <div class="hero-content">
+      <h1>Graph Algorithms<br>in Pure Rust</h1>
+      <p class="hero-sub">1,200+ APIs. Zero <code>unsafe</code>. One dependency. Runs natively and in the browser via WASM.</p>
+      <div class="hero-ctas">
+        <a href="/book/" class="btn btn-primary">Get Started</a>
+        <a href="/playground/" class="btn btn-secondary">Try in Browser</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Numbers bar -->
+  <section class="numbers">
+    <div class="numbers-inner">
+      <div class="stat"><span class="stat-num">1,200+</span><span class="stat-label">Public APIs</span></div>
+      <div class="stat"><span class="stat-num">311</span><span class="stat-label">Algorithms</span></div>
+      <div class="stat"><span class="stat-num">7,554</span><span class="stat-label">Tests</span></div>
+      <div class="stat"><span class="stat-num">0</span><span class="stat-label">unsafe blocks</span></div>
+      <div class="stat"><span class="stat-num">1</span><span class="stat-label">Dependency</span></div>
+    </div>
+  </section>
+
+  <!-- Code example -->
+  <section class="code-section">
+    <div class="section-inner">
+      <h2>Simple, Expressive API</h2>
+      <div class="code-grid">
+        <div class="code-block">
+          <div class="code-header">Graph Construction &amp; Analysis</div>
+          <pre><code><span class="kw">use</span> rust_igraph::{Graph, pagerank, louvain};
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> g = Graph::from_edges(
+        &amp;[(0,1), (1,2), (2,0), (2,3), (3,4), (4,5), (5,3)],
+        <span class="kw">false</span>, <span class="cn">None</span>
+    ).unwrap();
+
+    <span class="cm">// Centrality analysis</span>
+    <span class="kw">let</span> pr = pagerank(&amp;g).unwrap();
+    println!(<span class="st">"PageRank: {:?}"</span>, pr);
+
+    <span class="cm">// Community detection</span>
+    <span class="kw">let</span> communities = louvain(&amp;g).unwrap();
+    println!(<span class="st">"Modularity: {:.4}"</span>, communities.modularity);
+}</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-header">Method-style API</div>
+          <pre><code><span class="kw">use</span> rust_igraph::Graph;
+
+<span class="kw">let</span> g = Graph::erdos_renyi(1000, 0.01, 42).unwrap();
+
+<span class="cm">// Structural queries</span>
+assert!(g.is_connected().unwrap());
+println!(<span class="st">"Diameter: {:?}"</span>, g.diameter().unwrap());
+println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
+
+<span class="cm">// Centrality &amp; community</span>
+<span class="kw">let</span> pr = g.pagerank().unwrap();
+<span class="kw">let</span> communities = g.louvain().unwrap();
+
+<span class="cm">// Graph algebra</span>
+<span class="kw">let</span> a = Graph::from_edges(&amp;[(0,1)], <span class="kw">false</span>, <span class="cn">None</span>).unwrap();
+<span class="kw">let</span> b = Graph::from_edges(&amp;[(1,2)], <span class="kw">false</span>, <span class="cn">None</span>).unwrap();
+<span class="kw">let</span> union = &amp;a | &amp;b; <span class="cm">// edge union</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature grid -->
+  <section class="features">
+    <div class="section-inner">
+      <h2>Comprehensive Algorithm Coverage</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F50D;</div>
+          <h3>Traversal &amp; Paths</h3>
+          <p>BFS, DFS, Dijkstra, Bellman-Ford, A*, all-pairs shortest paths, widest paths, topological sort</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F4CA;</div>
+          <h3>Centrality</h3>
+          <p>PageRank, betweenness, closeness, eigenvector, HITS, Katz, harmonic, constraint — 15+ measures</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F465;</div>
+          <h3>Community Detection</h3>
+          <p>Louvain, Leiden, label propagation, Walktrap, edge betweenness, fast greedy, fluid, Voronoi</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F500;</div>
+          <h3>Network Flow</h3>
+          <p>Max-flow (push-relabel), min-cut, Gomory-Hu tree, edge/vertex connectivity, disjoint paths</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F9E9;</div>
+          <h3>Isomorphism</h3>
+          <p>VF2 graph/subgraph matching, LAD subgraph, canonical labeling (BLISS), automorphism groups</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F3D7;</div>
+          <h3>Generators &amp; Layout</h3>
+          <p>30+ graph generators, 16 layout engines (FR, KK, DrL, Sugiyama, MDS, UMAP...), spatial algorithms</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison table -->
+  <section class="comparison">
+    <div class="section-inner">
+      <h2>How Does It Compare?</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>rust-igraph</th>
+              <th>petgraph</th>
+              <th>igraph (C/Python)</th>
+              <th>NetworkX</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Algorithm coverage</td>
+              <td><strong>1,200+ APIs</strong></td>
+              <td>~30</td>
+              <td>~850</td>
+              <td>~500</td>
+            </tr>
+            <tr>
+              <td>Safety</td>
+              <td><strong>Zero unsafe</strong></td>
+              <td>Some unsafe</td>
+              <td>C core + FFI</td>
+              <td>Python</td>
+            </tr>
+            <tr>
+              <td>Correctness</td>
+              <td><strong>Cross-validated</strong></td>
+              <td>Independent</td>
+              <td>Reference</td>
+              <td>Independent</td>
+            </tr>
+            <tr>
+              <td>WASM</td>
+              <td><strong>Yes</strong></td>
+              <td>Yes</td>
+              <td>No</td>
+              <td>Pyodide</td>
+            </tr>
+            <tr>
+              <td>Dependencies</td>
+              <td><strong>1 (thiserror)</strong></td>
+              <td>Minimal</td>
+              <td>C/C++ toolchain</td>
+              <td>Heavy</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- WASM callout -->
+  <section class="wasm-callout">
+    <div class="section-inner">
+      <h2>Runs in the Browser</h2>
+      <p>Compile to WASM and run graph algorithms client-side — no server needed. Try it live in the playground.</p>
+      <a href="/playground/" class="btn btn-primary">Open Playground</a>
+    </div>
+  </section>
+
+  <!-- Ecosystem -->
+  <section class="ecosystem">
+    <div class="section-inner">
+      <h2>Ecosystem</h2>
+      <div class="badges">
+        <a href="https://crates.io/crates/rust-igraph"><img alt="crates.io" src="https://img.shields.io/crates/v/rust-igraph.svg?label=crates.io&style=flat-square"></a>
+        <a href="https://docs.rs/rust-igraph"><img alt="docs.rs" src="https://img.shields.io/docsrs/rust-igraph?label=docs.rs&style=flat-square"></a>
+        <a href="https://github.com/Totoro-jam/rust-igraph/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Totoro-jam/rust-igraph/ci.yml?label=CI&style=flat-square"></a>
+        <a href="https://codecov.io/gh/Totoro-jam/rust-igraph"><img alt="codecov" src="https://img.shields.io/codecov/c/github/Totoro-jam/rust-igraph?style=flat-square"></a>
+        <img alt="license" src="https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg?style=flat-square">
+        <img alt="MSRV" src="https://img.shields.io/badge/MSRV-1.85-orange.svg?style=flat-square">
+      </div>
+      <div class="ecosystem-links">
+        <a href="https://github.com/Totoro-jam/rust-igraph">GitHub</a>
+        <a href="/book/">Tutorial &amp; Guide</a>
+        <a href="/rust_igraph/">API Reference</a>
+        <a href="https://docs.rs/rust-igraph">docs.rs</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>rust-igraph is licensed under <a href="https://github.com/Totoro-jam/rust-igraph/blob/main/LICENSE">GPL-2.0-or-later</a>.</p>
+      <p>Built with Rust. Acknowledgements: <a href="https://igraph.org">igraph</a> (C core), <a href="https://github.com/igraph/python-igraph">python-igraph</a>, <a href="https://github.com/igraph/rigraph">rigraph</a>.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="/main.js"></script>
+</body>
+</html>

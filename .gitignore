@@ -47,6 +47,12 @@ venv/
 book/book/                  # mdbook output dir (book/src/ source is tracked)
 docs/_build/
 
+# Website build artifacts
+website/node_modules/
+website/dist/
+website/playground/node_modules/
+website/playground/dist/
+
 # Hook log (not committed)
 .codefuse/tracking/agent_actions.log
 
