@@ -1,9 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
   demoBfs,
+  demoDfs,
   demoPagerank,
   demoComponents,
   demoBetweenness,
+  demoCloseness,
+  demoEigenvector,
   demoLouvain,
   demoInfomap,
   demoSpinglass,
@@ -163,6 +166,61 @@ describe('demoSpinglass', () => {
   });
 });
 
+describe('demoCloseness', () => {
+  it('returns one score per vertex', () => {
+    const result = demoCloseness(4, PATH) as AlgoResultScores;
+    expect(result.scores).toHaveLength(4);
+  });
+
+  it('all scores are non-negative', () => {
+    const result = demoCloseness(3, TRIANGLE) as AlgoResultScores;
+    for (const s of result.scores) {
+      expect(s).toBeGreaterThanOrEqual(0);
+    }
+  });
+});
+
+describe('demoEigenvector', () => {
+  it('returns scores summing to approximately 1', () => {
+    const result = demoEigenvector(3, TRIANGLE) as AlgoResultScores;
+    const sum = result.scores.reduce((a, b) => a + b, 0);
+    expect(sum).toBeCloseTo(1.0, 4);
+  });
+
+  it('returns one score per vertex', () => {
+    const result = demoEigenvector(4, PATH) as AlgoResultScores;
+    expect(result.scores).toHaveLength(4);
+  });
+});
+
+describe('demoDfs', () => {
+  it('visits all vertices in a connected graph', () => {
+    const result = demoDfs(3, TRIANGLE) as AlgoResultOrder;
+    expect(result.order).toHaveLength(3);
+    expect(new Set(result.order)).toEqual(new Set([0, 1, 2]));
+  });
+
+  it('starts from the default source vertex 0', () => {
+    const result = demoDfs(4, PATH) as AlgoResultOrder;
+    expect(result.order[0]).toBe(0);
+  });
+
+  it('respects the source parameter', () => {
+    const result = demoDfs(4, PATH, 3) as AlgoResultOrder;
+    expect(result.order[0]).toBe(3);
+  });
+
+  it('only visits reachable vertices from disconnected graph', () => {
+    const result = demoDfs(4, DISCONNECTED, 0) as AlgoResultOrder;
+    expect(result.order).toEqual([0, 1]);
+  });
+
+  it('handles empty graph', () => {
+    const result = demoDfs(0, []) as AlgoResultOrder;
+    expect(result.order).toEqual([]);
+  });
+});
+
 describe('runDemoAlgo', () => {
   it('dispatches to bfs', () => {
     const result = runDemoAlgo('bfs', 4, PATH, { source: 2 }) as AlgoResultOrder;
@@ -197,6 +255,21 @@ describe('runDemoAlgo', () => {
   it('dispatches to spinglass', () => {
     const result = runDemoAlgo('spinglass', 3, TRIANGLE) as AlgoResultMembership;
     expect(result.nb_clusters).toBeDefined();
+  });
+
+  it('dispatches to closeness', () => {
+    const result = runDemoAlgo('closeness', 4, PATH) as AlgoResultScores;
+    expect(result.scores).toHaveLength(4);
+  });
+
+  it('dispatches to eigenvector', () => {
+    const result = runDemoAlgo('eigenvector', 3, TRIANGLE) as AlgoResultScores;
+    expect(result.scores).toHaveLength(3);
+  });
+
+  it('dispatches to dfs', () => {
+    const result = runDemoAlgo('dfs', 4, PATH, { source: 2 }) as AlgoResultOrder;
+    expect(result.order[0]).toBe(2);
   });
 
   it('falls back to pagerank for unknown algo', () => {
