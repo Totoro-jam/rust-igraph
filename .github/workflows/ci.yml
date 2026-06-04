@@ -119,6 +119,23 @@ jobs:
       - run: cargo check --target wasm32-unknown-unknown --no-default-features
       - run: cargo check --target wasm32-unknown-unknown -p igraph-wasm
 
+  playground:
+    name: playground tests (vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website/playground
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: website/playground/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
   doc:
     name: cargo doc (broken-link-aware)
     runs-on: ubuntu-latest
