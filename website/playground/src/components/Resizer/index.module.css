@@ -13,7 +13,7 @@
 }
 
 .vertical {
-  height: 4px;
+  height: 2px;
   cursor: row-resize;
   border-top: 1px solid var(--border);
 }
