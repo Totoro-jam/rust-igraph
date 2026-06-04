@@ -57,7 +57,7 @@ export type WorkerRequest =
   | { type: 'cancel' };
 
 export type WorkerResponse =
-  | { type: 'ready' }
+  | { type: 'ready'; wasmAvailable: boolean }
   | { type: 'result'; data: RunResult }
   | { type: 'error'; message: string }
   | { type: 'progress'; percent: number };

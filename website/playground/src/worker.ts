@@ -90,7 +90,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   switch (msg.type) {
     case 'init': {
       wasmReady = await initWasm();
-      post({ type: 'ready' });
+      post({ type: 'ready', wasmAvailable: wasmReady });
       break;
     }
 

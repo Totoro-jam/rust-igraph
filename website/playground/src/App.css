@@ -460,6 +460,11 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   color: var(--accent);
 }
 
+.canvas-toolbar button.toolbar-active {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
 .toolbar-divider {
   height: 1px;
   background: var(--border);
@@ -479,10 +484,62 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   font-size: 0.75rem;
   font-family: var(--font-mono);
   line-height: 1.4;
-  white-space: nowrap;
+  white-space: pre;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transform: translate(-50%, -100%);
   margin-top: -12px;
+}
+
+/* Node Selection Panel */
+.canvas-selection-info {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 5;
+  background: var(--toolbar-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0;
+  backdrop-filter: blur(8px);
+  min-width: 160px;
+  max-width: 240px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.selection-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.selection-header button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.selection-header button:hover {
+  color: var(--text);
+}
+
+.canvas-selection-info pre {
+  margin: 0;
+  padding: 6px 8px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  line-height: 1.4;
+  color: var(--text);
+  white-space: pre;
 }
 
 .output {

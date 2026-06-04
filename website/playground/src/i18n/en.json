@@ -46,5 +46,13 @@
   "output.vertex": "vertex {i}: {v}",
   "output.community": "vertex {i}: community {c}",
   "output.component": "vertex {i}: component {c}",
-  "ctrlEnter": "Ctrl+Enter to run"
+  "ctrlEnter": "Ctrl+Enter to run",
+  "zoomIn": "Zoom in",
+  "zoomOut": "Zoom out",
+  "fitView": "Fit to view",
+  "pauseSim": "Pause simulation",
+  "resumeSim": "Resume simulation",
+  "shuffleLayout": "Shuffle layout",
+  "selectedNode": "Selected Node",
+  "exportPng": "Export as PNG"
 }

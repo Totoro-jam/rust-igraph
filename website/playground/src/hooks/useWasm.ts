@@ -24,6 +24,32 @@ export function useWasm(onResult: (result: RunResult) => void) {
   const onResultRef = useRef(onResult);
   onResultRef.current = onResult;
 
+  const pendingRunRef = useRef<{
+    algo: AlgoId;
+    edges: Edge[];
+    directed: boolean;
+    params: AlgoParams;
+  } | null>(null);
+
+  const runDemoFallback = useCallback(
+    (algo: AlgoId, edges: Edge[], _directed: boolean, params: AlgoParams): RunResult | null => {
+      const vcount = getVcount(edges);
+      if (vcount === 0) return null;
+      const t0 = performance.now();
+      try {
+        const coords = layoutFR(vcount, edges, 300);
+        const result = runDemoAlgo(algo, vcount, edges, {
+          damping: params.damping,
+        });
+        const elapsed_ms = performance.now() - t0;
+        return { algo, result, coords, elapsed_ms };
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     const worker = new Worker(
       new URL('../worker.ts', import.meta.url),
@@ -34,16 +60,24 @@ export function useWasm(onResult: (result: RunResult) => void) {
       const msg = e.data;
       switch (msg.type) {
         case 'ready':
-          setWasmAvailable(true);
+          setWasmAvailable(msg.wasmAvailable);
           setStatus('ready');
           break;
         case 'result':
           setStatus('ready');
+          pendingRunRef.current = null;
           onResultRef.current(msg.data);
           break;
-        case 'error':
+        case 'error': {
           setStatus('ready');
+          const pending = pendingRunRef.current;
+          pendingRunRef.current = null;
+          if (pending) {
+            const fallback = runDemoFallback(pending.algo, pending.edges, pending.directed, pending.params);
+            if (fallback) onResultRef.current(fallback);
+          }
           break;
+        }
       }
     };
 
@@ -57,13 +91,13 @@ export function useWasm(onResult: (result: RunResult) => void) {
 
     const timeout = setTimeout(() => {
       setStatus((prev) => (prev === 'loading' ? 'ready' : prev));
-    }, 5000);
+    }, 3000);
 
     return () => {
       clearTimeout(timeout);
       worker.terminate();
     };
-  }, []);
+  }, [runDemoFallback]);
 
   const run = useCallback(
     (
@@ -77,6 +111,7 @@ export function useWasm(onResult: (result: RunResult) => void) {
 
       if (wasmAvailable && WASM_SUPPORTED_ALGOS.has(algo) && workerRef.current) {
         setStatus('running');
+        pendingRunRef.current = { algo, edges, directed, params };
         workerRef.current.postMessage({
           type: 'run',
           algo,
@@ -87,24 +122,15 @@ export function useWasm(onResult: (result: RunResult) => void) {
         return null;
       }
 
-      setStatus('running');
-      const t0 = performance.now();
-
-      try {
-        const coords = layoutFR(vcount, edges, 300);
-        const result = runDemoAlgo(algo, vcount, edges, {
-          damping: params.damping,
-        });
-        const elapsed_ms = performance.now() - t0;
-
-        setStatus('ready');
-        return { algo, result, coords, elapsed_ms };
-      } catch {
-        setStatus('error');
-        return null;
+      const result = runDemoFallback(algo, edges, directed, params);
+      if (result) {
+        return result;
       }
+
+      setStatus('error');
+      return null;
     },
-    [wasmAvailable],
+    [wasmAvailable, runDemoFallback],
   );
 
   return { status, wasmAvailable, run } as const;

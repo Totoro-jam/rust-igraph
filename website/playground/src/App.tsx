@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Header } from './components/Header';
 import { GraphEditor } from './components/GraphEditor';
 import { AlgoPanel } from './components/AlgoPanel';
@@ -115,8 +115,8 @@ export function App() {
 
   const { status, wasmAvailable, run } = useWasm(applyRunResult);
 
-  const edges = parseEdges(edgeText);
-  const vcount = getVcount(edges);
+  const edges = useMemo(() => parseEdges(edgeText), [edgeText]);
+  const vcount = useMemo(() => getVcount(edges), [edges]);
 
   const handlePresetChange = useCallback(
     (id: string) => {

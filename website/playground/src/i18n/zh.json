@@ -46,5 +46,13 @@
   "output.vertex": "顶点 {i}：{v}",
   "output.community": "顶点 {i}：社区 {c}",
   "output.component": "顶点 {i}：分量 {c}",
-  "ctrlEnter": "Ctrl+Enter 运行"
+  "ctrlEnter": "Ctrl+Enter 运行",
+  "zoomIn": "放大",
+  "zoomOut": "缩小",
+  "fitView": "适应视图",
+  "pauseSim": "暂停模拟",
+  "resumeSim": "恢复模拟",
+  "shuffleLayout": "重排布局",
+  "selectedNode": "选中节点",
+  "exportPng": "导出为 PNG"
 }
