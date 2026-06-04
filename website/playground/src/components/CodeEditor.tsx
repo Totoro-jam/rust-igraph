@@ -50,6 +50,16 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, infomap};\n\n${graphLine}\n\nlet result = infomap(&g).unwrap();\nprintln!("Codelength: {:.4}", result.codelength);\nprintln!("Communities: {:?}", result.membership);`;
     case 'spinglass':
       return `use rust_igraph::{Graph, spinglass};\n\n${graphLine}\n\nlet result = spinglass(&g).unwrap();\nprintln!("Modularity: {:.4}", result.modularity);\nprintln!("Communities: {:?}", result.membership);`;
+    case 'label_propagation':
+      return `use rust_igraph::{Graph, label_propagation};\n\n${graphLine}\n\nlet result = label_propagation(&g).unwrap();\nprintln!("Clusters: {}", result.nb_clusters);\nprintln!("Communities: {:?}", result.membership);`;
+    case 'walktrap':
+      return `use rust_igraph::{Graph, walktrap};\n\n${graphLine}\n\nlet result = walktrap(&g).unwrap();\nprintln!("Clusters: {}", result.nb_clusters);\nprintln!("Communities: {:?}", result.membership);`;
+    case 'leiden':
+      return `use rust_igraph::{Graph, leiden};\n\n${graphLine}\n\nlet result = leiden(&g).unwrap();\nprintln!("Quality: {:.4}", result.quality);\nprintln!("Communities: {:?}", result.membership);`;
+    case 'fast_greedy':
+      return `use rust_igraph::{Graph, fast_greedy_modularity};\n\n${graphLine}\n\nlet result = fast_greedy_modularity(&g).unwrap();\nprintln!("Clusters: {}", result.nb_clusters);\nprintln!("Communities: {:?}", result.membership);`;
+    case 'leading_eigenvector':
+      return `use rust_igraph::{Graph, leading_eigenvector};\n\n${graphLine}\n\nlet result = leading_eigenvector(&g, None, None).unwrap();\nprintln!("Modularity: {:.4}", result.modularity);\nprintln!("Communities: {:?}", result.membership);`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }

@@ -67,6 +67,9 @@ function parseResult(
     if (result.codelength != null) {
       badges.push({ label: t('result.codelength'), value: result.codelength.toFixed(4) });
     }
+    if (result.quality != null) {
+      badges.push({ label: t('result.quality'), value: result.quality.toFixed(4) });
+    }
     if (result.nb_clusters != null) {
       badges.push({ label: t('result.clusters'), value: String(result.nb_clusters) });
     }

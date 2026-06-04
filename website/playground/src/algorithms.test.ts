@@ -10,6 +10,11 @@ import {
   demoLouvain,
   demoInfomap,
   demoSpinglass,
+  demoLabelPropagation,
+  demoWalktrap,
+  demoLeiden,
+  demoFastGreedy,
+  demoLeadingEigenvector,
   runDemoAlgo,
   layoutFR,
 } from './algorithms';
@@ -221,6 +226,49 @@ describe('demoDfs', () => {
   });
 });
 
+describe('demoLabelPropagation', () => {
+  it('returns membership and nb_clusters', () => {
+    const result = demoLabelPropagation(3, TRIANGLE) as AlgoResultMembership;
+    expect(result.membership).toHaveLength(3);
+    expect(result.nb_clusters).toBeDefined();
+  });
+});
+
+describe('demoWalktrap', () => {
+  it('returns membership and modularity', () => {
+    const result = demoWalktrap(3, TRIANGLE) as AlgoResultMembership;
+    expect(result.membership).toHaveLength(3);
+    expect(result.modularity).toBeDefined();
+    expect(result.nb_clusters).toBeDefined();
+  });
+});
+
+describe('demoLeiden', () => {
+  it('returns membership and quality', () => {
+    const result = demoLeiden(3, TRIANGLE) as AlgoResultMembership;
+    expect(result.membership).toHaveLength(3);
+    expect(result.quality).toBeDefined();
+    expect(result.nb_clusters).toBeDefined();
+  });
+});
+
+describe('demoFastGreedy', () => {
+  it('returns membership and modularity', () => {
+    const result = demoFastGreedy(3, TRIANGLE) as AlgoResultMembership;
+    expect(result.membership).toHaveLength(3);
+    expect(result.modularity).toBeDefined();
+    expect(result.nb_clusters).toBeDefined();
+  });
+});
+
+describe('demoLeadingEigenvector', () => {
+  it('returns membership and modularity', () => {
+    const result = demoLeadingEigenvector(3, TRIANGLE) as AlgoResultMembership;
+    expect(result.membership).toHaveLength(3);
+    expect(result.modularity).toBeDefined();
+  });
+});
+
 describe('runDemoAlgo', () => {
   it('dispatches to bfs', () => {
     const result = runDemoAlgo('bfs', 4, PATH, { source: 2 }) as AlgoResultOrder;
@@ -270,6 +318,31 @@ describe('runDemoAlgo', () => {
   it('dispatches to dfs', () => {
     const result = runDemoAlgo('dfs', 4, PATH, { source: 2 }) as AlgoResultOrder;
     expect(result.order[0]).toBe(2);
+  });
+
+  it('dispatches to label_propagation', () => {
+    const result = runDemoAlgo('label_propagation', 3, TRIANGLE) as AlgoResultMembership;
+    expect(result.nb_clusters).toBeDefined();
+  });
+
+  it('dispatches to walktrap', () => {
+    const result = runDemoAlgo('walktrap', 3, TRIANGLE) as AlgoResultMembership;
+    expect(result.modularity).toBeDefined();
+  });
+
+  it('dispatches to leiden', () => {
+    const result = runDemoAlgo('leiden', 3, TRIANGLE) as AlgoResultMembership;
+    expect(result.quality).toBeDefined();
+  });
+
+  it('dispatches to fast_greedy', () => {
+    const result = runDemoAlgo('fast_greedy', 3, TRIANGLE) as AlgoResultMembership;
+    expect(result.modularity).toBeDefined();
+  });
+
+  it('dispatches to leading_eigenvector', () => {
+    const result = runDemoAlgo('leading_eigenvector', 3, TRIANGLE) as AlgoResultMembership;
+    expect(result.modularity).toBeDefined();
   });
 
   it('falls back to pagerank for unknown algo', () => {

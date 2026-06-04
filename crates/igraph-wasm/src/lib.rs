@@ -1,7 +1,8 @@
 use rust_igraph::{
     FrParams, Graph, VertexId, betweenness, bfs, closeness, connected_components, dfs,
-    dijkstra_distances, eigenvector_centrality, infomap, layout_fruchterman_reingold, louvain,
-    pagerank, spinglass,
+    dijkstra_distances, eigenvector_centrality, fast_greedy_modularity, infomap, label_propagation,
+    layout_fruchterman_reingold, leading_eigenvector, leiden, louvain, pagerank, spinglass,
+    walktrap,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -59,6 +60,39 @@ struct ClosenessResult {
 #[derive(Serialize)]
 struct DfsResult {
     order: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct LabelPropOutput {
+    membership: Vec<u32>,
+    nb_clusters: u32,
+}
+
+#[derive(Serialize)]
+struct WalktrapOutput {
+    membership: Vec<u32>,
+    nb_clusters: u32,
+    modularity: f64,
+}
+
+#[derive(Serialize)]
+struct LeidenOutput {
+    membership: Vec<u32>,
+    quality: f64,
+    nb_clusters: u32,
+}
+
+#[derive(Serialize)]
+struct FastGreedyOutput {
+    membership: Vec<u32>,
+    nb_clusters: u32,
+    modularity: f64,
+}
+
+#[derive(Serialize)]
+struct LeadingEigenvectorOutput {
+    membership: Vec<u32>,
+    modularity: f64,
 }
 
 #[derive(Serialize)]
@@ -193,6 +227,60 @@ impl WasmGraph {
     pub fn dfs(&self, root: u32) -> Result<String, JsError> {
         let order = dfs(&self.inner, root).map_err(|e| JsError::new(&e.to_string()))?;
         let result = DfsResult { order };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "labelPropagation")]
+    pub fn label_propagation(&self) -> Result<String, JsError> {
+        let r = label_propagation(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LabelPropOutput {
+            membership: r.membership,
+            nb_clusters: r.nb_clusters,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn walktrap(&self) -> Result<String, JsError> {
+        let r = walktrap(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let best_mod = r.modularity.last().copied().unwrap_or(0.0);
+        let result = WalktrapOutput {
+            membership: r.membership,
+            nb_clusters: r.nb_clusters,
+            modularity: best_mod,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn leiden(&self) -> Result<String, JsError> {
+        let r = leiden(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LeidenOutput {
+            membership: r.membership,
+            quality: r.quality,
+            nb_clusters: r.nb_clusters,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "fastGreedy")]
+    pub fn fast_greedy(&self) -> Result<String, JsError> {
+        let r = fast_greedy_modularity(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let best_mod = r.modularity.last().copied().unwrap_or(0.0);
+        let result = FastGreedyOutput {
+            membership: r.membership,
+            nb_clusters: r.nb_clusters,
+            modularity: best_mod,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "leadingEigenvector")]
+    pub fn leading_eigenvector(&self) -> Result<String, JsError> {
+        let r = leading_eigenvector(&self.inner, None, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LeadingEigenvectorOutput {
+            membership: r.membership,
+            modularity: r.modularity,
+        };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 

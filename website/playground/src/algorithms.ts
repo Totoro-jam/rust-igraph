@@ -234,6 +234,31 @@ export function demoDfs(vcount: number, edges: Edge[], source = 0): AlgoResult {
   return { order };
 }
 
+export function demoLabelPropagation(vcount: number, edges: Edge[]): AlgoResult {
+  const result = demoComponents(vcount, edges) as { membership: number[]; count: number };
+  return { membership: result.membership, nb_clusters: result.count };
+}
+
+export function demoWalktrap(vcount: number, edges: Edge[]): AlgoResult {
+  const result = demoComponents(vcount, edges) as { membership: number[]; count: number };
+  return { membership: result.membership, nb_clusters: result.count, modularity: 0 };
+}
+
+export function demoLeiden(vcount: number, edges: Edge[]): AlgoResult {
+  const result = demoComponents(vcount, edges) as { membership: number[]; count: number };
+  return { membership: result.membership, nb_clusters: result.count, quality: 0 };
+}
+
+export function demoFastGreedy(vcount: number, edges: Edge[]): AlgoResult {
+  const result = demoComponents(vcount, edges) as { membership: number[]; count: number };
+  return { membership: result.membership, nb_clusters: result.count, modularity: 0 };
+}
+
+export function demoLeadingEigenvector(vcount: number, edges: Edge[]): AlgoResult {
+  const result = demoComponents(vcount, edges) as { membership: number[]; count: number };
+  return { membership: result.membership, modularity: 0 };
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
@@ -261,6 +286,16 @@ export function runDemoAlgo(
       return demoInfomap(vcount, edges);
     case 'spinglass':
       return demoSpinglass(vcount, edges);
+    case 'label_propagation':
+      return demoLabelPropagation(vcount, edges);
+    case 'walktrap':
+      return demoWalktrap(vcount, edges);
+    case 'leiden':
+      return demoLeiden(vcount, edges);
+    case 'fast_greedy':
+      return demoFastGreedy(vcount, edges);
+    case 'leading_eigenvector':
+      return demoLeadingEigenvector(vcount, edges);
     default:
       return demoPagerank(vcount, edges);
   }

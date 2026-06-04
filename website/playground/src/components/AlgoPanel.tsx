@@ -11,6 +11,11 @@ const ALGO_LIST: AlgoId[] = [
   'components',
   'infomap',
   'spinglass',
+  'label_propagation',
+  'walktrap',
+  'leiden',
+  'fast_greedy',
+  'leading_eigenvector',
 ];
 
 interface AlgoPanelProps {

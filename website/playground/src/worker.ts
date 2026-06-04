@@ -15,6 +15,11 @@ interface WasmGraphInstance {
   connectedComponents(): string;
   infomap(): string;
   spinglass(): string;
+  labelPropagation(): string;
+  walktrap(): string;
+  leiden(): string;
+  fastGreedy(): string;
+  leadingEigenvector(): string;
   layoutFr(niter: number): string;
   free(): void;
 }
@@ -89,6 +94,21 @@ function runWasm(
         break;
       case 'spinglass':
         resultJson = graph.spinglass();
+        break;
+      case 'label_propagation':
+        resultJson = graph.labelPropagation();
+        break;
+      case 'walktrap':
+        resultJson = graph.walktrap();
+        break;
+      case 'leiden':
+        resultJson = graph.leiden();
+        break;
+      case 'fast_greedy':
+        resultJson = graph.fastGreedy();
+        break;
+      case 'leading_eigenvector':
+        resultJson = graph.leadingEigenvector();
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);

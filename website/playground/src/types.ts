@@ -16,7 +16,12 @@ export type AlgoId =
   | 'dfs'
   | 'components'
   | 'infomap'
-  | 'spinglass';
+  | 'spinglass'
+  | 'label_propagation'
+  | 'walktrap'
+  | 'leiden'
+  | 'fast_greedy'
+  | 'leading_eigenvector';
 
 export interface AlgoParams {
   source?: number;
@@ -33,6 +38,7 @@ export interface AlgoResultMembership {
   codelength?: number;
   count?: number;
   nb_clusters?: number;
+  quality?: number;
 }
 
 export interface AlgoResultOrder {
