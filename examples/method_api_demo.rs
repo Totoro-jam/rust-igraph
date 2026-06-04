@@ -7,6 +7,13 @@
 //! Run: `cargo run --example method_api_demo`
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    demo_core()?;
+    demo_advanced()?;
+    println!("Done — method-style API demonstrated across 11 categories.");
+    Ok(())
+}
+
+fn demo_core() -> Result<(), Box<dyn std::error::Error>> {
     // --- 1. Construction ---
     let g = rust_igraph::Graph::erdos_renyi(50, 0.1, 42)?;
     println!("=== Random Graph (Erdos-Renyi n=50, p=0.1) ===");
@@ -81,6 +88,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     println!();
 
+    Ok(())
+}
+
+fn demo_advanced() -> Result<(), Box<dyn std::error::Error>> {
     // --- 7. Isomorphism ---
     let k4_first = rust_igraph::full_graph(4, false, false)?;
     let k4_second = rust_igraph::full_graph(4, false, false)?;
@@ -101,6 +112,36 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     println!();
 
-    println!("Done — method-style API demonstrated across 8 categories.");
+    // --- 9. Flow / connectivity ---
+    let flow_g =
+        rust_igraph::Graph::from_edges(&[(0, 1), (0, 2), (1, 3), (2, 3), (3, 4)], false, None)?;
+    println!(
+        "s-t edge connectivity (0→4): {}",
+        flow_g.st_edge_connectivity(0, 4)?
+    );
+    println!(
+        "Vertex-disjoint paths (0→3): {}",
+        flow_g.vertex_disjoint_paths(0, 3)?
+    );
+    println!();
+
+    // --- 10. Subset centrality ---
+    let sub_g = rust_igraph::Graph::from_edges(&[(0, 1), (1, 2), (2, 3), (3, 4)], false, None)?;
+    let bsub = sub_g.betweenness_subset(&[0, 1], &[3, 4])?;
+    let ebsub = sub_g.edge_betweenness_subset(&[0, 1], &[3, 4])?;
+    println!("Betweenness subset (sources=[0,1], targets=[3,4]): {bsub:.2?}");
+    println!("Edge betweenness subset: {ebsub:.2?}");
+
+    let same = sub_g.is_same_graph(&sub_g);
+    println!("Graph same as itself: {same}");
+    println!();
+
+    // --- 11. BLISS isomorphism ---
+    println!(
+        "K4 isomorphic via BLISS: {}",
+        k4_first.isomorphic_bliss(&k4_second, None, None)?.iso
+    );
+    println!();
+
     Ok(())
 }

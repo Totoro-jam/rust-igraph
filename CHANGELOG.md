@@ -44,6 +44,14 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   attributes, I/O, isomorphism, operators, and iteration patterns.
 - `examples/social_network_demo.rs` expanded to demonstrate all 8 I/O
   format round-trips (19 capabilities total).
+- **Graph convenience methods batch 8** — 10 new method-style delegates
+  bringing the total to 417 `pub fn` methods on `Graph`:
+  `st_edge_connectivity`, `vertex_disjoint_paths`, `isomorphic_bliss`,
+  `subisomorphic_lad`, `betweenness_subset`, `edge_betweenness_subset`,
+  `edge_betweenness_community_weighted`, `modularity_matrix`,
+  `is_same_graph`, `mean_distance_weighted`.
+- `method_api_demo` expanded from 8 to 11 categories (flow/connectivity,
+  subset centrality, BLISS isomorphism).
 
 ### Changed
 - mdBook introduction updated to reflect current project state (305+ AWUs,
