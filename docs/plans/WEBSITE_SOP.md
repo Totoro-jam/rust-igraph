@@ -89,6 +89,8 @@ Actions run via `gh run rerun <id>`.
 | `cargo install --version` needs full semver | Use `0.4.51` not `0.4`; partial versions cause `cargo install` to fail in CI |
 | `node_modules/` committed | `.gitignore` covers this; verify before `git add` |
 | Forgetting to update i18n strings | Both `en.json` and `zh.json` must be updated for every user-facing string |
+| **Rustdoc 样式丢失** | `cp -r target/doc/* _site/` 复制完整 rustdoc 输出（含 `static.files/`、`src/`、`search.index/`），不要只复制 `rust_igraph/` 子目录。rustdoc HTML 通过 `../static.files/` 相对路径引用 CSS/JS (fixed 2026-06-04) |
+| 站点组装顺序 | 先 rustdoc（底层），再 website overlay（更高优先级），最后 mdBook。避免 rustdoc 根目录文件覆盖 landing page |
 
 ## 6. Dependency policy
 
