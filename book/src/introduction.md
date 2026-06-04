@@ -8,11 +8,11 @@ functions), validated continuously against three official implementations:
 - **python-igraph** — `tests/test_*.py`
 - **R-igraph** (`rigraph`) — `tests/testthat/test-*.R`
 
-> **Status**: 311 algorithm work units complete across Phases 1–6, 7, and 9.
-> 388 public re-exports + 420 `Graph` methods, 7,554 tests
+> **Status**: 306 algorithm work units complete across Phases 1–7 and 9.
+> 687 public functions, 7,574 tests
 > (unit + integration + doctest), 115 runnable examples. WASM-compatible (`wasm32-unknown-unknown`). See
-> [the master plan](../../docs/plans/MASTER_PLAN.md) for the roadmap, and
-> [the algorithm tracker](../../.codefuse/tracking/ALGORITHMS.md) for
+> [the master plan](https://github.com/Totoro-jam/rust-igraph/blob/main/docs/plans/MASTER_PLAN.md) for the roadmap, and
+> [the algorithm tracker](https://github.com/Totoro-jam/rust-igraph/blob/main/.codefuse/tracking/ALGORITHMS.md) for
 > per-algorithm progress.
 
 ## What's implemented
@@ -44,7 +44,7 @@ bindings need a Rust home where:
 ## License
 
 GPL-2.0-or-later, matching upstream igraph. The
-[architecture decision record](../../.codefuse/tracking/ARCHITECTURE.md)
+[architecture decision record](https://github.com/Totoro-jam/rust-igraph/blob/main/.codefuse/tracking/ARCHITECTURE.md)
 explains why.
 
 ## How this site is built

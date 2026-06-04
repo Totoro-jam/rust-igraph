@@ -11,9 +11,8 @@ Build locally:
 cargo doc --no-deps --open
 ```
 
-> **v0.5.0**: 388 public re-exports, 420 `Graph` methods, and
-> 1,255 total public items spanning traversal, shortest paths, centrality,
-> community detection, connectivity, flow, isomorphism, graph generators,
-> layouts, spatial algorithms, and I/O. See
-> [the algorithm tracker](../../.codefuse/tracking/ALGORITHMS.md) for
+> **v0.5.0**: 687 public functions spanning traversal, shortest paths,
+> centrality, community detection, connectivity, flow, isomorphism, graph
+> generators, layouts, spatial algorithms, and I/O. See
+> [the algorithm tracker](https://github.com/Totoro-jam/rust-igraph/blob/main/.codefuse/tracking/ALGORITHMS.md) for
 > per-algorithm status.

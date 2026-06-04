@@ -60,8 +60,8 @@
   <section class="numbers">
     <div class="numbers-inner">
       <div class="stat"><span class="stat-num">1,200+</span><span class="stat-label">Public APIs</span></div>
-      <div class="stat"><span class="stat-num">311</span><span class="stat-label">Algorithms</span></div>
-      <div class="stat"><span class="stat-num">7,554</span><span class="stat-label">Tests</span></div>
+      <div class="stat"><span class="stat-num">306</span><span class="stat-label">Algorithms</span></div>
+      <div class="stat"><span class="stat-num">7,574</span><span class="stat-label">Tests</span></div>
       <div class="stat"><span class="stat-num">0</span><span class="stat-label">unsafe blocks</span></div>
       <div class="stat"><span class="stat-num">1</span><span class="stat-label">Dependency</span></div>
     </div>
@@ -171,39 +171,39 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
           </thead>
           <tbody>
             <tr>
-              <td>Algorithm coverage</td>
+              <td>Algorithm scope</td>
               <td><strong>1,200+ APIs</strong></td>
-              <td>~30</td>
-              <td>~850</td>
+              <td>~50 (composable)</td>
+              <td>~850 (reference)</td>
               <td>~500</td>
             </tr>
             <tr>
               <td>Safety</td>
               <td><strong>Zero unsafe</strong></td>
-              <td>Some unsafe</td>
-              <td>C core + FFI</td>
-              <td>Python</td>
+              <td>Minimal unsafe</td>
+              <td>C core + bindings</td>
+              <td>Memory-safe (Python)</td>
             </tr>
             <tr>
-              <td>Correctness</td>
-              <td><strong>Cross-validated</strong></td>
-              <td>Independent</td>
-              <td>Reference</td>
-              <td>Independent</td>
+              <td>Validation</td>
+              <td><strong>Cross-validated</strong> vs igraph C/py/R</td>
+              <td>Independent tests</td>
+              <td>Reference impl</td>
+              <td>Independent tests</td>
             </tr>
             <tr>
               <td>WASM</td>
-              <td><strong>Yes</strong></td>
-              <td>Yes</td>
-              <td>No</td>
-              <td>Pyodide</td>
+              <td><strong>Native</strong></td>
+              <td>Native</td>
+              <td>Not available</td>
+              <td>Via Pyodide</td>
             </tr>
             <tr>
               <td>Dependencies</td>
-              <td><strong>1 (thiserror)</strong></td>
+              <td><strong>1</strong> (thiserror)</td>
               <td>Minimal</td>
-              <td>C/C++ toolchain</td>
-              <td>Heavy</td>
+              <td>C/C++ build toolchain</td>
+              <td>NumPy + SciPy</td>
             </tr>
           </tbody>
         </table>
