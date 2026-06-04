@@ -82,6 +82,12 @@ export interface AlgoResultStats {
   girth: number;
   triangles: number;
   is_bipartite: boolean;
+  density?: number | null;
+  radius?: number | null;
+  mean_distance?: number | null;
+  mean_degree?: number | null;
+  assortativity?: number | null;
+  reciprocity?: number | null;
 }
 
 export interface AlgoResultScalar {

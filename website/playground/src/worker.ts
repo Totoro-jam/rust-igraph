@@ -40,6 +40,15 @@ interface WasmGraphInstance {
   canonicalPermutation(): string;
   countAutomorphisms(): string;
   isomorphicBliss(other: WasmGraphInstance): string;
+  coreness(): string;
+  eccentricity(): string;
+  density(): string;
+  radius(): string;
+  meanDistance(): string;
+  meanDegree(): string;
+  assortativityDegree(): string;
+  constraint(): string;
+  reciprocity(): string;
   layoutFr(niter: number): string;
   layoutKamadaKawai(): string;
   layoutCircle(): string;
@@ -181,9 +190,25 @@ function runWasm(
         resultJson = graph.dijkstra(params.source ?? 0, weights);
         break;
       }
-      case 'graph_stats':
-        resultJson = graph.graphStats();
+      case 'graph_stats': {
+        const stats = JSON.parse(graph.graphStats());
+        const densityRes = JSON.parse(graph.density());
+        const radiusRes = JSON.parse(graph.radius());
+        const meanDistRes = JSON.parse(graph.meanDistance());
+        const meanDegRes = JSON.parse(graph.meanDegree());
+        const assortRes = JSON.parse(graph.assortativityDegree());
+        const recipRes = JSON.parse(graph.reciprocity());
+        resultJson = JSON.stringify({
+          ...stats,
+          density: densityRes.density,
+          radius: radiusRes.radius,
+          mean_distance: meanDistRes.mean_distance,
+          mean_degree: meanDegRes.mean_degree,
+          assortativity: assortRes.assortativity,
+          reciprocity: recipRes.reciprocity,
+        });
         break;
+      }
       case 'max_flow':
         resultJson = graph.maxFlow(params.source ?? 0, params.target ?? 1);
         break;

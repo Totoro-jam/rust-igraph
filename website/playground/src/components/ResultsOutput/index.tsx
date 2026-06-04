@@ -124,6 +124,24 @@ function parseResult(
     badges.push({ label: t('result.connected'), value: result.is_connected ? 'Yes' : 'No' });
     badges.push({ label: t('result.bipartite'), value: result.is_bipartite ? 'Yes' : 'No' });
     badges.push({ label: t('result.directedProp'), value: result.is_directed ? 'Yes' : 'No' });
+    if (result.density != null) {
+      badges.push({ label: t('result.density'), value: (result.density as number).toFixed(4) });
+    }
+    if (result.radius != null) {
+      badges.push({ label: t('result.radius'), value: String(result.radius) });
+    }
+    if (result.mean_distance != null) {
+      badges.push({ label: t('result.meanDistance'), value: (result.mean_distance as number).toFixed(4) });
+    }
+    if (result.mean_degree != null) {
+      badges.push({ label: t('result.meanDegree'), value: (result.mean_degree as number).toFixed(4) });
+    }
+    if (result.assortativity != null) {
+      badges.push({ label: t('result.assortativity'), value: (result.assortativity as number).toFixed(4) });
+    }
+    if (result.reciprocity != null) {
+      badges.push({ label: t('result.reciprocity'), value: (result.reciprocity as number).toFixed(4) });
+    }
   } else if ('colors' in result) {
     const colorResult = result as { colors: number[]; chromatic: number };
     badges.push({ label: t('result.chromatic'), value: String(colorResult.chromatic), accent: true });
