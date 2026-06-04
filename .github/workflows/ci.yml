@@ -117,6 +117,7 @@ jobs:
         with: { targets: wasm32-unknown-unknown }
       - uses: Swatinem/rust-cache@v2
       - run: cargo check --target wasm32-unknown-unknown --no-default-features
+      - run: cargo check --target wasm32-unknown-unknown -p igraph-wasm
 
   doc:
     name: cargo doc (broken-link-aware)

@@ -44,7 +44,8 @@ __pycache__/
 venv/
 
 # Doc build output
-book/book/                  # mdbook output dir (book/src/ source is tracked)
+# mdbook output dir (book/src/ source is tracked)
+book/book/
 docs/_build/
 
 # Website build artifacts

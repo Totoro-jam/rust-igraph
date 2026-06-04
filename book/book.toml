@@ -1,0 +1,14 @@
+[book]
+title = "rust-igraph Guide"
+authors = ["Totoro-jam"]
+language = "en"
+src = "src"
+
+[output.html]
+git-repository-url = "https://github.com/Totoro-jam/rust-igraph"
+site-url = "/rust-igraph/book/"
+additional-js = ["theme/redirect-logo.js"]
+
+[output.html.fold]
+enable = true
+level = 1
