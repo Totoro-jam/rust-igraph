@@ -40,17 +40,22 @@
 //! leaves. Crucially, **every leaf whose certificate equals the canonical
 //! one yields a distinct automorphism, and conversely** — so `|Aut(G)|` is
 //! exactly the number of such leaves and the automorphisms are recovered by
-//! composing each maximal leaf's labeling with the canonical one. This makes
-//! the count provably correct without the subtle incremental group-order
-//! bookkeeping that optimized solvers use.
+//! composing each maximal leaf's labeling with the canonical one.
+//!
+//! Generators are collected on-the-fly using orbit tracking: when a
+//! matching leaf produces an automorphism that merges previously-separate
+//! orbits, it is added to the generator set. The generator set is capped at
+//! `n` elements; after that, only orbit-merging automorphisms are added
+//! (O(n) generators always suffice by Schreier's lemma). This avoids the
+//! expensive full-group enumeration that a naive greedy approach would need.
 //!
 //! # Scope (v1)
 //!
 //! Simple graphs (directed and undirected) with optional vertex colours,
 //! self-loops allowed. Multi-edges are rejected (bliss does not support them
-//! either). The search explores the full I-R tree without orbit pruning;
-//! this is robust and exact, and fast for the small/structured graphs these
-//! functions are used on.
+//! either). The search explores the full I-R tree; orbit pruning is used
+//! within the generator-extraction phase but the full tree is enumerated for
+//! group-order correctness.
 
 // Vertex indices are bounded by `vcount`, which fits `u32` by the `Graph`
 // contract; the `as u32` conversions when packing results therefore cannot
@@ -245,11 +250,38 @@ fn certificate(lab: &[usize], adj: &Adj) -> Vec<u64> {
 struct Search<'a> {
     adj: &'a Adj,
     best_cert: Option<Vec<u64>>,
-    /// Leaf labelings (position → vertex) achieving `best_cert`.
-    best_labs: Vec<Vec<usize>>,
+    /// The first leaf labeling (position → vertex) achieving `best_cert`.
+    canon_lab: Option<Vec<usize>>,
+    /// Number of leaves whose certificate equals `best_cert` (= `|Aut(G)|`).
+    leaf_count: usize,
+    /// Automorphism generators collected on-the-fly.
+    generators: Vec<Vec<u32>>,
+    /// Union-find parent array for orbit tracking during generator selection.
+    uf_parent: Vec<usize>,
 }
 
 impl Search<'_> {
+    fn uf_find(&mut self, mut v: usize) -> usize {
+        let mut root = v;
+        while self.uf_parent[root] != root {
+            root = self.uf_parent[root];
+        }
+        while v != root {
+            let next = self.uf_parent[v];
+            self.uf_parent[v] = root;
+            v = next;
+        }
+        root
+    }
+
+    fn uf_union(&mut self, a: usize, b: usize) {
+        let ra = self.uf_find(a);
+        let rb = self.uf_find(b);
+        if ra != rb {
+            self.uf_parent[ra] = rb;
+        }
+    }
+
     fn recurse(&mut self, mut color: Vec<usize>) {
         refine(&mut color, self.adj);
         let n = self.adj.n;
@@ -265,14 +297,23 @@ impl Search<'_> {
             match &self.best_cert {
                 None => {
                     self.best_cert = Some(cert);
-                    self.best_labs = vec![lab];
+                    self.canon_lab = Some(lab);
+                    self.leaf_count = 1;
+                    self.generators.clear();
+                    self.uf_parent = (0..n).collect();
                 }
                 Some(bc) => match cert.cmp(bc) {
                     std::cmp::Ordering::Greater => {
                         self.best_cert = Some(cert);
-                        self.best_labs = vec![lab];
+                        self.canon_lab = Some(lab);
+                        self.leaf_count = 1;
+                        self.generators.clear();
+                        self.uf_parent = (0..n).collect();
                     }
-                    std::cmp::Ordering::Equal => self.best_labs.push(lab),
+                    std::cmp::Ordering::Equal => {
+                        self.leaf_count += 1;
+                        self.record_automorphism(&lab);
+                    }
                     std::cmp::Ordering::Less => {}
                 },
             }
@@ -286,19 +327,46 @@ impl Search<'_> {
         }
         let target = (0..k).find(|&c| sizes[c] > 1).unwrap_or(0);
         let members: Vec<usize> = (0..n).filter(|&v| color[v] == target).collect();
-        for v in members {
+        for &v in &members {
             let child = individualize(&color, target, v);
             self.recurse(child);
+        }
+    }
+
+    fn record_automorphism(&mut self, lab: &[usize]) {
+        let n = self.adj.n;
+        let canon = match &self.canon_lab {
+            Some(c) => c,
+            None => return,
+        };
+        let mut linv = vec![0usize; n];
+        for (pos, &v) in lab.iter().enumerate() {
+            linv[v] = pos;
+        }
+        let phi: Vec<u32> = (0..n).map(|v| canon[linv[v]] as u32).collect();
+
+        // Add as generator if it merges previously-separate orbits, or if we
+        // have fewer than n generators (O(n) always suffice).
+        let merges_orbits = (0..n).any(|v| self.uf_find(v) != self.uf_find(phi[v] as usize));
+
+        if merges_orbits || self.generators.len() < n {
+            for v in 0..n {
+                self.uf_union(v, phi[v] as usize);
+            }
+            self.generators.push(phi);
         }
     }
 }
 
 /// Compose `g` after `p`: `(g ∘ p)[v] = g[p[v]]`.
+#[cfg(test)]
 fn compose(g: &[u32], p: &[u32]) -> Vec<u32> {
     p.iter().map(|&pv| g[pv as usize]).collect()
 }
 
 /// All permutations of the group generated by `gens` (closure from identity).
+/// Used only in tests to verify generator correctness.
+#[cfg(test)]
 fn group_closure(gens: &[Vec<u32>], n: usize) -> HashSet<Vec<u32>> {
     let mut set: HashSet<Vec<u32>> = HashSet::new();
     let id: Vec<u32> = (0..n as u32).collect();
@@ -345,21 +413,26 @@ pub(crate) fn canonicalize(
     let mut search = Search {
         adj: &adj,
         best_cert: None,
-        best_labs: Vec::new(),
+        canon_lab: None,
+        leaf_count: 0,
+        generators: Vec::new(),
+        uf_parent: (0..n).collect(),
     };
     search.recurse(init_color);
 
     // The null graph yields a single empty leaf.
-    if search.best_labs.is_empty() {
-        return Ok(Canonicalization {
-            labeling: Vec::new(),
-            generators: Vec::new(),
-            group_order: 1.0,
-            certificate: Vec::new(),
-        });
-    }
+    let canon = match &search.canon_lab {
+        Some(lab) => lab,
+        None => {
+            return Ok(Canonicalization {
+                labeling: Vec::new(),
+                generators: Vec::new(),
+                group_order: 1.0,
+                certificate: Vec::new(),
+            });
+        }
+    };
 
-    let canon = &search.best_labs[0];
     let canon_certificate = search.best_cert.clone().unwrap_or_default();
     // labeling[vertex] = canonical position.
     let mut labeling = vec![0u32; n];
@@ -367,38 +440,13 @@ pub(crate) fn canonicalize(
         labeling[v] = pos as u32;
     }
 
-    // Each maximal leaf L gives the automorphism phi[L[i]] = canon[i], i.e.
-    // phi[v] = canon[pos_in_L(v)].
     // f64 group order: exact up to 2^53, intentionally lossy beyond (documented).
     #[allow(clippy::cast_precision_loss)]
-    let group_order = search.best_labs.len() as f64;
-    let mut auts: Vec<Vec<u32>> = Vec::with_capacity(search.best_labs.len());
-    for lab in &search.best_labs {
-        let mut linv = vec![0usize; n];
-        for (pos, &v) in lab.iter().enumerate() {
-            linv[v] = pos;
-        }
-        let phi: Vec<u32> = (0..n).map(|v| canon[linv[v]] as u32).collect();
-        auts.push(phi);
-    }
-
-    // Greedy generating set: add automorphisms until they generate everything.
-    let total = auts.len();
-    let mut generators: Vec<Vec<u32>> = Vec::new();
-    let mut closure = group_closure(&generators, n);
-    for aut in &auts {
-        if closure.len() == total {
-            break;
-        }
-        if !closure.contains(aut) {
-            generators.push(aut.clone());
-            closure = group_closure(&generators, n);
-        }
-    }
+    let group_order = search.leaf_count as f64;
 
     Ok(Canonicalization {
         labeling,
-        generators,
+        generators: search.generators,
         group_order,
         certificate: canon_certificate,
     })
