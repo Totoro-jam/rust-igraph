@@ -90,8 +90,8 @@ let g = Graph::try_from(vec![(0u32, 1), (1, 2), (2, 0)].as_slice()).unwrap();
 let g = Graph::from_edge_list_str("0 1\n1 2\n2 0").unwrap();
 
 // Classic generators
-let k5 = rust_igraph::full_graph(5, false).unwrap();
-let ring = rust_igraph::cycle_graph(10, false).unwrap();
+let k5 = rust_igraph::full_graph(5, false, false).unwrap();
+let ring = rust_igraph::cycle_graph(10, false, false).unwrap();
 ```
 
 ### Graph algebra (operator overloading)
@@ -185,8 +185,8 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ## Project status
 
-> **Alpha** (`v0.5.0-alpha`) — 419 algorithms implemented and tested across all major
-> categories. The API is stabilizing but may change before `v1.0.0`.
+> **Alpha** (`v0.5.0-alpha.3`) — 306 algorithm work units complete, 387 public
+> re-exports + 417 Graph methods, 7,500+ tests. API stabilizing before `v1.0.0`.
 
 | Category | Status |
 |----------|--------|
@@ -207,7 +207,7 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ```bash
 cargo build                          # build
-cargo test                           # fast test suite (7,200+ tests)
+cargo test                           # fast test suite (7,500+ tests)
 cargo test --all-features            # full suite with oracle + proptests
 cargo clippy -- -D warnings          # lint
 cargo doc --no-deps --open           # browse API docs locally
