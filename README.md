@@ -213,7 +213,7 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ```bash
 cargo build                          # build
-cargo test                           # fast test suite (8,386 tests)
+cargo test                           # fast test suite (8,494 tests)
 cargo test --all-features            # full suite with oracle + proptests
 cargo clippy -- -D warnings          # lint
 cargo doc --no-deps --open           # browse API docs locally
