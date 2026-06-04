@@ -359,12 +359,12 @@ Or revert the commit and push — Pages redeploys automatically.
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>rust-igraph — Graph Algorithms in Rust & WASM</title>
 <meta name="description" content="Pure-Rust graph algorithm library.
-  1200+ APIs, zero unsafe, runs natively and in the browser via WASM.">
+  1,297 APIs, zero unsafe, runs natively and in the browser via WASM.">
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="rust-igraph">
-<meta property="og:description" content="1200+ graph algorithms.
+<meta property="og:description" content="1,297 graph algorithms.
   Zero unsafe. Runs in the browser.">
 <meta property="og:image" content="https://rust-igraph.dev/assets/og-image.png">
 <meta property="og:url" content="https://rust-igraph.dev/">
