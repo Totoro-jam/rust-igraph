@@ -2809,6 +2809,80 @@ impl Graph {
         crate::algorithms::properties::assortativity::assortativity_degree(self)
     }
 
+    /// Read a graph from a file, auto-detecting the format from the extension.
+    ///
+    /// Supported extensions: `.gml`, `.graphml`, `.dot`, `.net` (Pajek),
+    /// `.ncol`, `.lgl`, `.leda`, `.dl`, `.edges`/`.edgelist`/`.txt`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_file("network.gml").unwrap();
+    /// println!("{}", g.vcount());
+    /// ```
+    pub fn from_file<P: AsRef<std::path::Path>>(path: P) -> IgraphResult<Self> {
+        let p = path.as_ref();
+        let ext = p
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("")
+            .to_ascii_lowercase();
+        match ext.as_str() {
+            "gml" => Self::from_gml_file(p),
+            "graphml" | "xml" => Self::from_graphml_file(p),
+            "dot" | "gv" => Self::from_dot_file(p),
+            "net" | "pajek" => Self::from_pajek_file(p),
+            "ncol" => Self::from_ncol_file(p),
+            "lgl" => Self::from_lgl_file(p),
+            "leda" | "lgr" => Self::from_leda_file(p),
+            "dl" => Self::from_dl_file(p),
+            "edges" | "edgelist" | "txt" | "csv" => Self::from_edgelist_file(p),
+            _ => Err(IgraphError::InvalidArgument(format!(
+                "cannot detect graph format from extension \".{ext}\"; \
+                 use a format-specific method like from_gml_file()"
+            ))),
+        }
+    }
+
+    /// Write a graph to a file, auto-detecting the format from the extension.
+    ///
+    /// Supported extensions: `.gml`, `.graphml`, `.dot`, `.net` (Pajek),
+    /// `.ncol`, `.lgl`, `.leda`, `.dl`, `.edges`/`.edgelist`/`.txt`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,0)], false, None).unwrap();
+    /// g.to_file("output.gml").unwrap();
+    /// ```
+    pub fn to_file<P: AsRef<std::path::Path>>(&self, path: P) -> IgraphResult<()> {
+        let p = path.as_ref();
+        let ext = p
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("")
+            .to_ascii_lowercase();
+        match ext.as_str() {
+            "gml" => self.to_gml_file(p),
+            "graphml" | "xml" => self.to_graphml_file(p),
+            "dot" | "gv" => self.to_dot_file(p),
+            "net" | "pajek" => self.to_pajek_file(p),
+            "ncol" => self.to_ncol_file(p),
+            "lgl" => self.to_lgl_file(p),
+            "leda" | "lgr" => self.to_leda_file(p),
+            "dl" => self.to_dl_file(p),
+            "edges" | "edgelist" | "txt" | "csv" => self.to_edgelist_file(p),
+            _ => Err(IgraphError::InvalidArgument(format!(
+                "cannot detect graph format from extension \".{ext}\"; \
+                 use a format-specific method like to_gml_file()"
+            ))),
+        }
+    }
+
     /// Read a graph from an edge list file.
     ///
     /// Each line should contain two space-separated vertex ids.
