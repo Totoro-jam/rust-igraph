@@ -6,6 +6,7 @@
 
 - [快速开始](./getting-started.md)
 - [教程](./tutorial.md)
+- [在浏览器中使用 WASM](./wasm.md)
 - [实战手册](./cookbook.md)
 - [项目结构](./project-layout.md)
 
