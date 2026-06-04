@@ -29,9 +29,10 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   Kamada-Kawai), and graph metrics (coreness, eccentricity, density,
   radius, mean distance, mean degree, degree assortativity, Burt's
   constraint, reciprocity).
-- **Playground: 4 new algorithm categories** — triad census in Structure,
-  plus new Isomorphism section with canonical permutation, count
-  automorphisms, and BLISS isomorphism check.
+- **Playground: 41 interactive algorithms** — added 6 more: k-core
+  decomposition, eccentricity, Burt's constraint, diameter, shortest
+  path, and random walk. Enriched graph statistics with density, radius,
+  mean distance, mean degree, assortativity, and reciprocity badges.
 - **Playground test suite expanded** — 109 tests (was 98), covering
   all 4 new algorithm demo functions and dispatch.
 - **Chinese cookbook** — full translation of all 13 English cookbook

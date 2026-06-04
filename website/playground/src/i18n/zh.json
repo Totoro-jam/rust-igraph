@@ -22,6 +22,7 @@
   "cat.community": "社区检测",
   "cat.traversal": "遍历与路径",
   "cat.structure": "图结构",
+  "cat.metrics": "图度量",
   "cat.isomorphism": "同构检测",
   "algo.pagerank": "PageRank",
   "algo.louvain": "Louvain 社区检测",

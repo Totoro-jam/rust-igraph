@@ -22,6 +22,7 @@
   "cat.community": "Community Detection",
   "cat.traversal": "Traversal & Paths",
   "cat.structure": "Graph Structure",
+  "cat.metrics": "Graph Metrics",
   "cat.isomorphism": "Isomorphism",
   "algo.pagerank": "PageRank",
   "algo.louvain": "Louvain Community Detection",
