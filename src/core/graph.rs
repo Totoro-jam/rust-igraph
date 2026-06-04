@@ -7418,6 +7418,159 @@ impl Graph {
         crate::algorithms::properties::unfold_tree::unfold_tree(self, roots, mode)
     }
 
+    // ---- Analysis / flow / isomorphism (batch 8) ----
+
+    /// S-t edge connectivity between two vertices.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(0,2),(1,3),(2,3)], false, None).unwrap();
+    /// let k = g.st_edge_connectivity(0, 3).unwrap();
+    /// assert_eq!(k, 2);
+    /// ```
+    pub fn st_edge_connectivity(&self, source: u32, target: u32) -> IgraphResult<i64> {
+        crate::st_edge_connectivity(self, source, target)
+    }
+
+    /// Vertex-disjoint paths between two vertices.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(0,2),(1,3),(2,3)], false, None).unwrap();
+    /// let n = g.vertex_disjoint_paths(0, 3).unwrap();
+    /// assert_eq!(n, 2);
+    /// ```
+    pub fn vertex_disjoint_paths(&self, source: u32, target: u32) -> IgraphResult<i64> {
+        crate::vertex_disjoint_paths(self, source, target)
+    }
+
+    /// Test isomorphism using BLISS canonical labeling.
+    ///
+    /// ```
+    /// use rust_igraph::{Graph, full_graph};
+    ///
+    /// let g1 = full_graph(4, false, false).unwrap();
+    /// let g2 = full_graph(4, false, false).unwrap();
+    /// let result = g1.isomorphic_bliss(&g2, None, None).unwrap();
+    /// assert!(result.iso);
+    /// ```
+    pub fn isomorphic_bliss(
+        &self,
+        other: &Graph,
+        colors1: Option<&[u32]>,
+        colors2: Option<&[u32]>,
+    ) -> IgraphResult<crate::Vf2Isomorphism> {
+        crate::isomorphic_bliss(self, other, colors1, colors2)
+    }
+
+    /// LAD subgraph isomorphism test.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let target = Graph::from_edges(&[(0,1),(1,2),(2,0),(2,3)], false, None).unwrap();
+    /// let pattern = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let iso = target.subisomorphic_lad(&pattern, false, None).unwrap();
+    /// assert!(iso.iso);
+    /// ```
+    pub fn subisomorphic_lad(
+        &self,
+        pattern: &Graph,
+        induced: bool,
+        domains: Option<&[Vec<u32>]>,
+    ) -> IgraphResult<crate::LadSubisomorphism> {
+        crate::subisomorphic_lad(pattern, self, domains, induced)
+    }
+
+    /// Betweenness centrality for a subset of vertices.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let bc = g.betweenness_subset(&[0, 1], &[2, 3]).unwrap();
+    /// assert_eq!(bc.len(), 4);
+    /// ```
+    pub fn betweenness_subset(&self, sources: &[u32], targets: &[u32]) -> IgraphResult<Vec<f64>> {
+        crate::betweenness_subset(self, sources, targets, self.is_directed())
+    }
+
+    /// Edge betweenness centrality for a subset of vertices.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,3)], false, None).unwrap();
+    /// let ebc = g.edge_betweenness_subset(&[0, 1], &[2, 3]).unwrap();
+    /// assert_eq!(ebc.len(), 3);
+    /// ```
+    pub fn edge_betweenness_subset(
+        &self,
+        sources: &[u32],
+        targets: &[u32],
+    ) -> IgraphResult<Vec<f64>> {
+        crate::edge_betweenness_subset(self, sources, targets, self.is_directed())
+    }
+
+    /// Weighted edge betweenness community detection.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,0),(2,3),(3,4),(4,5),(5,3)], false, None).unwrap();
+    /// let w = vec![1.0; g.ecount() as usize];
+    /// let result = g.edge_betweenness_community_weighted(&w).unwrap();
+    /// assert!(!result.merges.is_empty());
+    /// ```
+    pub fn edge_betweenness_community_weighted(
+        &self,
+        weights: &[f64],
+    ) -> IgraphResult<crate::EdgeBetweennessResult> {
+        crate::edge_betweenness_community_weighted(self, weights)
+    }
+
+    /// Modularity matrix B = A - k*k'/2m.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2),(2,0)], false, None).unwrap();
+    /// let b = g.modularity_matrix(None).unwrap();
+    /// assert_eq!(b.len(), 3);
+    /// ```
+    pub fn modularity_matrix(&self, weights: Option<&[f64]>) -> IgraphResult<Vec<Vec<f64>>> {
+        crate::modularity_matrix(self, weights, 1.0, self.is_directed())
+    }
+
+    /// Whether the graph is the same as another (structural equality).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g1 = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let g2 = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// assert!(g1.is_same_graph(&g2));
+    /// ```
+    pub fn is_same_graph(&self, other: &Graph) -> bool {
+        crate::is_same_graph(self, other)
+    }
+
+    /// Mean distance (weighted).
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let w = vec![1.0, 2.0];
+    /// let md = g.mean_distance_weighted(&w).unwrap();
+    /// assert!(md.is_some());
+    /// ```
+    pub fn mean_distance_weighted(&self, weights: &[f64]) -> IgraphResult<Option<f64>> {
+        crate::mean_distance_weighted(self, weights, self.is_directed(), true)
+    }
+
     // ---- Attribute system ----
 
     /// Set a graph-level attribute.
