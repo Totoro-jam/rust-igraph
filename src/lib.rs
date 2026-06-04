@@ -14,7 +14,7 @@
 //! | **Traversal** | BFS, DFS, topological sort, random walks |
 //! | **Shortest paths** | Dijkstra, Bellman-Ford, A\*, Johnson, all-pairs, widest paths |
 //! | **Centrality** | betweenness, closeness, eigenvector, `PageRank`, HITS, Katz |
-//! | **Community** | Louvain, Leiden, label propagation, Walktrap, fast greedy |
+//! | **Community** | Louvain, Leiden, Infomap, Spinglass, label propagation, Walktrap, fast greedy |
 //! | **Connectivity** | components, articulation points, bridges, separators, percolation |
 //! | **Flow** | max-flow, min-cut, Gomory-Hu tree, disjoint paths |
 //! | **Isomorphism** | VF2, LAD, BLISS canonical labeling, isoclass |
