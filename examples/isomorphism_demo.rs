@@ -31,7 +31,7 @@ fn main() {
 
     println!("\n--- Generic isomorphic() dispatcher ---");
     let k4 = full_graph(4, false, false).expect("K4 creation succeeds");
-    let c4_ring = ring_graph(4, false, false, false).expect("C4 creation succeeds");
+    let c4_ring = ring_graph(4, false, false, true).expect("C4 creation succeeds");
     println!("K4 ≅ K4: {}", isomorphic(&k4, &k4).expect("succeeds"));
     println!("K4 ≅ C4: {}", isomorphic(&k4, &c4_ring).expect("succeeds"));
 
@@ -56,7 +56,7 @@ fn main() {
         ),
         (
             "C4 (cycle)",
-            ring_graph(4, false, false, false).expect("succeeds"),
+            ring_graph(4, false, false, true).expect("succeeds"),
         ),
         (
             "P4 (path)",
@@ -78,7 +78,7 @@ fn main() {
     }
 
     println!("\n--- Automorphism Group Generators ---");
-    let c5 = ring_graph(5, false, false, false).expect("C5 succeeds");
+    let c5 = ring_graph(5, false, false, true).expect("C5 succeeds");
     let gens = automorphism_group(&c5, None).expect("group succeeds");
     println!("C5 automorphism generators ({} found):", gens.len());
     for (i, generator) in gens.iter().enumerate() {
