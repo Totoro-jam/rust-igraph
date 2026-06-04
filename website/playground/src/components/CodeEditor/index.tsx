@@ -81,6 +81,18 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, articulation_points};\n\n${graphLine}\n\nlet points = articulation_points(&g).unwrap();\nprintln!("Articulation points: {:?}", points);`;
     case 'degree_sequence':
       return `use rust_igraph::Graph;\n\n${graphLine}\n\nlet degrees = g.degree_sequence().unwrap();\nprintln!("Degree sequence: {:?}", degrees);`;
+    case 'scc':
+      return `use rust_igraph::{Graph, strongly_connected_components};\n\n${graphLine}\n\nlet result = strongly_connected_components(&g).unwrap();\nprintln!("Components: {}", result.count);\nprintln!("Membership: {:?}", result.membership);`;
+    case 'bridges':
+      return `use rust_igraph::{Graph, bridges};\n\n${graphLine}\n\nlet result = bridges(&g).unwrap();\nprintln!("Bridge count: {}", result.count);\nprintln!("Bridges: {:?}", result.edges);`;
+    case 'coloring':
+      return `use rust_igraph::{Graph, vertex_coloring};\n\n${graphLine}\n\nlet result = vertex_coloring(&g).unwrap();\nprintln!("Chromatic number: {}", result.chromatic);\nprintln!("Colors: {:?}", result.colors);`;
+    case 'topological_sort':
+      return `use rust_igraph::{Graph, topological_sort};\n\n${graphLine}\n\nlet order = topological_sort(&g).unwrap();\nprintln!("Topological order: {:?}", order);`;
+    case 'transitivity':
+      return `use rust_igraph::{Graph, transitivity};\n\n${graphLine}\n\nlet value = transitivity(&g).unwrap();\nprintln!("Transitivity: {:.4}", value);`;
+    case 'edge_betweenness_centrality':
+      return `use rust_igraph::{Graph, edge_betweenness};\n\n${graphLine}\n\nlet scores = edge_betweenness(&g).unwrap();\nprintln!("Edge betweenness: {:?}", scores);`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }
