@@ -293,7 +293,6 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   color: var(--text);
   border: none;
   outline: none;
-  transition: background var(--transition);
 }
 .edge-input::placeholder { color: var(--text-muted); opacity: 0.6; }
 .edge-input:focus { box-shadow: inset 2px 0 0 var(--accent); }
