@@ -1,0 +1,124 @@
+import type { WorkerRequest, WorkerResponse, AlgoId, AlgoResult, Edge, AlgoParams } from './types';
+
+let WasmGraph: {
+  fromEdges(edges: Uint32Array, directed: boolean): WasmGraphInstance;
+} | null = null;
+
+interface WasmGraphInstance {
+  bfs(root: number): string;
+  pagerank(): string;
+  louvain(): string;
+  betweenness(): string;
+  connectedComponents(): string;
+  layoutFr(niter: number): string;
+  free(): void;
+}
+
+async function initWasm(): Promise<boolean> {
+  try {
+    const base = self.location.href.replace(/\/[^/]*$/, '');
+    const wasmModule = await import(/* @vite-ignore */ `${base}/wasm/igraph_wasm.js`);
+    await wasmModule.default();
+    WasmGraph = wasmModule.WasmGraph;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function flattenEdges(edges: Edge[]): Uint32Array {
+  const flat = new Uint32Array(edges.length * 2);
+  for (let i = 0; i < edges.length; i++) {
+    flat[i * 2] = edges[i]![0];
+    flat[i * 2 + 1] = edges[i]![1];
+  }
+  return flat;
+}
+
+function runWasm(
+  algo: AlgoId,
+  edges: Edge[],
+  directed: boolean,
+  params: AlgoParams,
+): { result: AlgoResult; coords: [number, number][] } {
+  if (!WasmGraph) throw new Error('WASM not loaded');
+
+  const flat = flattenEdges(edges);
+  const graph = WasmGraph.fromEdges(flat, directed);
+
+  try {
+    const layoutJson = graph.layoutFr(300);
+    const layout = JSON.parse(layoutJson) as { coords: [number, number][] };
+
+    let resultJson: string;
+    switch (algo) {
+      case 'pagerank':
+        resultJson = graph.pagerank();
+        break;
+      case 'louvain':
+        resultJson = graph.louvain();
+        break;
+      case 'betweenness':
+        resultJson = graph.betweenness();
+        break;
+      case 'bfs':
+        resultJson = graph.bfs(params.source ?? 0);
+        break;
+      case 'components':
+        resultJson = graph.connectedComponents();
+        break;
+      default:
+        throw new Error(`Algorithm "${algo}" not available in WASM mode`);
+    }
+
+    const result = JSON.parse(resultJson) as AlgoResult;
+    return { result, coords: layout.coords };
+  } finally {
+    graph.free();
+  }
+}
+
+function post(msg: WorkerResponse) {
+  self.postMessage(msg);
+}
+
+let wasmReady = false;
+
+self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
+  const msg = e.data;
+
+  switch (msg.type) {
+    case 'init': {
+      wasmReady = await initWasm();
+      post({ type: 'ready' });
+      break;
+    }
+
+    case 'run': {
+      if (!wasmReady) {
+        post({ type: 'error', message: 'WASM not available' });
+        return;
+      }
+
+      try {
+        const t0 = performance.now();
+        const { result, coords } = runWasm(msg.algo, msg.edges, msg.directed, msg.params);
+        const elapsed_ms = performance.now() - t0;
+
+        post({
+          type: 'result',
+          data: { algo: msg.algo, result, coords, elapsed_ms },
+        });
+      } catch (err) {
+        post({
+          type: 'error',
+          message: err instanceof Error ? err.message : String(err),
+        });
+      }
+      break;
+    }
+
+    case 'cancel':
+      break;
+  }
+};

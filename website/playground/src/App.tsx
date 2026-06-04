@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { GraphEditor } from './components/GraphEditor';
 import { AlgoPanel } from './components/AlgoPanel';
@@ -10,7 +10,7 @@ import { useI18n } from './hooks/useI18n';
 import { useWasm } from './hooks/useWasm';
 import { useResizablePanels } from './hooks/useResizablePanels';
 import { PRESETS } from './presets';
-import type { AlgoId, AlgoParams, AlgoResult, Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder } from './types';
+import type { AlgoId, AlgoParams, AlgoResult, Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder, RunResult } from './types';
 import './App.css';
 
 function edgesFromPreset(id: string): string {
@@ -88,7 +88,6 @@ function formatOutput(
 export function App() {
   const { theme, toggleTheme } = useTheme();
   const { lang, toggleLang, t } = useI18n();
-  const { status, wasmAvailable, run } = useWasm();
   const { sizes, resizeLeft, resizeCenter, resizeCode, persistSizes } = useResizablePanels();
 
   const [presetId, setPresetId] = useState('karate');
@@ -101,6 +100,20 @@ export function App() {
   const [result, setResult] = useState<AlgoResult | null>(null);
   const [output, setOutput] = useState('');
   const [elapsed, setElapsed] = useState<number | null>(null);
+
+  const tRef = useRef(t);
+  tRef.current = t;
+  const algoRef = useRef(algo);
+  algoRef.current = algo;
+
+  const applyRunResult = useCallback((runResult: RunResult) => {
+    setCoords(runResult.coords);
+    setResult(runResult.result);
+    setElapsed(runResult.elapsed_ms);
+    setOutput(formatOutput(runResult.algo, runResult.result, tRef.current));
+  }, []);
+
+  const { status, wasmAvailable, run } = useWasm(applyRunResult);
 
   const edges = parseEdges(edgeText);
   const vcount = getVcount(edges);
@@ -120,14 +133,9 @@ export function App() {
   const handleRun = useCallback(() => {
     const runResult = run(algo, edges, directed, params);
     if (runResult) {
-      setCoords(runResult.coords);
-      setResult(runResult.result);
-      setElapsed(runResult.elapsed_ms);
-      setOutput(formatOutput(algo, runResult.result, t));
-    } else {
-      setOutput(t('noEdges'));
+      applyRunResult(runResult);
     }
-  }, [algo, edges, directed, params, run, t]);
+  }, [algo, edges, directed, params, run, applyRunResult]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

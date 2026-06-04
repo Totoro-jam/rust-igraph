@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { AlgoId, AlgoParams, Edge, RunResult } from '../types';
+import type { AlgoId, AlgoParams, Edge, RunResult, WorkerResponse } from '../types';
 import { runDemoAlgo, layoutFR } from '../algorithms';
 
 type WasmStatus = 'loading' | 'ready' | 'error' | 'running';
@@ -13,18 +13,55 @@ function getVcount(edges: Edge[]): number {
   return max + 1;
 }
 
-export function useWasm() {
+const WASM_SUPPORTED_ALGOS: Set<AlgoId> = new Set([
+  'pagerank', 'louvain', 'betweenness', 'bfs', 'components',
+]);
+
+export function useWasm(onResult: (result: RunResult) => void) {
   const [status, setStatus] = useState<WasmStatus>('loading');
   const [wasmAvailable, setWasmAvailable] = useState(false);
   const workerRef = useRef<Worker | null>(null);
+  const onResultRef = useRef(onResult);
+  onResultRef.current = onResult;
 
   useEffect(() => {
-    // WASM worker not yet implemented — go straight to demo mode
-    setWasmAvailable(false);
-    setStatus('ready');
+    const worker = new Worker(
+      new URL('../worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+
+    worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
+      const msg = e.data;
+      switch (msg.type) {
+        case 'ready':
+          setWasmAvailable(true);
+          setStatus('ready');
+          break;
+        case 'result':
+          setStatus('ready');
+          onResultRef.current(msg.data);
+          break;
+        case 'error':
+          setStatus('ready');
+          break;
+      }
+    };
+
+    worker.onerror = () => {
+      setWasmAvailable(false);
+      setStatus('ready');
+    };
+
+    worker.postMessage({ type: 'init' });
+    workerRef.current = worker;
+
+    const timeout = setTimeout(() => {
+      setStatus((prev) => (prev === 'loading' ? 'ready' : prev));
+    }, 5000);
 
     return () => {
-      workerRef.current?.terminate();
+      clearTimeout(timeout);
+      worker.terminate();
     };
   }, []);
 
@@ -32,11 +69,23 @@ export function useWasm() {
     (
       algo: AlgoId,
       edges: Edge[],
-      _directed: boolean,
+      directed: boolean,
       params: AlgoParams,
     ): RunResult | null => {
       const vcount = getVcount(edges);
       if (vcount === 0) return null;
+
+      if (wasmAvailable && WASM_SUPPORTED_ALGOS.has(algo) && workerRef.current) {
+        setStatus('running');
+        workerRef.current.postMessage({
+          type: 'run',
+          algo,
+          edges,
+          directed,
+          params,
+        });
+        return null;
+      }
 
       setStatus('running');
       const t0 = performance.now();
@@ -48,7 +97,7 @@ export function useWasm() {
         });
         const elapsed_ms = performance.now() - t0;
 
-        setStatus(wasmAvailable ? 'ready' : 'ready');
+        setStatus('ready');
         return { algo, result, coords, elapsed_ms };
       } catch {
         setStatus('error');
