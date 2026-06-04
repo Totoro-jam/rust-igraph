@@ -11,6 +11,9 @@ Build locally:
 cargo doc --no-deps --open
 ```
 
-> Phase 0 only ships `Graph`, `read_edgelist`, and `bfs`. The catalog
-> grows AWU-by-AWU through Phase 1-10 — see
-> [the algorithm tracker](../../.codefuse/tracking/ALGORITHMS.md).
+> **v0.5.0-alpha.4**: 388 public re-exports, 420 `Graph` methods, and
+> 1,255 total public items spanning traversal, shortest paths, centrality,
+> community detection, connectivity, flow, isomorphism, graph generators,
+> layouts, spatial algorithms, and I/O. See
+> [the algorithm tracker](../../.codefuse/tracking/ALGORITHMS.md) for
+> per-algorithm status.
