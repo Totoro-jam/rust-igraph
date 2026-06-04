@@ -6,7 +6,7 @@
 
 ```toml
 [dependencies]
-rust-igraph = "0.5"
+rust-igraph = "0.6"
 ```
 
 ## 你的第一个图

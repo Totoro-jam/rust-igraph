@@ -6,7 +6,7 @@ Add rust-igraph to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-igraph = "0.5"
+rust-igraph = "0.6"
 ```
 
 ## Your first graph
