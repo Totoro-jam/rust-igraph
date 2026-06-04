@@ -2,10 +2,16 @@ import { useRef, useEffect, useCallback, useState } from 'react';
 import { ForceSimulation } from '../simulation';
 import type { AlgoId, AlgoResult, Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder } from '../types';
 
-const PALETTE = [
+const PALETTE_DARK = [
   '#58a6ff', '#3fb950', '#d2a8ff', '#f0883e',
   '#f778ba', '#a5d6ff', '#ffd33d', '#ff7b72',
-  '#7ee787', '#79c0ff', '#d4a72c', '#db6d28',
+  '#7ee787', '#79c0ff', '#e0c060', '#f5a050',
+];
+
+const PALETTE_LIGHT = [
+  '#0969da', '#1a7f37', '#8250df', '#bc4c00',
+  '#bf3989', '#0550ae', '#9a6700', '#cf222e',
+  '#116329', '#0969da', '#7d4e00', '#bc4c00',
 ];
 
 interface CanvasProps {
@@ -43,47 +49,88 @@ function isOrder(r: AlgoResult): r is AlgoResultOrder {
   return 'order' in r;
 }
 
-function interpolateColor(t: number): string {
-  const r = Math.round(t < 0.5 ? 0 : (t - 0.5) * 2 * 255);
-  const g = Math.round(t < 0.5 ? t * 2 * 200 : (1 - t) * 2 * 200);
-  const b = Math.round(t < 0.5 ? 255 - t * 2 * 200 : 0);
-  return `rgb(${r},${g},${b})`;
+function hslToRgb(h: number, s: number, l: number): string {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; }
+  else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; }
+  else { r = c; b = x; }
+  return `rgb(${Math.round((r + m) * 255)},${Math.round((g + m) * 255)},${Math.round((b + m) * 255)})`;
+}
+
+function interpolateColor(t: number, theme: 'dark' | 'light'): string {
+  const hue = 240 - t * 240;
+  const sat = 0.85;
+  const light = theme === 'dark' ? 0.6 : 0.45;
+  return hslToRgb(hue, sat, light);
+}
+
+function relativeLuminance(r: number, g: number, b: number): number {
+  const rs = r / 255, gs = g / 255, bs = b / 255;
+  const rl = rs <= 0.03928 ? rs / 12.92 : Math.pow((rs + 0.055) / 1.055, 2.4);
+  const gl = gs <= 0.03928 ? gs / 12.92 : Math.pow((gs + 0.055) / 1.055, 2.4);
+  const bl = bs <= 0.03928 ? bs / 12.92 : Math.pow((bs + 0.055) / 1.055, 2.4);
+  return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
+}
+
+function labelColorForNode(nodeColor: string): string {
+  const m = nodeColor.match(/\d+/g);
+  if (!m || m.length < 3) return '#ffffff';
+  const lum = relativeLuminance(Number(m[0]), Number(m[1]), Number(m[2]));
+  return lum > 0.3 ? '#1f2328' : '#f0f6fc';
+}
+
+function parseRgbFromHex(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+function labelColorForHex(hex: string): string {
+  const [r, g, b] = parseRgbFromHex(hex);
+  const lum = relativeLuminance(r, g, b);
+  return lum > 0.3 ? '#1f2328' : '#f0f6fc';
 }
 
 function getNodeColor(
   algo: AlgoId,
   result: AlgoResult | null,
   idx: number,
-  _theme: 'dark' | 'light',
+  theme: 'dark' | 'light',
 ): string {
-  if (!result) return PALETTE[0]!;
+  const palette = theme === 'dark' ? PALETTE_DARK : PALETTE_LIGHT;
+  if (!result) return palette[0]!;
   if (
     (algo === 'louvain' || algo === 'components' || algo === 'infomap' || algo === 'spinglass') &&
     isMembership(result)
   ) {
-    return PALETTE[(result.membership[idx] ?? 0) % PALETTE.length]!;
+    return palette[(result.membership[idx] ?? 0) % palette.length]!;
   }
   if (algo === 'pagerank' && isScores(result)) {
     const scores = result.scores;
     const max = Math.max(...scores, 1e-9);
     const min = Math.min(...scores);
     const t = max > min ? ((scores[idx] ?? 0) - min) / (max - min) : 0.5;
-    return interpolateColor(t);
+    return interpolateColor(t, theme);
   }
   if (algo === 'betweenness' && isScores(result)) {
     const scores = result.scores;
     const max = Math.max(...scores, 1e-9);
     const t = max > 0 ? (scores[idx] ?? 0) / max : 0;
-    return interpolateColor(t);
+    return interpolateColor(t, theme);
   }
   if (algo === 'bfs' && isOrder(result)) {
     const order = result.order;
     const pos = order.indexOf(idx);
-    if (pos < 0) return '#30363d';
+    if (pos < 0) return theme === 'dark' ? '#30363d' : '#d0d7de';
     const t = order.length > 1 ? pos / (order.length - 1) : 0;
-    return interpolateColor(1 - t);
+    return interpolateColor(1 - t, theme);
   }
-  return PALETTE[0]!;
+  return palette[0]!;
 }
 
 function getNodeRadius(
@@ -396,9 +443,15 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
 
       // Label
       if (currentVcount <= 60 && view.scale >= 0.4) {
-        ctx.fillStyle = isDimmed
-          ? (currentTheme === 'dark' ? 'rgba(230,237,243,0.2)' : 'rgba(36,41,47,0.2)')
-          : (currentTheme === 'dark' ? '#e6edf3' : '#24292f');
+        let labelColor: string;
+        if (isDimmed) {
+          labelColor = currentTheme === 'dark' ? 'rgba(230,237,243,0.2)' : 'rgba(36,41,47,0.2)';
+        } else if (color.startsWith('rgb')) {
+          labelColor = labelColorForNode(color);
+        } else {
+          labelColor = labelColorForHex(color);
+        }
+        ctx.fillStyle = labelColor;
         ctx.font = `bold ${Math.max(9, r * 0.85)}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
