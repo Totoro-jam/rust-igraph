@@ -1286,10 +1286,9 @@ C 源: {path}:{line_start}-{line_end}
 
 | 风险 | 概率 | 影响 | 缓解 |
 |------|------|------|------|
-| IRLM/IRAM 数值不收敛 | 中 | 高 | 逐行对照 arpack.c；oracle 逐值对比；小矩阵回退 faer EVD |
+| IRLM/IRAM 数值不收敛 | 中 | 高 | 逐行对照 arpack.c；oracle 逐值对比；手写 power iteration 兜底 |
 | BLISS C++→Rust 翻译 bug | 中 | 高 | python-igraph canonical_permutation oracle；困难图（强正则、超立方体）专项测试 |
 | C++ 算法翻译（Walktrap/Spinglass/Infomap/DrL/HRG）质量 | 高 | 中 | 论文 + 逐函数对照；oracle 兜底 |
-| faer 版本破坏性变更 | 低 | 中 | 锁定版本范围；后端 trait 抽象 |
 | GLPK 依赖（optimal_modularity） | 低 | 低 | feature gated；纯 Rust LP 替代 |
 | 850 API 长尾难度 | 高 | 中 | 按 Phase 设最低退出门；允许 ≥85% 解锁下 Phase |
 
