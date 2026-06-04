@@ -97,7 +97,7 @@ let ws = Graph::watts_strogatz(1000, 6, 0.1, 42).unwrap(); // small-world
 
 ## Running the examples
 
-The repository includes 110+ runnable examples:
+The repository includes 114 runnable examples:
 
 ```bash
 # Clone and run
@@ -109,6 +109,7 @@ cargo run --example social_network_demo
 cargo run --example community_detection_demo
 cargo run --example method_api_demo
 cargo run --example layout_demo
+cargo run --example file_io_demo
 ```
 
 ## Where to read next
@@ -118,4 +119,4 @@ cargo run --example layout_demo
 - [API documentation](https://docs.rs/rust-igraph) — full rustdoc
   reference for every function, struct, and enum.
 - [Examples directory](https://github.com/Totoro-jam/rust-igraph/tree/main/examples)
-  — 110+ self-contained programs covering every algorithm category.
+  — 114 self-contained programs covering every algorithm category.

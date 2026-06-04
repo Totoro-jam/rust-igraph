@@ -7248,6 +7248,20 @@ impl Graph {
         crate::algorithms::properties::summary::graph_summary(self)
     }
 
+    /// Human-readable structural summary string.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+    /// let s = g.graph_summary_string().unwrap();
+    /// assert!(s.contains("Vertices: 3"));
+    /// assert!(s.contains("Edges: 2"));
+    /// ```
+    pub fn graph_summary_string(&self) -> IgraphResult<String> {
+        crate::graph_summary_string(self)
+    }
+
     // ---- Matrix representations (batch 7) ----
 
     /// Adjacency matrix of the graph.

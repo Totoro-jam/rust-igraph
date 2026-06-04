@@ -146,7 +146,24 @@ if let Some(name) = g.vertex_attribute("name", 0) {
 
 ## File I/O
 
-Read and write graphs in 8 formats, all attribute-aware:
+The easiest way to read and write graphs is with `from_file` / `to_file`,
+which auto-detect the format from the file extension:
+
+```rust,no_run
+use rust_igraph::Graph;
+
+// Auto-detects GML from the extension
+let g = Graph::from_file("network.gml").unwrap();
+println!("{g}");
+
+// Write as GraphML — extension determines format
+g.to_file("network.graphml").unwrap();
+```
+
+Supported extensions: `.gml`, `.graphml`/`.xml`, `.dot`/`.gv`, `.net`/`.pajek`,
+`.ncol`, `.lgl`, `.leda`/`.lgr`, `.dl`, `.edges`/`.edgelist`/`.txt`/`.csv`.
+
+For more control (e.g. writing to a buffer), use the stream-based functions:
 
 ```rust
 use rust_igraph::{Graph, AttributeValue, write_gml, read_gml};
@@ -154,7 +171,7 @@ use rust_igraph::{Graph, AttributeValue, write_gml, read_gml};
 let mut g = Graph::from_edges(&[(0,1),(1,2),(2,0)], false, None).unwrap();
 g.set_graph_attribute("name", AttributeValue::String("triangle".into()));
 
-// Write to GML
+// Write to an in-memory buffer
 let mut buf = Vec::new();
 write_gml(&g, &mut buf).unwrap();
 
@@ -197,6 +214,36 @@ let i = &a & &b;  // intersection
 println!("Union: {} vertices, {} edges", u.vcount(), u.ecount());
 println!("Intersection: {} vertices, {} edges", i.vcount(), i.ecount());
 ```
+
+## Graph layouts
+
+rust-igraph includes 16 layout engines for 2D and 3D graph visualization:
+
+```rust
+use rust_igraph::{Graph, layout_fruchterman_reingold, layout_circle, layout_kamada_kawai};
+
+let g = Graph::from_edges(
+    &[(0,1),(1,2),(2,3),(3,0),(0,2),(1,3)], false, None
+).unwrap();
+
+// Force-directed layout (Fruchterman-Reingold)
+let coords = layout_fruchterman_reingold(&g, None, 42).unwrap();
+for (i, &(x, y)) in coords.iter().enumerate() {
+    println!("v{i}: ({x:.2}, {y:.2})");
+}
+
+// Circle layout (deterministic)
+let circle = layout_circle(&g, None);
+assert_eq!(circle.len(), g.vcount());
+
+// Kamada-Kawai (energy-based)
+let kk = layout_kamada_kawai(&g, None, 42).unwrap();
+assert_eq!(kk.len(), g.vcount());
+```
+
+Available engines: Fruchterman-Reingold, Kamada-Kawai, DrL, Sugiyama,
+GEM, Davidson-Harel, GraphOpt, MDS, LGL, UMAP, Reingold-Tilford,
+circle, star, grid, random, and sphere.
 
 ## Iterating over a graph
 
@@ -241,4 +288,4 @@ assert_eq!(pr1, pr2);
 
 - Browse the [API documentation](./api.md) for the full list of functions
 - Run `cargo run --example social_network_demo` for a comprehensive demo
-- Check the 110+ examples in the `examples/` directory
+- Check the 114 examples in the `examples/` directory
