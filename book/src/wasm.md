@@ -149,6 +149,11 @@ interface WasmGraphInstance {
   closeness(): string;
   connectedComponents(): string;
   layoutFr(niter: number): string;
+  layoutKamadaKawai(): string;
+  layoutCircle(): string;
+  layoutRandom(seed: number): string;
+  layoutGrid(width: number): string;
+  layoutStar(center: number): string;
   vcount(): number;
   ecount(): number;
   free(): void;
@@ -370,6 +375,11 @@ All algorithm methods return JSON strings. Parse them with
 | Method | Result fields | Description |
 |--------|---------------|-------------|
 | `graph.layoutFr(niter: number)` | `{ coords: [number,number][] }` | Fruchterman-Reingold force-directed layout |
+| `graph.layoutKamadaKawai()` | `{ coords: [number,number][] }` | Kamada-Kawai spring layout |
+| `graph.layoutCircle()` | `{ coords: [number,number][] }` | Circular layout |
+| `graph.layoutRandom(seed: number)` | `{ coords: [number,number][] }` | Random layout |
+| `graph.layoutGrid(width: number)` | `{ coords: [number,number][] }` | Grid layout (0 = auto width) |
+| `graph.layoutStar(center: number)` | `{ coords: [number,number][] }` | Star layout with center vertex |
 
 ### Memory management
 
@@ -462,7 +472,7 @@ throw a JavaScript `Error` with a descriptive message.
 ## Live demo
 
 Try the [interactive playground](https://totoro-jam.github.io/rust-igraph/playground/)
-to see all 50 algorithms running in the browser via WASM. The
+to see all 55 algorithms running in the browser via WASM. The
 playground source code at `website/playground/` serves as a full
 reference implementation.
 

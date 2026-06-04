@@ -157,6 +157,13 @@
   "result.isomorphic": "Isomorphic",
   "result.col.triadType": "Type",
   "result.col.permutation": "Maps To",
+  "layout": "Layout Engine",
+  "layout.fr": "Fruchterman-Reingold",
+  "layout.kamada_kawai": "Kamada-Kawai",
+  "layout.circle": "Circle",
+  "layout.random": "Random",
+  "layout.grid": "Grid",
+  "layout.star": "Star",
   "collapse": "Collapse",
   "expand": "Expand",
   "share": "Copy link"

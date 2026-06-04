@@ -1,4 +1,4 @@
-import type { WorkerRequest, WorkerResponse, AlgoId, AlgoResult, Edge, AlgoParams } from './types';
+import type { WorkerRequest, WorkerResponse, AlgoId, AlgoResult, Edge, AlgoParams, LayoutId } from './types';
 
 let WasmGraph: {
   fromEdges(edges: Uint32Array, directed: boolean): WasmGraphInstance;
@@ -41,6 +41,11 @@ interface WasmGraphInstance {
   countAutomorphisms(): string;
   isomorphicBliss(other: WasmGraphInstance): string;
   layoutFr(niter: number): string;
+  layoutKamadaKawai(): string;
+  layoutCircle(): string;
+  layoutRandom(seed: number): string;
+  layoutGrid(width: number): string;
+  layoutStar(center: number): string;
   free(): void;
 }
 
@@ -68,11 +73,38 @@ function flattenEdges(edges: Edge[]): Uint32Array {
   return flat;
 }
 
+function computeLayout(graph: WasmGraphInstance, layoutId: LayoutId): [number, number][] {
+  let json: string;
+  switch (layoutId) {
+    case 'kamada_kawai':
+      json = graph.layoutKamadaKawai();
+      break;
+    case 'circle':
+      json = graph.layoutCircle();
+      break;
+    case 'random':
+      json = graph.layoutRandom(42);
+      break;
+    case 'grid':
+      json = graph.layoutGrid(0);
+      break;
+    case 'star':
+      json = graph.layoutStar(0);
+      break;
+    case 'fr':
+    default:
+      json = graph.layoutFr(300);
+      break;
+  }
+  return (JSON.parse(json) as { coords: [number, number][] }).coords;
+}
+
 function runWasm(
   algo: AlgoId,
   edges: Edge[],
   directed: boolean,
   params: AlgoParams,
+  layoutId: LayoutId,
 ): { result: AlgoResult; coords: [number, number][] } {
   if (!WasmGraph) throw new Error('WASM not loaded');
 
@@ -80,8 +112,7 @@ function runWasm(
   const graph = WasmGraph.fromEdges(flat, directed);
 
   try {
-    const layoutJson = graph.layoutFr(300);
-    const layout = JSON.parse(layoutJson) as { coords: [number, number][] };
+    const coords = computeLayout(graph, layoutId);
 
     let resultJson: string;
     switch (algo) {
@@ -197,7 +228,7 @@ function runWasm(
     }
 
     const result = JSON.parse(resultJson) as AlgoResult;
-    return { result, coords: layout.coords };
+    return { result, coords };
   } finally {
     graph.free();
   }
@@ -227,7 +258,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
 
       try {
         const t0 = performance.now();
-        const { result, coords } = runWasm(msg.algo, msg.edges, msg.directed, msg.params);
+        const { result, coords } = runWasm(msg.algo, msg.edges, msg.directed, msg.params, msg.layout);
         const elapsed_ms = performance.now() - t0;
 
         post({

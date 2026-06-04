@@ -157,6 +157,13 @@
   "result.isomorphic": "同构",
   "result.col.triadType": "类型",
   "result.col.permutation": "映射至",
+  "layout": "布局引擎",
+  "layout.fr": "Fruchterman-Reingold",
+  "layout.kamada_kawai": "Kamada-Kawai",
+  "layout.circle": "圆形布局",
+  "layout.random": "随机布局",
+  "layout.grid": "网格布局",
+  "layout.star": "星形布局",
   "collapse": "折叠",
   "expand": "展开",
   "share": "复制链接"

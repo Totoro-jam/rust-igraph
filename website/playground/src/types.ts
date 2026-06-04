@@ -43,6 +43,8 @@ export type AlgoId =
   | 'count_automorphisms'
   | 'isomorphism';
 
+export type LayoutId = 'fr' | 'kamada_kawai' | 'circle' | 'random' | 'grid' | 'star';
+
 export interface AlgoParams {
   source?: number;
   target?: number;
@@ -172,7 +174,7 @@ export interface PresetGraph {
 
 export type WorkerRequest =
   | { type: 'init' }
-  | { type: 'run'; algo: AlgoId; edges: Edge[]; directed: boolean; params: AlgoParams }
+  | { type: 'run'; algo: AlgoId; edges: Edge[]; directed: boolean; params: AlgoParams; layout: LayoutId }
   | { type: 'cancel' };
 
 export type WorkerResponse =

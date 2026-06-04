@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { AlgoId, AlgoParams, Edge, RunResult, WorkerResponse } from '../types';
+import type { AlgoId, AlgoParams, Edge, LayoutId, RunResult, WorkerResponse } from '../types';
 import { runDemoAlgo, layoutFR } from '../algorithms';
 
 type WasmStatus = 'loading' | 'ready' | 'error' | 'running';
@@ -19,6 +19,9 @@ const WASM_SUPPORTED_ALGOS: Set<AlgoId> = new Set([
   'label_propagation', 'walktrap', 'leiden', 'fast_greedy', 'leading_eigenvector',
   'edge_betweenness', 'fluid', 'harmonic', 'hits', 'katz',
   'graph_stats', 'max_flow', 'articulation_points', 'degree_sequence',
+  'scc', 'bridges', 'coloring', 'topological_sort', 'transitivity',
+  'edge_betweenness_centrality', 'triad_census',
+  'canonical_permutation', 'count_automorphisms', 'isomorphism',
 ]);
 
 export function useWasm(onResult: (result: RunResult) => void) {
@@ -110,6 +113,7 @@ export function useWasm(onResult: (result: RunResult) => void) {
       edges: Edge[],
       directed: boolean,
       params: AlgoParams,
+      layout: LayoutId = 'fr',
     ): RunResult | null => {
       const vcount = getVcount(edges);
       if (vcount === 0) return null;
@@ -123,6 +127,7 @@ export function useWasm(onResult: (result: RunResult) => void) {
           edges,
           directed,
           params,
+          layout,
         });
         return null;
       }

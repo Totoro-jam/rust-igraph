@@ -12,7 +12,7 @@ import { useWasm } from './hooks/useWasm';
 import { useResizablePanels } from './hooks/useResizablePanels';
 import { readUrlState, useUrlSync } from './hooks/useUrlState';
 import { PRESETS } from './presets';
-import type { AlgoId, AlgoParams, AlgoResult, Edge, RunResult } from './types';
+import type { AlgoId, AlgoParams, AlgoResult, Edge, LayoutId, RunResult } from './types';
 import layout from './styles/layout.module.css';
 
 function edgesFromPreset(id: string): string {
@@ -56,6 +56,7 @@ export function App() {
     urlInit.directed ?? PRESETS[initPreset]?.directed ?? false,
   );
   const [algo, setAlgo] = useState<AlgoId>(urlInit.algo ?? 'pagerank');
+  const [layoutId, setLayoutId] = useState<LayoutId>('fr');
   const [params, setParams] = useState<AlgoParams>({
     damping: urlInit.damping ?? 0.85,
     source: urlInit.source ?? 0,
@@ -101,11 +102,11 @@ export function App() {
   );
 
   const handleRun = useCallback(() => {
-    const runResult = run(algo, edges, directed, params);
+    const runResult = run(algo, edges, directed, params, layoutId);
     if (runResult) {
       applyRunResult(runResult);
     }
-  }, [algo, edges, directed, params, run, applyRunResult]);
+  }, [algo, edges, directed, params, layoutId, run, applyRunResult]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -224,9 +225,11 @@ export function App() {
               <AlgoPanel
                 algo={algo}
                 params={params}
+                layoutId={layoutId}
                 running={status === 'running'}
                 onAlgoChange={setAlgo}
                 onParamsChange={setParams}
+                onLayoutChange={setLayoutId}
                 onRun={handleRun}
                 t={t}
               />

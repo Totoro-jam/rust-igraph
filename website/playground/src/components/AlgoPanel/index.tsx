@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { AlgoId, AlgoParams } from '../../types';
+import type { AlgoId, AlgoParams, LayoutId } from '../../types';
 import styles from './index.module.css';
 
 interface AlgoCategory {
@@ -50,12 +50,16 @@ function loadCollapsed(): Record<string, boolean> {
   }
 }
 
+const LAYOUT_OPTIONS: LayoutId[] = ['fr', 'kamada_kawai', 'circle', 'random', 'grid', 'star'];
+
 interface AlgoPanelProps {
   algo: AlgoId;
   params: AlgoParams;
+  layoutId: LayoutId;
   running: boolean;
   onAlgoChange: (algo: AlgoId) => void;
   onParamsChange: (params: AlgoParams) => void;
+  onLayoutChange: (layout: LayoutId) => void;
   onRun: () => void;
   t: (key: string) => string;
 }
@@ -63,9 +67,11 @@ interface AlgoPanelProps {
 export function AlgoPanel({
   algo,
   params,
+  layoutId,
   running,
   onAlgoChange,
   onParamsChange,
+  onLayoutChange,
   onRun,
   t,
 }: AlgoPanelProps) {
@@ -178,6 +184,19 @@ export function AlgoPanel({
             />
           </div>
         )}
+      </div>
+
+      <div className={styles.layoutSelector}>
+        <label className={styles.layoutLabel}>{t('layout')}</label>
+        <select
+          className={styles.layoutSelect}
+          value={layoutId}
+          onChange={(e) => onLayoutChange(e.target.value as LayoutId)}
+        >
+          {LAYOUT_OPTIONS.map((id) => (
+            <option key={id} value={id}>{t(`layout.${id}`)}</option>
+          ))}
+        </select>
       </div>
 
       <button className={styles.btnRun} onClick={onRun} disabled={running}>

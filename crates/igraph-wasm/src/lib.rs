@@ -1,11 +1,12 @@
 use rust_igraph::{
-    ConnectednessMode, DijkstraMode, FrParams, Graph, GreedyColoringHeuristic, VertexId,
+    ConnectednessMode, DijkstraMode, FrParams, Graph, GreedyColoringHeuristic, KkParams, VertexId,
     articulation_points, barabasi_game_bag, betweenness, bfs, bridges, canonical_permutation,
     closeness, connected_components, count_automorphisms, count_triangles, cycle_graph, dfs,
     diameter, dijkstra_distances, edge_betweenness, edge_betweenness_community,
     eigenvector_centrality, erdos_renyi_gnp, fast_greedy_modularity, fluid_communities, full_graph,
     girth, harmonic_centrality, hub_and_authority_scores, infomap, is_bipartite, is_connected,
-    isomorphic_bliss, katz_centrality, label_propagation, layout_fruchterman_reingold,
+    isomorphic_bliss, katz_centrality, label_propagation, layout_circle,
+    layout_fruchterman_reingold, layout_grid, layout_kamada_kawai, layout_random, layout_star,
     leading_eigenvector, leiden, louvain, max_flow_value, pagerank, random_walk, ring_graph,
     spinglass, strongly_connected_components, topological_sorting, transitivity_undirected,
     triad_census, vertex_coloring_greedy, walktrap, watts_strogatz_game,
@@ -672,5 +673,54 @@ impl WasmGraph {
         let g = barabasi_game_bag(n, m, false, false, seed)
             .map_err(|e| JsError::new(&e.to_string()))?;
         Ok(Self { inner: g })
+    }
+
+    // --- Layout algorithms ---
+
+    #[wasm_bindgen(js_name = "layoutCircle")]
+    pub fn layout_circle(&self) -> Result<String, JsError> {
+        let coords = layout_circle(&self.inner, None);
+        let result = LayoutResult {
+            coords: coords.into_iter().map(|(x, y)| [x, y]).collect(),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutRandom")]
+    pub fn layout_random(&self, seed: u64) -> Result<String, JsError> {
+        let coords = layout_random(&self.inner, seed);
+        let result = LayoutResult {
+            coords: coords.into_iter().map(|(x, y)| [x, y]).collect(),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutGrid")]
+    pub fn layout_grid(&self, width: i32) -> Result<String, JsError> {
+        let coords = layout_grid(&self.inner, width);
+        let result = LayoutResult {
+            coords: coords.into_iter().map(|(x, y)| [x, y]).collect(),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutStar")]
+    pub fn layout_star(&self, center: u32) -> Result<String, JsError> {
+        let coords =
+            layout_star(&self.inner, center, None).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LayoutResult {
+            coords: coords.into_iter().map(|(x, y)| [x, y]).collect(),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutKamadaKawai")]
+    pub fn layout_kamada_kawai(&self) -> Result<String, JsError> {
+        let n = self.inner.vcount() as usize;
+        let params = KkParams::default_for(n);
+        let coords = layout_kamada_kawai(&self.inner, None, &params, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LayoutResult { coords };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 }

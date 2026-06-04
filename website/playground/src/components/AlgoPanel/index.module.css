@@ -172,6 +172,41 @@
   border-color: var(--accent);
 }
 
+/* ── Layout selector ── */
+.layoutSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.layoutLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.layoutSelect {
+  flex: 1;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.layoutSelect:focus {
+  border-color: var(--accent);
+}
+
 /* ── Run button ── */
 .btnRun {
   margin: 0.5rem 0.75rem;
