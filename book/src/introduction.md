@@ -8,9 +8,9 @@ functions), validated continuously against three official implementations:
 - **python-igraph** — `tests/test_*.py`
 - **R-igraph** (`rigraph`) — `tests/testthat/test-*.R`
 
-> **Status**: 305+ algorithm work units complete across Phases 1–6 and 9.
-> 386 public APIs, 7,400+ tests (unit + integration + doctest), 110+
-> runnable examples. WASM-compatible (`wasm32-unknown-unknown`). See
+> **Status**: 306 algorithm work units complete across Phases 1–6 and 9.
+> 387 public re-exports + 417 `Graph` methods, 7,500+ tests
+> (unit + integration + doctest), 110+ runnable examples. WASM-compatible (`wasm32-unknown-unknown`). See
 > [the master plan](../../docs/plans/MASTER_PLAN.md) for the roadmap, and
 > [the algorithm tracker](../../.codefuse/tracking/ALGORITHMS.md) for
 > per-algorithm progress.
