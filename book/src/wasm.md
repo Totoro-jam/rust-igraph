@@ -292,6 +292,7 @@ All algorithm methods return JSON strings. Parse them with
 | `WasmGraph.fullGraph(n)` | Complete graph K_n |
 | `WasmGraph.cycleGraph(n)` | Cycle graph C_n |
 | `WasmGraph.ringGraph(n, circular)` | Ring (cycle if circular=true, path if false) |
+| `WasmGraph.barabasiAlbert(n, m, seed)` | Barabasi-Albert preferential attachment |
 | `WasmGraph.wattsStrogatz(n, k, p, seed)` | Watts-Strogatz small-world |
 
 ### Properties
@@ -461,7 +462,7 @@ throw a JavaScript `Error` with a descriptive message.
 ## Live demo
 
 Try the [interactive playground](https://totoro-jam.github.io/rust-igraph/playground/)
-to see all 49 algorithms running in the browser via WASM. The
+to see all 50 algorithms running in the browser via WASM. The
 playground source code at `website/playground/` serves as a full
 reference implementation.
 

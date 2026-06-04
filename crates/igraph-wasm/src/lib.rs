@@ -1,10 +1,10 @@
 use rust_igraph::{
     ConnectednessMode, DijkstraMode, FrParams, Graph, GreedyColoringHeuristic, VertexId,
-    articulation_points, betweenness, bfs, bridges, canonical_permutation, closeness,
-    connected_components, count_automorphisms, count_triangles, cycle_graph, dfs, diameter,
-    dijkstra_distances, edge_betweenness, edge_betweenness_community, eigenvector_centrality,
-    erdos_renyi_gnp, fast_greedy_modularity, fluid_communities, full_graph, girth,
-    harmonic_centrality, hub_and_authority_scores, infomap, is_bipartite, is_connected,
+    articulation_points, barabasi_game_bag, betweenness, bfs, bridges, canonical_permutation,
+    closeness, connected_components, count_automorphisms, count_triangles, cycle_graph, dfs,
+    diameter, dijkstra_distances, edge_betweenness, edge_betweenness_community,
+    eigenvector_centrality, erdos_renyi_gnp, fast_greedy_modularity, fluid_communities, full_graph,
+    girth, harmonic_centrality, hub_and_authority_scores, infomap, is_bipartite, is_connected,
     isomorphic_bliss, katz_centrality, label_propagation, layout_fruchterman_reingold,
     leading_eigenvector, leiden, louvain, max_flow_value, pagerank, random_walk, ring_graph,
     spinglass, strongly_connected_components, topological_sorting, transitivity_undirected,
@@ -663,6 +663,13 @@ impl WasmGraph {
     #[wasm_bindgen(js_name = "wattsStrogatz")]
     pub fn watts_strogatz(n: u32, k: u32, p: f64, seed: u64) -> Result<WasmGraph, JsError> {
         let g = watts_strogatz_game(n, k, p, false, false, seed)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(Self { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "barabasiAlbert")]
+    pub fn barabasi_albert(n: u32, m: u32, seed: u64) -> Result<WasmGraph, JsError> {
+        let g = barabasi_game_bag(n, m, false, false, seed)
             .map_err(|e| JsError::new(&e.to_string()))?;
         Ok(Self { inner: g })
     }
