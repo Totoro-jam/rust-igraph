@@ -1,6 +1,7 @@
 use rust_igraph::{
-    FrParams, Graph, VertexId, betweenness, bfs, connected_components, dijkstra_distances,
-    layout_fruchterman_reingold, louvain, pagerank,
+    FrParams, Graph, VertexId, betweenness, bfs, closeness, connected_components, dfs,
+    dijkstra_distances, eigenvector_centrality, infomap, layout_fruchterman_reingold, louvain,
+    pagerank, spinglass,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -35,6 +36,29 @@ struct BetweennessResult {
 struct ComponentsResult {
     membership: Vec<u32>,
     count: u32,
+}
+
+#[derive(Serialize)]
+struct InfomapOutput {
+    membership: Vec<u32>,
+    codelength: f64,
+}
+
+#[derive(Serialize)]
+struct SpinglassOutput {
+    membership: Vec<u32>,
+    modularity: f64,
+    nb_clusters: u32,
+}
+
+#[derive(Serialize)]
+struct ClosenessResult {
+    scores: Vec<f64>,
+}
+
+#[derive(Serialize)]
+struct DfsResult {
+    order: Vec<u32>,
 }
 
 #[derive(Serialize)]
@@ -129,6 +153,46 @@ impl WasmGraph {
             membership: cc.membership,
             count: cc.count,
         };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn infomap(&self) -> Result<String, JsError> {
+        let r = infomap(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = InfomapOutput {
+            membership: r.membership,
+            codelength: r.codelength,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn spinglass(&self) -> Result<String, JsError> {
+        let r = spinglass(&self.inner, None).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = SpinglassOutput {
+            membership: r.membership,
+            modularity: r.modularity,
+            nb_clusters: r.nb_clusters,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn closeness(&self) -> Result<String, JsError> {
+        let raw = closeness(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let scores: Vec<f64> = raw.into_iter().map(|v| v.unwrap_or(0.0)).collect();
+        let result = ClosenessResult { scores };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "eigenvectorCentrality")]
+    pub fn eigenvector_centrality(&self) -> Result<String, JsError> {
+        let scores =
+            eigenvector_centrality(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = PageRankResult { scores };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn dfs(&self, root: u32) -> Result<String, JsError> {
+        let order = dfs(&self.inner, root).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = DfsResult { order };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 

@@ -197,6 +197,43 @@ export function demoSpinglass(vcount: number, edges: Edge[]): AlgoResult {
   };
 }
 
+export function demoCloseness(vcount: number, edges: Edge[]): AlgoResult {
+  const scores = demoBetweenness(vcount, edges) as { scores: number[] };
+  return { scores: scores.scores };
+}
+
+export function demoEigenvector(vcount: number, edges: Edge[]): AlgoResult {
+  return demoPagerank(vcount, edges);
+}
+
+export function demoDfs(vcount: number, edges: Edge[], source = 0): AlgoResult {
+  if (vcount === 0) return { order: [] };
+  const start = source < vcount ? source : 0;
+  const adj: number[][] = Array.from({ length: vcount }, () => []);
+  for (const [u, v] of edges) {
+    if (u < vcount && v < vcount) {
+      adj[u]!.push(v);
+      adj[v]!.push(u);
+    }
+  }
+  const visited = new Set<number>();
+  const order: number[] = [];
+  const stack = [start];
+  while (stack.length > 0) {
+    const node = stack.pop()!;
+    if (visited.has(node)) continue;
+    visited.add(node);
+    order.push(node);
+    const neighbors = adj[node]!;
+    for (let i = neighbors.length - 1; i >= 0; i--) {
+      if (!visited.has(neighbors[i]!)) {
+        stack.push(neighbors[i]!);
+      }
+    }
+  }
+  return { order };
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
@@ -206,12 +243,18 @@ export function runDemoAlgo(
   switch (algo) {
     case 'bfs':
       return demoBfs(vcount, edges, params?.source);
+    case 'dfs':
+      return demoDfs(vcount, edges, params?.source);
     case 'pagerank':
       return demoPagerank(vcount, edges, params?.damping);
     case 'louvain':
       return demoLouvain(vcount, edges);
     case 'betweenness':
       return demoBetweenness(vcount, edges);
+    case 'closeness':
+      return demoCloseness(vcount, edges);
+    case 'eigenvector':
+      return demoEigenvector(vcount, edges);
     case 'components':
       return demoComponents(vcount, edges);
     case 'infomap':

@@ -6,10 +6,15 @@ let WasmGraph: {
 
 interface WasmGraphInstance {
   bfs(root: number): string;
+  dfs(root: number): string;
   pagerank(): string;
   louvain(): string;
   betweenness(): string;
+  closeness(): string;
+  eigenvectorCentrality(): string;
   connectedComponents(): string;
+  infomap(): string;
+  spinglass(): string;
   layoutFr(niter: number): string;
   free(): void;
 }
@@ -67,8 +72,23 @@ function runWasm(
       case 'bfs':
         resultJson = graph.bfs(params.source ?? 0);
         break;
+      case 'dfs':
+        resultJson = graph.dfs(params.source ?? 0);
+        break;
+      case 'closeness':
+        resultJson = graph.closeness();
+        break;
+      case 'eigenvector':
+        resultJson = graph.eigenvectorCentrality();
+        break;
       case 'components':
         resultJson = graph.connectedComponents();
+        break;
+      case 'infomap':
+        resultJson = graph.infomap();
+        break;
+      case 'spinglass':
+        resultJson = graph.spinglass();
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);

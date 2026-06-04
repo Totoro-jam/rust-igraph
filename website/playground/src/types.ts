@@ -10,7 +10,10 @@ export type AlgoId =
   | 'pagerank'
   | 'louvain'
   | 'betweenness'
+  | 'closeness'
+  | 'eigenvector'
   | 'bfs'
+  | 'dfs'
   | 'components'
   | 'infomap'
   | 'spinglass';

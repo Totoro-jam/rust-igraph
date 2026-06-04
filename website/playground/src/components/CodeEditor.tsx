@@ -36,8 +36,14 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, louvain};\n\n${graphLine}\n\nlet result = louvain(&g).unwrap();\nprintln!("Modularity: {:.4}", result.modularity);\nprintln!("Communities: {:?}", result.membership);`;
     case 'betweenness':
       return `use rust_igraph::{Graph, betweenness};\n\n${graphLine}\n\nlet scores = betweenness(&g).unwrap();\nprintln!("Betweenness: {:?}", scores);`;
+    case 'closeness':
+      return `use rust_igraph::{Graph, closeness};\n\n${graphLine}\n\nlet scores = closeness(&g).unwrap();\nprintln!("Closeness: {:?}", scores);`;
+    case 'eigenvector':
+      return `use rust_igraph::{Graph, eigenvector_centrality};\n\n${graphLine}\n\nlet scores = eigenvector_centrality(&g).unwrap();\nprintln!("Eigenvector centrality: {:?}", scores);`;
     case 'bfs':
       return `use rust_igraph::{Graph, bfs};\n\n${graphLine}\n\nlet order = bfs(&g, 0).unwrap();\nprintln!("BFS order: {:?}", order);`;
+    case 'dfs':
+      return `use rust_igraph::{Graph, dfs};\n\n${graphLine}\n\nlet order = dfs(&g, 0).unwrap();\nprintln!("DFS order: {:?}", order);`;
     case 'components':
       return `use rust_igraph::{Graph, connected_components};\n\n${graphLine}\n\nlet result = connected_components(&g).unwrap();\nprintln!("Components: {}", result.count);\nprintln!("Membership: {:?}", result.membership);`;
     case 'infomap':

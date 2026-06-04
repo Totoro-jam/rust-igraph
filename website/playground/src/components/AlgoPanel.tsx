@@ -4,7 +4,10 @@ const ALGO_LIST: AlgoId[] = [
   'pagerank',
   'louvain',
   'betweenness',
+  'closeness',
+  'eigenvector',
   'bfs',
+  'dfs',
   'components',
   'infomap',
   'spinglass',
@@ -62,7 +65,7 @@ export function AlgoPanel({
             />
           </div>
         )}
-        {algo === 'bfs' && (
+        {(algo === 'bfs' || algo === 'dfs') && (
           <div className="param-row">
             <label>{t('param.source')}</label>
             <input

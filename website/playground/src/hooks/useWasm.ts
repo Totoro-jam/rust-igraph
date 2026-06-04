@@ -14,7 +14,8 @@ function getVcount(edges: Edge[]): number {
 }
 
 const WASM_SUPPORTED_ALGOS: Set<AlgoId> = new Set([
-  'pagerank', 'louvain', 'betweenness', 'bfs', 'components',
+  'pagerank', 'louvain', 'betweenness', 'closeness', 'eigenvector',
+  'bfs', 'dfs', 'components', 'infomap', 'spinglass',
 ]);
 
 export function useWasm(onResult: (result: RunResult) => void) {
