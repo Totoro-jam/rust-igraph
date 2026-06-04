@@ -14,27 +14,7 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
-## [0.5.0-alpha.4] — 2026-06-04
-
-### Added
-- `Graph::graph_summary_string()` — human-readable structural summary
-  (420 total Graph methods).
-- `Graph::from_file` / `Graph::to_file` — format-auto-detecting file I/O
-  based on file extension (`.gml`, `.graphml`, `.dot`, `.net`, `.ncol`,
-  `.lgl`, `.leda`, `.dl`, `.edges`/`.txt`/`.csv`).
-- `examples/file_io_demo.rs` — multi-format round-trip demonstration.
-- `examples/network_analysis_pipeline.rs` — complete analysis workflow
-  (build, analyze structure, centrality, communities, export with
-  attributes).
-- mdBook tutorial expanded: layout engines section (FR, KK, circle) and
-  updated file I/O section showing `from_file`/`to_file` convenience.
-- Example count increased to 115.
-
-### Changed
-- README updated with accurate counts (388 re-exports, 420 Graph
-  methods, 7,554 tests).
-
-## [0.5.0-alpha.3] — 2026-06-04
+## [0.5.0] — 2026-06-04
 
 ### Added
 - **Attribute-aware I/O** — all eight graph formats now read and write
@@ -72,19 +52,8 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   `is_same_graph`, `mean_distance_weighted`.
 - `method_api_demo` expanded from 8 to 11 categories (flow/connectivity,
   subset centrality, BLISS isomorphism).
-- `Graph::from_file` and `Graph::to_file` — format-auto-detecting file I/O
-  based on extension (`.gml`, `.graphml`, `.dot`, `.net`, `.ncol`, `.lgl`,
-  `.leda`, `.dl`, `.edges`/`.txt`/`.csv`).
-- `Graph::graph_summary_string()` — human-readable structural summary string
-  (420 total Graph methods).
-- `examples/file_io_demo.rs` — demonstrates multi-format round-trips via
-  `from_file`/`to_file`.
-- mdBook tutorial expanded with layout section (FR, KK, circle) and updated
-  file I/O section showing `from_file`/`to_file` convenience.
-
 ### Changed
-- mdBook introduction updated to reflect current project state (305+ AWUs,
-  386 public APIs, 7,400+ tests).
+- mdBook introduction updated to reflect current project state.
 - ALGORITHMS.md: Phase 5/6/9 headers updated from "(partial)" to complete;
   ALGO-CORE-010 marked done.
 
@@ -92,8 +61,6 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 - Broken rustdoc link to `AdjacencyType::Both` in `Graph::get_adjacency`
   doc comment — now uses fully-qualified `crate::` path.
 - Clippy `similar_names` lint on `k4a`/`k4b` in `method_api_demo.rs`.
-
-## [0.5.0-alpha.2] — 2026-06-03
 
 ### Added
 - **Vertex/edge/graph attribute system** — `AttributeValue` enum
@@ -315,8 +282,6 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 - MASTER_PLAN.md §2.3/§2.4 updated to reflect actual single-dependency
   architecture. Feature flags simplified.
 
-## [0.0.1-alpha.5] — 2026-06-03
-
 ### Added
 - `Graph::watts_strogatz(n, k, p, seed)` convenience constructor for
   small-world graphs.
@@ -328,8 +293,6 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ### Fixed
 - Removed stale `faer`/`bliss` comment from CI WASM job.
-
-## [0.0.1-alpha.4] — 2026-06-03
 
 ### Added
 - **ALGO-GN-031** — `iea_game`: **Independent Edge Allocation** random
@@ -4943,8 +4906,6 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 - Fixed stale README examples to match current API signatures.
 - Removed stale `#[allow(dead_code)]` from Lanczos module.
 
-## [0.0.1-alpha.2] — 2026-05-22
-
 ### Added
 - **ALGO-CO-006c** — Directed Girvan-Newman edge betweenness community
   detection (Leicht E. A., Newman M. E. J. 2008, *Community structure in
@@ -5570,8 +5531,6 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
     now read-or-compute through the cache → repeated calls are O(1).
   - 12 integration tests in `tests/cache.rs` covering hit/miss across
     every mutation path; 11 unit tests on the bitfield logic.
-
-## [0.0.1-alpha.1] — 2026-05-21
 
 ### Changed
 - *(ci)* Coverage + test analytics moved out of `.github/workflows/ci.yml`
@@ -7472,8 +7431,6 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   community / academic citations / multiple reviewers; none of those
   exist at 0.0.1-alpha.0. Add when the corresponding signal arrives.
 
-
-## [0.0.1-alpha.0] — 2026-05-15
 
 First publish to crates.io. Reserves the `rust-igraph` name and exercises
 the release pipeline end-to-end.

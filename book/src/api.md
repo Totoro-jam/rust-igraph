@@ -11,7 +11,7 @@ Build locally:
 cargo doc --no-deps --open
 ```
 
-> **v0.5.0-alpha.4**: 388 public re-exports, 420 `Graph` methods, and
+> **v0.5.0**: 388 public re-exports, 420 `Graph` methods, and
 > 1,255 total public items spanning traversal, shortest paths, centrality,
 > community detection, connectivity, flow, isomorphism, graph generators,
 > layouts, spatial algorithms, and I/O. See

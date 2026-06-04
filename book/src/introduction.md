@@ -8,7 +8,7 @@ functions), validated continuously against three official implementations:
 - **python-igraph** — `tests/test_*.py`
 - **R-igraph** (`rigraph`) — `tests/testthat/test-*.R`
 
-> **Status**: 306 algorithm work units complete across Phases 1–6, 7, and 9.
+> **Status**: 311 algorithm work units complete across Phases 1–6, 7, and 9.
 > 388 public re-exports + 420 `Graph` methods, 7,554 tests
 > (unit + integration + doctest), 115 runnable examples. WASM-compatible (`wasm32-unknown-unknown`). See
 > [the master plan](../../docs/plans/MASTER_PLAN.md) for the roadmap, and

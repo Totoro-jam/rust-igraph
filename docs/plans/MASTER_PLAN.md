@@ -229,7 +229,7 @@ WASM 验证目标：`cargo check --target wasm32-unknown-unknown`（零外部依
 - [ ] `cargo test --workspace` 通过
 - [ ] `cargo clippy --workspace -- -D warnings` 无告警
 - [ ] `cargo fmt --check` 通过
-- [ ] `cargo check --target wasm32-unknown-unknown --no-default-features --features faer-backend,bliss-rust` 通过
+- [ ] `cargo check --target wasm32-unknown-unknown` 通过
 - [ ] `cargo deny check` 许可证扫描通过
 - [ ] CI（GitHub Actions）所有 job 绿色
 - [ ] `cargo run --example bfs_karate` 输出正确 BFS 顺序
@@ -851,7 +851,7 @@ fn conformance_c_betweenness() {
 | test (MSRV) | push, PR | MSRV 锁定 1.85（确保不退化） |
 | oracle | push, PR | `cargo test --features oracle-tests`（需 python + python-igraph） |
 | conformance | push, PR | 跑 `tests/conformance/{c,py,r}/` 全部 fixture（需 python-igraph + R + rigraph） |
-| wasm32 | push, PR | `cargo check --target wasm32-unknown-unknown --no-default-features --features faer-backend,bliss-rust` |
+| wasm32 | push, PR | `cargo check --target wasm32-unknown-unknown` |
 | deny | push, PR | `cargo deny check`（许可证 + advisory） |
 | doc | push | `cargo doc --no-deps`，部署 GitHub Pages |
 | coverage | weekly | `cargo llvm-cov`，目标 ≥ 70% |

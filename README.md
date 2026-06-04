@@ -46,7 +46,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-igraph = "0.5.0-alpha"
+rust-igraph = "0.5"
 ```
 
 ```rust
@@ -185,8 +185,8 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ## Project status
 
-> **Alpha** (`v0.5.0-alpha.4`) — 306 algorithm work units complete, 388 public
-> re-exports + 420 Graph methods, 7,554 tests. API stabilizing before `v1.0.0`.
+> **v0.5.0** — 311 algorithm work units complete, 388 public
+> re-exports + 420 Graph methods, 7,554 tests. API stabilizing toward `v1.0.0`.
 
 | Category | Status |
 |----------|--------|
