@@ -306,4 +306,4 @@ assert_eq!(pr1, pr2);
 
 - 浏览 [API 文档](./api.md) 查看完整的函数列表
 - 运行 `cargo run --example social_network_demo` 查看综合演示
-- 查看 `examples/` 目录中的 115 个示例
+- 查看 `examples/` 目录中的 116 个示例

@@ -97,7 +97,7 @@ let ws = Graph::watts_strogatz(1000, 6, 0.1, 42).unwrap(); // 小世界网络
 
 ## 运行示例
 
-仓库包含 115 个可运行示例：
+仓库包含 116 个可运行示例：
 
 ```bash
 # 克隆并运行
@@ -116,4 +116,4 @@ cargo run --example file_io_demo
 
 - [教程](./tutorial.md) — 通过可运行的代码片段逐步讲解所有核心功能。
 - [API 文档](https://docs.rs/rust-igraph) — 每个函数、结构体和枚举的完整 rustdoc 参考。
-- [示例目录](https://github.com/Totoro-jam/rust-igraph/tree/main/examples) — 115 个涵盖每个算法类别的独立程序。
+- [示例目录](https://github.com/Totoro-jam/rust-igraph/tree/main/examples) — 116 个涵盖每个算法类别的独立程序。

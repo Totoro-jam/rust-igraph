@@ -317,4 +317,4 @@ assert_eq!(pr1, pr2);
 
 - Browse the [API documentation](./api.md) for the full list of functions
 - Run `cargo run --example social_network_demo` for a comprehensive demo
-- Check the 115 examples in the `examples/` directory
+- Check the 116 examples in the `examples/` directory
