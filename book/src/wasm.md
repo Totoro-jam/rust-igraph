@@ -154,6 +154,15 @@ interface WasmGraphInstance {
   layoutRandom(seed: number): string;
   layoutGrid(width: number): string;
   layoutStar(center: number): string;
+  coreness(): string;
+  eccentricity(): string;
+  density(): string;
+  radius(): string;
+  meanDistance(): string;
+  meanDegree(): string;
+  assortativityDegree(): string;
+  constraint(): string;
+  reciprocity(): string;
   vcount(): number;
   ecount(): number;
   free(): void;
@@ -370,6 +379,20 @@ All algorithm methods return JSON strings. Parse them with
 | `graph.countAutomorphisms()` | `{ count: number }` | Automorphism group order |
 | `graph.isomorphicBliss(other)` | `{ isomorphic: boolean, mapping: number[] }` | BLISS isomorphism test |
 
+### Graph Metrics
+
+| Method | Result fields | Description |
+|--------|---------------|-------------|
+| `graph.coreness()` | `{ cores: number[] }` | k-core decomposition |
+| `graph.eccentricity()` | `{ values: number[] }` | Per-vertex eccentricity |
+| `graph.density()` | `{ density: number \| null }` | Edge density |
+| `graph.radius()` | `{ radius: number \| null }` | Graph radius (min eccentricity) |
+| `graph.meanDistance()` | `{ mean_distance: number \| null }` | Average shortest-path length |
+| `graph.meanDegree()` | `{ mean_degree: number \| null }` | Average degree |
+| `graph.assortativityDegree()` | `{ assortativity: number \| null }` | Degree assortativity coefficient |
+| `graph.constraint()` | `{ scores: number[] }` | Burt's constraint (structural holes) |
+| `graph.reciprocity()` | `{ reciprocity: number \| null }` | Edge reciprocity (directed) |
+
 ### Layout
 
 | Method | Result fields | Description |
@@ -472,7 +495,7 @@ throw a JavaScript `Error` with a descriptive message.
 ## Live demo
 
 Try the [interactive playground](https://totoro-jam.github.io/rust-igraph/playground/)
-to see all 55 algorithms running in the browser via WASM. The
+to see all 64 algorithms running in the browser via WASM. The
 playground source code at `website/playground/` serves as a full
 reference implementation.
 

@@ -19,14 +19,16 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   individualization-refinement (I-R) engine for canonical permutation,
   automorphism counting/group, and BLISS-backed isomorphism with vertex
   colour support.
-- **WASM expansion to 55 algorithms** — igraph-wasm crate now exposes
+- **WASM expansion to 64 algorithms** — igraph-wasm crate now exposes
   Dijkstra, topological sort, max flow, graph stats, articulation points,
   bridges, degree sequence, SCC, vertex coloring, transitivity, edge
   betweenness centrality, triad census, canonical permutation, count
   automorphisms, BLISS isomorphism, diameter, shortest path, random walk,
   graph generators (Erdos-Renyi, Barabasi-Albert, full, cycle, ring,
-  Watts-Strogatz), and layout engines (circle, random, grid, star,
-  Kamada-Kawai).
+  Watts-Strogatz), layout engines (circle, random, grid, star,
+  Kamada-Kawai), and graph metrics (coreness, eccentricity, density,
+  radius, mean distance, mean degree, degree assortativity, Burt's
+  constraint, reciprocity).
 - **Playground: 4 new algorithm categories** — triad census in Structure,
   plus new Isomorphism section with canonical permutation, count
   automorphisms, and BLISS isomorphism check.

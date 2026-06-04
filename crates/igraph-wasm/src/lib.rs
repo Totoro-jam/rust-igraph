@@ -1,15 +1,17 @@
 use rust_igraph::{
     ConnectednessMode, DijkstraMode, FrParams, Graph, GreedyColoringHeuristic, KkParams, VertexId,
-    articulation_points, barabasi_game_bag, betweenness, bfs, bridges, canonical_permutation,
-    closeness, connected_components, count_automorphisms, count_triangles, cycle_graph, dfs,
-    diameter, dijkstra_distances, edge_betweenness, edge_betweenness_community,
-    eigenvector_centrality, erdos_renyi_gnp, fast_greedy_modularity, fluid_communities, full_graph,
-    girth, harmonic_centrality, hub_and_authority_scores, infomap, is_bipartite, is_connected,
+    articulation_points, assortativity_degree, barabasi_game_bag, betweenness, bfs, bridges,
+    canonical_permutation, closeness, connected_components, constraint, coreness,
+    count_automorphisms, count_triangles, cycle_graph, density, dfs, diameter, dijkstra_distances,
+    eccentricity, edge_betweenness, edge_betweenness_community, eigenvector_centrality,
+    erdos_renyi_gnp, fast_greedy_modularity, fluid_communities, full_graph, girth,
+    harmonic_centrality, hub_and_authority_scores, infomap, is_bipartite, is_connected,
     isomorphic_bliss, katz_centrality, label_propagation, layout_circle,
     layout_fruchterman_reingold, layout_grid, layout_kamada_kawai, layout_random, layout_star,
-    leading_eigenvector, leiden, louvain, max_flow_value, pagerank, random_walk, ring_graph,
-    spinglass, strongly_connected_components, topological_sorting, transitivity_undirected,
-    triad_census, vertex_coloring_greedy, walktrap, watts_strogatz_game,
+    leading_eigenvector, leiden, louvain, max_flow_value, mean_degree, mean_distance, pagerank,
+    radius, random_walk, reciprocity, ring_graph, spinglass, strongly_connected_components,
+    topological_sorting, transitivity_undirected, triad_census, vertex_coloring_greedy, walktrap,
+    watts_strogatz_game,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -219,6 +221,51 @@ struct RandomWalkResult {
 #[derive(Serialize)]
 struct ShortestPathResult {
     path: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct CorenessResult {
+    cores: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct EccentricityResult {
+    values: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct DensityResult {
+    density: Option<f64>,
+}
+
+#[derive(Serialize)]
+struct RadiusResult {
+    radius: Option<u32>,
+}
+
+#[derive(Serialize)]
+struct MeanDistanceResult {
+    mean_distance: Option<f64>,
+}
+
+#[derive(Serialize)]
+struct MeanDegreeResult {
+    mean_degree: Option<f64>,
+}
+
+#[derive(Serialize)]
+struct AssortativityResult {
+    assortativity: Option<f64>,
+}
+
+#[derive(Serialize)]
+struct ConstraintResult {
+    scores: Vec<f64>,
+}
+
+#[derive(Serialize)]
+struct ReciprocityResult {
+    reciprocity: Option<f64>,
 }
 
 #[wasm_bindgen]
@@ -721,6 +768,65 @@ impl WasmGraph {
         let coords = layout_kamada_kawai(&self.inner, None, &params, None)
             .map_err(|e| JsError::new(&e.to_string()))?;
         let result = LayoutResult { coords };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Graph metrics ---
+
+    pub fn coreness(&self) -> Result<String, JsError> {
+        let cores = coreness(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = CorenessResult { cores };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn eccentricity(&self) -> Result<String, JsError> {
+        let values = eccentricity(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = EccentricityResult { values };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn density(&self) -> Result<String, JsError> {
+        let d = density(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = DensityResult { density: d };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn radius(&self) -> Result<String, JsError> {
+        let r = radius(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = RadiusResult { radius: r };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "meanDistance")]
+    pub fn mean_distance(&self) -> Result<String, JsError> {
+        let md = mean_distance(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = MeanDistanceResult { mean_distance: md };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "meanDegree")]
+    pub fn mean_degree(&self) -> Result<String, JsError> {
+        let md = mean_degree(&self.inner, true).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = MeanDegreeResult { mean_degree: md };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "assortativityDegree")]
+    pub fn assortativity_degree(&self) -> Result<String, JsError> {
+        let a = assortativity_degree(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = AssortativityResult { assortativity: a };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn constraint(&self) -> Result<String, JsError> {
+        let scores = constraint(&self.inner, None).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ConstraintResult { scores };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn reciprocity(&self) -> Result<String, JsError> {
+        let r = reciprocity(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ReciprocityResult { reciprocity: r };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 }
