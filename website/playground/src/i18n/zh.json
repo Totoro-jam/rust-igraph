@@ -54,5 +54,21 @@
   "resumeSim": "恢复模拟",
   "shuffleLayout": "重排布局",
   "selectedNode": "选中节点",
-  "exportPng": "导出为 PNG"
+  "exportPng": "导出为 PNG",
+  "result.topNode": "最高节点",
+  "result.maxScore": "最大值",
+  "result.communities": "社区数",
+  "result.modularity": "模块度",
+  "result.codelength": "编码长度",
+  "result.clusters": "簇数",
+  "result.componentCount": "分量数",
+  "result.visited": "已访问",
+  "result.col.vertex": "顶点",
+  "result.col.score": "得分",
+  "result.col.centrality": "中心性",
+  "result.col.community": "社区",
+  "result.col.component": "分量",
+  "result.col.order": "顺序",
+  "collapse": "折叠",
+  "expand": "展开"
 }

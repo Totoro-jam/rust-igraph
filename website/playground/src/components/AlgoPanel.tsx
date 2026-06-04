@@ -31,9 +31,6 @@ export function AlgoPanel({
 }: AlgoPanelProps) {
   return (
     <>
-      <div className="panel-header">
-        <h2>{t('algorithm')}</h2>
-      </div>
       <div className="algo-list">
         {ALGO_LIST.map((id) => (
           <label key={id} className={`algo-option ${algo === id ? 'active' : ''}`}>

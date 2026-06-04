@@ -40,6 +40,7 @@ export function useWasm(onResult: (result: RunResult) => void) {
         const coords = layoutFR(vcount, edges, 300);
         const result = runDemoAlgo(algo, vcount, edges, {
           damping: params.damping,
+          source: params.source,
         });
         const elapsed_ms = performance.now() - t0;
         return { algo, result, coords, elapsed_ms };

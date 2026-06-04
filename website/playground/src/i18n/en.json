@@ -54,5 +54,21 @@
   "resumeSim": "Resume simulation",
   "shuffleLayout": "Shuffle layout",
   "selectedNode": "Selected Node",
-  "exportPng": "Export as PNG"
+  "exportPng": "Export as PNG",
+  "result.topNode": "Top Node",
+  "result.maxScore": "Max Score",
+  "result.communities": "Communities",
+  "result.modularity": "Modularity",
+  "result.codelength": "Codelength",
+  "result.clusters": "Clusters",
+  "result.componentCount": "Components",
+  "result.visited": "Visited",
+  "result.col.vertex": "Vertex",
+  "result.col.score": "Score",
+  "result.col.centrality": "Centrality",
+  "result.col.community": "Community",
+  "result.col.component": "Component",
+  "result.col.order": "Order",
+  "collapse": "Collapse",
+  "expand": "Expand"
 }

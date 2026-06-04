@@ -69,12 +69,13 @@ function buildAdj(vcount: number, edges: Edge[]): number[][] {
   return adj;
 }
 
-export function demoBfs(vcount: number, edges: Edge[]): AlgoResult {
+export function demoBfs(vcount: number, edges: Edge[], source = 0): AlgoResult {
   const adj = buildAdj(vcount, edges);
   const visited = new Set<number>();
   const order: number[] = [];
-  const queue = [0];
-  visited.add(0);
+  const start = source >= 0 && source < vcount ? source : 0;
+  const queue = [start];
+  visited.add(start);
   while (queue.length > 0) {
     const v = queue.shift()!;
     order.push(v);
@@ -200,11 +201,11 @@ export function runDemoAlgo(
   algo: string,
   vcount: number,
   edges: Edge[],
-  params?: { damping?: number },
+  params?: { damping?: number; source?: number },
 ): AlgoResult {
   switch (algo) {
     case 'bfs':
-      return demoBfs(vcount, edges);
+      return demoBfs(vcount, edges, params?.source);
     case 'pagerank':
       return demoPagerank(vcount, edges, params?.damping);
     case 'louvain':
