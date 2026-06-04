@@ -498,7 +498,7 @@ impl WasmGraph {
                 [s, t]
             })
             .collect();
-        let count = edges.len() as u32;
+        let count = u32::try_from(edges.len()).unwrap_or(u32::MAX);
         let result = BridgesResult { edges, count };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
@@ -507,7 +507,7 @@ impl WasmGraph {
     pub fn vertex_coloring(&self) -> Result<String, JsError> {
         let colors = vertex_coloring_greedy(&self.inner, GreedyColoringHeuristic::DSatur)
             .map_err(|e| JsError::new(&e.to_string()))?;
-        let chromatic = colors.iter().copied().max().map(|c| c + 1).unwrap_or(0);
+        let chromatic = colors.iter().copied().max().map_or(0, |c| c + 1);
         let result = ColoringResult { colors, chromatic };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
