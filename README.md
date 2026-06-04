@@ -9,7 +9,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **Pure-Rust, high-performance graph and network analysis library.** A faithful port of
-[igraph](https://igraph.org/) with 1,291 public APIs, zero `unsafe`, and no C/C++ FFI.
+[igraph](https://igraph.org/) with 1,297 public APIs, zero `unsafe`, and no C/C++ FFI.
 
 Built for researchers, data scientists, and systems engineers who need production-grade
 graph algorithms without leaving the Rust ecosystem.
@@ -18,7 +18,7 @@ graph algorithms without leaving the Rust ecosystem.
 
 | | rust-igraph | petgraph | igraph (C/Python) |
 |---|---|---|---|
-| **Algorithm coverage** | 1,291 APIs (BFS, DFS, shortest paths, community detection, centrality, isomorphism, flows, layouts, graph generators, 60+ graph class recognizers...) | ~50 (composable) | ~850 APIs (reference) |
+| **Algorithm coverage** | 1,297 APIs (BFS, DFS, shortest paths, community detection, centrality, isomorphism, flows, layouts, graph generators, 60+ graph class recognizers...) | ~50 (composable) | ~850 APIs (reference) |
 | **Safety** | Zero `unsafe`, zero `unwrap` in library code | Minimal `unsafe` | C core + bindings |
 | **Correctness** | Cross-validated against igraph C, python-igraph, and R-igraph test suites | Independent | Reference implementation |
 | **Dependencies** | Minimal (1 runtime dep: `thiserror`) | Minimal | Large C/C++ toolchain |
@@ -185,7 +185,7 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ## Project status
 
-> **v0.6.0** — 308 algorithm work units complete, 1,291 public functions,
+> **v0.6.0** — 308 algorithm work units complete, 1,297 public functions,
 > 1,091 tests, 1,672 conformance fixtures. API stabilizing toward `v1.0.0`.
 
 | Category | Status |
@@ -206,7 +206,7 @@ cargo bench --bench bench_vf2         # isomorphism
 ## Documentation
 
 - **[Tutorial & Guide](https://Totoro-jam.github.io/rust-igraph/book/)** — mdBook with getting started, cookbook, and architecture overview
-- **[API Reference](https://Totoro-jam.github.io/rust-igraph/rust_igraph/)** — full rustdoc for all 1,291 public items
+- **[API Reference](https://Totoro-jam.github.io/rust-igraph/rust_igraph/)** — full rustdoc for all 1,297 public items
 - **[docs.rs](https://docs.rs/rust-igraph)** — auto-published on every crates.io release
 
 ## Development
