@@ -42,9 +42,18 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   examples, matching English tutorial content.
 
 ### Changed
+- **I-R engine performance** — replaced O(|Aut(G)|²) group closure with
+  O(n) orbit-based generator collection; flat buffer in refinement loop
+  eliminates per-vertex heap allocations. K_8 canonicalization: 79ms → 55ms
+  (30% faster), C_30 automorphisms: 1.7ms → 1.0ms (41% faster).
 - Test count updated across all docs: 8,386 → 8,494.
 - Example count updated across all docs: 115 → 116.
 - Landing page stats synced to current values (8,494 tests).
+
+### Fixed
+- `isomorphism_demo.rs` used `ring_graph(n, false, false, false)` (path)
+  instead of `ring_graph(n, false, false, true)` (cycle), causing
+  incorrect automorphism counts in the example output.
 
 ## [0.6.0] — 2026-06-04
 

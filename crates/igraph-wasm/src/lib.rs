@@ -1,13 +1,14 @@
 use rust_igraph::{
     ConnectednessMode, DijkstraMode, FrParams, Graph, GreedyColoringHeuristic, VertexId,
     articulation_points, betweenness, bfs, bridges, canonical_permutation, closeness,
-    connected_components, count_automorphisms, count_triangles, dfs, dijkstra_distances,
-    edge_betweenness, edge_betweenness_community, eigenvector_centrality, fast_greedy_modularity,
-    fluid_communities, girth, harmonic_centrality, hub_and_authority_scores, infomap, is_bipartite,
-    is_connected, isomorphic_bliss, katz_centrality, label_propagation,
-    layout_fruchterman_reingold, leading_eigenvector, leiden, louvain, max_flow_value, pagerank,
+    connected_components, count_automorphisms, count_triangles, cycle_graph, dfs, diameter,
+    dijkstra_distances, edge_betweenness, edge_betweenness_community, eigenvector_centrality,
+    erdos_renyi_gnp, fast_greedy_modularity, fluid_communities, full_graph, girth,
+    harmonic_centrality, hub_and_authority_scores, infomap, is_bipartite, is_connected,
+    isomorphic_bliss, katz_centrality, label_propagation, layout_fruchterman_reingold,
+    leading_eigenvector, leiden, louvain, max_flow_value, pagerank, random_walk, ring_graph,
     spinglass, strongly_connected_components, topological_sorting, transitivity_undirected,
-    triad_census, vertex_coloring_greedy, walktrap,
+    triad_census, vertex_coloring_greedy, walktrap, watts_strogatz_game,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -202,6 +203,21 @@ struct AutomorphismResult {
 struct IsomorphismResult {
     isomorphic: bool,
     mapping: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct DiameterResult {
+    diameter: Option<u32>,
+}
+
+#[derive(Serialize)]
+struct RandomWalkResult {
+    vertices: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct ShortestPathResult {
+    path: Vec<u32>,
 }
 
 #[wasm_bindgen]
@@ -591,5 +607,63 @@ impl WasmGraph {
             mapping: r.map12,
         };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "diameter")]
+    pub fn diameter(&self) -> Result<String, JsError> {
+        let d = diameter(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = DiameterResult { diameter: d };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "randomWalk")]
+    pub fn random_walk(&self, start: u32, steps: u32, seed: u64) -> Result<String, JsError> {
+        let (vertices, _edges) =
+            random_walk(&self.inner, None, start, DijkstraMode::Out, steps, seed)
+                .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = RandomWalkResult { vertices };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "shortestPath")]
+    pub fn shortest_path(&self, source: u32, target: u32) -> Result<String, JsError> {
+        let sp = self
+            .inner
+            .shortest_path_to(source, target, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ShortestPathResult { path: sp.vertices };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "erdosRenyi")]
+    pub fn erdos_renyi(n: u32, p: f64, seed: u64) -> Result<WasmGraph, JsError> {
+        let g =
+            erdos_renyi_gnp(n, p, false, false, seed).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(Self { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "fullGraph")]
+    pub fn full_graph(n: u32) -> Result<WasmGraph, JsError> {
+        let g = full_graph(n, false, false).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(Self { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "cycleGraph")]
+    pub fn cycle_graph(n: u32) -> Result<WasmGraph, JsError> {
+        let g = cycle_graph(n, false, false).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(Self { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "ringGraph")]
+    pub fn ring_graph(n: u32, circular: bool) -> Result<WasmGraph, JsError> {
+        let g = ring_graph(n, false, false, circular).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(Self { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "wattsStrogatz")]
+    pub fn watts_strogatz(n: u32, k: u32, p: f64, seed: u64) -> Result<WasmGraph, JsError> {
+        let g = watts_strogatz_game(n, k, p, false, false, seed)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(Self { inner: g })
     }
 }
