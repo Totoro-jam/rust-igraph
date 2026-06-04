@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { AlgoId, AlgoParams, Edge, LayoutId, RunResult, WorkerResponse } from '../types';
+import type { AlgoId, AlgoParams, Edge, GeneratorId, GeneratorParams, GeneratedGraph, LayoutId, RunResult, WorkerResponse } from '../types';
 import { runDemoAlgo, layoutFR } from '../algorithms';
 
 type WasmStatus = 'loading' | 'ready' | 'error' | 'running';
@@ -30,12 +30,17 @@ const WASM_SUPPORTED_ALGOS: Set<AlgoId> = new Set([
   'bellman_ford',
 ]);
 
-export function useWasm(onResult: (result: RunResult) => void) {
+export function useWasm(
+  onResult: (result: RunResult) => void,
+  onGenerated?: (data: GeneratedGraph) => void,
+) {
   const [status, setStatus] = useState<WasmStatus>('loading');
   const [wasmAvailable, setWasmAvailable] = useState(false);
   const workerRef = useRef<Worker | null>(null);
   const onResultRef = useRef(onResult);
   onResultRef.current = onResult;
+  const onGeneratedRef = useRef(onGenerated);
+  onGeneratedRef.current = onGenerated;
 
   const pendingRunRef = useRef<{
     algo: AlgoId;
@@ -81,6 +86,10 @@ export function useWasm(onResult: (result: RunResult) => void) {
           setStatus('ready');
           pendingRunRef.current = null;
           onResultRef.current(msg.data);
+          break;
+        case 'generated':
+          setStatus('ready');
+          onGeneratedRef.current?.(msg.data);
           break;
         case 'error': {
           setStatus('ready');
@@ -149,5 +158,14 @@ export function useWasm(onResult: (result: RunResult) => void) {
     [wasmAvailable, runDemoFallback],
   );
 
-  return { status, wasmAvailable, run } as const;
+  const generate = useCallback(
+    (generator: GeneratorId, params: GeneratorParams) => {
+      if (!wasmAvailable || !workerRef.current) return;
+      setStatus('running');
+      workerRef.current.postMessage({ type: 'generate', generator, params });
+    },
+    [wasmAvailable],
+  );
+
+  return { status, wasmAvailable, run, generate } as const;
 }

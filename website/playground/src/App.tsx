@@ -12,7 +12,7 @@ import { useWasm } from './hooks/useWasm';
 import { useResizablePanels } from './hooks/useResizablePanels';
 import { readUrlState, useUrlSync } from './hooks/useUrlState';
 import { PRESETS } from './presets';
-import type { AlgoId, AlgoParams, AlgoResult, Edge, LayoutId, RunResult } from './types';
+import type { AlgoId, AlgoParams, AlgoResult, Edge, GeneratedGraph, GeneratorId, GeneratorParams, LayoutId, RunResult } from './types';
 import layout from './styles/layout.module.css';
 
 function edgesFromPreset(id: string): string {
@@ -84,7 +84,21 @@ export function App() {
     setElapsed(runResult.elapsed_ms);
   }, []);
 
-  const { status, wasmAvailable, run } = useWasm(applyRunResult);
+  const applyGenerated = useCallback((data: GeneratedGraph) => {
+    const text = data.edges.map(([u, v]) => `${u} ${v}`).join('\n');
+    setEdgeText(text);
+    setDirected(data.directed);
+    setPresetId('');
+  }, []);
+
+  const { status, wasmAvailable, run, generate } = useWasm(applyRunResult, applyGenerated);
+
+  const handleGenerate = useCallback(
+    (generator: GeneratorId, params: GeneratorParams) => {
+      generate(generator, params);
+    },
+    [generate],
+  );
 
   const edges = useMemo(() => parseEdges(edgeText), [edgeText]);
   const vcount = useMemo(() => getVcount(edges), [edges]);
@@ -189,8 +203,10 @@ export function App() {
               <GraphEditor
                 edgeText={edgeText}
                 presetId={presetId}
+                wasmAvailable={wasmAvailable}
                 onEdgeTextChange={setEdgeText}
                 onPresetChange={handlePresetChange}
+                onGenerate={handleGenerate}
                 t={t}
               />
             )}

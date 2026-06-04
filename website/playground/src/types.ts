@@ -261,13 +261,43 @@ export interface PresetGraph {
   directed: boolean;
 }
 
+export type GeneratorId =
+  | 'erdos_renyi'
+  | 'barabasi_albert'
+  | 'watts_strogatz'
+  | 'complete'
+  | 'cycle'
+  | 'path'
+  | 'star'
+  | 'ring'
+  | 'famous';
+
+export interface GeneratorParams {
+  n?: number;
+  p?: number;
+  m?: number;
+  k?: number;
+  seed?: number;
+  directed?: boolean;
+  circular?: boolean;
+  name?: string;
+}
+
+export interface GeneratedGraph {
+  edges: Edge[];
+  directed: boolean;
+  vcount: number;
+}
+
 export type WorkerRequest =
   | { type: 'init' }
   | { type: 'run'; algo: AlgoId; edges: Edge[]; directed: boolean; params: AlgoParams; layout: LayoutId }
+  | { type: 'generate'; generator: GeneratorId; params: GeneratorParams }
   | { type: 'cancel' };
 
 export type WorkerResponse =
   | { type: 'ready'; wasmAvailable: boolean }
   | { type: 'result'; data: RunResult }
+  | { type: 'generated'; data: GeneratedGraph }
   | { type: 'error'; message: string }
   | { type: 'progress'; percent: number };

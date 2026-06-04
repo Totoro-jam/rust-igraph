@@ -1,7 +1,16 @@
-import type { WorkerRequest, WorkerResponse, AlgoId, AlgoResult, Edge, AlgoParams, LayoutId } from './types';
+import type { WorkerRequest, WorkerResponse, AlgoId, AlgoResult, Edge, AlgoParams, LayoutId, GeneratorId, GeneratorParams, GeneratedGraph } from './types';
 
 let WasmGraph: {
   fromEdges(edges: Uint32Array, directed: boolean): WasmGraphInstance;
+  erdosRenyi(n: number, p: number, seed: bigint): WasmGraphInstance;
+  fullGraph(n: number): WasmGraphInstance;
+  cycleGraph(n: number): WasmGraphInstance;
+  ringGraph(n: number, circular: boolean): WasmGraphInstance;
+  wattsStrogatz(n: number, k: number, p: number, seed: bigint): WasmGraphInstance;
+  barabasiAlbert(n: number, m: number, seed: bigint): WasmGraphInstance;
+  pathGraph(n: number, directed: boolean): WasmGraphInstance;
+  starGraph(n: number): WasmGraphInstance;
+  famousGraph(name: string): WasmGraphInstance;
 } | null = null;
 
 interface WasmGraphInstance {
@@ -96,6 +105,8 @@ interface WasmGraphInstance {
   feedbackArcSet(weights?: number[]): string;
   closenessWeighted(weights: number[]): string;
   betweennessWeighted(weights: number[]): string;
+  getEdges(): Uint32Array;
+  isDirected(): boolean;
   vcount(): number;
   ecount(): number;
   free(): void;
@@ -358,6 +369,58 @@ function runWasm(
   }
 }
 
+function generateGraph(generator: GeneratorId, params: GeneratorParams): GeneratedGraph {
+  if (!WasmGraph) throw new Error('WASM not loaded');
+
+  const seed = BigInt(params.seed ?? 42);
+  let graph: WasmGraphInstance;
+
+  switch (generator) {
+    case 'erdos_renyi':
+      graph = WasmGraph.erdosRenyi(params.n ?? 50, params.p ?? 0.1, seed);
+      break;
+    case 'barabasi_albert':
+      graph = WasmGraph.barabasiAlbert(params.n ?? 50, params.m ?? 2, seed);
+      break;
+    case 'watts_strogatz':
+      graph = WasmGraph.wattsStrogatz(params.n ?? 30, params.k ?? 4, params.p ?? 0.1, seed);
+      break;
+    case 'complete':
+      graph = WasmGraph.fullGraph(params.n ?? 10);
+      break;
+    case 'cycle':
+      graph = WasmGraph.cycleGraph(params.n ?? 20);
+      break;
+    case 'path':
+      graph = WasmGraph.pathGraph(params.n ?? 10, params.directed ?? false);
+      break;
+    case 'star':
+      graph = WasmGraph.starGraph(params.n ?? 12);
+      break;
+    case 'ring':
+      graph = WasmGraph.ringGraph(params.n ?? 20, params.circular ?? true);
+      break;
+    case 'famous':
+      graph = WasmGraph.famousGraph(params.name ?? 'Petersen');
+      break;
+    default:
+      throw new Error(`Unknown generator: ${generator}`);
+  }
+
+  try {
+    const flatEdges = graph.getEdges();
+    const directed = graph.isDirected();
+    const vcount = graph.vcount();
+    const edges: Edge[] = [];
+    for (let i = 0; i < flatEdges.length; i += 2) {
+      edges.push([flatEdges[i]!, flatEdges[i + 1]!]);
+    }
+    return { edges, directed, vcount };
+  } finally {
+    graph.free();
+  }
+}
+
 function post(msg: WorkerResponse) {
   self.postMessage(msg);
 }
@@ -389,6 +452,24 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
           type: 'result',
           data: { algo: msg.algo, result, coords, elapsed_ms },
         });
+      } catch (err) {
+        post({
+          type: 'error',
+          message: err instanceof Error ? err.message : String(err),
+        });
+      }
+      break;
+    }
+
+    case 'generate': {
+      if (!wasmReady) {
+        post({ type: 'error', message: 'WASM not available' });
+        return;
+      }
+
+      try {
+        const data = generateGraph(msg.generator, msg.params);
+        post({ type: 'generated', data });
       } catch (err) {
         post({
           type: 'error',

@@ -416,6 +416,21 @@ impl WasmGraph {
         u32::try_from(self.inner.ecount()).unwrap_or(u32::MAX)
     }
 
+    #[wasm_bindgen(js_name = "isDirected")]
+    pub fn is_directed(&self) -> bool {
+        self.inner.is_directed()
+    }
+
+    #[wasm_bindgen(js_name = "getEdges")]
+    pub fn get_edges(&self) -> Vec<u32> {
+        let mut result = Vec::with_capacity(self.inner.ecount().saturating_mul(2));
+        for (u, v) in self.inner.edges() {
+            result.push(u);
+            result.push(v);
+        }
+        result
+    }
+
     // --- Algorithms (return JSON strings) ---
 
     pub fn bfs(&self, root: u32) -> Result<String, JsError> {

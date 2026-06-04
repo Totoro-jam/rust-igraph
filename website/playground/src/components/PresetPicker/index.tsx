@@ -16,6 +16,9 @@ export function PresetPicker({ value, onChange, t }: PresetPickerProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >
+        {value === '' && (
+          <option value="" disabled>{t('gen.custom')}</option>
+        )}
         {PRESET_ORDER.map((id) => (
           <option key={id} value={id}>
             {t(`preset.${id}`)}
