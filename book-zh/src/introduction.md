@@ -7,7 +7,7 @@
 - **R-igraph** (`rigraph`) — `tests/testthat/test-*.R`
 
 > **状态**：308 个算法工作单元已完成（Phase 1–7 & 9）。
-> 840+ 个公共 API，1,091 个测试
+> 1,291 个公共 API，7,625 个测试
 >（单元 + 集成 + doctest + proptest）。支持 WASM（`wasm32-unknown-unknown`）。查看
 > [总体规划](https://github.com/Totoro-jam/rust-igraph/blob/main/docs/plans/MASTER_PLAN.md)了解路线图，
 > [算法追踪](https://github.com/Totoro-jam/rust-igraph/blob/main/.codefuse/tracking/ALGORITHMS.md)查看每个算法的进度。
