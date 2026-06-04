@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#58a6ff"/>
+      <stop offset="100%" stop-color="#79c0ff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines -->
+  <g stroke="#21262d" stroke-width="0.5" opacity="0.4">
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="420" x2="1200" y2="420"/>
+  </g>
+
+  <!-- Decorative graph network (right side) -->
+  <g opacity="0.15" stroke="#58a6ff" stroke-width="1.5" fill="none">
+    <line x1="850" y1="120" x2="950" y2="180"/>
+    <line x1="950" y1="180" x2="1050" y2="130"/>
+    <line x1="1050" y1="130" x2="1100" y2="230"/>
+    <line x1="1100" y1="230" x2="1000" y2="280"/>
+    <line x1="1000" y1="280" x2="950" y2="180"/>
+    <line x1="850" y1="120" x2="800" y2="220"/>
+    <line x1="800" y1="220" x2="850" y2="320"/>
+    <line x1="850" y1="320" x2="1000" y2="280"/>
+    <line x1="850" y1="320" x2="900" y2="420"/>
+    <line x1="900" y1="420" x2="1050" y2="400"/>
+    <line x1="1050" y1="400" x2="1100" y2="230"/>
+    <line x1="1050" y1="400" x2="1100" y2="480"/>
+    <line x1="1100" y1="480" x2="1000" y2="520"/>
+    <line x1="1000" y1="520" x2="900" y2="420"/>
+    <line x1="800" y1="220" x2="700" y2="300"/>
+    <line x1="700" y1="300" x2="750" y2="420"/>
+    <line x1="750" y1="420" x2="900" y2="420"/>
+    <line x1="700" y1="300" x2="650" y2="200"/>
+  </g>
+  <g opacity="0.2" fill="#58a6ff">
+    <circle cx="850" cy="120" r="5"/>
+    <circle cx="950" cy="180" r="6"/>
+    <circle cx="1050" cy="130" r="4"/>
+    <circle cx="1100" cy="230" r="5"/>
+    <circle cx="1000" cy="280" r="7"/>
+    <circle cx="800" cy="220" r="4"/>
+    <circle cx="850" cy="320" r="5"/>
+    <circle cx="900" cy="420" r="6"/>
+    <circle cx="1050" cy="400" r="4"/>
+    <circle cx="1100" cy="480" r="5"/>
+    <circle cx="1000" cy="520" r="4"/>
+    <circle cx="700" cy="300" r="5"/>
+    <circle cx="750" cy="420" r="4"/>
+    <circle cx="650" cy="200" r="3"/>
+  </g>
+
+  <!-- Logo graph icon -->
+  <g transform="translate(80, 145)">
+    <circle cx="20" cy="0" r="10" fill="#58a6ff"/>
+    <circle cx="60" cy="0" r="10" fill="#58a6ff"/>
+    <circle cx="40" cy="40" r="10" fill="#58a6ff"/>
+    <circle cx="10" cy="30" r="7" fill="#58a6ff" opacity="0.6"/>
+    <circle cx="70" cy="30" r="7" fill="#58a6ff" opacity="0.6"/>
+    <line x1="20" y1="0" x2="60" y2="0" stroke="#58a6ff" stroke-width="2.5" opacity="0.5"/>
+    <line x1="20" y1="0" x2="40" y2="40" stroke="#58a6ff" stroke-width="2.5" opacity="0.5"/>
+    <line x1="60" y1="0" x2="40" y2="40" stroke="#58a6ff" stroke-width="2.5" opacity="0.5"/>
+    <line x1="20" y1="0" x2="10" y2="30" stroke="#58a6ff" stroke-width="2" opacity="0.35"/>
+    <line x1="60" y1="0" x2="70" y2="30" stroke="#58a6ff" stroke-width="2" opacity="0.35"/>
+    <line x1="10" y1="30" x2="40" y2="40" stroke="#58a6ff" stroke-width="2" opacity="0.35"/>
+    <line x1="70" y1="30" x2="40" y2="40" stroke="#58a6ff" stroke-width="2" opacity="0.35"/>
+  </g>
+
+  <!-- Title -->
+  <text x="80" y="270" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="72" font-weight="700" fill="#f0f6fc">rust-igraph</text>
+
+  <!-- Subtitle -->
+  <text x="80" y="320" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="28" fill="#8b949e">Pure-Rust Graph Algorithms for Native &amp; WASM</text>
+
+  <!-- Accent line -->
+  <rect x="80" y="340" width="120" height="3" rx="1.5" fill="url(#accent)"/>
+
+  <!-- Stats row -->
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text x="80" y="395" font-size="38" font-weight="700" fill="#58a6ff">1,291</text>
+    <text x="80" y="418" font-size="16" fill="#8b949e">APIs</text>
+
+    <text x="240" y="395" font-size="38" font-weight="700" fill="#58a6ff">308</text>
+    <text x="240" y="418" font-size="16" fill="#8b949e">Algorithms</text>
+
+    <text x="400" y="395" font-size="38" font-weight="700" fill="#58a6ff">0</text>
+    <text x="400" y="418" font-size="16" fill="#8b949e">unsafe blocks</text>
+
+    <text x="570" y="395" font-size="38" font-weight="700" fill="#58a6ff">7,625</text>
+    <text x="570" y="418" font-size="16" fill="#8b949e">Tests</text>
+  </g>
+
+  <!-- CTA: Star on GitHub -->
+  <g transform="translate(80, 455)">
+    <!-- Star icon -->
+    <polygon points="12,1 15.09,8.26 23,9.27 17.18,14.14 18.18,22.02 12,18.27 5.82,22.02 6.82,14.14 1,9.27 8.91,8.26" fill="#e3b341" transform="translate(0, 2) scale(0.85)"/>
+    <!-- Text -->
+    <text x="26" y="18" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="600" fill="#e3b341">Star on GitHub</text>
+  </g>
+
+  <!-- GitHub URL -->
+  <g transform="translate(80, 500)">
+    <!-- GitHub icon -->
+    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" fill="#8b949e" transform="translate(0, 2)"/>
+    <!-- URL text -->
+    <text x="22" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, monospace" font-size="16" fill="#8b949e">github.com/Totoro-jam/rust-igraph</text>
+  </g>
+
+  <!-- Bottom algorithm tags -->
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#484f58">
+    <text x="80" y="560">PageRank</text>
+    <text x="162" y="560">Louvain</text>
+    <text x="234" y="560">BFS/DFS</text>
+    <text x="312" y="560">Dijkstra</text>
+    <text x="390" y="560">VF2</text>
+    <text x="430" y="560">Leiden</text>
+    <text x="490" y="560">Max-Flow</text>
+    <text x="575" y="560">HITS</text>
+    <text x="620" y="560">BLISS</text>
+  </g>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="625" width="1200" height="5" fill="url(#accent)"/>
+</svg>
