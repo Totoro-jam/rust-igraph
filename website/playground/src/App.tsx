@@ -272,7 +272,6 @@ export function App() {
               edges={edges}
               directed={directed}
               theme={theme}
-              t={t}
             />
           )}
         </div>

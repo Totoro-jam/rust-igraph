@@ -1,6 +1,13 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { EditorState } from '@codemirror/state';
-import { EditorView, lineNumbers, highlightActiveLine } from '@codemirror/view';
+import {
+  EditorView,
+  lineNumbers,
+  highlightActiveLine,
+  highlightSpecialChars,
+} from '@codemirror/view';
+import { bracketMatching, syntaxHighlighting, HighlightStyle } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
 import { rust } from '@codemirror/lang-rust';
 import { oneDark } from '@codemirror/theme-one-dark';
 import type { AlgoId, Edge } from '../types';
@@ -10,7 +17,6 @@ interface CodeEditorProps {
   edges: Edge[];
   directed: boolean;
   theme: 'dark' | 'light';
-  t: (key: string) => string;
 }
 
 function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): string {
@@ -43,18 +49,54 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
   }
 }
 
+const githubLightHighlight = HighlightStyle.define([
+  { tag: tags.keyword, color: '#cf222e' },
+  { tag: tags.definition(tags.variableName), color: '#24292f' },
+  { tag: tags.function(tags.variableName), color: '#8250df' },
+  { tag: tags.typeName, color: '#0550ae' },
+  { tag: tags.string, color: '#0a3069' },
+  { tag: tags.number, color: '#0550ae' },
+  { tag: tags.bool, color: '#cf222e' },
+  { tag: tags.comment, color: '#6e7781', fontStyle: 'italic' },
+  { tag: tags.macroName, color: '#8250df' },
+  { tag: tags.operator, color: '#24292f' },
+  { tag: tags.propertyName, color: '#0550ae' },
+  { tag: tags.punctuation, color: '#24292f' },
+  { tag: tags.self, color: '#cf222e' },
+  { tag: tags.moduleKeyword, color: '#cf222e' },
+  { tag: tags.attributeName, color: '#0550ae' },
+]);
+
 const lightTheme = EditorView.theme({
   '&': { backgroundColor: '#f6f8fa', color: '#24292f' },
-  '.cm-gutters': { backgroundColor: '#f6f8fa', borderRight: '1px solid #d0d7de' },
+  '.cm-gutters': {
+    backgroundColor: '#f6f8fa',
+    borderRight: '1px solid #d0d7de',
+    color: '#8b949e',
+  },
   '.cm-activeLineGutter': { backgroundColor: '#eaeef2' },
-  '.cm-activeLine': { backgroundColor: '#eaeef2' },
+  '.cm-activeLine': { backgroundColor: 'rgba(234, 238, 242, 0.5)' },
+  '.cm-matchingBracket': {
+    backgroundColor: 'rgba(9, 105, 218, 0.15)',
+    outline: '1px solid rgba(9, 105, 218, 0.3)',
+  },
+  '.cm-selectionMatch': { backgroundColor: 'rgba(9, 105, 218, 0.1)' },
+  '.cm-cursor': { borderLeftColor: '#24292f' },
 });
 
-export function CodeEditor({ algo, edges, directed, theme, t }: CodeEditorProps) {
+export function CodeEditor({ algo, edges, directed, theme }: CodeEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const code = generateRustCode(algo, edges, directed);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [code]);
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -63,9 +105,13 @@ export function CodeEditor({ algo, edges, directed, theme, t }: CodeEditorProps)
       rust(),
       lineNumbers(),
       highlightActiveLine(),
+      highlightSpecialChars(),
+      bracketMatching(),
       EditorView.editable.of(false),
       EditorState.readOnly.of(true),
-      ...(theme === 'dark' ? [oneDark] : [lightTheme]),
+      ...(theme === 'dark'
+        ? [oneDark]
+        : [lightTheme, syntaxHighlighting(githubLightHighlight)]),
     ];
 
     if (viewRef.current) {
@@ -89,11 +135,24 @@ export function CodeEditor({ algo, edges, directed, theme, t }: CodeEditorProps)
   }, [code, theme]);
 
   return (
-    <>
-      <div className="code-panel-header">
-        <h3>{t('code')}</h3>
-      </div>
+    <div className="code-editor-wrap">
+      <button
+        className="code-copy-btn"
+        onClick={handleCopy}
+        title="Copy to clipboard"
+      >
+        {copied ? (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+        )}
+      </button>
       <div className="code-editor" ref={editorRef} />
-    </>
+    </div>
   );
 }

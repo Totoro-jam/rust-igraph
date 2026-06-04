@@ -771,13 +771,53 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   font-weight: 600;
 }
 
-.code-editor {
+.code-editor-wrap {
   flex: 1;
   overflow: auto;
+  position: relative;
+}
+
+.code-editor {
   font-size: 0.8rem;
+  height: 100%;
 }
 .code-editor .cm-editor {
   height: 100%;
+}
+
+.code-copy-btn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--toolbar-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+}
+
+.code-editor-wrap:hover .code-copy-btn {
+  opacity: 1;
+}
+
+.code-copy-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.code-copy-btn:active {
+  background: var(--accent-bg);
+  color: var(--accent);
 }
 
 /* ═══════ Responsive ═══════ */
