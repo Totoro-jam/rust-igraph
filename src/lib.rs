@@ -2,7 +2,7 @@
 //!
 //! **Pure-Rust, high-performance graph and network analysis library.**
 //!
-//! A faithful port of [igraph](https://igraph.org) with 1200+ public APIs,
+//! A faithful port of [igraph](https://igraph.org) with 1,297 public APIs,
 //! zero `unsafe`, and no C/C++ FFI. Built for researchers, data scientists,
 //! and systems engineers who need production-grade graph algorithms in the
 //! Rust ecosystem.
