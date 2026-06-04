@@ -1,0 +1,30 @@
+.edgeInput {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  background: var(--bg-code);
+  color: var(--text);
+  border: none;
+  outline: none;
+}
+
+.edgeInput::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.edgeInput:focus {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.editorHint {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  text-align: right;
+}

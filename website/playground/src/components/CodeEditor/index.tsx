@@ -10,7 +10,8 @@ import { bracketMatching, syntaxHighlighting, HighlightStyle } from '@codemirror
 import { tags } from '@lezer/highlight';
 import { rust } from '@codemirror/lang-rust';
 import { oneDark } from '@codemirror/theme-one-dark';
-import type { AlgoId, Edge } from '../types';
+import type { AlgoId, Edge } from '../../types';
+import styles from './index.module.css';
 
 interface CodeEditorProps {
   algo: AlgoId;
@@ -171,9 +172,9 @@ export function CodeEditor({ algo, edges, directed, theme }: CodeEditorProps) {
   }, [code, theme]);
 
   return (
-    <div className="code-editor-wrap">
+    <div className={styles.editorWrap}>
       <button
-        className="code-copy-btn"
+        className={styles.copyBtn}
         onClick={handleCopy}
         title="Copy to clipboard"
       >
@@ -188,7 +189,7 @@ export function CodeEditor({ algo, edges, directed, theme }: CodeEditorProps) {
           </svg>
         )}
       </button>
-      <div className="code-editor" ref={editorRef} />
+      <div className={styles.editor} ref={editorRef} />
     </div>
   );
 }

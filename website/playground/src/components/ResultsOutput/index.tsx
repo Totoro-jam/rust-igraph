@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import type { AlgoResult } from '../types';
+import type { AlgoResult } from '../../types';
+import styles from './index.module.css';
 
 interface ResultsOutputProps {
   algo: string;
@@ -191,8 +192,8 @@ export function ResultsOutput({ result, elapsed, vcount, edgeCount, t }: Results
 
   if (!result || !parsed) {
     return (
-      <div className="results-output results-empty">
-        <span className="results-empty-text">{t('clickToRun')}</span>
+      <div className={`${styles.resultsOutput} ${styles.resultsEmpty}`}>
+        <span className={styles.resultsEmptyText}>{t('clickToRun')}</span>
       </div>
     );
   }
@@ -209,44 +210,44 @@ export function ResultsOutput({ result, elapsed, vcount, edgeCount, t }: Results
   }
 
   return (
-    <div className="results-output">
-      <div className="results-badges">
+    <div className={styles.resultsOutput}>
+      <div className={styles.badges}>
         {allBadges.map((b, i) => (
-          <div key={i} className={`result-badge${b.accent ? ' result-badge-accent' : ''}`}>
-            <span className="result-badge-value">{b.value}</span>
-            <span className="result-badge-label">{b.label}</span>
+          <div key={i} className={`${styles.badge}${b.accent ? ` ${styles.badgeAccent}` : ''}`}>
+            <span className={styles.badgeValue}>{b.value}</span>
+            <span className={styles.badgeLabel}>{b.label}</span>
           </div>
         ))}
       </div>
 
       {table.length > 0 && (
-        <div className="results-table-wrap">
-          <table className="results-table">
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
             <thead>
               <tr>
-                <th className="results-th-vertex">{t('result.col.vertex')}</th>
+                <th className={styles.thVertex}>{t('result.col.vertex')}</th>
                 <th>{columnLabel}</th>
-                {showBars && <th className="results-th-bar"></th>}
+                {showBars && <th className={styles.thBar}></th>}
               </tr>
             </thead>
             <tbody>
               {table.map((row) => (
                 <tr key={row.vertex}>
-                  <td className="results-td-vertex">v{row.vertex}</td>
-                  <td className="results-td-value">
+                  <td className={styles.tdVertex}>v{row.vertex}</td>
+                  <td className={styles.tdValue}>
                     {row.colorIndex != null && (
                       <span
-                        className="results-color-dot"
+                        className={styles.colorDot}
                         style={{ background: COMMUNITY_COLORS[row.colorIndex] }}
                       />
                     )}
                     {row.value}
                   </td>
                   {showBars && (
-                    <td className="results-td-bar">
-                      <div className="results-bar-track">
+                    <td className={styles.tdBar}>
+                      <div className={styles.barTrack}>
                         <div
-                          className="results-bar-fill"
+                          className={styles.barFill}
                           style={{ width: `${(row.barFraction * 100).toFixed(1)}%` }}
                         />
                       </div>

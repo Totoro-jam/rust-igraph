@@ -1,0 +1,44 @@
+.presetPicker {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.presetLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.presetSelect {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.presetSelect:focus {
+  border-color: var(--accent);
+}
+
+@media (max-width: 600px) {
+  .presetPicker {
+    padding: 0.3rem 0.5rem;
+    gap: 0.3rem;
+  }
+
+  .presetLabel {
+    font-size: 0.7rem;
+  }
+}

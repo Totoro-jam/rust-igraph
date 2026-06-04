@@ -1,4 +1,5 @@
 import { useCallback, useRef, useEffect } from 'react';
+import styles from './index.module.css';
 
 interface ResizerProps {
   direction: 'horizontal' | 'vertical';
@@ -49,7 +50,7 @@ export function Resizer({ direction, onResize, onResizeEnd }: ResizerProps) {
 
   return (
     <div
-      className={`resizer resizer-${direction}`}
+      className={`${styles.resizer} ${direction === 'horizontal' ? styles.horizontal : styles.vertical}`}
       onMouseDown={handleMouseDown}
       role="separator"
       aria-orientation={direction}

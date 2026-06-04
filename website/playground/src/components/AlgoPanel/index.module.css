@@ -1,0 +1,104 @@
+.algoList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.25rem 0;
+}
+
+.algoOption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--text);
+  transition: background var(--transition);
+  user-select: none;
+}
+
+.algoOption:hover {
+  background: var(--bg-hover);
+}
+
+.algoOption.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.algoOption input {
+  accent-color: var(--accent);
+}
+
+.algoParams {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.paramRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.paramRow label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.paramRow input {
+  width: 80px;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.paramRow input:focus {
+  border-color: var(--accent);
+}
+
+.btnRun {
+  margin: 0.5rem 0.75rem;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.btnRun:hover {
+  background: var(--accent-hover);
+}
+
+.btnRun:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .algoList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .algoOption {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .btnRun {
+    margin: 0.25rem 0.5rem;
+  }
+}

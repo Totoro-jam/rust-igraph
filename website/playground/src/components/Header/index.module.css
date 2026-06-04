@@ -1,0 +1,111 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--bg-nav);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  height: var(--nav-height);
+}
+
+.navInner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navLogo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logoText {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-heading);
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.navLinks a {
+  color: var(--text-muted);
+}
+
+.navLinks a:hover {
+  color: var(--text);
+}
+
+.navActive {
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+.navGithub {
+  color: var(--text-muted) !important;
+  display: flex;
+}
+
+.themeToggle,
+.langToggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition), color var(--transition);
+}
+
+.themeToggle:hover,
+.langToggle:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .navInner {
+    padding: 0 0.75rem;
+  }
+
+  .navLinks {
+    gap: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .navLinks a:not(.navGithub):not(.navActive) {
+    display: none;
+  }
+
+  .navActive {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .logoText {
+    font-size: 0.95rem;
+  }
+
+  .langToggle,
+  .themeToggle {
+    padding: 0.25rem 0.35rem;
+    font-size: 0.7rem;
+  }
+}

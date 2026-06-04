@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
-import { ForceSimulation } from '../simulation';
-import type { AlgoId, AlgoResult, Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder } from '../types';
+import { ForceSimulation } from '../../simulation';
+import type { AlgoId, AlgoResult, Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder } from '../../types';
+import css from './index.module.css';
 
 const PALETTE_DARK = [
   '#58a6ff', '#3fb950', '#d2a8ff', '#f0883e',
@@ -862,24 +863,24 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
   }, []);
 
   return (
-    <div className="canvas-container" ref={containerRef}>
+    <div className={css.canvasContainer} ref={containerRef}>
       <canvas ref={canvasRef} style={{ cursor: 'grab' }} />
 
-      <div className="canvas-toolbar">
+      <div className={css.toolbar}>
         <button onClick={zoomIn} title={t('zoomIn')}>+</button>
         <button onClick={zoomOut} title={t('zoomOut')}>&minus;</button>
-        <div className="toolbar-divider" />
+        <div className={css.toolbarDivider} />
         <button onClick={zoomFit} title={t('fitView')}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
             <rect x="2" y="2" width="12" height="12" rx="1" />
             <path d="M2 6h12M2 10h12M6 2v12M10 2v12" opacity="0.3" />
           </svg>
         </button>
-        <div className="toolbar-divider" />
+        <div className={css.toolbarDivider} />
         <button
           onClick={toggleSim}
           title={simActive ? t('pauseSim') : t('resumeSim')}
-          className={simActive ? 'toolbar-active' : ''}
+          className={simActive ? css.toolbarActive : ''}
         >
           {simActive ? (
             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -897,7 +898,7 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
             <path d="M2 4h4l2 4-2 4H2M14 4h-4l-2 4 2 4h4" />
           </svg>
         </button>
-        <div className="toolbar-divider" />
+        <div className={css.toolbarDivider} />
         <button onClick={exportPng} title={t('exportPng')}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M8 2v8M5 7l3 3 3-3M3 12h10" />
@@ -907,7 +908,7 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
 
       {tooltip && (
         <div
-          className="canvas-tooltip"
+          className={css.tooltip}
           style={{ left: tooltip.x, top: tooltip.y }}
         >
           {tooltip.text}
@@ -915,8 +916,8 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
       )}
 
       {selectedInfo && (
-        <div className="canvas-selection-info">
-          <div className="selection-header">
+        <div className={css.selectionInfo}>
+          <div className={css.selectionHeader}>
             <span>{t('selectedNode')}</span>
             <button onClick={() => { interactionRef.current.selectedNode = -1; setSelectedInfo(null); draw(); }}>
               &times;

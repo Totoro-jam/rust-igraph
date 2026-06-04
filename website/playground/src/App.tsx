@@ -12,7 +12,7 @@ import { useWasm } from './hooks/useWasm';
 import { useResizablePanels } from './hooks/useResizablePanels';
 import { PRESETS } from './presets';
 import type { AlgoId, AlgoParams, AlgoResult, Edge, RunResult } from './types';
-import './App.css';
+import layout from './styles/layout.module.css';
 
 function edgesFromPreset(id: string): string {
   const preset = PRESETS[id];
@@ -121,8 +121,15 @@ export function App() {
       ? t('status.ready')
       : t('status.demo');
 
+  const statusClass = `${layout.status} ${
+    status === 'ready' ? layout.statusReady
+    : status === 'running' ? layout.statusRunning
+    : status === 'error' ? layout.statusError
+    : layout.statusLoading
+  }`;
+
   return (
-    <div className="app">
+    <div className={layout.app}>
       <Header
         theme={theme}
         lang={lang}
@@ -131,18 +138,18 @@ export function App() {
         t={t}
       />
 
-      <div className="workspace">
-        <div className="workspace-top">
+      <div className={layout.workspace}>
+        <div className={layout.workspaceTop}>
           <div
-            className={`panel panel-left${leftCollapsed ? ' panel-collapsed' : ''}`}
+            className={`${layout.panel} ${layout.panelLeft}${leftCollapsed ? ` ${layout.panelCollapsed}` : ''}`}
             style={{ width: leftCollapsed ? undefined : sizes.leftWidth }}
             onClick={leftCollapsed ? () => setLeftCollapsed(false) : undefined}
           >
-            <div className="panel-header">
+            <div className={layout.panelHeader}>
               <h2>{t('graphEditor')}</h2>
-              <div className="panel-header-actions">
+              <div className={layout.panelHeaderActions}>
                 {!leftCollapsed && (
-                  <label className="directed-label">
+                  <label className={layout.directedLabel}>
                     <input
                       type="checkbox"
                       checked={directed}
@@ -152,7 +159,7 @@ export function App() {
                   </label>
                 )}
                 <button
-                  className="collapse-toggle"
+                  className={layout.collapseToggle}
                   onClick={() => setLeftCollapsed(!leftCollapsed)}
                   aria-label={leftCollapsed ? t('expand') : t('collapse')}
                   title={leftCollapsed ? t('expand') : t('collapse')}
@@ -182,14 +189,14 @@ export function App() {
           )}
 
           <div
-            className={`panel panel-center${centerCollapsed ? ' panel-collapsed' : ''}`}
+            className={`${layout.panel} ${layout.panelCenter}${centerCollapsed ? ` ${layout.panelCollapsed}` : ''}`}
             style={{ width: centerCollapsed ? undefined : sizes.centerWidth }}
             onClick={centerCollapsed ? () => setCenterCollapsed(false) : undefined}
           >
-            <div className="panel-header">
+            <div className={layout.panelHeader}>
               <h2>{t('algorithm')}</h2>
               <button
-                className="collapse-toggle"
+                className={layout.collapseToggle}
                 onClick={() => setCenterCollapsed(!centerCollapsed)}
                 aria-label={centerCollapsed ? t('expand') : t('collapse')}
                 title={centerCollapsed ? t('expand') : t('collapse')}
@@ -219,11 +226,11 @@ export function App() {
             <Resizer direction="horizontal" onResize={resizeCenter} onResizeEnd={persistSizes} />
           )}
 
-          <div className="panel panel-right">
-            <div className="panel-header">
+          <div className={`${layout.panel} ${layout.panelRight}`}>
+            <div className={layout.panelHeader}>
               <h2>{t('results')}</h2>
-              <div className="panel-header-actions">
-                <span className={`status ${status}`}>{statusText}</span>
+              <div className={layout.panelHeaderActions}>
+                <span className={statusClass}>{statusText}</span>
               </div>
             </div>
 
@@ -240,14 +247,14 @@ export function App() {
 
             <Resizer direction="vertical" onResize={resizeResults} onResizeEnd={persistSizes} />
 
-            <div className={`results-section${resultsCollapsed ? ' results-collapsed' : ''}`}>
+            <div className={`${layout.resultsSection}${resultsCollapsed ? ` ${layout.resultsCollapsed}` : ''}`}>
               <div
-                className="results-section-header"
+                className={layout.resultsSectionHeader}
                 onClick={resultsCollapsed ? () => setResultsCollapsed(false) : undefined}
               >
-                <span className="results-section-title">{t('results')}</span>
+                <span className={layout.resultsSectionTitle}>{t('results')}</span>
                 <button
-                  className="collapse-toggle"
+                  className={layout.collapseToggle}
                   onClick={() => setResultsCollapsed(!resultsCollapsed)}
                   aria-label={resultsCollapsed ? t('expand') : t('collapse')}
                   title={resultsCollapsed ? t('expand') : t('collapse')}
@@ -262,7 +269,7 @@ export function App() {
               </div>
               {!resultsCollapsed && (
                 <div
-                  className="results-output-wrap"
+                  className={layout.resultsOutputWrap}
                   style={{ height: sizes.resultsHeight }}
                 >
                   <ResultsOutput
@@ -282,13 +289,13 @@ export function App() {
         <Resizer direction="vertical" onResize={resizeCode} onResizeEnd={persistSizes} />
 
         <div
-          className={`code-section${codeCollapsed ? ' code-collapsed' : ''}`}
+          className={`${layout.codeSection}${codeCollapsed ? ` ${layout.codeCollapsed}` : ''}`}
           style={{ height: codeCollapsed ? undefined : sizes.codeHeight }}
         >
-          <div className="code-panel-header">
+          <div className={layout.codePanelHeader}>
             <h3>{t('code')}</h3>
             <button
-              className="collapse-toggle"
+              className={layout.collapseToggle}
               onClick={() => setCodeCollapsed(!codeCollapsed)}
               aria-label={codeCollapsed ? t('expand') : t('collapse')}
               title={codeCollapsed ? t('expand') : t('collapse')}

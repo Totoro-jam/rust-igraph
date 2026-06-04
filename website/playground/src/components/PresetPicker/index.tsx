@@ -1,4 +1,5 @@
-import { PRESET_ORDER } from '../presets';
+import { PRESET_ORDER } from '../../presets';
+import styles from './index.module.css';
 
 interface PresetPickerProps {
   value: string;
@@ -8,10 +9,10 @@ interface PresetPickerProps {
 
 export function PresetPicker({ value, onChange, t }: PresetPickerProps) {
   return (
-    <div className="preset-picker">
-      <label className="preset-label">{t('preset')}</label>
+    <div className={styles.presetPicker}>
+      <label className={styles.presetLabel}>{t('preset')}</label>
       <select
-        className="preset-select"
+        className={styles.presetSelect}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >

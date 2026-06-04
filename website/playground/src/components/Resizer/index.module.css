@@ -1,0 +1,53 @@
+.resizer {
+  flex-shrink: 0;
+  background: var(--resizer-bg);
+  position: relative;
+  z-index: 10;
+  transition: background 0.15s;
+}
+
+.horizontal {
+  width: 4px;
+  cursor: col-resize;
+  border-left: 1px solid var(--border);
+}
+
+.vertical {
+  height: 4px;
+  cursor: row-resize;
+  border-top: 1px solid var(--border);
+}
+
+.resizer::after {
+  content: '';
+  position: absolute;
+}
+
+.horizontal::after {
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  right: -3px;
+}
+
+.vertical::after {
+  left: 0;
+  right: 0;
+  top: -3px;
+  bottom: -3px;
+}
+
+.resizer:hover,
+.resizer:active {
+  background: var(--resizer-hover);
+}
+
+.resizer:active {
+  background: var(--resizer-active);
+}
+
+@media (max-width: 900px) {
+  .horizontal {
+    display: none;
+  }
+}

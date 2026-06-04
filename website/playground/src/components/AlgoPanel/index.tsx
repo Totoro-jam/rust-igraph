@@ -1,4 +1,5 @@
-import type { AlgoId, AlgoParams } from '../types';
+import type { AlgoId, AlgoParams } from '../../types';
+import styles from './index.module.css';
 
 const ALGO_LIST: AlgoId[] = [
   'pagerank',
@@ -49,9 +50,9 @@ export function AlgoPanel({
 }: AlgoPanelProps) {
   return (
     <>
-      <div className="algo-list">
+      <div className={styles.algoList}>
         {ALGO_LIST.map((id) => (
-          <label key={id} className={`algo-option ${algo === id ? 'active' : ''}`}>
+          <label key={id} className={`${styles.algoOption} ${algo === id ? styles.active : ''}`}>
             <input
               type="radio"
               name="algo"
@@ -64,9 +65,9 @@ export function AlgoPanel({
         ))}
       </div>
 
-      <div className="algo-params">
+      <div className={styles.algoParams}>
         {algo === 'pagerank' && (
-          <div className="param-row">
+          <div className={styles.paramRow}>
             <label>{t('param.damping')}</label>
             <input
               type="number"
@@ -81,7 +82,7 @@ export function AlgoPanel({
           </div>
         )}
         {(algo === 'bfs' || algo === 'dfs' || algo === 'dijkstra' || algo === 'max_flow') && (
-          <div className="param-row">
+          <div className={styles.paramRow}>
             <label>{t('param.source')}</label>
             <input
               type="number"
@@ -95,7 +96,7 @@ export function AlgoPanel({
           </div>
         )}
         {algo === 'max_flow' && (
-          <div className="param-row">
+          <div className={styles.paramRow}>
             <label>{t('param.target')}</label>
             <input
               type="number"
@@ -110,7 +111,7 @@ export function AlgoPanel({
         )}
       </div>
 
-      <button className="btn-run" onClick={onRun} disabled={running}>
+      <button className={styles.btnRun} onClick={onRun} disabled={running}>
         {running ? t('status.running') : `▶ ${t('run')}`}
       </button>
     </>

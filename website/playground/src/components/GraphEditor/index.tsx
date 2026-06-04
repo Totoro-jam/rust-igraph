@@ -1,4 +1,5 @@
-import { PresetPicker } from './PresetPicker';
+import { PresetPicker } from '../PresetPicker';
+import styles from './index.module.css';
 
 interface GraphEditorProps {
   edgeText: string;
@@ -19,13 +20,13 @@ export function GraphEditor({
     <>
       <PresetPicker value={presetId} onChange={onPresetChange} t={t} />
       <textarea
-        className="edge-input"
+        className={styles.edgeInput}
         value={edgeText}
         onChange={(e) => onEdgeTextChange(e.target.value)}
         spellCheck={false}
         placeholder={t('edgePlaceholder')}
       />
-      <div className="editor-hint">{t('ctrlEnter')}</div>
+      <div className={styles.editorHint}>{t('ctrlEnter')}</div>
     </>
   );
 }
