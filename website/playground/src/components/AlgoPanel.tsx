@@ -16,6 +16,8 @@ const ALGO_LIST: AlgoId[] = [
   'leiden',
   'fast_greedy',
   'leading_eigenvector',
+  'edge_betweenness',
+  'fluid',
 ];
 
 interface AlgoPanelProps {

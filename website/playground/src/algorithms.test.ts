@@ -15,6 +15,8 @@ import {
   demoLeiden,
   demoFastGreedy,
   demoLeadingEigenvector,
+  demoEdgeBetweennessCommunity,
+  demoFluid,
   runDemoAlgo,
   layoutFR,
 } from './algorithms';
@@ -269,6 +271,22 @@ describe('demoLeadingEigenvector', () => {
   });
 });
 
+describe('demoEdgeBetweennessCommunity', () => {
+  it('returns membership and nb_clusters', () => {
+    const result = demoEdgeBetweennessCommunity(3, TRIANGLE) as AlgoResultMembership;
+    expect(result.membership).toHaveLength(3);
+    expect(result.nb_clusters).toBeDefined();
+  });
+});
+
+describe('demoFluid', () => {
+  it('returns membership and nb_clusters', () => {
+    const result = demoFluid(3, TRIANGLE) as AlgoResultMembership;
+    expect(result.membership).toHaveLength(3);
+    expect(result.nb_clusters).toBeDefined();
+  });
+});
+
 describe('runDemoAlgo', () => {
   it('dispatches to bfs', () => {
     const result = runDemoAlgo('bfs', 4, PATH, { source: 2 }) as AlgoResultOrder;
@@ -343,6 +361,16 @@ describe('runDemoAlgo', () => {
   it('dispatches to leading_eigenvector', () => {
     const result = runDemoAlgo('leading_eigenvector', 3, TRIANGLE) as AlgoResultMembership;
     expect(result.modularity).toBeDefined();
+  });
+
+  it('dispatches to edge_betweenness', () => {
+    const result = runDemoAlgo('edge_betweenness', 3, TRIANGLE) as AlgoResultMembership;
+    expect(result.nb_clusters).toBeDefined();
+  });
+
+  it('dispatches to fluid', () => {
+    const result = runDemoAlgo('fluid', 3, TRIANGLE) as AlgoResultMembership;
+    expect(result.nb_clusters).toBeDefined();
   });
 
   it('falls back to pagerank for unknown algo', () => {

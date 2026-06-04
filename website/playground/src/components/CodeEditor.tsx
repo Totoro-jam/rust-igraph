@@ -60,6 +60,10 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, fast_greedy_modularity};\n\n${graphLine}\n\nlet result = fast_greedy_modularity(&g).unwrap();\nprintln!("Clusters: {}", result.nb_clusters);\nprintln!("Communities: {:?}", result.membership);`;
     case 'leading_eigenvector':
       return `use rust_igraph::{Graph, leading_eigenvector};\n\n${graphLine}\n\nlet result = leading_eigenvector(&g, None, None).unwrap();\nprintln!("Modularity: {:.4}", result.modularity);\nprintln!("Communities: {:?}", result.membership);`;
+    case 'edge_betweenness':
+      return `use rust_igraph::{Graph, edge_betweenness_community};\n\n${graphLine}\n\nlet result = edge_betweenness_community(&g).unwrap();\nprintln!("Clusters: {}", result.nb_clusters);\nprintln!("Communities: {:?}", result.membership);`;
+    case 'fluid':
+      return `use rust_igraph::{Graph, fluid_communities};\n\n${graphLine}\n\nlet result = fluid_communities(&g, 3).unwrap();\nprintln!("Clusters: {}", result.nb_clusters);\nprintln!("Communities: {:?}", result.membership);`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }

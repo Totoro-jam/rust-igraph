@@ -259,6 +259,16 @@ export function demoLeadingEigenvector(vcount: number, edges: Edge[]): AlgoResul
   return { membership: result.membership, modularity: 0 };
 }
 
+export function demoEdgeBetweennessCommunity(vcount: number, edges: Edge[]): AlgoResult {
+  const result = demoComponents(vcount, edges) as { membership: number[]; count: number };
+  return { membership: result.membership, nb_clusters: result.count };
+}
+
+export function demoFluid(vcount: number, edges: Edge[]): AlgoResult {
+  const result = demoComponents(vcount, edges) as { membership: number[]; count: number };
+  return { membership: result.membership, nb_clusters: result.count };
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
@@ -296,6 +306,10 @@ export function runDemoAlgo(
       return demoFastGreedy(vcount, edges);
     case 'leading_eigenvector':
       return demoLeadingEigenvector(vcount, edges);
+    case 'edge_betweenness':
+      return demoEdgeBetweennessCommunity(vcount, edges);
+    case 'fluid':
+      return demoFluid(vcount, edges);
     default:
       return demoPagerank(vcount, edges);
   }

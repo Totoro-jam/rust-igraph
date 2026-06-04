@@ -1,8 +1,8 @@
 use rust_igraph::{
     FrParams, Graph, VertexId, betweenness, bfs, closeness, connected_components, dfs,
-    dijkstra_distances, eigenvector_centrality, fast_greedy_modularity, infomap, label_propagation,
-    layout_fruchterman_reingold, leading_eigenvector, leiden, louvain, pagerank, spinglass,
-    walktrap,
+    dijkstra_distances, edge_betweenness_community, eigenvector_centrality, fast_greedy_modularity,
+    fluid_communities, infomap, label_propagation, layout_fruchterman_reingold,
+    leading_eigenvector, leiden, louvain, pagerank, spinglass, walktrap,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -93,6 +93,18 @@ struct FastGreedyOutput {
 struct LeadingEigenvectorOutput {
     membership: Vec<u32>,
     modularity: f64,
+}
+
+#[derive(Serialize)]
+struct EdgeBetweennessOutput {
+    membership: Vec<u32>,
+    nb_clusters: u32,
+}
+
+#[derive(Serialize)]
+struct FluidOutput {
+    membership: Vec<u32>,
+    nb_clusters: u32,
 }
 
 #[derive(Serialize)]
@@ -280,6 +292,27 @@ impl WasmGraph {
         let result = LeadingEigenvectorOutput {
             membership: r.membership,
             modularity: r.modularity,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "edgeBetweennessCommunity")]
+    pub fn edge_betweenness_community(&self) -> Result<String, JsError> {
+        let r =
+            edge_betweenness_community(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = EdgeBetweennessOutput {
+            membership: r.membership,
+            nb_clusters: r.nb_clusters,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "fluidCommunities")]
+    pub fn fluid_communities(&self, k: u32) -> Result<String, JsError> {
+        let r = fluid_communities(&self.inner, k).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = FluidOutput {
+            membership: r.membership,
+            nb_clusters: r.nb_clusters,
         };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }

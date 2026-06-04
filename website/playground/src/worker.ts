@@ -20,6 +20,8 @@ interface WasmGraphInstance {
   leiden(): string;
   fastGreedy(): string;
   leadingEigenvector(): string;
+  edgeBetweennessCommunity(): string;
+  fluidCommunities(k: number): string;
   layoutFr(niter: number): string;
   free(): void;
 }
@@ -109,6 +111,12 @@ function runWasm(
         break;
       case 'leading_eigenvector':
         resultJson = graph.leadingEigenvector();
+        break;
+      case 'edge_betweenness':
+        resultJson = graph.edgeBetweennessCommunity();
+        break;
+      case 'fluid':
+        resultJson = graph.fluidCommunities(params.source ?? 3);
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);

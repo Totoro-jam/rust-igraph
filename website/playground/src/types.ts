@@ -21,7 +21,9 @@ export type AlgoId =
   | 'walktrap'
   | 'leiden'
   | 'fast_greedy'
-  | 'leading_eigenvector';
+  | 'leading_eigenvector'
+  | 'edge_betweenness'
+  | 'fluid';
 
 export interface AlgoParams {
   source?: number;
