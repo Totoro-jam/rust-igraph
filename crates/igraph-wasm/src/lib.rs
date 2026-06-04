@@ -1,17 +1,20 @@
 use rust_igraph::{
     ConnectednessMode, DijkstraMode, FrParams, Graph, GreedyColoringHeuristic, KkParams, VertexId,
-    articulation_points, assortativity_degree, barabasi_game_bag, betweenness, bfs, bridges,
-    canonical_permutation, closeness, connected_components, constraint, coreness,
-    count_automorphisms, count_triangles, cycle_graph, density, dfs, diameter, dijkstra_distances,
-    eccentricity, edge_betweenness, edge_betweenness_community, eigenvector_centrality,
-    erdos_renyi_gnp, fast_greedy_modularity, fluid_communities, full_graph, girth,
-    harmonic_centrality, hub_and_authority_scores, infomap, is_bipartite, is_connected,
-    isomorphic_bliss, katz_centrality, label_propagation, layout_circle,
-    layout_fruchterman_reingold, layout_grid, layout_kamada_kawai, layout_random, layout_star,
-    leading_eigenvector, leiden, louvain, max_flow_value, mean_degree, mean_distance, pagerank,
-    radius, random_walk, reciprocity, ring_graph, spinglass, strongly_connected_components,
-    topological_sorting, transitivity_undirected, triad_census, vertex_coloring_greedy, walktrap,
-    watts_strogatz_game,
+    articulation_points, assortativity_degree, automorphism_group, barabasi_game_bag, betweenness,
+    bfs, bridges, canonical_permutation, closeness, complementer, connected_components, constraint,
+    coreness, count_automorphisms, count_triangles, cycle_graph, density, dfs, diameter,
+    dijkstra_distances, distances, eccentricity, edge_betweenness, edge_betweenness_community,
+    eigenvector_centrality, erdos_renyi_gnp, fast_greedy_modularity, floyd_warshall_distances,
+    fluid_communities, full_graph, fundamental_cycles, girth, harmonic_centrality,
+    hub_and_authority_scores, infomap, is_acyclic, is_biconnected, is_bipartite, is_complete,
+    is_connected, is_cubic, is_cycle, is_dag, is_forest, is_outerplanar, is_path, is_perfect,
+    is_star, is_tournament, is_tree, is_triangle_free, is_wheel, isomorphic_bliss, katz_centrality,
+    label_propagation, layout_circle, layout_fruchterman_reingold, layout_grid,
+    layout_kamada_kawai, layout_random, layout_star, leading_eigenvector, leiden, line_graph,
+    list_triangles, louvain, max_flow_value, mean_degree, mean_distance, minimum_cycle_basis,
+    pagerank, radius, random_walk, reciprocity, ring_graph, simplify, spinglass,
+    strongly_connected_components, topological_sorting, transitivity_undirected, triad_census,
+    trussness, vertex_coloring_greedy, walktrap, watts_strogatz_game,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -266,6 +269,66 @@ struct ConstraintResult {
 #[derive(Serialize)]
 struct ReciprocityResult {
     reciprocity: Option<f64>,
+}
+
+#[derive(Serialize)]
+struct BoolResult {
+    value: bool,
+}
+
+#[derive(Serialize)]
+#[allow(clippy::struct_excessive_bools)]
+struct GraphPropertiesResult {
+    is_tree: bool,
+    is_forest: bool,
+    is_dag: bool,
+    is_acyclic: bool,
+    is_complete: bool,
+    is_biconnected: bool,
+    is_bipartite: bool,
+    is_connected: bool,
+    is_tournament: bool,
+    is_cubic: bool,
+    is_cycle: bool,
+    is_path: bool,
+    is_star: bool,
+    is_wheel: bool,
+    is_perfect: bool,
+    is_triangle_free: bool,
+    is_outerplanar: bool,
+}
+
+#[derive(Serialize)]
+struct AutomorphismGroupResult {
+    generators: Vec<Vec<u32>>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct DistancesResult {
+    distances: Vec<Option<u32>>,
+}
+
+#[derive(Serialize)]
+struct FloydWarshallResult {
+    matrix: Vec<Vec<f64>>,
+}
+
+#[derive(Serialize)]
+struct CyclesResult {
+    cycles: Vec<Vec<u32>>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct TrussnessResult {
+    trussness: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct TriangleListResult {
+    triangles: Vec<[u32; 3]>,
+    count: usize,
 }
 
 #[wasm_bindgen]
@@ -828,5 +891,245 @@ impl WasmGraph {
         let r = reciprocity(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
         let result = ReciprocityResult { reciprocity: r };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Property queries ---
+
+    #[wasm_bindgen(js_name = "isTree")]
+    pub fn is_tree(&self) -> Result<String, JsError> {
+        let r =
+            is_tree(&self.inner, DijkstraMode::Out).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: r.is_some() };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isForest")]
+    pub fn is_forest(&self) -> Result<String, JsError> {
+        let r =
+            is_forest(&self.inner, DijkstraMode::Out).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: r.is_some() };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isDag")]
+    pub fn is_dag(&self) -> Result<String, JsError> {
+        let result = BoolResult {
+            value: is_dag(&self.inner),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isAcyclic")]
+    pub fn is_acyclic(&self) -> Result<String, JsError> {
+        let result = BoolResult {
+            value: is_acyclic(&self.inner),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isComplete")]
+    pub fn is_complete(&self) -> Result<String, JsError> {
+        let v = is_complete(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isBiconnected")]
+    pub fn is_biconnected(&self) -> Result<String, JsError> {
+        let v = is_biconnected(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isTournament")]
+    pub fn is_tournament(&self) -> Result<String, JsError> {
+        let v = is_tournament(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isCubic")]
+    pub fn is_cubic(&self) -> Result<String, JsError> {
+        let v = is_cubic(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isCycle")]
+    pub fn is_cycle(&self) -> Result<String, JsError> {
+        let v = is_cycle(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isPath")]
+    pub fn is_path(&self) -> Result<String, JsError> {
+        let v = is_path(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isStar")]
+    pub fn is_star(&self) -> Result<String, JsError> {
+        let v = is_star(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isWheel")]
+    pub fn is_wheel(&self) -> Result<String, JsError> {
+        let v = is_wheel(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isPerfect")]
+    pub fn is_perfect(&self) -> Result<String, JsError> {
+        let v = is_perfect(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isTriangleFree")]
+    pub fn is_triangle_free(&self) -> Result<String, JsError> {
+        let v = is_triangle_free(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isOuterplanar")]
+    pub fn is_outerplanar(&self) -> Result<String, JsError> {
+        let v = is_outerplanar(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "graphProperties")]
+    pub fn graph_properties(&self) -> Result<String, JsError> {
+        let result = GraphPropertiesResult {
+            is_tree: is_tree(&self.inner, DijkstraMode::Out)
+                .map(|r| r.is_some())
+                .unwrap_or(false),
+            is_forest: is_forest(&self.inner, DijkstraMode::Out)
+                .map(|r| r.is_some())
+                .unwrap_or(false),
+            is_dag: is_dag(&self.inner),
+            is_acyclic: is_acyclic(&self.inner),
+            is_complete: is_complete(&self.inner).unwrap_or(false),
+            is_biconnected: is_biconnected(&self.inner).unwrap_or(false),
+            is_bipartite: is_bipartite(&self.inner)
+                .map(|r| r.is_bipartite)
+                .unwrap_or(false),
+            is_connected: is_connected(&self.inner, ConnectednessMode::Weak).unwrap_or(false),
+            is_tournament: is_tournament(&self.inner).unwrap_or(false),
+            is_cubic: is_cubic(&self.inner).unwrap_or(false),
+            is_cycle: is_cycle(&self.inner).unwrap_or(false),
+            is_path: is_path(&self.inner).unwrap_or(false),
+            is_star: is_star(&self.inner).unwrap_or(false),
+            is_wheel: is_wheel(&self.inner).unwrap_or(false),
+            is_perfect: is_perfect(&self.inner).unwrap_or(false),
+            is_triangle_free: is_triangle_free(&self.inner).unwrap_or(false),
+            is_outerplanar: is_outerplanar(&self.inner).unwrap_or(false),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Additional algorithms ---
+
+    #[wasm_bindgen(js_name = "automorphismGroup")]
+    pub fn automorphism_group(&self) -> Result<String, JsError> {
+        let gens =
+            automorphism_group(&self.inner, None).map_err(|e| JsError::new(&e.to_string()))?;
+        let count = gens.len();
+        let result = AutomorphismGroupResult {
+            generators: gens,
+            count,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "girth")]
+    pub fn girth(&self) -> Result<String, JsError> {
+        let g = girth(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = DiameterResult { diameter: g };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "distances")]
+    pub fn distances(&self, source: u32) -> Result<String, JsError> {
+        let dists = distances(&self.inner, source).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = DistancesResult { distances: dists };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "floydWarshallDistances")]
+    pub fn floyd_warshall_distances(&self) -> Result<String, JsError> {
+        let mat = floyd_warshall_distances(&self.inner, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let matrix: Vec<Vec<f64>> = mat
+            .into_iter()
+            .map(|row| {
+                row.into_iter()
+                    .map(|d| d.unwrap_or(f64::INFINITY))
+                    .collect()
+            })
+            .collect();
+        let result = FloydWarshallResult { matrix };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "fundamentalCycles")]
+    pub fn fundamental_cycles(&self) -> Result<String, JsError> {
+        let raw = fundamental_cycles(&self.inner, None, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let cycles: Vec<Vec<u32>> = raw.into_iter().collect();
+        let count = cycles.len();
+        let result = CyclesResult { cycles, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "minimumCycleBasis")]
+    pub fn minimum_cycle_basis(&self) -> Result<String, JsError> {
+        let raw = minimum_cycle_basis(&self.inner, None, true)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let cycles: Vec<Vec<u32>> = raw.into_iter().collect();
+        let count = cycles.len();
+        let result = CyclesResult { cycles, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    pub fn trussness(&self) -> Result<String, JsError> {
+        let t = trussness(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = TrussnessResult { trussness: t };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "listTriangles")]
+    pub fn list_triangles(&self) -> Result<String, JsError> {
+        let tris = list_triangles(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let triangles: Vec<[u32; 3]> = tris.into_iter().map(|(a, b, c)| [a, b, c]).collect();
+        let count = triangles.len();
+        let result = TriangleListResult { triangles, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Graph operators ---
+
+    #[wasm_bindgen(js_name = "simplify")]
+    pub fn simplify(&self) -> Result<WasmGraph, JsError> {
+        let g = simplify(&self.inner, true, true).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "lineGraph")]
+    pub fn line_graph(&self) -> Result<WasmGraph, JsError> {
+        let g = line_graph(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "complement")]
+    pub fn complement(&self) -> Result<WasmGraph, JsError> {
+        let g = complementer(&self.inner, false).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
     }
 }
