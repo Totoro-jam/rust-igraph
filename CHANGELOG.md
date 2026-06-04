@@ -14,6 +14,31 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+### Added
+- **BLISS canonical labeling engine** (ALGO-ISO-003..007) — pure-Rust
+  individualization-refinement (I-R) engine for canonical permutation,
+  automorphism counting/group, and BLISS-backed isomorphism with vertex
+  colour support.
+- **WASM expansion to 41 algorithms** — igraph-wasm crate now exposes
+  Dijkstra, topological sort, max flow, graph stats, articulation points,
+  bridges, degree sequence, SCC, vertex coloring, transitivity, edge
+  betweenness centrality, triad census, canonical permutation, count
+  automorphisms, and BLISS isomorphism on top of the 20 from v0.6.0.
+- **Playground: 4 new algorithm categories** — triad census in Structure,
+  plus new Isomorphism section with canonical permutation, count
+  automorphisms, and BLISS isomorphism check.
+- **Playground test suite expanded** — 109 tests (was 98), covering
+  all 4 new algorithm demo functions and dispatch.
+- **Chinese cookbook** — full translation of all 13 English cookbook
+  recipes (was a stub).
+- **Chinese WASM tutorial** — isomorphism API section, triad census,
+  updated algorithm count to 41.
+- **BLISS tutorial section** — added to both English and Chinese tutorials.
+
+### Changed
+- Test count updated across all docs: 8,386 → 8,494.
+- Landing page stats synced to current values (8,494 tests).
+
 ## [0.6.0] — 2026-06-04
 
 ### Added
