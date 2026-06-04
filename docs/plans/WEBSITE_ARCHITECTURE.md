@@ -61,37 +61,62 @@ no React).
 - mdBook for the landing page: no component/layout control, can't embed WASM
   islands.
 
-### ADR-W002: Playground architecture — standalone SPA in `/playground/`
+### ADR-W002: Playground architecture — React SPA in `/playground/`
 
-**Decision**: The WASM playground is a self-contained single-page application
-built separately from the landing page. It loads via a simple `<a href>`
-from the landing page, not an iframe or embedded component.
+**Decision**: The WASM playground is a self-contained React single-page
+application built with Vite, separate from the landing page. It loads via
+`<a href>` from the landing page. React was chosen over frameworkless vanilla
+JS and over lighter alternatives like Preact.
 
 **Rationale**:
 - ECharts, p5js, and three.js all separate their interactive editors from
   their doc sites. This is the dominant pattern for maintainability.
 - The playground has complex state (graph data, algorithm selection, canvas
-  rendering, Web Worker communication) that would pollute a simple landing
-  page build.
+  rendering, Web Worker communication, i18n, theme switching, editable code)
+  that benefits from React's component model and hooks.
+- React over Preact/vanilla: the playground is a rich interactive app — not
+  a thin wrapper. React's ecosystem (CodeMirror 6 bindings, stable hooks,
+  devtools) reduces maintenance burden. "Don't optimize for small at the
+  expense of capability" — balance bundle size against development velocity.
 - Can be developed, tested, and deployed independently.
 - Failure in the playground does not break the docs or landing page.
+
+**Key features**:
+- **Editable code editor**: CodeMirror 6 with Rust syntax highlighting.
+  Users write Rust-like code that maps to WASM API calls.
+- **Bilingual (zh/en)**: lightweight JSON-based i18n, no heavy library.
+  Language toggle in the header; persisted to `localStorage`.
+- **Dark/light theme**: CSS custom properties + `data-theme` attribute.
+  Respects `prefers-color-scheme` by default; toggle in the header.
 
 **Components**:
 ```
 playground/
-├── index.html          # shell: 3-panel layout
+├── index.html
 ├── src/
-│   ├── main.ts         # entry point, wires panels together
-│   ├── graph-editor.ts # left panel: node/edge creation, preset loader
-│   ├── algo-panel.ts   # center panel: algorithm selector + params
-│   ├── canvas.ts       # right panel: Canvas 2D renderer
-│   ├── worker.ts       # Web Worker: loads WASM, runs algorithms
-│   ├── presets.ts      # built-in graphs (karate, petersen, ER, BA, ...)
-│   └── code-mirror.ts  # code display panel (read-only Rust snippets)
+│   ├── main.tsx                # React entry point
+│   ├── App.tsx                 # root: layout + theme + i18n providers
+│   ├── components/
+│   │   ├── GraphEditor.tsx     # left panel: node/edge creation, presets
+│   │   ├── AlgoPanel.tsx       # center panel: algorithm + params
+│   │   ├── Canvas.tsx          # right panel: Canvas 2D renderer
+│   │   ├── CodeEditor.tsx      # bottom: editable CodeMirror 6 panel
+│   │   ├── Header.tsx          # logo, theme toggle, language toggle
+│   │   └── PresetPicker.tsx    # preset graph selector dropdown
+│   ├── hooks/
+│   │   ├── useWasm.ts          # Web Worker + WASM init
+│   │   ├── useTheme.ts         # dark/light state
+│   │   └── useI18n.ts          # language state + t() helper
+│   ├── i18n/
+│   │   ├── en.json             # English strings
+│   │   └── zh.json             # Chinese strings
+│   ├── worker.ts               # Web Worker: loads WASM, runs algorithms
+│   └── presets.ts              # built-in graphs (karate, petersen, …)
 ├── wasm/
-│   └── rust_igraph_bg.wasm  # pre-built WASM module (~2-3 MB gzipped)
+│   └── rust_igraph_bg.wasm     # pre-built WASM module (~2-3 MB gzipped)
 ├── vite.config.ts
-└── package.json        # devDependencies only: vite, typescript
+├── tsconfig.json
+└── package.json                # react, react-dom, @codemirror/*, vite
 ```
 
 **WASM module**: built from a thin `crates/igraph-wasm/` crate that
@@ -275,13 +300,13 @@ jobs:
 | Rust library | `thiserror` only | Dependabot weekly |
 | WASM crate | `wasm-bindgen`, `js-sys`, `web-sys` | Pin major, Dependabot |
 | Website | Vite (devDep only) | Pin major, manual update |
-| Playground | zero runtime deps; Vite devDep | Same as website |
+| Playground | react, react-dom, @codemirror/*; Vite devDep | Pin major, Dependabot |
 | CI tools | mdbook, wasm-pack | Pin version in workflow |
 
-**Zero runtime JS dependencies** in the playground. All rendering is vanilla
-Canvas API. The code display uses a `<pre>` with syntax highlighting via a
-50-line tokenizer or a CDN-loaded highlight.js (no npm install). This
-matches the project's minimal-dependency philosophy.
+The playground uses React + CodeMirror 6 as runtime dependencies — these are
+the minimum needed for a rich interactive editor experience. Canvas rendering
+is vanilla Canvas 2D API (no charting library). This balances capability
+against the project's minimal-dependency philosophy.
 
 ## 5. Reliability
 
@@ -539,6 +564,6 @@ URL works fine for initial launch.
 2. **Domain**: `rust-igraph.dev` vs `rust-igraph.org` vs stay on
    `Totoro-jam.github.io/rust-igraph`?
 3. **Hero animation**: force-directed graph simulation vs static SVG art?
-4. **Playground code editor**: read-only (show equivalent Rust code) vs
-   editable (user types Rust-like DSL that maps to WASM calls)?
+4. ~~**Playground code editor**~~: **DECIDED** — editable, CodeMirror 6,
+   zh/en bilingual, dark/light themes.
 5. **Blog**: worth adding at launch, or defer until post-1.0?

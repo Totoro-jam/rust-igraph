@@ -1,3 +1,6 @@
+[workspace]
+members = [".", "crates/igraph-wasm"]
+
 [package]
 name = "rust-igraph"
 version = "0.5.0"
