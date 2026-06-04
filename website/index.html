@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>rust-igraph — Pure-Rust Graph Algorithms for Native &amp; WASM</title>
-  <meta name="description" content="Pure-Rust graph algorithm library. 1200+ APIs, zero unsafe, runs natively and in the browser via WASM. Community detection, centrality, shortest paths, isomorphism, and more.">
+  <meta name="description" content="Pure-Rust graph algorithm library. 800+ APIs, zero unsafe, runs natively and in the browser via WASM. Community detection, centrality, shortest paths, isomorphism, and more.">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="rust-igraph — Graph Algorithms in Rust &amp; WASM">
-  <meta property="og:description" content="1200+ graph algorithms. Zero unsafe. Runs natively and in the browser.">
+  <meta property="og:description" content="800+ graph algorithm APIs. Zero unsafe. Runs natively and in the browser.">
   <meta property="og:image" content="https://Totoro-jam.github.io/rust-igraph/assets/og-image.png">
   <meta property="og:url" content="https://Totoro-jam.github.io/rust-igraph/">
   <meta property="og:site_name" content="rust-igraph">
@@ -29,9 +29,9 @@
         <span class="logo-text">rust-igraph</span>
       </a>
       <div class="nav-links">
+        <a href="playground/" class="nav-cta">Playground</a>
         <a href="book/">Guide</a>
         <a href="rust_igraph/">API Docs</a>
-        <a href="playground/" class="nav-cta">Playground</a>
         <a href="https://github.com/Totoro-jam/rust-igraph" class="nav-github" aria-label="GitHub">
           <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         </a>
@@ -48,10 +48,10 @@
     <canvas id="hero-canvas" aria-hidden="true"></canvas>
     <div class="hero-content">
       <h1>Graph Algorithms<br>in Pure Rust</h1>
-      <p class="hero-sub">1,200+ APIs. Zero <code>unsafe</code>. One dependency. Runs natively and in the browser via WASM.</p>
+      <p class="hero-sub">800+ APIs. Zero <code>unsafe</code>. One dependency. Runs natively and in the browser via WASM.</p>
       <div class="hero-ctas">
-        <a href="book/" class="btn btn-primary">Get Started</a>
-        <a href="playground/" class="btn btn-secondary">Try in Browser</a>
+        <a href="playground/" class="btn btn-primary">Try in Browser</a>
+        <a href="book/" class="btn btn-secondary">Get Started</a>
       </div>
     </div>
   </section>
@@ -59,9 +59,9 @@
   <!-- Numbers bar -->
   <section class="numbers">
     <div class="numbers-inner">
-      <div class="stat"><span class="stat-num">1,200+</span><span class="stat-label">Public APIs</span></div>
-      <div class="stat"><span class="stat-num">306</span><span class="stat-label">Algorithms</span></div>
-      <div class="stat"><span class="stat-num">7,574</span><span class="stat-label">Tests</span></div>
+      <div class="stat"><span class="stat-num">840+</span><span class="stat-label">Public APIs</span></div>
+      <div class="stat"><span class="stat-num">308</span><span class="stat-label">Algorithms</span></div>
+      <div class="stat"><span class="stat-num">1,091</span><span class="stat-label">Tests</span></div>
       <div class="stat"><span class="stat-num">0</span><span class="stat-label">unsafe blocks</span></div>
       <div class="stat"><span class="stat-num">1</span><span class="stat-label">Dependency</span></div>
     </div>
@@ -133,7 +133,7 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
         <div class="feature-card">
           <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
           <h3>Community Detection</h3>
-          <p>Louvain, Leiden, label propagation, Walktrap, edge betweenness, fast greedy, fluid, Voronoi</p>
+          <p>Louvain, Leiden, Infomap, Spinglass, label propagation, Walktrap, edge betweenness, fast greedy, fluid, Voronoi</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
@@ -172,7 +172,7 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
           <tbody>
             <tr>
               <td>Algorithm scope</td>
-              <td><strong>1,200+ APIs</strong></td>
+              <td><strong>840+ APIs</strong></td>
               <td>~50 (composable)</td>
               <td>~850 (reference)</td>
               <td>~500</td>

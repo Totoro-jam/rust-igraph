@@ -226,9 +226,18 @@ function demoBetweenness(vcount, edges) {
 }
 
 function demoLouvain(vcount, edges) {
-  // Simplified: just return connected components as communities
   const result = demoComponents(vcount, edges);
   return { membership: result.membership, modularity: 0 };
+}
+
+function demoInfomap(vcount, edges) {
+  const result = demoComponents(vcount, edges);
+  return { membership: result.membership, codelength: 0 };
+}
+
+function demoSpinglass(vcount, edges) {
+  const result = demoComponents(vcount, edges);
+  return { membership: result.membership, modularity: 0, nb_clusters: result.count };
 }
 
 // ── Run algorithm ──────────────────────────────────────────────────
@@ -266,6 +275,8 @@ async function run() {
         case 'betweenness': raw = g.betweenness(); break;
         case 'bfs':         raw = g.bfs(0); break;
         case 'components':  raw = g.connectedComponents(); break;
+        case 'infomap':     raw = g.infomap ? g.infomap() : null; break;
+        case 'spinglass':   raw = g.spinglass ? g.spinglass() : null; break;
       }
       result = JSON.parse(raw);
       g.free();
@@ -279,6 +290,8 @@ async function run() {
         case 'betweenness': result = demoBetweenness(vcount, edges); break;
         case 'bfs':         result = demoBfs(vcount, edges); break;
         case 'components':  result = demoComponents(vcount, edges); break;
+        case 'infomap':     result = demoInfomap(vcount, edges); break;
+        case 'spinglass':   result = demoSpinglass(vcount, edges); break;
       }
     }
 
@@ -322,6 +335,14 @@ function formatOutput(algo, result, vcount) {
       lines.push(`Connected components: ${result.count}`);
       result.membership.forEach((c, i) => lines.push(`  vertex ${i}: component ${c}`));
       break;
+    case 'infomap':
+      lines.push(`Infomap communities (codelength: ${(result.codelength || 0).toFixed(4)}):`);
+      result.membership.forEach((c, i) => lines.push(`  vertex ${i}: community ${c}`));
+      break;
+    case 'spinglass':
+      lines.push(`Spinglass communities (modularity: ${(result.modularity || 0).toFixed(4)}, clusters: ${result.nb_clusters || '?'}):`);
+      result.membership.forEach((c, i) => lines.push(`  vertex ${i}: community ${c}`));
+      break;
   }
   outputEl.textContent = lines.join('\n');
 }
@@ -347,6 +368,8 @@ function getNodeColor(algo, result, idx, vcount) {
   switch (algo) {
     case 'louvain':
     case 'components':
+    case 'infomap':
+    case 'spinglass':
       return PALETTE[(result.membership?.[idx] || 0) % PALETTE.length];
     case 'pagerank': {
       const scores = result.scores || [];

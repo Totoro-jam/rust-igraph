@@ -6,9 +6,9 @@
 - **python-igraph** — `tests/test_*.py`
 - **R-igraph** (`rigraph`) — `tests/testthat/test-*.R`
 
-> **状态**：306 个算法工作单元已完成（Phase 1–7 & 9）。
-> 687 个公共函数，7,574 个测试
->（单元 + 集成 + doctest），115 个可运行示例。支持 WASM（`wasm32-unknown-unknown`）。查看
+> **状态**：308 个算法工作单元已完成（Phase 1–7 & 9）。
+> 840+ 个公共 API，1,091 个测试
+>（单元 + 集成 + doctest + proptest）。支持 WASM（`wasm32-unknown-unknown`）。查看
 > [总体规划](https://github.com/Totoro-jam/rust-igraph/blob/main/docs/plans/MASTER_PLAN.md)了解路线图，
 > [算法追踪](https://github.com/Totoro-jam/rust-igraph/blob/main/.codefuse/tracking/ALGORITHMS.md)查看每个算法的进度。
 
@@ -18,7 +18,7 @@
 |------|------|
 | **遍历** | BFS、DFS、最短路径（Dijkstra、Bellman-Ford、Johnson、Floyd-Warshall、A*）、最宽路径 |
 | **中心性** | PageRank、介数中心性、接近中心性、谐波中心性、特征向量中心性、HITS、约束 |
-| **社区发现** | Louvain、Leiden、标签传播、流体社区、快速贪心、边介数、随机游走、主特征向量、Voronoi |
+| **社区发现** | Louvain、Leiden、Infomap、Spinglass、标签传播、流体社区、快速贪心、边介数、随机游走、主特征向量、Voronoi |
 | **连通性** | 连通分量、割点、桥、双连通分量、聚合块 |
 | **网络流** | 最大流 (Dinic)、最小割、Gomory-Hu 树、顶点/边连通度、所有 s-t 割 |
 | **同构** | VF2（图 + 子图）、BLISS 正则标记、LAD 子图同构 |

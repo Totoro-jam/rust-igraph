@@ -8,9 +8,9 @@ functions), validated continuously against three official implementations:
 - **python-igraph** — `tests/test_*.py`
 - **R-igraph** (`rigraph`) — `tests/testthat/test-*.R`
 
-> **Status**: 306 algorithm work units complete across Phases 1–7 and 9.
-> 687 public functions, 7,574 tests
-> (unit + integration + doctest), 115 runnable examples. WASM-compatible (`wasm32-unknown-unknown`). See
+> **Status**: 308 algorithm work units complete across Phases 1–7 and 9.
+> 840+ public APIs, 1,091 tests
+> (unit + integration + doctest + proptest). WASM-compatible (`wasm32-unknown-unknown`). See
 > [the master plan](https://github.com/Totoro-jam/rust-igraph/blob/main/docs/plans/MASTER_PLAN.md) for the roadmap, and
 > [the algorithm tracker](https://github.com/Totoro-jam/rust-igraph/blob/main/.codefuse/tracking/ALGORITHMS.md) for
 > per-algorithm progress.
@@ -21,7 +21,7 @@ functions), validated continuously against three official implementations:
 |----------|-----------|
 | **Traversal** | BFS, DFS, shortest paths (Dijkstra, Bellman-Ford, Johnson, Floyd-Warshall, A*), widest paths |
 | **Centrality** | PageRank, betweenness, closeness, harmonic, eigenvector, HITS, constraint |
-| **Community** | Louvain, Leiden, label propagation, fluid communities, fast greedy, edge betweenness, walktrap, leading eigenvector, Voronoi |
+| **Community** | Louvain, Leiden, Infomap, Spinglass, label propagation, fluid communities, fast greedy, edge betweenness, walktrap, leading eigenvector, Voronoi |
 | **Connectivity** | Components, articulation points, bridges, biconnected components, cohesive blocks |
 | **Flow** | Max flow (Dinic), min cut, Gomory-Hu tree, vertex/edge connectivity, all s-t cuts |
 | **Isomorphism** | VF2 (graph + subgraph), BLISS canonical labeling, LAD subgraph isomorphism |
