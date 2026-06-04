@@ -86,6 +86,7 @@ Actions run via `gh run rerun <id>`.
 | Large WASM bundle | Track `.wasm` size in CI; alert if > 5 MB uncompressed |
 | Stale references in docs | Grep for removed features before release (e.g. `grep -r "faer\|bliss-rust"`) |
 | Playground JS error breaks docs | Subsites are isolated static files — playground failure cannot break API docs |
+| `cargo install --version` needs full semver | Use `0.4.51` not `0.4`; partial versions cause `cargo install` to fail in CI |
 | `node_modules/` committed | `.gitignore` covers this; verify before `git add` |
 | Forgetting to update i18n strings | Both `en.json` and `zh.json` must be updated for every user-facing string |
 

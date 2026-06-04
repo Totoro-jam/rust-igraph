@@ -30,7 +30,7 @@ jobs:
 
       # Build mdBook
       - name: Install mdBook
-        run: cargo install mdbook --locked --version 0.4
+        run: cargo install mdbook --locked --version 0.4.51
       - name: Build mdBook
         run: mdbook build book
 

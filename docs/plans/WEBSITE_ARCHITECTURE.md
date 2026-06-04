@@ -253,7 +253,7 @@ jobs:
           RUSTDOCFLAGS: "-D warnings"
 
       # 3. Build mdBook
-      - run: cargo install mdbook --locked --version 0.4
+      - run: cargo install mdbook --locked --version 0.4.51
       - run: mdbook build book
 
       # 4. Build WASM module (if igraph-wasm crate exists)
