@@ -79,6 +79,10 @@
   color: var(--text);
 }
 
+.shareBtn {
+  gap: 0.3rem;
+}
+
 @media (max-width: 600px) {
   .navInner {
     padding: 0 0.75rem;

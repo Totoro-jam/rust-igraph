@@ -128,5 +128,6 @@
   "result.maxDist": "Max Dist",
   "result.col.distance": "Distance",
   "collapse": "Collapse",
-  "expand": "Expand"
+  "expand": "Expand",
+  "share": "Copy link"
 }
