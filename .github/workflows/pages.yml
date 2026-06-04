@@ -52,10 +52,17 @@ jobs:
           npm ci
           npx vite build --base /rust-igraph/
 
+      # Build playground (React SPA, independent build)
+      - name: Build playground
+        working-directory: website/playground
+        run: |
+          npm ci
+          npx vite build
+
       # Assemble site: website at /, rustdoc at /rust_igraph/, book at /book/
       # Order: rustdoc first (includes static.files/, src/, search.index/,
       # trait.impl/, type.impl/ that rustdoc HTML refs via ../), then website
-      # overlay (higher priority), then mdBook, then WASM for playground.
+      # overlay (higher priority), then mdBook, then playground.
       - name: Assemble site
         run: |
           mkdir -p _site
@@ -65,8 +72,10 @@ jobs:
           cp -r book/book/* _site/book/
           mkdir -p _site/book/zh
           cp -r book-zh/book/* _site/book/zh/
+          mkdir -p _site/playground
+          cp -r website/playground/dist/* _site/playground/
           mkdir -p _site/playground/wasm
-          cp website/playground/wasm/*.js website/playground/wasm/*.wasm _site/playground/wasm/
+          cp -f website/playground/wasm/*.js website/playground/wasm/*.wasm _site/playground/wasm/ 2>/dev/null || true
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
