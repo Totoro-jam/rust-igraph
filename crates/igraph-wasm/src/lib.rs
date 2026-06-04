@@ -2,24 +2,26 @@
 
 use rust_igraph::{
     ConnectednessMode, DijkstraMode, FasAlgorithm, FrParams, Graph, GreedyColoringHeuristic,
-    KkParams, MstAlgorithm, VertexId, articulation_points, assortativity_degree,
+    KkParams, MstAlgorithm, StarMode, VertexId, articulation_points, assortativity_degree,
     automorphism_group, barabasi_game_bag, bellman_ford_distances, betweenness,
     betweenness_weighted, bfs, bridges, canonical_permutation, clique_number, closeness,
     closeness_weighted, complementer, connected_components, constraint, coreness,
-    count_automorphisms, count_triangles, cycle_graph, density, dfs, diameter, dijkstra_distances,
-    distances, eccentricity, edge_betweenness, edge_betweenness_community, edge_connectivity,
-    eigenvector_centrality, erdos_renyi_gnp, fast_greedy_modularity, feedback_arc_set,
-    floyd_warshall_distances, fluid_communities, full_graph, fundamental_cycles, girth,
-    harmonic_centrality, hub_and_authority_scores, independence_number, infomap, is_acyclic,
-    is_biconnected, is_bipartite, is_complete, is_connected, is_cubic, is_cycle, is_dag, is_forest,
-    is_outerplanar, is_path, is_perfect, is_star, is_tournament, is_tree, is_triangle_free,
-    is_wheel, isomorphic_bliss, katz_centrality, label_propagation, layout_circle,
-    layout_fruchterman_reingold, layout_grid, layout_kamada_kawai, layout_random, layout_star,
-    leading_eigenvector, leiden, line_graph, list_triangles, louvain, max_flow_value,
-    maximal_cliques, mean_degree, mean_distance, minimum_cycle_basis, minimum_spanning_tree,
-    pagerank, radius, random_walk, reciprocity, ring_graph, simplify, spinglass, strength,
+    count_automorphisms, count_triangles, cycle_graph, decompose, degree_distribution, density,
+    dfs, diameter, dijkstra_distances, distances, eccentricity, edge_betweenness,
+    edge_betweenness_community, edge_connectivity, eigenvector_centrality, erdos_renyi_gnp, famous,
+    fast_greedy_modularity, feedback_arc_set, floyd_warshall_distances, fluid_communities,
+    full_graph, fundamental_cycles, girth, harmonic_centrality, hub_and_authority_scores,
+    independence_number, infomap, is_acyclic, is_biconnected, is_bipartite, is_complete,
+    is_connected, is_cubic, is_cycle, is_dag, is_forest, is_outerplanar, is_path, is_perfect,
+    is_star, is_tournament, is_tree, is_triangle_free, is_wheel, isomorphic_bliss, katz_centrality,
+    label_propagation, layout_circle, layout_fruchterman_reingold, layout_grid,
+    layout_kamada_kawai, layout_random, layout_star, leading_eigenvector, leiden, line_graph,
+    list_triangles, louvain, max_flow_value, maximal_cliques, mean_degree, mean_distance,
+    minimum_cycle_basis, minimum_spanning_tree, modularity, pagerank, path_graph, radius,
+    random_walk, reciprocity, ring_graph, simplify, spinglass, star_graph, strength,
     strongly_connected_components, topological_sorting, transitivity_undirected, triad_census,
     trussness, vertex_coloring_greedy, vertex_connectivity, walktrap, watts_strogatz_game,
+    write_dot, write_gml, write_graphml,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -1278,6 +1280,71 @@ impl WasmGraph {
         let b = betweenness_weighted(&self.inner, &weights)
             .map_err(|e| JsError::new(&e.to_string()))?;
         let result = BetweennessResult { scores: b };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Graph I/O export ---
+
+    #[wasm_bindgen(js_name = "writeGml")]
+    pub fn write_gml(&self) -> Result<String, JsError> {
+        let mut buf = Vec::new();
+        write_gml(&self.inner, &mut buf).map_err(|e| JsError::new(&e.to_string()))?;
+        String::from_utf8(buf).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "writeDot")]
+    pub fn write_dot(&self) -> Result<String, JsError> {
+        let mut buf = Vec::new();
+        write_dot(&self.inner, None, &mut buf).map_err(|e| JsError::new(&e.to_string()))?;
+        String::from_utf8(buf).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "writeGraphml")]
+    pub fn write_graphml(&self) -> Result<String, JsError> {
+        let mut buf = Vec::new();
+        write_graphml(&self.inner, None, &mut buf).map_err(|e| JsError::new(&e.to_string()))?;
+        String::from_utf8(buf).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Additional graph generators ---
+
+    #[wasm_bindgen(js_name = "pathGraph")]
+    pub fn path_graph(n: u32, directed: bool) -> Result<WasmGraph, JsError> {
+        let g = path_graph(n, directed, false).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "starGraph")]
+    pub fn star_graph(n: u32) -> Result<WasmGraph, JsError> {
+        let g = star_graph(n, StarMode::Undirected, 0).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "famousGraph")]
+    pub fn famous_graph(name: &str) -> Result<WasmGraph, JsError> {
+        let g = famous(name).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    // --- Decompose & modularity ---
+
+    pub fn decompose(&self) -> Result<Vec<WasmGraph>, JsError> {
+        let graphs = decompose(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(graphs.into_iter().map(|g| WasmGraph { inner: g }).collect())
+    }
+
+    pub fn modularity(&self, membership: Vec<u32>) -> Result<String, JsError> {
+        let m =
+            modularity(&self.inner, &membership, 1.0).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = DensityResult { density: m };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "degreeDistribution")]
+    pub fn degree_distribution(&self) -> Result<String, JsError> {
+        let d = degree_distribution(&self.inner, rust_igraph::DegreeMode::All)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = DegreeResult { degrees: d };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 }
