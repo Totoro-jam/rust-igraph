@@ -438,6 +438,7 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
       velocityDecay: 0.35,
     });
 
+    sim.alpha = 0.15;
     sim.setOnTick(() => draw());
     simRef.current = sim;
     setSimActive(true);

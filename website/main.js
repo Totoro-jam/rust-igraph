@@ -17,6 +17,13 @@ window.toggleTheme = function () {
 
 applyTheme(getPreferredTheme());
 
+// Mobile nav: close on link click
+document.querySelectorAll('.nav-links a').forEach(function (a) {
+  a.addEventListener('click', function () {
+    document.querySelector('.nav').classList.remove('nav-open');
+  });
+});
+
 // Hero canvas: animated force-directed graph with community coloring
 (function () {
   const canvas = document.getElementById('hero-canvas');
