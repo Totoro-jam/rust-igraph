@@ -123,6 +123,20 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, trussness};\n\n${graphLine}\n\nlet t = trussness(&g).unwrap();\nprintln!("Edge trussness: {:?}", t);`;
     case 'automorphism_group':
       return `use rust_igraph::{Graph, automorphism_group};\n\n${graphLine}\n\nlet gens = automorphism_group(&g, None).unwrap();\nprintln!("{} generators found", gens.len());\nfor gen in &gens {\n    println!("{:?}", gen);\n}`;
+    case 'clique_number':
+      return `use rust_igraph::{Graph, clique_number};\n\n${graphLine}\n\nlet omega = clique_number(&g).unwrap();\nprintln!("Clique number: {}", omega);`;
+    case 'independence_number':
+      return `use rust_igraph::{Graph, independence_number};\n\n${graphLine}\n\nlet alpha = independence_number(&g).unwrap();\nprintln!("Independence number: {}", alpha);`;
+    case 'maximal_cliques':
+      return `use rust_igraph::{Graph, maximal_cliques};\n\n${graphLine}\n\nlet cliques = maximal_cliques(&g, 0, 0).unwrap();\nprintln!("Found {} maximal cliques", cliques.len());\nfor c in &cliques {\n    println!("{:?}", c);\n}`;
+    case 'vertex_connectivity':
+      return `use rust_igraph::{Graph, vertex_connectivity};\n\n${graphLine}\n\nlet kappa = vertex_connectivity(&g).unwrap();\nprintln!("Vertex connectivity: {}", kappa);`;
+    case 'edge_connectivity':
+      return `use rust_igraph::{Graph, edge_connectivity};\n\n${graphLine}\n\nlet lambda = edge_connectivity(&g).unwrap();\nprintln!("Edge connectivity: {}", lambda);`;
+    case 'minimum_spanning_tree':
+      return `use rust_igraph::{Graph, minimum_spanning_tree};\n\n${graphLine}\n\nlet mst = minimum_spanning_tree(&g, None).unwrap();\nprintln!("MST edges: {}", mst.ecount());\nprintln!("MST: {:?}", mst);`;
+    case 'bellman_ford':
+      return `use rust_igraph::{Graph, bellman_ford};\n\n${graphLine}\n\nlet weights = vec![1.0; g.ecount()];\nlet dists = bellman_ford(&g, 0, &weights).unwrap();\nprintln!("Distances from 0: {:?}", dists);`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }
