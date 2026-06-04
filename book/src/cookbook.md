@@ -246,6 +246,83 @@ let flow = max_flow_value(&g, 0, 3, Some(&capacity)).unwrap();
 println!("Max flow from 0 to 3: {flow}");
 ```
 
+## Detect communities with Infomap and Spinglass
+
+```rust
+use rust_igraph::{Graph, infomap, spinglass,
+                  compare_communities, CommunityComparison};
+
+let g = Graph::from_edges(
+    &[(0,1),(0,2),(1,2),(3,4),(3,5),(4,5),(2,3),(6,7),(6,8),(7,8),(5,6)],
+    false, None
+).unwrap();
+
+// Infomap — information-theoretic (map equation)
+let im = infomap(&g).unwrap();
+println!("Infomap: {} modules, codelength {:.4}",
+    *im.membership.iter().max().unwrap() + 1, im.codelength);
+
+// Spinglass — Potts model simulated annealing
+let sp = spinglass(&g, None).unwrap();
+println!("Spinglass: {} communities, modularity {:.4}",
+    *sp.membership.iter().max().unwrap() + 1, sp.modularity);
+
+// Compare the two partitions
+let nmi = compare_communities(
+    &im.membership, &sp.membership,
+    CommunityComparison::NormalizedMutualInformation,
+).unwrap();
+println!("NMI(Infomap, Spinglass) = {nmi:.4}");
+```
+
+## Analyze triadic structure (motif census)
+
+```rust
+use rust_igraph::{Graph, triad_census, dyad_census};
+
+// Directed graph for triad analysis
+let g = Graph::from_edges(
+    &[(0,1),(1,2),(2,0),(0,3),(3,4),(4,0),(1,4)],
+    true, None
+).unwrap();
+
+let tc = triad_census(&g).unwrap();
+println!("Triad census (16 types):");
+for (i, &count) in tc.counts.iter().enumerate() {
+    if count > 0 {
+        println!("  Type {:02}: {count}", i);
+    }
+}
+
+let dc = dyad_census(&g).unwrap();
+println!("Dyad census: mutual={}, asymmetric={}, null={}",
+    dc.mutual, dc.asymmetric, dc.null_count);
+```
+
+## Build spatial proximity graphs
+
+```rust
+use rust_igraph::{delaunay_graph, gabriel_graph};
+
+// 2D point cloud
+let points = vec![
+    vec![0.0, 0.0],
+    vec![1.0, 0.0],
+    vec![0.5, 0.866],
+    vec![2.0, 0.5],
+    vec![1.5, 1.5],
+];
+
+// Delaunay triangulation — connects nearest point triples
+let dt = delaunay_graph(&points).unwrap();
+println!("Delaunay: {} vertices, {} edges", dt.vcount(), dt.ecount());
+
+// Gabriel graph — subset of Delaunay, no third point inside
+// the diametral circle of any edge
+let gg = gabriel_graph(&points).unwrap();
+println!("Gabriel:  {} vertices, {} edges", gg.vcount(), gg.ecount());
+```
+
 ## Layout for visualization export
 
 ```rust

@@ -1,12 +1,13 @@
 use rust_igraph::{
     ConnectednessMode, DijkstraMode, FrParams, Graph, GreedyColoringHeuristic, VertexId,
-    articulation_points, betweenness, bfs, bridges, closeness, connected_components,
-    count_triangles, dfs, dijkstra_distances, edge_betweenness, edge_betweenness_community,
-    eigenvector_centrality, fast_greedy_modularity, fluid_communities, girth, harmonic_centrality,
-    hub_and_authority_scores, infomap, is_bipartite, is_connected, katz_centrality,
-    label_propagation, layout_fruchterman_reingold, leading_eigenvector, leiden, louvain,
-    max_flow_value, pagerank, spinglass, strongly_connected_components, topological_sorting,
-    transitivity_undirected, vertex_coloring_greedy, walktrap,
+    articulation_points, betweenness, bfs, bridges, canonical_permutation, closeness,
+    connected_components, count_automorphisms, count_triangles, dfs, dijkstra_distances,
+    edge_betweenness, edge_betweenness_community, eigenvector_centrality, fast_greedy_modularity,
+    fluid_communities, girth, harmonic_centrality, hub_and_authority_scores, infomap, is_bipartite,
+    is_connected, isomorphic_bliss, katz_centrality, label_propagation,
+    layout_fruchterman_reingold, leading_eigenvector, leiden, louvain, max_flow_value, pagerank,
+    spinglass, strongly_connected_components, topological_sorting, transitivity_undirected,
+    triad_census, vertex_coloring_greedy, walktrap,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -180,6 +181,27 @@ struct TransitivityResult {
 #[derive(Serialize)]
 struct EdgeBetweennessResult {
     scores: Vec<f64>,
+}
+
+#[derive(Serialize)]
+struct TriadCensusResult {
+    counts: Vec<f64>,
+}
+
+#[derive(Serialize)]
+struct CanonicalResult {
+    permutation: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct AutomorphismResult {
+    count: f64,
+}
+
+#[derive(Serialize)]
+struct IsomorphismResult {
+    isomorphic: bool,
+    mapping: Vec<u32>,
 }
 
 #[wasm_bindgen]
@@ -532,6 +554,42 @@ impl WasmGraph {
     pub fn edge_betweenness(&self) -> Result<String, JsError> {
         let scores = edge_betweenness(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
         let result = EdgeBetweennessResult { scores };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "triadCensus")]
+    pub fn triad_census(&self) -> Result<String, JsError> {
+        let tc = triad_census(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = TriadCensusResult {
+            counts: tc.counts.to_vec(),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "canonicalPermutation")]
+    pub fn canonical_permutation(&self) -> Result<String, JsError> {
+        let perm =
+            canonical_permutation(&self.inner, None).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = CanonicalResult { permutation: perm };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "countAutomorphisms")]
+    pub fn count_automorphisms(&self) -> Result<String, JsError> {
+        let count =
+            count_automorphisms(&self.inner, None).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = AutomorphismResult { count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isomorphicBliss")]
+    pub fn isomorphic_bliss(&self, other: &WasmGraph) -> Result<String, JsError> {
+        let r = isomorphic_bliss(&self.inner, &other.inner, None, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = IsomorphismResult {
+            isomorphic: r.iso,
+            mapping: r.map12,
+        };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 }
