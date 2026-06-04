@@ -157,6 +157,29 @@ g.to_file("network.graphml").unwrap();
 
 支持的扩展名：`.gml`、`.graphml`/`.xml`、`.dot`/`.gv`、`.net`/`.pajek`、`.ncol`、`.lgl`、`.leda`/`.lgr`、`.dl`、`.edges`/`.edgelist`/`.txt`/`.csv`。
 
+如需更精细的控制（例如写入缓冲区），可使用基于流的函数：
+
+```rust
+use rust_igraph::{Graph, AttributeValue, write_gml, read_gml};
+
+let mut g = Graph::from_edges(&[(0,1),(1,2),(2,0)], false, None).unwrap();
+g.set_graph_attribute("name", AttributeValue::String("triangle".into()));
+
+// 写入内存缓冲区
+let mut buf = Vec::new();
+write_gml(&g, &mut buf).unwrap();
+
+// 读回 — 属性在往返中保持完整
+let g2 = read_gml(buf.as_slice()).unwrap();
+assert_eq!(g2.vcount(), 3);
+assert_eq!(
+    g2.graph_attribute("name").and_then(AttributeValue::as_str),
+    Some("triangle")
+);
+```
+
+支持的格式：GML、GraphML、DOT (Graphviz)、Pajek、NCOL、LGL、DL (UCINET) 和 LEDA。
+
 ## 图同构
 
 ```rust
@@ -228,6 +251,15 @@ let coords = layout_fruchterman_reingold(&g, &FrParams::default()).unwrap();
 for (i, &(x, y)) in coords.iter().enumerate() {
     println!("v{i}: ({x:.2}, {y:.2})");
 }
+
+// 圆形布局（确定性）
+let circle = layout_circle(&g, None);
+assert_eq!(circle.len(), g.vcount() as usize);
+
+// Kamada-Kawai（基于能量）
+let n = g.vcount() as usize;
+let kk = layout_kamada_kawai(&g, None, &KkParams::default_for(n), None).unwrap();
+assert_eq!(kk.len(), n);
 ```
 
 可用的引擎：Fruchterman-Reingold、Kamada-Kawai、DrL、Sugiyama、GEM、Davidson-Harel、GraphOpt、MDS、LGL、UMAP、Reingold-Tilford、圆形、星形、网格、随机和球面。
