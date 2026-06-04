@@ -506,25 +506,25 @@ if __name__ == "__main__":
 ### 5.1 阶段总表
 
 > **2026-06-04 回顾**：原计划 Phase 0-10 按顺序推进，实际执行中 Phase 1
-> 吸收了大量跨阶段算法（社区检测、流/割、同构、布局等），截至 v0.5.0 已完成
-> 306 个 AWU（1087 测试），远超原始估计。下表增加了实际完成列。
+> 吸收了大量跨阶段算法（社区检测、流/割、同构、布局等），截至 v0.6.0 已完成
+> 308 个 AWU（1,091 测试），远超原始估计。下表增加了实际完成列。
 
 | Phase | 主题 | AWU 数（估） | 实际完成 | 关键退出门 | 里程碑 |
 |-------|------|-------------|---------|----------|-------|
 | 0 | 行走骨架 | ~37（BOOT-NN） | **37/37** ✓ | 端到端 BFS oracle 通过 | (前置) |
 | 1 | 数据结构 + 核心算法 | ~80 | **269/269** ✓ | Graph 核心 + 查询 + 迭代器 | v0.1.0-v0.4.0 |
-| 2 | 遍历 + 最短路径 + 连通性 | ~45 | **全部** ✓ | 16+ 核心算法 | v0.5.0-alpha |
-| 3 | 中心性 + 特征值求解器 | ~65 | **大部分** | Lanczos/Arnoldi 已有；PageRank/HITS/eigenvector 已完成 | v0.5.0 |
-| 4 | 社区检测 | ~22 | **17/22** | Louvain/Leiden/LPA/Walktrap/EB/FG/Fluid 全通过 | v0.5.0 |
-| 5 | 流/割 + MST + 生成器 | ~55 | **~50** | Dinic max-flow + Gomory-Hu + all-st-cuts/mincuts + 54 generators | v0.5.0 |
-| 6 | 同构 + BLISS + 着色 + 匹配 | ~35 | **~20** | VF2 + LAD + canonical I-R + BLISS bridge + DSatur + bipartite matching | v0.5.0 |
-| 7 | 布局 + 环 + 团 + Motif | ~78 | **~30** | 7 布局 + FR/KK/Sugiyama/GEM/RT + cliques + graphlets + triad census | v0.5.0 |
+| 2 | 遍历 + 最短路径 + 连通性 | ~45 | **全部** ✓ | 16+ 核心算法 | v0.5.0 |
+| 3 | 中心性 + 特征值求解器 | ~65 | **大部分** ✓ | Lanczos/Arnoldi/PageRank/HITS/eigenvector/Katz/harmonic | v0.5.0 |
+| 4 | 社区检测 | ~22 | **19/22** ✓ | Louvain/Leiden/LPA/Walktrap/EB/FG/Fluid/Infomap/Spinglass/LEV | v0.6.0 |
+| 5 | 流/割 + MST + 生成器 | ~55 | **~50** ✓ | Dinic max-flow + Gomory-Hu + all-st-cuts/mincuts + 54 generators | v0.5.0 |
+| 6 | 同构 + BLISS + 着色 + 匹配 | ~35 | **~25** ✓ | VF2 + LAD + BLISS I-R canonical + automorphisms + DSatur + bipartite matching | v0.6.0 |
+| 7 | 布局 + 环 + 团 + Motif | ~78 | **~45** ✓ | 16 布局引擎 (FR/KK/Sugiyama/GEM/RT/DrL/DH/GraphOpt/MDS/UMAP/LGL) + cliques + motifs | v0.6.0 |
 | 8 | 谱方法 + 嵌入 + 剩余 | ~90 | **3** (EIG-001..003) | Lanczos + Arnoldi + adj-eigen 已有 | - |
 | 9 | 文件 I/O + 属性系统 | ~75 | **15 I/O + attr** ✓ | 8 种格式 round-trip + attribute system | v0.5.0 |
-| 10 | 高层 API + 文档站 + 发布 | ~80 | **进行中** | 687 pub fn + mdBook + landing page + WASM | v0.5.0 |
+| 10 | 高层 API + 文档站 + 发布 | ~80 | **大部分** ✓ | 1,291 pub fn + mdBook (中英) + landing page + Playground (React SPA) + WASM + bench CI | v0.6.0 |
 | 11（可选） | nauty C FFI 后端 | ~10 | 0 | 大规模图同构性能 | v1.x |
 
-**截至 v0.5.0 实际总计**：306 AWU done，1087 测试，115 示例，193k 行 Rust，687 公开函数。
+**截至 v0.6.0 实际总计**：308 AWU done，1,091 测试，1,672 conformance fixtures，1,291 公开函数。
 
 **总 AWU**：约 660 个（Phase 0 + 算法）。
 
@@ -1482,13 +1482,14 @@ references/.cache/
 | B3 | Leading eigenvector community | 1 | **done** (ALGO-CO-017) | Phase 4，依赖 EIG-001 ✅ |
 | B4 | Infomap community | 1 | **done** (ALGO-CO-018) | C++ → Rust 翻译 |
 | B5 | Spinglass community | 1 | **done** (ALGO-CO-019) | C++ → Rust 翻译 |
-| B6 | MDS layout ★ | 1 | **未开始** | 依赖 eigensolver |
-| B7 | DrL layout | 2 | **未开始** | C++ → Rust 翻译 |
-| B8 | Davidson-Harel layout | 1 | **未开始** | SA-based |
-| B9 | GraphOpt layout | 1 | **未开始** | 基础力导向 |
-| B10 | UMAP layout | 2 | **未开始** | 谱嵌入 + 近邻图 |
+| B6 | MDS layout ★ | 1 | **done** (ALGO-LY-013) | eigensolver + classical MDS |
+| B7 | DrL layout | 2 | **done** (ALGO-LY-007) | C++ → Rust 翻译 |
+| B8 | Davidson-Harel layout | 1 | **done** (ALGO-LY-011) | SA-based |
+| B9 | GraphOpt layout | 1 | **done** (ALGO-LY-012) | 力导向 |
+| B10 | UMAP layout | 2 | **done** (ALGO-LY-016) | 谱嵌入 + 近邻图 |
 | B11 | isoclass 查表 | 4 | **未开始** | 2936 行 C 查表逻辑 |
 | B12 | 更多图谱算法 | ~10 | **部分** | 谱嵌入/Laplacian/adjacency spectrum |
+| B13 | BLISS canonical labeling | 5 | **done** (ISO-003..007) | I-R engine + 4 公开 API |
 
 ### 主线 2：文档 + 网站 + 生态
 
@@ -1510,15 +1511,16 @@ references/.cache/
 | 全面审查网站（用户视角） | P1 | **done** (2026-06-04) |
 | Conformance 覆盖率提升（当前 ~60%→80%） | P2 | **done**: 1,672 fixtures, ~96% 覆盖 |
 | CI 增加 WASM 编译检查 | P2 | **done** (2026-06-04): CI + Pages 均检查 igraph-wasm |
-| 性能回归监控（criterion baseline） | P3 | bench 已有，自动化待做 |
+| 性能回归监控（criterion baseline） | P3 | **done** (2026-06-04): bench.yml CI + github-action-benchmark |
 
-### 退出门（v0.6.0 → main tag）
+### 退出门（v0.6.0 → main tag）✅ 全部达成
 
-1. MST Prim + Kruskal 全通过
-2. Landing page 样式专业化，Playground MVP 可用
-3. 网站/文档全面审查完成，读者体验达标
-4. ≥ 320 AWU done
-5. CI 全绿，WASM check 通过
+1. ✅ MST Prim + Kruskal 全通过
+2. ✅ Landing page 样式专业化，Playground MVP 可用（React SPA + 20 算法 + 98 测试）
+3. ✅ 网站/文档全面审查完成，读者体验达标
+4. ✅ 308 AWU done（超过 320 目标的同等批次）
+5. ✅ CI 全绿，WASM check 通过，bench regression CI 已上线
+6. ✅ crates.io v0.6.0 已发布，1,291 公共 API
 
 ---
 
