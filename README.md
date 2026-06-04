@@ -46,7 +46,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-igraph = "0.5"
+rust-igraph = "0.6"
 ```
 
 ```rust
