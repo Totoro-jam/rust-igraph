@@ -40,8 +40,8 @@ fn main() {
     let perm_b = canonical_permutation(&c4_b, None).expect("succeeds");
     let canon_a = permute_vertices(&c4_a, &perm_a).expect("permute succeeds");
     let canon_b = permute_vertices(&c4_b, &perm_b).expect("permute succeeds");
-    println!("C4_a canonical perm: {:?}", perm_a);
-    println!("C4_b canonical perm: {:?}", perm_b);
+    println!("C4_a canonical perm: {perm_a:?}");
+    println!("C4_b canonical perm: {perm_b:?}");
     println!(
         "Canonical forms have same edge count: {} == {}",
         canon_a.ecount(),
@@ -82,7 +82,7 @@ fn main() {
     let gens = automorphism_group(&c5, None).expect("group succeeds");
     println!("C5 automorphism generators ({} found):", gens.len());
     for (i, generator) in gens.iter().enumerate() {
-        println!("  g{i}: {:?}", generator);
+        println!("  g{i}: {generator:?}");
     }
     let aut = count_automorphisms(&c5, None).expect("count succeeds");
     println!("  |Aut(C5)| = {aut} (expected 10 = 2*5)");
