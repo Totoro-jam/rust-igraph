@@ -6,12 +6,14 @@ interface PanelSizes {
   leftWidth: number;
   centerWidth: number;
   codeHeight: number;
+  resultsHeight: number;
 }
 
 const DEFAULTS: PanelSizes = {
   leftWidth: 280,
   centerWidth: 240,
   codeHeight: 180,
+  resultsHeight: 200,
 };
 
 const LIMITS = {
@@ -21,6 +23,8 @@ const LIMITS = {
   centerMax: 400,
   codeMin: 80,
   codeMax: 400,
+  resultsMin: 60,
+  resultsMax: 500,
 };
 
 function loadSizes(): PanelSizes {
@@ -32,6 +36,7 @@ function loadSizes(): PanelSizes {
         leftWidth: clamp(parsed.leftWidth ?? DEFAULTS.leftWidth, LIMITS.leftMin, LIMITS.leftMax),
         centerWidth: clamp(parsed.centerWidth ?? DEFAULTS.centerWidth, LIMITS.centerMin, LIMITS.centerMax),
         codeHeight: clamp(parsed.codeHeight ?? DEFAULTS.codeHeight, LIMITS.codeMin, LIMITS.codeMax),
+        resultsHeight: clamp(parsed.resultsHeight ?? DEFAULTS.resultsHeight, LIMITS.resultsMin, LIMITS.resultsMax),
       };
     }
   } catch { /* ignore */ }
@@ -72,6 +77,13 @@ export function useResizablePanels() {
     }));
   }, []);
 
+  const resizeResults = useCallback((delta: number) => {
+    setSizes((prev) => ({
+      ...prev,
+      resultsHeight: clamp(prev.resultsHeight - delta, LIMITS.resultsMin, LIMITS.resultsMax),
+    }));
+  }, []);
+
   const persistSizes = useCallback(() => {
     setSizes((current) => {
       saveSizes(current);
@@ -79,5 +91,5 @@ export function useResizablePanels() {
     });
   }, []);
 
-  return { sizes, resizeLeft, resizeCenter, resizeCode, persistSizes };
+  return { sizes, resizeLeft, resizeCenter, resizeCode, resizeResults, persistSizes };
 }

@@ -45,7 +45,7 @@ function getVcount(edges: Edge[]): number {
 export function App() {
   const { theme, toggleTheme } = useTheme();
   const { lang, toggleLang, t } = useI18n();
-  const { sizes, resizeLeft, resizeCenter, resizeCode, persistSizes } = useResizablePanels();
+  const { sizes, resizeLeft, resizeCenter, resizeCode, resizeResults, persistSizes } = useResizablePanels();
 
   const [presetId, setPresetId] = useState('karate');
   const [edgeText, setEdgeText] = useState(edgesFromPreset('karate'));
@@ -56,6 +56,7 @@ export function App() {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [centerCollapsed, setCenterCollapsed] = useState(false);
   const [codeCollapsed, setCodeCollapsed] = useState(true);
+  const [resultsCollapsed, setResultsCollapsed] = useState(false);
 
   const [coords, setCoords] = useState<[number, number][] | null>(null);
   const [result, setResult] = useState<AlgoResult | null>(null);
@@ -221,7 +222,9 @@ export function App() {
           <div className="panel panel-right">
             <div className="panel-header">
               <h2>{t('results')}</h2>
-              <span className={`status ${status}`}>{statusText}</span>
+              <div className="panel-header-actions">
+                <span className={`status ${status}`}>{statusText}</span>
+              </div>
             </div>
 
             <Canvas
@@ -235,14 +238,44 @@ export function App() {
               t={t}
             />
 
-            <ResultsOutput
-              algo={algo}
-              result={result}
-              elapsed={elapsed}
-              vcount={vcount}
-              edgeCount={edges.length}
-              t={t}
-            />
+            <Resizer direction="vertical" onResize={resizeResults} onResizeEnd={persistSizes} />
+
+            <div className={`results-section${resultsCollapsed ? ' results-collapsed' : ''}`}>
+              <div
+                className="results-section-header"
+                onClick={resultsCollapsed ? () => setResultsCollapsed(false) : undefined}
+              >
+                <span className="results-section-title">{t('results')}</span>
+                <button
+                  className="collapse-toggle"
+                  onClick={() => setResultsCollapsed(!resultsCollapsed)}
+                  aria-label={resultsCollapsed ? t('expand') : t('collapse')}
+                  title={resultsCollapsed ? t('expand') : t('collapse')}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {resultsCollapsed
+                      ? <polyline points="6 9 12 15 18 9" />
+                      : <polyline points="18 15 12 9 6 15" />
+                    }
+                  </svg>
+                </button>
+              </div>
+              {!resultsCollapsed && (
+                <div
+                  className="results-output-wrap"
+                  style={{ height: sizes.resultsHeight }}
+                >
+                  <ResultsOutput
+                    algo={algo}
+                    result={result}
+                    elapsed={elapsed}
+                    vcount={vcount}
+                    edgeCount={edges.length}
+                    t={t}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
