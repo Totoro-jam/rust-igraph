@@ -1,0 +1,60 @@
+name: Benchmarks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'benches/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'benches/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  benchmark:
+    name: Performance regression check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      - name: Run representative benchmarks
+        run: |
+          cargo bench --bench bench_bfs \
+                      --bench bench_cc \
+                      --bench bench_distances \
+                      --bench bench_louvain \
+                      --bench bench_max_flow \
+                      --bench bench_canonical \
+                      --bench bench_erdos_renyi \
+                      --bench bench_triangles \
+                      -- --output-format bencher \
+                      2>&1 | tee bench_output.txt
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: rust-igraph Benchmarks
+          tool: 'cargo'
+          output-file-path: bench_output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: ${{ github.event_name == 'push' }}
+          alert-threshold: '200%'
+          comment-on-alert: true
+          fail-on-alert: false
+          alert-comment-cc-users: '@Totoro-jam'
+          benchmark-data-dir-path: dev/bench
