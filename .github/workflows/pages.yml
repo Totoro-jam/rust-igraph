@@ -21,6 +21,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
       # Build rustdoc
       - name: Build rustdoc
@@ -34,17 +37,27 @@ jobs:
       - name: Build mdBook
         run: mdbook build book
 
-      # Assemble site: rustdoc at /rust_igraph/, book at /book/
+      # Build website (landing page)
+      - name: Build website
+        working-directory: website
+        run: |
+          npm ci
+          npx vite build --base /rust-igraph/
+
+      # Assemble site: website at /, rustdoc at /rust_igraph/, book at /book/
       - name: Assemble site
         run: |
-          mkdir -p target/doc/book
-          cp -r book/book/* target/doc/book/
-          echo '<meta http-equiv="refresh" content="0; url=rust_igraph/index.html">' > target/doc/index.html
+          mkdir -p _site
+          cp -r website/dist/* _site/
+          mkdir -p _site/rust_igraph
+          cp -r target/doc/rust_igraph/* _site/rust_igraph/
+          mkdir -p _site/book
+          cp -r book/book/* _site/book/
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: target/doc
+          path: _site
 
   deploy:
     needs: build
