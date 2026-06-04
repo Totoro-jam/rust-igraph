@@ -335,9 +335,8 @@ impl Search<'_> {
 
     fn record_automorphism(&mut self, lab: &[usize]) {
         let n = self.adj.n;
-        let canon = match &self.canon_lab {
-            Some(c) => c,
-            None => return,
+        let Some(canon) = &self.canon_lab else {
+            return;
         };
         let mut linv = vec![0usize; n];
         for (pos, &v) in lab.iter().enumerate() {
@@ -350,8 +349,8 @@ impl Search<'_> {
         let merges_orbits = (0..n).any(|v| self.uf_find(v) != self.uf_find(phi[v] as usize));
 
         if merges_orbits || self.generators.len() < n {
-            for v in 0..n {
-                self.uf_union(v, phi[v] as usize);
+            for (v, &pv) in phi.iter().enumerate() {
+                self.uf_union(v, pv as usize);
             }
             self.generators.push(phi);
         }
@@ -421,16 +420,13 @@ pub(crate) fn canonicalize(
     search.recurse(init_color);
 
     // The null graph yields a single empty leaf.
-    let canon = match &search.canon_lab {
-        Some(lab) => lab,
-        None => {
-            return Ok(Canonicalization {
-                labeling: Vec::new(),
-                generators: Vec::new(),
-                group_order: 1.0,
-                certificate: Vec::new(),
-            });
-        }
+    let Some(canon) = &search.canon_lab else {
+        return Ok(Canonicalization {
+            labeling: Vec::new(),
+            generators: Vec::new(),
+            group_order: 1.0,
+            certificate: Vec::new(),
+        });
     };
 
     let canon_certificate = search.best_cert.clone().unwrap_or_default();
