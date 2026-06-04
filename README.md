@@ -29,7 +29,7 @@ graph algorithms without leaving the Rust ecosystem.
 - **Traversal**: BFS, DFS, topological sort, random walks
 - **Shortest paths**: Dijkstra, Bellman-Ford, A*, all-pairs, widest paths
 - **Centrality**: betweenness, closeness, eigenvector, PageRank, HITS, Katz, harmonic, constraint
-- **Community detection**: Louvain, Leiden, label propagation, Walktrap, edge betweenness, fast greedy, leading eigenvector, fluid communities, Voronoi
+- **Community detection**: Louvain, Leiden, Infomap, Spinglass, label propagation, Walktrap, edge betweenness, fast greedy, leading eigenvector, fluid communities, Voronoi
 - **Connectivity**: connected/biconnected components, articulation points, bridges, separators, cohesive blocks, SCC
 - **Network flow**: max-flow (push-relabel), min-cut, Gomory-Hu tree, edge/vertex connectivity, disjoint paths
 - **Isomorphism**: VF2 (graph/subgraph), LAD subgraph, BLISS canonical labeling, automorphism groups

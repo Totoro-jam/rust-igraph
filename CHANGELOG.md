@@ -34,9 +34,16 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 - **Chinese WASM tutorial** — isomorphism API section, triad census,
   updated algorithm count to 41.
 - **BLISS tutorial section** — added to both English and Chinese tutorials.
+- **Isomorphism example** — `examples/isomorphism_demo.rs` demonstrating
+  VF2, BLISS, canonical permutation, automorphism group, and colour-aware
+  isomorphism (116 examples total).
+- **Chinese tutorial sync** — stream-based File I/O example (write_gml /
+  read_gml with attribute round-trip) and circle / Kamada-Kawai layout
+  examples, matching English tutorial content.
 
 ### Changed
 - Test count updated across all docs: 8,386 → 8,494.
+- Example count updated across all docs: 115 → 116.
 - Landing page stats synced to current values (8,494 tests).
 
 ## [0.6.0] — 2026-06-04
