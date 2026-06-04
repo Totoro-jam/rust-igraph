@@ -339,6 +339,15 @@ graph.free();
 | `graph.degreeSequence()` | `{ degrees: number[] }` | 各顶点度 |
 | `graph.vertexColoring()` | `{ colors: number[], chromatic: number }` | 贪心顶点着色 |
 | `graph.transitivity()` | `{ value: number }` | 全局聚类系数 |
+| `graph.triadCensus()` | `{ counts: number[] }` | 16 类三元组普查（有向图） |
+
+### 同构
+
+| 方法 | 结果字段 | 说明 |
+|------|----------|------|
+| `graph.canonicalPermutation()` | `{ permutation: number[] }` | BLISS 规范标注 |
+| `graph.countAutomorphisms()` | `{ count: number }` | 自同构群阶 |
+| `graph.isomorphicBliss(other)` | `{ isomorphic: boolean, mapping: number[] }` | BLISS 同构检测 |
 
 ### 布局
 
@@ -432,7 +441,7 @@ rustflags = ["-C", "link-args=-z stack-size=8388608"]
 ## 在线演示
 
 试用[交互式实验场](https://totoro-jam.github.io/rust-igraph/playground/)，
-可在浏览器中通过 WASM 运行 30+ 种算法。实验场源代码位于
+可在浏览器中通过 WASM 运行全部 41 种算法。实验场源代码位于
 `website/playground/`，是完整的参考实现。
 
 ## 下一步

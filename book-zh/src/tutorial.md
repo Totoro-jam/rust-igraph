@@ -170,6 +170,33 @@ assert!(isomorphic(&g1, &g2).unwrap());   // K_4 ≅ K_4
 assert!(!isomorphic(&g1, &g3).unwrap());  // K_4 ≇ C_4
 ```
 
+### BLISS 规范标注
+
+BLISS 引擎提供规范形式、自同构计数和顶点颜色感知的同构检测：
+
+```rust
+use rust_igraph::{Graph, canonical_permutation, count_automorphisms,
+                  isomorphic_bliss, permute_vertices};
+
+let g1 = Graph::from_edges(&[(0,1),(1,2),(2,3),(3,0)], false, None).unwrap();
+let g2 = Graph::from_edges(&[(2,0),(0,3),(3,1),(1,2)], false, None).unwrap();
+
+// 规范置换 — 同构图重标后结果相同
+let p1 = canonical_permutation(&g1, None).unwrap();
+let p2 = canonical_permutation(&g2, None).unwrap();
+let c1 = permute_vertices(&g1, &p1).unwrap();
+let c2 = permute_vertices(&g2, &p2).unwrap();
+assert_eq!(c1.ecount(), c2.ecount());
+
+// 自同构群阶: |Aut(C_4)| = 8
+let aut = count_automorphisms(&g1, None).unwrap();
+assert!((aut - 8.0).abs() < 1e-9);
+
+// 基于 BLISS 的同构检测（含映射）
+let result = isomorphic_bliss(&g1, &g2, None, None).unwrap();
+assert!(result.iso);
+```
+
 ## 图运算符
 
 ```rust
