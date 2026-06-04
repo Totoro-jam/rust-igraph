@@ -20,10 +20,17 @@ import {
   demoHarmonic,
   demoHits,
   demoKatz,
+  demoTriadCensus,
+  demoCanonicalPermutation,
+  demoCountAutomorphisms,
+  demoIsomorphism,
   runDemoAlgo,
   layoutFR,
 } from './algorithms';
-import type { Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder, AlgoResultHits } from './types';
+import type {
+  Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder, AlgoResultHits,
+  AlgoResultTriadCensus, AlgoResultPermutation, AlgoResultAutomorphisms, AlgoResultIsomorphism,
+} from './types';
 
 const TRIANGLE: Edge[] = [[0, 1], [1, 2], [2, 0]];
 const PATH: Edge[] = [[0, 1], [1, 2], [2, 3]];
@@ -346,6 +353,54 @@ describe('demoKatz', () => {
   });
 });
 
+describe('demoTriadCensus', () => {
+  it('returns 16 counts', () => {
+    const result = demoTriadCensus(5, PATH) as AlgoResultTriadCensus;
+    expect(result.counts).toHaveLength(16);
+  });
+
+  it('all counts are non-negative', () => {
+    const result = demoTriadCensus(4, TRIANGLE) as AlgoResultTriadCensus;
+    for (const c of result.counts) {
+      expect(c).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('total triples include edge count', () => {
+    const result = demoTriadCensus(4, PATH) as AlgoResultTriadCensus;
+    expect(result.counts[1]).toBe(3);
+  });
+});
+
+describe('demoCanonicalPermutation', () => {
+  it('returns identity permutation of correct length', () => {
+    const result = demoCanonicalPermutation(4, PATH) as AlgoResultPermutation;
+    expect(result.permutation).toHaveLength(4);
+    expect(result.permutation).toEqual([0, 1, 2, 3]);
+  });
+
+  it('handles empty graph', () => {
+    const result = demoCanonicalPermutation(0, []) as AlgoResultPermutation;
+    expect(result.permutation).toHaveLength(0);
+  });
+});
+
+describe('demoCountAutomorphisms', () => {
+  it('returns a positive count', () => {
+    const result = demoCountAutomorphisms(4, PATH) as AlgoResultAutomorphisms;
+    expect(result.count).toBeGreaterThan(0);
+  });
+});
+
+describe('demoIsomorphism', () => {
+  it('returns isomorphic true with identity mapping', () => {
+    const result = demoIsomorphism(3, TRIANGLE) as AlgoResultIsomorphism;
+    expect(result.isomorphic).toBe(true);
+    expect(result.mapping).toHaveLength(3);
+    expect(result.mapping).toEqual([0, 1, 2]);
+  });
+});
+
 describe('runDemoAlgo', () => {
   it('dispatches to bfs', () => {
     const result = runDemoAlgo('bfs', 4, PATH, { source: 2 }) as AlgoResultOrder;
@@ -446,6 +501,26 @@ describe('runDemoAlgo', () => {
   it('dispatches to katz', () => {
     const result = runDemoAlgo('katz', 3, TRIANGLE) as AlgoResultScores;
     expect(result.scores).toHaveLength(3);
+  });
+
+  it('dispatches to triad_census', () => {
+    const result = runDemoAlgo('triad_census', 4, PATH) as AlgoResultTriadCensus;
+    expect(result.counts).toHaveLength(16);
+  });
+
+  it('dispatches to canonical_permutation', () => {
+    const result = runDemoAlgo('canonical_permutation', 4, PATH) as AlgoResultPermutation;
+    expect(result.permutation).toHaveLength(4);
+  });
+
+  it('dispatches to count_automorphisms', () => {
+    const result = runDemoAlgo('count_automorphisms', 4, PATH) as AlgoResultAutomorphisms;
+    expect(result.count).toBeGreaterThan(0);
+  });
+
+  it('dispatches to isomorphism', () => {
+    const result = runDemoAlgo('isomorphism', 3, TRIANGLE) as AlgoResultIsomorphism;
+    expect(result.isomorphic).toBe(true);
   });
 
   it('falls back to pagerank for unknown algo', () => {
