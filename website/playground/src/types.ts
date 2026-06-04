@@ -52,7 +52,14 @@ export type AlgoId =
   | 'fundamental_cycles'
   | 'list_triangles'
   | 'trussness'
-  | 'automorphism_group';
+  | 'automorphism_group'
+  | 'clique_number'
+  | 'independence_number'
+  | 'maximal_cliques'
+  | 'vertex_connectivity'
+  | 'edge_connectivity'
+  | 'minimum_spanning_tree'
+  | 'bellman_ford';
 
 export type LayoutId = 'fr' | 'kamada_kawai' | 'circle' | 'random' | 'grid' | 'star';
 
@@ -196,6 +203,20 @@ export interface AlgoResultAutomorphismGroup {
   count: number;
 }
 
+export interface AlgoResultCliques {
+  cliques: number[][];
+  count: number;
+}
+
+export interface AlgoResultMst {
+  edges: number[];
+  count: number;
+}
+
+export interface AlgoResultWeightedDistances {
+  distances: (number | null)[];
+}
+
 export type AlgoResult =
   | AlgoResultScores
   | AlgoResultMembership
@@ -222,7 +243,10 @@ export type AlgoResult =
   | AlgoResultCycles
   | AlgoResultTriangles
   | AlgoResultTrussness
-  | AlgoResultAutomorphismGroup;
+  | AlgoResultAutomorphismGroup
+  | AlgoResultCliques
+  | AlgoResultMst
+  | AlgoResultWeightedDistances;
 
 export interface RunResult {
   algo: AlgoId;

@@ -85,6 +85,19 @@ interface WasmGraphInstance {
   layoutRandom(seed: number): string;
   layoutGrid(width: number): string;
   layoutStar(center: number): string;
+  cliqueNumber(): string;
+  independenceNumber(): string;
+  maximalCliques(): string;
+  vertexConnectivity(): string;
+  edgeConnectivity(): string;
+  minimumSpanningTree(weights?: number[]): string;
+  bellmanFordDistances(source: number, weights: number[]): string;
+  strength(weights: number[]): string;
+  feedbackArcSet(weights?: number[]): string;
+  closenessWeighted(weights: number[]): string;
+  betweennessWeighted(weights: number[]): string;
+  vcount(): number;
+  ecount(): number;
   free(): void;
 }
 
@@ -312,6 +325,27 @@ function runWasm(
         break;
       case 'automorphism_group':
         resultJson = graph.automorphismGroup();
+        break;
+      case 'clique_number':
+        resultJson = graph.cliqueNumber();
+        break;
+      case 'independence_number':
+        resultJson = graph.independenceNumber();
+        break;
+      case 'maximal_cliques':
+        resultJson = graph.maximalCliques();
+        break;
+      case 'vertex_connectivity':
+        resultJson = graph.vertexConnectivity();
+        break;
+      case 'edge_connectivity':
+        resultJson = graph.edgeConnectivity();
+        break;
+      case 'minimum_spanning_tree':
+        resultJson = graph.minimumSpanningTree();
+        break;
+      case 'bellman_ford':
+        resultJson = graph.bellmanFordDistances(params?.source ?? 0, Array.from({ length: graph.ecount() }, () => 1));
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);

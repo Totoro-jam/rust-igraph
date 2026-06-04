@@ -25,17 +25,17 @@ const ALGO_CATEGORIES: AlgoCategory[] = [
   {
     key: 'traversal',
     icon: '⇢',
-    algos: ['bfs', 'dfs', 'dijkstra', 'shortest_path', 'random_walk', 'max_flow', 'topological_sort'],
+    algos: ['bfs', 'dfs', 'dijkstra', 'bellman_ford', 'shortest_path', 'random_walk', 'max_flow', 'topological_sort'],
   },
   {
     key: 'structure',
     icon: '⊞',
-    algos: ['components', 'scc', 'articulation_points', 'bridges', 'coloring', 'triad_census', 'fundamental_cycles', 'list_triangles'],
+    algos: ['components', 'scc', 'articulation_points', 'bridges', 'vertex_connectivity', 'edge_connectivity', 'coloring', 'triad_census', 'fundamental_cycles', 'list_triangles'],
   },
   {
     key: 'metrics',
     icon: '▦',
-    algos: ['graph_stats', 'degree_sequence', 'coreness', 'eccentricity', 'constraint', 'diameter', 'girth', 'transitivity', 'trussness'],
+    algos: ['graph_stats', 'degree_sequence', 'coreness', 'eccentricity', 'constraint', 'diameter', 'girth', 'transitivity', 'trussness', 'clique_number', 'independence_number', 'maximal_cliques', 'minimum_spanning_tree'],
   },
   {
     key: 'isomorphism',

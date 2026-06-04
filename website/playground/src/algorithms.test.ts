@@ -35,6 +35,13 @@ import {
   demoGirth,
   demoTrussness,
   demoAutomorphismGroup,
+  demoCliqueNumber,
+  demoIndependenceNumber,
+  demoMaximalCliques,
+  demoVertexConnectivity,
+  demoEdgeConnectivity,
+  demoMinimumSpanningTree,
+  demoBellmanFord,
   runDemoAlgo,
   layoutFR,
 } from './algorithms';
@@ -43,6 +50,7 @@ import type {
   AlgoResultTriadCensus, AlgoResultPermutation, AlgoResultAutomorphisms, AlgoResultIsomorphism,
   AlgoResultCores, AlgoResultValues, AlgoResultPath, AlgoResultWalk, AlgoResultDiameter,
   AlgoResultCycles, AlgoResultTriangles, AlgoResultTrussness, AlgoResultAutomorphismGroup,
+  AlgoResultScalar, AlgoResultCliques, AlgoResultMst, AlgoResultWeightedDistances,
 } from './types';
 
 const TRIANGLE: Edge[] = [[0, 1], [1, 2], [2, 0]];
@@ -880,5 +888,170 @@ describe('layoutFR', () => {
   it('handles isolated vertices', () => {
     const coords = layoutFR(3, [], 10);
     expect(coords).toHaveLength(3);
+  });
+});
+
+// --- New algorithm tests ---
+
+describe('demoCliqueNumber', () => {
+  it('returns 3 for triangle graph', () => {
+    const result = demoCliqueNumber(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBe(3);
+  });
+
+  it('returns 2 for path graph', () => {
+    const result = demoCliqueNumber(4, PATH) as AlgoResultScalar;
+    expect(result.value).toBe(2);
+  });
+
+  it('returns 0 for empty graph', () => {
+    const result = demoCliqueNumber(0, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+});
+
+describe('demoIndependenceNumber', () => {
+  it('returns 1 for triangle graph (all connected)', () => {
+    const result = demoIndependenceNumber(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBe(1);
+  });
+
+  it('returns 2 for path graph endpoints', () => {
+    const result = demoIndependenceNumber(4, PATH) as AlgoResultScalar;
+    expect(result.value).toBe(2);
+  });
+
+  it('returns vertex count for edgeless graph', () => {
+    const result = demoIndependenceNumber(4, []) as AlgoResultScalar;
+    expect(result.value).toBe(4);
+  });
+});
+
+describe('demoMaximalCliques', () => {
+  it('finds one clique in triangle', () => {
+    const result = demoMaximalCliques(3, TRIANGLE) as AlgoResultCliques;
+    expect(result.count).toBe(1);
+    expect(result.cliques[0]).toEqual([0, 1, 2]);
+  });
+
+  it('finds cliques in diamond graph', () => {
+    const result = demoMaximalCliques(4, DIAMOND) as AlgoResultCliques;
+    expect(result.count).toBe(2);
+    for (const clique of result.cliques) {
+      expect(clique.length).toBe(3);
+    }
+  });
+
+  it('returns singleton cliques for edgeless graph', () => {
+    const result = demoMaximalCliques(3, []) as AlgoResultCliques;
+    expect(result.count).toBe(3);
+    for (const clique of result.cliques) {
+      expect(clique.length).toBe(1);
+    }
+  });
+});
+
+describe('demoVertexConnectivity', () => {
+  it('returns positive for connected graph', () => {
+    const result = demoVertexConnectivity(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBeGreaterThan(0);
+  });
+
+  it('returns 0 for single vertex', () => {
+    const result = demoVertexConnectivity(1, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+});
+
+describe('demoEdgeConnectivity', () => {
+  it('returns positive for connected graph', () => {
+    const result = demoEdgeConnectivity(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBeGreaterThan(0);
+  });
+
+  it('returns 0 for single vertex', () => {
+    const result = demoEdgeConnectivity(1, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+});
+
+describe('demoMinimumSpanningTree', () => {
+  it('returns V-1 edges for connected graph', () => {
+    const result = demoMinimumSpanningTree(3, TRIANGLE) as AlgoResultMst;
+    expect(result.count).toBe(2);
+    expect(result.edges).toHaveLength(2);
+  });
+
+  it('returns edge indices within range', () => {
+    const result = demoMinimumSpanningTree(4, PATH) as AlgoResultMst;
+    for (const idx of result.edges) {
+      expect(idx).toBeGreaterThanOrEqual(0);
+      expect(idx).toBeLessThan(PATH.length);
+    }
+  });
+
+  it('returns empty for edgeless graph', () => {
+    const result = demoMinimumSpanningTree(3, []) as AlgoResultMst;
+    expect(result.count).toBe(0);
+  });
+});
+
+describe('demoBellmanFord', () => {
+  it('returns distances for all vertices', () => {
+    const result = demoBellmanFord(4, PATH, 0) as AlgoResultWeightedDistances;
+    expect(result.distances).toHaveLength(4);
+    expect(result.distances[0]).toBe(0);
+  });
+
+  it('returns increasing distances along path', () => {
+    const result = demoBellmanFord(4, PATH, 0) as AlgoResultWeightedDistances;
+    expect(result.distances[1]).toBe(1);
+    expect(result.distances[2]).toBe(2);
+    expect(result.distances[3]).toBe(3);
+  });
+
+  it('returns null for unreachable vertices', () => {
+    const result = demoBellmanFord(4, DISCONNECTED, 0) as AlgoResultWeightedDistances;
+    expect(result.distances[0]).toBe(0);
+    expect(result.distances[1]).toBe(1);
+    expect(result.distances[2]).toBeNull();
+    expect(result.distances[3]).toBeNull();
+  });
+});
+
+describe('runDemoAlgo — new algorithms dispatch', () => {
+  it('dispatches clique_number', () => {
+    const result = runDemoAlgo('clique_number', 3, TRIANGLE);
+    expect(result).toBeDefined();
+  });
+
+  it('dispatches independence_number', () => {
+    const result = runDemoAlgo('independence_number', 3, TRIANGLE);
+    expect(result).toBeDefined();
+  });
+
+  it('dispatches maximal_cliques', () => {
+    const result = runDemoAlgo('maximal_cliques', 3, TRIANGLE);
+    expect(result).toBeDefined();
+  });
+
+  it('dispatches vertex_connectivity', () => {
+    const result = runDemoAlgo('vertex_connectivity', 3, TRIANGLE);
+    expect(result).toBeDefined();
+  });
+
+  it('dispatches edge_connectivity', () => {
+    const result = runDemoAlgo('edge_connectivity', 3, TRIANGLE);
+    expect(result).toBeDefined();
+  });
+
+  it('dispatches minimum_spanning_tree', () => {
+    const result = runDemoAlgo('minimum_spanning_tree', 3, TRIANGLE);
+    expect(result).toBeDefined();
+  });
+
+  it('dispatches bellman_ford', () => {
+    const result = runDemoAlgo('bellman_ford', 4, PATH);
+    expect(result).toBeDefined();
   });
 });

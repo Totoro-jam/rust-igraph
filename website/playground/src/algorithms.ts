@@ -817,6 +817,134 @@ export function demoAutomorphismGroup(vcount: number, _edges: Edge[]): AlgoResul
   return { generators, count: generators.length } as AlgoResult;
 }
 
+export function demoCliqueNumber(vcount: number, edges: Edge[]): AlgoResult {
+  const adj: Set<number>[] = Array.from({ length: vcount }, () => new Set());
+  for (const [u, v] of edges) {
+    adj[u]!.add(v);
+    adj[v]!.add(u);
+  }
+  let maxClique = vcount > 0 ? 1 : 0;
+  for (const [u, v] of edges) {
+    let triSize = 2;
+    for (const w of adj[u]!) {
+      if (adj[v]!.has(w)) triSize = 3;
+    }
+    if (triSize > maxClique) maxClique = triSize;
+  }
+  return { value: maxClique } as AlgoResult;
+}
+
+export function demoIndependenceNumber(vcount: number, edges: Edge[]): AlgoResult {
+  const adj: Set<number>[] = Array.from({ length: vcount }, () => new Set());
+  for (const [u, v] of edges) {
+    adj[u]!.add(v);
+    adj[v]!.add(u);
+  }
+  let maxIndep = 0;
+  for (let mask = 0; mask < (1 << Math.min(vcount, 16)); mask++) {
+    const verts: number[] = [];
+    for (let i = 0; i < Math.min(vcount, 16); i++) {
+      if (mask & (1 << i)) verts.push(i);
+    }
+    let independent = true;
+    outer: for (let i = 0; i < verts.length; i++) {
+      for (let j = i + 1; j < verts.length; j++) {
+        if (adj[verts[i]!]!.has(verts[j]!)) { independent = false; break outer; }
+      }
+    }
+    if (independent && verts.length > maxIndep) maxIndep = verts.length;
+  }
+  return { value: maxIndep } as AlgoResult;
+}
+
+export function demoMaximalCliques(vcount: number, edges: Edge[]): AlgoResult {
+  const adj: Set<number>[] = Array.from({ length: vcount }, () => new Set());
+  for (const [u, v] of edges) {
+    adj[u]!.add(v);
+    adj[v]!.add(u);
+  }
+  const cliques: number[][] = [];
+  function bronKerbosch(R: Set<number>, P: Set<number>, X: Set<number>) {
+    if (P.size === 0 && X.size === 0) {
+      cliques.push([...R].sort((a, b) => a - b));
+      return;
+    }
+    const pivot = [...P, ...X][0]!;
+    const candidates = [...P].filter(v => !adj[pivot]!.has(v));
+    for (const v of candidates) {
+      const newR = new Set(R); newR.add(v);
+      const newP = new Set([...P].filter(u => adj[v]!.has(u)));
+      const newX = new Set([...X].filter(u => adj[v]!.has(u)));
+      bronKerbosch(newR, newP, newX);
+      P.delete(v);
+      X.add(v);
+    }
+  }
+  bronKerbosch(new Set(), new Set(Array.from({ length: vcount }, (_, i) => i)), new Set());
+  return { cliques, count: cliques.length } as AlgoResult;
+}
+
+export function demoVertexConnectivity(vcount: number, edges: Edge[]): AlgoResult {
+  if (vcount <= 1) return { value: 0 } as AlgoResult;
+  let minCut = vcount;
+  for (let v = 0; v < vcount; v++) {
+    let deg = 0;
+    for (const [u, w] of edges) {
+      if (u === v || w === v) deg++;
+    }
+    if (deg < minCut) minCut = deg;
+  }
+  return { value: minCut } as AlgoResult;
+}
+
+export function demoEdgeConnectivity(vcount: number, edges: Edge[]): AlgoResult {
+  if (vcount <= 1) return { value: 0 } as AlgoResult;
+  let minDeg = edges.length;
+  for (let v = 0; v < vcount; v++) {
+    let deg = 0;
+    for (const [u, w] of edges) {
+      if (u === v || w === v) deg++;
+    }
+    if (deg < minDeg) minDeg = deg;
+  }
+  return { value: Math.min(minDeg, edges.length) } as AlgoResult;
+}
+
+export function demoMinimumSpanningTree(vcount: number, edges: Edge[]): AlgoResult {
+  const parent = Array.from({ length: vcount }, (_, i) => i);
+  function find(x: number): number {
+    while (parent[x] !== x) { parent[x] = parent[parent[x]!]!; x = parent[x]!; }
+    return x;
+  }
+  const mstEdges: number[] = [];
+  for (let i = 0; i < edges.length; i++) {
+    const [u, v] = edges[i]!;
+    const ru = find(u);
+    const rv = find(v);
+    if (ru !== rv) {
+      parent[ru] = rv;
+      mstEdges.push(i);
+    }
+  }
+  return { edges: mstEdges, count: mstEdges.length } as AlgoResult;
+}
+
+export function demoBellmanFord(vcount: number, edges: Edge[], source = 0): AlgoResult {
+  const dist: (number | null)[] = Array.from({ length: vcount }, () => null);
+  dist[source] = 0;
+  for (let i = 0; i < vcount - 1; i++) {
+    for (const [u, v] of edges) {
+      if (dist[u] !== null && (dist[v] === null || dist[u]! + 1 < dist[v]!)) {
+        dist[v] = dist[u]! + 1;
+      }
+      if (dist[v] !== null && (dist[u] === null || dist[v]! + 1 < dist[u]!)) {
+        dist[u] = dist[v]! + 1;
+      }
+    }
+  }
+  return { distances: dist } as AlgoResult;
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
@@ -916,6 +1044,20 @@ export function runDemoAlgo(
       return demoTrussness(vcount, edges);
     case 'automorphism_group':
       return demoAutomorphismGroup(vcount, edges);
+    case 'clique_number':
+      return demoCliqueNumber(vcount, edges);
+    case 'independence_number':
+      return demoIndependenceNumber(vcount, edges);
+    case 'maximal_cliques':
+      return demoMaximalCliques(vcount, edges);
+    case 'vertex_connectivity':
+      return demoVertexConnectivity(vcount, edges);
+    case 'edge_connectivity':
+      return demoEdgeConnectivity(vcount, edges);
+    case 'minimum_spanning_tree':
+      return demoMinimumSpanningTree(vcount, edges);
+    case 'bellman_ford':
+      return demoBellmanFord(vcount, edges, params?.source);
     default:
       return demoPagerank(vcount, edges);
   }
