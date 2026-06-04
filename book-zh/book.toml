@@ -1,12 +1,12 @@
 [book]
-title = "rust-igraph Guide"
+title = "rust-igraph 指南"
 authors = ["Totoro-jam"]
-language = "en"
+language = "zh"
 src = "src"
 
 [output.html]
 git-repository-url = "https://github.com/Totoro-jam/rust-igraph"
-site-url = "/rust-igraph/book/"
+site-url = "/rust-igraph/book/zh/"
 additional-js = ["theme/redirect-logo.js", "theme/lang-switcher.js"]
 
 [output.html.fold]

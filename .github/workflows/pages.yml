@@ -37,11 +37,13 @@ jobs:
           RUSTDOCFLAGS: "-D warnings"
         run: cargo doc --no-deps
 
-      # Build mdBook
+      # Build mdBook (English + Chinese)
       - name: Install mdBook
         run: cargo install mdbook --locked --version 0.4.51
-      - name: Build mdBook
+      - name: Build mdBook (English)
         run: mdbook build book
+      - name: Build mdBook (Chinese)
+        run: mdbook build book-zh
 
       # Build website (landing page)
       - name: Build website
@@ -61,6 +63,8 @@ jobs:
           cp -r website/dist/* _site/
           mkdir -p _site/book
           cp -r book/book/* _site/book/
+          mkdir -p _site/book/zh
+          cp -r book-zh/book/* _site/book/zh/
           mkdir -p _site/playground/wasm
           cp website/playground/wasm/*.js website/playground/wasm/*.wasm _site/playground/wasm/
 
