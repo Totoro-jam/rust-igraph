@@ -323,6 +323,149 @@ let gg = gabriel_graph(&points).unwrap();
 println!("Gabriel:  {} vertices, {} edges", gg.vcount(), gg.ecount());
 ```
 
+## K-core decomposition and trussness
+
+Identify the dense backbone of a network:
+
+```rust
+use rust_igraph::{Graph, coreness, trussness};
+
+let g = Graph::from_edges(
+    &[(0,1),(0,2),(1,2),(1,3),(2,3),(3,4),(3,5),(4,5),(4,6),(5,6),(6,7)],
+    false, None
+).unwrap();
+
+// Coreness: each vertex gets its maximum k such that it belongs to a k-core
+let cores = coreness(&g).unwrap();
+println!("Vertex coreness: {:?}", cores);
+
+let max_core = *cores.iter().max().unwrap();
+let core_members: Vec<usize> = cores.iter().enumerate()
+    .filter(|&(_, &c)| c == max_core)
+    .map(|(i, _)| i)
+    .collect();
+println!("{max_core}-core members: {core_members:?}");
+
+// Trussness: edge-based analog (each edge in a k-truss has >= k-2 triangles)
+let trusses = trussness(&g).unwrap();
+println!("Edge trussness: {:?}", trusses);
+```
+
+## Clique analysis
+
+Find cliques and measure their structure:
+
+```rust
+use rust_igraph::{Graph, clique_number, largest_cliques, maximal_cliques};
+
+let g = Graph::from_edges(
+    &[(0,1),(0,2),(0,3),(1,2),(1,3),(2,3),(3,4),(4,5),(5,6),(4,6)],
+    false, None
+).unwrap();
+
+// Clique number: size of the largest clique
+let omega = clique_number(&g).unwrap();
+println!("Clique number (ω): {omega}");
+
+// All largest cliques (there may be several of size ω)
+let big = largest_cliques(&g).unwrap();
+println!("Largest cliques:");
+for c in &big {
+    println!("  {:?}", c);
+}
+
+// All maximal cliques (cannot be extended by adding a vertex)
+let all = maximal_cliques(&g).unwrap();
+println!("{} maximal cliques found", all.len());
+```
+
+## Graph algebra: products, union, complement
+
+Build complex graphs from simple building blocks:
+
+```rust
+use rust_igraph::{Graph, cartesian_product, tensor_product,
+                  complementer, line_graph, union, intersection};
+
+let path3 = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+let k2 = Graph::from_edges(&[(0,1)], false, None).unwrap();
+
+// Cartesian product: P3 □ K2 gives a ladder graph (6 vertices, 7 edges)
+let ladder = cartesian_product(&path3, &k2).unwrap();
+println!("Ladder: {} vertices, {} edges", ladder.vcount(), ladder.ecount());
+
+// Tensor product (categorical product)
+let tp = tensor_product(&path3, &k2).unwrap();
+println!("Tensor product: {} vertices, {} edges", tp.vcount(), tp.ecount());
+
+// Complement: edges become non-edges and vice versa
+let comp = complementer(&path3, false).unwrap();
+println!("Complement of P3: {} edges (K3 minus P3 = 1 edge)", comp.ecount());
+
+// Line graph: vertices are edges of the original, adjacent if they share a vertex
+let lg = line_graph(&path3).unwrap();
+println!("Line graph of P3: {} vertices, {} edges", lg.vcount(), lg.ecount());
+
+// Union: overlay two graphs on the same vertex set
+let g1 = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
+let g2 = Graph::from_edges(&[(2,3),(3,4)], false, None).unwrap();
+let combined = union(&g1, &g2).unwrap();
+println!("Union: {} vertices, {} edges", combined.vcount(), combined.ecount());
+```
+
+## Random walks
+
+Simulate a random walk on a graph:
+
+```rust
+use rust_igraph::{Graph, random_walk, DijkstraMode};
+
+let g = Graph::from_edges(
+    &[(0,1),(1,2),(2,3),(3,4),(4,0),(0,2),(1,3),(2,4)],
+    false, None
+).unwrap();
+
+// Unweighted random walk: 15 steps from vertex 0
+let (vertices, edges) = random_walk(&g, None, 0, DijkstraMode::Out, 15, 42).unwrap();
+println!("Walk: {:?}", vertices);
+
+// Weighted random walk (biases toward heavier edges)
+let weights = vec![1.0, 1.0, 1.0, 1.0, 1.0, 5.0, 5.0, 5.0];
+let (v2, _) = random_walk(&g, Some(&weights), 0, DijkstraMode::Out, 15, 7).unwrap();
+println!("Weighted walk: {:?}", v2);
+```
+
+## Distance metrics: eccentricity, radius, diameter
+
+Understand graph-level distance structure:
+
+```rust
+use rust_igraph::{Graph, eccentricity, diameter, radius, girth};
+
+let g = Graph::from_edges(
+    &[(0,1),(1,2),(2,3),(3,4),(4,5),(5,0),(0,3),(1,4),(2,5)],
+    false, None
+).unwrap();
+
+// Eccentricity: max distance from each vertex to any other
+let ecc = eccentricity(&g).unwrap();
+for (v, &e) in ecc.iter().enumerate() {
+    println!("  v{v}: eccentricity = {e}");
+}
+
+// Diameter: max eccentricity (longest shortest path)
+let d = diameter(&g).unwrap();
+println!("Diameter: {:?}", d);
+
+// Radius: min eccentricity (tightest center)
+let r = radius(&g).unwrap();
+println!("Radius: {:?}", r);
+
+// Girth: length of the shortest cycle
+let girth_val = girth(&g).unwrap();
+println!("Girth: {:?}", girth_val);
+```
+
 ## Layout for visualization export
 
 ```rust
