@@ -1478,7 +1478,7 @@ references/.cache/
 | 批次 | 算法群 | 预估 AWU | 状态 | 备注 |
 |------|--------|---------|------|------|
 | B1 | MST（Prim + Kruskal） | 2 | **done** (ALGO-MST-001) | 已完成 |
-| B2 | Motif census（randesu） | 3-4 | **未开始** | Phase 7 遗留 |
+| B2 | Motif census（randesu） | 3-4 | **done** (MO-001..004) | Phase 7 完成 |
 | B3 | Leading eigenvector community | 1 | **未开始** | Phase 4 遗留，依赖 EIG-001 |
 | B4 | Infomap community | 1 | **未开始** | C++ → Rust 翻译 |
 | B5 | Spinglass community | 1 | **未开始** | C++ → Rust 翻译 |
@@ -1498,9 +1498,9 @@ references/.cache/
 | Landing page 样式优化（背景/交互/暗色主题） | P1 | **done** (2026-06-04): community-colored hero, SVG icons, entrance animations, counter |
 | mdBook 断链修复 + 章节重构 | P1 | **done** (2026-06-04): 外部链接改为 stub 页面 |
 | README / 对比表格客观化 | P1 | **done** (2026-06-04) |
-| Playground（WASM 在线交互） | P1 | **WASM crate 就绪，前端待做** |
+| Playground（WASM 在线交互） | P1 | **done** (2026-06-04): 可编辑前端 + WASM 后端 + 5 算法可视化 |
 | mdBook 教程完善（更多实战章节） | P2 | 基础章节已有 |
-| README 国际化（中英双语 or 中文单独） | P3 | 仅英文 |
+| README 国际化（中英双语 or 中文单独） | P3 | **done** (2026-06-04): mdBook 中英双语 + 语言切换按钮 |
 | crates.io 发布准备 | P2 | v0.5.0 已发布 |
 
 ### 主线 3：工程质量
@@ -1509,7 +1509,7 @@ references/.cache/
 |------|--------|------|
 | 全面审查网站（用户视角） | P1 | **done** (2026-06-04) |
 | Conformance 覆盖率提升（当前 ~60%→80%） | P2 | 持续 |
-| CI 增加 WASM 编译检查 | P2 | cargo check 已有 |
+| CI 增加 WASM 编译检查 | P2 | **done** (2026-06-04): CI + Pages 均检查 igraph-wasm |
 | 性能回归监控（criterion baseline） | P3 | bench 已有，自动化待做 |
 
 ### 退出门（v0.6.0 → main tag）
