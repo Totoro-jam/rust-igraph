@@ -185,8 +185,8 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ## Project status
 
-> **Alpha** (`v0.5.0-alpha.3`) — 306 algorithm work units complete, 388 public
-> re-exports + 420 Graph methods, 7,500+ tests. API stabilizing before `v1.0.0`.
+> **Alpha** (`v0.5.0-alpha.4`) — 306 algorithm work units complete, 388 public
+> re-exports + 420 Graph methods, 7,554 tests. API stabilizing before `v1.0.0`.
 
 | Category | Status |
 |----------|--------|

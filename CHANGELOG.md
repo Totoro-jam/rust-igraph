@@ -14,6 +14,26 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+## [0.5.0-alpha.4] — 2026-06-04
+
+### Added
+- `Graph::graph_summary_string()` — human-readable structural summary
+  (420 total Graph methods).
+- `Graph::from_file` / `Graph::to_file` — format-auto-detecting file I/O
+  based on file extension (`.gml`, `.graphml`, `.dot`, `.net`, `.ncol`,
+  `.lgl`, `.leda`, `.dl`, `.edges`/`.txt`/`.csv`).
+- `examples/file_io_demo.rs` — multi-format round-trip demonstration.
+- `examples/network_analysis_pipeline.rs` — complete analysis workflow
+  (build, analyze structure, centrality, communities, export with
+  attributes).
+- mdBook tutorial expanded: layout engines section (FR, KK, circle) and
+  updated file I/O section showing `from_file`/`to_file` convenience.
+- Example count increased to 115.
+
+### Changed
+- README updated with accurate counts (388 re-exports, 420 Graph
+  methods, 7,554 tests).
+
 ## [0.5.0-alpha.3] — 2026-06-04
 
 ### Added
