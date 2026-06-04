@@ -17,7 +17,7 @@ window.toggleTheme = function () {
 
 applyTheme(getPreferredTheme());
 
-// Hero canvas: animated force-directed graph
+// Hero canvas: animated force-directed graph with community coloring
 (function () {
   const canvas = document.getElementById('hero-canvas');
   if (!canvas) return;
@@ -27,7 +27,14 @@ applyTheme(getPreferredTheme());
   let width, height;
   const nodes = [];
   const edges = [];
-  const N = 40;
+  const N = 60;
+  const COMMUNITY_COLORS_DARK = ['#58a6ff', '#f778ba', '#7ee787', '#d2a8ff', '#ffa657'];
+  const COMMUNITY_COLORS_LIGHT = ['#0969da', '#bf3989', '#1a7f37', '#8250df', '#bc4c00'];
+
+  function getColors() {
+    const theme = document.documentElement.getAttribute('data-theme');
+    return theme === 'light' ? COMMUNITY_COLORS_LIGHT : COMMUNITY_COLORS_DARK;
+  }
 
   function resize() {
     const rect = canvas.parentElement.getBoundingClientRect();
@@ -42,18 +49,33 @@ applyTheme(getPreferredTheme());
 
   function init() {
     resize();
+    const communities = 5;
+    const centersX = [0.2, 0.5, 0.8, 0.35, 0.65];
+    const centersY = [0.3, 0.6, 0.35, 0.7, 0.55];
+
     for (let i = 0; i < N; i++) {
+      const c = i % communities;
+      const spread = 0.15;
       nodes.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        r: 2 + Math.random() * 2,
+        x: (centersX[c] + (Math.random() - 0.5) * spread) * width,
+        y: (centersY[c] + (Math.random() - 0.5) * spread) * height,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        r: 2.5 + Math.random() * 2.5,
+        community: c,
       });
     }
+
     for (let i = 0; i < N; i++) {
-      const numEdges = 1 + Math.floor(Math.random() * 2);
-      for (let e = 0; e < numEdges; e++) {
+      const intra = 1 + Math.floor(Math.random() * 2);
+      for (let e = 0; e < intra; e++) {
+        const sameComm = nodes.map((n, idx) => idx).filter(idx => idx !== i && nodes[idx].community === nodes[i].community);
+        if (sameComm.length > 0) {
+          const j = sameComm[Math.floor(Math.random() * sameComm.length)];
+          edges.push([i, j]);
+        }
+      }
+      if (Math.random() < 0.15) {
         const j = Math.floor(Math.random() * N);
         if (j !== i) edges.push([i, j]);
       }
@@ -62,27 +84,29 @@ applyTheme(getPreferredTheme());
 
   function draw() {
     ctx.clearRect(0, 0, width, height);
-    const accent = getComputedStyle(document.documentElement)
-      .getPropertyValue('--accent')
-      .trim();
+    const colors = getColors();
 
-    // Edges
-    ctx.strokeStyle = accent;
-    ctx.globalAlpha = 0.15;
     ctx.lineWidth = 1;
     for (const [i, j] of edges) {
+      const sameComm = nodes[i].community === nodes[j].community;
+      ctx.strokeStyle = sameComm ? colors[nodes[i].community] : colors[nodes[i].community];
+      ctx.globalAlpha = sameComm ? 0.2 : 0.07;
       ctx.beginPath();
       ctx.moveTo(nodes[i].x, nodes[i].y);
       ctx.lineTo(nodes[j].x, nodes[j].y);
       ctx.stroke();
     }
 
-    // Nodes
-    ctx.globalAlpha = 0.4;
-    ctx.fillStyle = accent;
     for (const node of nodes) {
+      ctx.globalAlpha = 0.6;
+      ctx.fillStyle = colors[node.community];
       ctx.beginPath();
       ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.15;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.r + 3, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
@@ -104,4 +128,39 @@ applyTheme(getPreferredTheme());
   init();
   step();
   window.addEventListener('resize', resize);
+})();
+
+// Number counter animation
+(function () {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      if (el.dataset.counted) return;
+      el.dataset.counted = 'true';
+
+      const text = el.textContent.trim();
+      const match = text.match(/^([\d,]+)(\+?)$/);
+      if (!match) return;
+
+      const target = parseInt(match[1].replace(/,/g, ''), 10);
+      const suffix = match[2];
+      const duration = 1200;
+      const start = performance.now();
+
+      function tick(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(target * eased);
+        el.textContent = current.toLocaleString() + suffix;
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+
+      el.textContent = '0' + suffix;
+      requestAnimationFrame(tick);
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('.stat-num').forEach(el => observer.observe(el));
 })();

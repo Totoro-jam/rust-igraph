@@ -326,7 +326,6 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   transform: translateY(-2px);
 }
 
-.feature-icon { font-size: 1.75rem; margin-bottom: 0.75rem; }
 .feature-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
 .feature-card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
 
@@ -396,6 +395,52 @@ td strong { color: var(--accent); }
   color: var(--text-muted);
 }
 .footer-inner p + p { margin-top: 0.5rem; }
+
+/* ========== Hero entrance animation ========== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-content {
+  animation: fadeInUp 0.8s ease-out both;
+}
+
+.hero-content h1 {
+  animation: fadeInUp 0.8s ease-out 0.1s both;
+}
+
+.hero-sub {
+  animation: fadeInUp 0.8s ease-out 0.25s both;
+}
+
+.hero-ctas {
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+/* ========== Feature card SVG icons ========== */
+.feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+}
+
+.feature-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
 /* ========== Responsive ========== */
 @media (max-width: 600px) {
