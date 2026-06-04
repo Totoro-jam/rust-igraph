@@ -29,7 +29,7 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - name: Build WASM
-        run: wasm-pack build crates/igraph-wasm --target web --out-dir ../../website/playground/wasm --out-name igraph_wasm
+        run: wasm-pack build crates/igraph-wasm --target web --out-dir ../../website/playground/public/wasm --out-name igraph_wasm
 
       # Build rustdoc
       - name: Build rustdoc
@@ -74,8 +74,6 @@ jobs:
           cp -r book-zh/book/* _site/book/zh/
           mkdir -p _site/playground
           cp -r website/playground/dist/* _site/playground/
-          mkdir -p _site/playground/wasm
-          cp -f website/playground/wasm/*.js website/playground/wasm/*.wasm _site/playground/wasm/ 2>/dev/null || true
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

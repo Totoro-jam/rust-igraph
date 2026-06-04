@@ -16,8 +16,11 @@ interface WasmGraphInstance {
 
 async function initWasm(): Promise<boolean> {
   try {
-    const base = self.location.href.replace(/\/[^/]*$/, '');
-    const wasmModule = await import(/* @vite-ignore */ `${base}/wasm/igraph_wasm.js`);
+    const workerUrl = self.location.href;
+    const playgroundRoot = workerUrl.includes('/assets/')
+      ? workerUrl.replace(/\/assets\/[^/]*$/, '')
+      : workerUrl.replace(/\/[^/]*$/, '');
+    const wasmModule = await import(/* @vite-ignore */ `${playgroundRoot}/wasm/igraph_wasm.js`);
     await wasmModule.default();
     WasmGraph = wasmModule.WasmGraph;
     return true;
