@@ -189,23 +189,29 @@ fn refine(color: &mut Vec<usize>, adj: &Adj) {
     if n == 0 {
         return;
     }
+    // Flat signature buffer: sigs[v * width .. (v+1) * width] holds vertex v's
+    // neighbour-count vector. Reused across iterations to avoid per-vertex
+    // heap allocations.
+    let mut sigs: Vec<u32> = Vec::new();
     loop {
         let k = color.iter().copied().max().map_or(0, |m| m + 1);
         let width = if adj.directed { 2 * k } else { k };
-        // signature key per vertex: (current cell, neighbour-count vector)
-        let mut keys: Vec<(usize, Vec<u32>)> = Vec::with_capacity(n);
+        sigs.clear();
+        sigs.resize(n * width, 0);
         for v in 0..n {
-            let mut sig = vec![0u32; width];
+            let base = v * width;
             for &w in &adj.out_adj[v] {
-                sig[color[w]] += 1;
+                sigs[base + color[w]] += 1;
             }
             if adj.directed {
                 for &w in &adj.in_adj[v] {
-                    sig[k + color[w]] += 1;
+                    sigs[base + k + color[w]] += 1;
                 }
             }
-            keys.push((color[v], sig));
         }
+        let keys: Vec<(usize, &[u32])> = (0..n)
+            .map(|v| (color[v], &sigs[v * width..(v + 1) * width]))
+            .collect();
         let (new_color, new_k) = renumber(&keys);
         let stable = new_k == k;
         *color = new_color;
