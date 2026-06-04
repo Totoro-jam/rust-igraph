@@ -185,8 +185,8 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ## Project status
 
-> **Alpha** (`v0.5.0-alpha.3`) — 306 algorithm work units complete, 387 public
-> re-exports + 417 Graph methods, 7,500+ tests. API stabilizing before `v1.0.0`.
+> **Alpha** (`v0.5.0-alpha.3`) — 306 algorithm work units complete, 388 public
+> re-exports + 420 Graph methods, 7,500+ tests. API stabilizing before `v1.0.0`.
 
 | Category | Status |
 |----------|--------|
@@ -207,7 +207,7 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ```bash
 cargo build                          # build
-cargo test                           # fast test suite (7,500+ tests)
+cargo test                           # fast test suite (7,554 tests)
 cargo test --all-features            # full suite with oracle + proptests
 cargo clippy -- -D warnings          # lint
 cargo doc --no-deps --open           # browse API docs locally

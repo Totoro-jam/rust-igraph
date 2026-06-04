@@ -52,6 +52,15 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   `is_same_graph`, `mean_distance_weighted`.
 - `method_api_demo` expanded from 8 to 11 categories (flow/connectivity,
   subset centrality, BLISS isomorphism).
+- `Graph::from_file` and `Graph::to_file` — format-auto-detecting file I/O
+  based on extension (`.gml`, `.graphml`, `.dot`, `.net`, `.ncol`, `.lgl`,
+  `.leda`, `.dl`, `.edges`/`.txt`/`.csv`).
+- `Graph::graph_summary_string()` — human-readable structural summary string
+  (420 total Graph methods).
+- `examples/file_io_demo.rs` — demonstrates multi-format round-trips via
+  `from_file`/`to_file`.
+- mdBook tutorial expanded with layout section (FR, KK, circle) and updated
+  file I/O section showing `from_file`/`to_file` convenience.
 
 ### Changed
 - mdBook introduction updated to reflect current project state (305+ AWUs,
