@@ -18,8 +18,8 @@ graph algorithms without leaving the Rust ecosystem.
 
 | | rust-igraph | petgraph | igraph (C/Python) |
 |---|---|---|---|
-| **Algorithm coverage** | 1200+ APIs (BFS, DFS, shortest paths, community detection, centrality, isomorphism, flows, layouts, graph generators, 60+ graph class recognizers...) | ~30 algorithms | ~850 APIs |
-| **Safety** | Zero `unsafe`, zero `unwrap` in library code | Some `unsafe` | C core with FFI |
+| **Algorithm coverage** | 1200+ APIs (BFS, DFS, shortest paths, community detection, centrality, isomorphism, flows, layouts, graph generators, 60+ graph class recognizers...) | ~50 (composable) | ~850 APIs (reference) |
+| **Safety** | Zero `unsafe`, zero `unwrap` in library code | Minimal `unsafe` | C core + bindings |
 | **Correctness** | Cross-validated against igraph C, python-igraph, and R-igraph test suites | Independent | Reference implementation |
 | **Dependencies** | Minimal (1 runtime dep: `thiserror`) | Minimal | Large C/C++ toolchain |
 | **WASM** | Designed for `wasm32-unknown-unknown` | Yes | No |
@@ -185,8 +185,8 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ## Project status
 
-> **v0.5.0** — 311 algorithm work units complete, 388 public
-> re-exports + 420 Graph methods, 7,554 tests. API stabilizing toward `v1.0.0`.
+> **v0.5.0** — 306 algorithm work units complete, 687 public functions,
+> 7,574 tests. API stabilizing toward `v1.0.0`.
 
 | Category | Status |
 |----------|--------|
@@ -213,7 +213,7 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ```bash
 cargo build                          # build
-cargo test                           # fast test suite (7,554 tests)
+cargo test                           # fast test suite (7,574 tests)
 cargo test --all-features            # full suite with oracle + proptests
 cargo clippy -- -D warnings          # lint
 cargo doc --no-deps --open           # browse API docs locally
