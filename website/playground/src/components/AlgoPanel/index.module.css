@@ -4,6 +4,31 @@
   padding: 0.25rem 0;
 }
 
+.algoGroup {
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.algoGroup:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.groupHeader {
+  padding: 0.35rem 0.75rem 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.algoGroup:first-child .groupHeader {
+  padding-top: 0.25rem;
+}
+
 .algoOption {
   display: flex;
   align-items: center;
@@ -91,6 +116,19 @@
     flex-wrap: wrap;
     gap: 0;
     padding: 0.25rem 0.5rem;
+  }
+
+  .algoGroup {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 0;
+  }
+
+  .groupHeader {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.6rem;
+    width: auto;
   }
 
   .algoOption {

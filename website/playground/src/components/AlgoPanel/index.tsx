@@ -1,32 +1,31 @@
 import type { AlgoId, AlgoParams } from '../../types';
 import styles from './index.module.css';
 
-const ALGO_LIST: AlgoId[] = [
-  'pagerank',
-  'louvain',
-  'betweenness',
-  'closeness',
-  'eigenvector',
-  'harmonic',
-  'hits',
-  'katz',
-  'bfs',
-  'dfs',
-  'dijkstra',
-  'components',
-  'infomap',
-  'spinglass',
-  'label_propagation',
-  'walktrap',
-  'leiden',
-  'fast_greedy',
-  'leading_eigenvector',
-  'edge_betweenness',
-  'fluid',
-  'graph_stats',
-  'max_flow',
-  'articulation_points',
-  'degree_sequence',
+interface AlgoCategory {
+  key: string;
+  algos: AlgoId[];
+}
+
+const ALGO_CATEGORIES: AlgoCategory[] = [
+  {
+    key: 'centrality',
+    algos: ['pagerank', 'betweenness', 'closeness', 'eigenvector', 'harmonic', 'hits', 'katz'],
+  },
+  {
+    key: 'community',
+    algos: [
+      'louvain', 'leiden', 'infomap', 'label_propagation', 'walktrap',
+      'fast_greedy', 'leading_eigenvector', 'edge_betweenness', 'spinglass', 'fluid',
+    ],
+  },
+  {
+    key: 'traversal',
+    algos: ['bfs', 'dfs', 'dijkstra', 'max_flow'],
+  },
+  {
+    key: 'structure',
+    algos: ['components', 'graph_stats', 'articulation_points', 'degree_sequence'],
+  },
 ];
 
 interface AlgoPanelProps {
@@ -51,17 +50,22 @@ export function AlgoPanel({
   return (
     <>
       <div className={styles.algoList}>
-        {ALGO_LIST.map((id) => (
-          <label key={id} className={`${styles.algoOption} ${algo === id ? styles.active : ''}`}>
-            <input
-              type="radio"
-              name="algo"
-              value={id}
-              checked={algo === id}
-              onChange={() => onAlgoChange(id)}
-            />
-            <span>{t(`algo.${id}`)}</span>
-          </label>
+        {ALGO_CATEGORIES.map((cat) => (
+          <div key={cat.key} className={styles.algoGroup}>
+            <div className={styles.groupHeader}>{t(`cat.${cat.key}`)}</div>
+            {cat.algos.map((id) => (
+              <label key={id} className={`${styles.algoOption} ${algo === id ? styles.active : ''}`}>
+                <input
+                  type="radio"
+                  name="algo"
+                  value={id}
+                  checked={algo === id}
+                  onChange={() => onAlgoChange(id)}
+                />
+                <span>{t(`algo.${id}`)}</span>
+              </label>
+            ))}
+          </div>
         ))}
       </div>
 

@@ -10,6 +10,7 @@ import { useTheme } from './hooks/useTheme';
 import { useI18n } from './hooks/useI18n';
 import { useWasm } from './hooks/useWasm';
 import { useResizablePanels } from './hooks/useResizablePanels';
+import { readUrlState, useUrlSync } from './hooks/useUrlState';
 import { PRESETS } from './presets';
 import type { AlgoId, AlgoParams, AlgoResult, Edge, RunResult } from './types';
 import layout from './styles/layout.module.css';
@@ -47,11 +48,21 @@ export function App() {
   const { lang, toggleLang, t } = useI18n();
   const { sizes, resizeLeft, resizeCenter, resizeCode, resizeResults, persistSizes } = useResizablePanels();
 
-  const [presetId, setPresetId] = useState('karate');
-  const [edgeText, setEdgeText] = useState(edgesFromPreset('karate'));
-  const [directed, setDirected] = useState(false);
-  const [algo, setAlgo] = useState<AlgoId>('pagerank');
-  const [params, setParams] = useState<AlgoParams>({ damping: 0.85, source: 0 });
+  const [urlInit] = useState(readUrlState);
+  const initPreset = urlInit.preset ?? 'karate';
+  const [presetId, setPresetId] = useState(initPreset);
+  const [edgeText, setEdgeText] = useState(edgesFromPreset(initPreset));
+  const [directed, setDirected] = useState(
+    urlInit.directed ?? PRESETS[initPreset]?.directed ?? false,
+  );
+  const [algo, setAlgo] = useState<AlgoId>(urlInit.algo ?? 'pagerank');
+  const [params, setParams] = useState<AlgoParams>({
+    damping: urlInit.damping ?? 0.85,
+    source: urlInit.source ?? 0,
+    target: urlInit.target,
+  });
+
+  useUrlSync(presetId, algo, directed, params);
 
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [centerCollapsed, setCenterCollapsed] = useState(false);
