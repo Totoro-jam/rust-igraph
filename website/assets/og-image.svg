@@ -95,7 +95,7 @@
     <text x="400" y="395" font-size="38" font-weight="700" fill="#58a6ff">0</text>
     <text x="400" y="418" font-size="16" fill="#8b949e">unsafe blocks</text>
 
-    <text x="570" y="395" font-size="38" font-weight="700" fill="#58a6ff">8,386</text>
+    <text x="570" y="395" font-size="38" font-weight="700" fill="#58a6ff">8,526</text>
     <text x="570" y="418" font-size="16" fill="#8b949e">Tests</text>
   </g>
 

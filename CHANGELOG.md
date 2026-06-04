@@ -33,8 +33,8 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   decomposition, eccentricity, Burt's constraint, diameter, shortest
   path, and random walk. Enriched graph statistics with density, radius,
   mean distance, mean degree, assortativity, and reciprocity badges.
-- **Playground test suite expanded** — 109 tests (was 98), covering
-  all 4 new algorithm demo functions and dispatch.
+- **Playground test suite expanded** — 141 tests (was 98), covering
+  all 41 algorithm demo functions and dispatch.
 - **Chinese cookbook** — full translation of all 13 English cookbook
   recipes (was a stub).
 - **Chinese WASM tutorial** — isomorphism API section, triad census,
@@ -52,7 +52,7 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
   O(n) orbit-based generator collection; flat buffer in refinement loop
   eliminates per-vertex heap allocations. K_8 canonicalization: 79ms → 55ms
   (30% faster), C_30 automorphisms: 1.7ms → 1.0ms (41% faster).
-- Test count updated across all docs: 8,386 → 8,494.
+- Test count updated across all docs: 8,386 → 8,526.
 - Example count updated across all docs: 115 → 116.
 - Landing page stats synced to current values (8,494 tests).
 
