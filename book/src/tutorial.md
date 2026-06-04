@@ -200,6 +200,34 @@ assert!(isomorphic(&g1, &g2).unwrap());   // K_4 ≅ K_4
 assert!(!isomorphic(&g1, &g3).unwrap());  // K_4 ≇ C_4
 ```
 
+### BLISS canonical labeling
+
+The BLISS engine provides canonical forms, automorphism counting, and
+vertex-color-aware isomorphism:
+
+```rust
+use rust_igraph::{Graph, canonical_permutation, count_automorphisms,
+                  isomorphic_bliss, permute_vertices};
+
+let g1 = Graph::from_edges(&[(0,1),(1,2),(2,3),(3,0)], false, None).unwrap();
+let g2 = Graph::from_edges(&[(2,0),(0,3),(3,1),(1,2)], false, None).unwrap();
+
+// Canonical permutation — same for isomorphic graphs after relabeling
+let p1 = canonical_permutation(&g1, None).unwrap();
+let p2 = canonical_permutation(&g2, None).unwrap();
+let c1 = permute_vertices(&g1, &p1).unwrap();
+let c2 = permute_vertices(&g2, &p2).unwrap();
+assert_eq!(c1.ecount(), c2.ecount());
+
+// Automorphism group order: |Aut(C_4)| = 8
+let aut = count_automorphisms(&g1, None).unwrap();
+assert!((aut - 8.0).abs() < 1e-9);
+
+// BLISS-backed isomorphism with mapping
+let result = isomorphic_bliss(&g1, &g2, None, None).unwrap();
+assert!(result.iso);
+```
+
 ## Graph operators
 
 ```rust

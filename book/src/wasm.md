@@ -341,6 +341,15 @@ All algorithm methods return JSON strings. Parse them with
 | `graph.degreeSequence()` | `{ degrees: number[] }` | Degree of each vertex |
 | `graph.vertexColoring()` | `{ colors: number[], chromatic: number }` | Greedy vertex coloring |
 | `graph.transitivity()` | `{ value: number }` | Global clustering coefficient |
+| `graph.triadCensus()` | `{ counts: number[] }` | 16-type triad census (directed) |
+
+### Isomorphism
+
+| Method | Result fields | Description |
+|--------|---------------|-------------|
+| `graph.canonicalPermutation()` | `{ permutation: number[] }` | BLISS canonical labeling |
+| `graph.countAutomorphisms()` | `{ count: number }` | Automorphism group order |
+| `graph.isomorphicBliss(other)` | `{ isomorphic: boolean, mapping: number[] }` | BLISS isomorphism test |
 
 ### Layout
 
@@ -439,7 +448,7 @@ throw a JavaScript `Error` with a descriptive message.
 ## Live demo
 
 Try the [interactive playground](https://totoro-jam.github.io/rust-igraph/playground/)
-to see all 30+ algorithms running in the browser via WASM. The
+to see all 41 algorithms running in the browser via WASM. The
 playground source code at `website/playground/` serves as a full
 reference implementation.
 
