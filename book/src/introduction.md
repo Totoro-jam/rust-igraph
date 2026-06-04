@@ -9,7 +9,7 @@ functions), validated continuously against three official implementations:
 - **R-igraph** (`rigraph`) — `tests/testthat/test-*.R`
 
 > **Status**: 308 algorithm work units complete across Phases 1–7 and 9.
-> 1,291 public APIs, 7,625 tests
+> 1,297 public APIs, 8,386 tests
 > (unit + integration + doctest + proptest). WASM-compatible (`wasm32-unknown-unknown`). See
 > [the master plan](https://github.com/Totoro-jam/rust-igraph/blob/main/docs/plans/MASTER_PLAN.md) for the roadmap, and
 > [the algorithm tracker](https://github.com/Totoro-jam/rust-igraph/blob/main/.codefuse/tracking/ALGORITHMS.md) for

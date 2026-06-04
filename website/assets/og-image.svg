@@ -86,7 +86,7 @@
 
   <!-- Stats row -->
   <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
-    <text x="80" y="395" font-size="38" font-weight="700" fill="#58a6ff">1,291</text>
+    <text x="80" y="395" font-size="38" font-weight="700" fill="#58a6ff">1,297</text>
     <text x="80" y="418" font-size="16" fill="#8b949e">APIs</text>
 
     <text x="240" y="395" font-size="38" font-weight="700" fill="#58a6ff">308</text>
@@ -95,7 +95,7 @@
     <text x="400" y="395" font-size="38" font-weight="700" fill="#58a6ff">0</text>
     <text x="400" y="418" font-size="16" fill="#8b949e">unsafe blocks</text>
 
-    <text x="570" y="395" font-size="38" font-weight="700" fill="#58a6ff">7,625</text>
+    <text x="570" y="395" font-size="38" font-weight="700" fill="#58a6ff">8,386</text>
     <text x="570" y="418" font-size="16" fill="#8b949e">Tests</text>
   </g>
 

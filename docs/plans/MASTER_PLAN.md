@@ -521,10 +521,10 @@ if __name__ == "__main__":
 | 7 | 布局 + 环 + 团 + Motif | ~78 | **~45** ✓ | 16 布局引擎 (FR/KK/Sugiyama/GEM/RT/DrL/DH/GraphOpt/MDS/UMAP/LGL) + cliques + motifs | v0.6.0 |
 | 8 | 谱方法 + 嵌入 + 剩余 | ~90 | **3** (EIG-001..003) | Lanczos + Arnoldi + adj-eigen 已有 | - |
 | 9 | 文件 I/O + 属性系统 | ~75 | **15 I/O + attr** ✓ | 8 种格式 round-trip + attribute system | v0.5.0 |
-| 10 | 高层 API + 文档站 + 发布 | ~80 | **大部分** ✓ | 1,291 pub fn + mdBook (中英) + landing page + Playground (React SPA) + WASM + bench CI | v0.6.0 |
+| 10 | 高层 API + 文档站 + 发布 | ~80 | **大部分** ✓ | 1,297 pub fn + mdBook (中英) + landing page + Playground (React SPA) + WASM + bench CI | v0.6.0 |
 | 11（可选） | nauty C FFI 后端 | ~10 | 0 | 大规模图同构性能 | v1.x |
 
-**截至 v0.6.0 实际总计**：308 AWU done，1,091 测试，1,672 conformance fixtures，1,291 公开函数。
+**截至 v0.6.0 实际总计**：308 AWU done，1,091 测试，1,672 conformance fixtures，1,297 公开函数。
 
 **总 AWU**：约 660 个（Phase 0 + 算法）。
 
@@ -1520,7 +1520,7 @@ references/.cache/
 3. ✅ 网站/文档全面审查完成，读者体验达标
 4. ✅ 308 AWU done（超过 320 目标的同等批次）
 5. ✅ CI 全绿，WASM check 通过，bench regression CI 已上线
-6. ✅ crates.io v0.6.0 已发布，1,291 公共 API
+6. ✅ crates.io v0.6.0 已发布，1,297 公共 API
 
 ---
 
