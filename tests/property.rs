@@ -5013,3 +5013,168 @@ proptest! {
         }
     }
 }
+
+// ── ALGO-CO-018: Infomap community detection invariants ──────────
+
+/// Build an arbitrary connected undirected graph using a random spanning
+/// tree (random parent per vertex) plus a few extra random edges. This
+/// ensures connectivity, which algorithms like Spinglass require.
+fn arb_connected_graph(max_n: u32) -> impl Strategy<Value = Graph> {
+    (2u32..=max_n)
+        .prop_flat_map(|n| {
+            let parents = proptest::collection::vec(0u32..n, (n - 1) as usize);
+            let extras = proptest::collection::vec((0u32..n, 0u32..n), 0..=(n as usize));
+            (Just(n), parents, extras)
+        })
+        .prop_map(|(n, parents, extras)| {
+            let mut g = Graph::with_vertices(n);
+            for (i, &p) in parents.iter().enumerate() {
+                let v = (i as u32) + 1;
+                let u = p % v;
+                g.add_edge(u, v).expect("indices in range");
+            }
+            for (u, v) in extras {
+                if u != v {
+                    g.add_edge(u, v).expect("indices in range");
+                }
+            }
+            g
+        })
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(30))]
+
+    // ── Infomap ──────────────────────────────────────────────────
+
+    /// Infomap partition is well-formed: membership length = n,
+    /// labels dense in [0, k), codelength finite.
+    #[test]
+    fn infomap_partition_well_formed(g in arb_graph(15)) {
+        let r = rust_igraph::infomap(&g).unwrap();
+        let n = g.vcount() as usize;
+        prop_assert_eq!(r.membership.len(), n);
+        if n > 0 {
+            let k = *r.membership.iter().max().unwrap() + 1;
+            let mut seen = vec![false; k as usize];
+            for &m in &r.membership {
+                seen[m as usize] = true;
+            }
+            prop_assert!(seen.iter().all(|&b| b),
+                "membership labels must be contiguous in [0, k)");
+            prop_assert!(r.codelength.is_finite(),
+                "codelength must be finite, got {}", r.codelength);
+        }
+    }
+
+    /// Same seed must reproduce the same membership bit-for-bit.
+    #[test]
+    fn infomap_determinism_under_seed(g in arb_graph(12), seed: u64) {
+        let a = rust_igraph::infomap_with_options(&g, None, None, 1, seed).unwrap();
+        let b = rust_igraph::infomap_with_options(&g, None, None, 1, seed).unwrap();
+        prop_assert_eq!(a.membership, b.membership);
+        if a.codelength.is_finite() && b.codelength.is_finite() {
+            prop_assert!((a.codelength - b.codelength).abs() < 1e-12,
+                "codelength mismatch: {} vs {}", a.codelength, b.codelength);
+        }
+    }
+
+    /// Unit-weighted Infomap must match unweighted (the weight=1.0 path
+    /// reduces exactly to unweighted flow).
+    #[test]
+    fn infomap_unit_weighted_matches_unweighted(g in arb_graph(12)) {
+        let a = rust_igraph::infomap(&g).unwrap();
+        let ones = vec![1.0; g.ecount()];
+        let b = rust_igraph::infomap_weighted(&g, &ones).unwrap();
+        prop_assert_eq!(a.membership, b.membership,
+            "unit-weighted membership differs from unweighted");
+    }
+
+    /// Multiple trials can only improve (or match) the codelength.
+    #[test]
+    fn infomap_multi_trial_improves(g in arb_connected_graph(10)) {
+        let r1 = rust_igraph::infomap_with_options(&g, None, None, 1, 42).unwrap();
+        let r3 = rust_igraph::infomap_with_options(&g, None, None, 3, 42).unwrap();
+        if r1.codelength.is_finite() && r3.codelength.is_finite() {
+            prop_assert!(r3.codelength <= r1.codelength + 1e-9,
+                "3-trial codelength {} > 1-trial {}", r3.codelength, r1.codelength);
+        }
+    }
+
+    // ── Spinglass ────────────────────────────────────────────────
+
+    /// Spinglass partition on a connected graph is well-formed.
+    #[test]
+    fn spinglass_partition_well_formed(g in arb_connected_graph(12)) {
+        let r = rust_igraph::spinglass(&g, None).unwrap();
+        let n = g.vcount() as usize;
+        prop_assert_eq!(r.membership.len(), n);
+        if n > 0 {
+            let k = *r.membership.iter().max().unwrap() + 1;
+            prop_assert_eq!(k, r.nb_clusters,
+                "nb_clusters {} ≠ max(membership)+1 {}", r.nb_clusters, k);
+            let total: u32 = r.csize.iter().sum();
+            prop_assert_eq!(total as usize, n,
+                "csize sum {} ≠ n {}", total, n);
+            prop_assert_eq!(r.csize.len(), r.nb_clusters as usize);
+            prop_assert!(r.modularity.is_finite(),
+                "modularity must be finite, got {}", r.modularity);
+        }
+    }
+
+    /// Same seed must reproduce the same partition bit-for-bit.
+    #[test]
+    fn spinglass_determinism_under_seed(g in arb_connected_graph(10), seed: u64) {
+        let opts = rust_igraph::SpinglassOptions {
+            seed,
+            ..rust_igraph::SpinglassOptions::default()
+        };
+        let a = rust_igraph::spinglass_with_options(&g, None, &opts).unwrap();
+        let b = rust_igraph::spinglass_with_options(&g, None, &opts).unwrap();
+        prop_assert_eq!(a.membership, b.membership);
+        prop_assert!((a.modularity - b.modularity).abs() < 1e-12,
+            "modularity mismatch: {} vs {}", a.modularity, b.modularity);
+    }
+
+    /// Unit-weighted Spinglass must match unweighted.
+    #[test]
+    fn spinglass_unit_weighted_matches_unweighted(g in arb_connected_graph(10)) {
+        let a = rust_igraph::spinglass(&g, None).unwrap();
+        let ones = vec![1.0; g.ecount()];
+        let b = rust_igraph::spinglass_weighted(&g, &ones).unwrap();
+        prop_assert_eq!(a.membership, b.membership,
+            "unit-weighted membership differs from unweighted");
+    }
+
+    /// Spinglass on a disconnected graph must return an error.
+    #[test]
+    fn spinglass_rejects_disconnected(g in arb_graph(10)) {
+        if g.vcount() >= 4 {
+            let mut g2 = Graph::with_vertices(g.vcount() + 2);
+            for eid in 0..g.ecount() {
+                let (u, v) = g.edge(eid as u32).expect("edge");
+                g2.add_edge(u, v).expect("ok");
+            }
+            let result = rust_igraph::spinglass(&g2, None);
+            prop_assert!(result.is_err(),
+                "spinglass should reject disconnected graph");
+        }
+    }
+
+    /// Both update rules (Simple and Config) produce valid partitions.
+    #[test]
+    fn spinglass_both_update_rules(g in arb_connected_graph(10)) {
+        let n = g.vcount() as usize;
+        for rule in &[rust_igraph::SpinglassUpdateRule::Simple,
+                      rust_igraph::SpinglassUpdateRule::Config] {
+            let opts = rust_igraph::SpinglassOptions {
+                update_rule: *rule,
+                ..rust_igraph::SpinglassOptions::default()
+            };
+            let r = rust_igraph::spinglass_with_options(&g, None, &opts).unwrap();
+            prop_assert_eq!(r.membership.len(), n);
+            let total: u32 = r.csize.iter().sum();
+            prop_assert_eq!(total as usize, n);
+        }
+    }
+}
