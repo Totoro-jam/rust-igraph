@@ -99,6 +99,18 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, canonical_permutation};\n\n${graphLine}\n\nlet perm = canonical_permutation(&g, None).unwrap();\nprintln!("Canonical permutation: {:?}", perm);`;
     case 'count_automorphisms':
       return `use rust_igraph::{Graph, count_automorphisms};\n\n${graphLine}\n\nlet count = count_automorphisms(&g, None).unwrap();\nprintln!("|Aut(G)| = {}", count);`;
+    case 'coreness':
+      return `use rust_igraph::{Graph, coreness};\n\n${graphLine}\n\nlet cores = coreness(&g).unwrap();\nprintln!("K-cores: {:?}", cores);`;
+    case 'eccentricity':
+      return `use rust_igraph::{Graph, eccentricity};\n\n${graphLine}\n\nlet ecc = eccentricity(&g).unwrap();\nprintln!("Eccentricity: {:?}", ecc);`;
+    case 'constraint':
+      return `use rust_igraph::{Graph, constraint};\n\n${graphLine}\n\nlet scores = constraint(&g, None).unwrap();\nprintln!("Constraint: {:?}", scores);`;
+    case 'diameter':
+      return `use rust_igraph::Graph;\n\n${graphLine}\n\nlet d = g.diameter().unwrap();\nprintln!("Diameter: {:?}", d);`;
+    case 'shortest_path':
+      return `use rust_igraph::Graph;\n\n${graphLine}\n\nlet sp = g.shortest_path_to(0, 1, None).unwrap();\nprintln!("Path: {:?}", sp.vertices);`;
+    case 'random_walk':
+      return `use rust_igraph::{Graph, random_walk};\n\n${graphLine}\n\nlet (vertices, _edges) = random_walk(&g, None, 0, DijkstraMode::Out, 20, 42).unwrap();\nprintln!("Walk: {:?}", vertices);`;
     case 'isomorphism':
       return `use rust_igraph::{Graph, isomorphic_bliss};\n\nlet g1 = Graph::from_edges(\n    &[(0,1),(1,2),(2,3),(3,0)],\n    false, None\n).unwrap();\nlet g2 = Graph::from_edges(\n    &[(2,0),(0,3),(3,1),(1,2)],\n    false, None\n).unwrap();\n\nlet result = isomorphic_bliss(&g1, &g2, None, None).unwrap();\nprintln!("Isomorphic: {}", result.iso);\nprintln!("Mapping: {:?}", result.map12);`;
     default:

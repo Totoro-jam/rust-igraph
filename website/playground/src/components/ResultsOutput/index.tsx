@@ -115,32 +115,78 @@ function parseResult(
       });
     });
     showBars = true;
+  } else if ('cores' in result) {
+    const cores = (result as { cores: number[] }).cores;
+    const max = Math.max(...cores, 1);
+    badges.push({ label: t('result.maxScore'), value: String(max), accent: true });
+    columnLabel = t('result.col.core');
+    showBars = true;
+    cores.forEach((c, i) => {
+      table.push({
+        vertex: i,
+        value: String(c),
+        numericValue: c,
+        barFraction: max > 0 ? c / max : 0,
+      });
+    });
+  } else if ('values' in result && !('hub' in result)) {
+    const values = (result as { values: number[] }).values;
+    const max = Math.max(...values, 1);
+    const min = Math.min(...values);
+    badges.push({ label: t('result.maxScore'), value: String(max), accent: true });
+    columnLabel = t('result.col.eccentricity');
+    showBars = true;
+    values.forEach((v, i) => {
+      table.push({
+        vertex: i,
+        value: String(v),
+        numericValue: v,
+        barFraction: max > min ? (v - min) / (max - min) : 0.5,
+      });
+    });
+  } else if ('path' in result) {
+    const path = (result as { path: number[] }).path;
+    badges.push({ label: t('result.pathLength'), value: String(path.length > 0 ? path.length - 1 : 0), accent: true });
+    columnLabel = t('result.col.order');
+    path.forEach((v, i) => {
+      table.push({
+        vertex: v,
+        value: String(i),
+        numericValue: i,
+        barFraction: path.length > 1 ? i / (path.length - 1) : 1,
+      });
+    });
+    showBars = true;
+  } else if (algo === 'diameter' && 'diameter' in result) {
+    const d = (result as { diameter: number | null }).diameter;
+    badges.push({ label: t('result.diameterValue'), value: d != null ? String(d) : 'N/A', accent: true });
   } else if ('diameter' in result) {
-    badges.push({ label: t('result.vertices'), value: String(result.vcount), accent: true });
-    badges.push({ label: t('result.edgeCount'), value: String(result.ecount), accent: true });
-    badges.push({ label: t('result.diameter'), value: String(result.diameter) });
-    badges.push({ label: t('result.girth'), value: String(result.girth) });
-    badges.push({ label: t('result.triangles'), value: String(result.triangles) });
-    badges.push({ label: t('result.connected'), value: result.is_connected ? 'Yes' : 'No' });
-    badges.push({ label: t('result.bipartite'), value: result.is_bipartite ? 'Yes' : 'No' });
-    badges.push({ label: t('result.directedProp'), value: result.is_directed ? 'Yes' : 'No' });
-    if (result.density != null) {
-      badges.push({ label: t('result.density'), value: (result.density as number).toFixed(4) });
+    const stats = result as import('../../types').AlgoResultStats;
+    badges.push({ label: t('result.vertices'), value: String(stats.vcount), accent: true });
+    badges.push({ label: t('result.edgeCount'), value: String(stats.ecount), accent: true });
+    badges.push({ label: t('result.diameter'), value: String(stats.diameter) });
+    badges.push({ label: t('result.girth'), value: String(stats.girth) });
+    badges.push({ label: t('result.triangles'), value: String(stats.triangles) });
+    badges.push({ label: t('result.connected'), value: stats.is_connected ? 'Yes' : 'No' });
+    badges.push({ label: t('result.bipartite'), value: stats.is_bipartite ? 'Yes' : 'No' });
+    badges.push({ label: t('result.directedProp'), value: stats.is_directed ? 'Yes' : 'No' });
+    if (stats.density != null) {
+      badges.push({ label: t('result.density'), value: stats.density.toFixed(4) });
     }
-    if (result.radius != null) {
-      badges.push({ label: t('result.radius'), value: String(result.radius) });
+    if (stats.radius != null) {
+      badges.push({ label: t('result.radius'), value: String(stats.radius) });
     }
-    if (result.mean_distance != null) {
-      badges.push({ label: t('result.meanDistance'), value: (result.mean_distance as number).toFixed(4) });
+    if (stats.mean_distance != null) {
+      badges.push({ label: t('result.meanDistance'), value: stats.mean_distance.toFixed(4) });
     }
-    if (result.mean_degree != null) {
-      badges.push({ label: t('result.meanDegree'), value: (result.mean_degree as number).toFixed(4) });
+    if (stats.mean_degree != null) {
+      badges.push({ label: t('result.meanDegree'), value: stats.mean_degree.toFixed(4) });
     }
-    if (result.assortativity != null) {
-      badges.push({ label: t('result.assortativity'), value: (result.assortativity as number).toFixed(4) });
+    if (stats.assortativity != null) {
+      badges.push({ label: t('result.assortativity'), value: stats.assortativity.toFixed(4) });
     }
-    if (result.reciprocity != null) {
-      badges.push({ label: t('result.reciprocity'), value: (result.reciprocity as number).toFixed(4) });
+    if (stats.reciprocity != null) {
+      badges.push({ label: t('result.reciprocity'), value: stats.reciprocity.toFixed(4) });
     }
   } else if ('colors' in result) {
     const colorResult = result as { colors: number[]; chromatic: number };

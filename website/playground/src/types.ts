@@ -41,7 +41,13 @@ export type AlgoId =
   | 'triad_census'
   | 'canonical_permutation'
   | 'count_automorphisms'
-  | 'isomorphism';
+  | 'isomorphism'
+  | 'coreness'
+  | 'eccentricity'
+  | 'constraint'
+  | 'diameter'
+  | 'shortest_path'
+  | 'random_walk';
 
 export type LayoutId = 'fr' | 'kamada_kawai' | 'circle' | 'random' | 'grid' | 'star';
 
@@ -146,6 +152,22 @@ export interface AlgoResultIsomorphism {
   mapping: number[];
 }
 
+export interface AlgoResultCores {
+  cores: number[];
+}
+
+export interface AlgoResultPath {
+  path: number[];
+}
+
+export interface AlgoResultWalk {
+  vertices: number[];
+}
+
+export interface AlgoResultDiameter {
+  diameter: number | null;
+}
+
 export type AlgoResult =
   | AlgoResultScores
   | AlgoResultMembership
@@ -163,7 +185,11 @@ export type AlgoResult =
   | AlgoResultTriadCensus
   | AlgoResultPermutation
   | AlgoResultAutomorphisms
-  | AlgoResultIsomorphism;
+  | AlgoResultIsomorphism
+  | AlgoResultCores
+  | AlgoResultPath
+  | AlgoResultWalk
+  | AlgoResultDiameter;
 
 export interface RunResult {
   algo: AlgoId;

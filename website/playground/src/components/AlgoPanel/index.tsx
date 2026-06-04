@@ -25,12 +25,12 @@ const ALGO_CATEGORIES: AlgoCategory[] = [
   {
     key: 'traversal',
     icon: '⇢',
-    algos: ['bfs', 'dfs', 'dijkstra', 'max_flow', 'topological_sort'],
+    algos: ['bfs', 'dfs', 'dijkstra', 'shortest_path', 'random_walk', 'max_flow', 'topological_sort'],
   },
   {
     key: 'structure',
     icon: '⊞',
-    algos: ['components', 'graph_stats', 'articulation_points', 'degree_sequence', 'scc', 'bridges', 'coloring', 'transitivity', 'triad_census'],
+    algos: ['components', 'graph_stats', 'articulation_points', 'degree_sequence', 'scc', 'bridges', 'coloring', 'transitivity', 'triad_census', 'coreness', 'eccentricity', 'constraint', 'diameter'],
   },
   {
     key: 'isomorphism',
@@ -156,7 +156,7 @@ export function AlgoPanel({
             />
           </div>
         )}
-        {(algo === 'bfs' || algo === 'dfs' || algo === 'dijkstra' || algo === 'max_flow') && (
+        {(algo === 'bfs' || algo === 'dfs' || algo === 'dijkstra' || algo === 'max_flow' || algo === 'shortest_path' || algo === 'random_walk') && (
           <div className={styles.paramRow}>
             <label>{t('param.source')}</label>
             <input
@@ -170,7 +170,7 @@ export function AlgoPanel({
             />
           </div>
         )}
-        {algo === 'max_flow' && (
+        {(algo === 'max_flow' || algo === 'shortest_path') && (
           <div className={styles.paramRow}>
             <label>{t('param.target')}</label>
             <input

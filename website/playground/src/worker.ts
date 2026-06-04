@@ -49,6 +49,9 @@ interface WasmGraphInstance {
   assortativityDegree(): string;
   constraint(): string;
   reciprocity(): string;
+  diameter(): string;
+  randomWalk(start: number, steps: number, seed: bigint): string;
+  shortestPath(source: number, target: number): string;
   layoutFr(niter: number): string;
   layoutKamadaKawai(): string;
   layoutCircle(): string;
@@ -247,6 +250,24 @@ function runWasm(
         break;
       case 'isomorphism':
         resultJson = graph.canonicalPermutation();
+        break;
+      case 'coreness':
+        resultJson = graph.coreness();
+        break;
+      case 'eccentricity':
+        resultJson = graph.eccentricity();
+        break;
+      case 'constraint':
+        resultJson = graph.constraint();
+        break;
+      case 'diameter':
+        resultJson = graph.diameter();
+        break;
+      case 'shortest_path':
+        resultJson = graph.shortestPath(params.source ?? 0, params.target ?? 1);
+        break;
+      case 'random_walk':
+        resultJson = graph.randomWalk(params.source ?? 0, 20, BigInt(42));
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);
