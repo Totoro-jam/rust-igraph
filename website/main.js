@@ -17,6 +17,146 @@ window.toggleTheme = function () {
 
 applyTheme(getPreferredTheme());
 
+// i18n
+var I18N = {
+  en: {
+    'nav.playground': 'Playground',
+    'nav.guide': 'Guide',
+    'nav.api': 'API Docs',
+    'hero.title': 'Graph Algorithms<br>in Pure Rust',
+    'hero.sub': '800+ APIs. Zero <code>unsafe</code>. One dependency. Runs natively and in the browser via WASM.',
+    'hero.try': 'Try in Browser',
+    'hero.start': 'Get Started',
+    'stats.apis': 'Public APIs',
+    'stats.algos': 'Algorithms',
+    'stats.tests': 'Tests',
+    'stats.unsafe': 'unsafe blocks',
+    'stats.deps': 'Dependency',
+    'code.title': 'Simple, Expressive API',
+    'code.construct': 'Graph Construction & Analysis',
+    'code.method': 'Method-style API',
+    'features.title': 'Comprehensive Algorithm Coverage',
+    'features.traversal': 'Traversal & Paths',
+    'features.traversal_desc': 'BFS, DFS, Dijkstra, Bellman-Ford, A*, all-pairs shortest paths, widest paths, topological sort',
+    'features.centrality': 'Centrality',
+    'features.centrality_desc': 'PageRank, betweenness, closeness, eigenvector, HITS, Katz, harmonic, constraint — 15+ measures',
+    'features.community': 'Community Detection',
+    'features.community_desc': 'Louvain, Leiden, Infomap, Spinglass, label propagation, Walktrap, edge betweenness, fast greedy, fluid, Voronoi',
+    'features.flow': 'Network Flow',
+    'features.flow_desc': 'Max-flow (push-relabel), min-cut, Gomory-Hu tree, edge/vertex connectivity, disjoint paths',
+    'features.iso': 'Isomorphism',
+    'features.iso_desc': 'VF2 graph/subgraph matching, LAD subgraph, canonical labeling (BLISS), automorphism groups',
+    'features.generators': 'Generators & Layout',
+    'features.generators_desc': '30+ graph generators, 16 layout engines (FR, KK, DrL, Sugiyama, MDS, UMAP...), spatial algorithms',
+    'compare.title': 'How Does It Compare?',
+    'compare.scope': 'Algorithm scope',
+    'compare.safety': 'Safety',
+    'compare.zero_unsafe': 'Zero unsafe',
+    'compare.minimal_unsafe': 'Minimal unsafe',
+    'compare.c_bindings': 'C core + bindings',
+    'compare.py_safe': 'Memory-safe (Python)',
+    'compare.validation': 'Validation',
+    'compare.cross': 'Cross-validated',
+    'compare.independent': 'Independent tests',
+    'compare.ref_impl': 'Reference impl',
+    'compare.native': 'Native',
+    'compare.na': 'Not available',
+    'compare.deps': 'Dependencies',
+    'compare.minimal': 'Minimal',
+    'compare.c_toolchain': 'C/C++ build toolchain',
+    'wasm.title': 'Runs in the Browser',
+    'wasm.desc': 'Compile to WASM and run graph algorithms client-side — no server needed. Try it live in the playground.',
+    'wasm.cta': 'Open Playground',
+    'eco.title': 'Ecosystem',
+    'eco.guide': 'Tutorial & Guide',
+    'eco.api': 'API Reference',
+    'footer.license': 'rust-igraph is licensed under <a href="https://github.com/Totoro-jam/rust-igraph/blob/main/LICENSE">GPL-2.0-or-later</a>.',
+    'footer.ack': 'Built with Rust. Acknowledgements: <a href="https://igraph.org">igraph</a> (C core), <a href="https://github.com/igraph/python-igraph">python-igraph</a>, <a href="https://github.com/igraph/rigraph">rigraph</a>.',
+  },
+  zh: {
+    'nav.playground': '演练场',
+    'nav.guide': '教程',
+    'nav.api': 'API 文档',
+    'hero.title': '纯 Rust 图算法库',
+    'hero.sub': '840+ 公开 API、零 <code>unsafe</code>、仅一个依赖。原生运行，也可通过 WASM 在浏览器中执行。',
+    'hero.try': '在线体验',
+    'hero.start': '开始使用',
+    'stats.apis': '公开 API',
+    'stats.algos': '算法',
+    'stats.tests': '测试',
+    'stats.unsafe': 'unsafe 块',
+    'stats.deps': '依赖',
+    'code.title': '简洁、富有表现力的 API',
+    'code.construct': '图构建与分析',
+    'code.method': '方法链式 API',
+    'features.title': '全面的算法覆盖',
+    'features.traversal': '遍历与路径',
+    'features.traversal_desc': 'BFS、DFS、Dijkstra、Bellman-Ford、A*、全源最短路径、最宽路径、拓扑排序',
+    'features.centrality': '中心性',
+    'features.centrality_desc': 'PageRank、介数、接近、特征向量、HITS、Katz、谐波、约束—— 15+ 种指标',
+    'features.community': '社区发现',
+    'features.community_desc': 'Louvain、Leiden、Infomap、Spinglass、标签传播、Walktrap、边介数、快速贪婪、Fluid、Voronoi',
+    'features.flow': '网络流',
+    'features.flow_desc': '最大流 (push-relabel)、最小割、Gomory-Hu 树、边/点连通度、不相交路径',
+    'features.iso': '图同构',
+    'features.iso_desc': 'VF2 图/子图匹配、LAD 子图、规范标记 (BLISS)、自同构群',
+    'features.generators': '生成器与布局',
+    'features.generators_desc': '30+ 图生成器、16 种布局引擎 (FR, KK, DrL, Sugiyama, MDS, UMAP…)、空间算法',
+    'compare.title': '对比其他库',
+    'compare.scope': '算法规模',
+    'compare.safety': '安全性',
+    'compare.zero_unsafe': '零 unsafe',
+    'compare.minimal_unsafe': '少量 unsafe',
+    'compare.c_bindings': 'C 核心 + 绑定',
+    'compare.py_safe': '内存安全 (Python)',
+    'compare.validation': '验证方式',
+    'compare.cross': '交叉验证',
+    'compare.independent': '独立测试',
+    'compare.ref_impl': '参考实现',
+    'compare.native': '原生支持',
+    'compare.na': '不可用',
+    'compare.deps': '依赖',
+    'compare.minimal': '极少',
+    'compare.c_toolchain': 'C/C++ 构建工具链',
+    'wasm.title': '在浏览器中运行',
+    'wasm.desc': '编译为 WASM，在客户端直接运行图算法——无需服务器。立即在演练场中体验。',
+    'wasm.cta': '打开演练场',
+    'eco.title': '生态系统',
+    'eco.guide': '教程与指南',
+    'eco.api': 'API 参考',
+    'footer.license': 'rust-igraph 基于 <a href="https://github.com/Totoro-jam/rust-igraph/blob/main/LICENSE">GPL-2.0-or-later</a> 许可证发布。',
+    'footer.ack': '用 Rust 构建。致谢：<a href="https://igraph.org">igraph</a> (C 核心)、<a href="https://github.com/igraph/python-igraph">python-igraph</a>、<a href="https://github.com/igraph/rigraph">rigraph</a>。',
+  },
+};
+
+var currentLang = localStorage.getItem('lang') || 'en';
+
+function applyLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+  document.documentElement.setAttribute('lang', lang === 'zh' ? 'zh-CN' : 'en');
+  var dict = I18N[lang] || I18N.en;
+  document.querySelectorAll('[data-i18n]').forEach(function (el) {
+    var key = el.getAttribute('data-i18n');
+    if (dict[key] !== undefined) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+    var key = el.getAttribute('data-i18n-html');
+    if (dict[key] !== undefined) el.innerHTML = dict[key];
+  });
+  var btn = document.querySelector('.lang-toggle');
+  if (btn) btn.textContent = lang === 'zh' ? 'EN' : '中';
+  document.querySelectorAll('a[data-i18n="nav.guide"], a[data-i18n="eco.guide"]').forEach(function (a) {
+    a.href = lang === 'zh' ? 'book/zh/' : 'book/';
+  });
+}
+
+window.toggleLang = function () {
+  applyLang(currentLang === 'en' ? 'zh' : 'en');
+};
+
+applyLang(currentLang);
+
 // Mobile nav: close on link click
 document.querySelectorAll('.nav-links a').forEach(function (a) {
   a.addEventListener('click', function () {

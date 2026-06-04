@@ -28,7 +28,13 @@
       <a href="./" class="nav-logo">
         <span class="logo-text">rust-igraph</span>
       </a>
+      <div class="nav-links">
+        <a href="playground/" class="nav-cta" data-i18n="nav.playground">Playground</a>
+        <a href="book/" data-i18n="nav.guide">Guide</a>
+        <a href="rust_igraph/" data-i18n="nav.api">API Docs</a>
+      </div>
       <div class="nav-actions">
+        <button class="lang-toggle" aria-label="Switch language" onclick="toggleLang()">中</button>
         <a href="https://github.com/Totoro-jam/rust-igraph" class="nav-github" aria-label="GitHub">
           <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         </a>
@@ -40,11 +46,6 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
         </button>
       </div>
-      <div class="nav-links">
-        <a href="playground/" class="nav-cta">Playground</a>
-        <a href="book/">Guide</a>
-        <a href="rust_igraph/">API Docs</a>
-      </div>
     </div>
   </nav>
 
@@ -52,11 +53,11 @@
   <section class="hero">
     <canvas id="hero-canvas" aria-hidden="true"></canvas>
     <div class="hero-content">
-      <h1>Graph Algorithms<br>in Pure Rust</h1>
-      <p class="hero-sub">800+ APIs. Zero <code>unsafe</code>. One dependency. Runs natively and in the browser via WASM.</p>
+      <h1 data-i18n="hero.title">Graph Algorithms<br>in Pure Rust</h1>
+      <p class="hero-sub" data-i18n="hero.sub">800+ APIs. Zero <code>unsafe</code>. One dependency. Runs natively and in the browser via WASM.</p>
       <div class="hero-ctas">
-        <a href="playground/" class="btn btn-primary">Try in Browser</a>
-        <a href="book/" class="btn btn-secondary">Get Started</a>
+        <a href="playground/" class="btn btn-primary" data-i18n="hero.try">Try in Browser</a>
+        <a href="book/" class="btn btn-secondary" data-i18n="hero.start">Get Started</a>
       </div>
     </div>
   </section>
@@ -64,21 +65,21 @@
   <!-- Numbers bar -->
   <section class="numbers">
     <div class="numbers-inner">
-      <div class="stat"><span class="stat-num">840+</span><span class="stat-label">Public APIs</span></div>
-      <div class="stat"><span class="stat-num">308</span><span class="stat-label">Algorithms</span></div>
-      <div class="stat"><span class="stat-num">1,091</span><span class="stat-label">Tests</span></div>
-      <div class="stat"><span class="stat-num">0</span><span class="stat-label">unsafe blocks</span></div>
-      <div class="stat"><span class="stat-num">1</span><span class="stat-label">Dependency</span></div>
+      <div class="stat"><span class="stat-num">840+</span><span class="stat-label" data-i18n="stats.apis">Public APIs</span></div>
+      <div class="stat"><span class="stat-num">308</span><span class="stat-label" data-i18n="stats.algos">Algorithms</span></div>
+      <div class="stat"><span class="stat-num">1,091</span><span class="stat-label" data-i18n="stats.tests">Tests</span></div>
+      <div class="stat"><span class="stat-num">0</span><span class="stat-label" data-i18n="stats.unsafe">unsafe blocks</span></div>
+      <div class="stat"><span class="stat-num">1</span><span class="stat-label" data-i18n="stats.deps">Dependency</span></div>
     </div>
   </section>
 
   <!-- Code example -->
   <section class="code-section">
     <div class="section-inner">
-      <h2>Simple, Expressive API</h2>
+      <h2 data-i18n="code.title">Simple, Expressive API</h2>
       <div class="code-grid">
         <div class="code-block">
-          <div class="code-header">Graph Construction &amp; Analysis</div>
+          <div class="code-header" data-i18n="code.construct">Graph Construction &amp; Analysis</div>
           <pre><code><span class="kw">use</span> rust_igraph::{Graph, pagerank, louvain};
 
 <span class="kw">fn</span> <span class="fn">main</span>() {
@@ -97,7 +98,7 @@
 }</code></pre>
         </div>
         <div class="code-block">
-          <div class="code-header">Method-style API</div>
+          <div class="code-header" data-i18n="code.method">Method-style API</div>
           <pre><code><span class="kw">use</span> rust_igraph::Graph;
 
 <span class="kw">let</span> g = Graph::erdos_renyi(1000, 0.01, 42).unwrap();
@@ -123,37 +124,37 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
   <!-- Feature grid -->
   <section class="features">
     <div class="section-inner">
-      <h2>Comprehensive Algorithm Coverage</h2>
+      <h2 data-i18n="features.title">Comprehensive Algorithm Coverage</h2>
       <div class="feature-grid">
         <div class="feature-card">
           <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-          <h3>Traversal &amp; Paths</h3>
-          <p>BFS, DFS, Dijkstra, Bellman-Ford, A*, all-pairs shortest paths, widest paths, topological sort</p>
+          <h3 data-i18n="features.traversal">Traversal &amp; Paths</h3>
+          <p data-i18n="features.traversal_desc">BFS, DFS, Dijkstra, Bellman-Ford, A*, all-pairs shortest paths, widest paths, topological sort</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10zM2 12h20"/></svg></div>
-          <h3>Centrality</h3>
-          <p>PageRank, betweenness, closeness, eigenvector, HITS, Katz, harmonic, constraint — 15+ measures</p>
+          <h3 data-i18n="features.centrality">Centrality</h3>
+          <p data-i18n="features.centrality_desc">PageRank, betweenness, closeness, eigenvector, HITS, Katz, harmonic, constraint — 15+ measures</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-          <h3>Community Detection</h3>
-          <p>Louvain, Leiden, Infomap, Spinglass, label propagation, Walktrap, edge betweenness, fast greedy, fluid, Voronoi</p>
+          <h3 data-i18n="features.community">Community Detection</h3>
+          <p data-i18n="features.community_desc">Louvain, Leiden, Infomap, Spinglass, label propagation, Walktrap, edge betweenness, fast greedy, fluid, Voronoi</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-          <h3>Network Flow</h3>
-          <p>Max-flow (push-relabel), min-cut, Gomory-Hu tree, edge/vertex connectivity, disjoint paths</p>
+          <h3 data-i18n="features.flow">Network Flow</h3>
+          <p data-i18n="features.flow_desc">Max-flow (push-relabel), min-cut, Gomory-Hu tree, edge/vertex connectivity, disjoint paths</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
-          <h3>Isomorphism</h3>
-          <p>VF2 graph/subgraph matching, LAD subgraph, canonical labeling (BLISS), automorphism groups</p>
+          <h3 data-i18n="features.iso">Isomorphism</h3>
+          <p data-i18n="features.iso_desc">VF2 graph/subgraph matching, LAD subgraph, canonical labeling (BLISS), automorphism groups</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
-          <h3>Generators &amp; Layout</h3>
-          <p>30+ graph generators, 16 layout engines (FR, KK, DrL, Sugiyama, MDS, UMAP...), spatial algorithms</p>
+          <h3 data-i18n="features.generators">Generators &amp; Layout</h3>
+          <p data-i18n="features.generators_desc">30+ graph generators, 16 layout engines (FR, KK, DrL, Sugiyama, MDS, UMAP...), spatial algorithms</p>
         </div>
       </div>
     </div>
@@ -162,7 +163,7 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
   <!-- Comparison table -->
   <section class="comparison">
     <div class="section-inner">
-      <h2>How Does It Compare?</h2>
+      <h2 data-i18n="compare.title">How Does It Compare?</h2>
       <div class="table-wrap">
         <table>
           <thead>
@@ -176,38 +177,38 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
           </thead>
           <tbody>
             <tr>
-              <td>Algorithm scope</td>
+              <td data-i18n="compare.scope">Algorithm scope</td>
               <td><strong>840+ APIs</strong></td>
               <td>~50 (composable)</td>
               <td>~850 (reference)</td>
               <td>~500</td>
             </tr>
             <tr>
-              <td>Safety</td>
-              <td><strong>Zero unsafe</strong></td>
-              <td>Minimal unsafe</td>
-              <td>C core + bindings</td>
-              <td>Memory-safe (Python)</td>
+              <td data-i18n="compare.safety">Safety</td>
+              <td><strong data-i18n="compare.zero_unsafe">Zero unsafe</strong></td>
+              <td data-i18n="compare.minimal_unsafe">Minimal unsafe</td>
+              <td data-i18n="compare.c_bindings">C core + bindings</td>
+              <td data-i18n="compare.py_safe">Memory-safe (Python)</td>
             </tr>
             <tr>
-              <td>Validation</td>
-              <td><strong>Cross-validated</strong> vs igraph C/py/R</td>
-              <td>Independent tests</td>
-              <td>Reference impl</td>
-              <td>Independent tests</td>
+              <td data-i18n="compare.validation">Validation</td>
+              <td><strong data-i18n="compare.cross">Cross-validated</strong> vs igraph C/py/R</td>
+              <td data-i18n="compare.independent">Independent tests</td>
+              <td data-i18n="compare.ref_impl">Reference impl</td>
+              <td data-i18n="compare.independent">Independent tests</td>
             </tr>
             <tr>
               <td>WASM</td>
-              <td><strong>Native</strong></td>
-              <td>Native</td>
-              <td>Not available</td>
+              <td><strong data-i18n="compare.native">Native</strong></td>
+              <td data-i18n="compare.native">Native</td>
+              <td data-i18n="compare.na">Not available</td>
               <td>Via Pyodide</td>
             </tr>
             <tr>
-              <td>Dependencies</td>
+              <td data-i18n="compare.deps">Dependencies</td>
               <td><strong>1</strong> (thiserror)</td>
-              <td>Minimal</td>
-              <td>C/C++ build toolchain</td>
+              <td data-i18n="compare.minimal">Minimal</td>
+              <td data-i18n="compare.c_toolchain">C/C++ build toolchain</td>
               <td>NumPy + SciPy</td>
             </tr>
           </tbody>
@@ -219,16 +220,16 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
   <!-- WASM callout -->
   <section class="wasm-callout">
     <div class="section-inner">
-      <h2>Runs in the Browser</h2>
-      <p>Compile to WASM and run graph algorithms client-side — no server needed. Try it live in the playground.</p>
-      <a href="playground/" class="btn btn-primary">Open Playground</a>
+      <h2 data-i18n="wasm.title">Runs in the Browser</h2>
+      <p data-i18n="wasm.desc">Compile to WASM and run graph algorithms client-side — no server needed. Try it live in the playground.</p>
+      <a href="playground/" class="btn btn-primary" data-i18n="wasm.cta">Open Playground</a>
     </div>
   </section>
 
   <!-- Ecosystem -->
   <section class="ecosystem">
     <div class="section-inner">
-      <h2>Ecosystem</h2>
+      <h2 data-i18n="eco.title">Ecosystem</h2>
       <div class="badges">
         <a href="https://crates.io/crates/rust-igraph"><img alt="crates.io" src="https://img.shields.io/crates/v/rust-igraph.svg?label=crates.io&style=flat-square"></a>
         <a href="https://docs.rs/rust-igraph"><img alt="docs.rs" src="https://img.shields.io/docsrs/rust-igraph?label=docs.rs&style=flat-square"></a>
@@ -239,8 +240,8 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
       </div>
       <div class="ecosystem-links">
         <a href="https://github.com/Totoro-jam/rust-igraph">GitHub</a>
-        <a href="book/">Tutorial &amp; Guide</a>
-        <a href="rust_igraph/">API Reference</a>
+        <a href="book/" data-i18n="eco.guide">Tutorial &amp; Guide</a>
+        <a href="rust_igraph/" data-i18n="eco.api">API Reference</a>
         <a href="https://docs.rs/rust-igraph">docs.rs</a>
       </div>
     </div>
@@ -249,8 +250,8 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-inner">
-      <p>rust-igraph is licensed under <a href="https://github.com/Totoro-jam/rust-igraph/blob/main/LICENSE">GPL-2.0-or-later</a>.</p>
-      <p>Built with Rust. Acknowledgements: <a href="https://igraph.org">igraph</a> (C core), <a href="https://github.com/igraph/python-igraph">python-igraph</a>, <a href="https://github.com/igraph/rigraph">rigraph</a>.</p>
+      <p data-i18n-html="footer.license">rust-igraph is licensed under <a href="https://github.com/Totoro-jam/rust-igraph/blob/main/LICENSE">GPL-2.0-or-later</a>.</p>
+      <p data-i18n-html="footer.ack">Built with Rust. Acknowledgements: <a href="https://igraph.org">igraph</a> (C core), <a href="https://github.com/igraph/python-igraph">python-igraph</a>, <a href="https://github.com/igraph/rigraph">rigraph</a>.</p>
     </div>
   </footer>
 

@@ -148,7 +148,7 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
 }
 .nav-burger:hover { border-color: var(--accent); color: var(--text); }
 
-.theme-toggle {
+.theme-toggle, .lang-toggle {
   background: none;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -159,7 +159,13 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   align-items: center;
   transition: border-color var(--transition), color var(--transition);
 }
-.theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+.lang-toggle {
+  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  padding: 0.25rem 0.5rem;
+  font-weight: 600;
+}
+.theme-toggle:hover, .lang-toggle:hover { border-color: var(--accent); color: var(--text); }
 
 [data-theme="dark"] .icon-sun { display: none; }
 [data-theme="light"] .icon-moon { display: none; }
