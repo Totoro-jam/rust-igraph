@@ -38,6 +38,8 @@ applyTheme(getPreferredTheme());
 
   function resize() {
     const rect = canvas.parentElement.getBoundingClientRect();
+    const oldW = width;
+    const oldH = height;
     width = rect.width;
     height = rect.height;
     canvas.width = width * devicePixelRatio;
@@ -45,6 +47,15 @@ applyTheme(getPreferredTheme());
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
     ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+
+    if (oldW && oldH && nodes.length > 0) {
+      const sx = width / oldW;
+      const sy = height / oldH;
+      for (const node of nodes) {
+        node.x *= sx;
+        node.y *= sy;
+      }
+    }
   }
 
   function init() {
