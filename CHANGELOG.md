@@ -14,6 +14,46 @@ versioning follows [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-06-04
+
+### Added
+- **Infomap community detection** (ALGO-CO-018) — full AWU with
+  two-level map equation minimization, merging + single-node moves,
+  module codelength tracking. 7 unit + 3 proptest + 3 conformance.
+- **Spinglass community detection** (ALGO-CO-019) — Potts model
+  simulated annealing with gamma-tunable resolution and positive/negative
+  spin coupling. 7 unit + 3 proptest + 3 conformance.
+- **Playground rebuilt as React SPA** — CodeMirror 6 editor, D3
+  force-directed canvas with zoom/pan/drag, resizable panels,
+  collapsible sections, structured results output with stat badges
+  and sortable table.
+- **WASM expansion to 20 algorithms** — igraph-wasm crate now exposes:
+  PageRank, Louvain, betweenness, closeness, eigenvector, BFS, DFS,
+  connected components, Infomap, Spinglass, label propagation, Walktrap,
+  Leiden, fast greedy, leading eigenvector, edge betweenness community,
+  fluid communities, harmonic centrality, HITS, Katz centrality.
+- **Playground Vitest test suite** — 98 tests covering all 20 demo
+  fallback algorithms, layout, and dispatch.
+- **Landing page enhancements** — community-colored hero animation,
+  SVG icons, entrance animations, live algorithm counter, responsive
+  design overhaul.
+- **mdBook bilingual support** — Chinese (zh) tutorial with language
+  switcher toggle.
+
+### Changed
+- Playground upgraded from vanilla JS to React SPA architecture with
+  Web Worker WASM integration and graceful JS demo fallback.
+- Landing page stats updated to reflect actual project counts.
+- v0.6.0 roadmap updated: B3-B5 algorithms complete, B6-B10 layouts
+  already done.
+
+### Fixed
+- WASM deployment path so playground loads real algorithms in production.
+- Canvas flash on first load and WASM auto-run infinite loop.
+- Node color contrast in dark mode playground.
+- CI package-lock.json regenerated with public npm registry.
+- Hero canvas node rescaling on window resize.
+
 ## [0.5.0] — 2026-06-04
 
 ### Added

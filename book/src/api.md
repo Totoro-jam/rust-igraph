@@ -11,7 +11,7 @@ Build locally:
 cargo doc --no-deps --open
 ```
 
-> **v0.5.0**: 687 public functions spanning traversal, shortest paths,
+> **v0.6.0**: 1,084 public functions spanning traversal, shortest paths,
 > centrality, community detection, connectivity, flow, isomorphism, graph
 > generators, layouts, spatial algorithms, and I/O. See
 > [the algorithm tracker](https://github.com/Totoro-jam/rust-igraph/blob/main/.codefuse/tracking/ALGORITHMS.md) for

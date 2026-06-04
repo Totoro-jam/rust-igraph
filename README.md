@@ -185,8 +185,8 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ## Project status
 
-> **v0.5.0** — 306 algorithm work units complete, 687 public functions,
-> 7,574 tests. API stabilizing toward `v1.0.0`.
+> **v0.6.0** — 308 algorithm work units complete, 1,084 public functions,
+> 1,091 tests, 1,672 conformance fixtures. API stabilizing toward `v1.0.0`.
 
 | Category | Status |
 |----------|--------|
