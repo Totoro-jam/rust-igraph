@@ -723,6 +723,7 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   flex-shrink: 0;
   cursor: pointer;
   overflow: visible;
+  transition: background 0.15s ease;
 }
 
 .panel-collapsed .panel-header {
@@ -733,6 +734,8 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   gap: 8px;
   height: 100%;
   pointer-events: none;
+  background: transparent;
+  border-bottom: none;
 }
 
 .panel-collapsed .panel-header h2 {
@@ -858,6 +861,8 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
     flex-direction: row;
     height: auto;
     pointer-events: none;
+    background: transparent;
+    border-bottom: none;
   }
 
   .panel-center {
