@@ -204,6 +204,10 @@ pub use crate::algorithms::community::modularity_matrix::modularity_matrix;
 pub use crate::algorithms::community::reindex_membership::{
     ReindexMembershipResult, reindex_membership,
 };
+pub use crate::algorithms::community::spinglass::{
+    SPINGLASS_DEFAULT_SPINS, SpinglassOptions, SpinglassResult, SpinglassUpdateRule, spinglass,
+    spinglass_weighted, spinglass_with_options,
+};
 pub use crate::algorithms::community::split_join_distance::{
     SplitJoinDistance, split_join_distance,
 };

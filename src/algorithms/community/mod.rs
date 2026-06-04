@@ -6,7 +6,8 @@
 //! (Parés et al. 2017), `edge_betweenness_community` (Girvan-Newman 2002),
 //! `fast_greedy_modularity` (Clauset-Newman-Moore 2004),
 //! `walktrap` (Pons-Latapy 2005), `leading_eigenvector` (Newman 2006),
-//! `infomap` (Rosvall-Bergstrom 2008).
+//! `infomap` (Rosvall-Bergstrom 2008),
+//! `spinglass` (Reichardt-Bornholdt 2006).
 //! Helpers: `community_to_membership`
 //! (cut a dendrogram at `k` merges), `reindex_membership` (densify a
 //! membership vector to `0..k-1` by first occurrence).
@@ -29,6 +30,7 @@ pub(crate) mod louvain;
 pub(crate) mod modularity;
 pub(crate) mod modularity_matrix;
 pub(crate) mod reindex_membership;
+pub(crate) mod spinglass;
 pub(crate) mod split_join_distance;
 pub(crate) mod walktrap;
 
@@ -62,6 +64,10 @@ pub use louvain::{LouvainResult, louvain, louvain_weighted, louvain_with_options
 pub use modularity::{modularity, modularity_directed, modularity_weighted};
 pub use modularity_matrix::modularity_matrix;
 pub use reindex_membership::{ReindexMembershipResult, reindex_membership};
+pub use spinglass::{
+    SPINGLASS_DEFAULT_SPINS, SpinglassOptions, SpinglassResult, SpinglassUpdateRule, spinglass,
+    spinglass_weighted, spinglass_with_options,
+};
 pub use split_join_distance::{SplitJoinDistance, split_join_distance};
 pub use walktrap::{
     WALKTRAP_DEFAULT_STEPS, WalktrapOptions, WalktrapResult, walktrap, walktrap_weighted,
