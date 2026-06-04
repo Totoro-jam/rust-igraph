@@ -156,6 +156,10 @@ export interface AlgoResultCores {
   cores: number[];
 }
 
+export interface AlgoResultValues {
+  values: number[];
+}
+
 export interface AlgoResultPath {
   path: number[];
 }
@@ -187,6 +191,7 @@ export type AlgoResult =
   | AlgoResultAutomorphisms
   | AlgoResultIsomorphism
   | AlgoResultCores
+  | AlgoResultValues
   | AlgoResultPath
   | AlgoResultWalk
   | AlgoResultDiameter;

@@ -526,6 +526,149 @@ export function demoIsomorphism(vcount: number, _edges: Edge[]): AlgoResult {
   return { isomorphic: true, mapping } as AlgoResult;
 }
 
+export function demoCoreness(vcount: number, edges: Edge[]): AlgoResult {
+  const deg = new Array(vcount).fill(0);
+  for (const [u, v] of edges) {
+    if (u < vcount && v < vcount) { deg[u]++; deg[v]++; }
+  }
+  const cores = new Array(vcount).fill(0);
+  const removed = new Set<number>();
+  let k = 1;
+  while (removed.size < vcount) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (let v = 0; v < vcount; v++) {
+        if (!removed.has(v) && deg[v]! < k) {
+          removed.add(v);
+          cores[v] = k - 1;
+          for (const [u, w] of edges) {
+            if (u === v && w < vcount && !removed.has(w)) deg[w]!--;
+            if (w === v && u < vcount && !removed.has(u)) deg[u]!--;
+          }
+          changed = true;
+        }
+      }
+    }
+    k++;
+  }
+  return { cores } as AlgoResult;
+}
+
+export function demoEccentricity(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const values: number[] = [];
+  for (let s = 0; s < vcount; s++) {
+    const dist = new Int32Array(vcount).fill(-1);
+    dist[s] = 0;
+    const queue = [s];
+    let maxDist = 0;
+    while (queue.length > 0) {
+      const v = queue.shift()!;
+      for (const w of adj[v]!) {
+        if (dist[w]! < 0) {
+          dist[w] = dist[v]! + 1;
+          if (dist[w]! > maxDist) maxDist = dist[w]!;
+          queue.push(w);
+        }
+      }
+    }
+    values.push(maxDist);
+  }
+  return { values };
+}
+
+export function demoConstraint(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const scores: number[] = [];
+  for (let v = 0; v < vcount; v++) {
+    const nbrs = adj[v]!;
+    if (nbrs.length === 0) { scores.push(0); continue; }
+    const nbrSet = new Set(nbrs);
+    let constraint = 0;
+    for (const j of nbrs) {
+      let pij = 1 / nbrs.length;
+      for (const q of nbrs) {
+        if (q !== j && adj[q]!.includes(j)) {
+          pij += (1 / nbrs.length) * (1 / (nbrSet.has(q) ? adj[q]!.filter(x => nbrSet.has(x) || x === v).length : 1));
+        }
+      }
+      constraint += pij * pij;
+    }
+    scores.push(constraint);
+  }
+  return { scores } as AlgoResult;
+}
+
+export function demoDiameter(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  let maxDist = 0;
+  for (let s = 0; s < vcount; s++) {
+    const dist = new Int32Array(vcount).fill(-1);
+    dist[s] = 0;
+    const queue = [s];
+    while (queue.length > 0) {
+      const v = queue.shift()!;
+      for (const w of adj[v]!) {
+        if (dist[w]! < 0) {
+          dist[w] = dist[v]! + 1;
+          if (dist[w]! > maxDist) maxDist = dist[w]!;
+          queue.push(w);
+        }
+      }
+    }
+  }
+  return { diameter: vcount > 0 ? maxDist : null } as AlgoResult;
+}
+
+export function demoShortestPath(vcount: number, edges: Edge[], source = 0, target = 1): AlgoResult {
+  if (vcount === 0) return { path: [] } as AlgoResult;
+  const adj = buildAdj(vcount, edges);
+  const src = source >= 0 && source < vcount ? source : 0;
+  const tgt = target >= 0 && target < vcount ? target : Math.min(1, vcount - 1);
+  const prev = new Int32Array(vcount).fill(-1);
+  const visited = new Set<number>();
+  visited.add(src);
+  const queue = [src];
+  while (queue.length > 0) {
+    const v = queue.shift()!;
+    if (v === tgt) break;
+    for (const w of adj[v]!) {
+      if (!visited.has(w)) {
+        visited.add(w);
+        prev[w] = v;
+        queue.push(w);
+      }
+    }
+  }
+  if (!visited.has(tgt)) return { path: [] } as AlgoResult;
+  const path: number[] = [];
+  let cur = tgt;
+  while (cur !== src) {
+    path.unshift(cur);
+    cur = prev[cur]!;
+  }
+  path.unshift(src);
+  return { path } as AlgoResult;
+}
+
+export function demoRandomWalk(vcount: number, edges: Edge[], source = 0, steps = 20): AlgoResult {
+  if (vcount === 0) return { vertices: [] } as AlgoResult;
+  const adj = buildAdj(vcount, edges);
+  const start = source >= 0 && source < vcount ? source : 0;
+  const vertices: number[] = [start];
+  let cur = start;
+  let seed = 42;
+  for (let i = 0; i < steps; i++) {
+    const nbrs = adj[cur]!;
+    if (nbrs.length === 0) break;
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    cur = nbrs[seed % nbrs.length]!;
+    vertices.push(cur);
+  }
+  return { vertices } as AlgoResult;
+}
+
 export function demoEdgeBetweennessCentrality(vcount: number, edges: Edge[]): AlgoResult {
   const scores = new Array(edges.length).fill(0);
   const adj = buildAdj(vcount, edges);
@@ -642,6 +785,18 @@ export function runDemoAlgo(
       return demoCountAutomorphisms(vcount, edges);
     case 'isomorphism':
       return demoIsomorphism(vcount, edges);
+    case 'coreness':
+      return demoCoreness(vcount, edges);
+    case 'eccentricity':
+      return demoEccentricity(vcount, edges);
+    case 'constraint':
+      return demoConstraint(vcount, edges);
+    case 'diameter':
+      return demoDiameter(vcount, edges);
+    case 'shortest_path':
+      return demoShortestPath(vcount, edges, params?.source, params?.target);
+    case 'random_walk':
+      return demoRandomWalk(vcount, edges, params?.source);
     default:
       return demoPagerank(vcount, edges);
   }
