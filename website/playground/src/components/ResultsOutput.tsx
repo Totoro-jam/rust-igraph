@@ -113,6 +113,60 @@ function parseResult(
       });
     });
     showBars = true;
+  } else if ('diameter' in result) {
+    badges.push({ label: t('result.vertices'), value: String(result.vcount), accent: true });
+    badges.push({ label: t('result.edgeCount'), value: String(result.ecount), accent: true });
+    badges.push({ label: t('result.diameter'), value: String(result.diameter) });
+    badges.push({ label: t('result.girth'), value: String(result.girth) });
+    badges.push({ label: t('result.triangles'), value: String(result.triangles) });
+    badges.push({ label: t('result.connected'), value: result.is_connected ? 'Yes' : 'No' });
+    badges.push({ label: t('result.bipartite'), value: result.is_bipartite ? 'Yes' : 'No' });
+    badges.push({ label: t('result.directedProp'), value: result.is_directed ? 'Yes' : 'No' });
+  } else if ('value' in result) {
+    badges.push({ label: t('result.flowValue'), value: (result.value as number).toFixed(4), accent: true });
+  } else if ('distances' in result) {
+    const distances = (result as { distances: number[] }).distances;
+    const finite = distances.filter((d) => Number.isFinite(d));
+    const maxDist = finite.length > 0 ? Math.max(...finite) : 1;
+    badges.push({ label: t('result.reachable'), value: String(finite.length), accent: true });
+    badges.push({ label: t('result.maxDist'), value: maxDist.toFixed(1) });
+    columnLabel = t('result.col.distance');
+    showBars = true;
+    distances.forEach((d, i) => {
+      table.push({
+        vertex: i,
+        value: Number.isFinite(d) ? d.toFixed(1) : '∞',
+        numericValue: Number.isFinite(d) ? d : maxDist + 1,
+        barFraction: Number.isFinite(d) && maxDist > 0 ? d / maxDist : 0,
+      });
+    });
+  } else if ('vertices' in result) {
+    const verts = result.vertices as number[];
+    badges.push({ label: t('result.count'), value: String(verts.length), accent: true });
+    columnLabel = t('result.col.vertex');
+    verts.forEach((v, i) => {
+      table.push({
+        vertex: v,
+        value: String(i),
+        numericValue: i,
+        barFraction: 1,
+      });
+    });
+  } else if ('degrees' in result) {
+    const degrees = (result as { degrees: number[] }).degrees;
+    const max = Math.max(...degrees, 1);
+    badges.push({ label: t('result.maxDegree'), value: String(max), accent: true });
+    badges.push({ label: t('result.minDegree'), value: String(Math.min(...degrees)) });
+    columnLabel = t('result.col.degree');
+    showBars = true;
+    degrees.forEach((d, i) => {
+      table.push({
+        vertex: i,
+        value: String(d),
+        numericValue: d,
+        barFraction: max > 0 ? d / max : 0,
+      });
+    });
   }
 
   return { badges, table, columnLabel, showBars };

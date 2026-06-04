@@ -336,11 +336,89 @@ export function demoKatz(vcount: number, edges: Edge[]): AlgoResult {
   return { scores: Array.from(scores) };
 }
 
+export function demoDijkstra(vcount: number, edges: Edge[], source = 0): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const start = source >= 0 && source < vcount ? source : 0;
+  const dist = new Float64Array(vcount).fill(Infinity);
+  dist[start] = 0;
+  const visited = new Set<number>();
+  for (let i = 0; i < vcount; i++) {
+    let u = -1;
+    for (let v = 0; v < vcount; v++) {
+      if (!visited.has(v) && (u < 0 || dist[v]! < dist[u]!)) u = v;
+    }
+    if (u < 0 || dist[u] === Infinity) break;
+    visited.add(u);
+    for (const w of adj[u]!) {
+      const nd = dist[u]! + 1;
+      if (nd < dist[w]!) dist[w] = nd;
+    }
+  }
+  return { distances: Array.from(dist) } as AlgoResult;
+}
+
+export function demoGraphStats(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const visited = new Set<number>();
+  const queue = [0];
+  if (vcount > 0) visited.add(0);
+  while (queue.length > 0) {
+    const v = queue.shift()!;
+    for (const w of adj[v]!) {
+      if (!visited.has(w)) { visited.add(w); queue.push(w); }
+    }
+  }
+  return {
+    vcount,
+    ecount: edges.length,
+    is_directed: false,
+    is_connected: visited.size === vcount,
+    diameter: 0,
+    girth: 0,
+    triangles: 0,
+    is_bipartite: false,
+  } as AlgoResult;
+}
+
+export function demoMaxFlow(vcount: number, _edges: Edge[]): AlgoResult {
+  return { value: vcount > 0 ? 1 : 0 } as AlgoResult;
+}
+
+export function demoArticulationPoints(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const points: number[] = [];
+  for (let r = 0; r < vcount; r++) {
+    const visited = new Set<number>();
+    const start = r === 0 ? 1 : 0;
+    if (start >= vcount) continue;
+    visited.add(r);
+    visited.add(start);
+    const q = [start];
+    while (q.length > 0) {
+      const v = q.shift()!;
+      for (const w of adj[v]!) {
+        if (!visited.has(w)) { visited.add(w); q.push(w); }
+      }
+    }
+    if (visited.size < vcount) points.push(r);
+  }
+  return { vertices: points } as AlgoResult;
+}
+
+export function demoDegreeSequence(vcount: number, edges: Edge[]): AlgoResult {
+  const degrees = new Array(vcount).fill(0);
+  for (const [u, v] of edges) {
+    if (u < vcount) degrees[u]++;
+    if (v < vcount) degrees[v]++;
+  }
+  return { degrees } as AlgoResult;
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
   edges: Edge[],
-  params?: { damping?: number; source?: number },
+  params?: { damping?: number; source?: number; target?: number },
 ): AlgoResult {
   switch (algo) {
     case 'bfs':
@@ -383,6 +461,16 @@ export function runDemoAlgo(
       return demoHits(vcount, edges);
     case 'katz':
       return demoKatz(vcount, edges);
+    case 'dijkstra':
+      return demoDijkstra(vcount, edges, params?.source);
+    case 'graph_stats':
+      return demoGraphStats(vcount, edges);
+    case 'max_flow':
+      return demoMaxFlow(vcount, edges);
+    case 'articulation_points':
+      return demoArticulationPoints(vcount, edges);
+    case 'degree_sequence':
+      return demoDegreeSequence(vcount, edges);
     default:
       return demoPagerank(vcount, edges);
   }

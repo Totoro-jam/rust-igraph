@@ -14,6 +14,7 @@ export type AlgoId =
   | 'eigenvector'
   | 'bfs'
   | 'dfs'
+  | 'dijkstra'
   | 'components'
   | 'infomap'
   | 'spinglass'
@@ -26,10 +27,15 @@ export type AlgoId =
   | 'fluid'
   | 'harmonic'
   | 'hits'
-  | 'katz';
+  | 'katz'
+  | 'graph_stats'
+  | 'max_flow'
+  | 'articulation_points'
+  | 'degree_sequence';
 
 export interface AlgoParams {
   source?: number;
+  target?: number;
   damping?: number;
 }
 
@@ -55,7 +61,43 @@ export interface AlgoResultHits {
   authority: number[];
 }
 
-export type AlgoResult = AlgoResultScores | AlgoResultMembership | AlgoResultOrder | AlgoResultHits;
+export interface AlgoResultStats {
+  vcount: number;
+  ecount: number;
+  is_directed: boolean;
+  is_connected: boolean;
+  diameter: number;
+  girth: number;
+  triangles: number;
+  is_bipartite: boolean;
+}
+
+export interface AlgoResultScalar {
+  value: number;
+}
+
+export interface AlgoResultVertices {
+  vertices: number[];
+}
+
+export interface AlgoResultDistances {
+  distances: number[];
+}
+
+export interface AlgoResultDegrees {
+  degrees: number[];
+}
+
+export type AlgoResult =
+  | AlgoResultScores
+  | AlgoResultMembership
+  | AlgoResultOrder
+  | AlgoResultHits
+  | AlgoResultStats
+  | AlgoResultScalar
+  | AlgoResultVertices
+  | AlgoResultDistances
+  | AlgoResultDegrees;
 
 export interface RunResult {
   algo: AlgoId;

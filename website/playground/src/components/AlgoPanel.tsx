@@ -6,8 +6,12 @@ const ALGO_LIST: AlgoId[] = [
   'betweenness',
   'closeness',
   'eigenvector',
+  'harmonic',
+  'hits',
+  'katz',
   'bfs',
   'dfs',
+  'dijkstra',
   'components',
   'infomap',
   'spinglass',
@@ -18,9 +22,10 @@ const ALGO_LIST: AlgoId[] = [
   'leading_eigenvector',
   'edge_betweenness',
   'fluid',
-  'harmonic',
-  'hits',
-  'katz',
+  'graph_stats',
+  'max_flow',
+  'articulation_points',
+  'degree_sequence',
 ];
 
 interface AlgoPanelProps {
@@ -75,7 +80,7 @@ export function AlgoPanel({
             />
           </div>
         )}
-        {(algo === 'bfs' || algo === 'dfs') && (
+        {(algo === 'bfs' || algo === 'dfs' || algo === 'dijkstra' || algo === 'max_flow') && (
           <div className="param-row">
             <label>{t('param.source')}</label>
             <input
@@ -85,6 +90,20 @@ export function AlgoPanel({
               value={params.source ?? 0}
               onChange={(e) =>
                 onParamsChange({ ...params, source: parseInt(e.target.value, 10) })
+              }
+            />
+          </div>
+        )}
+        {algo === 'max_flow' && (
+          <div className="param-row">
+            <label>{t('param.target')}</label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={params.target ?? 1}
+              onChange={(e) =>
+                onParamsChange({ ...params, target: parseInt(e.target.value, 10) })
               }
             />
           </div>

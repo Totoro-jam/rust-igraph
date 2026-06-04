@@ -70,6 +70,16 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, hub_and_authority_scores};\n\n${graphLine}\n\nlet result = hub_and_authority_scores(&g).unwrap();\nprintln!("Hub scores: {:?}", result.hub);\nprintln!("Authority scores: {:?}", result.authority);`;
     case 'katz':
       return `use rust_igraph::{Graph, katz_centrality};\n\n${graphLine}\n\nlet scores = katz_centrality(&g, 0.01, 1.0, None, None).unwrap();\nprintln!("Katz centrality: {:?}", scores);`;
+    case 'dijkstra':
+      return `use rust_igraph::{Graph, dijkstra_distances};\n\n${graphLine}\n\nlet weights = vec![1.0; g.ecount()];\nlet dists = dijkstra_distances(&g, 0, &weights).unwrap();\nprintln!("Distances from 0: {:?}", dists);`;
+    case 'graph_stats':
+      return `use rust_igraph::{Graph, is_connected, girth, count_triangles, is_bipartite};\n\n${graphLine}\n\nprintln!("Vertices: {}", g.vcount());\nprintln!("Edges: {}", g.ecount());\nprintln!("Diameter: {}", g.diameter().unwrap());\nprintln!("Girth: {}", girth(&g).unwrap());\nprintln!("Triangles: {}", count_triangles(&g).unwrap());`;
+    case 'max_flow':
+      return `use rust_igraph::{Graph, max_flow_value};\n\n${graphLine}\n\nlet value = max_flow_value(&g, 0, 1, None).unwrap();\nprintln!("Max flow: {:.4}", value);`;
+    case 'articulation_points':
+      return `use rust_igraph::{Graph, articulation_points};\n\n${graphLine}\n\nlet points = articulation_points(&g).unwrap();\nprintln!("Articulation points: {:?}", points);`;
+    case 'degree_sequence':
+      return `use rust_igraph::Graph;\n\n${graphLine}\n\nlet degrees = g.degree_sequence().unwrap();\nprintln!("Degree sequence: {:?}", degrees);`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }

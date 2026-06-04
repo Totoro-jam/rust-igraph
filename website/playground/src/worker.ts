@@ -7,6 +7,7 @@ let WasmGraph: {
 interface WasmGraphInstance {
   bfs(root: number): string;
   dfs(root: number): string;
+  dijkstra(source: number, weights: Float64Array): string;
   pagerank(): string;
   louvain(): string;
   betweenness(): string;
@@ -25,6 +26,10 @@ interface WasmGraphInstance {
   harmonicCentrality(): string;
   hubAndAuthorityScores(): string;
   katzCentrality(): string;
+  graphStats(): string;
+  maxFlow(source: number, target: number): string;
+  articulationPoints(): string;
+  degreeSequence(): string;
   layoutFr(niter: number): string;
   free(): void;
 }
@@ -129,6 +134,23 @@ function runWasm(
         break;
       case 'katz':
         resultJson = graph.katzCentrality();
+        break;
+      case 'dijkstra': {
+        const weights = new Float64Array(edges.length).fill(1.0);
+        resultJson = graph.dijkstra(params.source ?? 0, weights);
+        break;
+      }
+      case 'graph_stats':
+        resultJson = graph.graphStats();
+        break;
+      case 'max_flow':
+        resultJson = graph.maxFlow(params.source ?? 0, params.target ?? 1);
+        break;
+      case 'articulation_points':
+        resultJson = graph.articulationPoints();
+        break;
+      case 'degree_sequence':
+        resultJson = graph.degreeSequence();
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);
