@@ -6,6 +6,7 @@
 
 - [Quick start](./getting-started.md)
 - [Tutorial](./tutorial.md)
+- [Cookbook](./cookbook.md)
 - [Project layout](./project-layout.md)
 
 # How rust-igraph is built

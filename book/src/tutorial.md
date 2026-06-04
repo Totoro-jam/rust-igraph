@@ -32,12 +32,12 @@ let g = GraphBuilder::undirected()
 There are also 40+ named constructors for common graph families:
 
 ```rust
-use rust_igraph::{full_graph, ring_graph, star_graph, erdos_renyi_gnp};
+use rust_igraph::{full_graph, ring_graph, star_graph, StarMode, erdos_renyi_gnp};
 
-let complete = full_graph(5, false, false).unwrap();       // K_5
-let cycle = ring_graph(10, false, false, false).unwrap();  // C_10
-let hub = star_graph(8, false).unwrap();                   // star with 8 leaves
-let random = erdos_renyi_gnp(100, 0.05, false).unwrap();   // G(100, 0.05)
+let complete = full_graph(5, false, false).unwrap();                    // K_5
+let cycle = ring_graph(10, false, false, false).unwrap();              // C_10
+let hub = star_graph(8, StarMode::Undirected, 0).unwrap();             // star with center 0
+let random = erdos_renyi_gnp(100, 0.05, false, false, 42).unwrap();   // G(100, 0.05)
 ```
 
 ## Basic properties
@@ -113,7 +113,7 @@ println!("Distances from 0: {:?}", dist);  // [Some(0), Some(1), Some(2), Some(1
 
 // Weighted shortest paths
 let weights = vec![1.0, 2.0, 1.0, 5.0, 1.0];
-let wdist = dijkstra_distances(&g, 0, Some(&weights)).unwrap();
+let wdist = dijkstra_distances(&g, 0, &weights).unwrap();
 println!("Weighted distances from 0: {:?}", wdist);
 ```
 
@@ -127,13 +127,13 @@ use rust_igraph::{Graph, AttributeValue};
 let mut g = Graph::from_edges(&[(0,1),(1,2)], false, None).unwrap();
 
 // Vertex attributes
-g.set_vertex_attribute("name", 0, AttributeValue::String("Alice".into()));
-g.set_vertex_attribute("name", 1, AttributeValue::String("Bob".into()));
-g.set_vertex_attribute("name", 2, AttributeValue::String("Carol".into()));
+g.set_vertex_attribute("name", 0, AttributeValue::String("Alice".into())).unwrap();
+g.set_vertex_attribute("name", 1, AttributeValue::String("Bob".into())).unwrap();
+g.set_vertex_attribute("name", 2, AttributeValue::String("Carol".into())).unwrap();
 
 // Edge attributes
-g.set_edge_attribute("weight", 0, AttributeValue::Numeric(1.5));
-g.set_edge_attribute("weight", 1, AttributeValue::Numeric(2.3));
+g.set_edge_attribute("weight", 0, AttributeValue::Numeric(1.5)).unwrap();
+g.set_edge_attribute("weight", 1, AttributeValue::Numeric(2.3)).unwrap();
 
 // Graph-level attributes
 g.set_graph_attribute("title", AttributeValue::String("My Network".into()));
@@ -220,25 +220,26 @@ println!("Intersection: {} vertices, {} edges", i.vcount(), i.ecount());
 rust-igraph includes 16 layout engines for 2D and 3D graph visualization:
 
 ```rust
-use rust_igraph::{Graph, layout_fruchterman_reingold, layout_circle, layout_kamada_kawai};
+use rust_igraph::{Graph, FrParams, KkParams, layout_fruchterman_reingold, layout_circle, layout_kamada_kawai};
 
 let g = Graph::from_edges(
     &[(0,1),(1,2),(2,3),(3,0),(0,2),(1,3)], false, None
 ).unwrap();
 
 // Force-directed layout (Fruchterman-Reingold)
-let coords = layout_fruchterman_reingold(&g, None, 42).unwrap();
+let coords = layout_fruchterman_reingold(&g, &FrParams::default()).unwrap();
 for (i, &(x, y)) in coords.iter().enumerate() {
     println!("v{i}: ({x:.2}, {y:.2})");
 }
 
 // Circle layout (deterministic)
 let circle = layout_circle(&g, None);
-assert_eq!(circle.len(), g.vcount());
+assert_eq!(circle.len(), g.vcount() as usize);
 
 // Kamada-Kawai (energy-based)
-let kk = layout_kamada_kawai(&g, None, 42).unwrap();
-assert_eq!(kk.len(), g.vcount());
+let n = g.vcount() as usize;
+let kk = layout_kamada_kawai(&g, None, &KkParams::default_for(n), None).unwrap();
+assert_eq!(kk.len(), n);
 ```
 
 Available engines: Fruchterman-Reingold, Kamada-Kawai, DrL, Sugiyama,
@@ -259,7 +260,7 @@ for (src, tgt) in &g {
 
 // Iterate over vertex ids
 for v in g.vertex_ids() {
-    let deg = g.degree(v);
+    let deg = g.degree(v).unwrap();
     println!("Vertex {}: degree {}", v, deg);
 }
 ```
@@ -288,4 +289,4 @@ assert_eq!(pr1, pr2);
 
 - Browse the [API documentation](./api.md) for the full list of functions
 - Run `cargo run --example social_network_demo` for a comprehensive demo
-- Check the 114 examples in the `examples/` directory
+- Check the 115 examples in the `examples/` directory
