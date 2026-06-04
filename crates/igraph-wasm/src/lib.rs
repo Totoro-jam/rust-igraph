@@ -1,9 +1,10 @@
 use rust_igraph::{
-    FrParams, Graph, VertexId, betweenness, bfs, closeness, connected_components, dfs,
-    dijkstra_distances, edge_betweenness_community, eigenvector_centrality, fast_greedy_modularity,
-    fluid_communities, harmonic_centrality, hub_and_authority_scores, infomap, katz_centrality,
-    label_propagation, layout_fruchterman_reingold, leading_eigenvector, leiden, louvain, pagerank,
-    spinglass, walktrap,
+    ConnectednessMode, FrParams, Graph, VertexId, articulation_points, betweenness, bfs, closeness,
+    connected_components, count_triangles, dfs, dijkstra_distances, edge_betweenness_community,
+    eigenvector_centrality, fast_greedy_modularity, fluid_communities, girth, harmonic_centrality,
+    hub_and_authority_scores, infomap, is_bipartite, is_connected, katz_centrality,
+    label_propagation, layout_fruchterman_reingold, leading_eigenvector, leiden, louvain,
+    max_flow_value, pagerank, spinglass, walktrap,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -117,6 +118,33 @@ struct HitsOutput {
 #[derive(Serialize)]
 struct LayoutResult {
     coords: Vec<[f64; 2]>,
+}
+
+#[derive(Serialize)]
+struct GraphStatsResult {
+    vcount: u32,
+    ecount: u32,
+    is_directed: bool,
+    is_connected: bool,
+    diameter: Option<u32>,
+    girth: Option<u32>,
+    triangles: u64,
+    is_bipartite: bool,
+}
+
+#[derive(Serialize)]
+struct MaxFlowResult {
+    value: f64,
+}
+
+#[derive(Serialize)]
+struct ArticulationResult {
+    vertices: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct DegreeResult {
+    degrees: Vec<u32>,
 }
 
 #[wasm_bindgen]
@@ -346,6 +374,58 @@ impl WasmGraph {
         let scores = katz_centrality(&self.inner, 0.01, 1.0, None, None)
             .map_err(|e| JsError::new(&e.to_string()))?;
         let result = PageRankResult { scores };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "graphStats")]
+    pub fn graph_stats(&self) -> Result<String, JsError> {
+        let connected = is_connected(&self.inner, ConnectednessMode::Weak)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let diam = self
+            .inner
+            .diameter()
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let g = girth(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let tri = count_triangles(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let bip = is_bipartite(&self.inner)
+            .map_err(|e| JsError::new(&e.to_string()))?
+            .is_bipartite;
+        let result = GraphStatsResult {
+            vcount: self.inner.vcount(),
+            ecount: u32::try_from(self.inner.ecount()).unwrap_or(u32::MAX),
+            is_directed: self.inner.is_directed(),
+            is_connected: connected,
+            diameter: diam,
+            girth: g,
+            triangles: tri,
+            is_bipartite: bip,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "maxFlow")]
+    pub fn max_flow(&self, source: u32, target: u32) -> Result<String, JsError> {
+        let value = max_flow_value(&self.inner, source, target, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = MaxFlowResult { value };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "articulationPoints")]
+    pub fn articulation_points(&self) -> Result<String, JsError> {
+        let vertices =
+            articulation_points(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ArticulationResult { vertices };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "degreeSequence")]
+    pub fn degree_sequence(&self) -> Result<String, JsError> {
+        let degrees = self
+            .inner
+            .degree_sequence()
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = DegreeResult { degrees };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 
