@@ -284,6 +284,16 @@ All algorithm methods return JSON strings. Parse them with
 | `new WasmGraph(directed: boolean)` | Create an empty graph |
 | `graph.addEdge(u: number, v: number)` | Add a single edge |
 
+### Graph generators (static constructors)
+
+| Method | Description |
+|--------|-------------|
+| `WasmGraph.erdosRenyi(n, p, seed)` | Erdos-Renyi G(n,p) random graph |
+| `WasmGraph.fullGraph(n)` | Complete graph K_n |
+| `WasmGraph.cycleGraph(n)` | Cycle graph C_n |
+| `WasmGraph.ringGraph(n, circular)` | Ring (cycle if circular=true, path if false) |
+| `WasmGraph.wattsStrogatz(n, k, p, seed)` | Watts-Strogatz small-world |
+
 ### Properties
 
 | Method | Return type | Description |
@@ -326,8 +336,11 @@ All algorithm methods return JSON strings. Parse them with
 | `graph.bfs(root: number)` | `{ order: number[] }` | Breadth-first search |
 | `graph.dfs(root: number)` | `{ order: number[] }` | Depth-first search |
 | `graph.dijkstra(source: number, weights: Float64Array)` | `{ distances: number[] }` | Dijkstra shortest paths |
+| `graph.shortestPath(source, target)` | `{ path: number[] }` | Shortest path between two vertices |
+| `graph.randomWalk(start, steps, seed)` | `{ vertices: number[] }` | Random walk from a start vertex |
 | `graph.topologicalSort()` | `{ order: number[] }` | Topological sort (directed graphs) |
 | `graph.maxFlow(source: number, target: number)` | `{ value: number }` | Maximum flow |
+| `graph.diameter()` | `{ diameter: number \| null }` | Graph diameter (longest shortest path) |
 
 ### Structure
 
@@ -448,7 +461,7 @@ throw a JavaScript `Error` with a descriptive message.
 ## Live demo
 
 Try the [interactive playground](https://totoro-jam.github.io/rust-igraph/playground/)
-to see all 41 algorithms running in the browser via WASM. The
+to see all 49 algorithms running in the browser via WASM. The
 playground source code at `website/playground/` serves as a full
 reference implementation.
 
