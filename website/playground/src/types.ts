@@ -23,7 +23,10 @@ export type AlgoId =
   | 'fast_greedy'
   | 'leading_eigenvector'
   | 'edge_betweenness'
-  | 'fluid';
+  | 'fluid'
+  | 'harmonic'
+  | 'hits'
+  | 'katz';
 
 export interface AlgoParams {
   source?: number;
@@ -47,7 +50,12 @@ export interface AlgoResultOrder {
   order: number[];
 }
 
-export type AlgoResult = AlgoResultScores | AlgoResultMembership | AlgoResultOrder;
+export interface AlgoResultHits {
+  hub: number[];
+  authority: number[];
+}
+
+export type AlgoResult = AlgoResultScores | AlgoResultMembership | AlgoResultOrder | AlgoResultHits;
 
 export interface RunResult {
   algo: AlgoId;

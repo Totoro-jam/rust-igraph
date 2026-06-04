@@ -17,10 +17,13 @@ import {
   demoLeadingEigenvector,
   demoEdgeBetweennessCommunity,
   demoFluid,
+  demoHarmonic,
+  demoHits,
+  demoKatz,
   runDemoAlgo,
   layoutFR,
 } from './algorithms';
-import type { Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder } from './types';
+import type { Edge, AlgoResultScores, AlgoResultMembership, AlgoResultOrder, AlgoResultHits } from './types';
 
 const TRIANGLE: Edge[] = [[0, 1], [1, 2], [2, 0]];
 const PATH: Edge[] = [[0, 1], [1, 2], [2, 3]];
@@ -287,6 +290,62 @@ describe('demoFluid', () => {
   });
 });
 
+describe('demoHarmonic', () => {
+  it('returns one score per vertex', () => {
+    const result = demoHarmonic(4, PATH) as AlgoResultScores;
+    expect(result.scores).toHaveLength(4);
+  });
+
+  it('all scores are non-negative', () => {
+    const result = demoHarmonic(3, TRIANGLE) as AlgoResultScores;
+    for (const s of result.scores) {
+      expect(s).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('central vertices have higher harmonic centrality on a path', () => {
+    const result = demoHarmonic(4, PATH) as AlgoResultScores;
+    expect(result.scores[1]!).toBeGreaterThan(result.scores[0]!);
+    expect(result.scores[2]!).toBeGreaterThan(result.scores[3]!);
+  });
+});
+
+describe('demoHits', () => {
+  it('returns hub and authority arrays', () => {
+    const result = demoHits(3, TRIANGLE) as AlgoResultHits;
+    expect(result.hub).toHaveLength(3);
+    expect(result.authority).toHaveLength(3);
+  });
+
+  it('scores are non-negative', () => {
+    const result = demoHits(4, PATH) as AlgoResultHits;
+    for (const h of result.hub) expect(h).toBeGreaterThanOrEqual(0);
+    for (const a of result.authority) expect(a).toBeGreaterThanOrEqual(0);
+  });
+
+  it('hub and authority are normalized', () => {
+    const result = demoHits(3, TRIANGLE) as AlgoResultHits;
+    const hubNorm = Math.sqrt(result.hub.reduce((s, x) => s + x * x, 0));
+    const authNorm = Math.sqrt(result.authority.reduce((s, x) => s + x * x, 0));
+    expect(hubNorm).toBeCloseTo(1.0, 4);
+    expect(authNorm).toBeCloseTo(1.0, 4);
+  });
+});
+
+describe('demoKatz', () => {
+  it('returns one score per vertex', () => {
+    const result = demoKatz(4, PATH) as AlgoResultScores;
+    expect(result.scores).toHaveLength(4);
+  });
+
+  it('all scores are positive', () => {
+    const result = demoKatz(3, TRIANGLE) as AlgoResultScores;
+    for (const s of result.scores) {
+      expect(s).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe('runDemoAlgo', () => {
   it('dispatches to bfs', () => {
     const result = runDemoAlgo('bfs', 4, PATH, { source: 2 }) as AlgoResultOrder;
@@ -371,6 +430,22 @@ describe('runDemoAlgo', () => {
   it('dispatches to fluid', () => {
     const result = runDemoAlgo('fluid', 3, TRIANGLE) as AlgoResultMembership;
     expect(result.nb_clusters).toBeDefined();
+  });
+
+  it('dispatches to harmonic', () => {
+    const result = runDemoAlgo('harmonic', 4, PATH) as AlgoResultScores;
+    expect(result.scores).toHaveLength(4);
+  });
+
+  it('dispatches to hits', () => {
+    const result = runDemoAlgo('hits', 3, TRIANGLE) as AlgoResultHits;
+    expect(result.hub).toHaveLength(3);
+    expect(result.authority).toHaveLength(3);
+  });
+
+  it('dispatches to katz', () => {
+    const result = runDemoAlgo('katz', 3, TRIANGLE) as AlgoResultScores;
+    expect(result.scores).toHaveLength(3);
   });
 
   it('falls back to pagerank for unknown algo', () => {

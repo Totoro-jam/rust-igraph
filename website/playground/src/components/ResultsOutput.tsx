@@ -40,7 +40,25 @@ function parseResult(
   let columnLabel = '';
   let showBars = false;
 
-  if ('scores' in result) {
+  if ('hub' in result && 'authority' in result) {
+    const hub = result.hub;
+    const auth = result.authority;
+    const maxHub = Math.max(...hub, 1e-9);
+    const maxAuth = Math.max(...auth, 1e-9);
+    const maxHubIdx = hub.indexOf(maxHub);
+    badges.push({ label: `Hub ${t('result.topNode')}`, value: `v${maxHubIdx}`, accent: true });
+    badges.push({ label: `Hub ${t('result.maxScore')}`, value: maxHub.toFixed(4), accent: true });
+    columnLabel = 'Hub / Authority';
+    showBars = true;
+    hub.forEach((h, i) => {
+      table.push({
+        vertex: i,
+        value: `${h.toFixed(4)} / ${auth[i]!.toFixed(4)}`,
+        numericValue: h,
+        barFraction: maxHub > 0 ? h / maxHub : 0,
+      });
+    });
+  } else if ('scores' in result) {
     const scores = result.scores;
     const max = Math.max(...scores, 1e-9);
     const min = Math.min(...scores);

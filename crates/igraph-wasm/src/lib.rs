@@ -1,8 +1,9 @@
 use rust_igraph::{
     FrParams, Graph, VertexId, betweenness, bfs, closeness, connected_components, dfs,
     dijkstra_distances, edge_betweenness_community, eigenvector_centrality, fast_greedy_modularity,
-    fluid_communities, infomap, label_propagation, layout_fruchterman_reingold,
-    leading_eigenvector, leiden, louvain, pagerank, spinglass, walktrap,
+    fluid_communities, harmonic_centrality, hub_and_authority_scores, infomap, katz_centrality,
+    label_propagation, layout_fruchterman_reingold, leading_eigenvector, leiden, louvain, pagerank,
+    spinglass, walktrap,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -105,6 +106,12 @@ struct EdgeBetweennessOutput {
 struct FluidOutput {
     membership: Vec<u32>,
     nb_clusters: u32,
+}
+
+#[derive(Serialize)]
+struct HitsOutput {
+    hub: Vec<f64>,
+    authority: Vec<f64>,
 }
 
 #[derive(Serialize)]
@@ -314,6 +321,31 @@ impl WasmGraph {
             membership: r.membership,
             nb_clusters: r.nb_clusters,
         };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "harmonicCentrality")]
+    pub fn harmonic_centrality(&self) -> Result<String, JsError> {
+        let scores = harmonic_centrality(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = PageRankResult { scores };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "hubAndAuthorityScores")]
+    pub fn hub_and_authority_scores(&self) -> Result<String, JsError> {
+        let r = hub_and_authority_scores(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = HitsOutput {
+            hub: r.hub,
+            authority: r.authority,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "katzCentrality")]
+    pub fn katz_centrality(&self) -> Result<String, JsError> {
+        let scores = katz_centrality(&self.inner, 0.01, 1.0, None, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = PageRankResult { scores };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 

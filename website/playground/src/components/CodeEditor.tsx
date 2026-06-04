@@ -64,6 +64,12 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, edge_betweenness_community};\n\n${graphLine}\n\nlet result = edge_betweenness_community(&g).unwrap();\nprintln!("Clusters: {}", result.nb_clusters);\nprintln!("Communities: {:?}", result.membership);`;
     case 'fluid':
       return `use rust_igraph::{Graph, fluid_communities};\n\n${graphLine}\n\nlet result = fluid_communities(&g, 3).unwrap();\nprintln!("Clusters: {}", result.nb_clusters);\nprintln!("Communities: {:?}", result.membership);`;
+    case 'harmonic':
+      return `use rust_igraph::{Graph, harmonic_centrality};\n\n${graphLine}\n\nlet scores = harmonic_centrality(&g).unwrap();\nprintln!("Harmonic centrality: {:?}", scores);`;
+    case 'hits':
+      return `use rust_igraph::{Graph, hub_and_authority_scores};\n\n${graphLine}\n\nlet result = hub_and_authority_scores(&g).unwrap();\nprintln!("Hub scores: {:?}", result.hub);\nprintln!("Authority scores: {:?}", result.authority);`;
+    case 'katz':
+      return `use rust_igraph::{Graph, katz_centrality};\n\n${graphLine}\n\nlet scores = katz_centrality(&g, 0.01, 1.0, None, None).unwrap();\nprintln!("Katz centrality: {:?}", scores);`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }

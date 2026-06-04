@@ -269,6 +269,73 @@ export function demoFluid(vcount: number, edges: Edge[]): AlgoResult {
   return { membership: result.membership, nb_clusters: result.count };
 }
 
+export function demoHarmonic(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const scores: number[] = [];
+  for (let s = 0; s < vcount; s++) {
+    const dist = new Int32Array(vcount).fill(-1);
+    dist[s] = 0;
+    const queue = [s];
+    while (queue.length > 0) {
+      const v = queue.shift()!;
+      for (const w of adj[v]!) {
+        if (dist[w]! < 0) {
+          dist[w] = dist[v]! + 1;
+          queue.push(w);
+        }
+      }
+    }
+    let sum = 0;
+    for (let t = 0; t < vcount; t++) {
+      if (t !== s && dist[t]! > 0) sum += 1 / dist[t]!;
+    }
+    scores.push(sum);
+  }
+  return { scores };
+}
+
+export function demoHits(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  let auth = new Float64Array(vcount).fill(1);
+  let hub = new Float64Array(vcount).fill(1);
+  for (let iter = 0; iter < 50; iter++) {
+    const newAuth = new Float64Array(vcount);
+    for (let v = 0; v < vcount; v++) {
+      for (const u of adj[v]!) newAuth[v]! += hub[u]!;
+    }
+    let norm = Math.sqrt(newAuth.reduce((s, x) => s + x * x, 0)) || 1;
+    for (let i = 0; i < vcount; i++) newAuth[i]! /= norm;
+
+    const newHub = new Float64Array(vcount);
+    for (let v = 0; v < vcount; v++) {
+      for (const u of adj[v]!) newHub[v]! += newAuth[u]!;
+    }
+    norm = Math.sqrt(newHub.reduce((s, x) => s + x * x, 0)) || 1;
+    for (let i = 0; i < vcount; i++) newHub[i]! /= norm;
+
+    auth = newAuth;
+    hub = newHub;
+  }
+  return { hub: Array.from(hub), authority: Array.from(auth) };
+}
+
+export function demoKatz(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const alpha = 0.01;
+  const beta = 1.0;
+  const scores = new Float64Array(vcount).fill(beta);
+  for (let iter = 0; iter < 50; iter++) {
+    const next = new Float64Array(vcount).fill(beta);
+    for (let v = 0; v < vcount; v++) {
+      for (const u of adj[v]!) {
+        next[v]! += alpha * scores[u]!;
+      }
+    }
+    scores.set(next);
+  }
+  return { scores: Array.from(scores) };
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
@@ -310,6 +377,12 @@ export function runDemoAlgo(
       return demoEdgeBetweennessCommunity(vcount, edges);
     case 'fluid':
       return demoFluid(vcount, edges);
+    case 'harmonic':
+      return demoHarmonic(vcount, edges);
+    case 'hits':
+      return demoHits(vcount, edges);
+    case 'katz':
+      return demoKatz(vcount, edges);
     default:
       return demoPagerank(vcount, edges);
   }

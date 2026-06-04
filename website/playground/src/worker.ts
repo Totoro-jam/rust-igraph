@@ -22,6 +22,9 @@ interface WasmGraphInstance {
   leadingEigenvector(): string;
   edgeBetweennessCommunity(): string;
   fluidCommunities(k: number): string;
+  harmonicCentrality(): string;
+  hubAndAuthorityScores(): string;
+  katzCentrality(): string;
   layoutFr(niter: number): string;
   free(): void;
 }
@@ -117,6 +120,15 @@ function runWasm(
         break;
       case 'fluid':
         resultJson = graph.fluidCommunities(params.source ?? 3);
+        break;
+      case 'harmonic':
+        resultJson = graph.harmonicCentrality();
+        break;
+      case 'hits':
+        resultJson = graph.hubAndAuthorityScores();
+        break;
+      case 'katz':
+        resultJson = graph.katzCentrality();
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);

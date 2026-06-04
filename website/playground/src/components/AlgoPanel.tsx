@@ -18,6 +18,9 @@ const ALGO_LIST: AlgoId[] = [
   'leading_eigenvector',
   'edge_betweenness',
   'fluid',
+  'harmonic',
+  'hits',
+  'katz',
 ];
 
 interface AlgoPanelProps {
