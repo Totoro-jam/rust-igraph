@@ -44,7 +44,6 @@ function parseResult(
     const hub = result.hub;
     const auth = result.authority;
     const maxHub = Math.max(...hub, 1e-9);
-    const maxAuth = Math.max(...auth, 1e-9);
     const maxHubIdx = hub.indexOf(maxHub);
     badges.push({ label: `Hub ${t('result.topNode')}`, value: `v${maxHubIdx}`, accent: true });
     badges.push({ label: `Hub ${t('result.maxScore')}`, value: maxHub.toFixed(4), accent: true });

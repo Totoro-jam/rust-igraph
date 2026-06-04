@@ -55,7 +55,7 @@ export function App() {
 
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [centerCollapsed, setCenterCollapsed] = useState(false);
-  const [codeCollapsed, setCodeCollapsed] = useState(false);
+  const [codeCollapsed, setCodeCollapsed] = useState(true);
 
   const [coords, setCoords] = useState<[number, number][] | null>(null);
   const [result, setResult] = useState<AlgoResult | null>(null);
@@ -135,6 +135,7 @@ export function App() {
           <div
             className={`panel panel-left${leftCollapsed ? ' panel-collapsed' : ''}`}
             style={{ width: leftCollapsed ? undefined : sizes.leftWidth }}
+            onClick={leftCollapsed ? () => setLeftCollapsed(false) : undefined}
           >
             <div className="panel-header">
               <h2>{t('graphEditor')}</h2>
@@ -182,6 +183,7 @@ export function App() {
           <div
             className={`panel panel-center${centerCollapsed ? ' panel-collapsed' : ''}`}
             style={{ width: centerCollapsed ? undefined : sizes.centerWidth }}
+            onClick={centerCollapsed ? () => setCenterCollapsed(false) : undefined}
           >
             <div className="panel-header">
               <h2>{t('algorithm')}</h2>

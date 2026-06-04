@@ -721,6 +721,8 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   width: 36px !important;
   min-width: 36px;
   flex-shrink: 0;
+  cursor: pointer;
+  overflow: visible;
 }
 
 .panel-collapsed .panel-header {
@@ -730,14 +732,24 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
   align-items: center;
   gap: 8px;
   height: 100%;
+  pointer-events: none;
 }
 
 .panel-collapsed .panel-header h2 {
   white-space: nowrap;
 }
 
+.panel-collapsed .panel-header-actions {
+  writing-mode: horizontal-tb;
+}
+
 .panel-collapsed .collapse-toggle {
   transform: none;
+  pointer-events: none;
+}
+
+.panel-collapsed:hover {
+  background: var(--bg-hover);
 }
 
 /* ═══════ Code Section (Bottom) ═══════ */
@@ -837,6 +849,7 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
     width: 100% !important;
     min-width: unset;
     max-height: none;
+    height: 36px !important;
   }
 
   .panel-collapsed .panel-header {
@@ -844,6 +857,7 @@ h1, h2, h3 { color: var(--text-heading); font-weight: 700; }
     text-orientation: initial;
     flex-direction: row;
     height: auto;
+    pointer-events: none;
   }
 
   .panel-center {
