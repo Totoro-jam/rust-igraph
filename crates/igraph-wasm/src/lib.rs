@@ -1,20 +1,25 @@
+#![allow(clippy::needless_pass_by_value)]
+
 use rust_igraph::{
-    ConnectednessMode, DijkstraMode, FrParams, Graph, GreedyColoringHeuristic, KkParams, VertexId,
-    articulation_points, assortativity_degree, automorphism_group, barabasi_game_bag, betweenness,
-    bfs, bridges, canonical_permutation, closeness, complementer, connected_components, constraint,
-    coreness, count_automorphisms, count_triangles, cycle_graph, density, dfs, diameter,
-    dijkstra_distances, distances, eccentricity, edge_betweenness, edge_betweenness_community,
-    eigenvector_centrality, erdos_renyi_gnp, fast_greedy_modularity, floyd_warshall_distances,
-    fluid_communities, full_graph, fundamental_cycles, girth, harmonic_centrality,
-    hub_and_authority_scores, infomap, is_acyclic, is_biconnected, is_bipartite, is_complete,
-    is_connected, is_cubic, is_cycle, is_dag, is_forest, is_outerplanar, is_path, is_perfect,
-    is_star, is_tournament, is_tree, is_triangle_free, is_wheel, isomorphic_bliss, katz_centrality,
-    label_propagation, layout_circle, layout_fruchterman_reingold, layout_grid,
-    layout_kamada_kawai, layout_random, layout_star, leading_eigenvector, leiden, line_graph,
-    list_triangles, louvain, max_flow_value, mean_degree, mean_distance, minimum_cycle_basis,
-    pagerank, radius, random_walk, reciprocity, ring_graph, simplify, spinglass,
+    ConnectednessMode, DijkstraMode, FasAlgorithm, FrParams, Graph, GreedyColoringHeuristic,
+    KkParams, MstAlgorithm, VertexId, articulation_points, assortativity_degree,
+    automorphism_group, barabasi_game_bag, bellman_ford_distances, betweenness,
+    betweenness_weighted, bfs, bridges, canonical_permutation, clique_number, closeness,
+    closeness_weighted, complementer, connected_components, constraint, coreness,
+    count_automorphisms, count_triangles, cycle_graph, density, dfs, diameter, dijkstra_distances,
+    distances, eccentricity, edge_betweenness, edge_betweenness_community, edge_connectivity,
+    eigenvector_centrality, erdos_renyi_gnp, fast_greedy_modularity, feedback_arc_set,
+    floyd_warshall_distances, fluid_communities, full_graph, fundamental_cycles, girth,
+    harmonic_centrality, hub_and_authority_scores, independence_number, infomap, is_acyclic,
+    is_biconnected, is_bipartite, is_complete, is_connected, is_cubic, is_cycle, is_dag, is_forest,
+    is_outerplanar, is_path, is_perfect, is_star, is_tournament, is_tree, is_triangle_free,
+    is_wheel, isomorphic_bliss, katz_centrality, label_propagation, layout_circle,
+    layout_fruchterman_reingold, layout_grid, layout_kamada_kawai, layout_random, layout_star,
+    leading_eigenvector, leiden, line_graph, list_triangles, louvain, max_flow_value,
+    maximal_cliques, mean_degree, mean_distance, minimum_cycle_basis, minimum_spanning_tree,
+    pagerank, radius, random_walk, reciprocity, ring_graph, simplify, spinglass, strength,
     strongly_connected_components, topological_sorting, transitivity_undirected, triad_census,
-    trussness, vertex_coloring_greedy, walktrap, watts_strogatz_game,
+    trussness, vertex_coloring_greedy, vertex_connectivity, walktrap, watts_strogatz_game,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -329,6 +334,44 @@ struct TrussnessResult {
 struct TriangleListResult {
     triangles: Vec<[u32; 3]>,
     count: usize,
+}
+
+#[derive(Serialize)]
+struct CliquesResult {
+    cliques: Vec<Vec<u32>>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct ScalarU32Result {
+    value: u32,
+}
+
+#[derive(Serialize)]
+struct ScalarI64Result {
+    value: i64,
+}
+
+#[derive(Serialize)]
+struct MstResult {
+    edges: Vec<u32>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct StrengthResult {
+    scores: Vec<f64>,
+}
+
+#[derive(Serialize)]
+struct FeedbackArcSetResult {
+    edges: Vec<u32>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct WeightedDistancesResult {
+    distances: Vec<Option<f64>>,
 }
 
 #[wasm_bindgen]
@@ -1131,5 +1174,110 @@ impl WasmGraph {
     pub fn complement(&self) -> Result<WasmGraph, JsError> {
         let g = complementer(&self.inner, false).map_err(|e| JsError::new(&e.to_string()))?;
         Ok(WasmGraph { inner: g })
+    }
+
+    // --- Cliques & independence ---
+
+    #[wasm_bindgen(js_name = "cliqueNumber")]
+    pub fn clique_number(&self) -> Result<String, JsError> {
+        let v = clique_number(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ScalarU32Result { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "maximalCliques")]
+    pub fn maximal_cliques(&self) -> Result<String, JsError> {
+        let c = maximal_cliques(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let count = c.len();
+        let result = CliquesResult { cliques: c, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "independenceNumber")]
+    pub fn independence_number(&self) -> Result<String, JsError> {
+        let v = independence_number(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ScalarU32Result { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Connectivity ---
+
+    #[wasm_bindgen(js_name = "vertexConnectivity")]
+    pub fn vertex_connectivity(&self) -> Result<String, JsError> {
+        let v = vertex_connectivity(&self.inner, true).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ScalarI64Result { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "edgeConnectivity")]
+    pub fn edge_connectivity(&self) -> Result<String, JsError> {
+        let v = edge_connectivity(&self.inner, true).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ScalarI64Result { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Spanning tree ---
+
+    #[wasm_bindgen(js_name = "minimumSpanningTree")]
+    pub fn minimum_spanning_tree(&self, weights: Option<Vec<f64>>) -> Result<String, JsError> {
+        let w = weights.as_deref();
+        let edges = minimum_spanning_tree(&self.inner, w, MstAlgorithm::Prim)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let count = edges.len();
+        let result = MstResult { edges, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Weighted degree (strength) ---
+
+    pub fn strength(&self, weights: Vec<f64>) -> Result<String, JsError> {
+        let s = strength(&self.inner, &weights).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = StrengthResult { scores: s };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Feedback arc set ---
+
+    #[wasm_bindgen(js_name = "feedbackArcSet")]
+    pub fn feedback_arc_set(&self, weights: Option<Vec<f64>>) -> Result<String, JsError> {
+        let w = weights.as_deref();
+        let edges = feedback_arc_set(&self.inner, w, FasAlgorithm::EadesLinSmyth)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let count = edges.len();
+        let result = FeedbackArcSetResult { edges, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Weighted shortest paths ---
+
+    #[wasm_bindgen(js_name = "bellmanFordDistances")]
+    pub fn bellman_ford_distances(
+        &self,
+        source: u32,
+        weights: Vec<f64>,
+    ) -> Result<String, JsError> {
+        let d = bellman_ford_distances(&self.inner, source, &weights)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = WeightedDistancesResult { distances: d };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Weighted centrality ---
+
+    #[wasm_bindgen(js_name = "closenessWeighted")]
+    pub fn closeness_weighted(&self, weights: Vec<f64>) -> Result<String, JsError> {
+        let c =
+            closeness_weighted(&self.inner, &weights).map_err(|e| JsError::new(&e.to_string()))?;
+        let scores: Vec<f64> = c.into_iter().map(|v| v.unwrap_or(f64::NAN)).collect();
+        let result = ClosenessResult { scores };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "betweennessWeighted")]
+    pub fn betweenness_weighted(&self, weights: Vec<f64>) -> Result<String, JsError> {
+        let b = betweenness_weighted(&self.inner, &weights)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BetweennessResult { scores: b };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 }
