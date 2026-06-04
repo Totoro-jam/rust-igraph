@@ -3,6 +3,7 @@
   align-items: stretch;
   gap: 0;
   border-bottom: 1px solid var(--border);
+  min-height: 38px;
 }
 
 .topBar > :first-child {
