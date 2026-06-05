@@ -23,6 +23,9 @@
 
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="canonical" href="https://totoro-jam.github.io/rust-igraph/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script type="application/ld+json">
   {
@@ -71,6 +74,10 @@
   <!-- Hero -->
   <section id="main" class="hero">
     <canvas id="hero-canvas" aria-hidden="true"></canvas>
+    <button class="hero-anim-toggle" aria-label="Toggle animation" id="hero-toggle">
+      <svg class="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      <svg class="icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:none"><polygon points="5,3 19,12 5,21"/></svg>
+    </button>
     <div class="hero-content">
       <h1 data-i18n="hero.title">Graph Algorithms<br>in Pure Rust</h1>
       <p class="hero-sub" data-i18n="hero.sub">1,297 APIs. Zero <code>unsafe</code>. One dependency. Runs natively and in the browser via WASM.</p>
@@ -95,8 +102,8 @@
   <!-- Code example -->
   <section class="code-section">
     <div class="section-inner">
-      <h2 data-i18n="code.title">Simple, Expressive API</h2>
-      <div class="code-grid">
+      <h2 class="reveal" data-i18n="code.title">Simple, Expressive API</h2>
+      <div class="code-grid reveal-stagger">
         <div class="code-block">
           <div class="code-header" data-i18n="code.construct">Graph Construction &amp; Analysis</div>
           <pre><code><span class="kw">use</span> rust_igraph::{Graph, pagerank, louvain};
@@ -143,8 +150,8 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
   <!-- Feature grid -->
   <section class="features">
     <div class="section-inner">
-      <h2 data-i18n="features.title">Comprehensive Algorithm Coverage</h2>
-      <div class="feature-grid">
+      <h2 class="reveal" data-i18n="features.title">Comprehensive Algorithm Coverage</h2>
+      <div class="feature-grid reveal-stagger">
         <div class="feature-card">
           <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
           <h3 data-i18n="features.traversal">Traversal &amp; Paths</h3>
@@ -182,7 +189,7 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
   <!-- Comparison table -->
   <section class="comparison">
     <div class="section-inner">
-      <h2 data-i18n="compare.title">How Does It Compare?</h2>
+      <h2 class="reveal" data-i18n="compare.title">How Does It Compare?</h2>
       <div class="table-wrap">
         <table>
           <thead>
@@ -239,7 +246,7 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
   <!-- WASM callout -->
   <section class="wasm-callout">
     <div class="section-inner">
-      <h2 data-i18n="wasm.title">Runs in the Browser</h2>
+      <h2 class="reveal" data-i18n="wasm.title">Runs in the Browser</h2>
       <p data-i18n="wasm.desc">Compile to WASM and run graph algorithms client-side — no server needed. Try it live in the playground.</p>
       <a href="playground/" class="btn btn-primary" data-i18n="wasm.cta">Open Playground</a>
     </div>
@@ -248,7 +255,7 @@ println!(<span class="st">"Triangles: {}"</span>, g.count_triangles().unwrap());
   <!-- Ecosystem -->
   <section class="ecosystem">
     <div class="section-inner">
-      <h2 data-i18n="eco.title">Ecosystem</h2>
+      <h2 class="reveal" data-i18n="eco.title">Ecosystem</h2>
       <div class="badges">
         <a href="https://crates.io/crates/rust-igraph"><img alt="crates.io" src="https://img.shields.io/crates/v/rust-igraph.svg?label=crates.io&style=flat-square"></a>
         <a href="https://docs.rs/rust-igraph"><img alt="docs.rs" src="https://img.shields.io/docsrs/rust-igraph?label=docs.rs&style=flat-square"></a>

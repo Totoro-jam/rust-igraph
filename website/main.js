@@ -164,7 +164,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
   });
 });
 
-// Hero canvas: animated force-directed graph with community coloring
+// ========== Hero canvas: Real force-directed graph simulation ==========
 (function () {
   const canvas = document.getElementById('hero-canvas');
   if (!canvas) return;
@@ -174,13 +174,24 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
   let width, height;
   const nodes = [];
   const edges = [];
-  const N = 60;
-  const COMMUNITY_COLORS_DARK = ['#58a6ff', '#f778ba', '#7ee787', '#d2a8ff', '#ffa657'];
-  const COMMUNITY_COLORS_LIGHT = ['#0969da', '#bf3989', '#1a7f37', '#8250df', '#bc4c00'];
+  const N = 55;
+  const COMMUNITIES = 5;
+
+  // Physics constants
+  const REPULSION = 4000;
+  const SPRING_K = 0.004;
+  const SPRING_L = 70;
+  const GRAVITY = 0.015;
+  const DAMPING = 0.9;
+  const MAX_V = 3.5;
+  const MARGIN = 0.1; // 10% soft margin
+
+  const COLORS_DARK = ['#7c8fff', '#f778ba', '#7ee787', '#a78bfa', '#ffa657'];
+  const COLORS_LIGHT = ['#5563e8', '#bf3989', '#1a7f37', '#7c5ce8', '#bc4c00'];
 
   function getColors() {
     const theme = document.documentElement.getAttribute('data-theme');
-    return theme === 'light' ? COMMUNITY_COLORS_LIGHT : COMMUNITY_COLORS_DARK;
+    return theme === 'light' ? COLORS_LIGHT : COLORS_DARK;
   }
 
   function resize() {
@@ -207,36 +218,120 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
   function init() {
     resize();
-    const communities = 5;
-    const centersX = [0.2, 0.5, 0.8, 0.35, 0.65];
-    const centersY = [0.3, 0.6, 0.35, 0.7, 0.55];
+
+    // Initialize nodes within 80% of canvas area, centered
+    const usableW = width * 0.8;
+    const usableH = height * 0.8;
+    const offsetX = width * 0.1;
+    const offsetY = height * 0.1;
+
+    const centersX = [0.2, 0.5, 0.8, 0.3, 0.7];
+    const centersY = [0.3, 0.65, 0.3, 0.75, 0.6];
 
     for (let i = 0; i < N; i++) {
-      const c = i % communities;
-      const spread = 0.15;
+      const c = i % COMMUNITIES;
+      const spread = 0.12;
       nodes.push({
-        x: (centersX[c] + (Math.random() - 0.5) * spread) * width,
-        y: (centersY[c] + (Math.random() - 0.5) * spread) * height,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: (Math.random() - 0.5) * 0.25,
-        r: 2.5 + Math.random() * 2.5,
+        x: offsetX + (centersX[c] + (Math.random() - 0.5) * spread) * usableW,
+        y: offsetY + (centersY[c] + (Math.random() - 0.5) * spread) * usableH,
+        vx: 0,
+        vy: 0,
+        r: 2.5 + Math.random() * 2,
         community: c,
       });
     }
 
+    // Create edges: intra-community dense, inter-community sparse
     for (let i = 0; i < N; i++) {
       const intra = 1 + Math.floor(Math.random() * 2);
       for (let e = 0; e < intra; e++) {
-        const sameComm = nodes.map((n, idx) => idx).filter(idx => idx !== i && nodes[idx].community === nodes[i].community);
+        const sameComm = [];
+        for (let j = 0; j < N; j++) {
+          if (j !== i && nodes[j].community === nodes[i].community) sameComm.push(j);
+        }
         if (sameComm.length > 0) {
           const j = sameComm[Math.floor(Math.random() * sameComm.length)];
+          if (!edges.some(([a, b]) => (a === i && b === j) || (a === j && b === i))) {
+            edges.push([i, j]);
+          }
+        }
+      }
+      if (Math.random() < 0.12) {
+        const j = Math.floor(Math.random() * N);
+        if (j !== i && !edges.some(([a, b]) => (a === i && b === j) || (a === j && b === i))) {
           edges.push([i, j]);
         }
       }
-      if (Math.random() < 0.15) {
-        const j = Math.floor(Math.random() * N);
-        if (j !== i) edges.push([i, j]);
+    }
+  }
+
+  function applyForces() {
+    const cx = width / 2;
+    const cy = height / 2;
+    const minX = width * MARGIN;
+    const maxX = width * (1 - MARGIN);
+    const minY = height * MARGIN;
+    const maxY = height * (1 - MARGIN);
+
+    // Repulsive forces between all pairs
+    for (let i = 0; i < N; i++) {
+      for (let j = i + 1; j < N; j++) {
+        let dx = nodes[j].x - nodes[i].x;
+        let dy = nodes[j].y - nodes[i].y;
+        let dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 1) dist = 1;
+        const force = REPULSION / (dist * dist);
+        const fx = (dx / dist) * force;
+        const fy = (dy / dist) * force;
+        nodes[i].vx -= fx;
+        nodes[i].vy -= fy;
+        nodes[j].vx += fx;
+        nodes[j].vy += fy;
       }
+    }
+
+    // Spring forces along edges
+    for (const [i, j] of edges) {
+      const dx = nodes[j].x - nodes[i].x;
+      const dy = nodes[j].y - nodes[i].y;
+      let dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 1) dist = 1;
+      const force = SPRING_K * (dist - SPRING_L);
+      const fx = (dx / dist) * force;
+      const fy = (dy / dist) * force;
+      nodes[i].vx += fx;
+      nodes[i].vy += fy;
+      nodes[j].vx -= fx;
+      nodes[j].vy -= fy;
+    }
+
+    // Gravity toward center
+    for (let i = 0; i < N; i++) {
+      const dx = cx - nodes[i].x;
+      const dy = cy - nodes[i].y;
+      nodes[i].vx += dx * GRAVITY;
+      nodes[i].vy += dy * GRAVITY;
+    }
+
+    // Update positions with damping and velocity cap
+    for (let i = 0; i < N; i++) {
+      nodes[i].vx *= DAMPING;
+      nodes[i].vy *= DAMPING;
+
+      const speed = Math.sqrt(nodes[i].vx * nodes[i].vx + nodes[i].vy * nodes[i].vy);
+      if (speed > MAX_V) {
+        nodes[i].vx = (nodes[i].vx / speed) * MAX_V;
+        nodes[i].vy = (nodes[i].vy / speed) * MAX_V;
+      }
+
+      nodes[i].x += nodes[i].vx;
+      nodes[i].y += nodes[i].vy;
+
+      // Soft boundary constraint
+      if (nodes[i].x < minX) { nodes[i].x = minX; nodes[i].vx *= -0.3; }
+      if (nodes[i].x > maxX) { nodes[i].x = maxX; nodes[i].vx *= -0.3; }
+      if (nodes[i].y < minY) { nodes[i].y = minY; nodes[i].vy *= -0.3; }
+      if (nodes[i].y > maxY) { nodes[i].y = maxY; nodes[i].vy *= -0.3; }
     }
   }
 
@@ -244,67 +339,119 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
     ctx.clearRect(0, 0, width, height);
     const colors = getColors();
 
-    ctx.lineWidth = 1;
+    // Draw edges with gradient
+    ctx.lineWidth = 1.2;
     for (const [i, j] of edges) {
       const sameComm = nodes[i].community === nodes[j].community;
-      ctx.strokeStyle = sameComm ? colors[nodes[i].community] : colors[nodes[i].community];
-      ctx.globalAlpha = sameComm ? 0.2 : 0.07;
+      const grad = ctx.createLinearGradient(nodes[i].x, nodes[i].y, nodes[j].x, nodes[j].y);
+      const colorI = colors[nodes[i].community];
+      const colorJ = colors[nodes[j].community];
+      const alpha = sameComm ? 0.25 : 0.08;
+      grad.addColorStop(0, colorI);
+      grad.addColorStop(1, colorJ);
+      ctx.strokeStyle = grad;
+      ctx.globalAlpha = alpha;
       ctx.beginPath();
       ctx.moveTo(nodes[i].x, nodes[i].y);
       ctx.lineTo(nodes[j].x, nodes[j].y);
       ctx.stroke();
     }
 
+    // Draw nodes with glow
     for (const node of nodes) {
-      ctx.globalAlpha = 0.6;
-      ctx.fillStyle = colors[node.community];
+      const color = colors[node.community];
+
+      // Outer glow
+      ctx.globalAlpha = 0.12;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.r + 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Core
+      ctx.globalAlpha = 0.7;
+      ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.globalAlpha = 0.15;
+      // Inner highlight
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = '#fff';
       ctx.beginPath();
-      ctx.arc(node.x, node.y, node.r + 3, 0, Math.PI * 2);
+      ctx.arc(node.x - node.r * 0.25, node.y - node.r * 0.25, node.r * 0.4, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
   }
 
   let animating = true;
+  let rafId = null;
 
   function step() {
     if (!animating) return;
-    for (const node of nodes) {
-      node.x += node.vx;
-      node.y += node.vy;
-      if (node.x < 0 || node.x > width) node.vx *= -1;
-      if (node.y < 0 || node.y > height) node.vy *= -1;
-      node.x = Math.max(0, Math.min(width, node.x));
-      node.y = Math.max(0, Math.min(height, node.y));
-    }
+    applyForces();
     draw();
-    requestAnimationFrame(step);
+    rafId = requestAnimationFrame(step);
   }
 
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    init();
+  // Toggle button
+  const toggleBtn = document.getElementById('hero-toggle');
+  const iconPause = toggleBtn ? toggleBtn.querySelector('.icon-pause') : null;
+  const iconPlay = toggleBtn ? toggleBtn.querySelector('.icon-play') : null;
+
+  function setAnimating(val) {
+    animating = val;
+    localStorage.setItem('hero-animation', val ? 'on' : 'off');
+    if (iconPause && iconPlay) {
+      iconPause.style.display = val ? '' : 'none';
+      iconPlay.style.display = val ? 'none' : '';
+    }
+    if (val && !rafId) step();
+  }
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function () {
+      setAnimating(!animating);
+    });
+  }
+
+  // Check stored preference and reduced-motion
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const storedPref = localStorage.getItem('hero-animation');
+
+  init();
+
+  if (reducedMotion || storedPref === 'off') {
+    // Run physics for equilibrium (no animation loop)
+    for (let i = 0; i < 150; i++) applyForces();
     draw();
+    animating = false;
+    if (iconPause && iconPlay) {
+      iconPause.style.display = 'none';
+      iconPlay.style.display = '';
+    }
   } else {
-    init();
     step();
   }
-  window.addEventListener('resize', resize);
+
+  window.addEventListener('resize', function () {
+    resize();
+    if (!animating) draw();
+  });
+
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) {
       animating = false;
-    } else if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    } else if (storedPref !== 'off' && !reducedMotion) {
       animating = true;
       step();
     }
   });
 })();
 
-// Number counter animation
+// ========== Number counter animation ==========
 (function () {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -319,7 +466,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
       const target = parseInt(match[1].replace(/,/g, ''), 10);
       const suffix = match[2];
-      const duration = 1200;
+      const duration = 1400;
       const start = performance.now();
 
       function tick(now) {
@@ -337,4 +484,21 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
   }, { threshold: 0.5 });
 
   document.querySelectorAll('.stat-num').forEach(el => observer.observe(el));
+})();
+
+// ========== Scroll reveal animations ==========
+(function () {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => {
+    observer.observe(el);
+  });
 })();
