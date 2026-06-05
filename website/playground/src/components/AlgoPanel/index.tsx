@@ -204,9 +204,13 @@ export function AlgoPanel({
         </select>
       </div>
 
-      <button className={styles.btnRun} onClick={onRun} disabled={running}>
-        {running ? t('status.running') : `▶ ${t('run')}`}
-      </button>
+      <div className={styles.btnRunWrap}>
+        <div className={styles.btnRunGlow1} />
+        <div className={styles.btnRunGlow2} />
+        <button className={styles.btnRun} onClick={onRun} disabled={running}>
+          {running ? t('status.running') : `▶ ${t('run')}`}
+        </button>
+      </div>
     </>
   );
 }

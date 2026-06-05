@@ -44,6 +44,7 @@
 }
 
 .panelHeader {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -52,6 +53,23 @@
   border-bottom: 1px solid var(--border);
   background: var(--bg-card);
   flex-shrink: 0;
+}
+
+.panelHeader::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.panelHeader:hover::after {
+  opacity: 0.5;
 }
 
 .panelHeader h2 {

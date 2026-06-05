@@ -3,12 +3,14 @@
   align-items: stretch;
   gap: 0;
   border-bottom: 1px solid var(--border);
-  min-height: 38px;
+  min-height: 34px;
+  flex-shrink: 0;
 }
 
 .topBar > :first-child {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .generateBtn {
@@ -26,6 +28,7 @@
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
 }
 
 .generateBtn:hover:not(:disabled) {
@@ -36,6 +39,10 @@
 .generateBtn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.generateBtnLabel {
+  display: inline;
 }
 
 .edgeInput {
@@ -50,6 +57,7 @@
   color: var(--text);
   border: none;
   outline: none;
+  transition: box-shadow 0.2s ease;
 }
 
 .edgeInput::placeholder {
@@ -62,9 +70,21 @@
 }
 
 .editorHint {
-  padding: 0.3rem 0.75rem;
-  font-size: 0.7rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
   border-top: 1px solid var(--border);
   text-align: right;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+@media (max-width: 900px) {
+  .generateBtnLabel {
+    display: none;
+  }
+
+  .generateBtn {
+    padding: 0 8px;
+  }
 }

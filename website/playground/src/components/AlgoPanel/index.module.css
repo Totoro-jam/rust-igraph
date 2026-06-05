@@ -123,11 +123,14 @@
 
 .algoOption:hover {
   background: var(--bg-hover);
+  padding-left: 2rem;
 }
 
 .algoOption.active {
   background: var(--accent-bg);
   color: var(--accent);
+  border-left: 2px solid var(--accent);
+  padding-left: calc(1.8rem - 2px);
 }
 
 .algoOption input {
@@ -207,27 +210,78 @@
   border-color: var(--accent);
 }
 
-/* ── Run button ── */
-.btnRun {
+/* ── Run button (StarBorder style) ── */
+.btnRunWrap {
+  position: relative;
+  display: block;
   margin: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+  padding: 1.5px;
+}
+
+.btnRunGlow1,
+.btnRunGlow2 {
+  position: absolute;
+  width: 300%;
+  height: 50%;
+  opacity: 0;
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.btnRunGlow1 {
+  bottom: -10px;
+  right: -250%;
+  background: radial-gradient(circle, var(--accent), transparent 10%);
+  animation: star-move-bottom 5s linear infinite alternate;
+}
+
+.btnRunGlow2 {
+  top: -10px;
+  left: -250%;
+  background: radial-gradient(circle, var(--accent-hover), transparent 10%);
+  animation: star-move-top 5s linear infinite alternate;
+}
+
+.btnRunWrap:hover .btnRunGlow1,
+.btnRunWrap:hover .btnRunGlow2 {
+  opacity: 0.8;
+}
+
+.btnRun {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
   padding: 0.5rem 1rem;
   background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: var(--radius);
+  border-radius: calc(var(--radius) - 1px);
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: background var(--transition);
+  transition: background var(--transition), transform 0.1s ease;
 }
 
 .btnRun:hover {
   background: var(--accent-hover);
 }
 
+.btnRun:active {
+  transform: scale(0.97);
+}
+
 .btnRun:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.btnRun:disabled:active {
+  transform: none;
 }
 
 /* ── Responsive ── */

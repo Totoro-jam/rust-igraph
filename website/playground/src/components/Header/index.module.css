@@ -30,7 +30,19 @@
   font-size: 1.15rem;
   font-weight: 700;
   font-family: var(--font-mono);
-  color: var(--text-heading);
+  background: linear-gradient(
+    120deg,
+    var(--text-heading) 0%,
+    var(--text-heading) 35%,
+    var(--accent) 50%,
+    var(--text-heading) 65%,
+    var(--text-heading) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 6s linear infinite;
 }
 
 .navLinks {

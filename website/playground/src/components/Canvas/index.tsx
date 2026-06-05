@@ -16,6 +16,10 @@ const PALETTE_LIGHT = [
   '#116329', '#0969da', '#7d4e00', '#bc4c00',
 ];
 
+type LayoutId = 'fr' | 'kamada_kawai' | 'circle' | 'random' | 'grid' | 'star';
+
+const STATIC_LAYOUTS: Set<LayoutId> = new Set(['circle', 'grid', 'star', 'kamada_kawai']);
+
 interface CanvasProps {
   coords: [number, number][] | null;
   edges: Edge[];
@@ -24,6 +28,7 @@ interface CanvasProps {
   algo: AlgoId;
   directed: boolean;
   theme: 'dark' | 'light';
+  layoutId: LayoutId;
   t: (key: string) => string;
 }
 
@@ -326,7 +331,7 @@ function drawArrow(
   ctx.fill();
 }
 
-export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t }: CanvasProps) {
+export function Canvas({ coords, edges, vcount, result, algo, directed, theme, layoutId, t }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<ViewTransform>({ offsetX: 0, offsetY: 0, scale: 1 });
@@ -511,6 +516,8 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
 
   drawRef.current = draw;
 
+  const isStaticLayout = STATIC_LAYOUTS.has(layoutId);
+
   // Initialize/update simulation when coords change (triggered by Run)
   useEffect(() => {
     if (simRef.current) {
@@ -531,6 +538,25 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
       setSimActive(false);
       drawRef.current();
       return;
+    }
+
+    if (isStaticLayout) {
+      const sim = new ForceSimulation(currentVcount, currentEdges, coords, {
+        linkDistance: 50,
+        chargeStrength: 0,
+        alphaDecay: 1,
+        velocityDecay: 1,
+      });
+      sim.alpha = 0;
+      sim.setOnTick(() => drawRef.current());
+      simRef.current = sim;
+      setSimActive(false);
+      drawRef.current();
+
+      return () => {
+        sim.destroy();
+        if (simRef.current === sim) simRef.current = null;
+      };
     }
 
     const linkDist = Math.max(30, Math.min(80, 600 / Math.sqrt(Math.max(currentVcount, 1))));
@@ -556,7 +582,7 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
     };
     // Only re-init on new coords (from Run) — edges/vcount read from refs
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coords]);
+  }, [coords, isStaticLayout]);
 
   // Resize observer
   useEffect(() => {
@@ -930,8 +956,15 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
     return () => { clearTimeout(timer); document.removeEventListener('click', close); };
   }, [exportOpen]);
 
+  const handleSpotlight = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    el.style.setProperty('--spot-x', `${e.clientX - rect.left}px`);
+    el.style.setProperty('--spot-y', `${e.clientY - rect.top}px`);
+  }, []);
+
   return (
-    <div className={css.canvasContainer} ref={containerRef}>
+    <div className={css.canvasContainer} ref={containerRef} onMouseMove={handleSpotlight}>
       <canvas ref={canvasRef} style={{ cursor: 'grab' }} />
 
       <div className={css.toolbar}>
@@ -944,28 +977,32 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, t
             <path d="M2 6h12M2 10h12M6 2v12M10 2v12" opacity="0.3" />
           </svg>
         </button>
-        <div className={css.toolbarDivider} />
-        <button
-          onClick={toggleSim}
-          title={simActive ? t('pauseSim') : t('resumeSim')}
-          className={simActive ? css.toolbarActive : ''}
-        >
-          {simActive ? (
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-              <rect x="3" y="2" width="4" height="12" rx="1" />
-              <rect x="9" y="2" width="4" height="12" rx="1" />
-            </svg>
-          ) : (
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M4 2l10 6-10 6V2z" />
-            </svg>
-          )}
-        </button>
-        <button onClick={shakeLayout} title={t('shuffleLayout')}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M2 4h4l2 4-2 4H2M14 4h-4l-2 4 2 4h4" />
-          </svg>
-        </button>
+        {!isStaticLayout && (
+          <>
+            <div className={css.toolbarDivider} />
+            <button
+              onClick={toggleSim}
+              title={simActive ? t('pauseSim') : t('resumeSim')}
+              className={simActive ? css.toolbarActive : ''}
+            >
+              {simActive ? (
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <rect x="3" y="2" width="4" height="12" rx="1" />
+                  <rect x="9" y="2" width="4" height="12" rx="1" />
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M4 2l10 6-10 6V2z" />
+                </svg>
+              )}
+            </button>
+            <button onClick={shakeLayout} title={t('shuffleLayout')}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M2 4h4l2 4-2 4H2M14 4h-4l-2 4 2 4h4" />
+              </svg>
+            </button>
+          </>
+        )}
         <div className={css.toolbarDivider} />
         <div className={css.exportWrap}>
           <button onClick={() => setExportOpen((p) => !p)} title={t('export')}>

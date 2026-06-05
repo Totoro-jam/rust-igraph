@@ -272,6 +272,7 @@ export function App() {
               algo={algo}
               directed={directed}
               theme={theme}
+              layoutId={layoutId}
               t={t}
             />
 
