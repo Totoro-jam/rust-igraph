@@ -121,8 +121,7 @@ impl Dendro {
         // For each remaining leaf, pick a random existing leaf and
         // replace it with a new internal node that has the old leaf
         // and new leaf as children.
-        let mut active_internal = 1usize; // next internal node to allocate
-        for leaf_idx in 2..n {
+        for (active_internal, leaf_idx) in (1usize..).zip(2..n) {
             let new_leaf = perm[leaf_idx];
             // Pick a random existing leaf to split
             let target_leaf = perm[rng.gen_index(leaf_idx)];
@@ -130,7 +129,6 @@ impl Dendro {
             let target_side = leaf_side[target_leaf as usize];
 
             let new_internal = active_internal;
-            active_internal += 1;
 
             // New internal node gets target_leaf and new_leaf as children
             nodes[new_internal].left = Child::Leaf(target_leaf);
@@ -983,7 +981,7 @@ pub fn hrg_consensus(
 
     // Build consensus tree from most frequent splits
     let mut splits: Vec<(Vec<u32>, u64)> = split_counts.into_iter().collect();
-    splits.sort_by(|a, b| b.1.cmp(&a.1));
+    splits.sort_by_key(|b| std::cmp::Reverse(b.1));
 
     // Build the consensus tree as parent array
     let total_nodes = 2 * n - 1;
