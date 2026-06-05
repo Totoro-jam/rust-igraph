@@ -75,7 +75,16 @@ export type AlgoId =
   | 'vertex_disjoint_paths'
   | 'edge_disjoint_paths'
   | 'is_eulerian'
-  | 'cohesive_blocks';
+  | 'cohesive_blocks'
+  | 'avg_nearest_neighbor_degree'
+  | 'chromatic_number'
+  | 'convergence_degree'
+  | 'similarity_jaccard'
+  | 'community_voronoi'
+  | 'graph_center'
+  | 'clustering_coefficients'
+  | 'average_path_length'
+  | 'k_shortest_paths';
 
 export type LayoutId = 'fr' | 'kamada_kawai' | 'circle' | 'random' | 'grid' | 'star';
 
@@ -275,6 +284,40 @@ export interface AlgoResultCohesiveBlocks {
   count: number;
 }
 
+export interface AlgoResultKnn {
+  scores: (number | null)[];
+}
+
+export interface AlgoResultSimilarityMatrix {
+  matrix: number[][];
+  size: number;
+}
+
+export interface AlgoResultVoronoi {
+  membership: number[];
+  generators: number[];
+  modularity: number | null;
+}
+
+export interface AlgoResultGraphCenter {
+  vertices: number[];
+  count: number;
+}
+
+export interface AlgoResultClusteringCoeff {
+  scores: (number | null)[];
+}
+
+export interface AlgoResultKPaths {
+  paths: { vertices: number[]; weight: number }[];
+  count: number;
+}
+
+export interface AlgoResultSeparators {
+  separators: number[][];
+  count: number;
+}
+
 export type AlgoResult =
   | AlgoResultScores
   | AlgoResultMembership
@@ -312,7 +355,14 @@ export type AlgoResult =
   | AlgoResultEulerian
   | AlgoResultSimplePaths
   | AlgoResultFindCycle
-  | AlgoResultCohesiveBlocks;
+  | AlgoResultCohesiveBlocks
+  | AlgoResultKnn
+  | AlgoResultSimilarityMatrix
+  | AlgoResultVoronoi
+  | AlgoResultGraphCenter
+  | AlgoResultClusteringCoeff
+  | AlgoResultKPaths
+  | AlgoResultSeparators;
 
 export interface RunResult {
   algo: AlgoId;

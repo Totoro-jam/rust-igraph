@@ -121,6 +121,18 @@ interface WasmGraphInstance {
   findCycle(): string;
   allSimplePaths(source: number, target: number): string;
   cohesiveBlocks(): string;
+  avgNearestNeighborDegree(): string;
+  chromaticNumberUpperBound(): string;
+  convergenceDegree(): string;
+  similarityJaccard(): string;
+  similarityDice(): string;
+  communityVoronoi(): string;
+  graphCenter(): string;
+  neighborhood(order: number): string;
+  kShortestPaths(source: number, target: number, k: number): string;
+  allMinimalStSeparators(): string;
+  clusteringCoefficients(): string;
+  averagePathLength(): string;
   getEdges(): Uint32Array;
   isDirected(): boolean;
   vcount(): number;
@@ -421,6 +433,33 @@ function runWasm(
         break;
       case 'cohesive_blocks':
         resultJson = graph.cohesiveBlocks();
+        break;
+      case 'avg_nearest_neighbor_degree':
+        resultJson = graph.avgNearestNeighborDegree();
+        break;
+      case 'chromatic_number':
+        resultJson = graph.chromaticNumberUpperBound();
+        break;
+      case 'convergence_degree':
+        resultJson = graph.convergenceDegree();
+        break;
+      case 'similarity_jaccard':
+        resultJson = graph.similarityJaccard();
+        break;
+      case 'community_voronoi':
+        resultJson = graph.communityVoronoi();
+        break;
+      case 'graph_center':
+        resultJson = graph.graphCenter();
+        break;
+      case 'clustering_coefficients':
+        resultJson = graph.clusteringCoefficients();
+        break;
+      case 'average_path_length':
+        resultJson = graph.averagePathLength();
+        break;
+      case 'k_shortest_paths':
+        resultJson = graph.kShortestPaths(params.source ?? 0, params.target ?? (graph.vcount() > 1 ? graph.vcount() - 1 : 0), 5);
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);

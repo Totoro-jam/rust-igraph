@@ -1416,6 +1416,147 @@ export function demoCohesiveBlocks(vcount: number, edges: Edge[]): AlgoResult {
   return { blocks, cohesion, count: blocks.length } as AlgoResult;
 }
 
+export function demoAvgNearestNeighborDegree(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const deg = new Array(vcount).fill(0);
+  for (const [u, v] of edges) {
+    if (u < vcount) deg[u]++;
+    if (v < vcount) deg[v]++;
+  }
+  const scores: (number | null)[] = [];
+  for (let v = 0; v < vcount; v++) {
+    const nbrs = adj[v]!;
+    if (nbrs.length === 0) { scores.push(null); continue; }
+    let sum = 0;
+    for (const u of nbrs) sum += deg[u]!;
+    scores.push(sum / nbrs.length);
+  }
+  return { scores } as AlgoResult;
+}
+
+export function demoChromaticNumber(vcount: number, edges: Edge[]): AlgoResult {
+  const result = demoColoring(vcount, edges) as { colors: number[]; chromatic: number };
+  return { value: result.chromatic } as AlgoResult;
+}
+
+export function demoConvergenceDegree(vcount: number, edges: Edge[]): AlgoResult {
+  const adj: Set<number>[] = Array.from({ length: vcount }, () => new Set());
+  for (const [u, v] of edges) { adj[u]!.add(v); adj[v]!.add(u); }
+  const scores: number[] = [];
+  for (const [u, v] of edges) {
+    let common = 0;
+    for (const w of adj[u]!) {
+      if (adj[v]!.has(w)) common++;
+    }
+    const unionSize = adj[u]!.size + adj[v]!.size - common;
+    scores.push(unionSize > 0 ? common / unionSize : 0);
+  }
+  return { scores } as AlgoResult;
+}
+
+export function demoSimilarityJaccard(vcount: number, edges: Edge[]): AlgoResult {
+  const adj: Set<number>[] = Array.from({ length: vcount }, () => new Set());
+  for (const [u, v] of edges) { adj[u]!.add(v); adj[v]!.add(u); }
+  const matrix: number[][] = [];
+  for (let i = 0; i < vcount; i++) {
+    const row: number[] = [];
+    for (let j = 0; j < vcount; j++) {
+      if (i === j) { row.push(1); continue; }
+      let inter = 0;
+      for (const w of adj[i]!) { if (adj[j]!.has(w)) inter++; }
+      const union = adj[i]!.size + adj[j]!.size - inter;
+      row.push(union > 0 ? inter / union : 0);
+    }
+    matrix.push(row);
+  }
+  return { matrix, size: vcount } as AlgoResult;
+}
+
+export function demoCommunityVoronoi(vcount: number, edges: Edge[]): AlgoResult {
+  const result = demoComponents(vcount, edges) as { membership: number[]; count: number };
+  return { membership: result.membership, generators: [], modularity: 0 } as AlgoResult;
+}
+
+export function demoGraphCenter(vcount: number, edges: Edge[]): AlgoResult {
+  const ecc = demoEccentricity(vcount, edges) as { values: number[] };
+  const minEcc = Math.min(...ecc.values);
+  const vertices: number[] = [];
+  ecc.values.forEach((e, i) => { if (e === minEcc) vertices.push(i); });
+  return { vertices, count: vertices.length } as AlgoResult;
+}
+
+export function demoClusteringCoefficients(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const scores: (number | null)[] = [];
+  for (let v = 0; v < vcount; v++) {
+    const nbrs = adj[v]!;
+    if (nbrs.length < 2) { scores.push(null); continue; }
+    const nbrSet = new Set(nbrs);
+    let triangles = 0;
+    for (let i = 0; i < nbrs.length; i++) {
+      for (let j = i + 1; j < nbrs.length; j++) {
+        if (nbrSet.has(nbrs[j]!) && adj[nbrs[i]!]!.includes(nbrs[j]!)) triangles++;
+      }
+    }
+    const pairs = nbrs.length * (nbrs.length - 1) / 2;
+    scores.push(pairs > 0 ? triangles / pairs : 0);
+  }
+  return { scores } as AlgoResult;
+}
+
+export function demoAveragePathLength(vcount: number, edges: Edge[]): AlgoResult {
+  if (vcount <= 1) return { value: 0 } as AlgoResult;
+  const adj = buildAdj(vcount, edges);
+  let totalDist = 0;
+  let count = 0;
+  for (let s = 0; s < vcount; s++) {
+    const dist = new Int32Array(vcount).fill(-1);
+    dist[s] = 0;
+    const queue = [s];
+    while (queue.length > 0) {
+      const v = queue.shift()!;
+      for (const w of adj[v]!) {
+        if (dist[w]! < 0) {
+          dist[w] = dist[v]! + 1;
+          queue.push(w);
+        }
+      }
+    }
+    for (let t = s + 1; t < vcount; t++) {
+      if (dist[t]! > 0) { totalDist += dist[t]!; count++; }
+    }
+  }
+  return { value: count > 0 ? totalDist / count : 0 } as AlgoResult;
+}
+
+export function demoKShortestPaths(vcount: number, edges: Edge[], source = 0, target = 1, k = 5): AlgoResult {
+  if (vcount === 0) return { paths: [], count: 0 } as AlgoResult;
+  const adj = buildAdj(vcount, edges);
+  const src = source >= 0 && source < vcount ? source : 0;
+  const tgt = target >= 0 && target < vcount ? target : Math.min(1, vcount - 1);
+  const paths: { vertices: number[]; weight: number }[] = [];
+  const visited = new Set<number>();
+
+  function dfs(u: number, path: number[]) {
+    if (paths.length >= k) return;
+    if (u === tgt) { paths.push({ vertices: [...path], weight: path.length - 1 }); return; }
+    for (const w of adj[u]!) {
+      if (!visited.has(w)) {
+        visited.add(w);
+        path.push(w);
+        dfs(w, path);
+        path.pop();
+        visited.delete(w);
+      }
+    }
+  }
+
+  visited.add(src);
+  dfs(src, [src]);
+  paths.sort((a, b) => a.weight - b.weight);
+  return { paths: paths.slice(0, k), count: Math.min(paths.length, k) } as AlgoResult;
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
@@ -1561,6 +1702,24 @@ export function runDemoAlgo(
       return demoIsEulerian(vcount, edges);
     case 'cohesive_blocks':
       return demoCohesiveBlocks(vcount, edges);
+    case 'avg_nearest_neighbor_degree':
+      return demoAvgNearestNeighborDegree(vcount, edges);
+    case 'chromatic_number':
+      return demoChromaticNumber(vcount, edges);
+    case 'convergence_degree':
+      return demoConvergenceDegree(vcount, edges);
+    case 'similarity_jaccard':
+      return demoSimilarityJaccard(vcount, edges);
+    case 'community_voronoi':
+      return demoCommunityVoronoi(vcount, edges);
+    case 'graph_center':
+      return demoGraphCenter(vcount, edges);
+    case 'clustering_coefficients':
+      return demoClusteringCoefficients(vcount, edges);
+    case 'average_path_length':
+      return demoAveragePathLength(vcount, edges);
+    case 'k_shortest_paths':
+      return demoKShortestPaths(vcount, edges, params?.source, params?.target);
     default:
       return demoPagerank(vcount, edges);
   }

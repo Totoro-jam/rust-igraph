@@ -55,6 +55,15 @@ import {
   demoEdgeDisjointPaths,
   demoIsEulerian,
   demoCohesiveBlocks,
+  demoAvgNearestNeighborDegree,
+  demoChromaticNumber,
+  demoConvergenceDegree,
+  demoSimilarityJaccard,
+  demoCommunityVoronoi,
+  demoGraphCenter,
+  demoClusteringCoefficients,
+  demoAveragePathLength,
+  demoKShortestPaths,
   runDemoAlgo,
   layoutFR,
 } from './algorithms';
@@ -66,6 +75,8 @@ import type {
   AlgoResultScalar, AlgoResultCliques, AlgoResultMst, AlgoResultWeightedDistances,
   AlgoResultBiconnected, AlgoResultBipartiteCheck, AlgoResultMaxCut, AlgoResultEulerian,
   AlgoResultSimplePaths, AlgoResultFindCycle, AlgoResultCohesiveBlocks,
+  AlgoResultKnn, AlgoResultSimilarityMatrix, AlgoResultVoronoi, AlgoResultGraphCenter,
+  AlgoResultClusteringCoeff, AlgoResultKPaths,
 } from './types';
 
 const TRIANGLE: Edge[] = [[0, 1], [1, 2], [2, 0]];
@@ -1492,5 +1503,225 @@ describe('demoCohesiveBlocks', () => {
   it('handles empty graph', () => {
     const result = demoCohesiveBlocks(0, []) as AlgoResultCohesiveBlocks;
     expect(result.count).toBeGreaterThanOrEqual(0);
+  });
+});
+
+// --- 9 new algorithm tests (batch 3) ---
+
+describe('demoAvgNearestNeighborDegree', () => {
+  it('returns one score per vertex', () => {
+    const result = demoAvgNearestNeighborDegree(4, PATH) as AlgoResultKnn;
+    expect(result.scores).toHaveLength(4);
+  });
+
+  it('isolated vertices have null knn', () => {
+    const result = demoAvgNearestNeighborDegree(3, []) as AlgoResultKnn;
+    expect(result.scores).toEqual([null, null, null]);
+  });
+
+  it('triangle vertices have equal knn', () => {
+    const result = demoAvgNearestNeighborDegree(3, TRIANGLE) as AlgoResultKnn;
+    expect(result.scores[0]).toBe(result.scores[1]);
+    expect(result.scores[1]).toBe(result.scores[2]);
+  });
+});
+
+describe('demoChromaticNumber', () => {
+  it('returns 3 for triangle', () => {
+    const result = demoChromaticNumber(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBe(3);
+  });
+
+  it('returns 2 for path', () => {
+    const result = demoChromaticNumber(4, PATH) as AlgoResultScalar;
+    expect(result.value).toBe(2);
+  });
+
+  it('returns 0 for empty graph', () => {
+    const result = demoChromaticNumber(0, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+});
+
+describe('demoConvergenceDegree', () => {
+  it('returns one score per edge', () => {
+    const result = demoConvergenceDegree(3, TRIANGLE) as AlgoResultScores;
+    expect(result.scores).toHaveLength(3);
+  });
+
+  it('all scores are between 0 and 1', () => {
+    const result = demoConvergenceDegree(4, PATH) as AlgoResultScores;
+    for (const s of result.scores) {
+      expect(s).toBeGreaterThanOrEqual(0);
+      expect(s).toBeLessThanOrEqual(1);
+    }
+  });
+});
+
+describe('demoSimilarityJaccard', () => {
+  it('returns square matrix', () => {
+    const result = demoSimilarityJaccard(3, TRIANGLE) as AlgoResultSimilarityMatrix;
+    expect(result.matrix).toHaveLength(3);
+    expect(result.size).toBe(3);
+    for (const row of result.matrix) {
+      expect(row).toHaveLength(3);
+    }
+  });
+
+  it('diagonal is 1', () => {
+    const result = demoSimilarityJaccard(4, PATH) as AlgoResultSimilarityMatrix;
+    for (let i = 0; i < 4; i++) {
+      expect(result.matrix[i]![i]).toBe(1);
+    }
+  });
+
+  it('symmetric matrix', () => {
+    const result = demoSimilarityJaccard(3, TRIANGLE) as AlgoResultSimilarityMatrix;
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        expect(result.matrix[i]![j]).toBe(result.matrix[j]![i]);
+      }
+    }
+  });
+});
+
+describe('demoCommunityVoronoi', () => {
+  it('returns membership array', () => {
+    const result = demoCommunityVoronoi(3, TRIANGLE) as AlgoResultVoronoi;
+    expect(result.membership).toHaveLength(3);
+  });
+
+  it('detects components as communities', () => {
+    const result = demoCommunityVoronoi(4, DISCONNECTED) as AlgoResultVoronoi;
+    expect(result.membership[0]).toBe(result.membership[1]);
+    expect(result.membership[2]).toBe(result.membership[3]);
+    expect(result.membership[0]).not.toBe(result.membership[2]);
+  });
+});
+
+describe('demoGraphCenter', () => {
+  it('returns center vertices', () => {
+    const result = demoGraphCenter(4, PATH) as AlgoResultGraphCenter;
+    expect(result.vertices).toBeDefined();
+    expect(result.count).toBeGreaterThan(0);
+  });
+
+  it('path center is middle vertices', () => {
+    const result = demoGraphCenter(4, PATH) as AlgoResultGraphCenter;
+    expect(result.vertices).toEqual(expect.arrayContaining([1, 2]));
+  });
+
+  it('all triangle vertices are center', () => {
+    const result = demoGraphCenter(3, TRIANGLE) as AlgoResultGraphCenter;
+    expect(result.count).toBe(3);
+  });
+});
+
+describe('demoClusteringCoefficients', () => {
+  it('returns one score per vertex', () => {
+    const result = demoClusteringCoefficients(4, PATH) as AlgoResultClusteringCoeff;
+    expect(result.scores).toHaveLength(4);
+  });
+
+  it('triangle has clustering coefficient 1', () => {
+    const result = demoClusteringCoefficients(3, TRIANGLE) as AlgoResultClusteringCoeff;
+    for (const s of result.scores) {
+      expect(s).toBe(1);
+    }
+  });
+
+  it('leaf vertices have null clustering', () => {
+    const result = demoClusteringCoefficients(4, PATH) as AlgoResultClusteringCoeff;
+    expect(result.scores[0]).toBeNull();
+    expect(result.scores[3]).toBeNull();
+  });
+});
+
+describe('demoAveragePathLength', () => {
+  it('returns positive for connected graph', () => {
+    const result = demoAveragePathLength(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBeGreaterThan(0);
+  });
+
+  it('triangle has average path length 1', () => {
+    const result = demoAveragePathLength(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBeCloseTo(1.0, 4);
+  });
+
+  it('returns 0 for single vertex', () => {
+    const result = demoAveragePathLength(1, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+});
+
+describe('demoKShortestPaths', () => {
+  it('finds path on path graph', () => {
+    const result = demoKShortestPaths(4, PATH, 0, 3) as AlgoResultKPaths;
+    expect(result.count).toBe(1);
+    expect(result.paths[0]!.vertices).toEqual([0, 1, 2, 3]);
+  });
+
+  it('finds multiple paths in diamond', () => {
+    const result = demoKShortestPaths(4, DIAMOND, 0, 3) as AlgoResultKPaths;
+    expect(result.count).toBeGreaterThanOrEqual(2);
+  });
+
+  it('returns empty for unreachable target', () => {
+    const result = demoKShortestPaths(4, DISCONNECTED, 0, 2) as AlgoResultKPaths;
+    expect(result.count).toBe(0);
+  });
+
+  it('paths are sorted by weight', () => {
+    const result = demoKShortestPaths(4, DIAMOND, 0, 3) as AlgoResultKPaths;
+    for (let i = 1; i < result.paths.length; i++) {
+      expect(result.paths[i]!.weight).toBeGreaterThanOrEqual(result.paths[i - 1]!.weight);
+    }
+  });
+});
+
+describe('runDemoAlgo — batch 3 dispatch', () => {
+  it('dispatches avg_nearest_neighbor_degree', () => {
+    const result = runDemoAlgo('avg_nearest_neighbor_degree', 3, TRIANGLE);
+    expect((result as AlgoResultKnn).scores).toHaveLength(3);
+  });
+
+  it('dispatches chromatic_number', () => {
+    const result = runDemoAlgo('chromatic_number', 3, TRIANGLE);
+    expect((result as AlgoResultScalar).value).toBe(3);
+  });
+
+  it('dispatches convergence_degree', () => {
+    const result = runDemoAlgo('convergence_degree', 3, TRIANGLE);
+    expect((result as AlgoResultScores).scores).toHaveLength(3);
+  });
+
+  it('dispatches similarity_jaccard', () => {
+    const result = runDemoAlgo('similarity_jaccard', 3, TRIANGLE);
+    expect((result as AlgoResultSimilarityMatrix).matrix).toHaveLength(3);
+  });
+
+  it('dispatches community_voronoi', () => {
+    const result = runDemoAlgo('community_voronoi', 3, TRIANGLE);
+    expect((result as AlgoResultVoronoi).membership).toHaveLength(3);
+  });
+
+  it('dispatches graph_center', () => {
+    const result = runDemoAlgo('graph_center', 3, TRIANGLE);
+    expect((result as AlgoResultGraphCenter).count).toBe(3);
+  });
+
+  it('dispatches clustering_coefficients', () => {
+    const result = runDemoAlgo('clustering_coefficients', 3, TRIANGLE);
+    expect((result as AlgoResultClusteringCoeff).scores).toHaveLength(3);
+  });
+
+  it('dispatches average_path_length', () => {
+    const result = runDemoAlgo('average_path_length', 3, TRIANGLE);
+    expect((result as AlgoResultScalar).value).toBeCloseTo(1.0, 4);
+  });
+
+  it('dispatches k_shortest_paths', () => {
+    const result = runDemoAlgo('k_shortest_paths', 4, PATH, { source: 0, target: 3 });
+    expect((result as AlgoResultKPaths).count).toBe(1);
   });
 });

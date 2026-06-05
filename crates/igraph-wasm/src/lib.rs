@@ -1,26 +1,29 @@
 #![allow(clippy::needless_pass_by_value)]
 
 use rust_igraph::{
-    ConnectednessMode, DijkstraMode, FasAlgorithm, FrParams, Graph, GreedyColoringHeuristic,
-    KkParams, MstAlgorithm, SimplePathMode, StarMode, VertexId, all_simple_paths,
-    articulation_points, assortativity_degree, automorphism_group, barabasi_game_bag,
-    bellman_ford_distances, betweenness, betweenness_weighted, bfs, biconnected_components,
-    bridges, canonical_permutation, clique_number, closeness, closeness_weighted, cohesive_blocks,
-    complementer, connected_components, constraint, coreness, count_automorphisms, count_triangles,
-    cycle_graph, decompose, degeneracy, degree_distribution, density, dfs, diameter,
-    dijkstra_distances, distances, eccentricity, edge_betweenness, edge_betweenness_community,
-    edge_connectivity, edge_disjoint_paths, eigenvector_centrality, erdos_renyi_gnp,
-    eulerian_cycle, eulerian_path, famous, fast_greedy_modularity, feedback_arc_set, find_cycle,
-    floyd_warshall_distances, fluid_communities, full_graph, fundamental_cycles, girth,
-    global_efficiency, harmonic_centrality, hub_and_authority_scores, independence_number, infomap,
-    is_acyclic, is_biconnected, is_bipartite, is_complete, is_connected, is_cubic, is_cycle,
-    is_dag, is_eulerian, is_forest, is_outerplanar, is_path, is_perfect, is_star, is_tournament,
-    is_tree, is_triangle_free, is_wheel, isomorphic_bliss, katz_centrality, label_propagation,
-    layout_circle, layout_fruchterman_reingold, layout_grid, layout_kamada_kawai, layout_random,
-    layout_star, leading_eigenvector, leiden, line_graph, list_triangles, local_efficiency,
-    louvain, max_flow_value, maximal_cliques, maximum_cut, mean_degree, mean_distance,
-    mincut_value, minimum_cycle_basis, minimum_spanning_tree, modularity, pagerank, path_graph,
-    radius, random_walk, reciprocity, ring_graph, simplify, spinglass, star_graph, strength,
+    ConnectednessMode, DijkstraMode, EccMode, FasAlgorithm, FrParams, Graph,
+    GreedyColoringHeuristic, KkParams, MstAlgorithm, SimplePathMode, StarMode, VertexId,
+    all_minimal_st_separators, all_simple_paths, articulation_points, assortativity_degree,
+    automorphism_group, avg_nearest_neighbor_degree, barabasi_game_bag, bellman_ford_distances,
+    betweenness, betweenness_weighted, bfs, biconnected_components, bridges, canonical_permutation,
+    chromatic_number_upper_bound, clique_number, closeness, closeness_weighted, cohesive_blocks,
+    community_voronoi, complementer, connected_components, constraint, convergence_degree,
+    coreness, count_automorphisms, count_triangles, cycle_graph, decompose, degeneracy,
+    degree_distribution, density, dfs, diameter, dijkstra_distances, distances, eccentricity,
+    edge_betweenness, edge_betweenness_community, edge_connectivity, edge_disjoint_paths,
+    eigenvector_centrality, erdos_renyi_gnp, eulerian_cycle, eulerian_path, famous,
+    fast_greedy_modularity, feedback_arc_set, find_cycle, floyd_warshall_distances,
+    fluid_communities, full_graph, fundamental_cycles, girth, global_efficiency, graph_center,
+    harmonic_centrality, hub_and_authority_scores, independence_number, infomap, is_acyclic,
+    is_biconnected, is_bipartite, is_complete, is_connected, is_cubic, is_cycle, is_dag,
+    is_eulerian, is_forest, is_outerplanar, is_path, is_perfect, is_star, is_tournament, is_tree,
+    is_triangle_free, is_wheel, isomorphic_bliss, k_shortest_paths, katz_centrality,
+    label_propagation, layout_circle, layout_fruchterman_reingold, layout_grid,
+    layout_kamada_kawai, layout_random, layout_star, leading_eigenvector, leiden, line_graph,
+    list_triangles, local_efficiency, louvain, max_flow_value, maximal_cliques, maximum_cut,
+    mean_degree, mean_distance, mincut_value, minimum_cycle_basis, minimum_spanning_tree,
+    modularity, neighborhood, pagerank, path_graph, radius, random_walk, reciprocity, ring_graph,
+    similarity_dice, similarity_jaccard, simplify, spinglass, star_graph, strength,
     strongly_connected_components, topological_sorting, transitivity_undirected, triad_census,
     trussness, vertex_coloring_greedy, vertex_connectivity, vertex_disjoint_paths, walktrap,
     watts_strogatz_game, write_dot, write_gml, write_graphml,
@@ -436,6 +439,68 @@ struct FindCycleResult {
     vertices: Vec<u32>,
     edges: Vec<u32>,
     found: bool,
+}
+
+#[derive(Serialize)]
+struct KnnResult {
+    scores: Vec<Option<f64>>,
+}
+
+#[derive(Serialize)]
+struct ConvergenceDegreeResult {
+    scores: Vec<f64>,
+}
+
+#[derive(Serialize)]
+struct SimilarityMatrixResult {
+    matrix: Vec<Vec<f64>>,
+    size: usize,
+}
+
+#[derive(Serialize)]
+struct VoronoiCommunityResult {
+    membership: Vec<u32>,
+    generators: Vec<u32>,
+    modularity: Option<f64>,
+}
+
+#[derive(Serialize)]
+struct GraphCenterResult {
+    vertices: Vec<u32>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct NeighborhoodResult {
+    neighborhoods: Vec<Vec<u32>>,
+}
+
+#[derive(Serialize)]
+struct KShortestPathsResult {
+    paths: Vec<KPathEntry>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct KPathEntry {
+    vertices: Vec<u32>,
+    weight: f64,
+}
+
+#[derive(Serialize)]
+struct SeparatorsResult {
+    separators: Vec<Vec<u32>>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct ClusteringCoeffResult {
+    scores: Vec<Option<f64>>,
+}
+
+#[derive(Serialize)]
+struct AveragePathLengthResult {
+    value: Option<f64>,
 }
 
 #[wasm_bindgen]
@@ -1599,6 +1664,154 @@ impl WasmGraph {
             cohesion: cb.cohesion,
             count,
         };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Average nearest-neighbor degree ---
+
+    #[wasm_bindgen(js_name = "avgNearestNeighborDegree")]
+    pub fn avg_nearest_neighbor_degree(&self) -> Result<String, JsError> {
+        let knn =
+            avg_nearest_neighbor_degree(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = KnnResult { scores: knn };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Chromatic number upper bound ---
+
+    #[wasm_bindgen(js_name = "chromaticNumberUpperBound")]
+    pub fn chromatic_number_upper_bound(&self) -> Result<String, JsError> {
+        let val =
+            chromatic_number_upper_bound(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ScalarU32Result { value: val };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Convergence degree ---
+
+    #[wasm_bindgen(js_name = "convergenceDegree")]
+    pub fn convergence_degree(&self) -> Result<String, JsError> {
+        let scores = convergence_degree(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ConvergenceDegreeResult { scores };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Similarity Jaccard ---
+
+    #[wasm_bindgen(js_name = "similarityJaccard")]
+    pub fn similarity_jaccard(&self) -> Result<String, JsError> {
+        let flat = similarity_jaccard(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let n = self.inner.vcount() as usize;
+        let matrix: Vec<Vec<f64>> = (0..n).map(|i| flat[i * n..(i + 1) * n].to_vec()).collect();
+        let result = SimilarityMatrixResult { matrix, size: n };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Similarity Dice ---
+
+    #[wasm_bindgen(js_name = "similarityDice")]
+    pub fn similarity_dice(&self) -> Result<String, JsError> {
+        let flat = similarity_dice(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let n = self.inner.vcount() as usize;
+        let matrix: Vec<Vec<f64>> = (0..n).map(|i| flat[i * n..(i + 1) * n].to_vec()).collect();
+        let result = SimilarityMatrixResult { matrix, size: n };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Community Voronoi ---
+
+    #[wasm_bindgen(js_name = "communityVoronoi")]
+    pub fn community_voronoi(&self) -> Result<String, JsError> {
+        let cv = community_voronoi(&self.inner, None, None, DijkstraMode::Out, 1.0)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = VoronoiCommunityResult {
+            membership: cv.membership,
+            generators: cv.generators,
+            modularity: cv.modularity,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Graph center ---
+
+    #[wasm_bindgen(js_name = "graphCenter")]
+    pub fn graph_center(&self) -> Result<String, JsError> {
+        let mode = if self.inner.is_directed() {
+            EccMode::All
+        } else {
+            EccMode::All
+        };
+        let vertices = graph_center(&self.inner, mode).map_err(|e| JsError::new(&e.to_string()))?;
+        let count = vertices.len();
+        let result = GraphCenterResult { vertices, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Neighborhood ---
+
+    #[wasm_bindgen(js_name = "neighborhood")]
+    pub fn neighborhood(&self, order: i32) -> Result<String, JsError> {
+        let neighborhoods =
+            neighborhood(&self.inner, order).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = NeighborhoodResult { neighborhoods };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- K-shortest paths ---
+
+    #[wasm_bindgen(js_name = "kShortestPaths")]
+    pub fn k_shortest_paths(&self, source: u32, target: u32, k: usize) -> Result<String, JsError> {
+        let m = self.inner.ecount() as usize;
+        let weights = vec![1.0_f64; m];
+        let kpaths = k_shortest_paths(&self.inner, source, target, &weights, k, DijkstraMode::Out)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let count = kpaths.len();
+        let paths: Vec<KPathEntry> = kpaths
+            .into_iter()
+            .map(|p| KPathEntry {
+                vertices: p.vertices,
+                weight: p.weight,
+            })
+            .collect();
+        let result = KShortestPathsResult { paths, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- All minimal S-T separators ---
+
+    #[wasm_bindgen(js_name = "allMinimalStSeparators")]
+    pub fn all_minimal_st_separators(&self) -> Result<String, JsError> {
+        let seps =
+            all_minimal_st_separators(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let count = seps.len();
+        let result = SeparatorsResult {
+            separators: seps,
+            count,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Clustering coefficients ---
+
+    #[wasm_bindgen(js_name = "clusteringCoefficients")]
+    pub fn clustering_coefficients(&self) -> Result<String, JsError> {
+        let scores = self
+            .inner
+            .clustering_coefficients()
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ClusteringCoeffResult { scores };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Average path length ---
+
+    #[wasm_bindgen(js_name = "averagePathLength")]
+    pub fn average_path_length(&self) -> Result<String, JsError> {
+        let value = self
+            .inner
+            .average_path_length()
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = AveragePathLengthResult { value };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 }

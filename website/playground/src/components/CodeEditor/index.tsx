@@ -169,6 +169,24 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, is_eulerian};\n\n${graphLine}\n\nlet e = is_eulerian(&g).unwrap();\nprintln!("Has Eulerian path: {}", e.has_path);\nprintln!("Has Eulerian cycle: {}", e.has_cycle);`;
     case 'cohesive_blocks':
       return `use rust_igraph::{Graph, cohesive_blocks};\n\n${graphLine}\n\nlet cb = cohesive_blocks(&g).unwrap();\nprintln!("{} cohesive blocks", cb.blocks.len());\nfor (i, block) in cb.blocks.iter().enumerate() {\n    println!("Block {} (cohesion {}): {:?}", i, cb.cohesion[i], block);\n}`;
+    case 'avg_nearest_neighbor_degree':
+      return `use rust_igraph::{Graph, avg_nearest_neighbor_degree};\n\n${graphLine}\n\nlet knn = avg_nearest_neighbor_degree(&g).unwrap();\nfor (v, val) in knn.iter().enumerate() {\n    println!("Vertex {}: knn = {:?}", v, val);\n}`;
+    case 'chromatic_number':
+      return `use rust_igraph::{Graph, chromatic_number_upper_bound};\n\n${graphLine}\n\nlet chi = chromatic_number_upper_bound(&g).unwrap();\nprintln!("Chromatic number upper bound: {}", chi);`;
+    case 'convergence_degree':
+      return `use rust_igraph::{Graph, convergence_degree};\n\n${graphLine}\n\nlet cd = convergence_degree(&g).unwrap();\nfor (e, val) in cd.iter().enumerate() {\n    println!("Edge {}: convergence = {:.4}", e, val);\n}`;
+    case 'similarity_jaccard':
+      return `use rust_igraph::{Graph, similarity_jaccard};\n\n${graphLine}\n\nlet sim = similarity_jaccard(&g).unwrap();\nlet n = g.vcount() as usize;\nfor u in 0..n {\n    for v in (u+1)..n {\n        println!("{} - {}: {:.3}", u, v, sim[u * n + v]);\n    }\n}`;
+    case 'community_voronoi':
+      return `use rust_igraph::{Graph, community_voronoi, DijkstraMode};\n\n${graphLine}\n\nlet cv = community_voronoi(&g, None, None, DijkstraMode::Out, 1.0).unwrap();\nprintln!("Modularity: {:?}", cv.modularity);\nfor (v, c) in cv.membership.iter().enumerate() {\n    println!("Vertex {}: community {}", v, c);\n}`;
+    case 'graph_center':
+      return `use rust_igraph::{Graph, graph_center, EccMode};\n\n${graphLine}\n\nlet center = graph_center(&g, EccMode::All).unwrap();\nprintln!("Center vertices: {:?}", center);`;
+    case 'clustering_coefficients':
+      return `use rust_igraph::Graph;\n\n${graphLine}\n\nlet cc = g.clustering_coefficients().unwrap();\nfor (v, c) in cc.iter().enumerate() {\n    println!("Vertex {}: {:.4}", v, c.unwrap_or(0.0));\n}`;
+    case 'average_path_length':
+      return `use rust_igraph::Graph;\n\n${graphLine}\n\nlet apl = g.average_path_length().unwrap();\nprintln!("Average path length: {:?}", apl);`;
+    case 'k_shortest_paths':
+      return `use rust_igraph::{Graph, k_shortest_paths, DijkstraMode};\n\n${graphLine}\n\nlet weights = vec![1.0; g.ecount() as usize];\nlet paths = k_shortest_paths(&g, 0, g.vcount() as usize - 1, &weights, 5, DijkstraMode::Out).unwrap();\nfor p in &paths {\n    println!("Path: {:?} (weight: {:.1})", p.vertices, p.weight);\n}`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }

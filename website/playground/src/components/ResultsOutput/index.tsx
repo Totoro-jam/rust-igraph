@@ -59,8 +59,43 @@ function parseResult(
         barFraction: maxHub > 0 ? h / maxHub : 0,
       });
     });
+  } else if (algo === 'avg_nearest_neighbor_degree' && 'scores' in result) {
+    const raw = result.scores as (number | null)[];
+    const scores = raw.map(s => s ?? 0);
+    const max = Math.max(...scores, 1e-9);
+    const min = Math.min(...scores);
+    badges.push({ label: t('result.topNode'), value: `v${scores.indexOf(max)}`, accent: true });
+    badges.push({ label: t('result.maxScore'), value: max.toFixed(4), accent: true });
+    columnLabel = t('result.knnDegree');
+    showBars = true;
+    scores.forEach((s, i) => {
+      table.push({
+        vertex: i,
+        value: raw[i] === null ? 'N/A' : s.toFixed(4),
+        numericValue: s,
+        barFraction: max > min ? (s - min) / (max - min) : 0.5,
+      });
+    });
+  } else if (algo === 'clustering_coefficients' && 'scores' in result) {
+    const raw = result.scores as (number | null)[];
+    const scores = raw.map(s => s ?? 0);
+    const max = Math.max(...scores, 1e-9);
+    const min = Math.min(...scores);
+    const avg = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+    badges.push({ label: t('result.maxScore'), value: max.toFixed(4), accent: true });
+    badges.push({ label: 'Avg', value: avg.toFixed(4) });
+    columnLabel = t('result.clusteringCoeff');
+    showBars = true;
+    scores.forEach((s, i) => {
+      table.push({
+        vertex: i,
+        value: raw[i] === null ? 'N/A' : s.toFixed(6),
+        numericValue: s,
+        barFraction: max > min ? (s - min) / (max - min) : 0.5,
+      });
+    });
   } else if ('scores' in result) {
-    const scores = result.scores;
+    const scores = result.scores as number[];
     const max = Math.max(...scores, 1e-9);
     const min = Math.min(...scores);
     const maxIdx = scores.indexOf(max);
@@ -78,19 +113,20 @@ function parseResult(
     });
   } else if ('membership' in result) {
     const membership = result.membership;
+    const r = result as import('../../types').AlgoResultMembership;
     const uniqueIds = new Set(membership);
-    badges.push({ label: t('result.communities'), value: String(result.count ?? uniqueIds.size), accent: true });
-    if (result.modularity != null) {
-      badges.push({ label: t('result.modularity'), value: result.modularity.toFixed(4) });
+    badges.push({ label: t('result.communities'), value: String(r.count ?? uniqueIds.size), accent: true });
+    if (r.modularity != null) {
+      badges.push({ label: t('result.modularity'), value: r.modularity.toFixed(4) });
     }
-    if (result.codelength != null) {
-      badges.push({ label: t('result.codelength'), value: result.codelength.toFixed(4) });
+    if (r.codelength != null) {
+      badges.push({ label: t('result.codelength'), value: r.codelength.toFixed(4) });
     }
-    if (result.quality != null) {
-      badges.push({ label: t('result.quality'), value: result.quality.toFixed(4) });
+    if (r.quality != null) {
+      badges.push({ label: t('result.quality'), value: r.quality.toFixed(4) });
     }
-    if (result.nb_clusters != null) {
-      badges.push({ label: t('result.clusters'), value: String(result.nb_clusters) });
+    if (r.nb_clusters != null) {
+      badges.push({ label: t('result.clusters'), value: String(r.nb_clusters) });
     }
     columnLabel = t('result.col.community');
     membership.forEach((c, i) => {
@@ -274,6 +310,17 @@ function parseResult(
         barFraction: 1,
       });
     });
+  } else if (algo === 'k_shortest_paths' && 'paths' in result) {
+    const kp = result as { paths: { vertices: number[]; weight: number }[]; count: number };
+    badges.push({ label: t('result.kPathCount'), value: String(kp.count), accent: true });
+    kp.paths.forEach((p, i) => {
+      table.push({
+        vertex: i,
+        value: `[${p.weight.toFixed(1)}] ${p.vertices.map(v => `v${v}`).join(' → ')}`,
+        numericValue: p.weight,
+        barFraction: 1,
+      });
+    });
   } else if (algo === 'cohesive_blocks' && 'blocks' in result) {
     const cb = result as { blocks: number[][]; cohesion: number[]; count: number };
     badges.push({ label: t('result.cohesiveBlockCount'), value: String(cb.count), accent: true });
@@ -284,6 +331,20 @@ function parseResult(
         numericValue: cb.cohesion[i] ?? 0,
         barFraction: 1,
         colorIndex: i % 8,
+      });
+    });
+  } else if (algo === 'similarity_jaccard' && 'matrix' in result) {
+    const sim = result as { matrix: number[][]; size: number };
+    badges.push({ label: t('result.vertices'), value: String(sim.size), accent: true });
+    columnLabel = t('result.similarity');
+    sim.matrix.forEach((row, i) => {
+      const maxSim = Math.max(...row.filter((_, j) => j !== i), 0);
+      const bestJ = row.findIndex((v, j) => j !== i && v === maxSim);
+      table.push({
+        vertex: i,
+        value: bestJ >= 0 ? `v${bestJ} (${maxSim.toFixed(4)})` : 'N/A',
+        numericValue: maxSim,
+        barFraction: maxSim,
       });
     });
   } else if ('colors' in result) {
@@ -307,6 +368,8 @@ function parseResult(
       mincut_value: 'result.mincutValue',
       vertex_disjoint_paths: 'result.disjointPaths',
       edge_disjoint_paths: 'result.disjointPaths',
+      chromatic_number: 'result.chromaticNumber',
+      average_path_length: 'result.avgPathLength',
     };
     const label = t(scalarLabels[algo] ?? 'result.flowValue');
     const v = result.value as number;
