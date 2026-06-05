@@ -71,7 +71,6 @@ var I18N = {
     'eco.guide': 'Tutorial & Guide',
     'eco.api': 'API Reference',
     'footer.license': 'rust-igraph is licensed under <a href="https://github.com/Totoro-jam/rust-igraph/blob/main/LICENSE">GPL-2.0-or-later</a>.',
-    'footer.ack': 'Built with Rust. Acknowledgements: <a href="https://igraph.org">igraph</a> (C core), <a href="https://github.com/igraph/python-igraph">python-igraph</a>, <a href="https://github.com/igraph/rigraph">rigraph</a>.',
   },
   zh: {
     'nav.playground': '演练场',
@@ -125,7 +124,6 @@ var I18N = {
     'eco.guide': '教程与指南',
     'eco.api': 'API 参考',
     'footer.license': 'rust-igraph 基于 <a href="https://github.com/Totoro-jam/rust-igraph/blob/main/LICENSE">GPL-2.0-or-later</a> 许可证发布。',
-    'footer.ack': '用 Rust 构建。致谢：<a href="https://igraph.org">igraph</a> (C 核心)、<a href="https://github.com/igraph/python-igraph">python-igraph</a>、<a href="https://github.com/igraph/rigraph">rigraph</a>。',
   },
 };
 
