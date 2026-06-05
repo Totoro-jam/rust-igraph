@@ -12,6 +12,7 @@
 
 use crate::core::error::{IgraphError, IgraphResult};
 use crate::core::graph::{Graph, VertexId};
+use crate::core::rng::SplitMix64;
 
 /// A hierarchical random graph represented as a binary dendrogram.
 ///
@@ -457,6 +458,179 @@ pub fn from_hrg_dendrogram(hrg: &HrgTree) -> IgraphResult<HrgDendrogram> {
     })
 }
 
+/// Find the lowest common ancestor of two leaves in an HRG tree.
+///
+/// Returns the internal index of the LCA. Works by precomputing parent
+/// pointers and walking up from both leaves until they meet.
+#[allow(clippy::cast_sign_loss)]
+fn find_lca(hrg: &HrgTree, parent: &[i32], leaf_a: i32, leaf_b: i32) -> usize {
+    let num_internal = hrg.num_internal();
+
+    // Walk both up via parent pointers, mark visited from one path
+    let mut visited = vec![false; num_internal];
+
+    let mut cur = leaf_a;
+    loop {
+        if cur < 0 {
+            let idx = internal_idx(cur);
+            visited[idx] = true;
+            if idx == 0 {
+                break; // reached root
+            }
+            cur = parent[idx];
+        } else {
+            // leaf → go to parent (cur is non-negative here)
+            cur = parent[num_internal + cur as usize];
+        }
+    }
+
+    let mut cur = leaf_b;
+    loop {
+        if cur < 0 {
+            let idx = internal_idx(cur);
+            if visited[idx] {
+                return idx;
+            }
+            if idx == 0 {
+                return 0; // root is always LCA
+            }
+            cur = parent[idx];
+        } else {
+            cur = parent[num_internal + cur as usize];
+        }
+    }
+}
+
+/// Build a parent-pointer array for all nodes in the HRG.
+///
+/// Layout: `parent[0..num_internal]` = parent of internal node i,
+/// `parent[num_internal..num_internal+n]` = parent of leaf i.
+/// Root's parent is stored as 0 (unused sentinel).
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+fn build_parent_map(hrg: &HrgTree) -> Vec<i32> {
+    let num_internal = hrg.num_internal();
+    let n = hrg.size() as usize;
+    // parent[i] for i in 0..num_internal -> parent internal id of internal node i
+    // parent[num_internal + leaf_id] -> parent internal id of leaf
+    let mut parent = vec![0i32; num_internal + n];
+
+    for i in 0..num_internal {
+        let self_id = -(i as i32 + 1);
+        let lc = hrg.left[i];
+        let rc = hrg.right[i];
+
+        if lc < 0 {
+            parent[internal_idx(lc)] = self_id;
+        } else {
+            parent[num_internal + lc as usize] = self_id;
+        }
+        if rc < 0 {
+            parent[internal_idx(rc)] = self_id;
+        } else {
+            parent[num_internal + rc as usize] = self_id;
+        }
+    }
+
+    parent
+}
+
+#[allow(clippy::cast_possible_wrap)]
+fn sample_one(hrg: &HrgTree, parent: &[i32], rng: &mut SplitMix64) -> IgraphResult<Graph> {
+    let n = hrg.size();
+    let mut edges: Vec<(u32, u32)> = Vec::new();
+
+    for i in 0..n {
+        for j in (i + 1)..n {
+            let lca = find_lca(hrg, parent, i as i32, j as i32);
+            if rng.gen_unit() < hrg.prob[lca] {
+                edges.push((i, j));
+            }
+        }
+    }
+
+    Graph::from_edges(&edges, false, Some(n))
+}
+
+/// Sample a random graph from a hierarchical random graph model.
+///
+/// For each pair of leaf vertices `(i, j)`, an undirected edge is added
+/// with probability equal to the connection probability at their lowest
+/// common ancestor in the dendrogram.
+///
+/// `seed` initialises the internal PRNG. Same `(hrg, seed)` always
+/// produces the same graph.
+///
+/// # Example
+///
+/// ```
+/// use rust_igraph::{HrgTree, hrg_sample};
+///
+/// let mut hrg = HrgTree::new(4);
+/// hrg.left[0] = -2;  hrg.right[0] = -3;  hrg.prob[0] = 0.5;
+/// hrg.left[1] = 0;   hrg.right[1] = 1;   hrg.prob[1] = 1.0;
+/// hrg.left[2] = 2;   hrg.right[2] = 3;   hrg.prob[2] = 1.0;
+/// hrg.vertices = vec![4, 2, 2];
+/// hrg.edges = vec![6, 2, 2];
+///
+/// let g = hrg_sample(&hrg, 42).unwrap();
+/// assert_eq!(g.vcount(), 4);
+/// // With prob=1.0 within subtrees, leaves 0-1 and 2-3 are always connected
+/// ```
+pub fn hrg_sample(hrg: &HrgTree, seed: u64) -> IgraphResult<Graph> {
+    let n = hrg.size();
+    if n <= 1 {
+        return Graph::new(n, false);
+    }
+    let parent = build_parent_map(hrg);
+    let mut rng = SplitMix64::new(seed);
+    sample_one(hrg, &parent, &mut rng)
+}
+
+/// Sample multiple random graphs from a hierarchical random graph model.
+///
+/// Generates `num_samples` independent draws from the HRG ensemble.
+///
+/// # Example
+///
+/// ```
+/// use rust_igraph::{HrgTree, hrg_sample_many};
+///
+/// let mut hrg = HrgTree::new(3);
+/// hrg.left[0] = 0;   hrg.right[0] = -2;  hrg.prob[0] = 0.5;
+/// hrg.left[1] = 1;   hrg.right[1] = 2;   hrg.prob[1] = 1.0;
+/// hrg.vertices = vec![3, 2];
+/// hrg.edges = vec![4, 2];
+///
+/// let graphs = hrg_sample_many(&hrg, 5, 123).unwrap();
+/// assert_eq!(graphs.len(), 5);
+/// for g in &graphs {
+///     assert_eq!(g.vcount(), 3);
+/// }
+/// ```
+pub fn hrg_sample_many(hrg: &HrgTree, num_samples: usize, seed: u64) -> IgraphResult<Vec<Graph>> {
+    let n = hrg.size();
+    if n <= 1 {
+        let g = Graph::new(n, false)?;
+        return Ok(vec![g; num_samples]);
+    }
+    let parent = build_parent_map(hrg);
+    let mut rng = SplitMix64::new(seed);
+    let mut results = Vec::with_capacity(num_samples);
+    for _ in 0..num_samples {
+        results.push(sample_one(hrg, &parent, &mut rng)?);
+    }
+    Ok(results)
+}
+
+/// Generate a hierarchical random graph (alias for [`hrg_sample`]).
+pub fn hrg_game(hrg: &HrgTree, seed: u64) -> IgraphResult<Graph> {
+    hrg_sample(hrg, seed)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -589,5 +763,149 @@ mod tests {
         assert!((hrg.prob[0] - 0.1).abs() < 1e-10);
         assert!((hrg.prob[1] - 0.2).abs() < 1e-10);
         assert!((hrg.prob[2] - 0.3).abs() < 1e-10);
+    }
+
+    // ── HRG-002: hrg_sample / hrg_sample_many / hrg_game ──
+
+    fn make_sample_hrg() -> HrgTree {
+        // 3-leaf HRG: root splits into leaf 0 and internal node 1;
+        // internal node 1 splits into leaves 1 and 2.
+        let mut hrg = HrgTree::new(3);
+        hrg.left[0] = 0;
+        hrg.right[0] = -2; // internal node 1
+        hrg.prob[0] = 0.5;
+        hrg.left[1] = 1;
+        hrg.right[1] = 2;
+        hrg.prob[1] = 1.0;
+        hrg.vertices = vec![3, 2];
+        hrg.edges = vec![4, 2];
+        hrg
+    }
+
+    #[test]
+    fn hrg_sample_correct_vcount() {
+        let hrg = make_sample_hrg();
+        let g = hrg_sample(&hrg, 42).expect("hrg_sample");
+        assert_eq!(g.vcount(), 3);
+        assert!(!g.is_directed());
+    }
+
+    #[test]
+    fn hrg_sample_deterministic() {
+        let hrg = make_sample_hrg();
+        let g1 = hrg_sample(&hrg, 99).expect("hrg_sample");
+        let g2 = hrg_sample(&hrg, 99).expect("hrg_sample");
+        assert_eq!(g1.ecount(), g2.ecount());
+        for eid in 0..g1.ecount() {
+            #[allow(clippy::cast_possible_truncation)]
+            let eid32 = eid as u32;
+            let (s1, t1) = g1.edge(eid32).expect("edge");
+            let (s2, t2) = g2.edge(eid32).expect("edge");
+            assert_eq!(s1, s2);
+            assert_eq!(t1, t2);
+        }
+    }
+
+    #[test]
+    fn hrg_sample_prob_one_always_connects() {
+        // All probs = 1.0 → complete graph on 3 vertices (3 edges)
+        let mut hrg = HrgTree::new(3);
+        hrg.left[0] = 0;
+        hrg.right[0] = -2;
+        hrg.prob[0] = 1.0;
+        hrg.left[1] = 1;
+        hrg.right[1] = 2;
+        hrg.prob[1] = 1.0;
+        hrg.vertices = vec![3, 2];
+        hrg.edges = vec![4, 2];
+
+        for seed in 0..20u64 {
+            let g = hrg_sample(&hrg, seed).expect("hrg_sample");
+            assert_eq!(g.ecount(), 3, "prob=1.0 should yield K3");
+        }
+    }
+
+    #[test]
+    fn hrg_sample_prob_zero_never_connects() {
+        let mut hrg = HrgTree::new(3);
+        hrg.left[0] = 0;
+        hrg.right[0] = -2;
+        hrg.prob[0] = 0.0;
+        hrg.left[1] = 1;
+        hrg.right[1] = 2;
+        hrg.prob[1] = 0.0;
+        hrg.vertices = vec![3, 2];
+        hrg.edges = vec![4, 2];
+
+        for seed in 0..20u64 {
+            let g = hrg_sample(&hrg, seed).expect("hrg_sample");
+            assert_eq!(g.ecount(), 0, "prob=0.0 should yield empty graph");
+        }
+    }
+
+    #[test]
+    fn hrg_sample_single_vertex() {
+        let hrg = HrgTree::new(1);
+        let g = hrg_sample(&hrg, 0).expect("hrg_sample");
+        assert_eq!(g.vcount(), 1);
+        assert_eq!(g.ecount(), 0);
+    }
+
+    #[test]
+    fn hrg_sample_empty() {
+        let hrg = HrgTree::new(0);
+        let g = hrg_sample(&hrg, 0).expect("hrg_sample");
+        assert_eq!(g.vcount(), 0);
+        assert_eq!(g.ecount(), 0);
+    }
+
+    #[test]
+    fn hrg_sample_many_correct_count() {
+        let hrg = make_sample_hrg();
+        let graphs = hrg_sample_many(&hrg, 10, 42).expect("hrg_sample_many");
+        assert_eq!(graphs.len(), 10);
+        for g in &graphs {
+            assert_eq!(g.vcount(), 3);
+        }
+    }
+
+    #[test]
+    fn hrg_sample_many_zero_samples() {
+        let hrg = make_sample_hrg();
+        let graphs = hrg_sample_many(&hrg, 0, 42).expect("hrg_sample_many");
+        assert!(graphs.is_empty());
+    }
+
+    #[test]
+    fn hrg_sample_many_deterministic() {
+        let hrg = make_sample_hrg();
+        let g1 = hrg_sample_many(&hrg, 5, 77).expect("hrg_sample_many");
+        let g2 = hrg_sample_many(&hrg, 5, 77).expect("hrg_sample_many");
+        for (a, b) in g1.iter().zip(g2.iter()) {
+            assert_eq!(a.ecount(), b.ecount());
+        }
+    }
+
+    #[test]
+    fn hrg_game_is_alias() {
+        let hrg = make_sample_hrg();
+        let g1 = hrg_sample(&hrg, 123).expect("hrg_sample");
+        let g2 = hrg_game(&hrg, 123).expect("hrg_game");
+        assert_eq!(g1.ecount(), g2.ecount());
+    }
+
+    #[test]
+    fn hrg_sample_statistical_edge_count() {
+        // With prob[0]=0.5, prob[1]=1.0, leaf pair (1,2) always
+        // connects (via internal 1, prob=1.0), while pairs (0,1) and
+        // (0,2) each connect with prob 0.5 (via root, prob=0.5).
+        // Expected edges = 1 + 0.5 + 0.5 = 2.0
+        let hrg = make_sample_hrg();
+        let n = 1000;
+        let graphs = hrg_sample_many(&hrg, n, 42).expect("hrg_sample_many");
+        let total_edges: usize = graphs.iter().map(Graph::ecount).sum();
+        #[allow(clippy::cast_precision_loss)]
+        let mean = total_edges as f64 / n as f64;
+        assert!((mean - 2.0).abs() < 0.2, "expected mean ~2.0, got {mean}");
     }
 }
