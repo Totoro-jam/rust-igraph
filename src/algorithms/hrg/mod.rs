@@ -10,6 +10,10 @@
 //! structure and the prediction of missing links in networks." Nature
 //! 453, 98–101 (2008).
 
+mod mcmc;
+
+pub use mcmc::{hrg_consensus, hrg_fit, hrg_predict};
+
 use crate::core::error::{IgraphError, IgraphResult};
 use crate::core::graph::{Graph, VertexId};
 use crate::core::rng::SplitMix64;

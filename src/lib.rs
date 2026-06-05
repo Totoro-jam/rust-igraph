@@ -358,7 +358,10 @@ pub use crate::algorithms::games::watts::watts_strogatz_game;
 pub use crate::algorithms::graphlets::{
     GraphletBasis, GraphletDecomposition, graphlets, graphlets_candidate_basis, graphlets_project,
 };
-pub use crate::algorithms::hrg::{HrgDendrogram, HrgTree, from_hrg_dendrogram, hrg_create};
+pub use crate::algorithms::hrg::{
+    HrgDendrogram, HrgTree, from_hrg_dendrogram, hrg_consensus, hrg_create, hrg_fit, hrg_game,
+    hrg_predict, hrg_sample, hrg_sample_many,
+};
 pub use crate::algorithms::independent_set::maximum_independent_set;
 pub use crate::algorithms::io::dimacs::{
     DimacsGraph, DimacsProblem, read_dimacs, write_dimacs_flow,
