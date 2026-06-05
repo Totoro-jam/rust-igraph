@@ -519,12 +519,12 @@ if __name__ == "__main__":
 | 5 | 流/割 + MST + 生成器 | ~55 | **~50** ✓ | Dinic max-flow + Gomory-Hu + all-st-cuts/mincuts + 54 generators | v0.5.0 |
 | 6 | 同构 + BLISS + 着色 + 匹配 | ~35 | **~25** ✓ | VF2 + LAD + BLISS I-R canonical + automorphisms + DSatur + bipartite matching | v0.6.0 |
 | 7 | 布局 + 环 + 团 + Motif | ~78 | **~45** ✓ | 16 布局引擎 (FR/KK/Sugiyama/GEM/RT/DrL/DH/GraphOpt/MDS/UMAP/LGL) + cliques + motifs | v0.6.0 |
-| 8 | 谱方法 + 嵌入 + 剩余 | ~90 | **3** (EIG-001..003) | Lanczos + Arnoldi + adj-eigen 已有 | - |
+| 8 | 谱方法 + 嵌入 + HRG | ~90 | **10** (EIG-001..003 + LAP-001 + EMB-001..003 + HRG-001..003) | Lanczos + Arnoldi + adj-eigen + Laplacian + spectral embedding + dim_select + HRG (create/sample/fit/consensus/predict) | v0.6.0 |
 | 9 | 文件 I/O + 属性系统 | ~75 | **15 I/O + attr** ✓ | 8 种格式 round-trip + attribute system | v0.5.0 |
 | 10 | 高层 API + 文档站 + 发布 | ~80 | **大部分** ✓ | 1,297 pub fn + mdBook (中英) + landing page + Playground (React SPA) + WASM + bench CI | v0.6.0 |
 | 11（可选） | nauty C FFI 后端 | ~10 | 0 | 大规模图同构性能 | v1.x |
 
-**截至 v0.6.0 实际总计**：308 AWU done，1,091 测试，1,672 conformance fixtures，1,297 公开函数。
+**截至 v0.6.0 实际总计**：315 AWU done，6,126 测试，1,672 conformance fixtures，~1,300 公开函数。
 
 **总 AWU**：约 660 个（Phase 0 + 算法）。
 
