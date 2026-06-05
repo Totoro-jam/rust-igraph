@@ -17,6 +17,7 @@ export interface ForceSimulationOptions {
   alphaDecay?: number;
   alphaMin?: number;
   velocityDecay?: number;
+  collisionRadius?: number;
 }
 
 const DEFAULTS: Required<ForceSimulationOptions> = {
@@ -27,6 +28,7 @@ const DEFAULTS: Required<ForceSimulationOptions> = {
   alphaDecay: 0.0228,
   alphaMin: 0.001,
   velocityDecay: 0.4,
+  collisionRadius: 12,
 };
 
 export class ForceSimulation {
@@ -119,6 +121,7 @@ export class ForceSimulation {
     this.applyChargeForce();
     this.applyLinkForce();
     this.applyCenterForce();
+    this.applyCollisionForce();
 
     for (const node of this.nodes) {
       if (node.fx !== null) {
@@ -191,6 +194,32 @@ export class ForceSimulation {
     for (const n of this.nodes) {
       n.vx -= cx * strength;
       n.vy -= cy * strength;
+    }
+  }
+
+  private applyCollisionForce(): void {
+    const r = this.opts.collisionRadius;
+    if (r <= 0) return;
+    const r2 = (r * 2) * (r * 2);
+    for (let i = 0; i < this.vcount; i++) {
+      for (let j = i + 1; j < this.vcount; j++) {
+        const ni = this.nodes[i]!;
+        const nj = this.nodes[j]!;
+        const dx = nj.x - ni.x;
+        const dy = nj.y - ni.y;
+        const dist2 = dx * dx + dy * dy;
+        if (dist2 < r2 && dist2 > 0) {
+          const dist = Math.sqrt(dist2);
+          const minDist = r * 2;
+          const overlap = (minDist - dist) / dist * 0.5;
+          const ox = dx * overlap;
+          const oy = dy * overlap;
+          ni.vx -= ox;
+          ni.vy -= oy;
+          nj.vx += ox;
+          nj.vy += oy;
+        }
+      }
     }
   }
 

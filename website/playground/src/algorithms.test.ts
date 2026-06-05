@@ -1888,3 +1888,66 @@ describe('demoAllMinimalStSeparators', () => {
     expect(result.separators.length).toBeGreaterThan(0);
   });
 });
+
+describe('null-safety: clustering_coefficients on star graph', () => {
+  const STAR: Edge[] = [[0,1],[0,2],[0,3],[0,4],[0,5]];
+  it('returns scores with null for degree<2 vertices', () => {
+    const result = demoClusteringCoefficients(6, STAR) as AlgoResultClusteringCoeff;
+    expect(result.scores).toHaveLength(6);
+    for (let i = 1; i <= 5; i++) {
+      expect(result.scores[i]).toBeNull();
+    }
+  });
+
+  it('score array is iterable even with nulls', () => {
+    const result = demoClusteringCoefficients(6, STAR) as AlgoResultClusteringCoeff;
+    const safe = result.scores.map(s => s ?? 0);
+    expect(safe.every(v => typeof v === 'number')).toBe(true);
+    expect(() => safe.forEach(s => s.toFixed(4))).not.toThrow();
+  });
+});
+
+describe('null-safety: feedback_arc_set edge indices', () => {
+  it('returns edge indices (numbers), not tuples', () => {
+    const result = runDemoAlgo('feedback_arc_set', 4, PATH) as { edges: number[]; count: number };
+    expect(result.edges).toBeDefined();
+    for (const e of result.edges) {
+      expect(typeof e).toBe('number');
+    }
+  });
+
+  it('edge indices should not be iterable as tuples', () => {
+    const result = runDemoAlgo('feedback_arc_set', 4, PATH) as { edges: number[]; count: number };
+    expect(() => {
+      for (const e of result.edges) {
+        if (Array.isArray(e)) throw new Error('should be number, not array');
+      }
+    }).not.toThrow();
+  });
+});
+
+describe('null-safety: avg_nearest_neighbor_degree', () => {
+  it('handles null scores without crashing', () => {
+    const result = demoAvgNearestNeighborDegree(2, [[0,1]]) as AlgoResultKnn;
+    expect(result.scores).toHaveLength(2);
+    const safe = result.scores.map(s => s ?? 0);
+    expect(() => safe.forEach(s => s.toFixed(4))).not.toThrow();
+  });
+});
+
+describe('null-safety: every algo on star graph', () => {
+  const STAR: Edge[] = [[0,1],[0,2],[0,3],[0,4],[0,5]];
+  const algos = [
+    'pagerank','louvain','betweenness','closeness','eigenvector',
+    'bfs','dfs','components','harmonic','hits','katz',
+    'clustering_coefficients','avg_nearest_neighbor_degree',
+    'feedback_arc_set','bridges','articulation_points',
+    'coreness','eccentricity','degree_distribution',
+    'global_efficiency','local_efficiency',
+  ] as const;
+  for (const algo of algos) {
+    it(`${algo} does not throw on star graph`, () => {
+      expect(() => runDemoAlgo(algo, 6, STAR)).not.toThrow();
+    });
+  }
+});

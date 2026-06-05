@@ -95,7 +95,8 @@ function parseResult(
       });
     });
   } else if ('scores' in result) {
-    const scores = result.scores as number[];
+    const raw = result.scores as (number | null)[];
+    const scores = raw.map(s => (s != null && Number.isFinite(s)) ? s : 0);
     const max = Math.max(...scores, 1e-9);
     const min = Math.min(...scores);
     const maxIdx = scores.indexOf(max);
@@ -106,7 +107,7 @@ function parseResult(
     scores.forEach((s, i) => {
       table.push({
         vertex: i,
-        value: s.toFixed(6),
+        value: raw[i] == null ? 'N/A' : s.toFixed(6),
         numericValue: s,
         barFraction: max > min ? (s - min) / (max - min) : 0.5,
       });
@@ -415,22 +416,23 @@ function parseResult(
       reciprocity: 'result.reciprocity',
     };
     const label = t(scalarLabels[algo] ?? 'result.flowValue');
-    const v = result.value as number;
-    badges.push({ label, value: Number.isInteger(v) ? String(v) : v.toFixed(4), accent: true });
+    const v = (result.value as number) ?? 0;
+    badges.push({ label, value: Number.isInteger(v) ? String(v) : (v?.toFixed?.(4) ?? String(v)), accent: true });
   } else if ('distances' in result) {
-    const distances = (result as { distances: number[] }).distances;
-    const finite = distances.filter((d) => Number.isFinite(d));
+    const distances = (result as { distances: (number | null)[] }).distances;
+    const finite = distances.filter((d): d is number => d != null && Number.isFinite(d));
     const maxDist = finite.length > 0 ? Math.max(...finite) : 1;
     badges.push({ label: t('result.reachable'), value: String(finite.length), accent: true });
     badges.push({ label: t('result.maxDist'), value: maxDist.toFixed(1) });
     columnLabel = t('result.col.distance');
     showBars = true;
     distances.forEach((d, i) => {
+      const dv = d ?? Infinity;
       table.push({
         vertex: i,
-        value: Number.isFinite(d) ? d.toFixed(1) : '∞',
-        numericValue: Number.isFinite(d) ? d : maxDist + 1,
-        barFraction: Number.isFinite(d) && maxDist > 0 ? d / maxDist : 0,
+        value: Number.isFinite(dv) ? dv.toFixed(1) : '∞',
+        numericValue: Number.isFinite(dv) ? dv : maxDist + 1,
+        barFraction: Number.isFinite(dv) && maxDist > 0 ? dv / maxDist : 0,
       });
     });
   } else if ('vertices' in result) {

@@ -103,8 +103,12 @@ function labelColorForHex(hex: string): string {
   return lum > 0.3 ? '#1f2328' : '#f0f6fc';
 }
 
+function safeScores(arr: (number | null | undefined)[]): number[] {
+  return arr.map((v) => (v != null && Number.isFinite(v) ? v : 0));
+}
+
 function getNodeColor(
-  _algo: AlgoId,
+  algo: AlgoId,
   result: AlgoResult | null,
   idx: number,
   theme: 'dark' | 'light',
@@ -128,7 +132,7 @@ function getNodeColor(
     return interpolateColor(t, theme);
   }
   if (isScores(result)) {
-    const scores = result.scores;
+    const scores = safeScores(result.scores);
     const max = Math.max(...scores, 1e-9);
     const min = Math.min(...scores);
     const t = max > min ? ((scores[idx] ?? 0) - min) / (max - min) : 0.5;
@@ -150,7 +154,7 @@ function getNodeColor(
   }
   if ('distances' in result) {
     const distances = (result as { distances: number[] }).distances;
-    const finite = distances.filter((d) => Number.isFinite(d));
+    const finite = distances.filter((d) => d != null && Number.isFinite(d));
     const max = finite.length > 0 ? Math.max(...finite) : 1;
     const d = distances[idx] ?? Infinity;
     if (!Number.isFinite(d)) return dimmed;
@@ -163,9 +167,13 @@ function getNodeColor(
     return palette[0]!;
   }
   if ('edges' in result && 'count' in result) {
-    const bridgeEdges = (result as { edges: [number, number][] }).edges;
-    for (const [u, v] of bridgeEdges) {
-      if (u === idx || v === idx) return theme === 'dark' ? '#f85149' : '#cf222e';
+    if (algo === 'bridges') {
+      const bridgeEdges = (result as { edges: [number, number][] }).edges;
+      for (const e of bridgeEdges) {
+        if (Array.isArray(e) && (e[0] === idx || e[1] === idx)) {
+          return theme === 'dark' ? '#f85149' : '#cf222e';
+        }
+      }
     }
     return palette[0]!;
   }
@@ -181,8 +189,9 @@ function getNodeRadius(
   const base = Math.max(4, Math.min(14, 200 / Math.sqrt(Math.max(vcount, 1))));
   if (!result) return base;
   if (isScores(result)) {
-    const max = Math.max(...result.scores, 1e-9);
-    return base * (0.6 + 1.4 * (result.scores[idx] ?? 0) / max);
+    const scores = safeScores(result.scores);
+    const max = Math.max(...scores, 1e-9);
+    return base * (0.6 + 1.4 * (scores[idx] ?? 0) / max);
   }
   if ('hub' in result) {
     const hub = (result as { hub: number[] }).hub;
@@ -216,7 +225,7 @@ function formatNodeTooltip(
     info += `\nauthority: ${(r.authority[idx] ?? 0).toFixed(6)}`;
   } else if (isScores(result)) {
     const val = result.scores[idx];
-    if (val !== undefined) info += `\nscore: ${val.toFixed(6)}`;
+    if (val != null && Number.isFinite(val)) info += `\nscore: ${val.toFixed(6)}`;
   } else if (isMembership(result)) {
     const c = result.membership[idx];
     if (c !== undefined) info += `\ncommunity: ${c}`;
@@ -560,13 +569,15 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, l
     }
 
     const linkDist = Math.max(30, Math.min(80, 600 / Math.sqrt(Math.max(currentVcount, 1))));
-    const charge = Math.max(-300, Math.min(-30, -3000 / Math.max(currentVcount, 1)));
+    const charge = Math.max(-400, Math.min(-50, -4000 / Math.max(currentVcount, 1)));
+    const nodeRadius = Math.max(4, Math.min(14, 200 / Math.sqrt(Math.max(currentVcount, 1))));
 
     const sim = new ForceSimulation(currentVcount, currentEdges, coords, {
       linkDistance: linkDist,
       chargeStrength: charge,
       alphaDecay: 0.02,
       velocityDecay: 0.35,
+      collisionRadius: nodeRadius + 2,
     });
 
     sim.alpha = 0.15;
@@ -666,7 +677,6 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, l
       const nodeIdx = findNodeAt(mx, my);
 
       if (nodeIdx >= 0) {
-        // Start node drag
         interactionRef.current.dragNode = nodeIdx;
         const sim = simRef.current;
         if (sim) {
@@ -674,7 +684,6 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, l
           const h = rect.height;
           const [wx, wy] = screenToWorld(mx, my, w, h, viewRef.current);
           sim.pinNode(nodeIdx, wx, wy);
-          sim.reheat(0.3);
         }
         canvas.style.cursor = 'grabbing';
       } else {
@@ -812,7 +821,6 @@ export function Canvas({ coords, edges, vcount, result, algo, directed, theme, l
           const h = rect.height;
           const [wx, wy] = screenToWorld(mx, my, w, h, viewRef.current);
           sim.pinNode(nodeIdx, wx, wy);
-          sim.reheat(0.3);
         }
       } else {
         const view = viewRef.current;
