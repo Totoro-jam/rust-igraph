@@ -12,7 +12,7 @@ const ALGO_CATEGORIES: AlgoCategory[] = [
   {
     key: 'centrality',
     icon: '◎',
-    algos: ['pagerank', 'betweenness', 'closeness', 'eigenvector', 'harmonic', 'hits', 'katz', 'edge_betweenness_centrality', 'local_efficiency', 'clustering_coefficients', 'avg_nearest_neighbor_degree'],
+    algos: ['pagerank', 'betweenness', 'closeness', 'eigenvector', 'harmonic', 'hits', 'katz', 'edge_betweenness_centrality', 'local_efficiency', 'clustering_coefficients', 'avg_nearest_neighbor_degree', 'strength'],
   },
   {
     key: 'community',
@@ -30,12 +30,12 @@ const ALGO_CATEGORIES: AlgoCategory[] = [
   {
     key: 'structure',
     icon: '⊞',
-    algos: ['components', 'scc', 'biconnected_components', 'articulation_points', 'bridges', 'vertex_connectivity', 'edge_connectivity', 'vertex_disjoint_paths', 'edge_disjoint_paths', 'coloring', 'bipartite_check', 'maximum_cut', 'triad_census', 'fundamental_cycles', 'minimum_cycle_basis', 'list_triangles', 'feedback_arc_set', 'cohesive_blocks'],
+    algos: ['components', 'scc', 'biconnected_components', 'articulation_points', 'bridges', 'vertex_connectivity', 'edge_connectivity', 'vertex_disjoint_paths', 'edge_disjoint_paths', 'coloring', 'bipartite_check', 'maximum_cut', 'triad_census', 'fundamental_cycles', 'minimum_cycle_basis', 'list_triangles', 'feedback_arc_set', 'cohesive_blocks', 'all_minimal_st_separators', 'neighborhood'],
   },
   {
     key: 'metrics',
     icon: '▦',
-    algos: ['graph_stats', 'degree_sequence', 'degree_distribution', 'coreness', 'eccentricity', 'constraint', 'diameter', 'girth', 'transitivity', 'trussness', 'clique_number', 'independence_number', 'maximal_cliques', 'minimum_spanning_tree', 'global_efficiency', 'degeneracy', 'mincut_value', 'is_eulerian', 'chromatic_number', 'average_path_length', 'similarity_jaccard', 'convergence_degree', 'graph_center'],
+    algos: ['graph_stats', 'graph_properties', 'degree_sequence', 'degree_distribution', 'coreness', 'eccentricity', 'constraint', 'diameter', 'girth', 'transitivity', 'trussness', 'clique_number', 'independence_number', 'maximal_cliques', 'minimum_spanning_tree', 'global_efficiency', 'degeneracy', 'mincut_value', 'is_eulerian', 'chromatic_number', 'average_path_length', 'similarity_jaccard', 'similarity_dice', 'convergence_degree', 'graph_center', 'density', 'radius', 'mean_degree', 'mean_distance', 'assortativity_degree', 'reciprocity'],
   },
   {
     key: 'isomorphism',

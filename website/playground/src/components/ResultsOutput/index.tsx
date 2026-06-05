@@ -193,6 +193,20 @@ function parseResult(
       });
     });
     showBars = true;
+  } else if (algo === 'graph_properties' && 'is_tree' in result) {
+    const gp = result as import('../../types').AlgoResultGraphProperties;
+    const propLabels: [string, boolean][] = [
+      ['Tree', gp.is_tree], ['Forest', gp.is_forest], ['DAG', gp.is_dag],
+      ['Acyclic', gp.is_acyclic], ['Complete', gp.is_complete],
+      ['Biconnected', gp.is_biconnected], ['Bipartite', gp.is_bipartite],
+      ['Connected', gp.is_connected], ['Tournament', gp.is_tournament],
+      ['Cubic', gp.is_cubic], ['Cycle', gp.is_cycle], ['Path', gp.is_path],
+      ['Star', gp.is_star], ['Wheel', gp.is_wheel], ['Perfect', gp.is_perfect],
+      ['Triangle-Free', gp.is_triangle_free], ['Outerplanar', gp.is_outerplanar],
+    ];
+    for (const [label, val] of propLabels) {
+      badges.push({ label, value: val ? 'Yes' : 'No', accent: val });
+    }
   } else if (algo === 'diameter' && 'diameter' in result) {
     const d = (result as { diameter: number | null }).diameter;
     badges.push({ label: t('result.diameterValue'), value: d != null ? String(d) : 'N/A', accent: true });
@@ -333,7 +347,7 @@ function parseResult(
         colorIndex: i % 8,
       });
     });
-  } else if (algo === 'similarity_jaccard' && 'matrix' in result) {
+  } else if ((algo === 'similarity_jaccard' || algo === 'similarity_dice') && 'matrix' in result) {
     const sim = result as { matrix: number[][]; size: number };
     badges.push({ label: t('result.vertices'), value: String(sim.size), accent: true });
     columnLabel = t('result.similarity');
@@ -345,6 +359,29 @@ function parseResult(
         value: bestJ >= 0 ? `v${bestJ} (${maxSim.toFixed(4)})` : 'N/A',
         numericValue: maxSim,
         barFraction: maxSim,
+      });
+    });
+  } else if (algo === 'neighborhood' && 'neighborhoods' in result) {
+    const nb = result as { neighborhoods: number[][] };
+    badges.push({ label: t('result.vertices'), value: String(nb.neighborhoods.length), accent: true });
+    nb.neighborhoods.forEach((n, i) => {
+      table.push({
+        vertex: i,
+        value: n.map(v => `v${v}`).join(', '),
+        numericValue: n.length,
+        barFraction: 1,
+      });
+    });
+  } else if (algo === 'all_minimal_st_separators' && 'separators' in result) {
+    const sep = result as { separators: number[][]; count: number };
+    badges.push({ label: t('result.count'), value: String(sep.count), accent: true });
+    sep.separators.forEach((s, i) => {
+      table.push({
+        vertex: i,
+        value: s.map(v => `v${v}`).join(', '),
+        numericValue: s.length,
+        barFraction: 1,
+        colorIndex: i % 8,
       });
     });
   } else if ('colors' in result) {
@@ -370,6 +407,12 @@ function parseResult(
       edge_disjoint_paths: 'result.disjointPaths',
       chromatic_number: 'result.chromaticNumber',
       average_path_length: 'result.avgPathLength',
+      density: 'result.density',
+      radius: 'result.radius',
+      mean_degree: 'result.meanDegree',
+      mean_distance: 'result.meanDistance',
+      assortativity_degree: 'result.assortativity',
+      reciprocity: 'result.reciprocity',
     };
     const label = t(scalarLabels[algo] ?? 'result.flowValue');
     const v = result.value as number;

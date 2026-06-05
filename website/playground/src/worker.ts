@@ -461,6 +461,53 @@ function runWasm(
       case 'k_shortest_paths':
         resultJson = graph.kShortestPaths(params.source ?? 0, params.target ?? (graph.vcount() > 1 ? graph.vcount() - 1 : 0), 5);
         break;
+      case 'graph_properties':
+        resultJson = graph.graphProperties();
+        break;
+      case 'similarity_dice':
+        resultJson = graph.similarityDice();
+        break;
+      case 'assortativity_degree': {
+        const raw = JSON.parse(graph.assortativityDegree());
+        resultJson = JSON.stringify({ value: raw.assortativity ?? 0 });
+        break;
+      }
+      case 'density': {
+        const raw = JSON.parse(graph.density());
+        resultJson = JSON.stringify({ value: raw.density ?? 0 });
+        break;
+      }
+      case 'radius': {
+        const raw = JSON.parse(graph.radius());
+        resultJson = JSON.stringify({ value: raw.radius ?? 0 });
+        break;
+      }
+      case 'mean_degree': {
+        const raw = JSON.parse(graph.meanDegree());
+        resultJson = JSON.stringify({ value: raw.mean_degree ?? 0 });
+        break;
+      }
+      case 'mean_distance': {
+        const raw = JSON.parse(graph.meanDistance());
+        resultJson = JSON.stringify({ value: raw.mean_distance ?? 0 });
+        break;
+      }
+      case 'reciprocity': {
+        const raw = JSON.parse(graph.reciprocity());
+        resultJson = JSON.stringify({ value: raw.reciprocity ?? 0 });
+        break;
+      }
+      case 'neighborhood':
+        resultJson = graph.neighborhood(1);
+        break;
+      case 'all_minimal_st_separators':
+        resultJson = graph.allMinimalStSeparators();
+        break;
+      case 'strength': {
+        const w = new Array(graph.ecount()).fill(1.0);
+        resultJson = graph.strength(w);
+        break;
+      }
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);
     }

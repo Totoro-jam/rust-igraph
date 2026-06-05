@@ -64,6 +64,17 @@ import {
   demoClusteringCoefficients,
   demoAveragePathLength,
   demoKShortestPaths,
+  demoGraphProperties,
+  demoSimilarityDice,
+  demoAssortativityDegree,
+  demoDensity,
+  demoRadius,
+  demoMeanDegree,
+  demoMeanDistance,
+  demoReciprocity,
+  demoNeighborhood,
+  demoAllMinimalStSeparators,
+  demoStrength,
   runDemoAlgo,
   layoutFR,
 } from './algorithms';
@@ -76,7 +87,8 @@ import type {
   AlgoResultBiconnected, AlgoResultBipartiteCheck, AlgoResultMaxCut, AlgoResultEulerian,
   AlgoResultSimplePaths, AlgoResultFindCycle, AlgoResultCohesiveBlocks,
   AlgoResultKnn, AlgoResultSimilarityMatrix, AlgoResultVoronoi, AlgoResultGraphCenter,
-  AlgoResultClusteringCoeff, AlgoResultKPaths,
+  AlgoResultClusteringCoeff, AlgoResultKPaths, AlgoResultGraphProperties, AlgoResultNeighborhood,
+  AlgoResultSeparators,
 } from './types';
 
 const TRIANGLE: Edge[] = [[0, 1], [1, 2], [2, 0]];
@@ -1723,5 +1735,156 @@ describe('runDemoAlgo — batch 3 dispatch', () => {
   it('dispatches k_shortest_paths', () => {
     const result = runDemoAlgo('k_shortest_paths', 4, PATH, { source: 0, target: 3 });
     expect((result as AlgoResultKPaths).count).toBe(1);
+  });
+
+  it('dispatches graph_properties', () => {
+    const result = runDemoAlgo('graph_properties', 3, TRIANGLE);
+    expect((result as AlgoResultGraphProperties).is_connected).toBe(true);
+  });
+
+  it('dispatches similarity_dice', () => {
+    const result = runDemoAlgo('similarity_dice', 3, TRIANGLE);
+    expect((result as AlgoResultSimilarityMatrix).matrix).toHaveLength(3);
+  });
+
+  it('dispatches assortativity_degree', () => {
+    const result = runDemoAlgo('assortativity_degree', 3, TRIANGLE);
+    expect((result as AlgoResultScalar).value).toBeDefined();
+  });
+
+  it('dispatches density', () => {
+    const result = runDemoAlgo('density', 3, TRIANGLE);
+    expect((result as AlgoResultScalar).value).toBeCloseTo(1.0, 4);
+  });
+
+  it('dispatches radius', () => {
+    const result = runDemoAlgo('radius', 3, TRIANGLE);
+    expect((result as AlgoResultScalar).value).toBe(1);
+  });
+
+  it('dispatches mean_degree', () => {
+    const result = runDemoAlgo('mean_degree', 3, TRIANGLE);
+    expect((result as AlgoResultScalar).value).toBe(2);
+  });
+
+  it('dispatches mean_distance', () => {
+    const result = runDemoAlgo('mean_distance', 3, TRIANGLE);
+    expect((result as AlgoResultScalar).value).toBeCloseTo(1.0, 4);
+  });
+
+  it('dispatches reciprocity', () => {
+    const result = runDemoAlgo('reciprocity', 3, TRIANGLE);
+    expect((result as AlgoResultScalar).value).toBeDefined();
+  });
+
+  it('dispatches neighborhood', () => {
+    const result = runDemoAlgo('neighborhood', 3, TRIANGLE);
+    expect((result as AlgoResultNeighborhood).neighborhoods).toHaveLength(3);
+  });
+
+  it('dispatches all_minimal_st_separators', () => {
+    const result = runDemoAlgo('all_minimal_st_separators', 4, PATH);
+    expect((result as AlgoResultSeparators).separators.length).toBeGreaterThan(0);
+  });
+
+  it('dispatches strength', () => {
+    const result = runDemoAlgo('strength', 3, TRIANGLE);
+    expect((result as AlgoResultScores).scores).toHaveLength(3);
+  });
+});
+
+describe('demoGraphProperties', () => {
+  it('detects complete graph', () => {
+    const result = demoGraphProperties(3, TRIANGLE) as AlgoResultGraphProperties;
+    expect(result.is_complete).toBe(true);
+    expect(result.is_connected).toBe(true);
+    expect(result.is_cycle).toBe(true);
+  });
+
+  it('detects path', () => {
+    const result = demoGraphProperties(4, PATH) as AlgoResultGraphProperties;
+    expect(result.is_path).toBe(true);
+    expect(result.is_tree).toBe(true);
+    expect(result.is_complete).toBe(false);
+  });
+});
+
+describe('demoSimilarityDice', () => {
+  it('returns square matrix', () => {
+    const result = demoSimilarityDice(3, TRIANGLE) as AlgoResultSimilarityMatrix;
+    expect(result.matrix).toHaveLength(3);
+    expect(result.matrix[0]).toHaveLength(3);
+    expect(result.matrix[0]![0]).toBe(1.0);
+  });
+});
+
+describe('demoDensity', () => {
+  it('returns 1 for complete triangle', () => {
+    const result = demoDensity(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBeCloseTo(1.0, 4);
+  });
+
+  it('returns 0.5 for path of 4', () => {
+    const result = demoDensity(4, PATH) as AlgoResultScalar;
+    expect(result.value).toBeCloseTo(0.5, 4);
+  });
+});
+
+describe('demoMeanDegree', () => {
+  it('computes average degree', () => {
+    const result = demoMeanDegree(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBe(2);
+  });
+});
+
+describe('demoNeighborhood', () => {
+  it('returns neighborhoods including self', () => {
+    const result = demoNeighborhood(3, TRIANGLE) as AlgoResultNeighborhood;
+    expect(result.neighborhoods).toHaveLength(3);
+    for (const n of result.neighborhoods) {
+      expect(n).toHaveLength(3);
+    }
+  });
+});
+
+describe('demoStrength', () => {
+  it('equals degree for unit weights', () => {
+    const result = demoStrength(3, TRIANGLE) as AlgoResultScores;
+    expect(result.scores).toEqual([2, 2, 2]);
+  });
+});
+
+describe('demoAssortativityDegree', () => {
+  it('returns a number', () => {
+    const result = demoAssortativityDegree(3, TRIANGLE) as AlgoResultScalar;
+    expect(typeof result.value).toBe('number');
+  });
+});
+
+describe('demoRadius', () => {
+  it('returns 1 for triangle', () => {
+    const result = demoRadius(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBe(1);
+  });
+});
+
+describe('demoMeanDistance', () => {
+  it('returns 1 for triangle', () => {
+    const result = demoMeanDistance(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBeCloseTo(1.0, 4);
+  });
+});
+
+describe('demoReciprocity', () => {
+  it('returns 0 for undirected-style edges', () => {
+    const result = demoReciprocity(3, TRIANGLE) as AlgoResultScalar;
+    expect(typeof result.value).toBe('number');
+  });
+});
+
+describe('demoAllMinimalStSeparators', () => {
+  it('finds cut vertices in path', () => {
+    const result = demoAllMinimalStSeparators(4, PATH) as AlgoResultSeparators;
+    expect(result.separators.length).toBeGreaterThan(0);
   });
 });

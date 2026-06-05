@@ -187,6 +187,28 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::Graph;\n\n${graphLine}\n\nlet apl = g.average_path_length().unwrap();\nprintln!("Average path length: {:?}", apl);`;
     case 'k_shortest_paths':
       return `use rust_igraph::{Graph, k_shortest_paths, DijkstraMode};\n\n${graphLine}\n\nlet weights = vec![1.0; g.ecount() as usize];\nlet paths = k_shortest_paths(&g, 0, g.vcount() as usize - 1, &weights, 5, DijkstraMode::Out).unwrap();\nfor p in &paths {\n    println!("Path: {:?} (weight: {:.1})", p.vertices, p.weight);\n}`;
+    case 'graph_properties':
+      return `use rust_igraph::{Graph, is_tree, is_dag, is_acyclic, is_complete, DijkstraMode};\n\n${graphLine}\n\nprintln!("Tree: {}", is_tree(&g, DijkstraMode::Out).unwrap().is_some());\nprintln!("DAG: {}", is_dag(&g));\nprintln!("Acyclic: {}", is_acyclic(&g));\nprintln!("Complete: {}", is_complete(&g).unwrap());`;
+    case 'similarity_dice':
+      return `use rust_igraph::{Graph, similarity_dice};\n\n${graphLine}\n\nlet matrix = similarity_dice(&g).unwrap();\nprintln!("Dice similarity: {:?}", matrix);`;
+    case 'assortativity_degree':
+      return `use rust_igraph::{Graph, assortativity_degree};\n\n${graphLine}\n\nlet r = assortativity_degree(&g).unwrap();\nprintln!("Degree assortativity: {:.4}", r);`;
+    case 'density':
+      return `use rust_igraph::{Graph, density};\n\n${graphLine}\n\nlet d = density(&g).unwrap();\nprintln!("Density: {:.4}", d);`;
+    case 'radius':
+      return `use rust_igraph::{Graph, radius};\n\n${graphLine}\n\nlet r = radius(&g).unwrap();\nprintln!("Radius: {}", r);`;
+    case 'mean_degree':
+      return `use rust_igraph::{Graph, mean_degree};\n\n${graphLine}\n\nlet md = mean_degree(&g, true).unwrap();\nprintln!("Mean degree: {:.4}", md);`;
+    case 'mean_distance':
+      return `use rust_igraph::{Graph, mean_distance};\n\n${graphLine}\n\nlet md = mean_distance(&g).unwrap();\nprintln!("Mean distance: {:.4}", md);`;
+    case 'reciprocity':
+      return `use rust_igraph::{Graph, reciprocity};\n\n${graphLine}\n\nlet r = reciprocity(&g).unwrap();\nprintln!("Reciprocity: {:.4}", r);`;
+    case 'neighborhood':
+      return `use rust_igraph::{Graph, neighborhood};\n\n${graphLine}\n\nlet nbrs = neighborhood(&g, 1).unwrap();\nfor (v, n) in nbrs.iter().enumerate() {\n    println!("Vertex {}: {:?}", v, n);\n}`;
+    case 'all_minimal_st_separators':
+      return `use rust_igraph::{Graph, all_minimal_st_separators};\n\n${graphLine}\n\nlet seps = all_minimal_st_separators(&g).unwrap();\nprintln!("{} separators found", seps.len());\nfor s in &seps {\n    println!("{:?}", s);\n}`;
+    case 'strength':
+      return `use rust_igraph::{Graph, strength};\n\n${graphLine}\n\nlet weights = vec![1.0; g.ecount() as usize];\nlet s = strength(&g, &weights).unwrap();\nfor (v, val) in s.iter().enumerate() {\n    println!("Vertex {}: {:.2}", v, val);\n}`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }

@@ -84,7 +84,18 @@ export type AlgoId =
   | 'graph_center'
   | 'clustering_coefficients'
   | 'average_path_length'
-  | 'k_shortest_paths';
+  | 'k_shortest_paths'
+  | 'graph_properties'
+  | 'similarity_dice'
+  | 'assortativity_degree'
+  | 'density'
+  | 'radius'
+  | 'mean_degree'
+  | 'mean_distance'
+  | 'reciprocity'
+  | 'neighborhood'
+  | 'all_minimal_st_separators'
+  | 'strength';
 
 export type LayoutId = 'fr' | 'kamada_kawai' | 'circle' | 'random' | 'grid' | 'star';
 
@@ -318,6 +329,30 @@ export interface AlgoResultSeparators {
   count: number;
 }
 
+export interface AlgoResultGraphProperties {
+  is_tree: boolean;
+  is_forest: boolean;
+  is_dag: boolean;
+  is_acyclic: boolean;
+  is_complete: boolean;
+  is_biconnected: boolean;
+  is_bipartite: boolean;
+  is_connected: boolean;
+  is_tournament: boolean;
+  is_cubic: boolean;
+  is_cycle: boolean;
+  is_path: boolean;
+  is_star: boolean;
+  is_wheel: boolean;
+  is_perfect: boolean;
+  is_triangle_free: boolean;
+  is_outerplanar: boolean;
+}
+
+export interface AlgoResultNeighborhood {
+  neighborhoods: number[][];
+}
+
 export type AlgoResult =
   | AlgoResultScores
   | AlgoResultMembership
@@ -362,7 +397,9 @@ export type AlgoResult =
   | AlgoResultGraphCenter
   | AlgoResultClusteringCoeff
   | AlgoResultKPaths
-  | AlgoResultSeparators;
+  | AlgoResultSeparators
+  | AlgoResultGraphProperties
+  | AlgoResultNeighborhood;
 
 export interface RunResult {
   algo: AlgoId;

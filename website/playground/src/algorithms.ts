@@ -1557,6 +1557,192 @@ export function demoKShortestPaths(vcount: number, edges: Edge[], source = 0, ta
   return { paths: paths.slice(0, k), count: Math.min(paths.length, k) } as AlgoResult;
 }
 
+export function demoGraphProperties(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const degrees = adj.map(n => n.length);
+  const connected = (() => {
+    const visited = new Set<number>();
+    const stack = [0];
+    while (stack.length > 0) {
+      const v = stack.pop()!;
+      if (visited.has(v)) continue;
+      visited.add(v);
+      for (const u of adj[v]!) stack.push(u);
+    }
+    return visited.size === vcount;
+  })();
+  const ecount = edges.length;
+  const maxEdges = vcount * (vcount - 1) / 2;
+  const isComplete = ecount === maxEdges && vcount > 1;
+  const isTree = connected && ecount === vcount - 1;
+  const allDeg3 = vcount > 0 && degrees.every(d => d === 3);
+  const allDeg2 = vcount > 0 && degrees.every(d => d === 2);
+  const isPath = connected && degrees.filter(d => d === 1).length === 2 && degrees.filter(d => d === 2).length === vcount - 2;
+  const isStar = connected && degrees.filter(d => d === vcount - 1).length === 1 && degrees.filter(d => d === 1).length === vcount - 1;
+  let triangles = 0;
+  for (const [u, v] of edges) {
+    const su = new Set(adj[u]!);
+    for (const w of adj[v]!) {
+      if (w !== u && su.has(w)) triangles++;
+    }
+  }
+  return {
+    is_tree: isTree,
+    is_forest: isTree || (!connected && ecount < vcount),
+    is_dag: false,
+    is_acyclic: isTree,
+    is_complete: isComplete,
+    is_biconnected: false,
+    is_bipartite: false,
+    is_connected: connected,
+    is_tournament: false,
+    is_cubic: allDeg3,
+    is_cycle: allDeg2 && connected,
+    is_path: isPath,
+    is_star: isStar,
+    is_wheel: false,
+    is_perfect: false,
+    is_triangle_free: triangles === 0,
+    is_outerplanar: false,
+  } as AlgoResult;
+}
+
+export function demoSimilarityDice(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const matrix: number[][] = [];
+  for (let i = 0; i < vcount; i++) {
+    const row: number[] = [];
+    const si = new Set(adj[i]);
+    for (let j = 0; j < vcount; j++) {
+      if (i === j) { row.push(1.0); continue; }
+      const sj = new Set(adj[j]);
+      let common = 0;
+      for (const n of si) if (sj.has(n)) common++;
+      const denom = si.size + sj.size;
+      row.push(denom === 0 ? 0 : (2 * common) / denom);
+    }
+    matrix.push(row);
+  }
+  return { matrix, size: vcount } as AlgoResult;
+}
+
+export function demoAssortativityDegree(vcount: number, edges: Edge[]): AlgoResult {
+  if (edges.length === 0) return { value: 0 } as AlgoResult;
+  const adj = buildAdj(vcount, edges);
+  const deg = adj.map(n => n.length);
+  let sumProd = 0, sumSum = 0, sumSqSum = 0;
+  for (const [u, v] of edges) {
+    sumProd += deg[u]! * deg[v]!;
+    sumSum += deg[u]! + deg[v]!;
+    sumSqSum += deg[u]! * deg[u]! + deg[v]! * deg[v]!;
+  }
+  const m = edges.length;
+  const num = sumProd / m - (sumSum / (2 * m)) ** 2;
+  const den = sumSqSum / (2 * m) - (sumSum / (2 * m)) ** 2;
+  return { value: den === 0 ? 0 : num / den } as AlgoResult;
+}
+
+export function demoDensity(vcount: number, edges: Edge[]): AlgoResult {
+  const maxEdges = vcount * (vcount - 1) / 2;
+  return { value: maxEdges === 0 ? 0 : edges.length / maxEdges } as AlgoResult;
+}
+
+export function demoRadius(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  let minEcc = Infinity;
+  for (let s = 0; s < vcount; s++) {
+    const dist = new Array(vcount).fill(-1);
+    dist[s] = 0;
+    const queue = [s];
+    let head = 0;
+    while (head < queue.length) {
+      const v = queue[head++];
+      for (const u of adj[v!]!) {
+        if (dist[u] === -1) { dist[u] = dist[v!]! + 1; queue.push(u); }
+      }
+    }
+    const ecc = Math.max(...dist.filter((d: number) => d >= 0));
+    if (ecc < minEcc) minEcc = ecc;
+  }
+  return { value: minEcc === Infinity ? 0 : minEcc } as AlgoResult;
+}
+
+export function demoMeanDegree(vcount: number, edges: Edge[]): AlgoResult {
+  return { value: vcount === 0 ? 0 : (2 * edges.length) / vcount } as AlgoResult;
+}
+
+export function demoMeanDistance(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  let totalDist = 0, pairs = 0;
+  for (let s = 0; s < vcount; s++) {
+    const dist = new Array(vcount).fill(-1);
+    dist[s] = 0;
+    const queue = [s];
+    let head = 0;
+    while (head < queue.length) {
+      const v = queue[head++];
+      for (const u of adj[v!]!) {
+        if (dist[u] === -1) { dist[u] = dist[v!]! + 1; queue.push(u); }
+      }
+    }
+    for (let t = s + 1; t < vcount; t++) {
+      if (dist[t]! > 0) { totalDist += dist[t]!; pairs++; }
+    }
+  }
+  return { value: pairs === 0 ? 0 : totalDist / pairs } as AlgoResult;
+}
+
+export function demoReciprocity(_vcount: number, edges: Edge[]): AlgoResult {
+  const edgeSet = new Set(edges.map(([u, v]) => `${u},${v}`));
+  let mutual = 0;
+  for (const [u, v] of edges) {
+    if (edgeSet.has(`${v},${u}`)) mutual++;
+  }
+  return { value: edges.length === 0 ? 0 : mutual / edges.length } as AlgoResult;
+}
+
+export function demoNeighborhood(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const neighborhoods: number[][] = [];
+  for (let v = 0; v < vcount; v++) {
+    neighborhoods.push([v, ...adj[v]!].sort((a, b) => a - b));
+  }
+  return { neighborhoods } as AlgoResult;
+}
+
+export function demoAllMinimalStSeparators(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const separators: number[][] = [];
+  for (let v = 0; v < vcount; v++) {
+    if (adj[v]!.length < 2) continue;
+    const remaining = buildAdj(vcount, edges.filter(([a, b]) => a !== v && b !== v));
+    const visited = new Set<number>();
+    let components = 0;
+    for (let u = 0; u < vcount; u++) {
+      if (u === v || visited.has(u)) continue;
+      components++;
+      const stack = [u];
+      while (stack.length > 0) {
+        const w = stack.pop()!;
+        if (visited.has(w)) continue;
+        visited.add(w);
+        for (const x of remaining[w]!) if (!visited.has(x)) stack.push(x);
+      }
+    }
+    if (components > 1) separators.push([v]);
+  }
+  return { separators, count: separators.length } as AlgoResult;
+}
+
+export function demoStrength(vcount: number, edges: Edge[]): AlgoResult {
+  const scores = new Array(vcount).fill(0);
+  for (const [u, v] of edges) {
+    scores[u] += 1.0;
+    scores[v] += 1.0;
+  }
+  return { scores } as AlgoResult;
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
@@ -1720,6 +1906,28 @@ export function runDemoAlgo(
       return demoAveragePathLength(vcount, edges);
     case 'k_shortest_paths':
       return demoKShortestPaths(vcount, edges, params?.source, params?.target);
+    case 'graph_properties':
+      return demoGraphProperties(vcount, edges);
+    case 'similarity_dice':
+      return demoSimilarityDice(vcount, edges);
+    case 'assortativity_degree':
+      return demoAssortativityDegree(vcount, edges);
+    case 'density':
+      return demoDensity(vcount, edges);
+    case 'radius':
+      return demoRadius(vcount, edges);
+    case 'mean_degree':
+      return demoMeanDegree(vcount, edges);
+    case 'mean_distance':
+      return demoMeanDistance(vcount, edges);
+    case 'reciprocity':
+      return demoReciprocity(vcount, edges);
+    case 'neighborhood':
+      return demoNeighborhood(vcount, edges);
+    case 'all_minimal_st_separators':
+      return demoAllMinimalStSeparators(vcount, edges);
+    case 'strength':
+      return demoStrength(vcount, edges);
     default:
       return demoPagerank(vcount, edges);
   }
