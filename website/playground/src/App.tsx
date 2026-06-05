@@ -281,12 +281,12 @@ export function App() {
             <div className={`${layout.resultsSection}${resultsCollapsed ? ` ${layout.resultsCollapsed}` : ''}`}>
               <div
                 className={layout.resultsSectionHeader}
-                onClick={resultsCollapsed ? () => setResultsCollapsed(false) : undefined}
+                onClick={() => setResultsCollapsed(!resultsCollapsed)}
               >
                 <span className={layout.resultsSectionTitle}>{t('results')}</span>
                 <button
                   className={layout.collapseToggle}
-                  onClick={() => setResultsCollapsed(!resultsCollapsed)}
+                  onClick={(e) => { e.stopPropagation(); setResultsCollapsed(!resultsCollapsed); }}
                   aria-label={resultsCollapsed ? t('expand') : t('collapse')}
                   title={resultsCollapsed ? t('expand') : t('collapse')}
                 >
@@ -323,11 +323,11 @@ export function App() {
           className={`${layout.codeSection}${codeCollapsed ? ` ${layout.codeCollapsed}` : ''}`}
           style={{ height: codeCollapsed ? undefined : sizes.codeHeight }}
         >
-          <div className={layout.codePanelHeader}>
+          <div className={layout.codePanelHeader} onClick={() => setCodeCollapsed(!codeCollapsed)}>
             <h3>{t('code')}</h3>
             <button
               className={layout.collapseToggle}
-              onClick={() => setCodeCollapsed(!codeCollapsed)}
+              onClick={(e) => { e.stopPropagation(); setCodeCollapsed(!codeCollapsed); }}
               aria-label={codeCollapsed ? t('expand') : t('collapse')}
               title={codeCollapsed ? t('expand') : t('collapse')}
             >

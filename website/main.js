@@ -178,13 +178,15 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
   const COMMUNITIES = 5;
 
   // Physics constants
-  const REPULSION = 4000;
-  const SPRING_K = 0.004;
-  const SPRING_L = 70;
-  const GRAVITY = 0.015;
-  const DAMPING = 0.9;
-  const MAX_V = 3.5;
-  const MARGIN = 0.1; // 10% soft margin
+  const REPULSION = 3500;
+  const SPRING_K = 0.003;
+  const SPRING_L = 90;
+  const GRAVITY = 0.005;
+  const DAMPING = 0.88;
+  const MAX_V = 2.5;
+  const MARGIN = 0.05; // 5% soft margin
+  const MOUSE_RADIUS = 120;
+  const MOUSE_FORCE = 0.8;
 
   const COLORS_DARK = ['#7c8fff', '#f778ba', '#7ee787', '#a78bfa', '#ffa657'];
   const COLORS_LIGHT = ['#5563e8', '#bf3989', '#1a7f37', '#7c5ce8', '#bc4c00'];
@@ -216,26 +218,25 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
     }
   }
 
+  let mouseX = -1000, mouseY = -1000;
+
   function init() {
     resize();
 
-    // Initialize nodes within 80% of canvas area, centered
-    const usableW = width * 0.8;
-    const usableH = height * 0.8;
-    const offsetX = width * 0.1;
-    const offsetY = height * 0.1;
-
-    const centersX = [0.2, 0.5, 0.8, 0.3, 0.7];
-    const centersY = [0.3, 0.65, 0.3, 0.75, 0.6];
+    // Initialize nodes spread across the full canvas with community-based clustering
+    const centersX = [0.15, 0.5, 0.85, 0.25, 0.75];
+    const centersY = [0.25, 0.7, 0.25, 0.8, 0.55];
 
     for (let i = 0; i < N; i++) {
       const c = i % COMMUNITIES;
-      const spread = 0.12;
+      const spread = 0.22;
+      const x = (centersX[c] + (Math.random() - 0.5) * spread) * width;
+      const y = (centersY[c] + (Math.random() - 0.5) * spread) * height;
       nodes.push({
-        x: offsetX + (centersX[c] + (Math.random() - 0.5) * spread) * usableW,
-        y: offsetY + (centersY[c] + (Math.random() - 0.5) * spread) * usableH,
-        vx: 0,
-        vy: 0,
+        x: Math.max(20, Math.min(width - 20, x)),
+        y: Math.max(20, Math.min(height - 20, y)),
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
         r: 2.5 + Math.random() * 2,
         community: c,
       });
@@ -266,8 +267,6 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
   }
 
   function applyForces() {
-    const cx = width / 2;
-    const cy = height / 2;
     const minX = width * MARGIN;
     const maxX = width * (1 - MARGIN);
     const minY = height * MARGIN;
@@ -305,12 +304,31 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
       nodes[j].vy -= fy;
     }
 
-    // Gravity toward center
+    // Gravity toward community centers (keeps clusters apart)
+    const commCentersX = [0.15, 0.5, 0.85, 0.25, 0.75];
+    const commCentersY = [0.25, 0.7, 0.25, 0.8, 0.55];
     for (let i = 0; i < N; i++) {
-      const dx = cx - nodes[i].x;
-      const dy = cy - nodes[i].y;
+      const c = nodes[i].community;
+      const targetX = commCentersX[c] * width;
+      const targetY = commCentersY[c] * height;
+      const dx = targetX - nodes[i].x;
+      const dy = targetY - nodes[i].y;
       nodes[i].vx += dx * GRAVITY;
       nodes[i].vy += dy * GRAVITY;
+    }
+
+    // Mouse repulsion
+    if (mouseX > 0 && mouseY > 0) {
+      for (let i = 0; i < N; i++) {
+        const dx = nodes[i].x - mouseX;
+        const dy = nodes[i].y - mouseY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MOUSE_RADIUS && dist > 1) {
+          const strength = MOUSE_FORCE * (1 - dist / MOUSE_RADIUS);
+          nodes[i].vx += (dx / dist) * strength;
+          nodes[i].vy += (dy / dist) * strength;
+        }
+      }
     }
 
     // Update positions with damping and velocity cap
@@ -434,6 +452,17 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
   } else {
     step();
   }
+
+  canvas.addEventListener('mousemove', function (e) {
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+  });
+
+  canvas.addEventListener('mouseleave', function () {
+    mouseX = -1000;
+    mouseY = -1000;
+  });
 
   window.addEventListener('resize', function () {
     resize();
