@@ -1054,4 +1054,22 @@ describe('runDemoAlgo — new algorithms dispatch', () => {
     const result = runDemoAlgo('bellman_ford', 4, PATH);
     expect(result).toBeDefined();
   });
+
+  it('dispatches degree_distribution', () => {
+    const result = runDemoAlgo('degree_distribution', 3, TRIANGLE);
+    expect(result).toBeDefined();
+    expect((result as { degrees: number[] }).degrees).toHaveLength(3);
+  });
+
+  it('dispatches feedback_arc_set', () => {
+    const result = runDemoAlgo('feedback_arc_set', 4, PATH);
+    expect(result).toBeDefined();
+    expect((result as { edges: number[]; count: number }).count).toBeGreaterThanOrEqual(0);
+  });
+
+  it('dispatches minimum_cycle_basis', () => {
+    const result = runDemoAlgo('minimum_cycle_basis', 3, TRIANGLE);
+    expect(result).toBeDefined();
+    expect((result as { cycles: number[][]; count: number }).count).toBeGreaterThanOrEqual(0);
+  });
 });

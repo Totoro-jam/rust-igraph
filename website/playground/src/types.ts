@@ -59,7 +59,10 @@ export type AlgoId =
   | 'vertex_connectivity'
   | 'edge_connectivity'
   | 'minimum_spanning_tree'
-  | 'bellman_ford';
+  | 'bellman_ford'
+  | 'degree_distribution'
+  | 'feedback_arc_set'
+  | 'minimum_cycle_basis';
 
 export type LayoutId = 'fr' | 'kamada_kawai' | 'circle' | 'random' | 'grid' | 'star';
 
@@ -217,6 +220,11 @@ export interface AlgoResultWeightedDistances {
   distances: (number | null)[];
 }
 
+export interface AlgoResultFeedbackArcSet {
+  edges: number[];
+  count: number;
+}
+
 export type AlgoResult =
   | AlgoResultScores
   | AlgoResultMembership
@@ -246,7 +254,8 @@ export type AlgoResult =
   | AlgoResultAutomorphismGroup
   | AlgoResultCliques
   | AlgoResultMst
-  | AlgoResultWeightedDistances;
+  | AlgoResultWeightedDistances
+  | AlgoResultFeedbackArcSet;
 
 export interface RunResult {
   algo: AlgoId;

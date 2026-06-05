@@ -137,6 +137,12 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, minimum_spanning_tree};\n\n${graphLine}\n\nlet mst = minimum_spanning_tree(&g, None).unwrap();\nprintln!("MST edges: {}", mst.ecount());\nprintln!("MST: {:?}", mst);`;
     case 'bellman_ford':
       return `use rust_igraph::{Graph, bellman_ford};\n\n${graphLine}\n\nlet weights = vec![1.0; g.ecount()];\nlet dists = bellman_ford(&g, 0, &weights).unwrap();\nprintln!("Distances from 0: {:?}", dists);`;
+    case 'degree_distribution':
+      return `use rust_igraph::{Graph, degree_distribution, DegreeMode};\n\n${graphLine}\n\nlet degrees = degree_distribution(&g, DegreeMode::All).unwrap();\nprintln!("Degree per vertex: {:?}", degrees);`;
+    case 'feedback_arc_set':
+      return `use rust_igraph::{Graph, feedback_arc_set, FasAlgorithm};\n\n${graphLine}\n\nlet fas = feedback_arc_set(&g, None, FasAlgorithm::EadesLinSmyth).unwrap();\nprintln!("Feedback arc set ({} edges): {:?}", fas.len(), fas);`;
+    case 'minimum_cycle_basis':
+      return `use rust_igraph::{Graph, minimum_cycle_basis};\n\n${graphLine}\n\nlet cycles = minimum_cycle_basis(&g, None, true).unwrap();\nprintln!("{} cycles in minimum basis", cycles.len());\nfor c in &cycles {\n    println!("  {:?}", c);\n}`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }

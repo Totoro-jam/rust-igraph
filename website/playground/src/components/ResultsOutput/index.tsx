@@ -309,6 +309,18 @@ function parseResult(
         });
       });
     }
+  } else if (algo === 'feedback_arc_set' && 'edges' in result && 'count' in result) {
+    const fasResult = result as { edges: number[]; count: number };
+    badges.push({ label: t('result.count'), value: String(fasResult.count), accent: true });
+    columnLabel = t('result.col.edge');
+    fasResult.edges.forEach((edgeId, i) => {
+      table.push({
+        vertex: i,
+        value: `e${edgeId}`,
+        numericValue: edgeId,
+        barFraction: 1,
+      });
+    });
   } else if ('edges' in result && 'count' in result) {
     const bridgeResult = result as { edges: [number, number][]; count: number };
     badges.push({ label: t('result.bridges'), value: String(bridgeResult.count), accent: true });

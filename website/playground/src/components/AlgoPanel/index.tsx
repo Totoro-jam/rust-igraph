@@ -30,12 +30,12 @@ const ALGO_CATEGORIES: AlgoCategory[] = [
   {
     key: 'structure',
     icon: '⊞',
-    algos: ['components', 'scc', 'articulation_points', 'bridges', 'vertex_connectivity', 'edge_connectivity', 'coloring', 'triad_census', 'fundamental_cycles', 'list_triangles'],
+    algos: ['components', 'scc', 'articulation_points', 'bridges', 'vertex_connectivity', 'edge_connectivity', 'coloring', 'triad_census', 'fundamental_cycles', 'minimum_cycle_basis', 'list_triangles', 'feedback_arc_set'],
   },
   {
     key: 'metrics',
     icon: '▦',
-    algos: ['graph_stats', 'degree_sequence', 'coreness', 'eccentricity', 'constraint', 'diameter', 'girth', 'transitivity', 'trussness', 'clique_number', 'independence_number', 'maximal_cliques', 'minimum_spanning_tree'],
+    algos: ['graph_stats', 'degree_sequence', 'degree_distribution', 'coreness', 'eccentricity', 'constraint', 'diameter', 'girth', 'transitivity', 'trussness', 'clique_number', 'independence_number', 'maximal_cliques', 'minimum_spanning_tree'],
   },
   {
     key: 'isomorphism',

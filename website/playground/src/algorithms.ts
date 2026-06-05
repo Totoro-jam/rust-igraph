@@ -945,6 +945,45 @@ export function demoBellmanFord(vcount: number, edges: Edge[], source = 0): Algo
   return { distances: dist } as AlgoResult;
 }
 
+export function demoDegreeDistribution(vcount: number, edges: Edge[]): AlgoResult {
+  const degrees = new Array(vcount).fill(0);
+  for (const [u, v] of edges) {
+    if (u < vcount) degrees[u]++;
+    if (v < vcount) degrees[v]++;
+  }
+  return { degrees } as AlgoResult;
+}
+
+export function demoFeedbackArcSet(_vcount: number, edges: Edge[]): AlgoResult {
+  const edgeIndices: number[] = [];
+  for (let i = 0; i < edges.length; i++) {
+    const [u, v] = edges[i]!;
+    if (u > v) edgeIndices.push(i);
+  }
+  return { edges: edgeIndices, count: edgeIndices.length } as AlgoResult;
+}
+
+export function demoMinimumCycleBasis(vcount: number, edges: Edge[]): AlgoResult {
+  const cycles: number[][] = [];
+  const adj = new Array(vcount).fill(null).map(() => [] as number[]);
+  for (const [u, v] of edges) {
+    if (u < vcount && v < vcount) {
+      adj[u]!.push(v);
+      adj[v]!.push(u);
+    }
+  }
+  for (let i = 0; i < vcount; i++) {
+    for (const j of adj[i]!) {
+      for (const k of adj[j]!) {
+        if (k > i && adj[k]!.includes(i)) {
+          cycles.push([i, j, k]);
+        }
+      }
+    }
+  }
+  return { cycles, count: cycles.length } as AlgoResult;
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
@@ -1058,6 +1097,12 @@ export function runDemoAlgo(
       return demoMinimumSpanningTree(vcount, edges);
     case 'bellman_ford':
       return demoBellmanFord(vcount, edges, params?.source);
+    case 'degree_distribution':
+      return demoDegreeDistribution(vcount, edges);
+    case 'feedback_arc_set':
+      return demoFeedbackArcSet(vcount, edges);
+    case 'minimum_cycle_basis':
+      return demoMinimumCycleBasis(vcount, edges);
     default:
       return demoPagerank(vcount, edges);
   }

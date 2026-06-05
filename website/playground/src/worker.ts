@@ -39,6 +39,7 @@ interface WasmGraphInstance {
   maxFlow(source: number, target: number): string;
   articulationPoints(): string;
   degreeSequence(): string;
+  degreeDistribution(): string;
   stronglyConnectedComponents(): string;
   bridges(): string;
   vertexColoring(): string;
@@ -357,6 +358,15 @@ function runWasm(
         break;
       case 'bellman_ford':
         resultJson = graph.bellmanFordDistances(params?.source ?? 0, Array.from({ length: graph.ecount() }, () => 1));
+        break;
+      case 'degree_distribution':
+        resultJson = graph.degreeDistribution();
+        break;
+      case 'feedback_arc_set':
+        resultJson = graph.feedbackArcSet();
+        break;
+      case 'minimum_cycle_basis':
+        resultJson = graph.minimumCycleBasis();
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);
