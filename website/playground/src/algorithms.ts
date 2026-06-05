@@ -984,6 +984,438 @@ export function demoMinimumCycleBasis(vcount: number, edges: Edge[]): AlgoResult
   return { cycles, count: cycles.length } as AlgoResult;
 }
 
+export function demoBiconnectedComponents(vcount: number, edges: Edge[]): AlgoResult {
+  const adj: { to: number; idx: number }[][] = Array.from({ length: vcount }, () => []);
+  for (let i = 0; i < edges.length; i++) {
+    const [u, v] = edges[i]!;
+    if (u < vcount && v < vcount) {
+      adj[u]!.push({ to: v, idx: i });
+      adj[v]!.push({ to: u, idx: i });
+    }
+  }
+  const disc = new Int32Array(vcount).fill(-1);
+  const low = new Int32Array(vcount).fill(-1);
+  const components: number[][] = [];
+  const stack: number[] = [];
+  let timer = 0;
+
+  function dfs(u: number, parentEdge: number) {
+    disc[u] = low[u] = timer++;
+    for (const { to: v, idx } of adj[u]!) {
+      if (idx === parentEdge) continue;
+      if (disc[v]! < 0) {
+        stack.push(idx);
+        dfs(v, idx);
+        low[u] = Math.min(low[u]!, low[v]!);
+        if (low[v]! >= disc[u]!) {
+          const comp: number[] = [];
+          while (stack.length > 0) {
+            const e = stack.pop()!;
+            comp.push(e);
+            if (e === idx) break;
+          }
+          components.push(comp);
+        }
+      } else if (disc[v]! < disc[u]!) {
+        stack.push(idx);
+        low[u] = Math.min(low[u]!, disc[v]!);
+      }
+    }
+  }
+
+  for (let i = 0; i < vcount; i++) {
+    if (disc[i]! < 0) dfs(i, -1);
+  }
+  return { count: components.length, components } as AlgoResult;
+}
+
+export function demoBipartiteCheck(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const color = new Int32Array(vcount).fill(-1);
+  let bipartite = true;
+  for (let s = 0; s < vcount && bipartite; s++) {
+    if (color[s]! >= 0) continue;
+    color[s] = 0;
+    const queue = [s];
+    while (queue.length > 0 && bipartite) {
+      const u = queue.shift()!;
+      for (const v of adj[u]!) {
+        if (color[v]! < 0) {
+          color[v] = 1 - color[u]!;
+          queue.push(v);
+        } else if (color[v] === color[u]) {
+          bipartite = false;
+        }
+      }
+    }
+  }
+  return { is_bipartite: bipartite, types: Array.from(color).map(c => (c < 0 ? 0 : c)) } as AlgoResult;
+}
+
+export function demoMaximumCut(vcount: number, edges: Edge[]): AlgoResult {
+  const partition = new Array<boolean>(vcount).fill(false);
+  for (let v = 0; v < vcount; v++) {
+    let crossTrue = 0;
+    let crossFalse = 0;
+    for (const [u, w] of edges) {
+      if (u === v && w < v) {
+        if (partition[w]) crossFalse++;
+        else crossTrue++;
+      }
+      if (w === v && u < v) {
+        if (partition[u]) crossFalse++;
+        else crossTrue++;
+      }
+    }
+    partition[v] = crossTrue >= crossFalse;
+  }
+  let cutValue = 0;
+  for (const [u, v] of edges) {
+    if (u < vcount && v < vcount && partition[u] !== partition[v]) cutValue++;
+  }
+  return { partition, cut_value: cutValue } as AlgoResult;
+}
+
+export function demoGlobalEfficiency(vcount: number, edges: Edge[]): AlgoResult {
+  if (vcount <= 1) return { value: 0 } as AlgoResult;
+  const adj = buildAdj(vcount, edges);
+  let totalInvDist = 0;
+  for (let s = 0; s < vcount; s++) {
+    const dist = new Int32Array(vcount).fill(-1);
+    dist[s] = 0;
+    const queue = [s];
+    while (queue.length > 0) {
+      const v = queue.shift()!;
+      for (const w of adj[v]!) {
+        if (dist[w]! < 0) {
+          dist[w] = dist[v]! + 1;
+          queue.push(w);
+        }
+      }
+    }
+    for (let t = 0; t < vcount; t++) {
+      if (t !== s && dist[t]! > 0) totalInvDist += 1 / dist[t]!;
+    }
+  }
+  return { value: totalInvDist / (vcount * (vcount - 1)) } as AlgoResult;
+}
+
+export function demoLocalEfficiency(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const scores: number[] = [];
+  for (let v = 0; v < vcount; v++) {
+    const nbrs = adj[v]!;
+    if (nbrs.length <= 1) { scores.push(0); continue; }
+    const nbrSet = new Set(nbrs);
+    const subAdj = new Map<number, number[]>();
+    for (const u of nbrs) {
+      subAdj.set(u, adj[u]!.filter(w => nbrSet.has(w) && w !== v));
+    }
+    let totalInv = 0;
+    for (const s of nbrs) {
+      const dist = new Map<number, number>();
+      dist.set(s, 0);
+      const queue = [s];
+      while (queue.length > 0) {
+        const u = queue.shift()!;
+        for (const w of (subAdj.get(u) ?? [])) {
+          if (!dist.has(w)) {
+            dist.set(w, dist.get(u)! + 1);
+            queue.push(w);
+          }
+        }
+      }
+      for (const t of nbrs) {
+        if (t !== s) {
+          const d = dist.get(t);
+          if (d !== undefined && d > 0) totalInv += 1 / d;
+        }
+      }
+    }
+    const n = nbrs.length;
+    scores.push(totalInv / (n * (n - 1)));
+  }
+  return { scores } as AlgoResult;
+}
+
+export function demoDegeneracy(vcount: number, edges: Edge[]): AlgoResult {
+  const deg = new Array(vcount).fill(0);
+  for (const [u, v] of edges) {
+    if (u < vcount && v < vcount) { deg[u]++; deg[v]++; }
+  }
+  const removed = new Set<number>();
+  let maxCore = 0;
+  let k = 1;
+  while (removed.size < vcount) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (let v = 0; v < vcount; v++) {
+        if (!removed.has(v) && deg[v]! < k) {
+          removed.add(v);
+          for (const [u, w] of edges) {
+            if (u === v && w < vcount && !removed.has(w)) deg[w]!--;
+            if (w === v && u < vcount && !removed.has(u)) deg[u]!--;
+          }
+          changed = true;
+          if (k - 1 > maxCore) maxCore = k - 1;
+        }
+      }
+    }
+    k++;
+  }
+  return { value: maxCore } as AlgoResult;
+}
+
+export function demoAllSimplePaths(vcount: number, edges: Edge[], source = 0, target = 1): AlgoResult {
+  if (vcount === 0) return { paths: [], count: 0 } as AlgoResult;
+  const adj = buildAdj(vcount, edges);
+  const src = source >= 0 && source < vcount ? source : 0;
+  const tgt = target >= 0 && target < vcount ? target : Math.min(1, vcount - 1);
+  const paths: number[][] = [];
+  const visited = new Set<number>();
+
+  function dfs(u: number, path: number[]) {
+    if (paths.length >= 100) return;
+    if (u === tgt) { paths.push([...path]); return; }
+    for (const w of adj[u]!) {
+      if (!visited.has(w)) {
+        visited.add(w);
+        path.push(w);
+        dfs(w, path);
+        path.pop();
+        visited.delete(w);
+      }
+    }
+  }
+
+  visited.add(src);
+  dfs(src, [src]);
+  return { paths, count: paths.length } as AlgoResult;
+}
+
+export function demoFindCycle(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const color = new Uint8Array(vcount);
+  const parent = new Int32Array(vcount).fill(-1);
+  let cycleVerts: number[] = [];
+  let found = false;
+
+  function dfs(u: number, par: number): boolean {
+    color[u] = 1;
+    for (const v of adj[u]!) {
+      if (v === par) continue;
+      if (color[v] === 1) {
+        const cycle: number[] = [v];
+        let cur = u;
+        while (cur !== v) {
+          cycle.push(cur);
+          cur = parent[cur]!;
+        }
+        cycle.push(v);
+        cycleVerts = cycle;
+        return true;
+      }
+      if (color[v] === 0) {
+        parent[v] = u;
+        if (dfs(v, u)) return true;
+      }
+    }
+    color[u] = 2;
+    return false;
+  }
+
+  for (let i = 0; i < vcount && !found; i++) {
+    if (color[i] === 0) {
+      found = dfs(i, -1);
+    }
+  }
+
+  const cycleEdges: number[] = [];
+  if (found && cycleVerts.length > 1) {
+    for (let i = 0; i < cycleVerts.length - 1; i++) {
+      const u = cycleVerts[i]!;
+      const v = cycleVerts[i + 1]!;
+      const idx = edges.findIndex(([a, b]) =>
+        (a === u && b === v) || (a === v && b === u)
+      );
+      if (idx >= 0) cycleEdges.push(idx);
+    }
+  }
+  return { vertices: cycleVerts, edges: cycleEdges, found } as AlgoResult;
+}
+
+export function demoMincutValue(vcount: number, edges: Edge[]): AlgoResult {
+  if (vcount <= 1) return { value: 0 } as AlgoResult;
+  let minDeg = edges.length;
+  const adj = buildAdj(vcount, edges);
+  for (let v = 0; v < vcount; v++) {
+    if (adj[v]!.length < minDeg) minDeg = adj[v]!.length;
+  }
+  return { value: Math.min(minDeg, edges.length) } as AlgoResult;
+}
+
+export function demoVertexDisjointPaths(vcount: number, edges: Edge[], source = 0, target = 1): AlgoResult {
+  if (vcount === 0) return { value: 0 } as AlgoResult;
+  const adj = buildAdj(vcount, edges);
+  const src = source >= 0 && source < vcount ? source : 0;
+  const tgt = target >= 0 && target < vcount ? target : Math.min(1, vcount - 1);
+  if (src === tgt) return { value: 0 } as AlgoResult;
+  let count = 0;
+  const globalBlocked = new Set<number>();
+  for (let iter = 0; iter < vcount; iter++) {
+    const visited = new Set<number>();
+    visited.add(src);
+    for (const b of globalBlocked) visited.add(b);
+    const prev = new Int32Array(vcount).fill(-1);
+    const queue = [src];
+    let found = false;
+    while (queue.length > 0 && !found) {
+      const u = queue.shift()!;
+      for (const w of adj[u]!) {
+        if (!visited.has(w)) {
+          visited.add(w);
+          prev[w] = u;
+          if (w === tgt) { found = true; break; }
+          queue.push(w);
+        }
+      }
+    }
+    if (!found) break;
+    count++;
+    let cur = tgt;
+    while (cur !== src) {
+      if (cur !== tgt) globalBlocked.add(cur);
+      cur = prev[cur]!;
+    }
+  }
+  return { value: count } as AlgoResult;
+}
+
+export function demoEdgeDisjointPaths(vcount: number, edges: Edge[], source = 0, target = 1): AlgoResult {
+  if (vcount === 0) return { value: 0 } as AlgoResult;
+  const src = source >= 0 && source < vcount ? source : 0;
+  const tgt = target >= 0 && target < vcount ? target : Math.min(1, vcount - 1);
+  if (src === tgt) return { value: 0 } as AlgoResult;
+  const capacity = new Array(edges.length).fill(1);
+  let count = 0;
+  for (let iter = 0; iter < edges.length; iter++) {
+    const adj: { to: number; eIdx: number }[][] = Array.from({ length: vcount }, () => []);
+    for (let i = 0; i < edges.length; i++) {
+      if (capacity[i]! <= 0) continue;
+      const [u, v] = edges[i]!;
+      if (u < vcount && v < vcount) {
+        adj[u]!.push({ to: v, eIdx: i });
+        adj[v]!.push({ to: u, eIdx: i });
+      }
+    }
+    const visited = new Set<number>();
+    visited.add(src);
+    const prev: { node: number; eIdx: number }[] = Array.from({ length: vcount }, () => ({ node: -1, eIdx: -1 }));
+    const queue = [src];
+    let found = false;
+    while (queue.length > 0 && !found) {
+      const u = queue.shift()!;
+      for (const { to: w, eIdx } of adj[u]!) {
+        if (!visited.has(w)) {
+          visited.add(w);
+          prev[w] = { node: u, eIdx };
+          if (w === tgt) { found = true; break; }
+          queue.push(w);
+        }
+      }
+    }
+    if (!found) break;
+    count++;
+    let cur = tgt;
+    while (cur !== src) {
+      capacity[prev[cur]!.eIdx]!--;
+      cur = prev[cur]!.node;
+    }
+  }
+  return { value: count } as AlgoResult;
+}
+
+export function demoIsEulerian(vcount: number, edges: Edge[]): AlgoResult {
+  if (vcount === 0) return { has_path: false, has_cycle: false } as AlgoResult;
+  const adj = buildAdj(vcount, edges);
+  const visited = new Set<number>();
+  let startNode = -1;
+  for (let i = 0; i < vcount; i++) {
+    if (adj[i]!.length > 0) { startNode = i; break; }
+  }
+  if (startNode < 0) return { has_path: edges.length === 0, has_cycle: edges.length === 0 } as AlgoResult;
+  visited.add(startNode);
+  const queue = [startNode];
+  while (queue.length > 0) {
+    const v = queue.shift()!;
+    for (const w of adj[v]!) {
+      if (!visited.has(w)) { visited.add(w); queue.push(w); }
+    }
+  }
+  for (let i = 0; i < vcount; i++) {
+    if (adj[i]!.length > 0 && !visited.has(i)) {
+      return { has_path: false, has_cycle: false } as AlgoResult;
+    }
+  }
+  let oddCount = 0;
+  for (let i = 0; i < vcount; i++) {
+    if (adj[i]!.length % 2 !== 0) oddCount++;
+  }
+  return {
+    has_path: oddCount === 0 || oddCount === 2,
+    has_cycle: oddCount === 0,
+  } as AlgoResult;
+}
+
+export function demoCohesiveBlocks(vcount: number, edges: Edge[]): AlgoResult {
+  const adj = buildAdj(vcount, edges);
+  const allVerts = Array.from({ length: vcount }, (_, i) => i);
+  const blocks: number[][] = [allVerts];
+  const cohesion: number[] = [];
+
+  function connectivity(subset: number[]): number {
+    if (subset.length <= 1) return 0;
+    const sset = new Set(subset);
+    let minCut = subset.length;
+    for (const r of subset) {
+      const reached = new Set<number>();
+      const start = subset.find(x => x !== r);
+      if (start === undefined) return 0;
+      reached.add(r);
+      reached.add(start);
+      const q = [start];
+      while (q.length > 0) {
+        const v = q.shift()!;
+        for (const w of adj[v]!) {
+          if (sset.has(w) && !reached.has(w)) { reached.add(w); q.push(w); }
+        }
+      }
+      const reachCount = reached.size - 1;
+      if (reachCount < subset.length - 1) {
+        let cutSize = 0;
+        for (const v of subset) {
+          if (v !== r) {
+            let hasUnreached = false;
+            for (const w of adj[v]!) {
+              if (sset.has(w) && !reached.has(w)) { hasUnreached = true; break; }
+            }
+            if (hasUnreached || !reached.has(v)) cutSize++;
+          }
+        }
+        if (cutSize < minCut) minCut = cutSize;
+      }
+    }
+    return Math.min(minCut, subset.length - 1);
+  }
+
+  for (const block of blocks) {
+    cohesion.push(connectivity(block));
+  }
+
+  return { blocks, cohesion, count: blocks.length } as AlgoResult;
+}
+
 export function runDemoAlgo(
   algo: string,
   vcount: number,
@@ -1103,6 +1535,32 @@ export function runDemoAlgo(
       return demoFeedbackArcSet(vcount, edges);
     case 'minimum_cycle_basis':
       return demoMinimumCycleBasis(vcount, edges);
+    case 'biconnected_components':
+      return demoBiconnectedComponents(vcount, edges);
+    case 'bipartite_check':
+      return demoBipartiteCheck(vcount, edges);
+    case 'maximum_cut':
+      return demoMaximumCut(vcount, edges);
+    case 'global_efficiency':
+      return demoGlobalEfficiency(vcount, edges);
+    case 'local_efficiency':
+      return demoLocalEfficiency(vcount, edges);
+    case 'degeneracy':
+      return demoDegeneracy(vcount, edges);
+    case 'all_simple_paths':
+      return demoAllSimplePaths(vcount, edges, params?.source, params?.target);
+    case 'find_cycle':
+      return demoFindCycle(vcount, edges);
+    case 'mincut_value':
+      return demoMincutValue(vcount, edges);
+    case 'vertex_disjoint_paths':
+      return demoVertexDisjointPaths(vcount, edges, params?.source, params?.target);
+    case 'edge_disjoint_paths':
+      return demoEdgeDisjointPaths(vcount, edges, params?.source, params?.target);
+    case 'is_eulerian':
+      return demoIsEulerian(vcount, edges);
+    case 'cohesive_blocks':
+      return demoCohesiveBlocks(vcount, edges);
     default:
       return demoPagerank(vcount, edges);
   }

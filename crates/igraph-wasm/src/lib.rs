@@ -2,26 +2,28 @@
 
 use rust_igraph::{
     ConnectednessMode, DijkstraMode, FasAlgorithm, FrParams, Graph, GreedyColoringHeuristic,
-    KkParams, MstAlgorithm, StarMode, VertexId, articulation_points, assortativity_degree,
-    automorphism_group, barabasi_game_bag, bellman_ford_distances, betweenness,
-    betweenness_weighted, bfs, bridges, canonical_permutation, clique_number, closeness,
-    closeness_weighted, complementer, connected_components, constraint, coreness,
-    count_automorphisms, count_triangles, cycle_graph, decompose, degree_distribution, density,
-    dfs, diameter, dijkstra_distances, distances, eccentricity, edge_betweenness,
-    edge_betweenness_community, edge_connectivity, eigenvector_centrality, erdos_renyi_gnp, famous,
-    fast_greedy_modularity, feedback_arc_set, floyd_warshall_distances, fluid_communities,
-    full_graph, fundamental_cycles, girth, harmonic_centrality, hub_and_authority_scores,
-    independence_number, infomap, is_acyclic, is_biconnected, is_bipartite, is_complete,
-    is_connected, is_cubic, is_cycle, is_dag, is_forest, is_outerplanar, is_path, is_perfect,
-    is_star, is_tournament, is_tree, is_triangle_free, is_wheel, isomorphic_bliss, katz_centrality,
-    label_propagation, layout_circle, layout_fruchterman_reingold, layout_grid,
-    layout_kamada_kawai, layout_random, layout_star, leading_eigenvector, leiden, line_graph,
-    list_triangles, louvain, max_flow_value, maximal_cliques, mean_degree, mean_distance,
-    minimum_cycle_basis, minimum_spanning_tree, modularity, pagerank, path_graph, radius,
-    random_walk, reciprocity, ring_graph, simplify, spinglass, star_graph, strength,
+    KkParams, MstAlgorithm, SimplePathMode, StarMode, VertexId, all_simple_paths,
+    articulation_points, assortativity_degree, automorphism_group, barabasi_game_bag,
+    bellman_ford_distances, betweenness, betweenness_weighted, bfs, biconnected_components,
+    bridges, canonical_permutation, clique_number, closeness, closeness_weighted, cohesive_blocks,
+    complementer, connected_components, constraint, coreness, count_automorphisms, count_triangles,
+    cycle_graph, decompose, degeneracy, degree_distribution, density, dfs, diameter,
+    dijkstra_distances, distances, eccentricity, edge_betweenness, edge_betweenness_community,
+    edge_connectivity, edge_disjoint_paths, eigenvector_centrality, erdos_renyi_gnp,
+    eulerian_cycle, eulerian_path, famous, fast_greedy_modularity, feedback_arc_set, find_cycle,
+    floyd_warshall_distances, fluid_communities, full_graph, fundamental_cycles, girth,
+    global_efficiency, harmonic_centrality, hub_and_authority_scores, independence_number, infomap,
+    is_acyclic, is_biconnected, is_bipartite, is_complete, is_connected, is_cubic, is_cycle,
+    is_dag, is_eulerian, is_forest, is_outerplanar, is_path, is_perfect, is_star, is_tournament,
+    is_tree, is_triangle_free, is_wheel, isomorphic_bliss, katz_centrality, label_propagation,
+    layout_circle, layout_fruchterman_reingold, layout_grid, layout_kamada_kawai, layout_random,
+    layout_star, leading_eigenvector, leiden, line_graph, list_triangles, local_efficiency,
+    louvain, max_flow_value, maximal_cliques, maximum_cut, mean_degree, mean_distance,
+    mincut_value, minimum_cycle_basis, minimum_spanning_tree, modularity, pagerank, path_graph,
+    radius, random_walk, reciprocity, ring_graph, simplify, spinglass, star_graph, strength,
     strongly_connected_components, topological_sorting, transitivity_undirected, triad_census,
-    trussness, vertex_coloring_greedy, vertex_connectivity, walktrap, watts_strogatz_game,
-    write_dot, write_gml, write_graphml,
+    trussness, vertex_coloring_greedy, vertex_connectivity, vertex_disjoint_paths, walktrap,
+    watts_strogatz_game, write_dot, write_gml, write_graphml,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -374,6 +376,66 @@ struct FeedbackArcSetResult {
 #[derive(Serialize)]
 struct WeightedDistancesResult {
     distances: Vec<Option<f64>>,
+}
+
+#[derive(Serialize)]
+struct BiconnectedResult {
+    count: u32,
+    components: Vec<Vec<u32>>,
+}
+
+#[derive(Serialize)]
+struct BipartiteCheckResult {
+    is_bipartite: bool,
+    types: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct EulerianCheckResult {
+    has_path: bool,
+    has_cycle: bool,
+}
+
+#[derive(Serialize)]
+struct EulerianPathResult {
+    edges: Vec<u32>,
+    exists: bool,
+}
+
+#[derive(Serialize)]
+struct MaxCutOutput {
+    partition: Vec<bool>,
+    cut_value: usize,
+}
+
+#[derive(Serialize)]
+struct EfficiencyResult {
+    value: Option<f64>,
+}
+
+#[derive(Serialize)]
+struct LocalEfficiencyResult {
+    scores: Vec<f64>,
+}
+
+#[derive(Serialize)]
+struct CohesiveBlocksResult {
+    blocks: Vec<Vec<u32>>,
+    cohesion: Vec<i64>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct SimplePathsResult {
+    paths: Vec<Vec<u32>>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct FindCycleResult {
+    vertices: Vec<u32>,
+    edges: Vec<u32>,
+    found: bool,
 }
 
 #[wasm_bindgen]
@@ -1360,6 +1422,183 @@ impl WasmGraph {
         let d = degree_distribution(&self.inner, rust_igraph::DegreeMode::All)
             .map_err(|e| JsError::new(&e.to_string()))?;
         let result = DegreeResult { degrees: d };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Biconnected components ---
+
+    #[wasm_bindgen(js_name = "biconnectedComponents")]
+    pub fn biconnected_components(&self) -> Result<String, JsError> {
+        let bc = biconnected_components(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BiconnectedResult {
+            count: bc.count,
+            components: bc.components,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Bipartite check ---
+
+    #[wasm_bindgen(js_name = "isBipartiteDetailed")]
+    pub fn is_bipartite_detailed(&self) -> Result<String, JsError> {
+        let bp = is_bipartite(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BipartiteCheckResult {
+            is_bipartite: bp.is_bipartite,
+            types: bp.types.iter().map(|&b| u32::from(b)).collect(),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Eulerian ---
+
+    #[wasm_bindgen(js_name = "isEulerian")]
+    pub fn is_eulerian(&self) -> Result<String, JsError> {
+        let e = is_eulerian(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = EulerianCheckResult {
+            has_path: e.has_path,
+            has_cycle: e.has_cycle,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "eulerianPath")]
+    pub fn eulerian_path(&self) -> Result<String, JsError> {
+        let ep = eulerian_path(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = EulerianPathResult {
+            exists: ep.is_some(),
+            edges: ep.unwrap_or_default(),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "eulerianCycle")]
+    pub fn eulerian_cycle(&self) -> Result<String, JsError> {
+        match eulerian_cycle(&self.inner) {
+            Ok(edges) => {
+                let result = EulerianPathResult {
+                    exists: true,
+                    edges,
+                };
+                serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+            }
+            Err(_) => {
+                let result = EulerianPathResult {
+                    exists: false,
+                    edges: vec![],
+                };
+                serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+            }
+        }
+    }
+
+    // --- Maximum cut ---
+
+    #[wasm_bindgen(js_name = "maximumCut")]
+    pub fn maximum_cut(&self) -> Result<String, JsError> {
+        let mc = maximum_cut(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = MaxCutOutput {
+            partition: mc.partition,
+            cut_value: mc.cut_value,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Mincut value ---
+
+    #[wasm_bindgen(js_name = "mincutValue")]
+    pub fn mincut_value(&self) -> Result<String, JsError> {
+        let v = mincut_value(&self.inner, None).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = MaxFlowResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Disjoint paths ---
+
+    #[wasm_bindgen(js_name = "vertexDisjointPaths")]
+    pub fn vertex_disjoint_paths(&self, source: u32, target: u32) -> Result<String, JsError> {
+        let v = vertex_disjoint_paths(&self.inner, source, target)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ScalarI64Result { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "edgeDisjointPaths")]
+    pub fn edge_disjoint_paths(&self, source: u32, target: u32) -> Result<String, JsError> {
+        let v = edge_disjoint_paths(&self.inner, source, target)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ScalarI64Result { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Efficiency ---
+
+    #[wasm_bindgen(js_name = "globalEfficiency")]
+    pub fn global_efficiency(&self) -> Result<String, JsError> {
+        let v = global_efficiency(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = EfficiencyResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "localEfficiency")]
+    pub fn local_efficiency(&self) -> Result<String, JsError> {
+        let v = local_efficiency(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LocalEfficiencyResult { scores: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Degeneracy ---
+
+    pub fn degeneracy(&self) -> Result<String, JsError> {
+        let v = degeneracy(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ScalarU32Result { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Find cycle ---
+
+    #[wasm_bindgen(js_name = "findCycle")]
+    pub fn find_cycle(&self) -> Result<String, JsError> {
+        let c = find_cycle(&self.inner, rust_igraph::CycleMode::All)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = FindCycleResult {
+            found: !c.vertices.is_empty(),
+            vertices: c.vertices,
+            edges: c.edges,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- All simple paths ---
+
+    #[wasm_bindgen(js_name = "allSimplePaths")]
+    pub fn all_simple_paths(&self, source: u32, target: u32) -> Result<String, JsError> {
+        let targets = [target];
+        let paths = all_simple_paths(
+            &self.inner,
+            source,
+            Some(&targets),
+            SimplePathMode::Out,
+            0,
+            -1,
+            1000,
+        )
+        .map_err(|e| JsError::new(&e.to_string()))?;
+        let count = paths.len();
+        let result = SimplePathsResult { paths, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Cohesive blocks ---
+
+    #[wasm_bindgen(js_name = "cohesiveBlocks")]
+    pub fn cohesive_blocks(&self) -> Result<String, JsError> {
+        let cb = cohesive_blocks(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let count = cb.blocks.len();
+        let result = CohesiveBlocksResult {
+            blocks: cb.blocks,
+            cohesion: cb.cohesion,
+            count,
+        };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 }

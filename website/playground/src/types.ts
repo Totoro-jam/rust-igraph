@@ -62,7 +62,20 @@ export type AlgoId =
   | 'bellman_ford'
   | 'degree_distribution'
   | 'feedback_arc_set'
-  | 'minimum_cycle_basis';
+  | 'minimum_cycle_basis'
+  | 'biconnected_components'
+  | 'bipartite_check'
+  | 'maximum_cut'
+  | 'global_efficiency'
+  | 'local_efficiency'
+  | 'degeneracy'
+  | 'all_simple_paths'
+  | 'find_cycle'
+  | 'mincut_value'
+  | 'vertex_disjoint_paths'
+  | 'edge_disjoint_paths'
+  | 'is_eulerian'
+  | 'cohesive_blocks';
 
 export type LayoutId = 'fr' | 'kamada_kawai' | 'circle' | 'random' | 'grid' | 'star';
 
@@ -225,6 +238,43 @@ export interface AlgoResultFeedbackArcSet {
   count: number;
 }
 
+export interface AlgoResultBiconnected {
+  count: number;
+  components: number[][];
+}
+
+export interface AlgoResultBipartiteCheck {
+  is_bipartite: boolean;
+  types: number[];
+}
+
+export interface AlgoResultMaxCut {
+  partition: boolean[];
+  cut_value: number;
+}
+
+export interface AlgoResultEulerian {
+  has_path: boolean;
+  has_cycle: boolean;
+}
+
+export interface AlgoResultSimplePaths {
+  paths: number[][];
+  count: number;
+}
+
+export interface AlgoResultFindCycle {
+  vertices: number[];
+  edges: number[];
+  found: boolean;
+}
+
+export interface AlgoResultCohesiveBlocks {
+  blocks: number[][];
+  cohesion: number[];
+  count: number;
+}
+
 export type AlgoResult =
   | AlgoResultScores
   | AlgoResultMembership
@@ -255,7 +305,14 @@ export type AlgoResult =
   | AlgoResultCliques
   | AlgoResultMst
   | AlgoResultWeightedDistances
-  | AlgoResultFeedbackArcSet;
+  | AlgoResultFeedbackArcSet
+  | AlgoResultBiconnected
+  | AlgoResultBipartiteCheck
+  | AlgoResultMaxCut
+  | AlgoResultEulerian
+  | AlgoResultSimplePaths
+  | AlgoResultFindCycle
+  | AlgoResultCohesiveBlocks;
 
 export interface RunResult {
   algo: AlgoId;

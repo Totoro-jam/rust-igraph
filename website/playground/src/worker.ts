@@ -106,6 +106,21 @@ interface WasmGraphInstance {
   feedbackArcSet(weights?: number[]): string;
   closenessWeighted(weights: number[]): string;
   betweennessWeighted(weights: number[]): string;
+  biconnectedComponents(): string;
+  isBipartiteDetailed(): string;
+  isEulerian(): string;
+  eulerianPath(): string;
+  eulerianCycle(): string;
+  maximumCut(): string;
+  mincutValue(): string;
+  vertexDisjointPaths(source: number, target: number): string;
+  edgeDisjointPaths(source: number, target: number): string;
+  globalEfficiency(): string;
+  localEfficiency(): string;
+  degeneracy(): string;
+  findCycle(): string;
+  allSimplePaths(source: number, target: number): string;
+  cohesiveBlocks(): string;
   getEdges(): Uint32Array;
   isDirected(): boolean;
   vcount(): number;
@@ -367,6 +382,45 @@ function runWasm(
         break;
       case 'minimum_cycle_basis':
         resultJson = graph.minimumCycleBasis();
+        break;
+      case 'biconnected_components':
+        resultJson = graph.biconnectedComponents();
+        break;
+      case 'bipartite_check':
+        resultJson = graph.isBipartiteDetailed();
+        break;
+      case 'maximum_cut':
+        resultJson = graph.maximumCut();
+        break;
+      case 'global_efficiency':
+        resultJson = graph.globalEfficiency();
+        break;
+      case 'local_efficiency':
+        resultJson = graph.localEfficiency();
+        break;
+      case 'degeneracy':
+        resultJson = graph.degeneracy();
+        break;
+      case 'all_simple_paths':
+        resultJson = graph.allSimplePaths(params.source ?? 0, params.target ?? 1);
+        break;
+      case 'find_cycle':
+        resultJson = graph.findCycle();
+        break;
+      case 'mincut_value':
+        resultJson = graph.mincutValue();
+        break;
+      case 'vertex_disjoint_paths':
+        resultJson = graph.vertexDisjointPaths(params.source ?? 0, params.target ?? 1);
+        break;
+      case 'edge_disjoint_paths':
+        resultJson = graph.edgeDisjointPaths(params.source ?? 0, params.target ?? 1);
+        break;
+      case 'is_eulerian':
+        resultJson = graph.isEulerian();
+        break;
+      case 'cohesive_blocks':
+        resultJson = graph.cohesiveBlocks();
         break;
       default:
         throw new Error(`Algorithm "${algo}" not available in WASM mode`);

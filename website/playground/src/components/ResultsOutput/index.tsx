@@ -203,6 +203,89 @@ function parseResult(
         }
       }
     }
+  } else if (algo === 'bipartite_check' && 'is_bipartite' in result) {
+    const bp = result as { is_bipartite: boolean; types: number[] };
+    badges.push({ label: t('result.isBipartite'), value: bp.is_bipartite ? 'Yes' : 'No', accent: true });
+    if (bp.is_bipartite && bp.types.length > 0) {
+      columnLabel = t('result.col.type');
+      bp.types.forEach((ty, i) => {
+        table.push({
+          vertex: i,
+          value: ty === 0 ? 'A' : 'B',
+          numericValue: ty,
+          barFraction: 1,
+          colorIndex: ty % 8,
+        });
+      });
+    }
+  } else if (algo === 'maximum_cut' && 'partition' in result) {
+    const mc = result as { partition: boolean[]; cut_value: number };
+    badges.push({ label: t('result.cutValue'), value: String(mc.cut_value), accent: true });
+    columnLabel = t('result.col.partition');
+    mc.partition.forEach((side, i) => {
+      table.push({
+        vertex: i,
+        value: side ? 'S' : 'T',
+        numericValue: side ? 1 : 0,
+        barFraction: 1,
+        colorIndex: side ? 0 : 1,
+      });
+    });
+  } else if (algo === 'is_eulerian' && 'has_path' in result) {
+    const eu = result as { has_path: boolean; has_cycle: boolean };
+    badges.push({ label: t('result.hasEulerianPath'), value: eu.has_path ? 'Yes' : 'No', accent: true });
+    badges.push({ label: t('result.hasEulerianCycle'), value: eu.has_cycle ? 'Yes' : 'No', accent: true });
+  } else if (algo === 'find_cycle' && 'found' in result) {
+    const fc = result as { vertices: number[]; found: boolean };
+    badges.push({ label: t('result.cycleFound'), value: fc.found ? 'Yes' : 'No', accent: true });
+    if (fc.found) {
+      badges.push({ label: t('result.count'), value: String(fc.vertices.length) });
+      columnLabel = t('result.col.order');
+      fc.vertices.forEach((v, i) => {
+        table.push({
+          vertex: v,
+          value: String(i),
+          numericValue: i,
+          barFraction: fc.vertices.length > 1 ? i / (fc.vertices.length - 1) : 1,
+        });
+      });
+      showBars = true;
+    }
+  } else if (algo === 'biconnected_components' && 'components' in result) {
+    const bc = result as { count: number; components: number[][] };
+    badges.push({ label: t('result.biconnectedCount'), value: String(bc.count), accent: true });
+    bc.components.forEach((comp, i) => {
+      table.push({
+        vertex: i,
+        value: comp.map(v => `v${v}`).join(', '),
+        numericValue: comp.length,
+        barFraction: 1,
+        colorIndex: i % 8,
+      });
+    });
+  } else if (algo === 'all_simple_paths' && 'paths' in result) {
+    const sp = result as { paths: number[][]; count: number };
+    badges.push({ label: t('result.pathCount'), value: String(sp.count), accent: true });
+    sp.paths.forEach((p, i) => {
+      table.push({
+        vertex: i,
+        value: p.map(v => `v${v}`).join(' → '),
+        numericValue: p.length,
+        barFraction: 1,
+      });
+    });
+  } else if (algo === 'cohesive_blocks' && 'blocks' in result) {
+    const cb = result as { blocks: number[][]; cohesion: number[]; count: number };
+    badges.push({ label: t('result.cohesiveBlockCount'), value: String(cb.count), accent: true });
+    cb.blocks.forEach((block, i) => {
+      table.push({
+        vertex: i,
+        value: `[${cb.cohesion[i]}] ${block.map(v => `v${v}`).join(', ')}`,
+        numericValue: cb.cohesion[i] ?? 0,
+        barFraction: 1,
+        colorIndex: i % 8,
+      });
+    });
   } else if ('colors' in result) {
     const colorResult = result as { colors: number[]; chromatic: number };
     badges.push({ label: t('result.chromatic'), value: String(colorResult.chromatic), accent: true });
@@ -217,8 +300,17 @@ function parseResult(
       });
     });
   } else if ('value' in result) {
-    const label = algo === 'transitivity' ? t('result.transitivity') : t('result.flowValue');
-    badges.push({ label, value: (result.value as number).toFixed(4), accent: true });
+    const scalarLabels: Record<string, string> = {
+      transitivity: 'result.transitivity',
+      global_efficiency: 'result.efficiency',
+      degeneracy: 'result.degeneracyValue',
+      mincut_value: 'result.mincutValue',
+      vertex_disjoint_paths: 'result.disjointPaths',
+      edge_disjoint_paths: 'result.disjointPaths',
+    };
+    const label = t(scalarLabels[algo] ?? 'result.flowValue');
+    const v = result.value as number;
+    badges.push({ label, value: Number.isInteger(v) ? String(v) : v.toFixed(4), accent: true });
   } else if ('distances' in result) {
     const distances = (result as { distances: number[] }).distances;
     const finite = distances.filter((d) => Number.isFinite(d));

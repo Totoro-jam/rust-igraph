@@ -42,6 +42,19 @@ import {
   demoEdgeConnectivity,
   demoMinimumSpanningTree,
   demoBellmanFord,
+  demoBiconnectedComponents,
+  demoBipartiteCheck,
+  demoMaximumCut,
+  demoGlobalEfficiency,
+  demoLocalEfficiency,
+  demoDegeneracy,
+  demoAllSimplePaths,
+  demoFindCycle,
+  demoMincutValue,
+  demoVertexDisjointPaths,
+  demoEdgeDisjointPaths,
+  demoIsEulerian,
+  demoCohesiveBlocks,
   runDemoAlgo,
   layoutFR,
 } from './algorithms';
@@ -51,6 +64,8 @@ import type {
   AlgoResultCores, AlgoResultValues, AlgoResultPath, AlgoResultWalk, AlgoResultDiameter,
   AlgoResultCycles, AlgoResultTriangles, AlgoResultTrussness, AlgoResultAutomorphismGroup,
   AlgoResultScalar, AlgoResultCliques, AlgoResultMst, AlgoResultWeightedDistances,
+  AlgoResultBiconnected, AlgoResultBipartiteCheck, AlgoResultMaxCut, AlgoResultEulerian,
+  AlgoResultSimplePaths, AlgoResultFindCycle, AlgoResultCohesiveBlocks,
 } from './types';
 
 const TRIANGLE: Edge[] = [[0, 1], [1, 2], [2, 0]];
@@ -1071,5 +1086,411 @@ describe('runDemoAlgo — new algorithms dispatch', () => {
     const result = runDemoAlgo('minimum_cycle_basis', 3, TRIANGLE);
     expect(result).toBeDefined();
     expect((result as { cycles: number[][]; count: number }).count).toBeGreaterThanOrEqual(0);
+  });
+
+  it('dispatches biconnected_components', () => {
+    const result = runDemoAlgo('biconnected_components', 3, TRIANGLE) as AlgoResultBiconnected;
+    expect(result.count).toBeGreaterThanOrEqual(0);
+    expect(result.components).toBeDefined();
+  });
+
+  it('dispatches bipartite_check', () => {
+    const result = runDemoAlgo('bipartite_check', 4, PATH) as AlgoResultBipartiteCheck;
+    expect(typeof result.is_bipartite).toBe('boolean');
+    expect(result.types).toHaveLength(4);
+  });
+
+  it('dispatches maximum_cut', () => {
+    const result = runDemoAlgo('maximum_cut', 3, TRIANGLE) as AlgoResultMaxCut;
+    expect(result.partition).toHaveLength(3);
+    expect(typeof result.cut_value).toBe('number');
+  });
+
+  it('dispatches global_efficiency', () => {
+    const result = runDemoAlgo('global_efficiency', 3, TRIANGLE);
+    expect(result).toBeDefined();
+  });
+
+  it('dispatches local_efficiency', () => {
+    const result = runDemoAlgo('local_efficiency', 3, TRIANGLE) as AlgoResultScores;
+    expect(result.scores).toHaveLength(3);
+  });
+
+  it('dispatches degeneracy', () => {
+    const result = runDemoAlgo('degeneracy', 3, TRIANGLE) as AlgoResultScalar;
+    expect(typeof result.value).toBe('number');
+  });
+
+  it('dispatches all_simple_paths', () => {
+    const result = runDemoAlgo('all_simple_paths', 4, PATH, { source: 0, target: 3 }) as AlgoResultSimplePaths;
+    expect(result.paths).toBeDefined();
+    expect(result.count).toBeGreaterThanOrEqual(0);
+  });
+
+  it('dispatches find_cycle', () => {
+    const result = runDemoAlgo('find_cycle', 3, TRIANGLE) as AlgoResultFindCycle;
+    expect(typeof result.found).toBe('boolean');
+  });
+
+  it('dispatches mincut_value', () => {
+    const result = runDemoAlgo('mincut_value', 3, TRIANGLE) as AlgoResultScalar;
+    expect(typeof result.value).toBe('number');
+  });
+
+  it('dispatches vertex_disjoint_paths', () => {
+    const result = runDemoAlgo('vertex_disjoint_paths', 4, PATH, { source: 0, target: 3 }) as AlgoResultScalar;
+    expect(typeof result.value).toBe('number');
+  });
+
+  it('dispatches edge_disjoint_paths', () => {
+    const result = runDemoAlgo('edge_disjoint_paths', 4, PATH, { source: 0, target: 3 }) as AlgoResultScalar;
+    expect(typeof result.value).toBe('number');
+  });
+
+  it('dispatches is_eulerian', () => {
+    const result = runDemoAlgo('is_eulerian', 3, TRIANGLE) as AlgoResultEulerian;
+    expect(typeof result.has_path).toBe('boolean');
+    expect(typeof result.has_cycle).toBe('boolean');
+  });
+
+  it('dispatches cohesive_blocks', () => {
+    const result = runDemoAlgo('cohesive_blocks', 3, TRIANGLE) as AlgoResultCohesiveBlocks;
+    expect(result.blocks).toBeDefined();
+    expect(result.count).toBeGreaterThanOrEqual(0);
+  });
+});
+
+// --- 13 new algorithm tests ---
+
+describe('demoBiconnectedComponents', () => {
+  it('finds components in a triangle', () => {
+    const result = demoBiconnectedComponents(3, TRIANGLE) as AlgoResultBiconnected;
+    expect(result.count).toBeGreaterThanOrEqual(1);
+    expect(Array.isArray(result.components)).toBe(true);
+  });
+
+  it('finds multiple components in a path with branches', () => {
+    const edges: Edge[] = [[0, 1], [1, 2], [2, 3]];
+    const result = demoBiconnectedComponents(4, edges) as AlgoResultBiconnected;
+    expect(result.count).toBe(3);
+  });
+
+  it('handles empty graph', () => {
+    const result = demoBiconnectedComponents(0, []) as AlgoResultBiconnected;
+    expect(result.count).toBe(0);
+    expect(result.components).toEqual([]);
+  });
+
+  it('component entries are edge indices', () => {
+    const result = demoBiconnectedComponents(3, TRIANGLE) as AlgoResultBiconnected;
+    for (const comp of result.components) {
+      for (const idx of comp) {
+        expect(idx).toBeGreaterThanOrEqual(0);
+        expect(idx).toBeLessThan(TRIANGLE.length);
+      }
+    }
+  });
+});
+
+describe('demoBipartiteCheck', () => {
+  it('detects bipartite path graph', () => {
+    const result = demoBipartiteCheck(4, PATH) as AlgoResultBipartiteCheck;
+    expect(result.is_bipartite).toBe(true);
+    expect(result.types).toHaveLength(4);
+  });
+
+  it('detects non-bipartite triangle', () => {
+    const result = demoBipartiteCheck(3, TRIANGLE) as AlgoResultBipartiteCheck;
+    expect(result.is_bipartite).toBe(false);
+  });
+
+  it('types array has valid values', () => {
+    const result = demoBipartiteCheck(4, PATH) as AlgoResultBipartiteCheck;
+    for (const t of result.types) {
+      expect(t === 0 || t === 1).toBe(true);
+    }
+  });
+
+  it('handles edgeless graph as bipartite', () => {
+    const result = demoBipartiteCheck(3, []) as AlgoResultBipartiteCheck;
+    expect(result.is_bipartite).toBe(true);
+  });
+
+  it('even cycle is bipartite', () => {
+    const cycle4: Edge[] = [[0, 1], [1, 2], [2, 3], [3, 0]];
+    const result = demoBipartiteCheck(4, cycle4) as AlgoResultBipartiteCheck;
+    expect(result.is_bipartite).toBe(true);
+  });
+});
+
+describe('demoMaximumCut', () => {
+  it('returns partition and cut_value', () => {
+    const result = demoMaximumCut(3, TRIANGLE) as AlgoResultMaxCut;
+    expect(result.partition).toHaveLength(3);
+    expect(result.cut_value).toBeGreaterThanOrEqual(0);
+  });
+
+  it('partition contains booleans', () => {
+    const result = demoMaximumCut(4, PATH) as AlgoResultMaxCut;
+    for (const p of result.partition) {
+      expect(typeof p).toBe('boolean');
+    }
+  });
+
+  it('cut_value is non-negative', () => {
+    const result = demoMaximumCut(4, PATH) as AlgoResultMaxCut;
+    expect(result.cut_value).toBeGreaterThanOrEqual(0);
+  });
+
+  it('handles edgeless graph', () => {
+    const result = demoMaximumCut(3, []) as AlgoResultMaxCut;
+    expect(result.cut_value).toBe(0);
+  });
+});
+
+describe('demoGlobalEfficiency', () => {
+  it('returns a numeric value for connected graph', () => {
+    const result = demoGlobalEfficiency(3, TRIANGLE) as { value: number | null };
+    expect(result.value).not.toBeNull();
+    expect(result.value!).toBeGreaterThan(0);
+  });
+
+  it('returns 0 for single vertex', () => {
+    const result = demoGlobalEfficiency(1, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+
+  it('returns 0 for empty graph', () => {
+    const result = demoGlobalEfficiency(0, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+
+  it('triangle has efficiency 1.0', () => {
+    const result = demoGlobalEfficiency(3, TRIANGLE) as { value: number | null };
+    expect(result.value!).toBeCloseTo(1.0, 4);
+  });
+
+  it('disconnected graph has lower efficiency', () => {
+    const result = demoGlobalEfficiency(4, DISCONNECTED) as { value: number | null };
+    expect(result.value!).toBeLessThan(1.0);
+  });
+});
+
+describe('demoLocalEfficiency', () => {
+  it('returns one score per vertex', () => {
+    const result = demoLocalEfficiency(4, PATH) as AlgoResultScores;
+    expect(result.scores).toHaveLength(4);
+  });
+
+  it('all scores are non-negative', () => {
+    const result = demoLocalEfficiency(3, TRIANGLE) as AlgoResultScores;
+    for (const s of result.scores) {
+      expect(s).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('leaf vertices have zero local efficiency', () => {
+    const result = demoLocalEfficiency(4, PATH) as AlgoResultScores;
+    expect(result.scores[0]).toBe(0);
+    expect(result.scores[3]).toBe(0);
+  });
+
+  it('handles edgeless graph', () => {
+    const result = demoLocalEfficiency(3, []) as AlgoResultScores;
+    expect(result.scores).toEqual([0, 0, 0]);
+  });
+});
+
+describe('demoDegeneracy', () => {
+  it('returns 2 for triangle', () => {
+    const result = demoDegeneracy(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBe(2);
+  });
+
+  it('returns 1 for path', () => {
+    const result = demoDegeneracy(4, PATH) as AlgoResultScalar;
+    expect(result.value).toBe(1);
+  });
+
+  it('returns 0 for edgeless graph', () => {
+    const result = demoDegeneracy(3, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+
+  it('returns 0 for empty graph', () => {
+    const result = demoDegeneracy(0, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+});
+
+describe('demoAllSimplePaths', () => {
+  it('finds path on a simple path graph', () => {
+    const result = demoAllSimplePaths(4, PATH, 0, 3) as AlgoResultSimplePaths;
+    expect(result.count).toBe(1);
+    expect(result.paths[0]).toEqual([0, 1, 2, 3]);
+  });
+
+  it('finds multiple paths in diamond', () => {
+    const result = demoAllSimplePaths(4, DIAMOND, 0, 3) as AlgoResultSimplePaths;
+    expect(result.count).toBeGreaterThanOrEqual(2);
+    for (const path of result.paths) {
+      expect(path[0]).toBe(0);
+      expect(path[path.length - 1]).toBe(3);
+    }
+  });
+
+  it('returns empty for unreachable target', () => {
+    const result = demoAllSimplePaths(4, DISCONNECTED, 0, 2) as AlgoResultSimplePaths;
+    expect(result.count).toBe(0);
+    expect(result.paths).toEqual([]);
+  });
+
+  it('handles empty graph', () => {
+    const result = demoAllSimplePaths(0, []) as AlgoResultSimplePaths;
+    expect(result.count).toBe(0);
+  });
+
+  it('uses default source and target', () => {
+    const result = demoAllSimplePaths(4, PATH) as AlgoResultSimplePaths;
+    expect(result.count).toBeGreaterThanOrEqual(1);
+    expect(result.paths[0]![0]).toBe(0);
+  });
+});
+
+describe('demoFindCycle', () => {
+  it('finds cycle in triangle', () => {
+    const result = demoFindCycle(3, TRIANGLE) as AlgoResultFindCycle;
+    expect(result.found).toBe(true);
+    expect(result.vertices.length).toBeGreaterThan(0);
+  });
+
+  it('finds no cycle in a path', () => {
+    const result = demoFindCycle(4, PATH) as AlgoResultFindCycle;
+    expect(result.found).toBe(false);
+  });
+
+  it('returns edges array', () => {
+    const result = demoFindCycle(3, TRIANGLE) as AlgoResultFindCycle;
+    expect(Array.isArray(result.edges)).toBe(true);
+  });
+
+  it('handles empty graph', () => {
+    const result = demoFindCycle(0, []) as AlgoResultFindCycle;
+    expect(result.found).toBe(false);
+    expect(result.vertices).toEqual([]);
+  });
+});
+
+describe('demoMincutValue', () => {
+  it('returns positive for triangle', () => {
+    const result = demoMincutValue(3, TRIANGLE) as AlgoResultScalar;
+    expect(result.value).toBeGreaterThan(0);
+  });
+
+  it('returns 0 for single vertex', () => {
+    const result = demoMincutValue(1, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+
+  it('returns 1 for path endpoints', () => {
+    const result = demoMincutValue(4, PATH) as AlgoResultScalar;
+    expect(result.value).toBe(1);
+  });
+});
+
+describe('demoVertexDisjointPaths', () => {
+  it('finds at least one path on connected graph', () => {
+    const result = demoVertexDisjointPaths(4, PATH, 0, 3) as AlgoResultScalar;
+    expect(result.value).toBeGreaterThanOrEqual(1);
+  });
+
+  it('returns 0 for unreachable target', () => {
+    const result = demoVertexDisjointPaths(4, DISCONNECTED, 0, 2) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+
+  it('returns 0 for empty graph', () => {
+    const result = demoVertexDisjointPaths(0, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+
+  it('finds multiple disjoint paths in well-connected graph', () => {
+    const result = demoVertexDisjointPaths(4, DIAMOND, 0, 3) as AlgoResultScalar;
+    expect(result.value).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('demoEdgeDisjointPaths', () => {
+  it('finds at least one path on connected graph', () => {
+    const result = demoEdgeDisjointPaths(4, PATH, 0, 3) as AlgoResultScalar;
+    expect(result.value).toBeGreaterThanOrEqual(1);
+  });
+
+  it('returns 0 for unreachable target', () => {
+    const result = demoEdgeDisjointPaths(4, DISCONNECTED, 0, 2) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+
+  it('returns 0 for empty graph', () => {
+    const result = demoEdgeDisjointPaths(0, []) as AlgoResultScalar;
+    expect(result.value).toBe(0);
+  });
+
+  it('finds multiple disjoint paths in well-connected graph', () => {
+    const result = demoEdgeDisjointPaths(4, DIAMOND, 0, 3) as AlgoResultScalar;
+    expect(result.value).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('demoIsEulerian', () => {
+  it('triangle has Eulerian cycle', () => {
+    const result = demoIsEulerian(3, TRIANGLE) as AlgoResultEulerian;
+    expect(result.has_cycle).toBe(true);
+    expect(result.has_path).toBe(true);
+  });
+
+  it('path has Eulerian path but not cycle', () => {
+    const result = demoIsEulerian(4, PATH) as AlgoResultEulerian;
+    expect(result.has_path).toBe(true);
+    expect(result.has_cycle).toBe(false);
+  });
+
+  it('handles empty graph', () => {
+    const result = demoIsEulerian(0, []) as AlgoResultEulerian;
+    expect(typeof result.has_path).toBe('boolean');
+    expect(typeof result.has_cycle).toBe('boolean');
+  });
+
+  it('star with 4 leaves has no Eulerian path', () => {
+    const star: Edge[] = [[0, 1], [0, 2], [0, 3], [0, 4]];
+    const result = demoIsEulerian(5, star) as AlgoResultEulerian;
+    expect(result.has_cycle).toBe(false);
+    expect(result.has_path).toBe(false);
+  });
+});
+
+describe('demoCohesiveBlocks', () => {
+  it('returns at least one block for connected graph', () => {
+    const result = demoCohesiveBlocks(3, TRIANGLE) as AlgoResultCohesiveBlocks;
+    expect(result.count).toBeGreaterThanOrEqual(1);
+    expect(result.blocks).toBeDefined();
+    expect(Array.isArray(result.blocks)).toBe(true);
+  });
+
+  it('cohesion array matches blocks count', () => {
+    const result = demoCohesiveBlocks(4, PATH) as AlgoResultCohesiveBlocks;
+    expect(result.cohesion.length).toBe(result.count);
+  });
+
+  it('all cohesion values are non-negative', () => {
+    const result = demoCohesiveBlocks(3, TRIANGLE) as AlgoResultCohesiveBlocks;
+    for (const c of result.cohesion) {
+      expect(c).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('handles empty graph', () => {
+    const result = demoCohesiveBlocks(0, []) as AlgoResultCohesiveBlocks;
+    expect(result.count).toBeGreaterThanOrEqual(0);
   });
 });

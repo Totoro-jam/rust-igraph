@@ -12,7 +12,7 @@ const ALGO_CATEGORIES: AlgoCategory[] = [
   {
     key: 'centrality',
     icon: '◎',
-    algos: ['pagerank', 'betweenness', 'closeness', 'eigenvector', 'harmonic', 'hits', 'katz', 'edge_betweenness_centrality'],
+    algos: ['pagerank', 'betweenness', 'closeness', 'eigenvector', 'harmonic', 'hits', 'katz', 'edge_betweenness_centrality', 'local_efficiency'],
   },
   {
     key: 'community',
@@ -25,17 +25,17 @@ const ALGO_CATEGORIES: AlgoCategory[] = [
   {
     key: 'traversal',
     icon: '⇢',
-    algos: ['bfs', 'dfs', 'dijkstra', 'bellman_ford', 'shortest_path', 'random_walk', 'max_flow', 'topological_sort'],
+    algos: ['bfs', 'dfs', 'dijkstra', 'bellman_ford', 'shortest_path', 'random_walk', 'max_flow', 'topological_sort', 'all_simple_paths', 'find_cycle'],
   },
   {
     key: 'structure',
     icon: '⊞',
-    algos: ['components', 'scc', 'articulation_points', 'bridges', 'vertex_connectivity', 'edge_connectivity', 'coloring', 'triad_census', 'fundamental_cycles', 'minimum_cycle_basis', 'list_triangles', 'feedback_arc_set'],
+    algos: ['components', 'scc', 'biconnected_components', 'articulation_points', 'bridges', 'vertex_connectivity', 'edge_connectivity', 'vertex_disjoint_paths', 'edge_disjoint_paths', 'coloring', 'bipartite_check', 'maximum_cut', 'triad_census', 'fundamental_cycles', 'minimum_cycle_basis', 'list_triangles', 'feedback_arc_set', 'cohesive_blocks'],
   },
   {
     key: 'metrics',
     icon: '▦',
-    algos: ['graph_stats', 'degree_sequence', 'degree_distribution', 'coreness', 'eccentricity', 'constraint', 'diameter', 'girth', 'transitivity', 'trussness', 'clique_number', 'independence_number', 'maximal_cliques', 'minimum_spanning_tree'],
+    algos: ['graph_stats', 'degree_sequence', 'degree_distribution', 'coreness', 'eccentricity', 'constraint', 'diameter', 'girth', 'transitivity', 'trussness', 'clique_number', 'independence_number', 'maximal_cliques', 'minimum_spanning_tree', 'global_efficiency', 'degeneracy', 'mincut_value', 'is_eulerian'],
   },
   {
     key: 'isomorphism',
@@ -161,7 +161,7 @@ export function AlgoPanel({
             />
           </div>
         )}
-        {(algo === 'bfs' || algo === 'dfs' || algo === 'dijkstra' || algo === 'max_flow' || algo === 'shortest_path' || algo === 'random_walk') && (
+        {(algo === 'bfs' || algo === 'dfs' || algo === 'dijkstra' || algo === 'max_flow' || algo === 'shortest_path' || algo === 'random_walk' || algo === 'all_simple_paths' || algo === 'vertex_disjoint_paths' || algo === 'edge_disjoint_paths') && (
           <div className={styles.paramRow}>
             <label>{t('param.source')}</label>
             <input
@@ -175,7 +175,7 @@ export function AlgoPanel({
             />
           </div>
         )}
-        {(algo === 'max_flow' || algo === 'shortest_path') && (
+        {(algo === 'max_flow' || algo === 'shortest_path' || algo === 'all_simple_paths' || algo === 'vertex_disjoint_paths' || algo === 'edge_disjoint_paths') && (
           <div className={styles.paramRow}>
             <label>{t('param.target')}</label>
             <input

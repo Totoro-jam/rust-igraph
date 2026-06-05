@@ -143,6 +143,32 @@ function generateRustCode(algo: AlgoId, edges: Edge[], directed: boolean): strin
       return `use rust_igraph::{Graph, feedback_arc_set, FasAlgorithm};\n\n${graphLine}\n\nlet fas = feedback_arc_set(&g, None, FasAlgorithm::EadesLinSmyth).unwrap();\nprintln!("Feedback arc set ({} edges): {:?}", fas.len(), fas);`;
     case 'minimum_cycle_basis':
       return `use rust_igraph::{Graph, minimum_cycle_basis};\n\n${graphLine}\n\nlet cycles = minimum_cycle_basis(&g, None, true).unwrap();\nprintln!("{} cycles in minimum basis", cycles.len());\nfor c in &cycles {\n    println!("  {:?}", c);\n}`;
+    case 'biconnected_components':
+      return `use rust_igraph::{Graph, biconnected_components};\n\n${graphLine}\n\nlet bc = biconnected_components(&g).unwrap();\nprintln!("{} biconnected components", bc.count);\nfor (i, comp) in bc.components.iter().enumerate() {\n    println!("Component {}: {:?}", i, comp);\n}`;
+    case 'bipartite_check':
+      return `use rust_igraph::{Graph, is_bipartite};\n\n${graphLine}\n\nlet result = is_bipartite(&g).unwrap();\nprintln!("Bipartite: {}", result.is_bipartite);\nif result.is_bipartite {\n    println!("Partition: {:?}", result.types);\n}`;
+    case 'maximum_cut':
+      return `use rust_igraph::{Graph, maximum_cut};\n\n${graphLine}\n\nlet mc = maximum_cut(&g).unwrap();\nprintln!("Cut value: {}", mc.cut_value);\nprintln!("Partition: {:?}", mc.partition);`;
+    case 'global_efficiency':
+      return `use rust_igraph::{Graph, global_efficiency};\n\n${graphLine}\n\nlet eff = global_efficiency(&g).unwrap();\nprintln!("Global efficiency: {:?}", eff);`;
+    case 'local_efficiency':
+      return `use rust_igraph::{Graph, local_efficiency};\n\n${graphLine}\n\nlet eff = local_efficiency(&g).unwrap();\nprintln!("Local efficiency: {:?}", eff);`;
+    case 'degeneracy':
+      return `use rust_igraph::{Graph, degeneracy};\n\n${graphLine}\n\nlet d = degeneracy(&g).unwrap();\nprintln!("Degeneracy: {}", d);`;
+    case 'all_simple_paths':
+      return `use rust_igraph::{Graph, all_simple_paths, SimplePathMode};\n\n${graphLine}\n\nlet paths = all_simple_paths(&g, 0, Some(&[1]),\n    SimplePathMode::Out, 0, -1, 1000).unwrap();\nprintln!("Found {} paths from 0 to 1", paths.len());\nfor p in &paths {\n    println!("  {:?}", p);\n}`;
+    case 'find_cycle':
+      return `use rust_igraph::{Graph, find_cycle, CycleMode};\n\n${graphLine}\n\nlet c = find_cycle(&g, CycleMode::All).unwrap();\nif c.vertices.is_empty() {\n    println!("No cycle found");\n} else {\n    println!("Cycle: {:?}", c.vertices);\n}`;
+    case 'mincut_value':
+      return `use rust_igraph::{Graph, mincut_value};\n\n${graphLine}\n\nlet v = mincut_value(&g, None).unwrap();\nprintln!("Minimum cut value: {:.4}", v);`;
+    case 'vertex_disjoint_paths':
+      return `use rust_igraph::{Graph, vertex_disjoint_paths};\n\n${graphLine}\n\nlet k = vertex_disjoint_paths(&g, 0, 1).unwrap();\nprintln!("Vertex-disjoint paths: {}", k);`;
+    case 'edge_disjoint_paths':
+      return `use rust_igraph::{Graph, edge_disjoint_paths};\n\n${graphLine}\n\nlet k = edge_disjoint_paths(&g, 0, 1).unwrap();\nprintln!("Edge-disjoint paths: {}", k);`;
+    case 'is_eulerian':
+      return `use rust_igraph::{Graph, is_eulerian};\n\n${graphLine}\n\nlet e = is_eulerian(&g).unwrap();\nprintln!("Has Eulerian path: {}", e.has_path);\nprintln!("Has Eulerian cycle: {}", e.has_cycle);`;
+    case 'cohesive_blocks':
+      return `use rust_igraph::{Graph, cohesive_blocks};\n\n${graphLine}\n\nlet cb = cohesive_blocks(&g).unwrap();\nprintln!("{} cohesive blocks", cb.blocks.len());\nfor (i, block) in cb.blocks.iter().enumerate() {\n    println!("Block {} (cohesion {}): {:?}", i, cb.cohesion[i], block);\n}`;
     default:
       return `use rust_igraph::Graph;\n\n${graphLine}`;
   }
