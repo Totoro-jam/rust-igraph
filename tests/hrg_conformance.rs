@@ -73,7 +73,7 @@ fn hrg_create_four_leaves_mixed_probs_deterministic() {
     let degrees: Vec<usize> = (0..4).map(|v| sampled.degree(v).expect("degree")).collect();
     assert!(
         degrees.contains(&3),
-        "Expected one vertex with degree 3, got {degrees:?}",
+        "Expected one vertex with degree 3, got {degrees:?}"
     );
 
     // The other three vertices should each have degree 1
@@ -174,12 +174,12 @@ fn hrg_predict_probabilities_valid_range() {
     for &(u, v, p) in &predictions {
         assert!(
             (0.0..=1.0).contains(&p),
-            "Probability {p} out of range [0,1] for edge ({u}, {v})",
+            "Probability {p} out of range [0,1] for edge ({u}, {v})"
         );
         // No self-loops
         assert_ne!(u, v, "Self-loop prediction should not appear");
         // Valid vertex ids
-        assert!(u < n && v < n, "Vertex id out of range: ({u}, {v}), n={n}",);
+        assert!(u < n && v < n, "Vertex id out of range: ({u}, {v}), n={n}");
     }
 
     // Check symmetry: for every (u, v, p), there should be (v, u, p)
@@ -188,7 +188,7 @@ fn hrg_predict_probabilities_valid_range() {
         if let Some(&(_, _, p2)) = mirror {
             assert!(
                 (p - p2).abs() < 1e-10,
-                "Prediction not symmetric: ({u},{v})={p} vs ({v},{u})={p2}",
+                "Prediction not symmetric: ({u},{v})={p} vs ({v},{u})={p2}"
             );
         }
     }
