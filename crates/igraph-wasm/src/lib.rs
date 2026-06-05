@@ -1538,22 +1538,18 @@ impl WasmGraph {
 
     #[wasm_bindgen(js_name = "eulerianCycle")]
     pub fn eulerian_cycle(&self) -> Result<String, JsError> {
-        match eulerian_cycle(&self.inner) {
-            Ok(edges) => {
-                let result = EulerianPathResult {
-                    exists: true,
-                    edges,
-                };
-                serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+        let result = if let Ok(edges) = eulerian_cycle(&self.inner) {
+            EulerianPathResult {
+                exists: true,
+                edges,
             }
-            Err(_) => {
-                let result = EulerianPathResult {
-                    exists: false,
-                    edges: vec![],
-                };
-                serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+        } else {
+            EulerianPathResult {
+                exists: false,
+                edges: vec![],
             }
-        }
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 
     // --- Maximum cut ---
@@ -1736,11 +1732,7 @@ impl WasmGraph {
 
     #[wasm_bindgen(js_name = "graphCenter")]
     pub fn graph_center(&self) -> Result<String, JsError> {
-        let mode = if self.inner.is_directed() {
-            EccMode::All
-        } else {
-            EccMode::All
-        };
+        let mode = EccMode::All;
         let vertices = graph_center(&self.inner, mode).map_err(|e| JsError::new(&e.to_string()))?;
         let count = vertices.len();
         let result = GraphCenterResult { vertices, count };
@@ -1761,7 +1753,7 @@ impl WasmGraph {
 
     #[wasm_bindgen(js_name = "kShortestPaths")]
     pub fn k_shortest_paths(&self, source: u32, target: u32, k: usize) -> Result<String, JsError> {
-        let m = self.inner.ecount() as usize;
+        let m = self.inner.ecount();
         let weights = vec![1.0_f64; m];
         let kpaths = k_shortest_paths(&self.inner, source, target, &weights, k, DijkstraMode::Out)
             .map_err(|e| JsError::new(&e.to_string()))?;
