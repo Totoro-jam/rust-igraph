@@ -22,6 +22,7 @@ pub mod flow;
 pub mod fundamental_cycles;
 pub mod games;
 pub mod graphlets;
+pub mod hrg;
 pub mod independent_set;
 pub mod io;
 pub mod isomorphism;
