@@ -232,22 +232,16 @@
 }
 
 .btnRunGlow1 {
-  bottom: -10px;
-  right: -250%;
-  background: radial-gradient(circle, var(--accent), transparent 10%);
-  animation: star-move-bottom 5s linear infinite alternate;
+  display: none;
 }
 
 .btnRunGlow2 {
-  top: -10px;
-  left: -250%;
-  background: radial-gradient(circle, var(--accent-hover), transparent 10%);
-  animation: star-move-top 5s linear infinite alternate;
+  display: none;
 }
 
 .btnRunWrap:hover .btnRunGlow1,
 .btnRunWrap:hover .btnRunGlow2 {
-  opacity: 0.8;
+  opacity: 0;
 }
 
 .btnRun {

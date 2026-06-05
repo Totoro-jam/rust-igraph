@@ -186,8 +186,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
   const MOUSE_RADIUS = 120;
   const MOUSE_FORCE = 0.8;
 
-  const COLORS_DARK = ['#7c8fff', '#f778ba', '#7ee787', '#a78bfa', '#ffa657'];
-  const COLORS_LIGHT = ['#5563e8', '#bf3989', '#1a7f37', '#7c5ce8', '#bc4c00'];
+  const COLORS_DARK = ['#4f8fff', '#4f8fff', '#4f8fff', '#4f8fff', '#4f8fff'];
+  const COLORS_LIGHT = ['#2563eb', '#2563eb', '#2563eb', '#2563eb', '#2563eb'];
 
   function getColors() {
     const theme = document.documentElement.getAttribute('data-theme');
@@ -355,47 +355,23 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
     ctx.clearRect(0, 0, width, height);
     const colors = getColors();
 
-    // Draw edges with gradient
-    ctx.lineWidth = 1.2;
+    // Draw edges
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = colors[0];
+    ctx.globalAlpha = 0.1;
+    ctx.beginPath();
     for (const [i, j] of edges) {
-      const sameComm = nodes[i].community === nodes[j].community;
-      const grad = ctx.createLinearGradient(nodes[i].x, nodes[i].y, nodes[j].x, nodes[j].y);
-      const colorI = colors[nodes[i].community];
-      const colorJ = colors[nodes[j].community];
-      const alpha = sameComm ? 0.25 : 0.08;
-      grad.addColorStop(0, colorI);
-      grad.addColorStop(1, colorJ);
-      ctx.strokeStyle = grad;
-      ctx.globalAlpha = alpha;
-      ctx.beginPath();
       ctx.moveTo(nodes[i].x, nodes[i].y);
       ctx.lineTo(nodes[j].x, nodes[j].y);
-      ctx.stroke();
     }
+    ctx.stroke();
 
-    // Draw nodes with glow
+    // Draw nodes
+    ctx.fillStyle = colors[0];
     for (const node of nodes) {
-      const color = colors[node.community];
-
-      // Outer glow
-      ctx.globalAlpha = 0.12;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, node.r + 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Core
-      ctx.globalAlpha = 0.7;
-      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.4 + (node.r - 2.5) * 0.15;
       ctx.beginPath();
       ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Inner highlight
-      ctx.globalAlpha = 0.3;
-      ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.arc(node.x - node.r * 0.25, node.y - node.r * 0.25, node.r * 0.4, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;

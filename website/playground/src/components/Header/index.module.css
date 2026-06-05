@@ -27,22 +27,10 @@
 }
 
 .logoText {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   font-family: var(--font-mono);
-  background: linear-gradient(
-    120deg,
-    var(--text-heading) 0%,
-    var(--text-heading) 35%,
-    var(--accent) 50%,
-    var(--text-heading) 65%,
-    var(--text-heading) 100%
-  );
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 6s linear infinite;
+  color: var(--text-heading);
 }
 
 .navLinks {
@@ -87,7 +75,7 @@
 
 .themeToggle:hover,
 .langToggle:hover {
-  border-color: var(--accent);
+  border-color: var(--border-hover);
   color: var(--text);
 }
 
