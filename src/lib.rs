@@ -655,6 +655,7 @@ pub use crate::algorithms::properties::is_outerplanar::is_outerplanar;
 pub use crate::algorithms::properties::is_p5_free::is_p5_free;
 pub use crate::algorithms::properties::is_path::is_path;
 pub use crate::algorithms::properties::is_paw_free::is_paw_free;
+pub use crate::algorithms::properties::is_planar::is_planar;
 pub use crate::algorithms::properties::is_proper_interval::is_proper_interval;
 pub use crate::algorithms::properties::is_pseudo_forest::is_pseudo_forest;
 pub use crate::algorithms::properties::is_ptolemaic::is_ptolemaic;
