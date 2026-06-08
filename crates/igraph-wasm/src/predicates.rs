@@ -130,19 +130,13 @@ impl WasmGraph {
     #[wasm_bindgen(js_name = "graphProperties")]
     pub fn graph_properties(&self) -> Result<String, JsError> {
         let result = GraphPropertiesResult {
-            is_tree: is_tree(&self.inner, DijkstraMode::Out)
-                .map(|r| r.is_some())
-                .unwrap_or(false),
-            is_forest: is_forest(&self.inner, DijkstraMode::Out)
-                .map(|r| r.is_some())
-                .unwrap_or(false),
+            is_tree: is_tree(&self.inner, DijkstraMode::Out).is_ok_and(|r| r.is_some()),
+            is_forest: is_forest(&self.inner, DijkstraMode::Out).is_ok_and(|r| r.is_some()),
             is_dag: is_dag(&self.inner),
             is_acyclic: is_acyclic(&self.inner),
             is_complete: is_complete(&self.inner).unwrap_or(false),
             is_biconnected: is_biconnected(&self.inner).unwrap_or(false),
-            is_bipartite: is_bipartite(&self.inner)
-                .map(|r| r.is_bipartite)
-                .unwrap_or(false),
+            is_bipartite: is_bipartite(&self.inner).is_ok_and(|r| r.is_bipartite),
             is_connected: is_connected(&self.inner, ConnectednessMode::Weak).unwrap_or(false),
             is_tournament: is_tournament(&self.inner).unwrap_or(false),
             is_cubic: is_cubic(&self.inner).unwrap_or(false),
