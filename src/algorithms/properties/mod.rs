@@ -42,6 +42,7 @@ pub(crate) mod get_biadjacency;
 pub(crate) mod get_biadjacency_weighted;
 pub(crate) mod get_eids;
 pub(crate) mod girth;
+pub(crate) mod graph_curvature;
 pub(crate) mod graphicality;
 pub(crate) mod harmonic;
 pub(crate) mod harmonic_cutoff;
@@ -198,6 +199,10 @@ pub use get_biadjacency::{GetBiadjacencyResult, get_biadjacency_matrix};
 pub use get_biadjacency_weighted::{GetBiadjacencyWeightedResult, get_biadjacency_weighted};
 pub use get_eids::get_eids;
 pub use girth::girth;
+pub use graph_curvature::{
+    augmented_forman_ricci_curvature, forman_ricci_curvature, mean_forman_ricci,
+    ollivier_ricci_curvature,
+};
 pub use graphicality::{EdgeTypeFilter, is_bigraphical, is_graphical};
 pub use harmonic::harmonic_centrality;
 pub use harmonic_cutoff::harmonic_centrality_cutoff;
