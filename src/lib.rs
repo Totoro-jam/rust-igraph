@@ -710,6 +710,10 @@ pub use crate::algorithms::properties::label_spread::{
     LabelSpreadResult, label_propagate_predict, label_spread,
 };
 pub use crate::algorithms::properties::laplacian::{LaplacianNormalization, get_laplacian};
+pub use crate::algorithms::properties::link_prediction::{
+    link_pred_adamic_adar, link_pred_common_neighbors, link_pred_jaccard,
+    link_pred_preferential_attachment, link_pred_resource_allocation,
+};
 pub use crate::algorithms::properties::list_triangles::list_triangles;
 pub use crate::algorithms::properties::local_scan::{
     local_scan_0, local_scan_0_them, local_scan_1, local_scan_1_ecount, local_scan_1_ecount_them,
