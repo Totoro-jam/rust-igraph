@@ -16,8 +16,8 @@ use rust_igraph::{
     fluid_communities, full_graph, fundamental_cycles, girth, global_efficiency, graph_center,
     harmonic_centrality, hub_and_authority_scores, independence_number, infomap, is_acyclic,
     is_biconnected, is_bipartite, is_complete, is_connected, is_cubic, is_cycle, is_dag,
-    is_eulerian, is_forest, is_outerplanar, is_path, is_perfect, is_star, is_tournament, is_tree,
-    is_triangle_free, is_wheel, isomorphic_bliss, k_shortest_paths, katz_centrality,
+    is_eulerian, is_forest, is_outerplanar, is_path, is_perfect, is_planar, is_star, is_tournament,
+    is_tree, is_triangle_free, is_wheel, isomorphic_bliss, k_shortest_paths, katz_centrality,
     label_propagation, layout_circle, layout_fruchterman_reingold, layout_grid,
     layout_kamada_kawai, layout_random, layout_star, leading_eigenvector, leiden, line_graph,
     list_triangles, local_efficiency, louvain, max_flow_value, maximal_cliques, maximum_cut,
@@ -308,6 +308,7 @@ struct GraphPropertiesResult {
     is_perfect: bool,
     is_triangle_free: bool,
     is_outerplanar: bool,
+    is_planar: bool,
 }
 
 #[derive(Serialize)]
@@ -1191,6 +1192,13 @@ impl WasmGraph {
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 
+    #[wasm_bindgen(js_name = "isPlanar")]
+    pub fn is_planar(&self) -> Result<String, JsError> {
+        let v = is_planar(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value: v };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
     #[wasm_bindgen(js_name = "graphProperties")]
     pub fn graph_properties(&self) -> Result<String, JsError> {
         let result = GraphPropertiesResult {
@@ -1217,6 +1225,7 @@ impl WasmGraph {
             is_perfect: is_perfect(&self.inner).unwrap_or(false),
             is_triangle_free: is_triangle_free(&self.inner).unwrap_or(false),
             is_outerplanar: is_outerplanar(&self.inner).unwrap_or(false),
+            is_planar: is_planar(&self.inner).unwrap_or(false),
         };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
