@@ -758,6 +758,9 @@ pub use crate::algorithms::properties::power_law_fit::{PowerLawFitResult, power_
 pub use crate::algorithms::properties::reciprocity::{
     ReciprocityMode, reciprocity, reciprocity_with_mode,
 };
+pub use crate::algorithms::properties::resistance::{
+    effective_resistance, effective_resistance_matrix, kirchhoff_index, resistance_centrality,
+};
 pub use crate::algorithms::properties::rich_club::rich_club_sequence;
 pub use crate::algorithms::properties::running_mean::{expand_path_to_pairs, running_mean};
 pub use crate::algorithms::properties::rwpe::{rwpe, rwpe_vertices};
