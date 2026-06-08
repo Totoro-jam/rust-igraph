@@ -1,3 +1,5 @@
+[English](README.md) | [中文](README.zh-CN.md)
+
 # rust-igraph
 
 [![crates.io](https://img.shields.io/crates/v/rust-igraph.svg?label=crates.io)](https://crates.io/crates/rust-igraph)
@@ -202,6 +204,19 @@ cargo bench --bench bench_vf2         # isomorphism
 | Layout algorithms | Stable (16 engines) |
 | I/O formats | Stable (15 functions) |
 | Spatial algorithms | Stable |
+
+## Releases
+
+This repository produces two independent release artifacts:
+
+| Package | Registry | Tag pattern | Trigger |
+|---------|----------|-------------|---------|
+| `rust-igraph` | [crates.io](https://crates.io/crates/rust-igraph) | `v*` (e.g. `v0.6.0`) | Rust library release |
+| `@graphrs/igraph-wasm` | [npm](https://www.npmjs.com/package/@graphrs/igraph-wasm) | `wasm-v*` (e.g. `wasm-v0.1.4`) | WASM binary release |
+
+They follow independent version schedules. WASM builds are published via
+[npm Trusted Publishing (OIDC)](https://docs.npmjs.com/trusted-publishers) — zero static
+tokens, cryptographically signed provenance.
 
 ## Documentation
 
