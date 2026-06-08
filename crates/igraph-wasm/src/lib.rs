@@ -1,11 +1,19 @@
-#![allow(clippy::needless_pass_by_value, clippy::items_after_statements)]
+#![allow(
+    clippy::needless_pass_by_value,
+    clippy::items_after_statements,
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss
+)]
 
 use rust_igraph::{
+    // batch 11
+    AdjacencyMode,
     AdjacencyType,
     BfsMode,
     BipartiteMode,
     ChungLuVariant,
     ConnectednessMode,
+    CorenessMode,
     DegreeMode,
     DhParams,
     DijkstraMode,
@@ -23,9 +31,11 @@ use rust_igraph::{
     LaplacianNormalization,
     LglParams,
     LoopHandling,
+    LoopsMode,
     MstAlgorithm,
     RtMode,
     SimpleCycleMode,
+    SimpleMode,
     SimplePathMode,
     SortOrder,
     StarMode,
@@ -39,15 +49,18 @@ use rust_igraph::{
     VoronoiTiebreaker,
     WheelMode,
     adhesion,
+    adjacency,
     all_minimal_st_separators,
     all_simple_paths,
     all_st_cuts,
+    all_st_mincuts,
     are_adjacent,
     articulation_points,
     // batch 8
     assortativity,
     assortativity_degree,
     assortativity_nominal,
+    asymmetric_preference_game,
     atlas,
     automorphism_group,
     average_local_efficiency,
@@ -60,6 +73,7 @@ use rust_igraph::{
     bfs,
     bfs_simple,
     bfs_tree,
+    biadjacency,
     bibcoupling,
     biconnected_components,
     bipartite_game_gnm,
@@ -90,6 +104,7 @@ use rust_igraph::{
     convergence_degree,
     convex_hull_2d,
     coreness,
+    coreness_with_mode,
     correlated_game,
     correlated_pair_game,
     count_adjacent_triangles,
@@ -134,6 +149,7 @@ use rust_igraph::{
     eulerian_cycle,
     eulerian_path,
     even_tarjan_reduction,
+    expand_path_to_pairs,
     extended_chordal_ring,
     famous,
     famous_names,
@@ -162,6 +178,7 @@ use rust_igraph::{
     graph_center,
     graph_power,
     grg_game,
+    grg_game_with_coords,
     growing_random_game,
     hamming,
     harmonic_centrality,
@@ -176,6 +193,7 @@ use rust_igraph::{
     hrg_predict,
     hrg_sample,
     hsbm_game,
+    hsbm_list_game,
     hub_and_authority_scores,
     hypercube,
     independence_number,
@@ -246,6 +264,7 @@ use rust_igraph::{
     is_semicomplete,
     is_series_parallel,
     is_simple,
+    is_simple_with_mode,
     is_spider,
     is_split_graph,
     is_star,
@@ -275,6 +294,7 @@ use rust_igraph::{
     layout_circle,
     layout_davidson_harel,
     layout_drl,
+    layout_drl_3d,
     layout_fruchterman_reingold,
     layout_gem,
     layout_graphopt,
@@ -329,9 +349,12 @@ use rust_igraph::{
     random_spanning_tree,
     random_walk,
     reachability_matrix,
+    read_dl,
+    read_dot,
     read_edgelist,
     read_gml,
     read_graphml,
+    read_leda,
     read_lgl,
     read_ncol,
     read_pajek,
@@ -397,10 +420,12 @@ use rust_igraph::{
     walktrap,
     watts_strogatz_game,
     wheel_graph,
+    write_dl,
     write_dot,
     write_edgelist,
     write_gml,
     write_graphml,
+    write_leda,
     write_lgl,
     write_ncol,
     write_pajek,
@@ -4732,5 +4757,236 @@ impl WasmGraph {
             modularity: result.modularity,
         };
         serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // ── batch 11: final 15 bindings ──────────────────────────────────
+
+    #[wasm_bindgen(js_name = "corenessWithMode")]
+    pub fn coreness_with_mode_wasm(&self, mode: &str) -> Result<String, JsError> {
+        let m = match mode {
+            "in" => CorenessMode::In,
+            "out" => CorenessMode::Out,
+            _ => CorenessMode::All,
+        };
+        let result =
+            coreness_with_mode(&self.inner, m).map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isSimpleWithMode")]
+    pub fn is_simple_with_mode_wasm(&self, mode: &str) -> Result<bool, JsError> {
+        let m = match mode {
+            "undirected" => SimpleMode::DirectedAsUndirected,
+            _ => SimpleMode::DirectedAsDirected,
+        };
+        is_simple_with_mode(&self.inner, m).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "allStMincuts")]
+    pub fn all_st_mincuts_wasm(
+        &self,
+        source: u32,
+        target: u32,
+        capacity: Option<Vec<f64>>,
+    ) -> Result<String, JsError> {
+        #[derive(Serialize)]
+        struct Out {
+            value: f64,
+            cuts: Vec<Vec<u32>>,
+            partition1s: Vec<Vec<u32>>,
+        }
+        let cap = capacity.as_deref();
+        let result = all_st_mincuts(&self.inner, source, target, cap)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let out = Out {
+            value: result.value,
+            cuts: result.cuts,
+            partition1s: result.partition1s,
+        };
+        serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutDrl3d")]
+    pub fn layout_drl_3d_wasm(&self) -> Result<String, JsError> {
+        let opts = DrlOptions::default();
+        let coords = layout_drl_3d(&self.inner, None, &opts, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&coords).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "readDl")]
+    pub fn read_dl_wasm(text: &str, directed: bool) -> Result<WasmGraph, JsError> {
+        let result =
+            read_dl(text.as_bytes(), directed).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph {
+            inner: result.graph,
+        })
+    }
+
+    #[wasm_bindgen(js_name = "readDot")]
+    pub fn read_dot_wasm(text: &str) -> Result<WasmGraph, JsError> {
+        let result = read_dot(text.as_bytes()).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph {
+            inner: result.graph,
+        })
+    }
+
+    #[wasm_bindgen(js_name = "readLeda")]
+    pub fn read_leda_wasm(text: &str) -> Result<WasmGraph, JsError> {
+        let result = read_leda(text.as_bytes()).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph {
+            inner: result.graph,
+        })
+    }
+
+    #[wasm_bindgen(js_name = "writeDl")]
+    pub fn write_dl_wasm(&self) -> Result<String, JsError> {
+        let mut buf = Vec::new();
+        write_dl(&self.inner, None, None, &mut buf).map_err(|e| JsError::new(&e.to_string()))?;
+        String::from_utf8(buf).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "writeLeda")]
+    pub fn write_leda_wasm(&self) -> Result<String, JsError> {
+        let mut buf = Vec::new();
+        write_leda(&self.inner, None, None, &mut buf).map_err(|e| JsError::new(&e.to_string()))?;
+        String::from_utf8(buf).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "adjacencyMatrix")]
+    pub fn adjacency_matrix_wasm(matrix: &[i64], n: u32, mode: &str) -> Result<WasmGraph, JsError> {
+        let n_us = n as usize;
+        let rows: Vec<Vec<i64>> = matrix.chunks(n_us).map(<[i64]>::to_vec).collect();
+        let refs: Vec<&[i64]> = rows.iter().map(Vec::as_slice).collect();
+        let adj_mode = match mode {
+            "undirected" => AdjacencyMode::Undirected,
+            "upper" => AdjacencyMode::Upper,
+            "lower" => AdjacencyMode::Lower,
+            "min" => AdjacencyMode::Min,
+            "max" => AdjacencyMode::Max,
+            "plus" => AdjacencyMode::Plus,
+            _ => AdjacencyMode::Directed,
+        };
+        let g = adjacency(&refs, adj_mode, LoopsMode::Once)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "biadjacencyMatrix")]
+    pub fn biadjacency_matrix_wasm(
+        matrix: &[f64],
+        nrow: u32,
+        ncol: u32,
+        directed: bool,
+    ) -> Result<String, JsError> {
+        #[derive(Serialize)]
+        struct Out {
+            edges: Vec<[u32; 2]>,
+            vcount: u32,
+            types: Vec<bool>,
+        }
+        let nr = nrow as usize;
+        let nc = ncol as usize;
+        let rows: Vec<Vec<f64>> = matrix.chunks(nc).take(nr).map(<[f64]>::to_vec).collect();
+        let refs: Vec<&[f64]> = rows.iter().map(Vec::as_slice).collect();
+        let result = biadjacency(&refs, directed, BipartiteMode::All, false)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let edges: Vec<[u32; 2]> = (0..result.graph.ecount())
+            .map(|e| {
+                let (s, t) = result.graph.edge(e as u32).unwrap_or((0, 0));
+                [s, t]
+            })
+            .collect();
+        let out = Out {
+            edges,
+            vcount: result.graph.vcount(),
+            types: result.types,
+        };
+        serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "grgGameWithCoords")]
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+    pub fn grg_game_with_coords_wasm(
+        n: u32,
+        radius: f64,
+        torus: bool,
+        seed: f64,
+    ) -> Result<String, JsError> {
+        #[derive(Serialize)]
+        struct Out {
+            edges: Vec<[u32; 2]>,
+            vcount: u32,
+            x: Vec<f64>,
+            y: Vec<f64>,
+        }
+        let (g, xs, ys) = grg_game_with_coords(n, radius, torus, seed as u64)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let edges: Vec<[u32; 2]> = (0..g.ecount())
+            .map(|e| {
+                let (s, t) = g.edge(e as u32).unwrap_or((0, 0));
+                [s, t]
+            })
+            .collect();
+        let out = Out {
+            edges,
+            vcount: g.vcount(),
+            x: xs,
+            y: ys,
+        };
+        serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "asymmetricPreferenceGame")]
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+    pub fn asymmetric_preference_game_wasm(
+        nodes: u32,
+        no_out_types: u32,
+        no_in_types: u32,
+        pref_matrix_flat: &[f64],
+        loops: bool,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        let cols = no_in_types as usize;
+        let pref: Vec<Vec<f64>> = pref_matrix_flat.chunks(cols).map(<[f64]>::to_vec).collect();
+        let (g, _, _) = asymmetric_preference_game(
+            nodes,
+            no_out_types,
+            no_in_types,
+            None,
+            &pref,
+            loops,
+            seed as u64,
+        )
+        .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "hsbmListGame")]
+    #[allow(clippy::cast_sign_loss)]
+    pub fn hsbm_list_game_wasm(
+        nodes: u32,
+        m_list: &[u32],
+        prob: f64,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        let levels = m_list.len();
+        let rho: Vec<Vec<f64>> = (0..levels)
+            .map(|idx| {
+                let sz = m_list[idx] as usize;
+                let weight = 1.0 / sz as f64;
+                vec![weight; sz]
+            })
+            .collect();
+        let conn: Vec<Vec<Vec<f64>>> = (0..levels).map(|_| vec![vec![1.0]]).collect();
+        let graph = hsbm_list_game(nodes, m_list, &rho, &conn, prob, seed as u64)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: graph })
+    }
+
+    #[wasm_bindgen(js_name = "expandPathToPairs")]
+    pub fn expand_path_to_pairs_wasm(path: &[u32]) -> Result<String, JsError> {
+        let pairs = expand_path_to_pairs(path);
+        serde_json::to_string(&pairs).map_err(|e| JsError::new(&e.to_string()))
     }
 }
