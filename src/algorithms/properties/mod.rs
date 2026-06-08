@@ -150,6 +150,7 @@ pub(crate) mod satisfies_ore;
 pub(crate) mod signal_smoothness;
 pub(crate) mod similarity;
 pub(crate) mod sort_by_degree;
+pub(crate) mod spectral_metrics;
 pub(crate) mod stochastic;
 pub(crate) mod strength;
 pub(crate) mod structural_features;
@@ -336,6 +337,10 @@ pub use similarity::{
     similarity_jaccard_es, similarity_jaccard_pairs,
 };
 pub use sort_by_degree::{SortOrder, sort_vertices_by_degree};
+pub use spectral_metrics::{
+    communicability_matrix, estrada_index, graph_energy, natural_connectivity, spectral_gap,
+    spectral_radius, subgraph_centrality,
+};
 pub use stochastic::get_stochastic;
 pub use strength::{StrengthMode, diversity, strength, strength_with_mode};
 pub use structural_features::{StructuralFeatures, degree_profile, structural_feature_vectors};
