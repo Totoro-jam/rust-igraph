@@ -838,6 +838,9 @@ pub use crate::algorithms::properties::triangles::{
 };
 pub use crate::algorithms::properties::trussness::trussness;
 pub use crate::algorithms::properties::unfold_tree::{UnfoldTreeResult, unfold_tree};
+pub use crate::algorithms::properties::wiener_polarity_index::{
+    count_pairs_at_distance, wiener_polarity_index,
+};
 pub use crate::algorithms::simple_cycles::{SimpleCycle, SimpleCycleMode, simple_cycles};
 pub use crate::algorithms::spanning::mst::{MstAlgorithm, minimum_spanning_tree};
 pub use crate::algorithms::spanning::random_spanning_tree::random_spanning_tree;

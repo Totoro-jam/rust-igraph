@@ -172,6 +172,7 @@ pub(crate) mod treewidth;
 pub(crate) mod triangles;
 pub(crate) mod trussness;
 pub(crate) mod unfold_tree;
+pub(crate) mod wiener_polarity_index;
 
 pub use adjacency::{AdjacencyType, LoopHandling, get_adjacency};
 pub use algebraic_connectivity::{
@@ -400,3 +401,4 @@ pub use triangles::{
 };
 pub use trussness::trussness;
 pub use unfold_tree::{UnfoldTreeResult, unfold_tree};
+pub use wiener_polarity_index::{count_pairs_at_distance, wiener_polarity_index};
