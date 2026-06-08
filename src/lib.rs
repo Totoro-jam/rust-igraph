@@ -631,6 +631,10 @@ pub use crate::algorithms::properties::get_biadjacency_weighted::{
 };
 pub use crate::algorithms::properties::get_eids::get_eids;
 pub use crate::algorithms::properties::girth::girth;
+pub use crate::algorithms::properties::graph_coloring::{
+    chromatic_number_greedy, greedy_clique_number, greedy_coloring, greedy_coloring_largest_first,
+    greedy_coloring_with_order, is_proper_coloring,
+};
 pub use crate::algorithms::properties::graph_curvature::{
     augmented_forman_ricci_curvature, forman_ricci_curvature, mean_forman_ricci,
     ollivier_ricci_curvature,
