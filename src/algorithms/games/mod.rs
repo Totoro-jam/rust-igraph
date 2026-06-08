@@ -18,6 +18,7 @@ pub mod degree_sequence_configuration_simple;
 pub mod degree_sequence_fast_heur;
 pub mod degree_sequence_vl;
 pub mod dotproduct;
+pub mod edge_sampling;
 pub mod edge_switching_simple;
 pub mod erdos_renyi;
 pub mod establishment;
