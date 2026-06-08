@@ -760,6 +760,9 @@ pub use crate::algorithms::properties::running_mean::{expand_path_to_pairs, runn
 pub use crate::algorithms::properties::rwpe::{rwpe, rwpe_vertices};
 pub use crate::algorithms::properties::satisfies_dirac::satisfies_dirac;
 pub use crate::algorithms::properties::satisfies_ore::satisfies_ore;
+pub use crate::algorithms::properties::signal_smoothness::{
+    dirichlet_energy, normalized_dirichlet_energy, smoothness_ratio, total_variation,
+};
 pub use crate::algorithms::properties::similarity::{
     bibcoupling, cocitation, similarity_dice, similarity_dice_es, similarity_dice_pairs,
     similarity_inverse_log_weighted, similarity_inverse_log_weighted_pairs, similarity_jaccard,

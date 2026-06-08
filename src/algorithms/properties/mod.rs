@@ -146,6 +146,7 @@ pub(crate) mod running_mean;
 pub(crate) mod rwpe;
 pub(crate) mod satisfies_dirac;
 pub(crate) mod satisfies_ore;
+pub(crate) mod signal_smoothness;
 pub(crate) mod similarity;
 pub(crate) mod sort_by_degree;
 pub(crate) mod stochastic;
@@ -324,6 +325,9 @@ pub use running_mean::{expand_path_to_pairs, running_mean};
 pub use rwpe::{rwpe, rwpe_vertices};
 pub use satisfies_dirac::satisfies_dirac;
 pub use satisfies_ore::satisfies_ore;
+pub use signal_smoothness::{
+    dirichlet_energy, normalized_dirichlet_energy, smoothness_ratio, total_variation,
+};
 pub use similarity::{
     bibcoupling, cocitation, similarity_dice, similarity_dice_es, similarity_dice_pairs,
     similarity_inverse_log_weighted, similarity_inverse_log_weighted_pairs, similarity_jaccard,
