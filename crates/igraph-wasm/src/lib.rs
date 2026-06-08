@@ -1,32 +1,39 @@
 #![allow(clippy::needless_pass_by_value)]
 
 use rust_igraph::{
-    ConnectednessMode, DegreeMode, DijkstraMode, EccMode, FasAlgorithm, FrParams, Graph,
-    GreedyColoringHeuristic, KkParams, LaplacianNormalization, MstAlgorithm, SimplePathMode,
-    StarMode, VertexId, all_minimal_st_separators, all_simple_paths, articulation_points,
-    assortativity_degree, automorphism_group, avg_nearest_neighbor_degree, barabasi_game_bag,
-    bellman_ford_distances, betweenness, betweenness_weighted, bfs, biconnected_components,
-    bridges, canonical_permutation, chromatic_number_upper_bound, clique_number, closeness,
-    closeness_weighted, cohesive_blocks, community_voronoi, complementer, connected_components,
-    constraint, convergence_degree, coreness, count_automorphisms, count_triangles, cycle_graph,
-    decompose, degeneracy, degree_distribution, density, dfs, diameter, dijkstra_distances,
-    distances, eccentricity, edge_betweenness, edge_betweenness_community, edge_connectivity,
-    edge_disjoint_paths, eigenvector_centrality, erdos_renyi_gnp, eulerian_cycle, eulerian_path,
-    famous, fast_greedy_modularity, feedback_arc_set, find_cycle, floyd_warshall_distances,
-    fluid_communities, full_graph, fundamental_cycles, get_laplacian, girth, global_efficiency,
-    graph_center, harmonic_centrality, hrg_consensus, hrg_create, hrg_fit, hrg_game, hrg_predict,
-    hrg_sample, hub_and_authority_scores, independence_number, infomap, is_acyclic, is_biconnected,
-    is_bipartite, is_complete, is_connected, is_cubic, is_cycle, is_dag, is_eulerian, is_forest,
-    is_outerplanar, is_path, is_perfect, is_planar, is_star, is_tournament, is_tree,
-    is_triangle_free, is_wheel, isomorphic_bliss, k_shortest_paths, katz_centrality,
-    label_propagation, layout_circle, layout_fruchterman_reingold, layout_grid,
-    layout_kamada_kawai, layout_random, layout_star, leading_eigenvector, leiden, line_graph,
-    list_triangles, local_efficiency, louvain, max_flow_value, maximal_cliques, maximum_cut,
-    mean_degree, mean_distance, mincut_value, minimum_cycle_basis, minimum_spanning_tree,
-    modularity, neighborhood, pagerank, path_graph, radius, random_walk, reciprocity, ring_graph,
-    similarity_dice, similarity_jaccard, simplify, spinglass, star_graph, strength,
-    strongly_connected_components, topological_sorting, transitivity_undirected, triad_census,
-    trussness, vertex_coloring_greedy, vertex_connectivity, vertex_disjoint_paths, walktrap,
+    AdjacencyType, ConnectednessMode, DegreeMode, DhParams, DijkstraMode, DrlOptions, EccMode,
+    FasAlgorithm, FrParams, GemParams, Graph, GraphoptParams, GreedyColoringHeuristic, KkParams,
+    LaplacianNormalization, LglParams, LoopHandling, MstAlgorithm, RtMode, SimplePathMode,
+    StarMode, SubcomponentMode, SugiyamaParams, ToDirectedMode, ToUndirectedMode, VertexId,
+    all_minimal_st_separators, all_simple_paths, articulation_points, assortativity_degree,
+    automorphism_group, avg_nearest_neighbor_degree, barabasi_game_bag, bellman_ford_distances,
+    betweenness, betweenness_weighted, bfs, biconnected_components, bridges, canonical_permutation,
+    chromatic_number_upper_bound, clique_number, closeness, closeness_weighted, cohesive_blocks,
+    community_voronoi, complementer, connected_components, constraint, contract_vertices,
+    convergence_degree, coreness, count_automorphisms, count_mutual, count_triangles, cycle_graph,
+    decompose, degeneracy, degree_distribution, degree_sequence, density, dfs, diameter,
+    dijkstra_distances, distances, eccentricity, edge_betweenness, edge_betweenness_community,
+    edge_connectivity, edge_disjoint_paths, eigenvector_centrality, erdos_renyi_gnp,
+    eulerian_cycle, eulerian_path, famous, fast_greedy_modularity, feedback_arc_set, find_cycle,
+    floyd_warshall_distances, fluid_communities, full_graph, fundamental_cycles, get_adjacency,
+    get_edgelist, get_laplacian, girth, global_efficiency, gomory_hu_tree, graph_center,
+    harmonic_centrality, hrg_consensus, hrg_create, hrg_fit, hrg_game, hrg_predict, hrg_sample,
+    hub_and_authority_scores, independence_number, induced_subgraph, infomap, is_acyclic,
+    is_biconnected, is_bipartite, is_complete, is_connected, is_cubic, is_cycle, is_dag,
+    is_eulerian, is_forest, is_outerplanar, is_path, is_perfect, is_planar, is_regular, is_simple,
+    is_star, is_tournament, is_tree, is_triangle_free, is_wheel, isomorphic_bliss,
+    k_shortest_paths, katz_centrality, label_propagation, layout_bipartite, layout_circle,
+    layout_davidson_harel, layout_drl, layout_fruchterman_reingold, layout_gem, layout_graphopt,
+    layout_grid, layout_kamada_kawai, layout_lgl, layout_mds, layout_random,
+    layout_reingold_tilford, layout_star, layout_sugiyama, leading_eigenvector, leiden, line_graph,
+    list_triangles, local_efficiency, louvain, max_degree, max_flow_value, maximal_cliques,
+    maximum_cut, mean_degree, mean_distance, min_degree, mincut_value, minimum_cycle_basis,
+    minimum_spanning_tree, modularity, neighborhood, pagerank, path_graph, permute_vertices,
+    personalized_pagerank, radius, random_spanning_tree, random_walk, reciprocity, reverse,
+    rich_club_sequence, ring_graph, similarity_dice, similarity_jaccard, simplify, spanner,
+    spinglass, star_graph, strength, strongly_connected_components, subcomponent, to_directed,
+    to_undirected, topological_sorting, transitivity_undirected, triad_census, trussness,
+    vertex_coloring_greedy, vertex_connectivity, vertex_disjoint_paths, walktrap,
     watts_strogatz_game, write_dot, write_gml, write_graphml,
 };
 use serde::Serialize;
@@ -547,6 +554,57 @@ struct GraphResult {
     edges: Vec<[u32; 2]>,
 }
 
+#[derive(Serialize)]
+struct DegreeSequenceResult {
+    degrees: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct AdjacencyMatrixResult {
+    matrix: Vec<Vec<f64>>,
+    size: usize,
+}
+
+#[derive(Serialize)]
+struct EdgelistResult {
+    edges: Vec<[u32; 2]>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct SubcomponentResult {
+    vertices: Vec<u32>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct GomoryHuResult {
+    tree_edges: Vec<[u32; 2]>,
+    flows: Vec<f64>,
+}
+
+#[derive(Serialize)]
+struct RichClubResult {
+    coefficients: Vec<f64>,
+}
+
+#[derive(Serialize)]
+struct SpannerResult {
+    edges: Vec<u32>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct SugiyamaLayoutResult {
+    coords: Vec<[f64; 2]>,
+    dummy_coords: Vec<[f64; 2]>,
+}
+
+#[derive(Serialize)]
+struct CountResult {
+    count: usize,
+}
+
 #[wasm_bindgen]
 pub struct WasmGraph {
     inner: Graph,
@@ -835,12 +893,14 @@ impl WasmGraph {
     }
 
     #[wasm_bindgen(js_name = "degreeSequence")]
-    pub fn degree_sequence(&self) -> Result<String, JsError> {
-        let degrees = self
-            .inner
-            .degree_sequence()
-            .map_err(|e| JsError::new(&e.to_string()))?;
-        let result = DegreeResult { degrees };
+    pub fn degree_sequence(&self, mode: &str) -> Result<String, JsError> {
+        let m = match mode {
+            "in" => DegreeMode::In,
+            "out" => DegreeMode::Out,
+            _ => DegreeMode::All,
+        };
+        let degrees = degree_sequence(&self.inner, m).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = DegreeSequenceResult { degrees };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 
@@ -1975,6 +2035,350 @@ impl WasmGraph {
         let (parents, weights) = hrg_consensus(&self.inner, None, num_samples, seed)
             .map_err(|e| JsError::new(&e.to_string()))?;
         let result = HrgConsensusResult { parents, weights };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Layout engines ---
+
+    #[wasm_bindgen(js_name = "layoutDrl")]
+    pub fn layout_drl(&self) -> Result<String, JsError> {
+        let coords = layout_drl(&self.inner, None, &DrlOptions::default(), None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LayoutResult { coords };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutGem")]
+    pub fn layout_gem(&self) -> Result<String, JsError> {
+        let coords = layout_gem(
+            &self.inner,
+            None,
+            &GemParams::for_graph(self.inner.vcount()),
+        )
+        .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LayoutResult { coords };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutGraphopt")]
+    pub fn layout_graphopt(&self) -> Result<String, JsError> {
+        let coords = layout_graphopt(&self.inner, None, &GraphoptParams::default())
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LayoutResult { coords };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutLgl")]
+    pub fn layout_lgl(&self) -> Result<String, JsError> {
+        let coords = layout_lgl(&self.inner, &LglParams::default())
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LayoutResult { coords };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutMds")]
+    pub fn layout_mds(&self) -> Result<String, JsError> {
+        let coords = layout_mds(&self.inner, None).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LayoutResult { coords };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutDavidsonHarel")]
+    pub fn layout_davidson_harel(&self) -> Result<String, JsError> {
+        let coords = layout_davidson_harel(&self.inner, None, &DhParams::for_graph(&self.inner))
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LayoutResult { coords };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutSugiyama")]
+    pub fn layout_sugiyama(&self) -> Result<String, JsError> {
+        let sug = layout_sugiyama(&self.inner, None, &SugiyamaParams::default())
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = SugiyamaLayoutResult {
+            coords: sug.positions,
+            dummy_coords: sug.dummy_positions,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutBipartite")]
+    pub fn layout_bipartite(&self, types_flat: &[u8]) -> Result<String, JsError> {
+        let types: Vec<bool> = types_flat.iter().map(|&t| t != 0).collect();
+        let coords = layout_bipartite(&self.inner, &types, 1.0, 1.0, 100)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LayoutResult { coords };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "layoutReingoldTilford")]
+    pub fn layout_reingold_tilford(&self, root: i32) -> Result<String, JsError> {
+        let root_opt = if root < 0 {
+            None
+        } else {
+            u32::try_from(root).ok()
+        };
+        let coords = layout_reingold_tilford(&self.inner, root_opt, RtMode::Out)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LayoutResult { coords };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Graph transforms ---
+
+    #[wasm_bindgen(js_name = "toDirected")]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn to_directed(&self, mode: &str) -> Result<String, JsError> {
+        let m = match mode {
+            "mutual" => ToDirectedMode::Mutual,
+            _ => ToDirectedMode::Arbitrary,
+        };
+        let g = to_directed(&self.inner, m).map_err(|e| JsError::new(&e.to_string()))?;
+        let edges: Vec<[u32; 2]> = (0..g.ecount())
+            .map(|eid| {
+                let (u, v) = g.edge(eid as u32).unwrap_or((0, 0));
+                [u, v]
+            })
+            .collect();
+        let result = GraphResult {
+            vcount: g.vcount(),
+            ecount: g.ecount(),
+            edges,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "toUndirected")]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn to_undirected(&self, mode: &str) -> Result<String, JsError> {
+        let m = match mode {
+            "collapse" => ToUndirectedMode::Collapse,
+            "mutual" => ToUndirectedMode::Mutual,
+            _ => ToUndirectedMode::Each,
+        };
+        let g = to_undirected(&self.inner, m).map_err(|e| JsError::new(&e.to_string()))?;
+        let edges: Vec<[u32; 2]> = (0..g.ecount())
+            .map(|eid| {
+                let (u, v) = g.edge(eid as u32).unwrap_or((0, 0));
+                [u, v]
+            })
+            .collect();
+        let result = GraphResult {
+            vcount: g.vcount(),
+            ecount: g.ecount(),
+            edges,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "reverseGraph")]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn reverse_graph(&self) -> Result<String, JsError> {
+        let g = reverse(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let edges: Vec<[u32; 2]> = (0..g.ecount())
+            .map(|eid| {
+                let (u, v) = g.edge(eid as u32).unwrap_or((0, 0));
+                [u, v]
+            })
+            .collect();
+        let result = GraphResult {
+            vcount: g.vcount(),
+            ecount: g.ecount(),
+            edges,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "contractVertices")]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn contract_vertices(&self, mapping: &[u32]) -> Result<String, JsError> {
+        let g =
+            contract_vertices(&self.inner, mapping).map_err(|e| JsError::new(&e.to_string()))?;
+        let edges: Vec<[u32; 2]> = (0..g.ecount())
+            .map(|eid| {
+                let (u, v) = g.edge(eid as u32).unwrap_or((0, 0));
+                [u, v]
+            })
+            .collect();
+        let result = GraphResult {
+            vcount: g.vcount(),
+            ecount: g.ecount(),
+            edges,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "inducedSubgraph")]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn induced_subgraph(&self, vids: &[u32]) -> Result<String, JsError> {
+        let sub = induced_subgraph(&self.inner, vids).map_err(|e| JsError::new(&e.to_string()))?;
+        let g = &sub.graph;
+        let edges: Vec<[u32; 2]> = (0..g.ecount())
+            .map(|eid| {
+                let (u, v) = g.edge(eid as u32).unwrap_or((0, 0));
+                [u, v]
+            })
+            .collect();
+        let result = GraphResult {
+            vcount: g.vcount(),
+            ecount: g.ecount(),
+            edges,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "permuteVertices")]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn permute_vertices(&self, perm: &[u32]) -> Result<String, JsError> {
+        let g = permute_vertices(&self.inner, perm).map_err(|e| JsError::new(&e.to_string()))?;
+        let edges: Vec<[u32; 2]> = (0..g.ecount())
+            .map(|eid| {
+                let (u, v) = g.edge(eid as u32).unwrap_or((0, 0));
+                [u, v]
+            })
+            .collect();
+        let result = GraphResult {
+            vcount: g.vcount(),
+            ecount: g.ecount(),
+            edges,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Analytics ---
+
+    #[wasm_bindgen(js_name = "personalizedPagerank")]
+    pub fn personalized_pagerank(&self, reset: &[f64], damping: f64) -> Result<String, JsError> {
+        let scores = personalized_pagerank(&self.inner, reset, damping)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = PageRankResult { scores };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "maxDegree")]
+    pub fn max_degree(&self, mode: &str) -> Result<String, JsError> {
+        let m = match mode {
+            "in" => DegreeMode::In,
+            "out" => DegreeMode::Out,
+            _ => DegreeMode::All,
+        };
+        let value = max_degree(&self.inner, m).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ScalarU32Result { value };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "minDegree")]
+    pub fn min_degree(&self, mode: &str) -> Result<String, JsError> {
+        let m = match mode {
+            "in" => DegreeMode::In,
+            "out" => DegreeMode::Out,
+            _ => DegreeMode::All,
+        };
+        let value = min_degree(&self.inner, m).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = ScalarU32Result { value };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isSimple")]
+    pub fn is_simple(&self) -> Result<String, JsError> {
+        let value = is_simple(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isRegular")]
+    pub fn is_regular(&self) -> Result<String, JsError> {
+        let value = is_regular(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = BoolResult { value };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "countMutual")]
+    pub fn count_mutual(&self, loops: bool) -> Result<String, JsError> {
+        let count = count_mutual(&self.inner, loops).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = CountResult { count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "getAdjacency")]
+    pub fn get_adjacency(&self, adj_type: &str) -> Result<String, JsError> {
+        let t = match adj_type {
+            "upper" => AdjacencyType::Upper,
+            "lower" => AdjacencyType::Lower,
+            _ => AdjacencyType::Both,
+        };
+        let matrix = get_adjacency(&self.inner, t, None, LoopHandling::NoLoops)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let size = matrix.len();
+        let result = AdjacencyMatrixResult { matrix, size };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "getEdgelist")]
+    pub fn get_edgelist(&self) -> Result<String, JsError> {
+        let el = get_edgelist(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        let edges: Vec<[u32; 2]> = el.iter().map(|&(u, v)| [u, v]).collect();
+        let count = edges.len();
+        let result = EdgelistResult { edges, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "subcomponent")]
+    pub fn subcomponent(&self, source: u32, mode: &str) -> Result<String, JsError> {
+        let m = match mode {
+            "in" => SubcomponentMode::In,
+            "out" => SubcomponentMode::Out,
+            _ => SubcomponentMode::All,
+        };
+        let vertices =
+            subcomponent(&self.inner, source, m).map_err(|e| JsError::new(&e.to_string()))?;
+        let count = vertices.len();
+        let result = SubcomponentResult { vertices, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "gomoryHuTree")]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn gomory_hu_tree(&self) -> Result<String, JsError> {
+        let ght = gomory_hu_tree(&self.inner, None).map_err(|e| JsError::new(&e.to_string()))?;
+        let tree_edges: Vec<[u32; 2]> = (0..ght.tree.ecount())
+            .map(|eid| {
+                let (u, v) = ght.tree.edge(eid as u32).unwrap_or((0, 0));
+                [u, v]
+            })
+            .collect();
+        let result = GomoryHuResult {
+            tree_edges,
+            flows: ght.flows,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "randomSpanningTree")]
+    pub fn random_spanning_tree(&self, seed: u64) -> Result<String, JsError> {
+        let edges = random_spanning_tree(&self.inner, None, seed)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let count = edges.len();
+        let result = MstResult { edges, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "richClubSequence")]
+    pub fn rich_club_sequence(&self) -> Result<String, JsError> {
+        let n = self.inner.vcount();
+        let order: Vec<VertexId> = (0..n).collect();
+        let coefficients = rich_club_sequence(&self.inner, None, &order, false, false, false)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = RichClubResult { coefficients };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "spanner")]
+    pub fn spanner(&self, stretch: f64) -> Result<String, JsError> {
+        let edges =
+            spanner(&self.inner, stretch, None).map_err(|e| JsError::new(&e.to_string()))?;
+        let count = edges.len();
+        let result = SpannerResult { edges, count };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 }
