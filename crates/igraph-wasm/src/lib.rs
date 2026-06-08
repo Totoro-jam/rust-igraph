@@ -1,23 +1,24 @@
 #![allow(clippy::needless_pass_by_value)]
 
 use rust_igraph::{
-    ConnectednessMode, DijkstraMode, EccMode, FasAlgorithm, FrParams, Graph,
-    GreedyColoringHeuristic, KkParams, MstAlgorithm, SimplePathMode, StarMode, VertexId,
-    all_minimal_st_separators, all_simple_paths, articulation_points, assortativity_degree,
-    automorphism_group, avg_nearest_neighbor_degree, barabasi_game_bag, bellman_ford_distances,
-    betweenness, betweenness_weighted, bfs, biconnected_components, bridges, canonical_permutation,
-    chromatic_number_upper_bound, clique_number, closeness, closeness_weighted, cohesive_blocks,
-    community_voronoi, complementer, connected_components, constraint, convergence_degree,
-    coreness, count_automorphisms, count_triangles, cycle_graph, decompose, degeneracy,
-    degree_distribution, density, dfs, diameter, dijkstra_distances, distances, eccentricity,
-    edge_betweenness, edge_betweenness_community, edge_connectivity, edge_disjoint_paths,
-    eigenvector_centrality, erdos_renyi_gnp, eulerian_cycle, eulerian_path, famous,
-    fast_greedy_modularity, feedback_arc_set, find_cycle, floyd_warshall_distances,
-    fluid_communities, full_graph, fundamental_cycles, girth, global_efficiency, graph_center,
-    harmonic_centrality, hub_and_authority_scores, independence_number, infomap, is_acyclic,
-    is_biconnected, is_bipartite, is_complete, is_connected, is_cubic, is_cycle, is_dag,
-    is_eulerian, is_forest, is_outerplanar, is_path, is_perfect, is_planar, is_star, is_tournament,
-    is_tree, is_triangle_free, is_wheel, isomorphic_bliss, k_shortest_paths, katz_centrality,
+    ConnectednessMode, DegreeMode, DijkstraMode, EccMode, FasAlgorithm, FrParams, Graph,
+    GreedyColoringHeuristic, KkParams, LaplacianNormalization, MstAlgorithm, SimplePathMode,
+    StarMode, VertexId, all_minimal_st_separators, all_simple_paths, articulation_points,
+    assortativity_degree, automorphism_group, avg_nearest_neighbor_degree, barabasi_game_bag,
+    bellman_ford_distances, betweenness, betweenness_weighted, bfs, biconnected_components,
+    bridges, canonical_permutation, chromatic_number_upper_bound, clique_number, closeness,
+    closeness_weighted, cohesive_blocks, community_voronoi, complementer, connected_components,
+    constraint, convergence_degree, coreness, count_automorphisms, count_triangles, cycle_graph,
+    decompose, degeneracy, degree_distribution, density, dfs, diameter, dijkstra_distances,
+    distances, eccentricity, edge_betweenness, edge_betweenness_community, edge_connectivity,
+    edge_disjoint_paths, eigenvector_centrality, erdos_renyi_gnp, eulerian_cycle, eulerian_path,
+    famous, fast_greedy_modularity, feedback_arc_set, find_cycle, floyd_warshall_distances,
+    fluid_communities, full_graph, fundamental_cycles, get_laplacian, girth, global_efficiency,
+    graph_center, harmonic_centrality, hrg_consensus, hrg_create, hrg_fit, hrg_game, hrg_predict,
+    hrg_sample, hub_and_authority_scores, independence_number, infomap, is_acyclic, is_biconnected,
+    is_bipartite, is_complete, is_connected, is_cubic, is_cycle, is_dag, is_eulerian, is_forest,
+    is_outerplanar, is_path, is_perfect, is_planar, is_star, is_tournament, is_tree,
+    is_triangle_free, is_wheel, isomorphic_bliss, k_shortest_paths, katz_centrality,
     label_propagation, layout_circle, layout_fruchterman_reingold, layout_grid,
     layout_kamada_kawai, layout_random, layout_star, leading_eigenvector, leiden, line_graph,
     list_triangles, local_efficiency, louvain, max_flow_value, maximal_cliques, maximum_cut,
@@ -502,6 +503,48 @@ struct ClusteringCoeffResult {
 #[derive(Serialize)]
 struct AveragePathLengthResult {
     value: Option<f64>,
+}
+
+#[derive(Serialize)]
+struct LaplacianResult {
+    matrix: Vec<Vec<f64>>,
+    size: usize,
+}
+
+#[derive(Serialize)]
+struct HrgTreeResult {
+    size: u32,
+    left: Vec<i32>,
+    right: Vec<i32>,
+    prob: Vec<f64>,
+    vertices: Vec<i32>,
+    edges: Vec<i32>,
+}
+
+#[derive(Serialize)]
+struct HrgPrediction {
+    from: u32,
+    to: u32,
+    probability: f64,
+}
+
+#[derive(Serialize)]
+struct HrgPredictResult {
+    predictions: Vec<HrgPrediction>,
+    count: usize,
+}
+
+#[derive(Serialize)]
+struct HrgConsensusResult {
+    parents: Vec<i32>,
+    weights: Vec<f64>,
+}
+
+#[derive(Serialize)]
+struct GraphResult {
+    vcount: u32,
+    ecount: usize,
+    edges: Vec<[u32; 2]>,
 }
 
 #[wasm_bindgen]
@@ -1813,6 +1856,123 @@ impl WasmGraph {
             .average_path_length()
             .map_err(|e| JsError::new(&e.to_string()))?;
         let result = AveragePathLengthResult { value };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- Laplacian matrix ---
+
+    #[wasm_bindgen(js_name = "getLaplacian")]
+    pub fn get_laplacian(&self, normalization: &str) -> Result<String, JsError> {
+        let norm = match normalization {
+            "symmetric" => LaplacianNormalization::Symmetric,
+            "left" => LaplacianNormalization::Left,
+            "right" => LaplacianNormalization::Right,
+            _ => LaplacianNormalization::Unnormalized,
+        };
+        let mode = if self.inner.is_directed() {
+            DegreeMode::Out
+        } else {
+            DegreeMode::All
+        };
+        let matrix = get_laplacian(&self.inner, mode, norm, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let size = matrix.len();
+        let result = LaplacianResult { matrix, size };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // --- HRG (Hierarchical Random Graph) ---
+
+    #[wasm_bindgen(js_name = "hrgFit")]
+    pub fn hrg_fit(&self, steps: u64, seed: u64) -> Result<String, JsError> {
+        let hrg =
+            hrg_fit(&self.inner, None, steps, seed).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = HrgTreeResult {
+            size: hrg.size(),
+            left: hrg.left.clone(),
+            right: hrg.right.clone(),
+            prob: hrg.prob.clone(),
+            vertices: hrg.vertices.clone(),
+            edges: hrg.edges.clone(),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "hrgCreate")]
+    pub fn hrg_create(&self, probs_flat: &[f64]) -> Result<String, JsError> {
+        let hrg = hrg_create(&self.inner, probs_flat).map_err(|e| JsError::new(&e.to_string()))?;
+        let result = HrgTreeResult {
+            size: hrg.size(),
+            left: hrg.left.clone(),
+            right: hrg.right.clone(),
+            prob: hrg.prob.clone(),
+            vertices: hrg.vertices.clone(),
+            edges: hrg.edges.clone(),
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "hrgSample")]
+    pub fn hrg_sample(&self, steps: u64, seed: u64) -> Result<String, JsError> {
+        let hrg =
+            hrg_fit(&self.inner, None, steps, seed).map_err(|e| JsError::new(&e.to_string()))?;
+        let sampled = hrg_sample(&hrg, seed).map_err(|e| JsError::new(&e.to_string()))?;
+        let edges: Vec<[u32; 2]> = (0..sampled.ecount())
+            .map(|eid| {
+                let (u, v) = sampled.edge(eid as u32).unwrap_or((0, 0));
+                [u, v]
+            })
+            .collect();
+        let result = GraphResult {
+            vcount: sampled.vcount(),
+            ecount: sampled.ecount(),
+            edges,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "hrgGame")]
+    pub fn hrg_game(&self, steps: u64, seed: u64) -> Result<String, JsError> {
+        let hrg =
+            hrg_fit(&self.inner, None, steps, seed).map_err(|e| JsError::new(&e.to_string()))?;
+        let sampled =
+            hrg_game(&hrg, seed.wrapping_add(1)).map_err(|e| JsError::new(&e.to_string()))?;
+        let edges: Vec<[u32; 2]> = (0..sampled.ecount())
+            .map(|eid| {
+                let (u, v) = sampled.edge(eid as u32).unwrap_or((0, 0));
+                [u, v]
+            })
+            .collect();
+        let result = GraphResult {
+            vcount: sampled.vcount(),
+            ecount: sampled.ecount(),
+            edges,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "hrgPredict")]
+    pub fn hrg_predict(&self, num_samples: u64, seed: u64) -> Result<String, JsError> {
+        let preds = hrg_predict(&self.inner, None, num_samples, seed)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let predictions: Vec<HrgPrediction> = preds
+            .iter()
+            .map(|&(from, to, probability)| HrgPrediction {
+                from,
+                to,
+                probability,
+            })
+            .collect();
+        let count = predictions.len();
+        let result = HrgPredictResult { predictions, count };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "hrgConsensus")]
+    pub fn hrg_consensus(&self, num_samples: u64, seed: u64) -> Result<String, JsError> {
+        let (parents, weights) = hrg_consensus(&self.inner, None, num_samples, seed)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = HrgConsensusResult { parents, weights };
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 }
