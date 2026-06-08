@@ -254,6 +254,7 @@ pub fn static_fitness_game(
     let n = fitness_out.len();
     let directed = fitness_in.is_some();
 
+    #[allow(clippy::absurd_extreme_comparisons)]
     if n > MAX_NODES {
         return Err(IgraphError::InvalidArgument(format!(
             "static-fitness vertex count {n} exceeds the largest exactly representable f64 integer (2^53)"

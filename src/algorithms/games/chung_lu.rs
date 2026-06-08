@@ -223,6 +223,7 @@ pub fn chung_lu_game(
     let n = out_weights.len();
     let directed = in_weights.is_some();
 
+    #[allow(clippy::absurd_extreme_comparisons)]
     if n > MAX_NODES {
         return Err(IgraphError::InvalidArgument(format!(
             "Chung–Lu vertex count {n} exceeds the largest exactly representable f64 integer (2^53)"

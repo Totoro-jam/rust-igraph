@@ -1913,6 +1913,7 @@ impl WasmGraph {
     }
 
     #[wasm_bindgen(js_name = "hrgSample")]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn hrg_sample(&self, steps: u64, seed: u64) -> Result<String, JsError> {
         let hrg =
             hrg_fit(&self.inner, None, steps, seed).map_err(|e| JsError::new(&e.to_string()))?;
@@ -1932,6 +1933,7 @@ impl WasmGraph {
     }
 
     #[wasm_bindgen(js_name = "hrgGame")]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn hrg_game(&self, steps: u64, seed: u64) -> Result<String, JsError> {
         let hrg =
             hrg_fit(&self.inner, None, steps, seed).map_err(|e| JsError::new(&e.to_string()))?;
