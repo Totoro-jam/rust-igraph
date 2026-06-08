@@ -116,11 +116,14 @@ use rust_igraph::{
     difference,
     dijkstra_distances,
     disjoint_union,
+    // batch 10
+    disjoint_union_many,
     distances,
     dominator_tree,
     eccentricity,
     edge_betweenness,
     edge_betweenness_community,
+    edge_betweenness_community_weighted,
     edge_betweenness_cutoff,
     edge_betweenness_weighted,
     edge_connectivity,
@@ -131,6 +134,7 @@ use rust_igraph::{
     eulerian_cycle,
     eulerian_path,
     even_tarjan_reduction,
+    extended_chordal_ring,
     famous,
     famous_names,
     fast_greedy_modularity,
@@ -178,6 +182,7 @@ use rust_igraph::{
     induced_subgraph,
     infomap,
     intersection,
+    intersection_many,
     invert_permutation,
     is_acyclic,
     // batch 6
@@ -259,6 +264,7 @@ use rust_igraph::{
     isomorphic_bliss,
     johnson_distances,
     join,
+    joint_degree_distribution,
     k_regular_game,
     k_shortest_paths,
     kary_tree,
@@ -325,6 +331,12 @@ use rust_igraph::{
     reachability_matrix,
     read_edgelist,
     read_gml,
+    read_graphml,
+    read_lgl,
+    read_ncol,
+    read_pajek,
+    realize_directed_degree_sequence,
+    recent_degree_game,
     reciprocity,
     regular_tree,
     regularity,
@@ -341,6 +353,7 @@ use rust_igraph::{
     similarity_dice,
     similarity_jaccard,
     simple_cycles,
+    simple_interconnected_islands_game,
     simplify,
     sir,
     solve_lsap,
@@ -376,6 +389,7 @@ use rust_igraph::{
     turan,
     unfold_tree,
     union,
+    union_many,
     vertex_coloring_greedy,
     vertex_connectivity,
     vertex_disjoint_paths,
@@ -387,6 +401,7 @@ use rust_igraph::{
     write_edgelist,
     write_gml,
     write_graphml,
+    write_lgl,
     write_ncol,
     write_pajek,
 };
@@ -4558,5 +4573,164 @@ impl WasmGraph {
     #[wasm_bindgen(js_name = "isSameGraph")]
     pub fn is_same_graph_wasm(&self, other: &WasmGraph) -> bool {
         is_same_graph(&self.inner, &other.inner)
+    }
+
+    // ── batch 10: more I/O, operators, games, properties ──
+
+    #[wasm_bindgen(js_name = "readGraphml")]
+    pub fn read_graphml_wasm(text: &str) -> Result<WasmGraph, JsError> {
+        let result = read_graphml(text.as_bytes()).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph {
+            inner: result.graph,
+        })
+    }
+
+    #[wasm_bindgen(js_name = "readPajek")]
+    pub fn read_pajek_wasm(text: &str) -> Result<WasmGraph, JsError> {
+        let result = read_pajek(text.as_bytes()).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph {
+            inner: result.graph,
+        })
+    }
+
+    #[wasm_bindgen(js_name = "readNcol")]
+    pub fn read_ncol_wasm(text: &str) -> Result<WasmGraph, JsError> {
+        let result = read_ncol(text.as_bytes()).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph {
+            inner: result.graph,
+        })
+    }
+
+    #[wasm_bindgen(js_name = "readLgl")]
+    pub fn read_lgl_wasm(text: &str) -> Result<WasmGraph, JsError> {
+        let result = read_lgl(text.as_bytes()).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph {
+            inner: result.graph,
+        })
+    }
+
+    #[wasm_bindgen(js_name = "writeLgl")]
+    pub fn write_lgl_wasm(&self) -> Result<String, JsError> {
+        let mut buf = Vec::new();
+        write_lgl(&self.inner, None, None, &mut buf).map_err(|e| JsError::new(&e.to_string()))?;
+        String::from_utf8(buf).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "disjointUnionMany")]
+    pub fn disjoint_union_many_wasm(graphs: Vec<WasmGraph>) -> Result<WasmGraph, JsError> {
+        let refs: Vec<&Graph> = graphs.iter().map(|g| &g.inner).collect();
+        let g = disjoint_union_many(&refs).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "unionMany")]
+    pub fn union_many_wasm(graphs: Vec<WasmGraph>) -> Result<WasmGraph, JsError> {
+        let refs: Vec<&Graph> = graphs.iter().map(|g| &g.inner).collect();
+        let g = union_many(&refs).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "intersectionMany")]
+    pub fn intersection_many_wasm(graphs: Vec<WasmGraph>) -> Result<WasmGraph, JsError> {
+        let refs: Vec<&Graph> = graphs.iter().map(|g| &g.inner).collect();
+        let g = intersection_many(&refs).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "simpleInterconnectedIslandsGame")]
+    pub fn simple_interconnected_islands_game_wasm(
+        islands_n: u32,
+        islands_size: u32,
+        islands_pin: f64,
+        n_inter: u32,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let g =
+            simple_interconnected_islands_game(islands_n, islands_size, islands_pin, n_inter, s)
+                .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "recentDegreeGame")]
+    pub fn recent_degree_game_wasm(
+        nodes: u32,
+        power: f64,
+        time_window: u32,
+        m: u32,
+        directed: bool,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let g = recent_degree_game(nodes, power, time_window, m, None, false, 1.0, directed, s)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "extendedChordalRing")]
+    pub fn extended_chordal_ring_wasm(
+        nodes: u32,
+        w_flat: &[i32],
+        cols: u32,
+        directed: bool,
+    ) -> Result<WasmGraph, JsError> {
+        let c = cols as usize;
+        let w_i64: Vec<Vec<i64>> = w_flat
+            .chunks(c)
+            .map(|row| row.iter().map(|&v| i64::from(v)).collect())
+            .collect();
+        let w_refs: Vec<&[i64]> = w_i64.iter().map(Vec::as_slice).collect();
+        let g = extended_chordal_ring(nodes, &w_refs, directed)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "realizeDirectedDegreeSequence")]
+    pub fn realize_directed_degree_sequence_wasm(
+        outdeg: &[u32],
+        indeg: &[u32],
+    ) -> Result<WasmGraph, JsError> {
+        use rust_igraph::RealizeDegseqMethod;
+        let g = realize_directed_degree_sequence(outdeg, indeg, RealizeDegseqMethod::Smallest)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "jointDegreeDistribution")]
+    pub fn joint_degree_distribution_wasm(&self, normalized: bool) -> Result<String, JsError> {
+        let mat = joint_degree_distribution(
+            &self.inner,
+            DegreeMode::All,
+            DegreeMode::All,
+            false,
+            normalized,
+            None,
+            None,
+        )
+        .map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&mat).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "edgeBetweennessCommunityWeighted")]
+    pub fn edge_betweenness_community_weighted_wasm(
+        &self,
+        weights: &[f64],
+    ) -> Result<String, JsError> {
+        #[derive(Serialize)]
+        struct Out {
+            membership: Vec<u32>,
+            nb_clusters: u32,
+            modularity: Vec<f64>,
+        }
+        let result = edge_betweenness_community_weighted(&self.inner, weights)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let out = Out {
+            membership: result.membership,
+            nb_clusters: result.nb_clusters,
+            modularity: result.modularity,
+        };
+        serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
     }
 }
