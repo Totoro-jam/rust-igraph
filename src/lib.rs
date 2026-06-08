@@ -348,6 +348,9 @@ pub use crate::algorithms::games::iea_game::iea_game;
 pub use crate::algorithms::games::islands::simple_interconnected_islands_game;
 pub use crate::algorithms::games::k_regular::k_regular_game;
 pub use crate::algorithms::games::lastcit::lastcit_game;
+pub use crate::algorithms::games::negative_sampling::{
+    sample_negative_edges, sample_negative_edges_degree_biased, sample_negative_edges_excluding,
+};
 pub use crate::algorithms::games::preference::{asymmetric_preference_game, preference_game};
 pub use crate::algorithms::games::recent_degree::recent_degree_game;
 pub use crate::algorithms::games::recent_degree_aging::recent_degree_aging_game;

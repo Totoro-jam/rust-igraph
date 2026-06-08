@@ -29,6 +29,7 @@ pub mod iea_game;
 pub mod islands;
 pub mod k_regular;
 pub mod lastcit;
+pub mod negative_sampling;
 pub mod preference;
 pub mod recent_degree;
 pub mod recent_degree_aging;
