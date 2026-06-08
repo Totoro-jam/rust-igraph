@@ -136,6 +136,7 @@ pub(crate) mod power_law_fit;
 pub(crate) mod reciprocity;
 pub(crate) mod rich_club;
 pub(crate) mod running_mean;
+pub(crate) mod rwpe;
 pub(crate) mod satisfies_dirac;
 pub(crate) mod satisfies_ore;
 pub(crate) mod similarity;
@@ -297,6 +298,7 @@ pub use power_law_fit::{PowerLawFitResult, power_law_fit};
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
 pub use rich_club::rich_club_sequence;
 pub use running_mean::{expand_path_to_pairs, running_mean};
+pub use rwpe::{rwpe, rwpe_vertices};
 pub use satisfies_dirac::satisfies_dirac;
 pub use satisfies_ore::satisfies_ore;
 pub use similarity::{

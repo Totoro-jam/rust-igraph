@@ -734,6 +734,7 @@ pub use crate::algorithms::properties::reciprocity::{
 };
 pub use crate::algorithms::properties::rich_club::rich_club_sequence;
 pub use crate::algorithms::properties::running_mean::{expand_path_to_pairs, running_mean};
+pub use crate::algorithms::properties::rwpe::{rwpe, rwpe_vertices};
 pub use crate::algorithms::properties::satisfies_dirac::satisfies_dirac;
 pub use crate::algorithms::properties::satisfies_ore::satisfies_ore;
 pub use crate::algorithms::properties::similarity::{
