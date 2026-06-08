@@ -48,7 +48,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-igraph = "0.6"
+rust-igraph = "0.7"
 ```
 
 ```rust
@@ -187,8 +187,8 @@ cargo bench --bench bench_vf2         # isomorphism
 
 ## Project status
 
-> **v0.6.0** — 308 algorithm work units complete, 1,297 public functions,
-> 1,091 tests, 1,672 conformance fixtures. API stabilizing toward `v1.0.0`.
+> **v0.7.0** — 315 algorithm work units complete, 1,297 public functions,
+> 1,100 tests, 1,850 conformance fixtures. API stabilizing toward `v1.0.0`.
 
 | Category | Status |
 |----------|--------|
