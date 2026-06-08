@@ -152,6 +152,7 @@ pub(crate) mod rwpe;
 pub(crate) mod satisfies_dirac;
 pub(crate) mod satisfies_ore;
 pub(crate) mod signal_smoothness;
+pub(crate) mod signless_laplacian;
 pub(crate) mod similarity;
 pub(crate) mod sort_by_degree;
 pub(crate) mod spectral_metrics;
@@ -349,6 +350,10 @@ pub use satisfies_dirac::satisfies_dirac;
 pub use satisfies_ore::satisfies_ore;
 pub use signal_smoothness::{
     dirichlet_energy, normalized_dirichlet_energy, smoothness_ratio, total_variation,
+};
+pub use signless_laplacian::{
+    signless_laplacian_energy, signless_laplacian_smallest, signless_laplacian_spectral_radius,
+    signless_laplacian_spectrum,
 };
 pub use similarity::{
     bibcoupling, cocitation, similarity_dice, similarity_dice_es, similarity_dice_pairs,
