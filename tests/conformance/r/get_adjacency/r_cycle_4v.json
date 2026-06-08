@@ -1,0 +1,54 @@
+{
+  "source": "r",
+  "origin": "rigraph 2.1.x / manual",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false
+  },
+  "algo": "get_adjacency",
+  "params": {},
+  "expected": [
+    [
+      0,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      0
+    ]
+  ]
+}

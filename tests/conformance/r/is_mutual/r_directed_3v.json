@@ -1,0 +1,29 @@
+{
+  "source": "r",
+  "origin": "rigraph 2.1.x / manual",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "directed": true
+  },
+  "algo": "is_mutual",
+  "params": {},
+  "expected": [
+    true,
+    true,
+    false
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "source": "r",
+  "origin": "rigraph 2.1.x / manual",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false
+  },
+  "algo": "is_complete",
+  "params": {},
+  "expected": false
+}

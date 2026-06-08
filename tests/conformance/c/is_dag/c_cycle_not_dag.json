@@ -1,0 +1,25 @@
+{
+  "source": "c",
+  "origin": "igraph C 0.10.x / manual",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true
+  },
+  "algo": "is_dag",
+  "params": {},
+  "expected": false
+}

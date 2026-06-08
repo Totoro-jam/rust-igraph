@@ -1,0 +1,40 @@
+{
+  "source": "r",
+  "origin": "rigraph 2.1.x / manual",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      2.0,
+      3.0,
+      4.0
+    ]
+  },
+  "algo": "strength",
+  "params": {},
+  "expected": [
+    3.0,
+    4.0,
+    9.0,
+    4.0
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "source": "c",
+  "origin": "igraph C 0.10.x / manual",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": false
+  },
+  "algo": "is_tree",
+  "params": {},
+  "expected": true
+}

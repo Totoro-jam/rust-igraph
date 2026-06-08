@@ -1,0 +1,41 @@
+{
+  "source": "c",
+  "origin": "igraph C 0.10.x / manual",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false
+  },
+  "algo": "laplacian",
+  "params": {},
+  "expected": [
+    [
+      2.0,
+      -1.0,
+      -1.0
+    ],
+    [
+      -1.0,
+      2.0,
+      -1.0
+    ],
+    [
+      -1.0,
+      -1.0,
+      2.0
+    ]
+  ]
+}

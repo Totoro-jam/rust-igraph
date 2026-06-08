@@ -1,0 +1,60 @@
+{
+  "source": "c",
+  "origin": "igraph C 0.10.x / manual",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ]
+    ],
+    "directed": false
+  },
+  "algo": "unfold_tree",
+  "params": {
+    "roots": [
+      0
+    ]
+  },
+  "expected": {
+    "mapping": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ]
+    ]
+  }
+}

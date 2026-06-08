@@ -1,0 +1,33 @@
+{
+  "source": "c",
+  "origin": "igraph C 0.10.x / manual",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false
+  },
+  "algo": "max_degree",
+  "params": {},
+  "expected": 5
+}

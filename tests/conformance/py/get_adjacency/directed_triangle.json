@@ -1,0 +1,41 @@
+{
+  "source": "py",
+  "origin": "python-igraph 1.0.0 / manual",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": true
+  },
+  "algo": "get_adjacency",
+  "params": {},
+  "expected": [
+    [
+      0,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "source": "py",
+  "origin": "python-igraph 1.0.0 / manual",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false
+  },
+  "algo": "is_bipartite",
+  "params": {},
+  "expected": {
+    "is_bipartite": true,
+    "types": [
+      false,
+      true,
+      false,
+      true
+    ]
+  }
+}

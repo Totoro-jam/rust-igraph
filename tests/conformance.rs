@@ -19296,3 +19296,175 @@ fn get_stochastic_three_source_conformance() {
         serde_json::json!(mat)
     });
 }
+
+// ─── max_degree ─────────────────────────────────────────────────────
+#[test]
+fn max_degree_three_source_conformance() {
+    run_conformance("max_degree", |g, _params| {
+        let md = rust_igraph::max_degree(g, rust_igraph::DegreeMode::All).expect("max_degree");
+        serde_json::json!(md)
+    });
+}
+
+// ─── degree_distribution ────────────────────────────────────────────
+#[test]
+fn degree_distribution_three_source_conformance() {
+    run_conformance("degree_distribution", |g, _params| {
+        let dd =
+            rust_igraph::degree_distribution(g, rust_igraph::DegreeMode::All).expect("degree_dist");
+        serde_json::json!(dd)
+    });
+}
+
+// ─── is_bipartite ───────────────────────────────────────────────────
+#[test]
+fn is_bipartite_three_source_conformance() {
+    run_conformance("is_bipartite", |g, _params| {
+        let res = rust_igraph::is_bipartite(g).expect("is_bipartite");
+        if res.is_bipartite {
+            serde_json::json!({
+                "is_bipartite": true,
+                "types": res.types
+            })
+        } else {
+            serde_json::json!({
+                "is_bipartite": false,
+                "types": null
+            })
+        }
+    });
+}
+
+// ─── is_mutual (directed only) ──────────────────────────────────────
+#[test]
+fn is_mutual_three_source_conformance() {
+    run_conformance("is_mutual", |g, _params| {
+        let m = rust_igraph::is_mutual(g, true).expect("is_mutual");
+        serde_json::json!(m)
+    });
+}
+
+// ─── get_adjacency (both, no weights, no loops) ─────────────────────
+#[test]
+fn get_adjacency_three_source_conformance() {
+    run_conformance("get_adjacency", |g, _params| {
+        let adj = rust_igraph::get_adjacency(
+            g,
+            rust_igraph::AdjacencyType::Both,
+            None,
+            rust_igraph::LoopHandling::Once,
+        )
+        .expect("get_adjacency");
+        serde_json::json!(adj)
+    });
+}
+
+// ─── laplacian (unnormalized, all, no weights) ──────────────────────
+#[test]
+fn laplacian_three_source_conformance() {
+    run_conformance("laplacian", |g, _params| {
+        let lap = rust_igraph::get_laplacian(
+            g,
+            rust_igraph::DegreeMode::All,
+            rust_igraph::LaplacianNormalization::Unnormalized,
+            None,
+        )
+        .expect("get_laplacian");
+        serde_json::json!(lap)
+    });
+}
+
+// ─── diversity (bespoke — needs graph weights) ──────────────────────
+#[test]
+fn diversity_three_source_conformance() {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("diversity");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read dir") {
+            let path = entry.expect("entry").path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read");
+            let case: Conformance = serde_json::from_slice(&bytes).expect("parse");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.as_deref().expect("weights required");
+            let div = rust_igraph::diversity(&g, weights).expect("diversity");
+            assert!(
+                json_approx_eq(&serde_json::json!(div), &case.expected),
+                "diversity conformance failure\n  fixture: {}\n  actual:  {div:?}\n  expected: {}",
+                path.display(),
+                case.expected,
+            );
+        }
+    }
+}
+
+// ─── strength (bespoke — needs graph weights) ───────────────────────
+#[test]
+fn strength_three_source_conformance() {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("strength");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read dir") {
+            let path = entry.expect("entry").path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read");
+            let case: Conformance = serde_json::from_slice(&bytes).expect("parse");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.as_deref().expect("weights required");
+            let s = rust_igraph::strength(&g, weights).expect("strength");
+            assert!(
+                json_approx_eq(&serde_json::json!(s), &case.expected),
+                "strength conformance failure\n  fixture: {}\n  actual:  {s:?}\n  expected: {}",
+                path.display(),
+                case.expected,
+            );
+        }
+    }
+}
+
+// ─── unfold_tree ────────────────────────────────────────────────────
+#[test]
+fn unfold_tree_three_source_conformance() {
+    run_conformance("unfold_tree", |g, params| {
+        let roots: Vec<u32> = params
+            .get("roots")
+            .and_then(serde_json::Value::as_array)
+            .expect("roots param")
+            .iter()
+            .map(|v| {
+                #[allow(clippy::cast_possible_truncation)]
+                let r = v.as_u64().expect("root") as u32;
+                r
+            })
+            .collect();
+        let res =
+            rust_igraph::unfold_tree(g, &roots, rust_igraph::DegreeMode::All).expect("unfold_tree");
+        let edges: Vec<[u32; 2]> = res
+            .tree
+            .edge_ids()
+            .map(|e| {
+                let (s, t) = res.tree.edge(e).expect("edge");
+                [s, t]
+            })
+            .collect();
+        serde_json::json!({
+            "mapping": res.vertex_index,
+            "n": res.tree.vcount(),
+            "edges": edges,
+        })
+    });
+}
