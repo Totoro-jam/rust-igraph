@@ -73,6 +73,69 @@ impl WasmGraph {
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 
+    #[wasm_bindgen(js_name = "randomWalks")]
+    pub fn random_walks(
+        &self,
+        walks_per_vertex: u32,
+        walk_length: u32,
+        seed: u64,
+    ) -> Result<String, JsError> {
+        let corpus = random_walks(
+            &self.inner,
+            None,
+            DijkstraMode::Out,
+            walks_per_vertex,
+            walk_length,
+            seed,
+        )
+        .map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&corpus).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "randomWalksNode2vec")]
+    pub fn random_walks_node2vec(
+        &self,
+        walks_per_vertex: u32,
+        walk_length: u32,
+        p: f64,
+        q: f64,
+        seed: u64,
+    ) -> Result<String, JsError> {
+        let corpus = random_walks_node2vec(
+            &self.inner,
+            None,
+            DijkstraMode::Out,
+            walks_per_vertex,
+            walk_length,
+            p,
+            q,
+            seed,
+        )
+        .map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&corpus).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "randomWalksFrom")]
+    pub fn random_walks_from(
+        &self,
+        starts: &[u32],
+        walks_per_vertex: u32,
+        walk_length: u32,
+        seed: u64,
+    ) -> Result<String, JsError> {
+        let corpus = random_walks_from(
+            &self.inner,
+            starts,
+            None,
+            DijkstraMode::Out,
+            walks_per_vertex,
+            walk_length,
+            seed,
+        )
+        .map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&corpus).map_err(|e| JsError::new(&e.to_string()))
+    }
+
     #[wasm_bindgen(js_name = "shortestPath")]
     pub fn shortest_path(&self, source: u32, target: u32) -> Result<String, JsError> {
         let sp = self
