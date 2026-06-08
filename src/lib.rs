@@ -836,6 +836,9 @@ pub use crate::algorithms::properties::structural_features::{
 pub use crate::algorithms::properties::summary::{
     GraphSummary, graph_summary, graph_summary_string,
 };
+pub use crate::algorithms::properties::topological_indices::{
+    abc_index, first_zagreb_index, harmonic_graph_index, randic_index, second_zagreb_index,
+};
 pub use crate::algorithms::properties::topological_sorting::topological_sorting;
 pub use crate::algorithms::properties::treewidth::{
     elimination_ordering, treewidth_min_fill, treewidth_upper_bound,
