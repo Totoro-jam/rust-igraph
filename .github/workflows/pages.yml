@@ -25,11 +25,14 @@ jobs:
         with:
           node-version: 22
 
-      # Build WASM module for playground
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - name: Build WASM
-        run: wasm-pack build crates/igraph-wasm --target web --out-dir ../../website/playground/public/wasm --out-name igraph_wasm
+      # WASM for playground: use published npm package (dogfooding)
+      - name: Prepare playground WASM from npm
+        working-directory: website/playground
+        run: |
+          npm ci
+          mkdir -p public/wasm
+          cp node_modules/@graphrs/igraph-wasm/igraph_wasm_bg.wasm public/wasm/
+          cp node_modules/@graphrs/igraph-wasm/igraph_wasm.js public/wasm/
 
       # Build rustdoc
       - name: Build rustdoc
@@ -52,12 +55,10 @@ jobs:
           npm ci
           npx vite build --base /rust-igraph/
 
-      # Build playground (React SPA, independent build)
+      # Build playground (React SPA, deps already installed above)
       - name: Build playground
         working-directory: website/playground
-        run: |
-          npm ci
-          npx vite build
+        run: npx vite build
 
       # Assemble site: website at /, rustdoc at /rust_igraph/, book at /book/
       # Order: rustdoc first (includes static.files/, src/, search.index/,

@@ -21,6 +21,9 @@ export default defineConfig({
       },
     },
   },
+  optimizeDeps: {
+    exclude: ['@graphrs/igraph-wasm'],
+  },
   worker: {
     format: 'es',
   },

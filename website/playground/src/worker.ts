@@ -1,144 +1,9 @@
 import type { WorkerRequest, WorkerResponse, AlgoId, AlgoResult, Edge, AlgoParams, LayoutId, GeneratorId, GeneratorParams, GeneratedGraph } from './types';
+import wasmInit, { WasmGraph as WasmGraphClass } from '@graphrs/igraph-wasm';
 
-let WasmGraph: {
-  fromEdges(edges: Uint32Array, directed: boolean): WasmGraphInstance;
-  erdosRenyi(n: number, p: number, seed: bigint): WasmGraphInstance;
-  fullGraph(n: number): WasmGraphInstance;
-  cycleGraph(n: number): WasmGraphInstance;
-  ringGraph(n: number, circular: boolean): WasmGraphInstance;
-  wattsStrogatz(n: number, k: number, p: number, seed: bigint): WasmGraphInstance;
-  barabasiAlbert(n: number, m: number, seed: bigint): WasmGraphInstance;
-  pathGraph(n: number, directed: boolean): WasmGraphInstance;
-  starGraph(n: number): WasmGraphInstance;
-  famousGraph(name: string): WasmGraphInstance;
-} | null = null;
+let WasmGraph: typeof WasmGraphClass | null = null;
 
-interface WasmGraphInstance {
-  bfs(root: number): string;
-  dfs(root: number): string;
-  dijkstra(source: number, weights: Float64Array): string;
-  pagerank(): string;
-  louvain(): string;
-  betweenness(): string;
-  closeness(): string;
-  eigenvectorCentrality(): string;
-  connectedComponents(): string;
-  infomap(): string;
-  spinglass(): string;
-  labelPropagation(): string;
-  walktrap(): string;
-  leiden(): string;
-  fastGreedy(): string;
-  leadingEigenvector(): string;
-  edgeBetweennessCommunity(): string;
-  fluidCommunities(k: number): string;
-  harmonicCentrality(): string;
-  hubAndAuthorityScores(): string;
-  katzCentrality(): string;
-  graphStats(): string;
-  maxFlow(source: number, target: number): string;
-  articulationPoints(): string;
-  degreeSequence(): string;
-  degreeDistribution(): string;
-  stronglyConnectedComponents(): string;
-  bridges(): string;
-  vertexColoring(): string;
-  topologicalSort(): string;
-  transitivity(): string;
-  edgeBetweenness(): string;
-  triadCensus(): string;
-  canonicalPermutation(): string;
-  countAutomorphisms(): string;
-  isomorphicBliss(other: WasmGraphInstance): string;
-  coreness(): string;
-  eccentricity(): string;
-  density(): string;
-  radius(): string;
-  meanDistance(): string;
-  meanDegree(): string;
-  assortativityDegree(): string;
-  constraint(): string;
-  reciprocity(): string;
-  diameter(): string;
-  graphProperties(): string;
-  isTree(): string;
-  isForest(): string;
-  isDag(): string;
-  isAcyclic(): string;
-  isComplete(): string;
-  isBiconnected(): string;
-  isTournament(): string;
-  isCubic(): string;
-  isCycle(): string;
-  isPath(): string;
-  isStar(): string;
-  isWheel(): string;
-  isPerfect(): string;
-  isTriangleFree(): string;
-  isOuterplanar(): string;
-  automorphismGroup(): string;
-  girth(): string;
-  distances(source: number): string;
-  floydWarshallDistances(): string;
-  fundamentalCycles(): string;
-  minimumCycleBasis(): string;
-  trussness(): string;
-  listTriangles(): string;
-  simplify(): WasmGraphInstance;
-  lineGraph(): WasmGraphInstance;
-  complement(): WasmGraphInstance;
-  randomWalk(start: number, steps: number, seed: bigint): string;
-  shortestPath(source: number, target: number): string;
-  layoutFr(niter: number): string;
-  layoutKamadaKawai(): string;
-  layoutCircle(): string;
-  layoutRandom(seed: number): string;
-  layoutGrid(width: number): string;
-  layoutStar(center: number): string;
-  cliqueNumber(): string;
-  independenceNumber(): string;
-  maximalCliques(): string;
-  vertexConnectivity(): string;
-  edgeConnectivity(): string;
-  minimumSpanningTree(weights?: number[]): string;
-  bellmanFordDistances(source: number, weights: number[]): string;
-  strength(weights: number[]): string;
-  feedbackArcSet(weights?: number[]): string;
-  closenessWeighted(weights: number[]): string;
-  betweennessWeighted(weights: number[]): string;
-  biconnectedComponents(): string;
-  isBipartiteDetailed(): string;
-  isEulerian(): string;
-  eulerianPath(): string;
-  eulerianCycle(): string;
-  maximumCut(): string;
-  mincutValue(): string;
-  vertexDisjointPaths(source: number, target: number): string;
-  edgeDisjointPaths(source: number, target: number): string;
-  globalEfficiency(): string;
-  localEfficiency(): string;
-  degeneracy(): string;
-  findCycle(): string;
-  allSimplePaths(source: number, target: number): string;
-  cohesiveBlocks(): string;
-  avgNearestNeighborDegree(): string;
-  chromaticNumberUpperBound(): string;
-  convergenceDegree(): string;
-  similarityJaccard(): string;
-  similarityDice(): string;
-  communityVoronoi(): string;
-  graphCenter(): string;
-  neighborhood(order: number): string;
-  kShortestPaths(source: number, target: number, k: number): string;
-  allMinimalStSeparators(): string;
-  clusteringCoefficients(): string;
-  averagePathLength(): string;
-  getEdges(): Uint32Array;
-  isDirected(): boolean;
-  vcount(): number;
-  ecount(): number;
-  free(): void;
-}
+type WasmGraphInstance = InstanceType<typeof WasmGraphClass>;
 
 async function initWasm(): Promise<boolean> {
   try {
@@ -146,9 +11,8 @@ async function initWasm(): Promise<boolean> {
     const playgroundRoot = workerUrl.includes('/assets/')
       ? workerUrl.replace(/\/assets\/[^/]*$/, '')
       : workerUrl.replace(/\/[^/]*$/, '');
-    const wasmModule = await import(/* @vite-ignore */ `${playgroundRoot}/wasm/igraph_wasm.js`);
-    await wasmModule.default();
-    WasmGraph = wasmModule.WasmGraph;
+    await wasmInit(`${playgroundRoot}/wasm/igraph_wasm_bg.wasm`);
+    WasmGraph = WasmGraphClass;
     return true;
   } catch {
     return false;
@@ -174,7 +38,7 @@ function computeLayout(graph: WasmGraphInstance, layoutId: LayoutId): [number, n
       json = graph.layoutCircle();
       break;
     case 'random':
-      json = graph.layoutRandom(42);
+      json = graph.layoutRandom(BigInt(42));
       break;
     case 'grid':
       json = graph.layoutGrid(0);
@@ -300,7 +164,7 @@ function runWasm(
         resultJson = graph.articulationPoints();
         break;
       case 'degree_sequence':
-        resultJson = graph.degreeSequence();
+        resultJson = graph.degreeSequence('all');
         break;
       case 'scc':
         resultJson = graph.stronglyConnectedComponents();
@@ -384,7 +248,7 @@ function runWasm(
         resultJson = graph.minimumSpanningTree();
         break;
       case 'bellman_ford':
-        resultJson = graph.bellmanFordDistances(params?.source ?? 0, Array.from({ length: graph.ecount() }, () => 1));
+        resultJson = graph.bellmanFordDistances(params?.source ?? 0, new Float64Array(graph.ecount()).fill(1.0));
         break;
       case 'degree_distribution':
         resultJson = graph.degreeDistribution();
@@ -504,7 +368,7 @@ function runWasm(
         resultJson = graph.allMinimalStSeparators();
         break;
       case 'strength': {
-        const w = new Array(graph.ecount()).fill(1.0);
+        const w = new Float64Array(graph.ecount()).fill(1.0);
         resultJson = graph.strength(w);
         break;
       }
