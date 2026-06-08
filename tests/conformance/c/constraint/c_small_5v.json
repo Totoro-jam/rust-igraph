@@ -1,0 +1,44 @@
+{
+  "source": "c",
+  "origin": "igraph-c: Graph.constraint() on 5-vertex graph",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "constraint",
+  "params": {},
+  "expected": [
+    0.8888888888888888,
+    0.7685185185185186,
+    0.7685185185185186,
+    0.5061728395061728,
+    1.0
+  ]
+}

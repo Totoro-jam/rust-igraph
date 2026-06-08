@@ -1,0 +1,50 @@
+{
+  "source": "c",
+  "origin": "igraph-c: Graph.are_adjacent() on directed triangle",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "are_adjacent",
+  "params": {
+    "queries": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ]
+    ]
+  },
+  "expected": [
+    true,
+    false,
+    true,
+    false
+  ]
+}

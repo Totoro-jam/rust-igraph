@@ -1,0 +1,47 @@
+{
+  "source": "r",
+  "origin": "igraph-r: Graph.assortativity_nominal() on C6 with 2 types",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "assortativity_nominal",
+  "params": {
+    "types": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      0
+    ]
+  },
+  "expected": 0.25000000000000006
+}

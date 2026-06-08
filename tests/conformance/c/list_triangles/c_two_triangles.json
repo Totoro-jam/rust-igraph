@@ -1,0 +1,49 @@
+{
+  "source": "c",
+  "origin": "igraph-c: Graph.cliques(min=3, max=3) on two separate triangles",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        3,
+        5
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "list_triangles",
+  "params": {},
+  "expected": [
+    [
+      0,
+      1,
+      2
+    ],
+    [
+      3,
+      4,
+      5
+    ]
+  ]
+}

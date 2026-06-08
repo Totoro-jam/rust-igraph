@@ -1,0 +1,35 @@
+{
+  "source": "py",
+  "origin": "python-igraph: Graph.average_path_length(weights=...) on 4-vertex graph",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": [
+      1.0,
+      2.0,
+      3.0,
+      10.0
+    ]
+  },
+  "algo": "mean_distance_weighted",
+  "params": {},
+  "expected": 3.3333333333333335
+}

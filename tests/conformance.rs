@@ -19140,3 +19140,159 @@ fn beta_weighted_gabriel_graph_c_conformance() {
         "no beta_weighted_gabriel_graph fixtures from source c"
     );
 }
+
+// ─── constraint (Burt's structural constraint) ──────────────────────
+#[test]
+fn constraint_three_source_conformance() {
+    run_conformance("constraint", |g, _params| {
+        let c = rust_igraph::constraint(g, None).expect("constraint");
+        serde_json::json!(c)
+    });
+}
+
+// ─── betweenness_cutoff ─────────────────────────────────────────────
+#[test]
+fn betweenness_cutoff_three_source_conformance() {
+    run_conformance("betweenness_cutoff", |g, params| {
+        #[allow(clippy::cast_possible_truncation)]
+        let cutoff = params
+            .get("cutoff")
+            .and_then(serde_json::Value::as_u64)
+            .expect("cutoff param") as u32;
+        let b = rust_igraph::betweenness_cutoff(g, cutoff).expect("betweenness_cutoff");
+        serde_json::json!(b)
+    });
+}
+
+// ─── edge_betweenness_cutoff ────────────────────────────────────────
+#[test]
+fn edge_betweenness_cutoff_three_source_conformance() {
+    run_conformance("edge_betweenness_cutoff", |g, params| {
+        #[allow(clippy::cast_possible_truncation)]
+        let cutoff = params
+            .get("cutoff")
+            .and_then(serde_json::Value::as_u64)
+            .expect("cutoff param") as u32;
+        let eb = rust_igraph::edge_betweenness_cutoff(g, cutoff).expect("edge_betweenness_cutoff");
+        serde_json::json!(eb)
+    });
+}
+
+// ─── harmonic_centrality_cutoff ─────────────────────────────────────
+#[test]
+fn harmonic_centrality_cutoff_three_source_conformance() {
+    run_conformance("harmonic_centrality_cutoff", |g, params| {
+        #[allow(clippy::cast_possible_truncation)]
+        let cutoff = params
+            .get("cutoff")
+            .and_then(serde_json::Value::as_u64)
+            .expect("cutoff param") as u32;
+        let hc = rust_igraph::harmonic_centrality_cutoff(g, cutoff, true)
+            .expect("harmonic_centrality_cutoff");
+        serde_json::json!(hc)
+    });
+}
+
+// ─── mean_distance_weighted (bespoke runner — needs graph weights) ──
+#[test]
+fn mean_distance_weighted_three_source_conformance() {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("mean_distance_weighted");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read dir") {
+            let path = entry.expect("entry").path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read");
+            let case: Conformance = serde_json::from_slice(&bytes).expect("parse");
+            let g = build_graph(&case.graph);
+            let weights = case.graph.weights.as_deref().expect("weights required");
+            let md =
+                rust_igraph::mean_distance_weighted(&g, weights, false, true).expect("mean_dist_w");
+            assert!(
+                json_approx_eq(&serde_json::json!(md), &case.expected),
+                "mean_distance_weighted conformance failure\n  fixture: {}\n  actual:  {md:?}\n  expected: {}",
+                path.display(),
+                case.expected,
+            );
+        }
+    }
+}
+
+// ─── assortativity_nominal ──────────────────────────────────────────
+#[test]
+fn assortativity_nominal_three_source_conformance() {
+    run_conformance("assortativity_nominal", |g, params| {
+        #[allow(clippy::cast_possible_truncation)]
+        let types: Vec<u32> = params
+            .get("types")
+            .and_then(serde_json::Value::as_array)
+            .expect("types param")
+            .iter()
+            .map(|v| v.as_u64().expect("type int") as u32)
+            .collect();
+        let an = rust_igraph::assortativity_nominal(g, &types, false, true)
+            .expect("assortativity_nominal");
+        serde_json::json!(an)
+    });
+}
+
+// ─── list_triangles ─────────────────────────────────────────────────
+#[test]
+fn list_triangles_three_source_conformance() {
+    run_conformance("list_triangles", |g, _params| {
+        let mut tris = rust_igraph::list_triangles(g).expect("list_triangles");
+        tris.sort_unstable();
+        serde_json::json!(tris)
+    });
+}
+
+// ─── get_edgelist ───────────────────────────────────────────────────
+#[test]
+fn get_edgelist_three_source_conformance() {
+    run_conformance("get_edgelist", |g, _params| {
+        let el = rust_igraph::get_edgelist(g).expect("get_edgelist");
+        serde_json::json!(el)
+    });
+}
+
+// ─── are_adjacent ───────────────────────────────────────────────────
+#[test]
+fn are_adjacent_three_source_conformance() {
+    run_conformance("are_adjacent", |g, params| {
+        let queries: Vec<(u32, u32)> = params
+            .get("queries")
+            .and_then(serde_json::Value::as_array)
+            .expect("queries param")
+            .iter()
+            .map(|v| {
+                let arr = v.as_array().expect("query pair");
+                #[allow(clippy::cast_possible_truncation)]
+                let v1 = arr[0].as_u64().expect("v1") as u32;
+                #[allow(clippy::cast_possible_truncation)]
+                let v2 = arr[1].as_u64().expect("v2") as u32;
+                (v1, v2)
+            })
+            .collect();
+        let results: Vec<bool> = queries
+            .iter()
+            .map(|&(v1, v2)| rust_igraph::are_adjacent(g, v1, v2).expect("are_adjacent"))
+            .collect();
+        serde_json::json!(results)
+    });
+}
+
+// ─── get_stochastic (row-stochastic, no weights) ────────────────────
+#[test]
+fn get_stochastic_three_source_conformance() {
+    run_conformance("get_stochastic", |g, _params| {
+        let mat = rust_igraph::get_stochastic(g, false, None).expect("get_stochastic");
+        serde_json::json!(mat)
+    });
+}

@@ -1,0 +1,40 @@
+{
+  "source": "py",
+  "origin": "python-igraph: Graph.topological_sorting() on 5-vertex DAG",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "topological_sorting",
+  "params": {},
+  "expected": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ]
+}

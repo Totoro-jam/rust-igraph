@@ -1,0 +1,51 @@
+{
+  "source": "py",
+  "origin": "python-igraph: Graph.betweenness(cutoff=3) on 6-vertex graph",
+  "graph": {
+    "n": 6,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "betweenness_cutoff",
+  "params": {
+    "cutoff": 3
+  },
+  "expected": [
+    0.8333333333333333,
+    3.3333333333333335,
+    0.8333333333333333,
+    0.8333333333333333,
+    3.333333333333333,
+    0.8333333333333333
+  ]
+}

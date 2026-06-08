@@ -1,0 +1,55 @@
+{
+  "source": "r",
+  "origin": "igraph-r: Graph.are_adjacent() on 4-vertex path",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "are_adjacent",
+  "params": {
+    "queries": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        3
+      ]
+    ]
+  },
+  "expected": [
+    true,
+    false,
+    true,
+    true,
+    false
+  ]
+}

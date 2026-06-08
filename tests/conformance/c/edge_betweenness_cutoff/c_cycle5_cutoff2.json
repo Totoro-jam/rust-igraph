@@ -1,0 +1,42 @@
+{
+  "source": "c",
+  "origin": "igraph-c: Graph.edge_betweenness(cutoff=2) on C5",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "edge_betweenness_cutoff",
+  "params": {
+    "cutoff": 2
+  },
+  "expected": [
+    3.0,
+    3.0,
+    3.0,
+    3.0,
+    3.0
+  ]
+}

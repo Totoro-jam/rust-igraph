@@ -1,0 +1,27 @@
+{
+  "source": "c",
+  "origin": "constructed: self-loop tolerated by topological sort",
+  "graph": {
+    "n": 2,
+    "edges": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "topological_sorting",
+  "params": {
+    "mode": "out"
+  },
+  "expected": [
+    0,
+    1
+  ]
+}

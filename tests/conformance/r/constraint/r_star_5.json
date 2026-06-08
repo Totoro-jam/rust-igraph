@@ -1,0 +1,36 @@
+{
+  "source": "r",
+  "origin": "igraph-r: Graph.constraint() on undirected star-5",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "constraint",
+  "params": {},
+  "expected": [
+    0.25,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ]
+}

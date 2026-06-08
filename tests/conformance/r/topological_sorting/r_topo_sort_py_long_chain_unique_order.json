@@ -1,0 +1,38 @@
+{
+  "source": "r",
+  "origin": "constructed: directed P5 \u2014 unique OUT topological order",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "directed": true,
+    "weights": null
+  },
+  "algo": "topological_sorting",
+  "params": {
+    "mode": "out"
+  },
+  "expected": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ]
+}
