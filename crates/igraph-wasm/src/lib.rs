@@ -1,48 +1,52 @@
 #![allow(clippy::needless_pass_by_value, clippy::items_after_statements)]
 
 use rust_igraph::{
-    AdjacencyType, BipartiteMode, ChungLuVariant, ConnectednessMode, DegreeMode, DhParams,
+    AdjacencyType, BfsMode, BipartiteMode, ChungLuVariant, ConnectednessMode, DegreeMode, DhParams,
     DijkstraMode, DominatorMode, DrlOptions, EccMode, FasAlgorithm, FrParams, FvsAlgorithm,
     GemParams, Graph, GraphoptParams, GreedyColoringHeuristic, KkParams, LaplacianNormalization,
     LglParams, LoopHandling, MstAlgorithm, RtMode, SimpleCycleMode, SimplePathMode, SortOrder,
     StarMode, SubcomponentMode, SugiyamaParams, ToDirectedMode, ToUndirectedMode, TreeMode,
     VconnNei, VertexId, WheelMode, adhesion, all_minimal_st_separators, all_simple_paths,
-    all_st_cuts, articulation_points, assortativity_degree, atlas, automorphism_group,
-    avg_nearest_neighbor_degree, barabasi_game_bag, bellman_ford_distances, betweenness,
-    betweenness_weighted, bfs, biconnected_components, bridges, canonical_permutation,
-    chromatic_number_upper_bound, chung_lu_game, circulant, clique_number, closeness,
-    closeness_weighted, cohesion, cohesive_blocks, community_voronoi, complementer,
-    connect_neighborhood, connected_components, constraint, contract_vertices, convergence_degree,
-    convex_hull_2d, coreness, correlated_game, correlated_pair_game, count_automorphisms,
-    count_mutual, count_reachable, count_triangles, cut_value, cycle_graph, de_bruijn, decompose,
-    degeneracy, degree_distribution, degree_sequence, density, dfs, diameter, dijkstra_distances,
-    disjoint_union, distances, dominator_tree, eccentricity, edge_betweenness,
-    edge_betweenness_community, edge_connectivity, edge_disjoint_paths, eigenvector_centrality,
-    erdos_renyi_gnm, erdos_renyi_gnp, eulerian_cycle, eulerian_path, even_tarjan_reduction, famous,
-    famous_names, fast_greedy_modularity, feedback_arc_set, feedback_vertex_set, find_cycle,
-    floyd_warshall_distances, fluid_communities, from_prufer, full_bipartite, full_citation,
-    full_graph, fundamental_cycles, generalized_petersen, get_adjacency, get_edgelist,
-    get_laplacian, get_shortest_path, girth, global_efficiency, gomory_hu_tree, graph_center,
-    graph_power, grg_game, harmonic_centrality, has_mutual, hrg_consensus, hrg_create, hrg_fit,
-    hrg_game, hrg_predict, hrg_sample, hsbm_game, hub_and_authority_scores, hypercube,
-    independence_number, induced_subgraph, infomap, intersection, invert_permutation, is_acyclic,
-    is_biconnected, is_bipartite, is_clique, is_complete, is_connected, is_cubic, is_cycle, is_dag,
-    is_dominating_set, is_edge_cover, is_eulerian, is_forest, is_independent_vertex_set,
-    is_k_degenerate, is_mutual, is_outerplanar, is_path, is_perfect, is_planar, is_regular,
-    is_simple, is_star, is_tournament, is_tree, is_triangle_free, is_vertex_cover, is_wheel,
-    isomorphic, isomorphic_bliss, k_shortest_paths, kary_tree, katz_centrality, label_propagation,
-    layout_bipartite, layout_circle, layout_davidson_harel, layout_drl,
-    layout_fruchterman_reingold, layout_gem, layout_graphopt, layout_grid, layout_kamada_kawai,
-    layout_lgl, layout_mds, layout_random, layout_reingold_tilford, layout_star, layout_sugiyama,
-    leading_eigenvector, leiden, line_graph, list_triangles, local_efficiency, louvain, max_degree,
-    max_flow, max_flow_value, maximal_cliques, maximum_cut, mean_degree, mean_distance, min_degree,
-    mincut, mincut_value, minimum_cycle_basis, minimum_dominating_set, minimum_edge_cover,
-    minimum_spanning_tree, minimum_vertex_cover, modularity, mycielskian, neighborhood, pagerank,
-    path_graph, path_length_hist, permute_vertices, personalized_pagerank, power_law_fit,
-    preference_game, radius, random_spanning_tree, random_walk, reciprocity, regularity, reverse,
-    reverse_edges, rich_club_sequence, ring_graph, running_mean, similarity_dice,
-    similarity_jaccard, simple_cycles, simplify, sir, sort_vertices_by_degree, spanner, spinglass,
-    st_mincut, st_mincut_value, st_vertex_connectivity, star_graph, static_fitness_game,
+    all_st_cuts, are_adjacent, articulation_points, assortativity_degree, atlas,
+    automorphism_group, average_local_efficiency, avg_nearest_neighbor_degree, barabasi_game_bag,
+    bellman_ford_distances, betweenness, betweenness_weighted, bfs, bfs_simple, bfs_tree,
+    bibcoupling, biconnected_components, bipartite_game_gnm, bipartite_game_gnp,
+    bipartite_projection_size, bond_percolation, bridges, canonical_permutation, cartesian_product,
+    chromatic_number_upper_bound, chung_lu_game, circulant, clique_number, clique_size_hist,
+    cliques, closeness, closeness_weighted, cocitation, cohesion, cohesive_blocks,
+    community_voronoi, complementer, compose, connect_neighborhood, connected_components,
+    constraint, contract_vertices, convergence_degree, convex_hull_2d, coreness, correlated_game,
+    correlated_pair_game, count_adjacent_triangles, count_automorphisms, count_loops, count_mutual,
+    count_reachable, count_triangles, cut_value, cycle_graph, de_bruijn, decompose, degeneracy,
+    degree_correlation_vector, degree_distribution, degree_sequence, delaunay_graph, density, dfs,
+    diameter, dijkstra_distances, disjoint_union, distances, dominator_tree, eccentricity,
+    edge_betweenness, edge_betweenness_community, edge_connectivity, edge_disjoint_paths,
+    eigenvector_centrality, erdos_renyi_gnm, erdos_renyi_gnp, eulerian_cycle, eulerian_path,
+    even_tarjan_reduction, famous, famous_names, fast_greedy_modularity, feedback_arc_set,
+    feedback_vertex_set, find_cycle, floyd_warshall_distances, fluid_communities, from_prufer,
+    full_bipartite, full_citation, full_graph, fundamental_cycles, generalized_petersen,
+    get_adjacency, get_edgelist, get_laplacian, get_shortest_path, girth, global_efficiency,
+    gomory_hu_tree, graph_center, graph_power, grg_game, harmonic_centrality, has_mutual,
+    hrg_consensus, hrg_create, hrg_fit, hrg_game, hrg_predict, hrg_sample, hsbm_game,
+    hub_and_authority_scores, hypercube, independence_number, induced_subgraph, infomap,
+    intersection, invert_permutation, is_acyclic, is_biconnected, is_bipartite, is_clique,
+    is_complete, is_connected, is_cubic, is_cycle, is_dag, is_dominating_set, is_edge_cover,
+    is_eulerian, is_forest, is_independent_vertex_set, is_k_degenerate, is_mutual, is_outerplanar,
+    is_path, is_perfect, is_planar, is_regular, is_simple, is_star, is_tournament, is_tree,
+    is_triangle_free, is_vertex_cover, is_wheel, isomorphic, isomorphic_bliss, k_shortest_paths,
+    kary_tree, katz_centrality, label_propagation, layout_bipartite, layout_circle,
+    layout_davidson_harel, layout_drl, layout_fruchterman_reingold, layout_gem, layout_graphopt,
+    layout_grid, layout_kamada_kawai, layout_lgl, layout_mds, layout_random,
+    layout_reingold_tilford, layout_star, layout_sugiyama, leading_eigenvector, leiden, line_graph,
+    list_triangles, local_efficiency, louvain, max_degree, max_flow, max_flow_value,
+    maximal_cliques, maximum_cut, mean_degree, mean_distance, min_degree, mincut, mincut_value,
+    minimum_cycle_basis, minimum_dominating_set, minimum_edge_cover, minimum_spanning_tree,
+    minimum_vertex_cover, modularity, mycielskian, neighborhood, pagerank, path_graph,
+    path_length_hist, permute_vertices, personalized_pagerank, power_law_fit, preference_game,
+    radius, random_spanning_tree, random_walk, reciprocity, regularity, reverse, reverse_edges,
+    rich_club_sequence, ring_graph, running_mean, similarity_dice, similarity_jaccard,
+    simple_cycles, simplify, sir, sort_vertices_by_degree, spanner, spinglass, st_mincut,
+    st_mincut_value, st_vertex_connectivity, star_graph, static_fitness_game,
     static_power_law_game, strength, strongly_connected_components, subcomponent, subisomorphic,
     to_directed, to_prufer, to_undirected, topological_sorting, transitive_closure,
     transitivity_undirected, tree_game_lerw, tree_game_prufer, triad_census, trussness,
@@ -3209,5 +3213,214 @@ impl WasmGraph {
             hull_coords: result.hull_coords,
         };
         serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // ── Graph queries (batch 5) ─────────────────────────────────────
+
+    #[wasm_bindgen(js_name = "areAdjacent")]
+    pub fn are_adjacent_wasm(&self, v1: u32, v2: u32) -> Result<bool, JsError> {
+        are_adjacent(&self.inner, v1, v2).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "countLoops")]
+    pub fn count_loops_wasm(&self) -> Result<String, JsError> {
+        let n = count_loops(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&n).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "countAdjacentTriangles")]
+    pub fn count_adjacent_triangles_wasm(&self) -> Result<String, JsError> {
+        let counts =
+            count_adjacent_triangles(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&counts).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "cocitation")]
+    pub fn cocitation_wasm(&self) -> Result<String, JsError> {
+        let result = cocitation(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "bibcoupling")]
+    pub fn bibcoupling_wasm(&self) -> Result<String, JsError> {
+        let result = bibcoupling(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "averageLocalEfficiency")]
+    pub fn average_local_efficiency_wasm(&self) -> Result<f64, JsError> {
+        average_local_efficiency(&self.inner).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "degreeCorrelationVector")]
+    pub fn degree_correlation_vector_wasm(&self, mode: &str) -> Result<String, JsError> {
+        let dm = match mode {
+            "in" => DegreeMode::In,
+            "out" => DegreeMode::Out,
+            _ => DegreeMode::All,
+        };
+        let result = degree_correlation_vector(&self.inner, dm, dm, true, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // ── Cliques (batch 5) ───────────────────────────────────────────
+
+    #[wasm_bindgen(js_name = "cliques")]
+    pub fn cliques_wasm(&self, min_size: u32, max_size: u32) -> Result<String, JsError> {
+        let result = cliques(&self.inner, min_size, max_size, Some(10000))
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "cliqueSizeHist")]
+    pub fn clique_size_hist_wasm(&self) -> Result<String, JsError> {
+        let result = clique_size_hist(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // ── Traversal (batch 5) ─────────────────────────────────────────
+
+    #[wasm_bindgen(js_name = "bfsTree")]
+    pub fn bfs_tree_wasm(&self, root: u32) -> Result<String, JsError> {
+        let result = bfs_tree(&self.inner, root).map_err(|e| JsError::new(&e.to_string()))?;
+        #[derive(Serialize)]
+        struct BfsTreeOut {
+            order: Vec<u32>,
+            distances: Vec<Option<u32>>,
+        }
+        let out = BfsTreeOut {
+            order: result.order,
+            distances: result.distances,
+        };
+        serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "bfsSimple")]
+    pub fn bfs_simple_wasm(&self, root: u32, mode: &str) -> Result<String, JsError> {
+        let bm = match mode {
+            "in" => BfsMode::In,
+            "out" => BfsMode::Out,
+            _ => BfsMode::All,
+        };
+        let result = bfs_simple(&self.inner, root, bm).map_err(|e| JsError::new(&e.to_string()))?;
+        #[derive(Serialize)]
+        struct BfsSimpleOut {
+            order: Vec<u32>,
+            layers: Vec<usize>,
+        }
+        let out = BfsSimpleOut {
+            order: result.order,
+            layers: result.layers,
+        };
+        serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // ── Operators (batch 5) ─────────────────────────────────────────
+
+    #[wasm_bindgen(js_name = "cartesianProduct")]
+    pub fn cartesian_product_wasm(&self, other: &WasmGraph) -> Result<WasmGraph, JsError> {
+        let g = cartesian_product(&self.inner, &other.inner)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "compose")]
+    pub fn compose_wasm(&self, other: &WasmGraph) -> Result<WasmGraph, JsError> {
+        let g = compose(&self.inner, &other.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    // ── Percolation (batch 5) ───────────────────────────────────────
+
+    #[wasm_bindgen(js_name = "bondPercolation")]
+    pub fn bond_percolation_wasm(&self, edge_order: &[u32]) -> Result<String, JsError> {
+        let result =
+            bond_percolation(&self.inner, edge_order).map_err(|e| JsError::new(&e.to_string()))?;
+        #[derive(Serialize)]
+        struct PercolationOut {
+            giant_size: Vec<u32>,
+            vertex_count: Vec<u32>,
+        }
+        let out = PercolationOut {
+            giant_size: result.giant_size,
+            vertex_count: result.vertex_count,
+        };
+        serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // ── Bipartite (batch 5) ─────────────────────────────────────────
+
+    #[wasm_bindgen(js_name = "bipartiteProjectionSize")]
+    pub fn bipartite_projection_size_wasm(&self, types: &[u8]) -> Result<String, JsError> {
+        let type_vec: Vec<bool> = types.iter().map(|&b| b != 0).collect();
+        let result = bipartite_projection_size(&self.inner, &type_vec)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        #[derive(Serialize)]
+        struct BiprojSize {
+            vcount1: u32,
+            ecount1: u32,
+            vcount2: u32,
+            ecount2: u32,
+        }
+        let out = BiprojSize {
+            vcount1: result.vcount1,
+            ecount1: result.ecount1,
+            vcount2: result.vcount2,
+            ecount2: result.ecount2,
+        };
+        serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // ── Generators (batch 5) ────────────────────────────────────────
+
+    #[wasm_bindgen(js_name = "bipartiteGameGnp")]
+    pub fn bipartite_game_gnp_wasm(
+        n1: u32,
+        n2: u32,
+        p: f64,
+        directed: bool,
+        mode: &str,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let bm = match mode {
+            "in" => BipartiteMode::In,
+            "out" => BipartiteMode::Out,
+            _ => BipartiteMode::All,
+        };
+        let bg = bipartite_game_gnp(n1, n2, p, directed, bm, s)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: bg.graph })
+    }
+
+    #[wasm_bindgen(js_name = "bipartiteGameGnm")]
+    pub fn bipartite_game_gnm_wasm(
+        n1: u32,
+        n2: u32,
+        m: u32,
+        directed: bool,
+        mode: &str,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let bm = match mode {
+            "in" => BipartiteMode::In,
+            "out" => BipartiteMode::Out,
+            _ => BipartiteMode::All,
+        };
+        let bg = bipartite_game_gnm(n1, n2, u64::from(m), directed, bm, s)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: bg.graph })
+    }
+
+    #[wasm_bindgen(js_name = "delaunayGraph")]
+    pub fn delaunay_graph_wasm(points_flat: &[f64], dim: u32) -> Result<WasmGraph, JsError> {
+        let d = dim as usize;
+        let points: Vec<Vec<f64>> = points_flat.chunks(d).map(<[f64]>::to_vec).collect();
+        let g = delaunay_graph(&points).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
     }
 }
