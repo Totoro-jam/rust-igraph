@@ -534,6 +534,9 @@ pub use crate::algorithms::paths::random_walk::random_walk;
 pub use crate::algorithms::paths::random_walk_node2vec::{
     Node2VecWalkResult, random_walk_node2vec,
 };
+pub use crate::algorithms::paths::random_walks::{
+    random_walks, random_walks_from, random_walks_node2vec,
+};
 pub use crate::algorithms::paths::shortest_paths::{
     ShortestPathMode, get_shortest_paths, get_shortest_paths_with_mode,
 };

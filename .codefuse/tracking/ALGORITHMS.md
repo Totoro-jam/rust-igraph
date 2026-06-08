@@ -88,6 +88,7 @@ See [docs/plans/MASTER_PLAN.md](../../docs/plans/MASTER_PLAN.md) §4 for the
 | ALGO-TR-002 | DFS (single-root pre-order) | visitors.c:479 | 200 | adapt | CORE-001a/b | done | (next) | 1.84 µs/karate | C:1 / py:1 / R:1 |
 | ALGO-TR-003 | Random walk | random_walk.c | 340 | adapt | CORE-001 | done | (next) | O(steps · max_deg) per call | no fixtures (RNG-dependent; proptest covers structural invariants) |
 | ALGO-TR-004 | Node2Vec second-order biased random walk | random_walk.c (node2vec extension) | 310 | self-roll | TR-003 | done | (next) | O(steps · max_deg²) per call | no fixtures (RNG-dependent; 12 unit tests + proptest-style bias validation) |
+| ALGO-TR-005 | Batch random walks (random_walks / random_walks_node2vec / random_walks_from) | — (graph-ML corpus gen) | 170 | self-roll | TR-003, TR-004 | done | (next) | O(walks × steps × max_deg) | no fixtures (RNG-dependent; 14 unit tests + 3 doctests) |
 | ALGO-SP-001 | Dijkstra single-source distances (`dijkstra_distances`, OUT mode) | paths/dijkstra.c:322-331 | ~250 | adapt | TR-001 | done | (next) | O(E log V + V) heap | C:1 / py:1 / R:1 |
 | ALGO-SP-001b | Dijkstra paths/parents + multi-source + cutoff | paths/dijkstra.c | ~400 | adapt | SP-001 | done | (next) | O(E log V + V) heap | C:3 / py:3 / R:3 (paths + path_to + cutoff) |
 | ALGO-SP-001c | Dijkstra IN/ALL mode + all-shortest-paths | paths/dijkstra.c | ~250 | adapt | SP-001b | done | (next) | O(E log V + V) heap | C:2 / py:2 / R:2 (dist_with_mode + all_shortest_paths) |
