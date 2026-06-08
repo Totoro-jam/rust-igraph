@@ -134,6 +134,7 @@ pub(crate) mod link_prediction;
 pub(crate) mod list_triangles;
 pub(crate) mod local_scan;
 pub(crate) mod local_scan_k;
+pub(crate) mod matching;
 pub(crate) mod mean_distance_weighted;
 pub(crate) mod multiplicity;
 pub(crate) mod mutual;
@@ -325,6 +326,9 @@ pub use local_scan::{
     local_scan_subset_ecount,
 };
 pub use local_scan_k::{local_scan_k, local_scan_k_ecount, local_scan_k_ecount_them};
+pub use matching::{
+    greedy_matching, is_perfect_matching, is_valid_matching, matching_number, maximum_matching,
+};
 pub use mean_distance_weighted::mean_distance_weighted;
 pub use multiplicity::{
     count_loops, count_multiple, count_multiple_1, has_loop, has_multiple, is_loop, is_multiple,
