@@ -624,6 +624,9 @@ pub use crate::algorithms::properties::graph_curvature::{
     augmented_forman_ricci_curvature, forman_ricci_curvature, mean_forman_ricci,
     ollivier_ricci_curvature,
 };
+pub use crate::algorithms::properties::graph_entropy::{
+    degree_entropy, degree_structural_info, edge_entropy, von_neumann_entropy,
+};
 pub use crate::algorithms::properties::graphicality::{
     EdgeTypeFilter, is_bigraphical, is_graphical,
 };

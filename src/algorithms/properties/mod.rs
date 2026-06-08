@@ -43,6 +43,7 @@ pub(crate) mod get_biadjacency_weighted;
 pub(crate) mod get_eids;
 pub(crate) mod girth;
 pub(crate) mod graph_curvature;
+pub(crate) mod graph_entropy;
 pub(crate) mod graphicality;
 pub(crate) mod harmonic;
 pub(crate) mod harmonic_cutoff;
@@ -203,6 +204,9 @@ pub use girth::girth;
 pub use graph_curvature::{
     augmented_forman_ricci_curvature, forman_ricci_curvature, mean_forman_ricci,
     ollivier_ricci_curvature,
+};
+pub use graph_entropy::{
+    degree_entropy, degree_structural_info, edge_entropy, von_neumann_entropy,
 };
 pub use graphicality::{EdgeTypeFilter, is_bigraphical, is_graphical};
 pub use harmonic::harmonic_centrality;
