@@ -1,0 +1,309 @@
+name: Release WASM (npm)
+
+# Publishes @graphrs/igraph-wasm to npm with provenance.
+# Trigger: push a tag matching `wasm-v*` (e.g. wasm-v0.1.0).
+# Manual: workflow_dispatch with dry_run option for testing.
+#
+# Best practices applied:
+# - Pre-flight gate: clippy + tests + wasm32 check before build
+# - Version consistency: tag must match Cargo.toml version
+# - npm provenance: signed attestation linking package to this repo/commit
+# - GitHub Release: tarball + SHA256 checksum for reproducibility
+# - Separate build/publish jobs for auditability
+
+on:
+  push:
+    tags:
+      - "wasm-v*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (skip npm publish, just build and pack)"
+        required: false
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+
+jobs:
+  # ─── Gate: ensure code quality before publishing ───────────────────────
+  preflight:
+    name: Pre-flight checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Verify tag matches Cargo.toml version
+        if: startsWith(github.ref, 'refs/tags/wasm-v')
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#wasm-v}"
+          CARGO_VERSION=$(grep -m1 '^version' crates/igraph-wasm/Cargo.toml | sed -E 's/.*"(.*)".*/\1/')
+          if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match Cargo.toml version ($CARGO_VERSION)"
+            exit 1
+          fi
+          echo "Version: $TAG_VERSION ✓"
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Tests
+        run: cargo test --workspace
+
+      - name: WASM target check
+        run: cargo check -p igraph-wasm --target wasm32-unknown-unknown
+
+  # ─── Build: produce the WASM package ───────────────────────────────────
+  build:
+    name: Build WASM package
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-targets: "false"
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build WASM
+        run: wasm-pack build crates/igraph-wasm --target web --out-dir pkg --release
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == wasm-v* ]]; then
+            echo "version=${GITHUB_REF_NAME#wasm-v}" >> "$GITHUB_OUTPUT"
+          else
+            VERSION=$(grep -m1 '^version' crates/igraph-wasm/Cargo.toml | sed -E 's/.*"(.*)".*/\1/')
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Prepare package
+        working-directory: crates/igraph-wasm/pkg
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Rewrite package.json with @graphrs scope and modern exports
+          cat > package.json << ENDJSON
+          {
+            "name": "@graphrs/igraph-wasm",
+            "version": "${VERSION}",
+            "type": "module",
+            "description": "Pure-Rust igraph compiled to WebAssembly — 400+ graph algorithms at native speed",
+            "license": "GPL-2.0-or-later",
+            "repository": {
+              "type": "git",
+              "url": "https://github.com/Totoro-jam/rust-igraph",
+              "directory": "crates/igraph-wasm"
+            },
+            "homepage": "https://totoro-jam.github.io/rust-igraph/",
+            "bugs": {
+              "url": "https://github.com/Totoro-jam/rust-igraph/issues"
+            },
+            "keywords": [
+              "graph",
+              "algorithms",
+              "wasm",
+              "webassembly",
+              "igraph",
+              "community-detection",
+              "pagerank",
+              "shortest-path",
+              "network-analysis",
+              "graph-layout",
+              "rust"
+            ],
+            "files": [
+              "igraph_wasm_bg.wasm",
+              "igraph_wasm.js",
+              "igraph_wasm.d.ts",
+              "igraph_wasm_bg.wasm.d.ts",
+              "LICENSE",
+              "README.md"
+            ],
+            "main": "igraph_wasm.js",
+            "types": "igraph_wasm.d.ts",
+            "exports": {
+              ".": {
+                "types": "./igraph_wasm.d.ts",
+                "default": "./igraph_wasm.js"
+              },
+              "./igraph_wasm_bg.wasm": "./igraph_wasm_bg.wasm"
+            },
+            "sideEffects": false,
+            "engines": {
+              "node": ">=18"
+            }
+          }
+          ENDJSON
+
+      - name: Add LICENSE
+        run: cp LICENSE crates/igraph-wasm/pkg/LICENSE
+
+      - name: Add README
+        working-directory: crates/igraph-wasm/pkg
+        run: |
+          cat > README.md << 'ENDREADME'
+          # @graphrs/igraph-wasm
+
+          Pure-Rust [igraph](https://igraph.org) compiled to WebAssembly. Provides 400+ graph
+          algorithms (community detection, centrality, layout, flow, isomorphism, and more)
+          at native speed in the browser and Node.js.
+
+          ## Usage
+
+          This is the **low-level WASM binary**. Most users should install
+          [`@graphrs/core`](https://www.npmjs.com/package/@graphrs/core) for an ergonomic
+          TypeScript API.
+
+          ```js
+          import init, { WasmGraph } from "@graphrs/igraph-wasm";
+
+          await init();
+          const g = WasmGraph.fromEdges(new Uint32Array([0,1, 1,2, 2,0]), false);
+          const result = JSON.parse(g.louvain());
+          console.log(result.membership); // [0, 0, 0]
+          ```
+
+          ## Environment Support
+
+          | Environment | Requirement |
+          |-------------|-------------|
+          | Browser | Chrome 89+, Firefox 89+, Safari 15+, Edge 89+ |
+          | Node.js | 18+ (ESM with top-level await) |
+          | Bundlers | Vite 5+, webpack 5+, Rollup 4+, esbuild |
+
+          ## Bundle Size
+
+          | File | Raw | Gzipped |
+          |------|-----|---------|
+          | `.wasm` | ~2.4 MB | ~800 KB |
+          | `.js` (glue) | ~215 KB | ~45 KB |
+
+          ## License
+
+          GPL-2.0-or-later — compiled from [rust-igraph](https://github.com/Totoro-jam/rust-igraph).
+
+          The higher-level TypeScript wrapper packages (`@graphrs/*`) are MIT licensed.
+          ENDREADME
+
+      - name: Generate SHA256 checksums
+        working-directory: crates/igraph-wasm/pkg
+        run: |
+          sha256sum igraph_wasm_bg.wasm igraph_wasm.js > SHA256SUMS.txt
+          echo "==> Checksums:"
+          cat SHA256SUMS.txt
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-pkg
+          path: crates/igraph-wasm/pkg/
+          retention-days: 30
+
+  # ─── Publish: push to npm with provenance ──────────────────────────────
+  publish:
+    name: Publish to npm
+    needs: build
+    runs-on: ubuntu-latest
+    if: |
+      (startsWith(github.ref, 'refs/tags/wasm-v') && github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && inputs.dry_run == 'false')
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-pkg
+          path: pkg/
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish with provenance
+        working-directory: pkg
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
+
+      - name: Report published version
+        working-directory: pkg
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "::notice::Published @graphrs/igraph-wasm@${VERSION} to npm"
+
+  # ─── Release: create GitHub release with tarball ───────────────────────
+  release:
+    name: Create GitHub Release
+    needs: [build, publish]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/wasm-v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-pkg
+          path: pkg/
+
+      - name: Create tarball
+        working-directory: pkg
+        run: |
+          VERSION="${GITHUB_REF_NAME#wasm-v}"
+          tar czf "graphrs-igraph-wasm-${VERSION}.tgz" \
+            igraph_wasm_bg.wasm igraph_wasm.js igraph_wasm.d.ts \
+            igraph_wasm_bg.wasm.d.ts package.json README.md LICENSE SHA256SUMS.txt
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: pkg
+        run: |
+          VERSION="${GITHUB_REF_NAME#wasm-v}"
+          gh release create "${GITHUB_REF_NAME}" \
+            --repo "${{ github.repository }}" \
+            --title "@graphrs/igraph-wasm v${VERSION}" \
+            --generate-notes \
+            "graphrs-igraph-wasm-${VERSION}.tgz" \
+            SHA256SUMS.txt
+
+  # ─── Dry run: just show what would be published ────────────────────────
+  dry-run:
+    name: Dry run
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.dry_run == 'true'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-pkg
+          path: pkg/
+
+      - name: Show package contents
+        working-directory: pkg
+        run: |
+          echo "==> package.json:"
+          cat package.json
+          echo ""
+          echo "==> Files:"
+          ls -lh
+          echo ""
+          echo "==> npm pack --dry-run:"
+          npm pack --dry-run
+          echo ""
+          echo "==> SHA256 checksums:"
+          cat SHA256SUMS.txt

@@ -60,6 +60,9 @@ website/playground/wasm/
 # Hook log (not committed)
 .codefuse/tracking/agent_actions.log
 
+# wasm-pack build output
+crates/igraph-wasm/pkg/
+
 # Misc temporary
 *.tmp
 *.bak
