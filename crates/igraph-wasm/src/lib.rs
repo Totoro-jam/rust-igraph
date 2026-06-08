@@ -2923,27 +2923,6 @@ impl WasmGraph {
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 
-    #[wasm_bindgen(js_name = "coreness")]
-    pub fn coreness_wasm(&self) -> Result<String, JsError> {
-        let cores = coreness(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
-        let result = CorenessResult { cores };
-        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
-    }
-
-    #[wasm_bindgen(js_name = "degeneracy")]
-    pub fn degeneracy_wasm(&self) -> Result<String, JsError> {
-        let value = degeneracy(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
-        let result = ScalarU32Result { value };
-        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
-    }
-
-    #[wasm_bindgen(js_name = "density")]
-    pub fn density_wasm(&self) -> Result<String, JsError> {
-        let d = density(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
-        let result = DensityResult { density: d };
-        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
-    }
-
     #[wasm_bindgen(js_name = "cutValue")]
     pub fn cut_value_wasm(&self, partition: &[u8]) -> Result<String, JsError> {
         let bools: Vec<bool> = partition.iter().map(|&b| b != 0).collect();
@@ -3799,44 +3778,6 @@ impl WasmGraph {
         let points: Vec<Vec<f64>> = points_flat.chunks(d).map(<[f64]>::to_vec).collect();
         let g = delaunay_graph(&points).map_err(|e| JsError::new(&e.to_string()))?;
         Ok(WasmGraph { inner: g })
-    }
-
-    // ── Batch 6: is_* predicates + centrality ────────────────────────
-
-    #[wasm_bindgen(js_name = "betweenness")]
-    pub fn betweenness_wasm(&self) -> Result<String, JsError> {
-        let r = betweenness(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
-        serde_json::to_string(&r).map_err(|e| JsError::new(&e.to_string()))
-    }
-
-    #[wasm_bindgen(js_name = "closeness")]
-    pub fn closeness_wasm(&self) -> Result<String, JsError> {
-        let r = closeness(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
-        serde_json::to_string(&r).map_err(|e| JsError::new(&e.to_string()))
-    }
-
-    #[wasm_bindgen(js_name = "constraint")]
-    pub fn constraint_wasm(&self) -> Result<String, JsError> {
-        let r = constraint(&self.inner, None).map_err(|e| JsError::new(&e.to_string()))?;
-        serde_json::to_string(&r).map_err(|e| JsError::new(&e.to_string()))
-    }
-
-    #[wasm_bindgen(js_name = "strength")]
-    pub fn strength_wasm(&self, weights: &[f64]) -> Result<String, JsError> {
-        let r = strength(&self.inner, weights).map_err(|e| JsError::new(&e.to_string()))?;
-        serde_json::to_string(&r).map_err(|e| JsError::new(&e.to_string()))
-    }
-
-    #[wasm_bindgen(js_name = "reciprocity")]
-    pub fn reciprocity_wasm(&self) -> Result<f64, JsError> {
-        let r = reciprocity(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
-        r.ok_or_else(|| JsError::new("reciprocity undefined for this graph"))
-    }
-
-    #[wasm_bindgen(js_name = "trussness")]
-    pub fn trussness_wasm(&self) -> Result<String, JsError> {
-        let r = trussness(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
-        serde_json::to_string(&r).map_err(|e| JsError::new(&e.to_string()))
     }
 
     #[wasm_bindgen(js_name = "isApexForest")]
