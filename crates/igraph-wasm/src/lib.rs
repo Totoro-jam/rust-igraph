@@ -106,6 +106,8 @@ use rust_igraph::{
     degree_correlation_vector,
     degree_distribution,
     degree_sequence,
+    // batch 9
+    degree_sequence_game_configuration,
     delaunay_graph,
     density,
     dfs,
@@ -119,6 +121,7 @@ use rust_igraph::{
     eccentricity,
     edge_betweenness,
     edge_betweenness_community,
+    edge_betweenness_cutoff,
     edge_betweenness_weighted,
     edge_connectivity,
     edge_disjoint_paths,
@@ -148,6 +151,7 @@ use rust_igraph::{
     get_edgelist,
     get_laplacian,
     get_shortest_path,
+    get_stochastic,
     girth,
     global_efficiency,
     gomory_hu_tree,
@@ -157,6 +161,7 @@ use rust_igraph::{
     growing_random_game,
     hamming,
     harmonic_centrality,
+    harmonic_centrality_cutoff,
     harmonic_centrality_weighted,
     has_mutual,
     hexagonal_lattice,
@@ -231,6 +236,7 @@ use rust_igraph::{
     is_pseudo_forest,
     is_ptolemaic,
     is_regular,
+    is_same_graph,
     is_self_complementary,
     is_semicomplete,
     is_series_parallel,
@@ -300,6 +306,7 @@ use rust_igraph::{
     minimum_spanning_tree,
     minimum_vertex_cover,
     modularity,
+    modularity_matrix,
     mycielski_graph,
     mycielskian,
     nearest_neighbor_graph,
@@ -316,6 +323,8 @@ use rust_igraph::{
     random_spanning_tree,
     random_walk,
     reachability_matrix,
+    read_edgelist,
+    read_gml,
     reciprocity,
     regular_tree,
     regularity,
@@ -326,6 +335,9 @@ use rust_igraph::{
     rich_club_sequence,
     ring_graph,
     running_mean,
+    satisfies_dirac,
+    satisfies_ore,
+    sbm_game,
     similarity_dice,
     similarity_jaccard,
     simple_cycles,
@@ -355,6 +367,7 @@ use rust_igraph::{
     topological_sorting,
     transitive_closure,
     transitivity_undirected,
+    tree_from_parent_vector,
     tree_game_lerw,
     tree_game_prufer,
     triad_census,
@@ -371,8 +384,11 @@ use rust_igraph::{
     watts_strogatz_game,
     wheel_graph,
     write_dot,
+    write_edgelist,
     write_gml,
     write_graphml,
+    write_ncol,
+    write_pajek,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -4424,5 +4440,123 @@ impl WasmGraph {
         let coords: Vec<Vec<f64>> = coords_flat.chunks(d).map(<[f64]>::to_vec).collect();
         spatial_edge_lengths(&self.inner, &coords, DistanceMetric::Euclidean)
             .map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    // ── batch 9: I/O, centrality cutoffs, properties, games, operators ──
+
+    #[wasm_bindgen(js_name = "readEdgelist")]
+    pub fn read_edgelist_wasm(text: &str) -> Result<WasmGraph, JsError> {
+        let g = read_edgelist(text.as_bytes()).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "readGml")]
+    pub fn read_gml_wasm(text: &str) -> Result<WasmGraph, JsError> {
+        let g = read_gml(text.as_bytes()).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "writeEdgelist")]
+    pub fn write_edgelist_wasm(&self) -> Result<String, JsError> {
+        let mut buf = Vec::new();
+        write_edgelist(&self.inner, &mut buf).map_err(|e| JsError::new(&e.to_string()))?;
+        String::from_utf8(buf).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "writePajek")]
+    pub fn write_pajek_wasm(&self) -> Result<String, JsError> {
+        let mut buf = Vec::new();
+        write_pajek(&self.inner, None, None, &mut buf).map_err(|e| JsError::new(&e.to_string()))?;
+        String::from_utf8(buf).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "writeNcol")]
+    pub fn write_ncol_wasm(&self) -> Result<String, JsError> {
+        let mut buf = Vec::new();
+        write_ncol(&self.inner, None, None, &mut buf).map_err(|e| JsError::new(&e.to_string()))?;
+        String::from_utf8(buf).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "edgeBetweennessCutoff")]
+    pub fn edge_betweenness_cutoff_wasm(&self, cutoff: u32) -> Result<Vec<f64>, JsError> {
+        edge_betweenness_cutoff(&self.inner, cutoff).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "harmonicCentralityCutoff")]
+    pub fn harmonic_centrality_cutoff_wasm(
+        &self,
+        cutoff: u32,
+        normalized: bool,
+    ) -> Result<Vec<f64>, JsError> {
+        harmonic_centrality_cutoff(&self.inner, cutoff, normalized)
+            .map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "getStochastic")]
+    pub fn get_stochastic_wasm(&self, column_wise: bool) -> Result<String, JsError> {
+        let mat = get_stochastic(&self.inner, column_wise, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&mat).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "modularityMatrix")]
+    pub fn modularity_matrix_wasm(&self) -> Result<String, JsError> {
+        let mat = modularity_matrix(&self.inner, None, 1.0, self.inner.is_directed())
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&mat).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "satisfiesDirac")]
+    pub fn satisfies_dirac_wasm(&self) -> Result<bool, JsError> {
+        satisfies_dirac(&self.inner).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "satisfiesOre")]
+    pub fn satisfies_ore_wasm(&self) -> Result<bool, JsError> {
+        satisfies_ore(&self.inner).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "treeFromParentVector")]
+    pub fn tree_from_parent_vector_wasm(parents: &[i32], mode: &str) -> Result<WasmGraph, JsError> {
+        use rust_igraph::TreeMode;
+        let m = match mode {
+            "in" => TreeMode::In,
+            _ => TreeMode::Out,
+        };
+        let parents_i64: Vec<i64> = parents.iter().map(|&p| i64::from(p)).collect();
+        let g =
+            tree_from_parent_vector(&parents_i64, m).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "degreeSequenceGame")]
+    pub fn degree_sequence_game_wasm(out_degrees: &[u32], seed: f64) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let g = degree_sequence_game_configuration(out_degrees, None, s)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "sbmGame")]
+    pub fn sbm_game_wasm(
+        pref_matrix_flat: &[f64],
+        n_blocks: u32,
+        block_sizes: &[u32],
+        directed: bool,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let nb = n_blocks as usize;
+        let pref_matrix: Vec<Vec<f64>> = pref_matrix_flat.chunks(nb).map(<[f64]>::to_vec).collect();
+        let g = sbm_game(&pref_matrix, block_sizes, directed, false, false, s)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "isSameGraph")]
+    pub fn is_same_graph_wasm(&self, other: &WasmGraph) -> bool {
+        is_same_graph(&self.inner, &other.inner)
     }
 }
