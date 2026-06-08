@@ -5,6 +5,8 @@
 // function re-exports in rustdoc.
 pub(crate) mod bfs;
 pub(crate) mod dfs;
+pub(crate) mod neighbor_sample;
 
 pub use bfs::{BfsMode, BfsSimple, BfsTree, bfs, bfs_simple, bfs_tree};
 pub use dfs::{DfsMode, DfsSimple, DfsTree, dfs, dfs_simple, dfs_tree};
+pub use neighbor_sample::{NeighborSampleResult, neighbor_sample, neighbor_sample_weighted};
