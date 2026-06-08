@@ -524,7 +524,7 @@ if __name__ == "__main__":
 | 10 | 高层 API + 文档站 + 发布 | ~80 | **大部分** ✓ | 1,297 pub fn + mdBook (中英) + landing page + Playground (React SPA) + WASM + bench CI | v0.6.0 |
 | 11（可选） | nauty C FFI 后端 | ~10 | 0 | 大规模图同构性能 | v1.x |
 
-**截至 v0.6.0 实际总计**：315 AWU done，6,126 测试，1,672 conformance fixtures，~1,300 公开函数。
+**截至 v0.6.0 实际总计**：315 AWU done，7,718 测试，1,850 conformance fixtures，392 pub fn（~198k SLOC Rust）。
 
 **总 AWU**：约 660 个（Phase 0 + 算法）。
 
@@ -1509,7 +1509,7 @@ references/.cache/
 | 任务 | 优先级 | 状态 |
 |------|--------|------|
 | 全面审查网站（用户视角） | P1 | **done** (2026-06-04) |
-| Conformance 覆盖率提升（当前 ~60%→80%） | P2 | **done**: 1,672 fixtures, ~96% 覆盖 |
+| Conformance 覆盖率提升（当前 ~60%→80%） | P2 | **done**: 1,850 fixtures, ~98% 覆盖 |
 | CI 增加 WASM 编译检查 | P2 | **done** (2026-06-04): CI + Pages 均检查 igraph-wasm |
 | 性能回归监控（criterion baseline） | P3 | **done** (2026-06-04): bench.yml CI + github-action-benchmark |
 
