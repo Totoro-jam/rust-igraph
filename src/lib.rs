@@ -829,6 +829,9 @@ pub use crate::algorithms::properties::summary::{
     GraphSummary, graph_summary, graph_summary_string,
 };
 pub use crate::algorithms::properties::topological_sorting::topological_sorting;
+pub use crate::algorithms::properties::treewidth::{
+    elimination_ordering, treewidth_min_fill, treewidth_upper_bound,
+};
 pub use crate::algorithms::properties::triangles::{
     TransitivityMode, count_adjacent_triangles, count_triangles, transitivity_avglocal_undirected,
     transitivity_barrat, transitivity_local_undirected, transitivity_undirected,

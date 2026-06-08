@@ -168,6 +168,7 @@ pub(crate) mod strength;
 pub(crate) mod structural_features;
 pub(crate) mod summary;
 pub(crate) mod topological_sorting;
+pub(crate) mod treewidth;
 pub(crate) mod triangles;
 pub(crate) mod trussness;
 pub(crate) mod unfold_tree;
@@ -392,6 +393,7 @@ pub use strength::{StrengthMode, diversity, strength, strength_with_mode};
 pub use structural_features::{StructuralFeatures, degree_profile, structural_feature_vectors};
 pub use summary::{GraphSummary, graph_summary, graph_summary_string};
 pub use topological_sorting::topological_sorting;
+pub use treewidth::{elimination_ordering, treewidth_min_fill, treewidth_upper_bound};
 pub use triangles::{
     TransitivityMode, count_adjacent_triangles, count_triangles, transitivity_avglocal_undirected,
     transitivity_local_undirected, transitivity_undirected,
