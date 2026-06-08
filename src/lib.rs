@@ -633,6 +633,9 @@ pub use crate::algorithms::properties::harmonic_weighted::harmonic_centrality_we
 pub use crate::algorithms::properties::hits::{
     HitsScores, hub_and_authority_scores, hub_and_authority_scores_weighted,
 };
+pub use crate::algorithms::properties::homophily::{
+    class_homophily, edge_heterophily, edge_homophily, node_homophily,
+};
 pub use crate::algorithms::properties::is_acyclic::is_acyclic;
 pub use crate::algorithms::properties::is_apex_forest::is_apex_forest;
 pub use crate::algorithms::properties::is_apex_tree::is_apex_tree;
