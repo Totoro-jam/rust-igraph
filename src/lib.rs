@@ -634,6 +634,9 @@ pub use crate::algorithms::properties::get_biadjacency_weighted::{
 };
 pub use crate::algorithms::properties::get_eids::get_eids;
 pub use crate::algorithms::properties::girth::girth;
+pub use crate::algorithms::properties::graph_bandwidth::{
+    bandwidth, bandwidth_lower_bound, bandwidth_of_labeling,
+};
 pub use crate::algorithms::properties::graph_coloring::{
     chromatic_number_greedy, greedy_clique_number, greedy_coloring, greedy_coloring_largest_first,
     greedy_coloring_with_order, is_proper_coloring,
