@@ -7,7 +7,7 @@ name: Release WASM (npm)
 # Best practices applied:
 # - Pre-flight gate: clippy + tests + wasm32 check before build
 # - Version consistency: tag must match Cargo.toml version
-# - Trusted Publishing (OIDC): zero static tokens, npm trusts this repo via OIDC
+# - Trusted Publisher: OIDC provenance attestation signed by this repo
 # - npm provenance: signed attestation linking package to this repo/commit
 # - GitHub Release: tarball + SHA256 checksum for reproducibility
 # - Separate build/publish jobs for auditability
@@ -213,9 +213,9 @@ jobs:
           path: crates/igraph-wasm/pkg/
           retention-days: 30
 
-  # ─── Publish: push to npm via Trusted Publishing (OIDC) ─────────────────
-  # Zero static tokens: npm trusts this repo+workflow via OIDC identity.
-  # Config: npm package settings → Trusted Publishers → GitHub Actions.
+  # ─── Publish: push to npm with provenance ────────────────────────────────
+  # Auth: Granular Access Token (NPM_TOKEN secret, 2FA bypass, publish-only).
+  # Provenance: --provenance signs attestation via OIDC + Trusted Publisher.
   # Ref: https://docs.npmjs.com/generating-provenance-statements
   publish:
     name: Publish to npm
@@ -236,9 +236,12 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 22
+          registry-url: "https://registry.npmjs.org"
 
       - name: Publish with provenance (Trusted Publishing / OIDC)
         working-directory: pkg
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance
 
       - name: Report published version
