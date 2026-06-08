@@ -645,6 +645,10 @@ pub use crate::algorithms::properties::graph_entropy::{
 pub use crate::algorithms::properties::graphicality::{
     EdgeTypeFilter, is_bigraphical, is_graphical,
 };
+pub use crate::algorithms::properties::hamiltonian::{
+    hamiltonian_cycle, hamiltonian_path, has_hamiltonian_cycle, has_hamiltonian_path,
+    is_hamiltonian_cycle, is_hamiltonian_path,
+};
 pub use crate::algorithms::properties::harmonic::harmonic_centrality;
 pub use crate::algorithms::properties::harmonic_cutoff::harmonic_centrality_cutoff;
 pub use crate::algorithms::properties::harmonic_weighted::harmonic_centrality_weighted;

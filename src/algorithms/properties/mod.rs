@@ -49,6 +49,7 @@ pub(crate) mod graph_coloring;
 pub(crate) mod graph_curvature;
 pub(crate) mod graph_entropy;
 pub(crate) mod graphicality;
+pub(crate) mod hamiltonian;
 pub(crate) mod harmonic;
 pub(crate) mod harmonic_cutoff;
 pub(crate) mod harmonic_weighted;
@@ -236,6 +237,10 @@ pub use graph_entropy::{
     degree_entropy, degree_structural_info, edge_entropy, von_neumann_entropy,
 };
 pub use graphicality::{EdgeTypeFilter, is_bigraphical, is_graphical};
+pub use hamiltonian::{
+    hamiltonian_cycle, hamiltonian_path, has_hamiltonian_cycle, has_hamiltonian_path,
+    is_hamiltonian_cycle, is_hamiltonian_path,
+};
 pub use harmonic::harmonic_centrality;
 pub use harmonic_cutoff::harmonic_centrality_cutoff;
 pub use harmonic_weighted::harmonic_centrality_weighted;
