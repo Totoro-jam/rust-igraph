@@ -664,6 +664,7 @@ pub use crate::algorithms::properties::hits::{
 pub use crate::algorithms::properties::homophily::{
     class_homophily, edge_heterophily, edge_homophily, node_homophily,
 };
+pub use crate::algorithms::properties::hosoya_index::{hosoya_index, matching_count_sequence};
 pub use crate::algorithms::properties::independent_set::{
     greedy_independent_set, independence_ratio,
 };
