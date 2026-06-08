@@ -1,0 +1,39 @@
+{
+  "source": "py",
+  "origin": "python-igraph-as-py: personalized_pagerank on path4_uniform",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "personalized_pagerank",
+  "params": {
+    "reset": [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+    ],
+    "damping": 0.85
+  },
+  "expected": [
+    0.1754385964912281,
+    0.32456140350877194,
+    0.32456140350877194,
+    0.1754385964912281
+  ]
+}

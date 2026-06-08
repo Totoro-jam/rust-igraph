@@ -1,0 +1,45 @@
+{
+  "source": "r",
+  "origin": "python-igraph-as-r: personalized_pagerank on star5_center_heavy",
+  "graph": {
+    "n": 5,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "personalized_pagerank",
+  "params": {
+    "reset": [
+      0.4,
+      0.15,
+      0.15,
+      0.15,
+      0.15
+    ],
+    "damping": 0.85
+  },
+  "expected": [
+    0.49189189189189186,
+    0.127027027027027,
+    0.12702702702702703,
+    0.12702702702702703,
+    0.12702702702702703
+  ]
+}

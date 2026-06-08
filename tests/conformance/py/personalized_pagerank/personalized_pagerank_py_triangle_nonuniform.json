@@ -1,0 +1,37 @@
+{
+  "source": "py",
+  "origin": "python-igraph-as-py: personalized_pagerank on triangle_nonuniform",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "personalized_pagerank",
+  "params": {
+    "reset": [
+      0.5,
+      0.3,
+      0.2
+    ],
+    "damping": 0.85
+  },
+  "expected": [
+    0.3508771929824561,
+    0.32982456140350874,
+    0.3192982456140351
+  ]
+}

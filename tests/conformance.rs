@@ -19468,3 +19468,75 @@ fn unfold_tree_three_source_conformance() {
         })
     });
 }
+
+// ─── similarity_jaccard (loops=false) ─────────────────────────────
+#[test]
+fn similarity_jaccard_three_source_conformance() {
+    run_conformance("similarity_jaccard", |g, _params| {
+        let sim = rust_igraph::similarity_jaccard(g).expect("similarity_jaccard");
+        serde_json::json!(sim)
+    });
+}
+
+// ─── similarity_dice (loops=false) ────────────────────────────────
+#[test]
+fn similarity_dice_three_source_conformance() {
+    run_conformance("similarity_dice", |g, _params| {
+        let sim = rust_igraph::similarity_dice(g).expect("similarity_dice");
+        serde_json::json!(sim)
+    });
+}
+
+// ─── personalized_pagerank (bespoke — relaxed tolerance for power-iteration vs PRPACK) ──
+#[test]
+fn personalized_pagerank_three_source_conformance() {
+    for src in ["c", "py", "r"] {
+        let dir = workspace_root()
+            .join("tests/conformance")
+            .join(src)
+            .join("personalized_pagerank");
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).expect("read dir") {
+            let path = entry.expect("entry").path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                continue;
+            }
+            let bytes = std::fs::read(&path).expect("read");
+            let case: Conformance = serde_json::from_slice(&bytes).expect("parse");
+            let graph = build_graph(&case.graph);
+            let reset: Vec<f64> = case.params["reset"]
+                .as_array()
+                .expect("reset array")
+                .iter()
+                .map(|v| v.as_f64().expect("reset f64"))
+                .collect();
+            let damping = case.params["damping"].as_f64().expect("damping f64");
+            let actual = rust_igraph::personalized_pagerank(&graph, &reset, damping).expect("ppr");
+            let expected: Vec<f64> = case
+                .expected
+                .as_array()
+                .expect("expected array")
+                .iter()
+                .map(|v| v.as_f64().expect("expected f64"))
+                .collect();
+            assert_eq!(
+                actual.len(),
+                expected.len(),
+                "length mismatch: {}",
+                path.display()
+            );
+            for (i, (&a, &e)) in actual.iter().zip(expected.iter()).enumerate() {
+                let diff = (a - e).abs();
+                let scale = a.abs().max(e.abs()).max(1.0);
+                assert!(
+                    diff <= 1e-10 * scale,
+                    "personalized_pagerank conformance failure at vertex {i}\n  \
+                     fixture: {}\n  actual: {a}\n  expected: {e}\n  diff: {diff}",
+                    path.display(),
+                );
+            }
+        }
+    }
+}

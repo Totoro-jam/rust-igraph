@@ -1,0 +1,43 @@
+{
+  "source": "c",
+  "origin": "igraph-c-via-py: similarity_dice(loops=False) on path_4",
+  "graph": {
+    "n": 4,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "similarity_dice",
+  "params": {},
+  "expected": [
+    1.0,
+    0.0,
+    0.6666666666666666,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.6666666666666666,
+    0.6666666666666666,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.6666666666666666,
+    0.0,
+    1.0
+  ]
+}

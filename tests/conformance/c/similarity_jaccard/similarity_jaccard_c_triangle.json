@@ -1,0 +1,36 @@
+{
+  "source": "c",
+  "origin": "igraph-c-via-py: similarity_jaccard(loops=False) on triangle",
+  "graph": {
+    "n": 3,
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "directed": false,
+    "weights": null
+  },
+  "algo": "similarity_jaccard",
+  "params": {},
+  "expected": [
+    1.0,
+    0.3333333333333333,
+    0.3333333333333333,
+    0.3333333333333333,
+    1.0,
+    0.3333333333333333,
+    0.3333333333333333,
+    0.3333333333333333,
+    1.0
+  ]
+}
