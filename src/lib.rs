@@ -740,6 +740,9 @@ pub use crate::algorithms::properties::multiplicity::{
     count_loops, count_multiple, count_multiple_1, has_loop, has_multiple, is_loop, is_multiple,
 };
 pub use crate::algorithms::properties::mutual::{count_mutual, has_mutual, is_mutual};
+pub use crate::algorithms::properties::neighbor_agg::{
+    AggMode, attention_aggregate, neighbor_aggregate,
+};
 pub use crate::algorithms::properties::neighborhood::{
     NeighborhoodMode, neighborhood, neighborhood_graphs, neighborhood_graphs_with_mode,
     neighborhood_size, neighborhood_size_with_mode, neighborhood_with_mode,

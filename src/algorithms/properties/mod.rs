@@ -133,6 +133,7 @@ pub(crate) mod local_scan_k;
 pub(crate) mod mean_distance_weighted;
 pub(crate) mod multiplicity;
 pub(crate) mod mutual;
+pub(crate) mod neighbor_agg;
 pub(crate) mod neighborhood;
 pub(crate) mod pagerank;
 pub(crate) mod pagerank_linsys;
@@ -307,6 +308,7 @@ pub use multiplicity::{
     count_loops, count_multiple, count_multiple_1, has_loop, has_multiple, is_loop, is_multiple,
 };
 pub use mutual::{count_mutual, has_mutual, is_mutual};
+pub use neighbor_agg::{AggMode, attention_aggregate, neighbor_aggregate};
 pub use neighborhood::{
     NeighborhoodMode, neighborhood, neighborhood_graphs, neighborhood_graphs_with_mode,
     neighborhood_size, neighborhood_size_with_mode, neighborhood_with_mode,
