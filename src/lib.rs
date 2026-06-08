@@ -595,6 +595,9 @@ pub use crate::algorithms::properties::degree::{
 };
 pub use crate::algorithms::properties::degree_correlation::degree_correlation_vector;
 pub use crate::algorithms::properties::degree_distribution::degree_distribution;
+pub use crate::algorithms::properties::diffusion::{
+    heat_kernel_diffuse, ppr_diffuse, symmetric_diffuse,
+};
 pub use crate::algorithms::properties::ecc::ecc;
 pub use crate::algorithms::properties::edge_betweenness::edge_betweenness;
 pub use crate::algorithms::properties::edge_betweenness_cutoff::edge_betweenness_cutoff;
