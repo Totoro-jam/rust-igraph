@@ -751,6 +751,10 @@ pub use crate::algorithms::properties::neighborhood::{
     NeighborhoodMode, neighborhood, neighborhood_graphs, neighborhood_graphs_with_mode,
     neighborhood_size, neighborhood_size_with_mode, neighborhood_with_mode,
 };
+pub use crate::algorithms::properties::normalized_laplacian::{
+    bipartiteness_ratio, cheeger_bounds, normalized_algebraic_connectivity,
+    normalized_laplacian_spectrum, spectral_gap_ratio,
+};
 pub use crate::algorithms::properties::pagerank::pagerank;
 pub use crate::algorithms::properties::pagerank_linsys::pagerank_linsys;
 pub use crate::algorithms::properties::pagerank_weighted::pagerank_weighted;
