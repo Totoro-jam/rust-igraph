@@ -120,6 +120,7 @@ pub(crate) mod joint_degree_matrix;
 pub(crate) mod joint_type_distribution;
 pub(crate) mod katz_centrality;
 pub(crate) mod knn;
+pub(crate) mod label_spread;
 pub(crate) mod laplacian;
 pub(crate) mod list_triangles;
 pub(crate) mod local_scan;
@@ -273,6 +274,7 @@ pub use joint_degree_distribution::joint_degree_distribution;
 pub use joint_degree_matrix::joint_degree_matrix;
 pub use joint_type_distribution::joint_type_distribution;
 pub use knn::avg_nearest_neighbor_degree;
+pub use label_spread::{LabelSpreadResult, label_propagate_predict, label_spread};
 pub use laplacian::{LaplacianNormalization, get_laplacian};
 pub use list_triangles::list_triangles;
 pub use local_scan::{

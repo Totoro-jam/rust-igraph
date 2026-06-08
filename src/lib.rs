@@ -706,6 +706,9 @@ pub use crate::algorithms::properties::katz_centrality::katz_centrality;
 pub use crate::algorithms::properties::knn::{
     avg_nearest_neighbor_degree, avg_nearest_neighbor_degree_weighted, knnk, knnk_weighted,
 };
+pub use crate::algorithms::properties::label_spread::{
+    LabelSpreadResult, label_propagate_predict, label_spread,
+};
 pub use crate::algorithms::properties::laplacian::{LaplacianNormalization, get_laplacian};
 pub use crate::algorithms::properties::list_triangles::list_triangles;
 pub use crate::algorithms::properties::local_scan::{
