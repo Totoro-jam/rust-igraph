@@ -3497,6 +3497,41 @@ impl Graph {
         crate::algorithms::paths::random_walk::random_walk(self, None, start, mode, steps, seed)
     }
 
+    /// Second-order biased random walk (`Node2Vec`) from `start`.
+    ///
+    /// `p` controls the likelihood of returning to the previous vertex;
+    /// `q` controls exploration vs. exploitation (BFS-like vs DFS-like).
+    /// When `p = q = 1.0` this is equivalent to a standard random walk.
+    ///
+    /// ```
+    /// use rust_igraph::Graph;
+    ///
+    /// let g = Graph::from_edges(
+    ///     &[(0,1), (1,2), (2,3), (3,0), (0,2)], false, None
+    /// ).unwrap();
+    /// let (vertices, _edges) = g.random_walk_node2vec(0, 10, 2.0, 0.5, 42).unwrap();
+    /// assert_eq!(vertices[0], 0);
+    /// ```
+    #[allow(clippy::too_many_arguments)]
+    pub fn random_walk_node2vec(
+        &self,
+        start: VertexId,
+        steps: u32,
+        p: f64,
+        q: f64,
+        seed: u64,
+    ) -> IgraphResult<(Vec<VertexId>, Vec<EdgeId>)> {
+        use crate::algorithms::paths::dijkstra::DijkstraMode;
+        let mode = if self.directed {
+            DijkstraMode::Out
+        } else {
+            DijkstraMode::All
+        };
+        crate::algorithms::paths::random_walk_node2vec::random_walk_node2vec(
+            self, None, start, mode, steps, p, q, seed,
+        )
+    }
+
     // ── Graph properties ─────────────────────────────────────────────
 
     /// Compute the radius (minimum eccentricity) of the graph.

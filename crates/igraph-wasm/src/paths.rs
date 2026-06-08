@@ -49,6 +49,30 @@ impl WasmGraph {
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 
+    #[wasm_bindgen(js_name = "randomWalkNode2vec")]
+    pub fn random_walk_node2vec(
+        &self,
+        start: u32,
+        steps: u32,
+        p: f64,
+        q: f64,
+        seed: u64,
+    ) -> Result<String, JsError> {
+        let (vertices, _edges) = random_walk_node2vec(
+            &self.inner,
+            None,
+            start,
+            DijkstraMode::Out,
+            steps,
+            p,
+            q,
+            seed,
+        )
+        .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = RandomWalkResult { vertices };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
     #[wasm_bindgen(js_name = "shortestPath")]
     pub fn shortest_path(&self, source: u32, target: u32) -> Result<String, JsError> {
         let sp = self

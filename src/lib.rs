@@ -531,6 +531,9 @@ pub use crate::algorithms::paths::radii::{
     radius, radius_weighted, radius_weighted_with_mode, radius_with_mode,
 };
 pub use crate::algorithms::paths::random_walk::random_walk;
+pub use crate::algorithms::paths::random_walk_node2vec::{
+    Node2VecWalkResult, random_walk_node2vec,
+};
 pub use crate::algorithms::paths::shortest_paths::{
     ShortestPathMode, get_shortest_paths, get_shortest_paths_with_mode,
 };

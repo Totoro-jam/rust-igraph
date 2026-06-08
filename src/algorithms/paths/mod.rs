@@ -27,6 +27,7 @@ pub(crate) mod johnson;
 pub(crate) mod k_shortest_paths;
 pub(crate) mod radii;
 pub(crate) mod random_walk;
+pub(crate) mod random_walk_node2vec;
 pub(crate) mod shortest_paths;
 pub(crate) mod simple_paths;
 pub(crate) mod spanner;
@@ -71,6 +72,7 @@ pub use radii::{
     eccentricity_weighted_with_mode, radius, radius_weighted, radius_weighted_with_mode,
 };
 pub use random_walk::random_walk;
+pub use random_walk_node2vec::{Node2VecWalkResult, random_walk_node2vec};
 pub use shortest_paths::{ShortestPathMode, get_shortest_paths, get_shortest_paths_with_mode};
 pub use simple_paths::{SimplePathMode, all_simple_paths};
 pub use spanner::spanner;

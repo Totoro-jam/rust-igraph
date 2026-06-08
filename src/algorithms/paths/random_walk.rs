@@ -24,7 +24,7 @@ use crate::core::graph::EdgeId;
 use crate::core::rng::SplitMix64;
 use crate::core::{Graph, IgraphError, IgraphResult, VertexId};
 
-fn validate_weights(graph: &Graph, weights: Option<&[f64]>) -> IgraphResult<()> {
+pub(super) fn validate_weights(graph: &Graph, weights: Option<&[f64]>) -> IgraphResult<()> {
     let Some(w) = weights else {
         return Ok(());
     };
