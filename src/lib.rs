@@ -584,6 +584,9 @@ pub use crate::algorithms::properties::centralization::{
     centralization_degree_wrapper, centralization_eigenvector_tmax,
     centralization_eigenvector_wrapper,
 };
+pub use crate::algorithms::properties::clique_cover::{
+    clique_cover_number, greedy_clique_cover, is_clique_cover,
+};
 pub use crate::algorithms::properties::closeness::closeness;
 pub use crate::algorithms::properties::closeness_cutoff::{
     ClosenessCutoffResult, closeness_cutoff,

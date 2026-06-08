@@ -21,6 +21,7 @@ pub(crate) mod betweenness_cutoff;
 pub(crate) mod betweenness_subset;
 pub(crate) mod betweenness_weighted;
 pub(crate) mod centralization;
+pub(crate) mod clique_cover;
 pub(crate) mod closeness;
 pub(crate) mod closeness_cutoff;
 pub(crate) mod closeness_weighted;
@@ -194,6 +195,7 @@ pub use centralization::{
     centralization_degree_wrapper, centralization_eigenvector_tmax,
     centralization_eigenvector_wrapper,
 };
+pub use clique_cover::{clique_cover_number, greedy_clique_cover, is_clique_cover};
 pub use closeness::closeness;
 pub use closeness_cutoff::{ClosenessCutoffResult, closeness_cutoff};
 pub use closeness_weighted::closeness_weighted;
