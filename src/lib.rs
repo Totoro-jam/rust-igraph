@@ -765,6 +765,9 @@ pub use crate::algorithms::properties::matching::{
     greedy_matching, is_perfect_matching, is_valid_matching, matching_number, maximum_matching,
 };
 pub use crate::algorithms::properties::mean_distance_weighted::mean_distance_weighted;
+pub use crate::algorithms::properties::merrifield_simmons::{
+    independent_set_count_sequence, merrifield_simmons_index,
+};
 pub use crate::algorithms::properties::multiplicity::{
     count_loops, count_multiple, count_multiple_1, has_loop, has_multiple, is_loop, is_multiple,
 };
