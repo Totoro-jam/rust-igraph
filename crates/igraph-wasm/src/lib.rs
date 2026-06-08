@@ -105,6 +105,8 @@ use rust_igraph::{
     density,
     dfs,
     diameter,
+    // batch 7
+    difference,
     dijkstra_distances,
     disjoint_union,
     distances,
@@ -133,6 +135,7 @@ use rust_igraph::{
     full_citation,
     full_graph,
     fundamental_cycles,
+    gabriel_graph,
     generalized_petersen,
     get_adjacency,
     get_edgelist,
@@ -144,8 +147,10 @@ use rust_igraph::{
     graph_center,
     graph_power,
     grg_game,
+    hamming,
     harmonic_centrality,
     has_mutual,
+    hexagonal_lattice,
     hrg_consensus,
     hrg_create,
     hrg_fit,
@@ -237,9 +242,11 @@ use rust_igraph::{
     is_windmill,
     isomorphic,
     isomorphic_bliss,
+    join,
     k_shortest_paths,
     kary_tree,
     katz_centrality,
+    kautz,
     label_propagation,
     layout_bipartite,
     layout_circle,
@@ -256,6 +263,7 @@ use rust_igraph::{
     layout_reingold_tilford,
     layout_star,
     layout_sugiyama,
+    lcf,
     leading_eigenvector,
     leiden,
     line_graph,
@@ -279,6 +287,7 @@ use rust_igraph::{
     minimum_vertex_cover,
     modularity,
     mycielskian,
+    nearest_neighbor_graph,
     neighborhood,
     pagerank,
     path_graph,
@@ -291,9 +300,12 @@ use rust_igraph::{
     random_spanning_tree,
     random_walk,
     reciprocity,
+    regular_tree,
     regularity,
+    relative_neighborhood_graph,
     reverse,
     reverse_edges,
+    rewire,
     rich_club_sequence,
     ring_graph,
     running_mean,
@@ -305,6 +317,7 @@ use rust_igraph::{
     sort_vertices_by_degree,
     spanner,
     spinglass,
+    square_lattice,
     st_mincut,
     st_mincut_value,
     st_vertex_connectivity,
@@ -315,6 +328,7 @@ use rust_igraph::{
     strongly_connected_components,
     subcomponent,
     subisomorphic,
+    symmetric_tree,
     to_directed,
     to_prufer,
     to_undirected,
@@ -324,7 +338,9 @@ use rust_igraph::{
     tree_game_lerw,
     tree_game_prufer,
     triad_census,
+    triangular_lattice,
     trussness,
+    turan,
     unfold_tree,
     union,
     vertex_coloring_greedy,
@@ -3976,5 +3992,155 @@ impl WasmGraph {
     pub fn is_windmill_wasm(&self) -> Result<bool, JsError> {
         let r = is_windmill(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
         Ok(r.is_some())
+    }
+
+    // ── Batch 7: constructors + operators + spatial ──────────────────
+
+    #[wasm_bindgen(js_name = "squareLattice")]
+    pub fn square_lattice_wasm(
+        dims: &[u32],
+        nei: u32,
+        directed: bool,
+        mutual: bool,
+    ) -> Result<WasmGraph, JsError> {
+        let g = square_lattice(dims, nei, directed, mutual, None)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "triangularLattice")]
+    pub fn triangular_lattice_wasm(
+        dims: &[u32],
+        directed: bool,
+        mutual: bool,
+    ) -> Result<WasmGraph, JsError> {
+        let g =
+            triangular_lattice(dims, directed, mutual).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "hexagonalLattice")]
+    pub fn hexagonal_lattice_wasm(
+        dims: &[u32],
+        directed: bool,
+        mutual: bool,
+    ) -> Result<WasmGraph, JsError> {
+        let g =
+            hexagonal_lattice(dims, directed, mutual).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "kautzGraph")]
+    pub fn kautz_wasm(m: u32, n: u32) -> Result<WasmGraph, JsError> {
+        let g = kautz(m, n).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "lcfGraph")]
+    pub fn lcf_wasm(n: u32, shifts: &[i32], repeats: u32) -> Result<WasmGraph, JsError> {
+        let shifts64: Vec<i64> = shifts.iter().map(|&s| i64::from(s)).collect();
+        let g = lcf(n, &shifts64, repeats).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "turanGraph")]
+    pub fn turan_wasm(n: u32, r: u32) -> Result<WasmGraph, JsError> {
+        let result = turan(n, r).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph {
+            inner: result.graph,
+        })
+    }
+
+    #[wasm_bindgen(js_name = "regularTree")]
+    pub fn regular_tree_wasm(h: u32, k: u32, mode: &str) -> Result<WasmGraph, JsError> {
+        let m = match mode {
+            "in" => TreeMode::In,
+            "out" => TreeMode::Out,
+            _ => TreeMode::Undirected,
+        };
+        let g = regular_tree(h, k, m).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "symmetricTree")]
+    pub fn symmetric_tree_wasm(branches: &[u32], mode: &str) -> Result<WasmGraph, JsError> {
+        let m = match mode {
+            "in" => TreeMode::In,
+            "out" => TreeMode::Out,
+            _ => TreeMode::Undirected,
+        };
+        let g = symmetric_tree(branches, m).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "hammingGraph")]
+    pub fn hamming_wasm(n: u32, q: u32, directed: bool) -> Result<WasmGraph, JsError> {
+        let g = hamming(n, q, directed).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "difference")]
+    pub fn difference_wasm(&self, other: &WasmGraph) -> Result<WasmGraph, JsError> {
+        let g = difference(&self.inner, &other.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "graphJoin")]
+    pub fn join_wasm(&self, other: &WasmGraph) -> Result<WasmGraph, JsError> {
+        let g = join(&self.inner, &other.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "rewire")]
+    pub fn rewire_wasm(
+        &self,
+        num_trials: u32,
+        loops: bool,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let g = rewire(&self.inner, num_trials as usize, loops, s)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "gabrielGraph")]
+    pub fn gabriel_graph_wasm(points_flat: &[f64], dim: u32) -> Result<WasmGraph, JsError> {
+        let d = dim as usize;
+        let points: Vec<Vec<f64>> = points_flat.chunks(d).map(<[f64]>::to_vec).collect();
+        let g = gabriel_graph(&points).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "relativeNeighborhoodGraph")]
+    pub fn relative_neighborhood_graph_wasm(
+        points_flat: &[f64],
+        dim: u32,
+    ) -> Result<WasmGraph, JsError> {
+        let d = dim as usize;
+        let points: Vec<Vec<f64>> = points_flat.chunks(d).map(<[f64]>::to_vec).collect();
+        let g = relative_neighborhood_graph(&points).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "nearestNeighborGraph")]
+    pub fn nearest_neighbor_graph_wasm(
+        points_flat: &[f64],
+        dim: u32,
+        k: u32,
+    ) -> Result<WasmGraph, JsError> {
+        use rust_igraph::DistanceMetric;
+        let d = dim as usize;
+        let points: Vec<Vec<f64>> = points_flat.chunks(d).map(<[f64]>::to_vec).collect();
+        let g = nearest_neighbor_graph(
+            &points,
+            DistanceMetric::Euclidean,
+            i64::from(k),
+            f64::INFINITY,
+            false,
+        )
+        .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
     }
 }
