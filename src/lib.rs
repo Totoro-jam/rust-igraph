@@ -393,6 +393,9 @@ pub use crate::algorithms::isomorphism::subiso::{
 pub use crate::algorithms::isomorphism::vf2::{
     Vf2Isomorphism, count_isomorphisms_vf2, get_isomorphisms_vf2, isomorphic_vf2,
 };
+pub use crate::algorithms::isomorphism::wl_hash::{
+    WlHashResult, wl_hash, wl_hash_iterations, wl_isomorphic,
+};
 pub use crate::algorithms::layout::align::layout_align;
 pub use crate::algorithms::layout::bipartite::layout_bipartite;
 pub use crate::algorithms::layout::davidson_harel::{DhParams, layout_davidson_harel};

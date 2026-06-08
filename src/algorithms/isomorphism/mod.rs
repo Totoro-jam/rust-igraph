@@ -10,6 +10,7 @@ pub(crate) mod queries;
 pub(crate) mod simplify_and_colorize;
 pub(crate) mod subiso;
 pub(crate) mod vf2;
+pub(crate) mod wl_hash;
 
 pub use canonical::automorphism_group::automorphism_group;
 pub use canonical::canonical_permutation::canonical_permutation;
@@ -22,3 +23,4 @@ pub use subiso::{
     Vf2Subisomorphism, count_subisomorphisms_vf2, get_subisomorphisms_vf2, subisomorphic_vf2,
 };
 pub use vf2::{Vf2Isomorphism, count_isomorphisms_vf2, get_isomorphisms_vf2, isomorphic_vf2};
+pub use wl_hash::{WlHashResult, wl_hash, wl_hash_iterations, wl_isomorphic};
