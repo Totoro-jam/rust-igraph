@@ -648,6 +648,9 @@ pub use crate::algorithms::properties::graph_curvature::{
 pub use crate::algorithms::properties::graph_entropy::{
     degree_entropy, degree_structural_info, edge_entropy, von_neumann_entropy,
 };
+pub use crate::algorithms::properties::graph_periphery::{
+    EccentricityClasses, eccentricity_classes, graph_periphery,
+};
 pub use crate::algorithms::properties::graphicality::{
     EdgeTypeFilter, is_bigraphical, is_graphical,
 };

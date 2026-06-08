@@ -50,6 +50,7 @@ pub(crate) mod graph_bandwidth;
 pub(crate) mod graph_coloring;
 pub(crate) mod graph_curvature;
 pub(crate) mod graph_entropy;
+pub(crate) mod graph_periphery;
 pub(crate) mod graphicality;
 pub(crate) mod hamiltonian;
 pub(crate) mod harmonic;
@@ -244,6 +245,7 @@ pub use graph_curvature::{
 pub use graph_entropy::{
     degree_entropy, degree_structural_info, edge_entropy, von_neumann_entropy,
 };
+pub use graph_periphery::{EccentricityClasses, eccentricity_classes, graph_periphery};
 pub use graphicality::{EdgeTypeFilter, is_bigraphical, is_graphical};
 pub use hamiltonian::{
     hamiltonian_cycle, hamiltonian_path, has_hamiltonian_cycle, has_hamiltonian_path,
