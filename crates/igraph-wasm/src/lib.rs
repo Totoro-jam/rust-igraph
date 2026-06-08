@@ -36,6 +36,7 @@ use rust_igraph::{
     TreeMode,
     VconnNei,
     VertexId,
+    VoronoiTiebreaker,
     WheelMode,
     adhesion,
     all_minimal_st_separators,
@@ -43,7 +44,10 @@ use rust_igraph::{
     all_st_cuts,
     are_adjacent,
     articulation_points,
+    // batch 8
+    assortativity,
     assortativity_degree,
+    assortativity_nominal,
     atlas,
     automorphism_group,
     average_local_efficiency,
@@ -51,6 +55,7 @@ use rust_igraph::{
     barabasi_game_bag,
     bellman_ford_distances,
     betweenness,
+    betweenness_cutoff,
     betweenness_weighted,
     bfs,
     bfs_simple,
@@ -114,6 +119,7 @@ use rust_igraph::{
     eccentricity,
     edge_betweenness,
     edge_betweenness_community,
+    edge_betweenness_weighted,
     edge_connectivity,
     edge_disjoint_paths,
     eigenvector_centrality,
@@ -130,6 +136,7 @@ use rust_igraph::{
     find_cycle,
     floyd_warshall_distances,
     fluid_communities,
+    forest_fire_game,
     from_prufer,
     full_bipartite,
     full_citation,
@@ -147,8 +154,10 @@ use rust_igraph::{
     graph_center,
     graph_power,
     grg_game,
+    growing_random_game,
     hamming,
     harmonic_centrality,
+    harmonic_centrality_weighted,
     has_mutual,
     hexagonal_lattice,
     hrg_consensus,
@@ -242,7 +251,9 @@ use rust_igraph::{
     is_windmill,
     isomorphic,
     isomorphic_bliss,
+    johnson_distances,
     join,
+    k_regular_game,
     k_shortest_paths,
     kary_tree,
     katz_centrality,
@@ -267,6 +278,7 @@ use rust_igraph::{
     leading_eigenvector,
     leiden,
     line_graph,
+    linegraph,
     list_triangles,
     local_efficiency,
     louvain,
@@ -275,8 +287,10 @@ use rust_igraph::{
     max_flow_value,
     maximal_cliques,
     maximum_cut,
+    maximum_independent_set,
     mean_degree,
     mean_distance,
+    mean_distance_weighted,
     min_degree,
     mincut,
     mincut_value,
@@ -286,10 +300,12 @@ use rust_igraph::{
     minimum_spanning_tree,
     minimum_vertex_cover,
     modularity,
+    mycielski_graph,
     mycielskian,
     nearest_neighbor_graph,
     neighborhood,
     pagerank,
+    pagerank_weighted,
     path_graph,
     path_length_hist,
     permute_vertices,
@@ -299,6 +315,7 @@ use rust_igraph::{
     radius,
     random_spanning_tree,
     random_walk,
+    reachability_matrix,
     reciprocity,
     regular_tree,
     regularity,
@@ -314,10 +331,13 @@ use rust_igraph::{
     simple_cycles,
     simplify,
     sir,
+    solve_lsap,
     sort_vertices_by_degree,
     spanner,
+    spatial_edge_lengths,
     spinglass,
     square_lattice,
+    st_edge_connectivity,
     st_mincut,
     st_mincut_value,
     st_vertex_connectivity,
@@ -346,6 +366,7 @@ use rust_igraph::{
     vertex_coloring_greedy,
     vertex_connectivity,
     vertex_disjoint_paths,
+    voronoi,
     walktrap,
     watts_strogatz_game,
     wheel_graph,
@@ -4142,5 +4163,266 @@ impl WasmGraph {
         )
         .map_err(|e| JsError::new(&e.to_string()))?;
         Ok(WasmGraph { inner: g })
+    }
+
+    // ── batch 8: paths, flow, centrality variants, generators, operators ──
+
+    #[wasm_bindgen(js_name = "johnsonDistances")]
+    pub fn johnson_distances_wasm(&self, weights: &[f64]) -> Result<String, JsError> {
+        let dists =
+            johnson_distances(&self.inner, weights).map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&dists).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "topologicalSorting")]
+    pub fn topological_sorting_wasm(&self, mode: &str) -> Result<Vec<u32>, JsError> {
+        let m = match mode {
+            "in" => DijkstraMode::In,
+            _ => DijkstraMode::Out,
+        };
+        topological_sorting(&self.inner, m).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "voronoi")]
+    pub fn voronoi_wasm(
+        &self,
+        generators: &[u32],
+        mode: &str,
+        tiebreaker: &str,
+    ) -> Result<String, JsError> {
+        let m = match mode {
+            "out" => DijkstraMode::Out,
+            "in" => DijkstraMode::In,
+            _ => DijkstraMode::All,
+        };
+        let tb = match tiebreaker {
+            "random" => VoronoiTiebreaker::Random,
+            _ => VoronoiTiebreaker::First,
+        };
+        let result = voronoi(&self.inner, None, m, generators, tb, 42)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        #[derive(Serialize)]
+        struct VoronoiOut {
+            membership: Vec<Option<u32>>,
+            distances: Vec<f64>,
+        }
+        let out = VoronoiOut {
+            membership: result.membership,
+            distances: result.distances,
+        };
+        serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "maxFlowValue")]
+    pub fn max_flow_value_wasm(&self, source: u32, target: u32) -> Result<f64, JsError> {
+        max_flow_value(&self.inner, source, target, None).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "stEdgeConnectivity")]
+    pub fn st_edge_connectivity_wasm(&self, source: u32, target: u32) -> Result<i64, JsError> {
+        st_edge_connectivity(&self.inner, source, target).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "betweennessCutoff")]
+    pub fn betweenness_cutoff_wasm(&self, cutoff: u32) -> Result<Vec<f64>, JsError> {
+        betweenness_cutoff(&self.inner, cutoff).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "edgeBetweennessWeighted")]
+    pub fn edge_betweenness_weighted_wasm(&self, weights: &[f64]) -> Result<Vec<f64>, JsError> {
+        edge_betweenness_weighted(&self.inner, weights).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "harmonicCentralityWeighted")]
+    pub fn harmonic_centrality_weighted_wasm(&self, weights: &[f64]) -> Result<Vec<f64>, JsError> {
+        harmonic_centrality_weighted(&self.inner, weights).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "pagerankWeighted")]
+    pub fn pagerank_weighted_wasm(&self, weights: &[f64]) -> Result<Vec<f64>, JsError> {
+        pagerank_weighted(&self.inner, weights).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "meanDistanceWeighted")]
+    pub fn mean_distance_weighted_wasm(
+        &self,
+        weights: &[f64],
+        directed: bool,
+    ) -> Result<f64, JsError> {
+        let r = mean_distance_weighted(&self.inner, weights, directed, true)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        r.ok_or_else(|| JsError::new("mean distance undefined (disconnected graph)"))
+    }
+
+    #[wasm_bindgen(js_name = "assortativity")]
+    pub fn assortativity_wasm(&self, values: &[f64], directed: bool) -> Result<f64, JsError> {
+        let r = assortativity(&self.inner, values, None, None, directed, true)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        r.ok_or_else(|| JsError::new("assortativity undefined for this graph"))
+    }
+
+    #[wasm_bindgen(js_name = "assortativityNominal")]
+    pub fn assortativity_nominal_wasm(
+        &self,
+        types: &[u32],
+        directed: bool,
+    ) -> Result<f64, JsError> {
+        assortativity_nominal(&self.inner, types, directed, true)
+            .map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isBipartite")]
+    pub fn is_bipartite_wasm(&self) -> Result<String, JsError> {
+        let result = is_bipartite(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        #[derive(Serialize)]
+        struct BipartiteOut {
+            is_bipartite: bool,
+            types: Vec<bool>,
+        }
+        let out = BipartiteOut {
+            is_bipartite: result.is_bipartite,
+            types: result.types,
+        };
+        serde_json::to_string(&out).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "isConnected")]
+    pub fn is_connected_wasm(&self, mode: &str) -> Result<bool, JsError> {
+        let m = match mode {
+            "strong" => ConnectednessMode::Strong,
+            _ => ConnectednessMode::Weak,
+        };
+        is_connected(&self.inner, m).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "erdosRenyiGnp")]
+    pub fn erdos_renyi_gnp_wasm(
+        n: u32,
+        p: f64,
+        directed: bool,
+        loops: bool,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let g =
+            erdos_renyi_gnp(n, p, directed, loops, s).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "kRegularGame")]
+    pub fn k_regular_game_wasm(
+        n: u32,
+        k: u32,
+        directed: bool,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let g =
+            k_regular_game(n, k, directed, false, s).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "wattsStrogatzGame")]
+    pub fn watts_strogatz_game_wasm(
+        size: u32,
+        nei: u32,
+        p: f64,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let g = watts_strogatz_game(size, nei, p, false, false, s)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "forestFireGame")]
+    pub fn forest_fire_game_wasm(
+        n: u32,
+        fw_prob: f64,
+        bw_factor: f64,
+        directed: bool,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let g = forest_fire_game(n, fw_prob, bw_factor, 1, directed, s)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "growingRandomGame")]
+    pub fn growing_random_game_wasm(
+        n: u32,
+        m: u32,
+        directed: bool,
+        seed: f64,
+    ) -> Result<WasmGraph, JsError> {
+        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+        let s = seed as u64;
+        let g = growing_random_game(n, m, directed, false, s)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "hypercube")]
+    pub fn hypercube_wasm(n: u32, directed: bool) -> Result<WasmGraph, JsError> {
+        let g = hypercube(n, directed).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "mycielskiGraph")]
+    pub fn mycielski_graph_wasm(k: u32) -> Result<WasmGraph, JsError> {
+        let g = mycielski_graph(k).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "famous")]
+    pub fn famous_wasm(name: &str) -> Result<WasmGraph, JsError> {
+        let g = famous(name).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "linegraph")]
+    pub fn linegraph_wasm(&self) -> Result<WasmGraph, JsError> {
+        let g = linegraph(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "reverse")]
+    pub fn reverse_wasm(&self) -> Result<WasmGraph, JsError> {
+        let g = reverse(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmGraph { inner: g })
+    }
+
+    #[wasm_bindgen(js_name = "solveLsap")]
+    pub fn solve_lsap_wasm(costs: &[f64], n: u32) -> Result<Vec<u32>, JsError> {
+        solve_lsap(costs, n as usize).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "maximumIndependentSet")]
+    pub fn maximum_independent_set_wasm(&self) -> Result<Vec<u32>, JsError> {
+        maximum_independent_set(&self.inner).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "reachabilityMatrix")]
+    pub fn reachability_matrix_wasm(&self) -> Result<String, JsError> {
+        let mat = reachability_matrix(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;
+        serde_json::to_string(&mat).map_err(|e| JsError::new(&e.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "spatialEdgeLengths")]
+    pub fn spatial_edge_lengths_wasm(
+        &self,
+        coords_flat: &[f64],
+        dim: u32,
+    ) -> Result<Vec<f64>, JsError> {
+        use rust_igraph::DistanceMetric;
+        let d = dim as usize;
+        let coords: Vec<Vec<f64>> = coords_flat.chunks(d).map(<[f64]>::to_vec).collect();
+        spatial_edge_lengths(&self.inner, &coords, DistanceMetric::Euclidean)
+            .map_err(|e| JsError::new(&e.to_string()))
     }
 }
