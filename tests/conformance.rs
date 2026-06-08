@@ -19394,10 +19394,10 @@ fn diversity_three_source_conformance() {
             let case: Conformance = serde_json::from_slice(&bytes).expect("parse");
             let g = build_graph(&case.graph);
             let weights = case.graph.weights.as_deref().expect("weights required");
-            let div = rust_igraph::diversity(&g, weights).expect("diversity");
+            let result = rust_igraph::diversity(&g, weights).expect("diversity");
             assert!(
-                json_approx_eq(&serde_json::json!(div), &case.expected),
-                "diversity conformance failure\n  fixture: {}\n  actual:  {div:?}\n  expected: {}",
+                json_approx_eq(&serde_json::json!(result), &case.expected),
+                "diversity conformance failure\n  fixture: {}\n  actual:  {result:?}\n  expected: {}",
                 path.display(),
                 case.expected,
             );
