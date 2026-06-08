@@ -645,8 +645,8 @@ export function ResultsOutput({ algo, result, elapsed, vcount, edgeCount, t }: R
               </tr>
             </thead>
             <tbody>
-              {table.map((row) => (
-                <tr key={row.vertex}>
+              {table.map((row, idx) => (
+                <tr key={idx}>
                   <td className={styles.tdVertex}>v{row.vertex}</td>
                   <td className={styles.tdValue}>
                     {row.colorIndex != null && (
