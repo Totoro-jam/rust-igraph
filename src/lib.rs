@@ -654,6 +654,9 @@ pub use crate::algorithms::properties::hits::{
 pub use crate::algorithms::properties::homophily::{
     class_homophily, edge_heterophily, edge_homophily, node_homophily,
 };
+pub use crate::algorithms::properties::independent_set::{
+    greedy_independent_set, independence_ratio,
+};
 pub use crate::algorithms::properties::is_acyclic::is_acyclic;
 pub use crate::algorithms::properties::is_apex_forest::is_apex_forest;
 pub use crate::algorithms::properties::is_apex_tree::is_apex_tree;
