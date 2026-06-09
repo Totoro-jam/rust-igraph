@@ -975,6 +975,9 @@ pub use crate::algorithms::properties::spectral_metrics::{
     communicability_matrix, estrada_index, graph_energy, natural_connectivity, spectral_gap,
     spectral_radius, subgraph_centrality,
 };
+pub use crate::algorithms::properties::spectral_ratios::{
+    cyclomatic_density, degree_spectral_gap_estimate, degree_variance_ratio, edge_vertex_ratio,
+};
 pub use crate::algorithms::properties::stochastic::get_stochastic;
 pub use crate::algorithms::properties::strength::{
     StrengthMode, diversity, strength, strength_with_mode,

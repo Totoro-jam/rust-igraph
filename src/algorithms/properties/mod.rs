@@ -217,6 +217,7 @@ pub(crate) mod sombor_index;
 pub(crate) mod sombor_variants;
 pub(crate) mod sort_by_degree;
 pub(crate) mod spectral_metrics;
+pub(crate) mod spectral_ratios;
 pub(crate) mod stochastic;
 pub(crate) mod strength;
 pub(crate) mod structural_features;
@@ -562,6 +563,9 @@ pub use sort_by_degree::{SortOrder, sort_vertices_by_degree};
 pub use spectral_metrics::{
     communicability_matrix, estrada_index, graph_energy, natural_connectivity, spectral_gap,
     spectral_radius, subgraph_centrality,
+};
+pub use spectral_ratios::{
+    cyclomatic_density, degree_spectral_gap_estimate, degree_variance_ratio, edge_vertex_ratio,
 };
 pub use stochastic::get_stochastic;
 pub use strength::{StrengthMode, diversity, strength, strength_with_mode};
