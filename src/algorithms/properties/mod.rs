@@ -59,6 +59,7 @@ pub(crate) mod edge_degree_mean;
 pub(crate) mod edge_degree_norm;
 pub(crate) mod edge_degree_pair;
 pub(crate) mod edge_irregularity;
+pub(crate) mod edge_neighborhood_overlap;
 pub(crate) mod edgelist;
 pub(crate) mod efficiency;
 pub(crate) mod eigenvector;
@@ -318,6 +319,9 @@ pub use edge_degree_pair::{
     edge_degree_log_product, edge_degree_max_sum, edge_degree_mean_sum, edge_degree_min_sum,
 };
 pub use edge_irregularity::{ira_index, irb_index, ird_index, irga_index};
+pub use edge_neighborhood_overlap::{
+    edge_adamic_adar_sum, edge_common_neighbor_sum, edge_jaccard_sum, edge_overlap_sum,
+};
 pub use edgelist::get_edgelist;
 pub use efficiency::{average_local_efficiency, global_efficiency, local_efficiency};
 pub use eigenvector::{

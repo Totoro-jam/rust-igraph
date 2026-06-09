@@ -678,6 +678,9 @@ pub use crate::algorithms::properties::edge_degree_pair::{
 pub use crate::algorithms::properties::edge_irregularity::{
     ira_index, irb_index, ird_index, irga_index,
 };
+pub use crate::algorithms::properties::edge_neighborhood_overlap::{
+    edge_adamic_adar_sum, edge_common_neighbor_sum, edge_jaccard_sum, edge_overlap_sum,
+};
 pub use crate::algorithms::properties::edgelist::get_edgelist;
 pub use crate::algorithms::properties::efficiency::{
     average_local_efficiency, global_efficiency, local_efficiency,
