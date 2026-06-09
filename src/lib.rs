@@ -688,6 +688,9 @@ pub use crate::algorithms::properties::homophily::{
 };
 pub use crate::algorithms::properties::hosoya_index::{hosoya_index, matching_count_sequence};
 pub use crate::algorithms::properties::hyper_wiener::{harary_index, hyper_wiener_index};
+pub use crate::algorithms::properties::hyper_zagreb::{
+    first_hyper_zagreb, first_redefined_zagreb, second_hyper_zagreb,
+};
 pub use crate::algorithms::properties::hyperbolicity::{hyperbolicity, hyperbolicity_twice};
 pub use crate::algorithms::properties::independent_set::{
     greedy_independent_set, independence_ratio,
