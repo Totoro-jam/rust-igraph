@@ -48,6 +48,7 @@ pub(crate) mod edge_degree_indices;
 pub(crate) mod edgelist;
 pub(crate) mod efficiency;
 pub(crate) mod eigenvector;
+pub(crate) mod ev_degree_indices;
 pub(crate) mod forgotten_zagreb;
 pub(crate) mod general_randic;
 pub(crate) mod get_biadjacency;
@@ -269,6 +270,7 @@ pub use eigenvector::{
     eigenvector_centrality_directed_weighted, eigenvector_centrality_full,
     eigenvector_centrality_weighted,
 };
+pub use ev_degree_indices::{ev_degree_randic, first_ev_degree_zagreb, second_ev_degree_zagreb};
 pub use forgotten_zagreb::{forgotten_index, modified_first_zagreb, reduced_second_zagreb};
 pub use general_randic::{
     general_randic_index, general_sum_connectivity_index, reciprocal_randic_index,
