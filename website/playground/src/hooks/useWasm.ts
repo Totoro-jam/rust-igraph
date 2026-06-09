@@ -27,7 +27,7 @@ const WASM_SUPPORTED_ALGOS: Set<AlgoId> = new Set([
   'trussness', 'automorphism_group',
   'clique_number', 'independence_number', 'maximal_cliques',
   'vertex_connectivity', 'edge_connectivity', 'minimum_spanning_tree',
-  'bellman_ford',
+  'bellman_ford', 'k_shortest_paths',
 ]);
 
 export function useWasm(
@@ -59,6 +59,7 @@ export function useWasm(
         const result = runDemoAlgo(algo, vcount, edges, {
           damping: params.damping,
           source: params.source,
+          target: params.target,
         });
         const elapsed_ms = performance.now() - t0;
         return { algo, result, coords, elapsed_ms };
