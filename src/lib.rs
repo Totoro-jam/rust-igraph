@@ -884,6 +884,9 @@ pub use crate::algorithms::properties::similarity::{
 pub use crate::algorithms::properties::sombor_index::{
     average_sombor_index, reduced_sombor_index, sombor_index,
 };
+pub use crate::algorithms::properties::sombor_variants::{
+    elliptic_sombor_index, modified_sombor_index, sombor_coindex,
+};
 pub use crate::algorithms::properties::sort_by_degree::{SortOrder, sort_vertices_by_degree};
 pub use crate::algorithms::properties::spectral_metrics::{
     communicability_matrix, estrada_index, graph_energy, natural_connectivity, spectral_gap,

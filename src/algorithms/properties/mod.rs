@@ -188,6 +188,7 @@ pub(crate) mod signal_smoothness;
 pub(crate) mod signless_laplacian;
 pub(crate) mod similarity;
 pub(crate) mod sombor_index;
+pub(crate) mod sombor_variants;
 pub(crate) mod sort_by_degree;
 pub(crate) mod spectral_metrics;
 pub(crate) mod stochastic;
@@ -459,6 +460,7 @@ pub use similarity::{
     similarity_jaccard_es, similarity_jaccard_pairs,
 };
 pub use sombor_index::{average_sombor_index, reduced_sombor_index, sombor_index};
+pub use sombor_variants::{elliptic_sombor_index, modified_sombor_index, sombor_coindex};
 pub use sort_by_degree::{SortOrder, sort_vertices_by_degree};
 pub use spectral_metrics::{
     communicability_matrix, estrada_index, graph_energy, natural_connectivity, spectral_gap,
