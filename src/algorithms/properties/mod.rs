@@ -230,6 +230,7 @@ pub(crate) mod triangles;
 pub(crate) mod trussness;
 pub(crate) mod unfold_tree;
 pub(crate) mod ve_degree_indices;
+pub(crate) mod walk_diversity;
 pub(crate) mod wiener_polarity_index;
 pub(crate) mod zagreb_connection;
 
@@ -578,6 +579,9 @@ pub use trussness::trussness;
 pub use unfold_tree::{UnfoldTreeResult, unfold_tree};
 pub use ve_degree_indices::{
     first_ve_degree_zagreb_alpha, first_ve_degree_zagreb_beta, second_ve_degree_zagreb,
+};
+pub use walk_diversity::{
+    avg_neighbor_connectivity, degree_laplacian_energy, walk_entropy, walk_regularity,
 };
 pub use wiener_polarity_index::{count_pairs_at_distance, wiener_polarity_index};
 pub use zagreb_connection::{

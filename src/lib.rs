@@ -1007,6 +1007,9 @@ pub use crate::algorithms::properties::unfold_tree::{UnfoldTreeResult, unfold_tr
 pub use crate::algorithms::properties::ve_degree_indices::{
     first_ve_degree_zagreb_alpha, first_ve_degree_zagreb_beta, second_ve_degree_zagreb,
 };
+pub use crate::algorithms::properties::walk_diversity::{
+    avg_neighbor_connectivity, degree_laplacian_energy, walk_entropy, walk_regularity,
+};
 pub use crate::algorithms::properties::wiener_polarity_index::{
     count_pairs_at_distance, wiener_polarity_index,
 };
