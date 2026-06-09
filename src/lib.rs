@@ -628,6 +628,9 @@ pub use crate::algorithms::properties::degree_ratio_indices::{
     degree_diff_connectivity, degree_harmonic_mean_index, minmax_degree_ratio,
     symmetric_degree_ratio,
 };
+pub use crate::algorithms::properties::degree_shape::{
+    degree_concentration, degree_diversity, degree_mode, hub_dominance,
+};
 pub use crate::algorithms::properties::degree_spread::{
     degree_iqr, degree_median, degree_range, degree_span_ratio,
 };

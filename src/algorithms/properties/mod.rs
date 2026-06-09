@@ -40,6 +40,7 @@ pub(crate) mod degree_eccentricity;
 pub(crate) mod degree_moments;
 pub(crate) mod degree_power_indices;
 pub(crate) mod degree_ratio_indices;
+pub(crate) mod degree_shape;
 pub(crate) mod degree_spread;
 pub(crate) mod degree_sum_variants;
 pub(crate) mod diffusion;
@@ -275,6 +276,7 @@ pub use degree_ratio_indices::{
     degree_diff_connectivity, degree_harmonic_mean_index, minmax_degree_ratio,
     symmetric_degree_ratio,
 };
+pub use degree_shape::{degree_concentration, degree_diversity, degree_mode, hub_dominance};
 pub use degree_spread::{degree_iqr, degree_median, degree_range, degree_span_ratio};
 pub use degree_sum_variants::{albertson_coindex, arithmetic_geometric_index, sigma_coindex};
 pub use diffusion::{heat_kernel_diffuse, ppr_diffuse, symmetric_diffuse};
