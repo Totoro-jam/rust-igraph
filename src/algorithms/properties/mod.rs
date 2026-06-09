@@ -37,6 +37,7 @@ pub(crate) mod degree_correlation;
 pub(crate) mod degree_deviation;
 pub(crate) mod degree_distribution;
 pub(crate) mod degree_eccentricity;
+pub(crate) mod degree_inequality;
 pub(crate) mod degree_moments;
 pub(crate) mod degree_neighbor_stats;
 pub(crate) mod degree_power_indices;
@@ -273,6 +274,7 @@ pub use degree_deviation::{
 };
 pub use degree_distribution::degree_distribution;
 pub use degree_eccentricity::{degree_eccentricity_index, eccentric_distance_sum, lanzhou_index};
+pub use degree_inequality::{degree_herfindahl, degree_hoover, degree_palma, degree_theil};
 pub use degree_moments::{degree_gini, degree_kurtosis, degree_max_deviation, degree_skewness};
 pub use degree_neighbor_stats::{
     degree_neighbor_max_sum, degree_neighbor_min_sum, degree_neighbor_range_sum,
