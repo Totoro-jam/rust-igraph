@@ -903,6 +903,9 @@ pub use crate::algorithms::properties::topological_indices::{
     abc_index, first_zagreb_index, harmonic_graph_index, randic_index, second_zagreb_index,
 };
 pub use crate::algorithms::properties::topological_sorting::topological_sorting;
+pub use crate::algorithms::properties::transmission_zagreb::{
+    first_transmission_zagreb, reciprocal_transmission_index, second_transmission_zagreb,
+};
 pub use crate::algorithms::properties::treewidth::{
     elimination_ordering, treewidth_min_fill, treewidth_upper_bound,
 };

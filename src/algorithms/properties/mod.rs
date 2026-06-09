@@ -196,6 +196,7 @@ pub(crate) mod szeged_edge;
 pub(crate) mod szeged_index;
 pub(crate) mod topological_indices;
 pub(crate) mod topological_sorting;
+pub(crate) mod transmission_zagreb;
 pub(crate) mod treewidth;
 pub(crate) mod triangles;
 pub(crate) mod trussness;
@@ -467,6 +468,9 @@ pub use topological_indices::{
     abc_index, first_zagreb_index, harmonic_graph_index, randic_index, second_zagreb_index,
 };
 pub use topological_sorting::topological_sorting;
+pub use transmission_zagreb::{
+    first_transmission_zagreb, reciprocal_transmission_index, second_transmission_zagreb,
+};
 pub use treewidth::{elimination_ordering, treewidth_min_fill, treewidth_upper_bound};
 pub use triangles::{
     TransitivityMode, count_adjacent_triangles, count_triangles, transitivity_avglocal_undirected,
