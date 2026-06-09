@@ -656,6 +656,9 @@ pub use crate::algorithms::properties::get_biadjacency_weighted::{
 };
 pub use crate::algorithms::properties::get_eids::get_eids;
 pub use crate::algorithms::properties::girth::girth;
+pub use crate::algorithms::properties::gourava_index::{
+    first_gourava_index, first_hyper_gourava_index, second_gourava_index,
+};
 pub use crate::algorithms::properties::graph_bandwidth::{
     bandwidth, bandwidth_lower_bound, bandwidth_of_labeling,
 };

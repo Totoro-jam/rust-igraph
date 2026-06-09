@@ -54,6 +54,7 @@ pub(crate) mod get_biadjacency;
 pub(crate) mod get_biadjacency_weighted;
 pub(crate) mod get_eids;
 pub(crate) mod girth;
+pub(crate) mod gourava_index;
 pub(crate) mod graph_bandwidth;
 pub(crate) mod graph_coloring;
 pub(crate) mod graph_curvature;
@@ -271,6 +272,7 @@ pub use get_biadjacency::{GetBiadjacencyResult, get_biadjacency_matrix};
 pub use get_biadjacency_weighted::{GetBiadjacencyWeightedResult, get_biadjacency_weighted};
 pub use get_eids::get_eids;
 pub use girth::girth;
+pub use gourava_index::{first_gourava_index, first_hyper_gourava_index, second_gourava_index};
 pub use graph_bandwidth::{bandwidth, bandwidth_lower_bound, bandwidth_of_labeling};
 pub use graph_coloring::{
     chromatic_number_greedy, greedy_clique_number, greedy_coloring, greedy_coloring_largest_first,
