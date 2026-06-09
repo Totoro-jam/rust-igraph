@@ -171,6 +171,7 @@ pub(crate) mod stochastic;
 pub(crate) mod strength;
 pub(crate) mod structural_features;
 pub(crate) mod summary;
+pub(crate) mod szeged_index;
 pub(crate) mod topological_indices;
 pub(crate) mod topological_sorting;
 pub(crate) mod treewidth;
@@ -402,6 +403,7 @@ pub use stochastic::get_stochastic;
 pub use strength::{StrengthMode, diversity, strength, strength_with_mode};
 pub use structural_features::{StructuralFeatures, degree_profile, structural_feature_vectors};
 pub use summary::{GraphSummary, graph_summary, graph_summary_string};
+pub use szeged_index::{pi_index, revised_szeged_index, szeged_index};
 pub use topological_indices::{
     abc_index, first_zagreb_index, harmonic_graph_index, randic_index, second_zagreb_index,
 };

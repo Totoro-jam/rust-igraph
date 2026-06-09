@@ -836,6 +836,9 @@ pub use crate::algorithms::properties::structural_features::{
 pub use crate::algorithms::properties::summary::{
     GraphSummary, graph_summary, graph_summary_string,
 };
+pub use crate::algorithms::properties::szeged_index::{
+    pi_index, revised_szeged_index, szeged_index,
+};
 pub use crate::algorithms::properties::topological_indices::{
     abc_index, first_zagreb_index, harmonic_graph_index, randic_index, second_zagreb_index,
 };
