@@ -689,6 +689,9 @@ pub use crate::algorithms::properties::hyperbolicity::{hyperbolicity, hyperbolic
 pub use crate::algorithms::properties::independent_set::{
     greedy_independent_set, independence_ratio,
 };
+pub use crate::algorithms::properties::inverse_degree::{
+    first_zagreb_coindex, inverse_degree_index, second_zagreb_coindex,
+};
 pub use crate::algorithms::properties::irregularity::{
     albertson_index, degree_variance, sigma_index, total_irregularity,
 };
