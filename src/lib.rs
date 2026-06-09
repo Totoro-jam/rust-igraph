@@ -680,6 +680,9 @@ pub use crate::algorithms::properties::hyperbolicity::{hyperbolicity, hyperbolic
 pub use crate::algorithms::properties::independent_set::{
     greedy_independent_set, independence_ratio,
 };
+pub use crate::algorithms::properties::irregularity::{
+    albertson_index, degree_variance, sigma_index, total_irregularity,
+};
 pub use crate::algorithms::properties::is_acyclic::is_acyclic;
 pub use crate::algorithms::properties::is_apex_forest::is_apex_forest;
 pub use crate::algorithms::properties::is_apex_tree::is_apex_tree;
