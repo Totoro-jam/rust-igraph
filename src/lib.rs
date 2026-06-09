@@ -599,6 +599,9 @@ pub use crate::algorithms::properties::closeness_cutoff::{
     ClosenessCutoffResult, closeness_cutoff,
 };
 pub use crate::algorithms::properties::closeness_weighted::closeness_weighted;
+pub use crate::algorithms::properties::connectivity_ratios::{
+    component_ratio, giant_component_gap, largest_component_fraction, vertex_connectivity_ratio,
+};
 pub use crate::algorithms::properties::constraint::constraint;
 pub use crate::algorithms::properties::convergence_degree::{
     convergence_degree, convergence_degree_full,
