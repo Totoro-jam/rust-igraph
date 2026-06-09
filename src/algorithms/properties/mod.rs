@@ -47,6 +47,7 @@ pub(crate) mod edge_betweenness_cutoff;
 pub(crate) mod edge_betweenness_subset;
 pub(crate) mod edge_betweenness_weighted;
 pub(crate) mod edge_degree_indices;
+pub(crate) mod edge_irregularity;
 pub(crate) mod edgelist;
 pub(crate) mod efficiency;
 pub(crate) mod eigenvector;
@@ -276,6 +277,7 @@ pub use edge_betweenness_cutoff::edge_betweenness_cutoff;
 pub use edge_betweenness_subset::edge_betweenness_subset;
 pub use edge_betweenness_weighted::edge_betweenness_weighted;
 pub use edge_degree_indices::{bertz_complexity_index, gordon_scantlebury_index, platt_index};
+pub use edge_irregularity::{ira_index, irb_index, ird_index, irga_index};
 pub use edgelist::get_edgelist;
 pub use efficiency::{average_local_efficiency, global_efficiency, local_efficiency};
 pub use eigenvector::{

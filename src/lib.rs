@@ -639,6 +639,9 @@ pub use crate::algorithms::properties::edge_betweenness_weighted::edge_betweenne
 pub use crate::algorithms::properties::edge_degree_indices::{
     bertz_complexity_index, gordon_scantlebury_index, platt_index,
 };
+pub use crate::algorithms::properties::edge_irregularity::{
+    ira_index, irb_index, ird_index, irga_index,
+};
 pub use crate::algorithms::properties::edgelist::get_edgelist;
 pub use crate::algorithms::properties::efficiency::{
     average_local_efficiency, global_efficiency, local_efficiency,
