@@ -903,6 +903,9 @@ pub use crate::algorithms::properties::mean_distance_weighted::mean_distance_wei
 pub use crate::algorithms::properties::merrifield_simmons::{
     independent_set_count_sequence, merrifield_simmons_index,
 };
+pub use crate::algorithms::properties::mixing_ratios::{
+    degree_assortativity_proxy, degree_mixing_entropy, hub_dominance_ratio, rich_club_density,
+};
 pub use crate::algorithms::properties::mostar_index::{
     degree_distance, gutman_index, mostar_index,
 };

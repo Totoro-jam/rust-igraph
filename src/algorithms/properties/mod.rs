@@ -186,6 +186,7 @@ pub(crate) mod local_scan_k;
 pub(crate) mod matching;
 pub(crate) mod mean_distance_weighted;
 pub(crate) mod merrifield_simmons;
+pub(crate) mod mixing_ratios;
 pub(crate) mod mostar_index;
 pub(crate) mod multiplicative_connectivity;
 pub(crate) mod multiplicity;
@@ -513,6 +514,9 @@ pub use matching::{
 };
 pub use mean_distance_weighted::mean_distance_weighted;
 pub use merrifield_simmons::{independent_set_count_sequence, merrifield_simmons_index};
+pub use mixing_ratios::{
+    degree_assortativity_proxy, degree_mixing_entropy, hub_dominance_ratio, rich_club_density,
+};
 pub use mostar_index::{degree_distance, gutman_index, mostar_index};
 pub use multiplicative_connectivity::{
     multiplicative_abc, multiplicative_ga, multiplicative_randic, multiplicative_sum_connectivity,
