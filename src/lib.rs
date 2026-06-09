@@ -921,6 +921,9 @@ pub use crate::algorithms::properties::triangles::{
 };
 pub use crate::algorithms::properties::trussness::trussness;
 pub use crate::algorithms::properties::unfold_tree::{UnfoldTreeResult, unfold_tree};
+pub use crate::algorithms::properties::ve_degree_indices::{
+    first_ve_degree_zagreb_alpha, first_ve_degree_zagreb_beta, second_ve_degree_zagreb,
+};
 pub use crate::algorithms::properties::wiener_polarity_index::{
     count_pairs_at_distance, wiener_polarity_index,
 };
