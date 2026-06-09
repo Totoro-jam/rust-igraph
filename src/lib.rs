@@ -637,6 +637,9 @@ pub use crate::algorithms::properties::degree_spread::{
 pub use crate::algorithms::properties::degree_sum_variants::{
     albertson_coindex, arithmetic_geometric_index, sigma_coindex,
 };
+pub use crate::algorithms::properties::degree_vertex_class::{
+    degree_core_ratio, degree_isolated_ratio, degree_leaf_ratio, degree_tail_ratio,
+};
 pub use crate::algorithms::properties::diffusion::{
     heat_kernel_diffuse, ppr_diffuse, symmetric_diffuse,
 };

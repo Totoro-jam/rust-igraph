@@ -43,6 +43,7 @@ pub(crate) mod degree_ratio_indices;
 pub(crate) mod degree_shape;
 pub(crate) mod degree_spread;
 pub(crate) mod degree_sum_variants;
+pub(crate) mod degree_vertex_class;
 pub(crate) mod diffusion;
 pub(crate) mod distance_spectrum;
 pub(crate) mod ecc;
@@ -281,6 +282,9 @@ pub use degree_ratio_indices::{
 pub use degree_shape::{degree_concentration, degree_diversity, degree_mode, hub_dominance};
 pub use degree_spread::{degree_iqr, degree_median, degree_range, degree_span_ratio};
 pub use degree_sum_variants::{albertson_coindex, arithmetic_geometric_index, sigma_coindex};
+pub use degree_vertex_class::{
+    degree_core_ratio, degree_isolated_ratio, degree_leaf_ratio, degree_tail_ratio,
+};
 pub use diffusion::{heat_kernel_diffuse, ppr_diffuse, symmetric_diffuse};
 pub use distance_spectrum::{
     distance_energy, distance_estrada_index, distance_spectral_radius, distance_spectrum,
