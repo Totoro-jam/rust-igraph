@@ -878,6 +878,9 @@ pub use crate::algorithms::properties::sum_connectivity::{
 pub use crate::algorithms::properties::summary::{
     GraphSummary, graph_summary, graph_summary_string,
 };
+pub use crate::algorithms::properties::szeged_edge::{
+    edge_pi_index, edge_szeged_index, graovac_ghorbani_index,
+};
 pub use crate::algorithms::properties::szeged_index::{
     pi_index, revised_szeged_index, szeged_index,
 };
