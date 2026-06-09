@@ -37,6 +37,7 @@ pub(crate) mod degree_correlation;
 pub(crate) mod degree_distribution;
 pub(crate) mod degree_eccentricity;
 pub(crate) mod degree_power_indices;
+pub(crate) mod degree_ratio_indices;
 pub(crate) mod degree_sum_variants;
 pub(crate) mod diffusion;
 pub(crate) mod distance_spectrum;
@@ -262,6 +263,10 @@ pub use degree_distribution::degree_distribution;
 pub use degree_eccentricity::{degree_eccentricity_index, eccentric_distance_sum, lanzhou_index};
 pub use degree_power_indices::{
     general_zeroth_order_randic, inverse_degree_power, variable_first_zagreb, variable_sum_exdeg,
+};
+pub use degree_ratio_indices::{
+    degree_diff_connectivity, degree_harmonic_mean_index, minmax_degree_ratio,
+    symmetric_degree_ratio,
 };
 pub use degree_sum_variants::{albertson_coindex, arithmetic_geometric_index, sigma_coindex};
 pub use diffusion::{heat_kernel_diffuse, ppr_diffuse, symmetric_diffuse};
