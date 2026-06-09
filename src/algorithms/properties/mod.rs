@@ -163,6 +163,7 @@ pub(crate) mod narumi_katayama;
 pub(crate) mod neighbor_agg;
 pub(crate) mod neighborhood;
 pub(crate) mod neighborhood_zagreb;
+pub(crate) mod nirmala_index;
 pub(crate) mod normalized_laplacian;
 pub(crate) mod pagerank;
 pub(crate) mod pagerank_linsys;
@@ -408,6 +409,7 @@ pub use neighborhood::{
 pub use neighborhood_zagreb::{
     first_neighborhood_zagreb, neighborhood_forgotten_index, second_neighborhood_zagreb,
 };
+pub use nirmala_index::{first_inverse_nirmala, nirmala_index, second_inverse_nirmala};
 pub use normalized_laplacian::{
     bipartiteness_ratio, cheeger_bounds, normalized_algebraic_connectivity,
     normalized_laplacian_spectrum, spectral_gap_ratio,

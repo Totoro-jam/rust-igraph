@@ -827,6 +827,9 @@ pub use crate::algorithms::properties::neighborhood::{
 pub use crate::algorithms::properties::neighborhood_zagreb::{
     first_neighborhood_zagreb, neighborhood_forgotten_index, second_neighborhood_zagreb,
 };
+pub use crate::algorithms::properties::nirmala_index::{
+    first_inverse_nirmala, nirmala_index, second_inverse_nirmala,
+};
 pub use crate::algorithms::properties::normalized_laplacian::{
     bipartiteness_ratio, cheeger_bounds, normalized_algebraic_connectivity,
     normalized_laplacian_spectrum, spectral_gap_ratio,
