@@ -657,6 +657,10 @@ pub use crate::algorithms::properties::ev_degree_indices::{
 pub use crate::algorithms::properties::exponential_indices::{
     exponential_abc, exponential_augmented_zagreb, exponential_ga, exponential_randic,
 };
+pub use crate::algorithms::properties::exponential_vertex_indices::{
+    exponential_first_zagreb, exponential_forgotten, exponential_inverse_degree,
+    exponential_sum_connectivity,
+};
 pub use crate::algorithms::properties::extended_irregularity::{
     bell_index, collatz_sinogowitz, degree_cv, irl_irregularity, irlu_irregularity,
 };

@@ -53,6 +53,7 @@ pub(crate) mod efficiency;
 pub(crate) mod eigenvector;
 pub(crate) mod ev_degree_indices;
 pub(crate) mod exponential_indices;
+pub(crate) mod exponential_vertex_indices;
 pub(crate) mod extended_irregularity;
 pub(crate) mod forgotten_coindex;
 pub(crate) mod forgotten_zagreb;
@@ -288,6 +289,10 @@ pub use eigenvector::{
 pub use ev_degree_indices::{ev_degree_randic, first_ev_degree_zagreb, second_ev_degree_zagreb};
 pub use exponential_indices::{
     exponential_abc, exponential_augmented_zagreb, exponential_ga, exponential_randic,
+};
+pub use exponential_vertex_indices::{
+    exponential_first_zagreb, exponential_forgotten, exponential_inverse_degree,
+    exponential_sum_connectivity,
 };
 pub use extended_irregularity::{
     bell_index, collatz_sinogowitz, degree_cv, irl_irregularity, irlu_irregularity,
