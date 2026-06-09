@@ -8,6 +8,7 @@
 // identical to the function they expose, e.g. `is_simple`,
 // `pagerank`) don't collide with the function re-exports in the
 // rendered rustdoc — see https://github.com/rust-lang/rust/issues/...
+pub(crate) mod abc_variants;
 pub(crate) mod adjacency;
 pub(crate) mod algebraic_connectivity;
 pub(crate) mod are_adjacent;
@@ -193,6 +194,7 @@ pub(crate) mod unfold_tree;
 pub(crate) mod wiener_polarity_index;
 pub(crate) mod zagreb_connection;
 
+pub use abc_variants::{degree_sum_index, fifth_ga_index, fourth_abc_index};
 pub use adjacency::{AdjacencyType, LoopHandling, get_adjacency};
 pub use algebraic_connectivity::{
     algebraic_connectivity, fiedler_vector, laplacian_spectrum, spanning_tree_count,

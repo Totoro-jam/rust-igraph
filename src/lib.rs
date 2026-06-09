@@ -558,6 +558,9 @@ pub use crate::algorithms::paths::widest_path::{
     widest_path_widths_with_mode, widest_path_with_mode, widest_paths, widest_paths_to,
     widest_paths_to_with_mode, widest_paths_with_mode,
 };
+pub use crate::algorithms::properties::abc_variants::{
+    degree_sum_index, fifth_ga_index, fourth_abc_index,
+};
 pub use crate::algorithms::properties::adjacency::{AdjacencyType, LoopHandling, get_adjacency};
 pub use crate::algorithms::properties::algebraic_connectivity::{
     algebraic_connectivity, fiedler_vector, laplacian_spectrum, spanning_tree_count,
