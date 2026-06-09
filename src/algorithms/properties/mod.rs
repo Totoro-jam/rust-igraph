@@ -171,6 +171,7 @@ pub(crate) mod running_mean;
 pub(crate) mod rwpe;
 pub(crate) mod satisfies_dirac;
 pub(crate) mod satisfies_ore;
+pub(crate) mod schultz_index;
 pub(crate) mod signal_smoothness;
 pub(crate) mod signless_laplacian;
 pub(crate) mod similarity;
@@ -410,6 +411,7 @@ pub use running_mean::{expand_path_to_pairs, running_mean};
 pub use rwpe::{rwpe, rwpe_vertices};
 pub use satisfies_dirac::satisfies_dirac;
 pub use satisfies_ore::satisfies_ore;
+pub use schultz_index::schultz_index;
 pub use signal_smoothness::{
     dirichlet_energy, normalized_dirichlet_energy, smoothness_ratio, total_variation,
 };

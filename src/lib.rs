@@ -832,6 +832,7 @@ pub use crate::algorithms::properties::running_mean::{expand_path_to_pairs, runn
 pub use crate::algorithms::properties::rwpe::{rwpe, rwpe_vertices};
 pub use crate::algorithms::properties::satisfies_dirac::satisfies_dirac;
 pub use crate::algorithms::properties::satisfies_ore::satisfies_ore;
+pub use crate::algorithms::properties::schultz_index::schultz_index;
 pub use crate::algorithms::properties::signal_smoothness::{
     dirichlet_energy, normalized_dirichlet_energy, smoothness_ratio, total_variation,
 };
