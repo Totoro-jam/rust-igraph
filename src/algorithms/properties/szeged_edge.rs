@@ -97,10 +97,10 @@ pub fn edge_szeged_index(graph: &Graph) -> IgraphResult<u64> {
             let du = u64::from(dist[ui][ai]) + u64::from(dist[ui][bi]);
             let dv = u64::from(dist[vi][ai]) + u64::from(dist[vi][bi]);
 
-            if du < dv {
-                mu += 1;
-            } else if dv < du {
-                mv += 1;
+            match du.cmp(&dv) {
+                std::cmp::Ordering::Less => mu += 1,
+                std::cmp::Ordering::Greater => mv += 1,
+                std::cmp::Ordering::Equal => {}
             }
         }
 
@@ -162,10 +162,10 @@ pub fn edge_pi_index(graph: &Graph) -> IgraphResult<u64> {
             let du = u64::from(dist[ui][ai]) + u64::from(dist[ui][bi]);
             let dv = u64::from(dist[vi][ai]) + u64::from(dist[vi][bi]);
 
-            if du < dv {
-                mu += 1;
-            } else if dv < du {
-                mv += 1;
+            match du.cmp(&dv) {
+                std::cmp::Ordering::Less => mu += 1,
+                std::cmp::Ordering::Greater => mv += 1,
+                std::cmp::Ordering::Equal => {}
             }
         }
 
@@ -213,10 +213,10 @@ pub fn graovac_ghorbani_index(graph: &Graph) -> IgraphResult<f64> {
             if dist[ui][w] == u32::MAX || dist[vi][w] == u32::MAX {
                 continue;
             }
-            if dist[ui][w] < dist[vi][w] {
-                nu += 1;
-            } else if dist[vi][w] < dist[ui][w] {
-                nv += 1;
+            match dist[ui][w].cmp(&dist[vi][w]) {
+                std::cmp::Ordering::Less => nu += 1,
+                std::cmp::Ordering::Greater => nv += 1,
+                std::cmp::Ordering::Equal => {}
             }
         }
 

@@ -16,7 +16,8 @@
     clippy::cast_precision_loss,
     clippy::many_single_char_names,
     clippy::needless_range_loop,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    clippy::unnecessary_wraps
 )]
 
 use crate::core::{Graph, IgraphResult};
@@ -483,7 +484,7 @@ mod tests {
     fn rt_transmission_regular() {
         // Transmission-regular: RT = n/σ
         for g in &[k3(), k4(), cycle4(), cycle5()] {
-            let n = g.vcount() as f64;
+            let n = f64::from(g.vcount());
             let s = transmissions(g)[0] as f64;
             let expected = n / s;
             assert!((reciprocal_transmission_index(g).unwrap() - expected).abs() < 1e-8);
