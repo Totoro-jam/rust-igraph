@@ -399,11 +399,11 @@ mod tests {
     fn irlu_equals_irl() {
         // For positive degrees, IRL = IRLU (by ln properties)
         for g in &[single_edge(), path3(), k3(), k4(), star5(), paw()] {
-            let irl_val = irl_irregularity(g).unwrap();
-            let irlu_val = irlu_irregularity(g).unwrap();
+            let val_irl = irl_irregularity(g).unwrap();
+            let val_irlu = irlu_irregularity(g).unwrap();
             assert!(
-                (irl_val - irlu_val).abs() < 1e-10,
-                "IRL={irl_val} IRLU={irlu_val}"
+                (val_irl - val_irlu).abs() < 1e-10,
+                "IRL={val_irl} IRLU={val_irlu}"
             );
         }
     }

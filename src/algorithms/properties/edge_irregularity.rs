@@ -272,11 +272,11 @@ mod tests {
     fn ira_alpha2_equals_ird() {
         // α=2: equals IRD
         for g in &[single_edge(), path3(), k3(), star5(), paw()] {
-            let ird_val = ird_index(g).unwrap();
-            let ira_val = ira_index(g, 2.0).unwrap();
+            let square_diff = ird_index(g).unwrap();
+            let power_diff = ira_index(g, 2.0).unwrap();
             assert!(
-                (ird_val - ira_val).abs() < 1e-10,
-                "IRD={ird_val} IRA_2={ira_val}"
+                (square_diff - power_diff).abs() < 1e-10,
+                "IRD={square_diff} IRA_2={power_diff}"
             );
         }
     }

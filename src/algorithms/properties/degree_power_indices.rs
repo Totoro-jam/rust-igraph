@@ -187,10 +187,6 @@ mod tests {
         Graph::from_edges(&[(0, 1), (1, 2), (2, 3), (3, 0)], false, Some(4)).unwrap()
     }
 
-    fn cycle5() -> Graph {
-        Graph::from_edges(&[(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)], false, Some(5)).unwrap()
-    }
-
     fn star5() -> Graph {
         Graph::from_edges(&[(0, 1), (0, 2), (0, 3), (0, 4)], false, Some(5)).unwrap()
     }
