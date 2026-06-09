@@ -36,6 +36,7 @@ pub(crate) mod degree_distribution;
 pub(crate) mod diffusion;
 pub(crate) mod distance_spectrum;
 pub(crate) mod ecc;
+pub(crate) mod eccentric_connectivity;
 pub(crate) mod edge_betweenness;
 pub(crate) mod edge_betweenness_cutoff;
 pub(crate) mod edge_betweenness_subset;
@@ -225,6 +226,9 @@ pub use distance_spectrum::{
     wiener_index,
 };
 pub use ecc::ecc;
+pub use eccentric_connectivity::{
+    connective_eccentricity_index, eccentric_connectivity_index, total_eccentricity,
+};
 pub use edge_betweenness::edge_betweenness;
 pub use edge_betweenness_cutoff::edge_betweenness_cutoff;
 pub use edge_betweenness_subset::edge_betweenness_subset;

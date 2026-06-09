@@ -614,6 +614,9 @@ pub use crate::algorithms::properties::distance_spectrum::{
     wiener_index,
 };
 pub use crate::algorithms::properties::ecc::ecc;
+pub use crate::algorithms::properties::eccentric_connectivity::{
+    connective_eccentricity_index, eccentric_connectivity_index, total_eccentricity,
+};
 pub use crate::algorithms::properties::edge_betweenness::edge_betweenness;
 pub use crate::algorithms::properties::edge_betweenness_cutoff::edge_betweenness_cutoff;
 pub use crate::algorithms::properties::edge_betweenness_subset::edge_betweenness_subset;
