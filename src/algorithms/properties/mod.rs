@@ -153,6 +153,7 @@ pub(crate) mod merrifield_simmons;
 pub(crate) mod mostar_index;
 pub(crate) mod multiplicity;
 pub(crate) mod mutual;
+pub(crate) mod narumi_katayama;
 pub(crate) mod neighbor_agg;
 pub(crate) mod neighborhood;
 pub(crate) mod normalized_laplacian;
@@ -379,6 +380,9 @@ pub use multiplicity::{
     count_loops, count_multiple, count_multiple_1, has_loop, has_multiple, is_loop, is_multiple,
 };
 pub use mutual::{count_mutual, has_mutual, is_mutual};
+pub use narumi_katayama::{
+    first_multiplicative_zagreb, narumi_katayama_index, second_multiplicative_zagreb,
+};
 pub use neighbor_agg::{AggMode, attention_aggregate, neighbor_aggregate};
 pub use neighborhood::{
     NeighborhoodMode, neighborhood, neighborhood_graphs, neighborhood_graphs_with_mode,
