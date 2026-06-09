@@ -630,6 +630,9 @@ pub use crate::algorithms::properties::edge_betweenness::edge_betweenness;
 pub use crate::algorithms::properties::edge_betweenness_cutoff::edge_betweenness_cutoff;
 pub use crate::algorithms::properties::edge_betweenness_subset::edge_betweenness_subset;
 pub use crate::algorithms::properties::edge_betweenness_weighted::edge_betweenness_weighted;
+pub use crate::algorithms::properties::edge_degree_indices::{
+    bertz_complexity_index, gordon_scantlebury_index, platt_index,
+};
 pub use crate::algorithms::properties::edgelist::get_edgelist;
 pub use crate::algorithms::properties::efficiency::{
     average_local_efficiency, global_efficiency, local_efficiency,
