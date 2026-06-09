@@ -990,6 +990,9 @@ pub use crate::algorithms::properties::similarity::{
     similarity_inverse_log_weighted, similarity_inverse_log_weighted_pairs, similarity_jaccard,
     similarity_jaccard_es, similarity_jaccard_pairs,
 };
+pub use crate::algorithms::properties::smallworld_ratios::{
+    clustering_path_ratio, navigability_ratio, smallworld_omega, smallworld_sigma,
+};
 pub use crate::algorithms::properties::sombor_index::{
     average_sombor_index, reduced_sombor_index, sombor_index,
 };

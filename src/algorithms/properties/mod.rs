@@ -221,6 +221,7 @@ pub(crate) mod schultz_index;
 pub(crate) mod signal_smoothness;
 pub(crate) mod signless_laplacian;
 pub(crate) mod similarity;
+pub(crate) mod smallworld_ratios;
 pub(crate) mod sombor_index;
 pub(crate) mod sombor_variants;
 pub(crate) mod sort_by_degree;
@@ -590,6 +591,9 @@ pub use similarity::{
     bibcoupling, cocitation, similarity_dice, similarity_dice_es, similarity_dice_pairs,
     similarity_inverse_log_weighted, similarity_inverse_log_weighted_pairs, similarity_jaccard,
     similarity_jaccard_es, similarity_jaccard_pairs,
+};
+pub use smallworld_ratios::{
+    clustering_path_ratio, navigability_ratio, smallworld_omega, smallworld_sigma,
 };
 pub use sombor_index::{average_sombor_index, reduced_sombor_index, sombor_index};
 pub use sombor_variants::{elliptic_sombor_index, modified_sombor_index, sombor_coindex};
