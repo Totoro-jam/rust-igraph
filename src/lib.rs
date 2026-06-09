@@ -645,6 +645,9 @@ pub use crate::algorithms::properties::eigenvector::{
 pub use crate::algorithms::properties::ev_degree_indices::{
     ev_degree_randic, first_ev_degree_zagreb, second_ev_degree_zagreb,
 };
+pub use crate::algorithms::properties::forgotten_coindex::{
+    first_hyper_zagreb_coindex, forgotten_coindex, second_hyper_zagreb_coindex,
+};
 pub use crate::algorithms::properties::forgotten_zagreb::{
     forgotten_index, modified_first_zagreb, reduced_second_zagreb,
 };
