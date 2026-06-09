@@ -655,6 +655,9 @@ pub use crate::algorithms::properties::edge_betweenness_weighted::edge_betweenne
 pub use crate::algorithms::properties::edge_degree_indices::{
     bertz_complexity_index, gordon_scantlebury_index, platt_index,
 };
+pub use crate::algorithms::properties::edge_degree_pair::{
+    edge_degree_log_product, edge_degree_max_sum, edge_degree_mean_sum, edge_degree_min_sum,
+};
 pub use crate::algorithms::properties::edge_irregularity::{
     ira_index, irb_index, ird_index, irga_index,
 };
