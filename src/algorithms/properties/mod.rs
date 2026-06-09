@@ -219,6 +219,7 @@ pub(crate) mod spectral_metrics;
 pub(crate) mod stochastic;
 pub(crate) mod strength;
 pub(crate) mod structural_features;
+pub(crate) mod subgraph_ratios;
 pub(crate) mod sum_connectivity;
 pub(crate) mod summary;
 pub(crate) mod szeged_edge;
@@ -561,6 +562,9 @@ pub use spectral_metrics::{
 pub use stochastic::get_stochastic;
 pub use strength::{StrengthMode, diversity, strength, strength_with_mode};
 pub use structural_features::{StructuralFeatures, degree_profile, structural_feature_vectors};
+pub use subgraph_ratios::{
+    bridge_ratio, isolated_vertex_ratio, pendant_edge_ratio, triangle_participation,
+};
 pub use sum_connectivity::{
     inverse_sum_indeg_index, sum_connectivity_index, symmetric_division_deg_index,
 };
