@@ -821,6 +821,9 @@ pub use crate::algorithms::properties::power_law_fit::{PowerLawFitResult, power_
 pub use crate::algorithms::properties::reciprocity::{
     ReciprocityMode, reciprocity, reciprocity_with_mode,
 };
+pub use crate::algorithms::properties::reformulated_zagreb::{
+    first_reformulated_zagreb, second_reformulated_zagreb, third_zagreb_index,
+};
 pub use crate::algorithms::properties::resistance::{
     effective_resistance, effective_resistance_matrix, kirchhoff_index, resistance_centrality,
 };

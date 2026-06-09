@@ -164,6 +164,7 @@ pub(crate) mod perfect;
 pub(crate) mod personalized_pagerank;
 pub(crate) mod power_law_fit;
 pub(crate) mod reciprocity;
+pub(crate) mod reformulated_zagreb;
 pub(crate) mod resistance;
 pub(crate) mod rich_club;
 pub(crate) mod robustness;
@@ -402,6 +403,9 @@ pub use personalized_pagerank::{
 };
 pub use power_law_fit::{PowerLawFitResult, power_law_fit};
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
+pub use reformulated_zagreb::{
+    first_reformulated_zagreb, second_reformulated_zagreb, third_zagreb_index,
+};
 pub use resistance::{
     effective_resistance, effective_resistance_matrix, kirchhoff_index, resistance_centrality,
 };
