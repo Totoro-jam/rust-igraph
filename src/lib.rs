@@ -844,6 +844,9 @@ pub use crate::algorithms::properties::strength::{
 pub use crate::algorithms::properties::structural_features::{
     StructuralFeatures, degree_profile, structural_feature_vectors,
 };
+pub use crate::algorithms::properties::sum_connectivity::{
+    inverse_sum_indeg_index, sum_connectivity_index, symmetric_division_deg_index,
+};
 pub use crate::algorithms::properties::summary::{
     GraphSummary, graph_summary, graph_summary_string,
 };
