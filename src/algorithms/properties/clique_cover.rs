@@ -99,7 +99,7 @@ pub fn greedy_clique_cover(graph: &Graph) -> IgraphResult<Vec<Vec<u32>>> {
             (d, v)
         })
         .collect();
-    degrees.sort_by(|a, b| b.0.cmp(&a.0));
+    degrees.sort_by_key(|b| std::cmp::Reverse(b.0));
 
     let mut cliques: Vec<Vec<u32>> = Vec::new();
 

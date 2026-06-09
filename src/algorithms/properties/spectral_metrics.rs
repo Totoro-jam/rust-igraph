@@ -23,6 +23,7 @@
     clippy::cast_precision_loss,
     clippy::many_single_char_names,
     clippy::needless_range_loop,
+    clippy::similar_names,
     clippy::too_many_lines
 )]
 
