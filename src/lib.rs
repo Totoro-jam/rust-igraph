@@ -821,6 +821,9 @@ pub use crate::algorithms::properties::neighborhood::{
     NeighborhoodMode, neighborhood, neighborhood_graphs, neighborhood_graphs_with_mode,
     neighborhood_size, neighborhood_size_with_mode, neighborhood_with_mode,
 };
+pub use crate::algorithms::properties::neighborhood_zagreb::{
+    first_neighborhood_zagreb, neighborhood_forgotten_index, second_neighborhood_zagreb,
+};
 pub use crate::algorithms::properties::normalized_laplacian::{
     bipartiteness_ratio, cheeger_bounds, normalized_algebraic_connectivity,
     normalized_laplacian_spectrum, spectral_gap_ratio,

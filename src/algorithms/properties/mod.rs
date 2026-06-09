@@ -161,6 +161,7 @@ pub(crate) mod mutual;
 pub(crate) mod narumi_katayama;
 pub(crate) mod neighbor_agg;
 pub(crate) mod neighborhood;
+pub(crate) mod neighborhood_zagreb;
 pub(crate) mod normalized_laplacian;
 pub(crate) mod pagerank;
 pub(crate) mod pagerank_linsys;
@@ -401,6 +402,9 @@ pub use neighbor_agg::{AggMode, attention_aggregate, neighbor_aggregate};
 pub use neighborhood::{
     NeighborhoodMode, neighborhood, neighborhood_graphs, neighborhood_graphs_with_mode,
     neighborhood_size, neighborhood_size_with_mode, neighborhood_with_mode,
+};
+pub use neighborhood_zagreb::{
+    first_neighborhood_zagreb, neighborhood_forgotten_index, second_neighborhood_zagreb,
 };
 pub use normalized_laplacian::{
     bipartiteness_ratio, cheeger_bounds, normalized_algebraic_connectivity,
