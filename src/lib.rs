@@ -615,6 +615,9 @@ pub use crate::algorithms::properties::degree_distribution::degree_distribution;
 pub use crate::algorithms::properties::degree_eccentricity::{
     degree_eccentricity_index, eccentric_distance_sum, lanzhou_index,
 };
+pub use crate::algorithms::properties::degree_sum_variants::{
+    albertson_coindex, arithmetic_geometric_index, sigma_coindex,
+};
 pub use crate::algorithms::properties::diffusion::{
     heat_kernel_diffuse, ppr_diffuse, symmetric_diffuse,
 };
