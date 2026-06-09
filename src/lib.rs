@@ -615,6 +615,9 @@ pub use crate::algorithms::properties::degree_distribution::degree_distribution;
 pub use crate::algorithms::properties::degree_eccentricity::{
     degree_eccentricity_index, eccentric_distance_sum, lanzhou_index,
 };
+pub use crate::algorithms::properties::degree_moments::{
+    degree_gini, degree_kurtosis, degree_max_deviation, degree_skewness,
+};
 pub use crate::algorithms::properties::degree_power_indices::{
     general_zeroth_order_randic, inverse_degree_power, variable_first_zagreb, variable_sum_exdeg,
 };

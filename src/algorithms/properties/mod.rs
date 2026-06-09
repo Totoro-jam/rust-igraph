@@ -36,6 +36,7 @@ pub(crate) mod degree;
 pub(crate) mod degree_correlation;
 pub(crate) mod degree_distribution;
 pub(crate) mod degree_eccentricity;
+pub(crate) mod degree_moments;
 pub(crate) mod degree_power_indices;
 pub(crate) mod degree_ratio_indices;
 pub(crate) mod degree_sum_variants;
@@ -261,6 +262,7 @@ pub use degree::{DegreeMode, degree_sequence, max_degree, max_degree_vertex, min
 pub use degree_correlation::degree_correlation_vector;
 pub use degree_distribution::degree_distribution;
 pub use degree_eccentricity::{degree_eccentricity_index, eccentric_distance_sum, lanzhou_index};
+pub use degree_moments::{degree_gini, degree_kurtosis, degree_max_deviation, degree_skewness};
 pub use degree_power_indices::{
     general_zeroth_order_randic, inverse_degree_power, variable_first_zagreb, variable_sum_exdeg,
 };
