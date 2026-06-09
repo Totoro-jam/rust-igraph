@@ -54,6 +54,7 @@ pub(crate) mod edge_betweenness;
 pub(crate) mod edge_betweenness_cutoff;
 pub(crate) mod edge_betweenness_subset;
 pub(crate) mod edge_betweenness_weighted;
+pub(crate) mod edge_degree_correlation;
 pub(crate) mod edge_degree_indices;
 pub(crate) mod edge_degree_mean;
 pub(crate) mod edge_degree_norm;
@@ -307,6 +308,9 @@ pub use edge_betweenness::edge_betweenness;
 pub use edge_betweenness_cutoff::edge_betweenness_cutoff;
 pub use edge_betweenness_subset::edge_betweenness_subset;
 pub use edge_betweenness_weighted::edge_betweenness_weighted;
+pub use edge_degree_correlation::{
+    edge_degree_cosine, edge_degree_covariance, edge_degree_discrepancy, edge_degree_pearson,
+};
 pub use edge_degree_indices::{bertz_complexity_index, gordon_scantlebury_index, platt_index};
 pub use edge_degree_mean::{
     edge_degree_geometric_sum, edge_degree_harmonic_sum, edge_degree_ratio_sum, edge_degree_rms,

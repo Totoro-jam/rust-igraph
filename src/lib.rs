@@ -662,6 +662,9 @@ pub use crate::algorithms::properties::edge_betweenness::edge_betweenness;
 pub use crate::algorithms::properties::edge_betweenness_cutoff::edge_betweenness_cutoff;
 pub use crate::algorithms::properties::edge_betweenness_subset::edge_betweenness_subset;
 pub use crate::algorithms::properties::edge_betweenness_weighted::edge_betweenness_weighted;
+pub use crate::algorithms::properties::edge_degree_correlation::{
+    edge_degree_cosine, edge_degree_covariance, edge_degree_discrepancy, edge_degree_pearson,
+};
 pub use crate::algorithms::properties::edge_degree_indices::{
     bertz_complexity_index, gordon_scantlebury_index, platt_index,
 };
