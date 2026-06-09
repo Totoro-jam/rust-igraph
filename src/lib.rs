@@ -636,6 +636,9 @@ pub use crate::algorithms::properties::eigenvector::{
 pub use crate::algorithms::properties::forgotten_zagreb::{
     forgotten_index, modified_first_zagreb, reduced_second_zagreb,
 };
+pub use crate::algorithms::properties::general_randic::{
+    general_randic_index, general_sum_connectivity_index, reciprocal_randic_index,
+};
 pub use crate::algorithms::properties::get_biadjacency::{
     GetBiadjacencyResult, get_biadjacency_matrix,
 };

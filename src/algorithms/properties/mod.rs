@@ -46,6 +46,7 @@ pub(crate) mod edgelist;
 pub(crate) mod efficiency;
 pub(crate) mod eigenvector;
 pub(crate) mod forgotten_zagreb;
+pub(crate) mod general_randic;
 pub(crate) mod get_biadjacency;
 pub(crate) mod get_biadjacency_weighted;
 pub(crate) mod get_eids;
@@ -248,6 +249,9 @@ pub use eigenvector::{
     eigenvector_centrality_weighted,
 };
 pub use forgotten_zagreb::{forgotten_index, modified_first_zagreb, reduced_second_zagreb};
+pub use general_randic::{
+    general_randic_index, general_sum_connectivity_index, reciprocal_randic_index,
+};
 pub use get_biadjacency::{GetBiadjacencyResult, get_biadjacency_matrix};
 pub use get_biadjacency_weighted::{GetBiadjacencyWeightedResult, get_biadjacency_weighted};
 pub use get_eids::get_eids;
