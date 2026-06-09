@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781020995514,
+  "lastUpdate": 1781021840503,
   "repoUrl": "https://github.com/Totoro-jam/rust-igraph",
   "entries": {
     "rust-igraph Benchmarks": [
@@ -20159,6 +20159,342 @@ window.BENCHMARK_DATA = {
             "name": "transitivity_undirected/karate",
             "value": 1883,
             "range": "± 5",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "moqiuchen66@gmail.com",
+            "name": "Totoro-jam",
+            "username": "Totoro-jam"
+          },
+          "committer": {
+            "email": "moqiuchen66@gmail.com",
+            "name": "Totoro-jam",
+            "username": "Totoro-jam"
+          },
+          "distinct": true,
+          "id": "12e15345a28ae46effc411a540eb247e22193e5b",
+          "message": "feat(algo-tr): ALGO-TR-106 resilience ratios (vertex_conn_ratio, edge_conn_ratio, diameter_vulnerability, neighbor_degree_disparity)\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+          "timestamp": "2026-06-10T00:04:51+08:00",
+          "tree_id": "ce02b4314bdf3d8748763d5f1e7d92a38ef5a4b8",
+          "url": "https://github.com/Totoro-jam/rust-igraph/commit/12e15345a28ae46effc411a540eb247e22193e5b"
+        },
+        "date": 1781021839862,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "bfs/karate (34v 78e)",
+            "value": 887,
+            "range": "± 31",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bfs/synthetic/100",
+            "value": 2114,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bfs/synthetic/1000",
+            "value": 21639,
+            "range": "± 84",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "bfs/synthetic/10000",
+            "value": 501106,
+            "range": "± 7303",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "canonical_permutation/cycle/8",
+            "value": 18181,
+            "range": "± 585",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "canonical_permutation/cycle/16",
+            "value": 134854,
+            "range": "± 2280",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "canonical_permutation/cycle/32",
+            "value": 1434721,
+            "range": "± 29865",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "canonical_permutation/path/16",
+            "value": 10523,
+            "range": "± 35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "canonical_permutation/path/32",
+            "value": 45855,
+            "range": "± 209",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "canonical_permutation/path/64",
+            "value": 234143,
+            "range": "± 1526",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "count_automorphisms/cycle/8",
+            "value": 19339,
+            "range": "± 310",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "count_automorphisms/cycle/16",
+            "value": 132024,
+            "range": "± 4158",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "count_automorphisms/cycle/32",
+            "value": 1436867,
+            "range": "± 9359",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "automorphism_group/cycle/8",
+            "value": 18978,
+            "range": "± 40",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "automorphism_group/cycle/16",
+            "value": 130212,
+            "range": "± 7428",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "automorphism_group/cycle/32",
+            "value": 1424509,
+            "range": "± 25543",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "isomorphic_bliss/cycle/8",
+            "value": 38814,
+            "range": "± 98",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "isomorphic_bliss/cycle/16",
+            "value": 261559,
+            "range": "± 1512",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "isomorphic_bliss/cycle/32",
+            "value": 2866109,
+            "range": "± 49731",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "isomorphic/cycle/8",
+            "value": 38609,
+            "range": "± 252",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "isomorphic/cycle/16",
+            "value": 275809,
+            "range": "± 905",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "isomorphic/cycle/32",
+            "value": 2882946,
+            "range": "± 47506",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "subisomorphic/cycle_target/8",
+            "value": 2089,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "subisomorphic/cycle_target/16",
+            "value": 3688,
+            "range": "± 54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "subisomorphic/cycle_target/32",
+            "value": 7108,
+            "range": "± 27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cc/karate (34v 78e)",
+            "value": 914,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cc/synthetic-multi-component/100",
+            "value": 1401,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cc/synthetic-multi-component/1000",
+            "value": 13500,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cc/synthetic-multi-component/10000",
+            "value": 134061,
+            "range": "± 322",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "distances/karate (34v 78e)",
+            "value": 897,
+            "range": "± 17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "distances/path/100",
+            "value": 1478,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "distances/path/1000",
+            "value": 14107,
+            "range": "± 863",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "distances/path/10000",
+            "value": 144776,
+            "range": "± 2482",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "erdos_renyi_gnp/sparse_avg_deg_4/100",
+            "value": 14349,
+            "range": "± 50",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "erdos_renyi_gnp/sparse_avg_deg_4/1000",
+            "value": 145619,
+            "range": "± 724",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "erdos_renyi_gnp/sparse_avg_deg_4/10000",
+            "value": 1586492,
+            "range": "± 19447",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "erdos_renyi_gnp/dense_p_0_5/100",
+            "value": 173633,
+            "range": "± 576",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "erdos_renyi_gnp/dense_p_0_5/500",
+            "value": 7026753,
+            "range": "± 429316",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "erdos_renyi_gnp/dense_p_0_5/1000",
+            "value": 27476006,
+            "range": "± 622887",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "erdos_renyi_gnm/m_eq_2n/100",
+            "value": 17324,
+            "range": "± 192",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "erdos_renyi_gnm/m_eq_2n/1000",
+            "value": 168473,
+            "range": "± 317",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "erdos_renyi_gnm/m_eq_2n/10000",
+            "value": 1939158,
+            "range": "± 10747",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "louvain/karate (34v 78e, unweighted)",
+            "value": 13748,
+            "range": "± 42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "louvain/karate weighted (varied)",
+            "value": 11558,
+            "range": "± 134",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "louvain/karate fixed seed (deterministic)",
+            "value": 12737,
+            "range": "± 40",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "louvain/ring-of-cliques 8x10 (80v 368e)",
+            "value": 27100,
+            "range": "± 693",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "max_flow_value/textbook (6v 10e directed)",
+            "value": 628,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "max_flow_value/layered/L4xW8",
+            "value": 6407,
+            "range": "± 18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "max_flow_value/layered/L6xW16",
+            "value": 31068,
+            "range": "± 48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "max_flow_value/layered/L8xW32",
+            "value": 145541,
+            "range": "± 2514",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "count_triangles/karate",
+            "value": 2292,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "transitivity_undirected/karate",
+            "value": 2401,
+            "range": "± 10",
             "unit": "ns/iter"
           }
         ]
