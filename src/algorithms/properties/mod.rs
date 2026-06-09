@@ -15,6 +15,7 @@ pub(crate) mod assortativity;
 pub(crate) mod assortativity_nominal;
 pub(crate) mod assortativity_values;
 pub(crate) mod assortativity_weighted;
+pub(crate) mod augmented_zagreb;
 pub(crate) mod balaban_index;
 pub(crate) mod basic;
 pub(crate) mod betweenness;
@@ -195,6 +196,9 @@ pub use assortativity_nominal::assortativity_nominal;
 pub use assortativity_values::assortativity;
 pub use assortativity_weighted::{
     assortativity_degree_directed_weighted, assortativity_degree_weighted,
+};
+pub use augmented_zagreb::{
+    atom_bond_sum_connectivity, augmented_zagreb_index, geometric_arithmetic_index,
 };
 pub use balaban_index::balaban_j_index;
 pub use basic::{density, mean_degree, mean_distance};
