@@ -788,6 +788,9 @@ pub use crate::algorithms::properties::label_spread::{
     LabelSpreadResult, label_propagate_predict, label_spread,
 };
 pub use crate::algorithms::properties::laplacian::{LaplacianNormalization, get_laplacian};
+pub use crate::algorithms::properties::leap_zagreb::{
+    first_leap_zagreb, second_leap_zagreb, third_leap_zagreb,
+};
 pub use crate::algorithms::properties::link_prediction::{
     link_pred_adamic_adar, link_pred_common_neighbors, link_pred_jaccard,
     link_pred_preferential_attachment, link_pred_resource_allocation,

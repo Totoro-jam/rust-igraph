@@ -149,6 +149,7 @@ pub(crate) mod katz_centrality;
 pub(crate) mod knn;
 pub(crate) mod label_spread;
 pub(crate) mod laplacian;
+pub(crate) mod leap_zagreb;
 pub(crate) mod link_prediction;
 pub(crate) mod list_triangles;
 pub(crate) mod local_scan;
@@ -379,6 +380,7 @@ pub use joint_type_distribution::joint_type_distribution;
 pub use knn::avg_nearest_neighbor_degree;
 pub use label_spread::{LabelSpreadResult, label_propagate_predict, label_spread};
 pub use laplacian::{LaplacianNormalization, get_laplacian};
+pub use leap_zagreb::{first_leap_zagreb, second_leap_zagreb, third_leap_zagreb};
 pub use link_prediction::{
     link_pred_adamic_adar, link_pred_common_neighbors, link_pred_jaccard,
     link_pred_preferential_attachment, link_pred_resource_allocation,
