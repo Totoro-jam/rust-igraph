@@ -15,6 +15,7 @@ pub(crate) mod assortativity;
 pub(crate) mod assortativity_nominal;
 pub(crate) mod assortativity_values;
 pub(crate) mod assortativity_weighted;
+pub(crate) mod balaban_index;
 pub(crate) mod basic;
 pub(crate) mod betweenness;
 pub(crate) mod betweenness_cutoff;
@@ -193,6 +194,7 @@ pub use assortativity_values::assortativity;
 pub use assortativity_weighted::{
     assortativity_degree_directed_weighted, assortativity_degree_weighted,
 };
+pub use balaban_index::balaban_j_index;
 pub use basic::{density, mean_degree, mean_distance};
 pub use betweenness::betweenness;
 pub use betweenness_cutoff::betweenness_cutoff;

@@ -572,6 +572,7 @@ pub use crate::algorithms::properties::assortativity_values::assortativity;
 pub use crate::algorithms::properties::assortativity_weighted::{
     assortativity_degree_directed_weighted, assortativity_degree_weighted,
 };
+pub use crate::algorithms::properties::balaban_index::balaban_j_index;
 pub use crate::algorithms::properties::basic::{density, mean_degree, mean_distance};
 pub use crate::algorithms::properties::betweenness::betweenness;
 pub use crate::algorithms::properties::betweenness_cutoff::betweenness_cutoff;
