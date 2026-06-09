@@ -678,6 +678,9 @@ pub use crate::algorithms::properties::edge_degree_norm::{
 pub use crate::algorithms::properties::edge_degree_pair::{
     edge_degree_log_product, edge_degree_max_sum, edge_degree_mean_sum, edge_degree_min_sum,
 };
+pub use crate::algorithms::properties::edge_density_ratios::{
+    avg_local_clustering, multi_edge_ratio, reciprocity_ratio, self_loop_ratio,
+};
 pub use crate::algorithms::properties::edge_irregularity::{
     ira_index, irb_index, ird_index, irga_index,
 };

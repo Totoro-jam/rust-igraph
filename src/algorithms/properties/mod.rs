@@ -59,6 +59,7 @@ pub(crate) mod edge_degree_indices;
 pub(crate) mod edge_degree_mean;
 pub(crate) mod edge_degree_norm;
 pub(crate) mod edge_degree_pair;
+pub(crate) mod edge_density_ratios;
 pub(crate) mod edge_irregularity;
 pub(crate) mod edge_neighborhood_overlap;
 pub(crate) mod edgelist;
@@ -325,6 +326,9 @@ pub use edge_degree_norm::{
 };
 pub use edge_degree_pair::{
     edge_degree_log_product, edge_degree_max_sum, edge_degree_mean_sum, edge_degree_min_sum,
+};
+pub use edge_density_ratios::{
+    avg_local_clustering, multi_edge_ratio, reciprocity_ratio, self_loop_ratio,
 };
 pub use edge_irregularity::{ira_index, irb_index, ird_index, irga_index};
 pub use edge_neighborhood_overlap::{
