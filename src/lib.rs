@@ -621,6 +621,10 @@ pub use crate::algorithms::properties::degree_eccentricity::{
 pub use crate::algorithms::properties::degree_moments::{
     degree_gini, degree_kurtosis, degree_max_deviation, degree_skewness,
 };
+pub use crate::algorithms::properties::degree_neighbor_stats::{
+    degree_neighbor_max_sum, degree_neighbor_min_sum, degree_neighbor_range_sum,
+    degree_neighbor_variance_sum,
+};
 pub use crate::algorithms::properties::degree_power_indices::{
     general_zeroth_order_randic, inverse_degree_power, variable_first_zagreb, variable_sum_exdeg,
 };
