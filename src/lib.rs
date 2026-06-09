@@ -960,6 +960,9 @@ pub use crate::algorithms::properties::reduced_indices::{
 pub use crate::algorithms::properties::reformulated_zagreb::{
     first_reformulated_zagreb, second_reformulated_zagreb, third_zagreb_index,
 };
+pub use crate::algorithms::properties::resilience_ratios::{
+    diameter_vulnerability, edge_conn_ratio, neighbor_degree_disparity, vertex_conn_ratio,
+};
 pub use crate::algorithms::properties::resistance::{
     effective_resistance, effective_resistance_matrix, kirchhoff_index, resistance_centrality,
 };
