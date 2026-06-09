@@ -172,6 +172,7 @@ pub(crate) mod pagerank_weighted;
 pub(crate) mod perfect;
 pub(crate) mod personalized_pagerank;
 pub(crate) mod power_law_fit;
+pub(crate) mod reciprocal_distance_degree;
 pub(crate) mod reciprocity;
 pub(crate) mod reformulated_zagreb;
 pub(crate) mod resistance;
@@ -425,6 +426,9 @@ pub use personalized_pagerank::{
     personalized_pagerank, personalized_pagerank_default, personalized_pagerank_vs,
 };
 pub use power_law_fit::{PowerLawFitResult, power_law_fit};
+pub use reciprocal_distance_degree::{
+    multiplicatively_weighted_harary, reciprocal_degree_distance, terminal_wiener_index,
+};
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
 pub use reformulated_zagreb::{
     first_reformulated_zagreb, second_reformulated_zagreb, third_zagreb_index,

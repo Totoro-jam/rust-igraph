@@ -845,6 +845,9 @@ pub use crate::algorithms::properties::personalized_pagerank::{
     personalized_pagerank, personalized_pagerank_default, personalized_pagerank_vs,
 };
 pub use crate::algorithms::properties::power_law_fit::{PowerLawFitResult, power_law_fit};
+pub use crate::algorithms::properties::reciprocal_distance_degree::{
+    multiplicatively_weighted_harary, reciprocal_degree_distance, terminal_wiener_index,
+};
 pub use crate::algorithms::properties::reciprocity::{
     ReciprocityMode, reciprocity, reciprocity_with_mode,
 };
