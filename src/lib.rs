@@ -584,6 +584,9 @@ pub use crate::algorithms::properties::betweenness::betweenness;
 pub use crate::algorithms::properties::betweenness_cutoff::betweenness_cutoff;
 pub use crate::algorithms::properties::betweenness_subset::betweenness_subset;
 pub use crate::algorithms::properties::betweenness_weighted::betweenness_weighted;
+pub use crate::algorithms::properties::bipartivity_ratios::{
+    bipartivity_index, even_odd_walk_ratio, frustration_ratio, odd_cycle_density,
+};
 pub use crate::algorithms::properties::centrality_ratios::{
     betweenness_centralization, centrality_correlation, closeness_centralization,
     degree_centralization,

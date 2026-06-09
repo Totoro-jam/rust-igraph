@@ -23,6 +23,7 @@ pub(crate) mod betweenness;
 pub(crate) mod betweenness_cutoff;
 pub(crate) mod betweenness_subset;
 pub(crate) mod betweenness_weighted;
+pub(crate) mod bipartivity_ratios;
 pub(crate) mod centrality_ratios;
 pub(crate) mod centralization;
 pub(crate) mod clique_cover;
@@ -269,6 +270,9 @@ pub use betweenness::betweenness;
 pub use betweenness_cutoff::betweenness_cutoff;
 pub use betweenness_subset::betweenness_subset;
 pub use betweenness_weighted::betweenness_weighted;
+pub use bipartivity_ratios::{
+    bipartivity_index, even_odd_walk_ratio, frustration_ratio, odd_cycle_density,
+};
 pub use centrality_ratios::{
     betweenness_centralization, centrality_correlation, closeness_centralization,
     degree_centralization,
