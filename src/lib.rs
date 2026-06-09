@@ -665,6 +665,10 @@ pub use crate::algorithms::properties::edge_degree_indices::{
 pub use crate::algorithms::properties::edge_degree_mean::{
     edge_degree_geometric_sum, edge_degree_harmonic_sum, edge_degree_ratio_sum, edge_degree_rms,
 };
+pub use crate::algorithms::properties::edge_degree_norm::{
+    edge_degree_diff_ratio, edge_degree_product_ratio, edge_degree_sorensen,
+    edge_inverse_degree_sum,
+};
 pub use crate::algorithms::properties::edge_degree_pair::{
     edge_degree_log_product, edge_degree_max_sum, edge_degree_mean_sum, edge_degree_min_sum,
 };
