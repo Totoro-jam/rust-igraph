@@ -179,6 +179,7 @@ pub(crate) mod personalized_pagerank;
 pub(crate) mod power_law_fit;
 pub(crate) mod reciprocal_distance_degree;
 pub(crate) mod reciprocity;
+pub(crate) mod reduced_indices;
 pub(crate) mod reformulated_zagreb;
 pub(crate) mod resistance;
 pub(crate) mod rich_club;
@@ -448,6 +449,10 @@ pub use reciprocal_distance_degree::{
     multiplicatively_weighted_harary, reciprocal_degree_distance, terminal_wiener_index,
 };
 pub use reciprocity::{ReciprocityMode, reciprocity, reciprocity_with_mode};
+pub use reduced_indices::{
+    reduced_first_zagreb, reduced_forgotten_index, reduced_reciprocal_randic,
+    reduced_sum_connectivity,
+};
 pub use reformulated_zagreb::{
     first_reformulated_zagreb, second_reformulated_zagreb, third_zagreb_index,
 };

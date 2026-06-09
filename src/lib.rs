@@ -866,6 +866,10 @@ pub use crate::algorithms::properties::reciprocal_distance_degree::{
 pub use crate::algorithms::properties::reciprocity::{
     ReciprocityMode, reciprocity, reciprocity_with_mode,
 };
+pub use crate::algorithms::properties::reduced_indices::{
+    reduced_first_zagreb, reduced_forgotten_index, reduced_reciprocal_randic,
+    reduced_sum_connectivity,
+};
 pub use crate::algorithms::properties::reformulated_zagreb::{
     first_reformulated_zagreb, second_reformulated_zagreb, third_zagreb_index,
 };
