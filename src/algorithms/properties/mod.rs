@@ -36,6 +36,7 @@ pub(crate) mod cut_metrics;
 pub(crate) mod degree;
 pub(crate) mod degree_correlation;
 pub(crate) mod degree_deviation;
+pub(crate) mod degree_distance_ratios;
 pub(crate) mod degree_distribution;
 pub(crate) mod degree_eccentricity;
 pub(crate) mod degree_inequality;
@@ -285,6 +286,10 @@ pub use degree::{DegreeMode, degree_sequence, max_degree, max_degree_vertex, min
 pub use degree_correlation::degree_correlation_vector;
 pub use degree_deviation::{
     degree_entropy_ln, degree_entropy_normalized, degree_mad, degree_median_ad,
+};
+pub use degree_distance_ratios::{
+    degree_closeness_correlation, degree_distance_correlation, local_efficiency_ratio,
+    transmission_ratio,
 };
 pub use degree_distribution::degree_distribution;
 pub use degree_eccentricity::{degree_eccentricity_index, eccentric_distance_sum, lanzhou_index};

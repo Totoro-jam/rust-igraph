@@ -617,6 +617,10 @@ pub use crate::algorithms::properties::degree_correlation::degree_correlation_ve
 pub use crate::algorithms::properties::degree_deviation::{
     degree_entropy_ln, degree_entropy_normalized, degree_mad, degree_median_ad,
 };
+pub use crate::algorithms::properties::degree_distance_ratios::{
+    degree_closeness_correlation, degree_distance_correlation, local_efficiency_ratio,
+    transmission_ratio,
+};
 pub use crate::algorithms::properties::degree_distribution::degree_distribution;
 pub use crate::algorithms::properties::degree_eccentricity::{
     degree_eccentricity_index, eccentric_distance_sum, lanzhou_index,
