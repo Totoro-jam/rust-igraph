@@ -733,6 +733,9 @@ pub use crate::algorithms::properties::graph_coloring::{
     chromatic_number_greedy, greedy_clique_number, greedy_coloring, greedy_coloring_largest_first,
     greedy_coloring_with_order, is_proper_coloring,
 };
+pub use crate::algorithms::properties::graph_connectivity_ratios::{
+    circuit_rank_ratio, connectivity_index, edge_surplus_ratio, meshedness_coefficient,
+};
 pub use crate::algorithms::properties::graph_curvature::{
     augmented_forman_ricci_curvature, forman_ricci_curvature, mean_forman_ricci,
     ollivier_ricci_curvature,

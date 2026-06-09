@@ -78,6 +78,7 @@ pub(crate) mod girth;
 pub(crate) mod gourava_index;
 pub(crate) mod graph_bandwidth;
 pub(crate) mod graph_coloring;
+pub(crate) mod graph_connectivity_ratios;
 pub(crate) mod graph_curvature;
 pub(crate) mod graph_density_profile;
 pub(crate) mod graph_entropy;
@@ -362,6 +363,9 @@ pub use graph_bandwidth::{bandwidth, bandwidth_lower_bound, bandwidth_of_labelin
 pub use graph_coloring::{
     chromatic_number_greedy, greedy_clique_number, greedy_coloring, greedy_coloring_largest_first,
     greedy_coloring_with_order, is_proper_coloring,
+};
+pub use graph_connectivity_ratios::{
+    circuit_rank_ratio, connectivity_index, edge_surplus_ratio, meshedness_coefficient,
 };
 pub use graph_curvature::{
     augmented_forman_ricci_curvature, forman_ricci_curvature, mean_forman_ricci,
