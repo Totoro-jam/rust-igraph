@@ -737,6 +737,9 @@ pub use crate::algorithms::properties::graph_curvature::{
     augmented_forman_ricci_curvature, forman_ricci_curvature, mean_forman_ricci,
     ollivier_ricci_curvature,
 };
+pub use crate::algorithms::properties::graph_density_profile::{
+    degree_density, edge_connectivity_ratio, square_density, triangle_density,
+};
 pub use crate::algorithms::properties::graph_entropy::{
     degree_entropy, degree_structural_info, edge_entropy, von_neumann_entropy,
 };

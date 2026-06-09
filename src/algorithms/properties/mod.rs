@@ -79,6 +79,7 @@ pub(crate) mod gourava_index;
 pub(crate) mod graph_bandwidth;
 pub(crate) mod graph_coloring;
 pub(crate) mod graph_curvature;
+pub(crate) mod graph_density_profile;
 pub(crate) mod graph_entropy;
 pub(crate) mod graph_periphery;
 pub(crate) mod graphicality;
@@ -364,6 +365,9 @@ pub use graph_coloring::{
 pub use graph_curvature::{
     augmented_forman_ricci_curvature, forman_ricci_curvature, mean_forman_ricci,
     ollivier_ricci_curvature,
+};
+pub use graph_density_profile::{
+    degree_density, edge_connectivity_ratio, square_density, triangle_density,
 };
 pub use graph_entropy::{
     degree_entropy, degree_structural_info, edge_entropy, von_neumann_entropy,
