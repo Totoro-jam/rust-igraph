@@ -34,6 +34,7 @@ pub(crate) mod coreness;
 pub(crate) mod cut_metrics;
 pub(crate) mod degree;
 pub(crate) mod degree_correlation;
+pub(crate) mod degree_deviation;
 pub(crate) mod degree_distribution;
 pub(crate) mod degree_eccentricity;
 pub(crate) mod degree_moments;
@@ -261,6 +262,9 @@ pub use coreness::{CorenessMode, coreness, coreness_with_mode};
 pub use cut_metrics::{conductance, cut_size, expansion, normalized_cut, ratio_cut};
 pub use degree::{DegreeMode, degree_sequence, max_degree, max_degree_vertex, min_degree};
 pub use degree_correlation::degree_correlation_vector;
+pub use degree_deviation::{
+    degree_entropy_ln, degree_entropy_normalized, degree_mad, degree_median_ad,
+};
 pub use degree_distribution::degree_distribution;
 pub use degree_eccentricity::{degree_eccentricity_index, eccentric_distance_sum, lanzhou_index};
 pub use degree_moments::{degree_gini, degree_kurtosis, degree_max_deviation, degree_skewness};

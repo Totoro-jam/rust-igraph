@@ -611,6 +611,9 @@ pub use crate::algorithms::properties::degree::{
     DegreeMode, degree_sequence, max_degree, max_degree_vertex, min_degree,
 };
 pub use crate::algorithms::properties::degree_correlation::degree_correlation_vector;
+pub use crate::algorithms::properties::degree_deviation::{
+    degree_entropy_ln, degree_entropy_normalized, degree_mad, degree_median_ad,
+};
 pub use crate::algorithms::properties::degree_distribution::degree_distribution;
 pub use crate::algorithms::properties::degree_eccentricity::{
     degree_eccentricity_index, eccentric_distance_sum, lanzhou_index,
