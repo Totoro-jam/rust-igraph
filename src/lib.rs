@@ -909,6 +909,9 @@ pub use crate::algorithms::properties::neighborhood::{
     NeighborhoodMode, neighborhood, neighborhood_graphs, neighborhood_graphs_with_mode,
     neighborhood_size, neighborhood_size_with_mode, neighborhood_with_mode,
 };
+pub use crate::algorithms::properties::neighborhood_density::{
+    avg_neighbor_degree_ratio, freeman_degree_centralization, hub_ratio, leaf_to_hub_ratio,
+};
 pub use crate::algorithms::properties::neighborhood_zagreb::{
     first_neighborhood_zagreb, neighborhood_forgotten_index, second_neighborhood_zagreb,
 };
