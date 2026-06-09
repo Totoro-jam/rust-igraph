@@ -162,6 +162,7 @@ pub(crate) mod matching;
 pub(crate) mod mean_distance_weighted;
 pub(crate) mod merrifield_simmons;
 pub(crate) mod mostar_index;
+pub(crate) mod multiplicative_connectivity;
 pub(crate) mod multiplicity;
 pub(crate) mod mutual;
 pub(crate) mod narumi_katayama;
@@ -412,6 +413,9 @@ pub use matching::{
 pub use mean_distance_weighted::mean_distance_weighted;
 pub use merrifield_simmons::{independent_set_count_sequence, merrifield_simmons_index};
 pub use mostar_index::{degree_distance, gutman_index, mostar_index};
+pub use multiplicative_connectivity::{
+    multiplicative_abc, multiplicative_ga, multiplicative_randic, multiplicative_sum_connectivity,
+};
 pub use multiplicity::{
     count_loops, count_multiple, count_multiple_1, has_loop, has_multiple, is_loop, is_multiple,
 };

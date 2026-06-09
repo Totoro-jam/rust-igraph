@@ -825,6 +825,9 @@ pub use crate::algorithms::properties::merrifield_simmons::{
 pub use crate::algorithms::properties::mostar_index::{
     degree_distance, gutman_index, mostar_index,
 };
+pub use crate::algorithms::properties::multiplicative_connectivity::{
+    multiplicative_abc, multiplicative_ga, multiplicative_randic, multiplicative_sum_connectivity,
+};
 pub use crate::algorithms::properties::multiplicity::{
     count_loops, count_multiple, count_multiple_1, has_loop, has_multiple, is_loop, is_multiple,
 };
