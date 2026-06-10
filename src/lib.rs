@@ -791,6 +791,9 @@ pub use crate::algorithms::properties::hamiltonian::{
 pub use crate::algorithms::properties::harmonic::harmonic_centrality;
 pub use crate::algorithms::properties::harmonic_cutoff::harmonic_centrality_cutoff;
 pub use crate::algorithms::properties::harmonic_weighted::harmonic_centrality_weighted;
+pub use crate::algorithms::properties::hierarchy_ratios::{
+    degree_hierarchy, dominance_ratio, layer_ratio,
+};
 pub use crate::algorithms::properties::hits::{
     HitsScores, hub_and_authority_scores, hub_and_authority_scores_weighted,
 };

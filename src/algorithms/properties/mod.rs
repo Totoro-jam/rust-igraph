@@ -98,6 +98,7 @@ pub(crate) mod hamiltonian;
 pub(crate) mod harmonic;
 pub(crate) mod harmonic_cutoff;
 pub(crate) mod harmonic_weighted;
+pub(crate) mod hierarchy_ratios;
 pub(crate) mod hits;
 pub(crate) mod homophily;
 pub(crate) mod hosoya_index;
@@ -437,6 +438,7 @@ pub use hamiltonian::{
 pub use harmonic::harmonic_centrality;
 pub use harmonic_cutoff::harmonic_centrality_cutoff;
 pub use harmonic_weighted::harmonic_centrality_weighted;
+pub use hierarchy_ratios::{degree_hierarchy, dominance_ratio, layer_ratio};
 pub use hits::{HitsScores, hub_and_authority_scores};
 pub use homophily::{class_homophily, edge_heterophily, edge_homophily, node_homophily};
 pub use hosoya_index::{hosoya_index, matching_count_sequence};
