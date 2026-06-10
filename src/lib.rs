@@ -616,6 +616,9 @@ pub use crate::algorithms::properties::constraint::constraint;
 pub use crate::algorithms::properties::convergence_degree::{
     convergence_degree, convergence_degree_full,
 };
+pub use crate::algorithms::properties::core_periphery_ratios::{
+    core_density, core_periphery_gradient, core_ratio, periphery_fraction,
+};
 pub use crate::algorithms::properties::coreness::{CorenessMode, coreness, coreness_with_mode};
 pub use crate::algorithms::properties::cut_metrics::{
     conductance, cut_size, expansion, normalized_cut, ratio_cut,
