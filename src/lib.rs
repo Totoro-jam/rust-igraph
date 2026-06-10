@@ -924,6 +924,9 @@ pub use crate::algorithms::properties::merrifield_simmons::{
 pub use crate::algorithms::properties::mixing_ratios::{
     degree_assortativity_proxy, degree_mixing_entropy, hub_dominance_ratio, rich_club_density,
 };
+pub use crate::algorithms::properties::modularity_ratios::{
+    community_size_balance, inter_community_edge_ratio, modularity_upper_bound_ratio,
+};
 pub use crate::algorithms::properties::mostar_index::{
     degree_distance, gutman_index, mostar_index,
 };
