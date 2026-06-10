@@ -806,6 +806,9 @@ pub use crate::algorithms::properties::independent_set::{
 pub use crate::algorithms::properties::index_entropy::{
     abc_entropy, first_zagreb_entropy, randic_entropy, second_zagreb_entropy,
 };
+pub use crate::algorithms::properties::information_ratios::{
+    degree_entropy_ratio, edge_distribution_entropy, structural_information_content,
+};
 pub use crate::algorithms::properties::inverse_degree::{
     first_zagreb_coindex, inverse_degree_index, second_zagreb_coindex,
 };

@@ -105,6 +105,7 @@ pub(crate) mod hyper_zagreb;
 pub(crate) mod hyperbolicity;
 pub(crate) mod independent_set;
 pub(crate) mod index_entropy;
+pub(crate) mod information_ratios;
 pub(crate) mod inverse_degree;
 pub(crate) mod irregularity;
 pub(crate) mod is_acyclic;
@@ -439,6 +440,9 @@ pub use hyper_zagreb::{first_hyper_zagreb, first_redefined_zagreb, second_hyper_
 pub use hyperbolicity::{hyperbolicity, hyperbolicity_twice};
 pub use independent_set::{greedy_independent_set, independence_ratio};
 pub use index_entropy::{abc_entropy, first_zagreb_entropy, randic_entropy, second_zagreb_entropy};
+pub use information_ratios::{
+    degree_entropy_ratio, edge_distribution_entropy, structural_information_content,
+};
 pub use inverse_degree::{first_zagreb_coindex, inverse_degree_index, second_zagreb_coindex};
 pub use irregularity::{albertson_index, degree_variance, sigma_index, total_irregularity};
 pub use is_acyclic::is_acyclic;
