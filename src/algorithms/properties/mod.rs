@@ -187,6 +187,7 @@ pub(crate) mod link_prediction;
 pub(crate) mod list_triangles;
 pub(crate) mod local_scan;
 pub(crate) mod local_scan_k;
+pub(crate) mod local_structure_ratios;
 pub(crate) mod matching;
 pub(crate) mod mean_distance_weighted;
 pub(crate) mod merrifield_simmons;
@@ -524,6 +525,9 @@ pub use local_scan::{
     local_scan_subset_ecount,
 };
 pub use local_scan_k::{local_scan_k, local_scan_k_ecount, local_scan_k_ecount_them};
+pub use local_structure_ratios::{
+    degree_neighbor_correlation, local_density_ratio, neighbor_connectivity_ratio,
+};
 pub use matching::{
     greedy_matching, is_perfect_matching, is_valid_matching, matching_number, maximum_matching,
 };

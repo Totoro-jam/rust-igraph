@@ -908,6 +908,9 @@ pub use crate::algorithms::properties::local_scan::{
 pub use crate::algorithms::properties::local_scan_k::{
     local_scan_k, local_scan_k_ecount, local_scan_k_ecount_them,
 };
+pub use crate::algorithms::properties::local_structure_ratios::{
+    degree_neighbor_correlation, local_density_ratio, neighbor_connectivity_ratio,
+};
 pub use crate::algorithms::properties::matching::{
     greedy_matching, is_perfect_matching, is_valid_matching, matching_number, maximum_matching,
 };
