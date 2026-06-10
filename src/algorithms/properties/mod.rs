@@ -230,6 +230,7 @@ pub(crate) mod smallworld_ratios;
 pub(crate) mod sombor_index;
 pub(crate) mod sombor_variants;
 pub(crate) mod sort_by_degree;
+pub(crate) mod spectral_gap_ratios;
 pub(crate) mod spectral_metrics;
 pub(crate) mod spectral_ratios;
 pub(crate) mod stochastic;
@@ -616,6 +617,7 @@ pub use smallworld_ratios::{
 pub use sombor_index::{average_sombor_index, reduced_sombor_index, sombor_index};
 pub use sombor_variants::{elliptic_sombor_index, modified_sombor_index, sombor_coindex};
 pub use sort_by_degree::{SortOrder, sort_vertices_by_degree};
+pub use spectral_gap_ratios::{adjacency_spectral_gap_ratio, energy_ratio, spectral_radius_ratio};
 pub use spectral_metrics::{
     communicability_matrix, estrada_index, graph_energy, natural_connectivity, spectral_gap,
     spectral_radius, subgraph_centrality,

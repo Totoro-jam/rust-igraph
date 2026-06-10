@@ -1015,6 +1015,9 @@ pub use crate::algorithms::properties::sombor_variants::{
     elliptic_sombor_index, modified_sombor_index, sombor_coindex,
 };
 pub use crate::algorithms::properties::sort_by_degree::{SortOrder, sort_vertices_by_degree};
+pub use crate::algorithms::properties::spectral_gap_ratios::{
+    adjacency_spectral_gap_ratio, energy_ratio, spectral_radius_ratio,
+};
 pub use crate::algorithms::properties::spectral_metrics::{
     communicability_matrix, estrada_index, graph_energy, natural_connectivity, spectral_gap,
     spectral_radius, subgraph_centrality,
