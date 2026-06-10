@@ -77,6 +77,7 @@ pub(crate) mod ev_degree_indices;
 pub(crate) mod exponential_indices;
 pub(crate) mod exponential_vertex_indices;
 pub(crate) mod extended_irregularity;
+pub(crate) mod flow_ratios;
 pub(crate) mod forgotten_coindex;
 pub(crate) mod forgotten_zagreb;
 pub(crate) mod general_randic;
@@ -395,6 +396,7 @@ pub use exponential_vertex_indices::{
 pub use extended_irregularity::{
     bell_index, collatz_sinogowitz, degree_cv, irl_irregularity, irlu_irregularity,
 };
+pub use flow_ratios::{bottleneck_ratio, flow_hierarchy_ratio, max_flow_efficiency};
 pub use forgotten_coindex::{
     first_hyper_zagreb_coindex, forgotten_coindex, second_hyper_zagreb_coindex,
 };

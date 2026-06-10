@@ -735,6 +735,9 @@ pub use crate::algorithms::properties::exponential_vertex_indices::{
 pub use crate::algorithms::properties::extended_irregularity::{
     bell_index, collatz_sinogowitz, degree_cv, irl_irregularity, irlu_irregularity,
 };
+pub use crate::algorithms::properties::flow_ratios::{
+    bottleneck_ratio, flow_hierarchy_ratio, max_flow_efficiency,
+};
 pub use crate::algorithms::properties::forgotten_coindex::{
     first_hyper_zagreb_coindex, forgotten_coindex, second_hyper_zagreb_coindex,
 };
