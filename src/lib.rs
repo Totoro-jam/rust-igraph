@@ -991,6 +991,9 @@ pub use crate::algorithms::properties::rich_club::rich_club_sequence;
 pub use crate::algorithms::properties::robustness::{
     edge_resilience, graph_integrity, graph_toughness, vertex_resilience,
 };
+pub use crate::algorithms::properties::robustness_ratios::{
+    average_path_resilience, degree_range_ratio, min_degree_connectivity_ratio,
+};
 pub use crate::algorithms::properties::running_mean::{expand_path_to_pairs, running_mean};
 pub use crate::algorithms::properties::rwpe::{rwpe, rwpe_vertices};
 pub use crate::algorithms::properties::satisfies_dirac::satisfies_dirac;

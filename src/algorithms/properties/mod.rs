@@ -219,6 +219,7 @@ pub(crate) mod resilience_ratios;
 pub(crate) mod resistance;
 pub(crate) mod rich_club;
 pub(crate) mod robustness;
+pub(crate) mod robustness_ratios;
 pub(crate) mod running_mean;
 pub(crate) mod rwpe;
 pub(crate) mod satisfies_dirac;
@@ -598,6 +599,9 @@ pub use resistance::{
 };
 pub use rich_club::rich_club_sequence;
 pub use robustness::{edge_resilience, graph_integrity, graph_toughness, vertex_resilience};
+pub use robustness_ratios::{
+    average_path_resilience, degree_range_ratio, min_degree_connectivity_ratio,
+};
 pub use running_mean::{expand_path_to_pairs, running_mean};
 pub use rwpe::{rwpe, rwpe_vertices};
 pub use satisfies_dirac::satisfies_dirac;
