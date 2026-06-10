@@ -72,7 +72,7 @@ pub fn layout_merge_dla(layouts: &[&[[f64; 2]]]) -> IgraphResult<Vec<[f64; 2]>> 
 
     // Sort components by size (largest first)
     let mut order: Vec<usize> = (0..n_components).collect();
-    order.sort_unstable_by(|&a, &b| layouts[b].len().cmp(&layouts[a].len()));
+    order.sort_unstable_by_key(|&a| std::cmp::Reverse(layouts[a].len()));
 
     // Create merge grid
     let grid_extent = (5.0 * area).sqrt();

@@ -514,7 +514,7 @@ fn build_vertex_order(
             };
             let ecc = crate::algorithms::paths::radii::eccentricity_with_mode(graph, ecc_mode)?;
             let mut indices: Vec<VertexId> = (0..n as VertexId).collect();
-            indices.sort_by(|&a, &b| ecc[a as usize].cmp(&ecc[b as usize]));
+            indices.sort_by_key(|&a| ecc[a as usize]);
             Ok(indices)
         }
         RootChoice::Degree => {

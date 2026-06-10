@@ -121,7 +121,7 @@ pub fn rich_club_density(graph: &Graph) -> IgraphResult<f64> {
     }
 
     let mut sorted_degs: Vec<(usize, usize)> = degrees.iter().copied().enumerate().collect();
-    sorted_degs.sort_unstable_by(|a, b| b.1.cmp(&a.1));
+    sorted_degs.sort_unstable_by_key(|x| std::cmp::Reverse(x.1));
 
     let k = (n / 4).max(2).min(n);
     let rich_set: Vec<usize> = sorted_degs[..k].iter().map(|&(v, _)| v).collect();
