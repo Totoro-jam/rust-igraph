@@ -219,6 +219,7 @@ pub(crate) mod reduced_indices;
 pub(crate) mod reformulated_zagreb;
 pub(crate) mod resilience_ratios;
 pub(crate) mod resistance;
+pub(crate) mod resistance_ratios;
 pub(crate) mod rich_club;
 pub(crate) mod robustness;
 pub(crate) mod robustness_ratios;
@@ -603,6 +604,7 @@ pub use resilience_ratios::{
 pub use resistance::{
     effective_resistance, effective_resistance_matrix, kirchhoff_index, resistance_centrality,
 };
+pub use resistance_ratios::{kirchhoff_index_ratio, resistance_regularity, spanning_tree_ratio};
 pub use rich_club::rich_club_sequence;
 pub use robustness::{edge_resilience, graph_integrity, graph_toughness, vertex_resilience};
 pub use robustness_ratios::{

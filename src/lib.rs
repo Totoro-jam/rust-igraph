@@ -993,6 +993,9 @@ pub use crate::algorithms::properties::resilience_ratios::{
 pub use crate::algorithms::properties::resistance::{
     effective_resistance, effective_resistance_matrix, kirchhoff_index, resistance_centrality,
 };
+pub use crate::algorithms::properties::resistance_ratios::{
+    kirchhoff_index_ratio, resistance_regularity, spanning_tree_ratio,
+};
 pub use crate::algorithms::properties::rich_club::rich_club_sequence;
 pub use crate::algorithms::properties::robustness::{
     edge_resilience, graph_integrity, graph_toughness, vertex_resilience,
