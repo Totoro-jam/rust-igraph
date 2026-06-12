@@ -713,6 +713,9 @@ pub use crate::algorithms::properties::edge_degree_pair::{
 pub use crate::algorithms::properties::edge_density_ratios::{
     avg_local_clustering, multi_edge_ratio, reciprocity_ratio, self_loop_ratio,
 };
+pub use crate::algorithms::properties::edge_distribution_entropy::{
+    degree_pair_concentration, edge_degree_entropy, edge_weight_balance,
+};
 pub use crate::algorithms::properties::edge_irregularity::{
     ira_index, irb_index, ird_index, irga_index,
 };
