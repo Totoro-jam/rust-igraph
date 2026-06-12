@@ -270,9 +270,12 @@ mod tests {
     #[test]
     fn entropy_regular_graph_is_one() {
         // K_4: all degrees equal → max entropy
-        let g =
-            Graph::from_edges(&[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)], false, Some(4))
-                .unwrap();
+        let g = Graph::from_edges(
+            &[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            false,
+            Some(4),
+        )
+        .unwrap();
         let h = centrality_entropy(&g).unwrap();
         assert!((h - 1.0).abs() < 1e-10, "K4 entropy = {h}, expected 1.0");
     }
@@ -280,8 +283,8 @@ mod tests {
     #[test]
     fn entropy_star_is_low() {
         // Star: one hub with high degree, leaves with degree 1
-        let g = Graph::from_edges(&[(0, 1), (0, 2), (0, 3), (0, 4), (0, 5)], false, Some(6))
-            .unwrap();
+        let g =
+            Graph::from_edges(&[(0, 1), (0, 2), (0, 3), (0, 4), (0, 5)], false, Some(6)).unwrap();
         let h = centrality_entropy(&g).unwrap();
         // Not maximum entropy
         assert!(h < 0.95, "Star entropy = {h}, should be < 0.95");
@@ -297,9 +300,12 @@ mod tests {
     #[test]
     fn divergence_complete_graph() {
         // K_4: betweenness is all zero → divergence is 0
-        let g =
-            Graph::from_edges(&[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)], false, Some(4))
-                .unwrap();
+        let g = Graph::from_edges(
+            &[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            false,
+            Some(4),
+        )
+        .unwrap();
         let jsd = centrality_divergence(&g).unwrap();
         assert!(jsd.abs() < 1e-12);
     }
