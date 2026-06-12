@@ -41,6 +41,7 @@ pub fn core_persistence(graph: &Graph) -> IgraphResult<f64> {
     if degeneracy == 0 {
         return Ok(0.0);
     }
+    #[allow(clippy::cast_precision_loss)]
     let avg: f64 = cores.iter().map(|&c| f64::from(c)).sum::<f64>() / cores.len() as f64;
     Ok(avg / f64::from(degeneracy))
 }
@@ -49,7 +50,7 @@ pub fn core_persistence(graph: &Graph) -> IgraphResult<f64> {
 ///
 /// The k-shell of order k is the set of vertices with coreness exactly k.
 /// This function computes the entropy of the distribution of shell sizes
-/// and normalises by log(number_of_distinct_shells) so the result is in
+/// and normalises by `log(number_of_distinct_shells)` so the result is in
 /// [0, 1]. A value of 1 means all shells have equal size; a value near 0
 /// means vertices are concentrated in one shell.
 ///
@@ -84,6 +85,7 @@ pub fn shell_diversity(graph: &Graph) -> IgraphResult<f64> {
         return Ok(0.0);
     }
 
+    #[allow(clippy::cast_precision_loss)]
     let n = cores.len() as f64;
     let mut entropy = 0.0_f64;
     for &count in &non_empty {
@@ -92,11 +94,12 @@ pub fn shell_diversity(graph: &Graph) -> IgraphResult<f64> {
     }
 
     // Normalise by max entropy (uniform distribution over shells)
+    #[allow(clippy::cast_precision_loss)]
     let max_entropy = (num_shells as f64).ln();
     Ok(entropy / max_entropy)
 }
 
-/// Degeneracy gap: (degeneracy − average_coreness) / degeneracy.
+/// Degeneracy gap: (degeneracy − `average_coreness`) / degeneracy.
 ///
 /// Measures how far the average vertex is from the densest core.
 /// Returns a value in [0, 1). A value of 0 means all vertices have
@@ -128,6 +131,7 @@ pub fn degeneracy_gap(graph: &Graph) -> IgraphResult<f64> {
     if degeneracy == 0 {
         return Ok(0.0);
     }
+    #[allow(clippy::cast_precision_loss)]
     let avg: f64 = cores.iter().map(|&c| f64::from(c)).sum::<f64>() / cores.len() as f64;
     Ok((f64::from(degeneracy) - avg) / f64::from(degeneracy))
 }
