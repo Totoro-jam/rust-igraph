@@ -37,6 +37,7 @@ pub(crate) mod connectivity_ratios;
 pub(crate) mod constraint;
 pub(crate) mod convergence_degree;
 pub(crate) mod core_periphery_ratios;
+pub(crate) mod core_profile_indices;
 pub(crate) mod coreness;
 pub(crate) mod cut_metrics;
 pub(crate) mod degree;
@@ -315,6 +316,7 @@ pub use convergence_degree::{convergence_degree, convergence_degree_full};
 pub use core_periphery_ratios::{
     core_density, core_periphery_gradient, core_ratio, periphery_fraction,
 };
+pub use core_profile_indices::{core_persistence, degeneracy_gap, shell_diversity};
 pub use coreness::{CorenessMode, coreness, coreness_with_mode};
 pub use cut_metrics::{conductance, cut_size, expansion, normalized_cut, ratio_cut};
 pub use degree::{DegreeMode, degree_sequence, max_degree, max_degree_vertex, min_degree};
