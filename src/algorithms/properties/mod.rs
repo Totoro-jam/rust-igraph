@@ -32,6 +32,7 @@ pub(crate) mod clique_cover;
 pub(crate) mod closeness;
 pub(crate) mod closeness_cutoff;
 pub(crate) mod closeness_weighted;
+pub(crate) mod clustering_profile;
 pub(crate) mod clustering_ratios;
 pub(crate) mod connectivity_ratios;
 pub(crate) mod constraint;
@@ -306,6 +307,7 @@ pub use clique_cover::{clique_cover_number, greedy_clique_cover, is_clique_cover
 pub use closeness::closeness;
 pub use closeness_cutoff::{ClosenessCutoffResult, closeness_cutoff};
 pub use closeness_weighted::closeness_weighted;
+pub use clustering_profile::{clustering_bimodality, clustering_entropy, clustering_variance};
 pub use clustering_ratios::{
     closed_triplet_ratio, clustering_degree_correlation, square_clustering_ratio, transitivity_gap,
 };

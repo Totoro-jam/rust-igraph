@@ -612,6 +612,9 @@ pub use crate::algorithms::properties::closeness_cutoff::{
     ClosenessCutoffResult, closeness_cutoff,
 };
 pub use crate::algorithms::properties::closeness_weighted::closeness_weighted;
+pub use crate::algorithms::properties::clustering_profile::{
+    clustering_bimodality, clustering_entropy, clustering_variance,
+};
 pub use crate::algorithms::properties::clustering_ratios::{
     closed_triplet_ratio, clustering_degree_correlation, square_clustering_ratio, transitivity_gap,
 };
