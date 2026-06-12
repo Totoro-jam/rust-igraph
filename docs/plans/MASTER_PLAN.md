@@ -524,13 +524,13 @@ if __name__ == "__main__":
 | 10 | 高层 API + 文档站 + 发布 | ~80 | **大部分** ✓ | 1,297 pub fn + mdBook (中英) + landing page + Playground (React SPA) + WASM + bench CI | v0.6.0 |
 | 11（可选） | nauty C FFI 后端 | ~10 | 0 | 大规模图同构性能 | v1.x |
 
-**截至 v0.6.0 实际总计**：315 AWU done，7,718 测试，1,850 conformance fixtures，392 pub fn（~198k SLOC Rust）。
+**截至 v0.7.0 实际总计**：435 AWU done，11,322 测试（9,806 unit + 1,516 doctest），1,850 conformance fixtures，1,058 pub fn（~257k SLOC Rust）。
 
-**总 AWU**：约 660 个（Phase 0 + 算法）。
+**总 AWU**：开放式增长（igraph C 移植 ~270 AWU done + novel ALGO-TR 系列 122 AWU done 且持续扩展）。原始估计 "~600 AWU" 基于 igraph C 的 ~674 核心 API；ALGO-TR novel 系列使实际总量超出该估计。
 
 ### 5.2 各 Phase 详细 AWU 清单（仅示意，完整列表在 ALGORITHMS.md）
 
-> 完整 AWU 清单（约 660 行表格）作为独立文件 `.codefuse/tracking/ALGORITHMS.md` 维护。这里给出每个 Phase 的代表 AWU 和分组。
+> 完整 AWU 清单作为独立文件 `.codefuse/tracking/ALGORITHMS.md` 维护（当前 891 行）。这里给出每个 Phase 的代表 AWU 和分组。
 
 #### Phase 1：数据结构主线（编号前缀 ALGO-DS / ALGO-CORE）
 
