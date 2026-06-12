@@ -590,6 +590,9 @@ pub use crate::algorithms::properties::bipartivity_ratios::{
 pub use crate::algorithms::properties::bridge_ratios::{
     articulation_ratio, biconnected_ratio, bridge_edge_ratio, leaf_ratio,
 };
+pub use crate::algorithms::properties::centrality_diversity::{
+    centrality_divergence, centrality_entropy, centrality_rank_correlation,
+};
 pub use crate::algorithms::properties::centrality_ratios::{
     betweenness_centralization, centrality_correlation, closeness_centralization,
     degree_centralization,

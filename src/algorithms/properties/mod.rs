@@ -25,6 +25,7 @@ pub(crate) mod betweenness_subset;
 pub(crate) mod betweenness_weighted;
 pub(crate) mod bipartivity_ratios;
 pub(crate) mod bridge_ratios;
+pub(crate) mod centrality_diversity;
 pub(crate) mod centrality_ratios;
 pub(crate) mod centralization;
 pub(crate) mod clique_cover;
@@ -285,6 +286,9 @@ pub use bipartivity_ratios::{
     bipartivity_index, even_odd_walk_ratio, frustration_ratio, odd_cycle_density,
 };
 pub use bridge_ratios::{articulation_ratio, biconnected_ratio, bridge_edge_ratio, leaf_ratio};
+pub use centrality_diversity::{
+    centrality_divergence, centrality_entropy, centrality_rank_correlation,
+};
 pub use centrality_ratios::{
     betweenness_centralization, centrality_correlation, closeness_centralization,
     degree_centralization,
