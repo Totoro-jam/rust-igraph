@@ -58,6 +58,7 @@ pub(crate) mod degree_sum_variants;
 pub(crate) mod degree_vertex_class;
 pub(crate) mod diffusion;
 pub(crate) mod distance_distribution_ratios;
+pub(crate) mod distance_profile;
 pub(crate) mod distance_spectrum;
 pub(crate) mod ecc;
 pub(crate) mod eccentric_connectivity;
@@ -356,6 +357,7 @@ pub use diffusion::{heat_kernel_diffuse, ppr_diffuse, symmetric_diffuse};
 pub use distance_distribution_ratios::{
     diameter_ratio, distance_kurtosis, distance_skewness, mean_eccentricity_ratio,
 };
+pub use distance_profile::{distance_gini, hop_entropy, reach_decay};
 pub use distance_spectrum::{
     distance_energy, distance_estrada_index, distance_spectral_radius, distance_spectrum,
     wiener_index,

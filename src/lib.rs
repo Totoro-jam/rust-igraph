@@ -685,6 +685,9 @@ pub use crate::algorithms::properties::diffusion::{
 pub use crate::algorithms::properties::distance_distribution_ratios::{
     diameter_ratio, distance_kurtosis, distance_skewness, mean_eccentricity_ratio,
 };
+pub use crate::algorithms::properties::distance_profile::{
+    distance_gini, hop_entropy, reach_decay,
+};
 pub use crate::algorithms::properties::distance_spectrum::{
     distance_energy, distance_estrada_index, distance_spectral_radius, distance_spectrum,
     wiener_index,
