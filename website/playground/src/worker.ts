@@ -111,13 +111,19 @@ function runWasm(
         resultJson = graph.walktrap();
         break;
       case 'leiden': {
-        const weights = params.weights && params.weights.length === edges.length
-          ? new Float64Array(params.weights)
-          : new Float64Array(edges.length).fill(1.0);
         const typedGraph = graph as LeidenWeightedGraph;
-        resultJson = typeof typedGraph.leidenWeighted === 'function'
-          ? typedGraph.leidenWeighted(weights)
-          : graph.leiden();
+        if (params.weights) {
+          const ecount = graph.ecount();
+          if (params.weights.length !== ecount) {
+            throw new Error(`Leiden weights length mismatch: expected ${ecount}, got ${params.weights.length}`);
+          }
+          if (typeof typedGraph.leidenWeighted !== 'function') {
+            throw new Error('Weighted Leiden is not supported by the loaded WASM module');
+          }
+          resultJson = typedGraph.leidenWeighted(new Float64Array(params.weights));
+        } else {
+          resultJson = graph.leiden();
+        }
         break;
       }
       case 'fast_greedy':
