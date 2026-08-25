@@ -61,6 +61,18 @@ impl WasmGraph {
         serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
     }
 
+    #[wasm_bindgen(js_name = "leidenWeighted")]
+    pub fn leiden_weighted(&self, weights: &[f64]) -> Result<String, JsError> {
+        let r = rust_igraph::leiden_weighted(&self.inner, weights)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        let result = LeidenOutput {
+            membership: r.membership,
+            quality: r.quality,
+            nb_clusters: r.nb_clusters,
+        };
+        serde_json::to_string(&result).map_err(|e| JsError::new(&e.to_string()))
+    }
+
     #[wasm_bindgen(js_name = "fastGreedy")]
     pub fn fast_greedy(&self) -> Result<String, JsError> {
         let r = fast_greedy_modularity(&self.inner).map_err(|e| JsError::new(&e.to_string()))?;

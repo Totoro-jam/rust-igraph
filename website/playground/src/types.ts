@@ -103,6 +103,7 @@ export interface AlgoParams {
   source?: number;
   target?: number;
   damping?: number;
+  weights?: number[];
 }
 
 export interface AlgoResultScores {

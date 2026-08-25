@@ -4,6 +4,9 @@ import wasmInit, { WasmGraph as WasmGraphClass } from '@graphrs/igraph-wasm';
 let WasmGraph: typeof WasmGraphClass | null = null;
 
 type WasmGraphInstance = InstanceType<typeof WasmGraphClass>;
+type LeidenWeightedGraph = WasmGraphInstance & {
+  leidenWeighted?: (weights: Float64Array) => string;
+};
 
 async function initWasm(): Promise<boolean> {
   try {
@@ -107,9 +110,22 @@ function runWasm(
       case 'walktrap':
         resultJson = graph.walktrap();
         break;
-      case 'leiden':
-        resultJson = graph.leiden();
+      case 'leiden': {
+        const typedGraph = graph as LeidenWeightedGraph;
+        if (params.weights) {
+          const ecount = graph.ecount();
+          if (params.weights.length !== ecount) {
+            throw new Error(`Leiden weights length mismatch: expected ${ecount}, got ${params.weights.length}`);
+          }
+          if (typeof typedGraph.leidenWeighted !== 'function') {
+            throw new Error('Weighted Leiden is not supported by the loaded WASM module');
+          }
+          resultJson = typedGraph.leidenWeighted(new Float64Array(params.weights));
+        } else {
+          resultJson = graph.leiden();
+        }
         break;
+      }
       case 'fast_greedy':
         resultJson = graph.fastGreedy();
         break;
